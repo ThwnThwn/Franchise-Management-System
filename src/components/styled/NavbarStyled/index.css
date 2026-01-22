@@ -1,0 +1,3 @@
+.navbar-no-saturate {
+    --tw-backdrop-saturate: unset !important;
+}
