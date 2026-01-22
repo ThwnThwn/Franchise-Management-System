@@ -2,13 +2,13 @@ package routes
 
 import (
 	"api-gateway/config"
+	"api-gateway/internal/handlers"
 	"api-gateway/internal/middleware"
-	"api-gateway/internal/proxy"
 
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRouter(cfg *config.Config) *gin.Engine {
+func SetupRouter(cfg *config.Config, calcHandler *handlers.CalcHandler) *gin.Engine {
 	r := gin.Default()
 
 	// Apply Global Middleware
@@ -19,11 +19,23 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 		c.JSON(200, gin.H{"status": "Gateway is running", "port": cfg.Port})
 	})
 
-	// --- NHÓM API SALES SERVICE ---
-	salesGroup := r.Group("/api/sales")
+	api := r.Group("/api")
 	{
-		salesGroup.Any("/*proxyPath", proxy.NewReverseProxy(cfg.SalesService))
+		calc := api.Group("/calc")
+		{
+			calc.POST("/add", calcHandler.AddNumbers)
+		}
+
+		// Sau này thêm product, sales vào đây:
+		// product := api.Group("/products")
+		// ...
 	}
+
+	// --- NHÓM API SALES SERVICE ---
+	// salesGroup := r.Group("/api/calc")
+	// {
+	// 	salesGroup.Any("/*proxyPath", proxy.NewReverseProxy(cfg.CalcServiceUrl))
+	// }
 
 	return r
 }

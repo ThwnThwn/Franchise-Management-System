@@ -8,8 +8,8 @@ import (
 )
 
 type Config struct {
-	Port         string
-	SalesService string
+	Port           string
+	CalcServiceUrl string
 }
 
 func LoadConfig() *Config {
@@ -24,8 +24,8 @@ func LoadConfig() *Config {
 	}
 
 	return &Config{
-		Port:         getEnv("GATEWAY_PORT", "8080"),
-		SalesService: getEnv("SALES_SERVICE_URL", "http://localhost:5001"),
+		Port:           getEnv("GATEWAY_PORT", "8080"),
+		CalcServiceUrl: getEnv("CALC_SERVICE_URL", "localhost:5099"),
 	}
 }
 
