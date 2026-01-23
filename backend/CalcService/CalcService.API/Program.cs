@@ -10,10 +10,15 @@ namespace CalcService
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            // Env.Load("../../.env");
+            // builder.Configuration.AddEnvironmentVariables();
+
             builder.Services.AddGrpc();
 
+            //var calcPort = builder.Configuration["CALC_PORT"];
             builder.WebHost.ConfigureKestrel(options =>
             {
+                //options.Listen(IPAddress.Any, calcPort, listenOptions =>
                 options.Listen(IPAddress.Any, 5099, listenOptions =>
                 {
                     listenOptions.Protocols = HttpProtocols.Http2;

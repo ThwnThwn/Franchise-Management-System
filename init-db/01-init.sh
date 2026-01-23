@@ -36,12 +36,6 @@ run_sql_script() {
 
 # Core Services
 create_db_safe "identity_db"
-create_db_safe "product_db"
-create_db_safe "sales_db"
-create_db_safe "inventory_db" 
-create_db_safe "supplier_db"
-create_db_safe "warehouse_db"
-create_db_safe "franchise_db"
 
 run_sql_script "identity_db" "/docker-entrypoint-initdb.d/schemas/02-identity.sql"
 
