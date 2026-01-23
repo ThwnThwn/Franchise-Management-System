@@ -7,7 +7,10 @@ require (
 	github.com/joho/godotenv v1.5.1
 )
 
-require google.golang.org/genproto/googleapis/rpc v0.0.0-20251029180050-ab9386a59fda // indirect
+require (
+	github.com/google/wire v0.7.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20251029180050-ab9386a59fda // indirect
+)
 
 require (
 	github.com/bytedance/gopkg v0.1.3 // indirect

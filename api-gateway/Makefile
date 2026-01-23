@@ -2,6 +2,8 @@ include ../.env
 export
 
 BINARY_NAME=main
+WIRE_PATH=./internal/di
+
 
 .PHONY: build
 build:
@@ -14,3 +16,7 @@ run: build
 .PHONY: test
 test:
 	@go test -v ./...
+
+.PHONY: wire
+wire:
+	@wire $(if $(filter-out $@,$(MAKECMDGOALS)),$(WIRE_PATH)/$(filter-out $@,$(MAKECMDGOALS)),$(WIRE_PATH)/...)
