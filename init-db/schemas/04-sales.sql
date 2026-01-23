@@ -2,24 +2,41 @@
 
 CREATE TABLE IF NOT EXISTS orders (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    order_code VARCHAR(50) NOT NULL UNIQUE,
-    order_status VARCHAR(30) NOT NULL, -- NEW, PAID, CANCELLED, COMPLETED
-    total_amount DECIMAL(12,2) NOT NULL,
+    code VARCHAR(50) NOT NULL, -- (Human Readable), example: ORD-1234-5678
 
-    is_deleted BOOLEAN DEFAULT FALSE,
+    subtotal DECIMAL(12,2) NOT NULL,
+    tax DECIMAL(12,2) NOT NULL DEFAULT 0,
+    total_amount DECIMAL(12,2) NOT NULL,
+    paid_amount DECIMAL(12,2),
+    
+    payment_method INT, -- 0: Cash, 1: VNPay
+    status INT NOT NULL DEFAULT 0, -- Pending, Paid, Cancelled
+    paid_at TIMESTAMP WITH TIME ZONE,
+    notes VARCHAR(255),
+    
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    is_deleted BOOLEAN DEFAULT FALSE
 );
+CREATE UNIQUE INDEX idx_orders_code ON orders(code);
 
 CREATE TABLE IF NOT EXISTS order_items (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    order_id UUID NOT NULL,   
-    variant_id UUID NOT NULL,
+    
     quantity INT NOT NULL CHECK (quantity > 0),
     unit_price DECIMAL(12,2) NOT NULL,
-    total_price DECIMAL(12,2) NOT NULL,
+
+    product_name VARCHAR(255) NOT NULL,
+    sku VARCHAR(100) NOT NULL,
+    image_url VARCHAR(500), 
     
-    is_deleted BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    
+    product_id UUID NOT NULL, 
+    variant_id UUID NOT NULL, 
+    order_id UUID NOT NULL,
+    CONSTRAINT fk_order_items_order FOREIGN KEY (order_id) REFERENCES orders(id)
 );
+CREATE INDEX idx_order_items_order ON order_items(order_id);
