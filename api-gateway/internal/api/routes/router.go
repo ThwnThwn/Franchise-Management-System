@@ -2,13 +2,20 @@ package routes
 
 import (
 	"api-gateway/config"
-	"api-gateway/internal/handlers"
-	"api-gateway/internal/middleware"
+	"api-gateway/internal/api/handlers"
+	"api-gateway/internal/api/middleware"
+	"api-gateway/internal/api/routes/calc"
 
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRouter(cfg *config.Config, calcHandler *handlers.CalcHandler) *gin.Engine {
+type RouterGroup struct {
+	Calc calc.RouterGroup
+}
+
+var RouterGroupApp = new(RouterGroup)
+
+func NewRouter(cfg *config.Config, h *handlers.AppHandlers) *gin.Engine {
 	r := gin.Default()
 
 	// Apply Global Middleware
@@ -19,16 +26,11 @@ func SetupRouter(cfg *config.Config, calcHandler *handlers.CalcHandler) *gin.Eng
 		c.JSON(200, gin.H{"status": "Gateway is running", "port": cfg.Port})
 	})
 
-	api := r.Group("/api")
-	{
-		calc := api.Group("/calc")
-		{
-			calc.POST("/add", calcHandler.AddNumbers)
-		}
+	calcGroup := RouterGroupApp.Calc
 
-		// Sau này thêm product, sales vào đây:
-		// product := api.Group("/products")
-		// ...
+	MainGroup := r.Group("/api")
+	{
+		calcGroup.NewCalcRouter(cfg, MainGroup, h.CalcHandler)
 	}
 
 	// --- NHÓM API SALES SERVICE ---
