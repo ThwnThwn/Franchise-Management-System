@@ -36,19 +36,18 @@ run_sql_script() {
 
 # Core Services
 create_db_safe "identity_db"
-create_db_safe "categories_db"
-create_db_safe "products_db"
-create_db_safe "product_variants_db"
-create_db_safe "orders_db"
-create_db_safe "order_items_db"
+create_db_safe "product_db"
+create_db_safe "sale_db"
 
 
 run_sql_script "identity_db" "/docker-entrypoint-initdb.d/schemas/02-identity.sql"
-run_sql_script "categories_db" "/docker-entrypoint-initdb.d/schemas/03-categories.sql"
-run_sql_script "products_db" "/docker-entrypoint-initdb.d/schemas/04-products.sql"
-run_sql_script "product_variants_db" "/docker-entrypoint-initdb.d/schemas/05-product_variants.sql"
-run_sql_script "orders_db" "/docker-entrypoint-initdb.d/schemas/06-orders.sql"
-run_sql_script "order_items_db" "/docker-entrypoint-initdb.d/schemas/07-order_items.sql"
+
+run_sql_script "product_db" "/docker-entrypoint-initdb.d/schemas/03-categories.sql"
+run_sql_script "product_db" "/docker-entrypoint-initdb.d/schemas/04-products.sql"
+run_sql_script "product_db" "/docker-entrypoint-initdb.d/schemas/05-product_variants.sql"
+
+run_sql_script "sale_db" "/docker-entrypoint-initdb.d/schemas/06-orders.sql"
+run_sql_script "sale_db" "/docker-entrypoint-initdb.d/schemas/07-order_items.sql"
 
 
 echo "Database initialization process finished!"
