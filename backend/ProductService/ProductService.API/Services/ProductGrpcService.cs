@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -22,14 +23,15 @@ public class ProductGrpcService : ProductGrpc.ProductGrpcBase
 
     public override async Task<GetProductsReply> GetProducts(GetProductsRequest request, ServerCallContext context)
     {
+        // Logic giống parse categoryId (có thể null)
         Guid? categoryId = null;
         if (!string.IsNullOrWhiteSpace(request.CategoryId))
         {
-            if (!Guid.TryParse(request.CategoryId, out var parsed))
+            if (Guid.TryParse(request.CategoryId, out var parsed))
             {
-                throw new RpcException(new Status(StatusCode.InvalidArgument, "CategoryId passed is not a valid GUID"));
+                categoryId = parsed;
             }
-            categoryId = parsed;
+            // Nếu parse không được, categoryId vẫn là null 
         }
 
         var query = new GetProductsQuery(categoryId);
