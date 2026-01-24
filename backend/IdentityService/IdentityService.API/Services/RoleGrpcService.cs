@@ -3,9 +3,11 @@ using IdentityService.Application.Abstrations;
 using IdentityService.Application.Dtos.Role.Request;
 using IdentityService.Application.Dtos.Role.Respone;
 using IdentityService.Grpc.Protos.Role;
+using Microsoft.AspNetCore.Authorization;
 
 namespace IdentityService.Grpc.Services;
 
+[Authorize]
 public class RoleGrpcService : RoleGrpc.RoleGrpcBase
 {
     private readonly IRoleService _roleService;

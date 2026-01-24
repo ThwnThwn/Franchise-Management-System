@@ -3,9 +3,11 @@ using IdentityService.Application.Abstrations;
 using IdentityService.Application.Dtos.User.Request;
 using IdentityService.Application.Dtos.User.Respone;
 using IdentityService.Grpc.Protos.User;
+using Microsoft.AspNetCore.Authorization;
 
 namespace IdentityService.Grpc.Services;
 
+[Authorize]
 public class UserGrpcService : UserGrpc.UserGrpcBase
 {
     private readonly IUserService _userService;

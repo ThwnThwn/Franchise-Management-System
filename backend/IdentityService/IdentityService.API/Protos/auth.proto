@@ -28,9 +28,8 @@ message RefreshTokenRequest {
 }
 
 message LogoutRequest {
-  string refreshToken = 1;
-  // optional: can be empty string if not used
-  string accessToken = 2;
+  string accessToken = 1;
+  string refreshToken = 2;
 }
 
 message LogoutResponse {
