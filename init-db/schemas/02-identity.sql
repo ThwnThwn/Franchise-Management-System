@@ -1,16 +1,49 @@
 -- Extention for gene uuid
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- 1. Users table (example)
--- CREATE TABLE IF NOT EXISTS users (
---     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
---     username VARCHAR(50) UNIQUE NOT NULL,
---     password_hash VARCHAR(255) NOT NULL,
---     full_name VARCHAR(100) NOT NULL,
---     email VARCHAR(100) UNIQUE,
---     phone_number VARCHAR(15),
---     status VARCHAR(20) DEFAULT 'ACTIVE', -- ACTIVE, LOCKED
---     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
---     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
---     is_deleted BOOLEAN DEFAULT FALSE
- );
+-- TABLE ROLES
+CREATE TABLE IF NOT EXISTS roles (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+
+    name VARCHAR(50) NOT NULL,
+    slug VARCHAR(50) NOT NULL UNIQUE,
+    description TEXT,
+
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    is_deleted BOOLEAN DEFAULT FALSE
+);
+-- TABLE USERS
+CREATE TABLE IF NOT EXISTS users (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+
+    email VARCHAR(255) NOT NULL UNIQUE,
+    username VARCHAR(70),
+    password VARCHAR(255) NOT NULL,
+    phone VARCHAR(20),
+    address TEXT,
+    is_blocked BOOLEAN DEFAULT FALSE,
+
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    is_deleted BOOLEAN DEFAULT FALSE,
+
+    role_id UUID,
+    CONSTRAINT fk_users_role FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE SET NULL
+);
+
+-- TABLE TOKEN
+CREATE TABLE IF NOT EXISTS refresh_tokens (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+
+    token TEXT NOT NULL UNIQUE,
+    issued_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    is_revoked BOOLEAN DEFAULT FALSE,
+
+    user_id UUID NOT NULL,
+    CONSTRAINT fk_tokens_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
