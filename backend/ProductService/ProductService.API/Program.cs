@@ -1,9 +1,13 @@
 using System.Reflection;
 using AutoMapper;
+using Ardalis.Result;
 using DotNetEnv;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using ProductService.API.Mapping;
 using ProductService.API.Services;
+using ProductService.Application.Features.Products.GetById;
+using ProductService.Application.Features.Products.GetList;
 using ProductService.Application.Interfaces;
 using ProductService.Application.Mapping;
 using ProductService.Application.Services;
@@ -54,7 +58,7 @@ namespace ProductService
                 provider.GetRequiredService<ProductDbContext>());
 
 
-            // Configure AutoMapper (REQUIRED - Services use IMapper)
+            // Configure AutoMapper
             // Auto scan all Profile classes from API and Application assemblies
             var apiAssembly = Assembly.GetExecutingAssembly();
             var applicationAssembly = typeof(ProductMappingProfile).Assembly;
@@ -68,6 +72,9 @@ namespace ProductService
                 });
                 return cfg.CreateMapper();
             });
+
+            // Register MediatR (scan Application assembly)
+            builder.Services.AddMediatR(typeof(GetProductByIdQuery).Assembly);
 
             // Register repositories
             builder.Services.AddScoped<IProductRepository, ProductRepository>();

@@ -6,4 +6,3 @@ public class GetProductsRequest
 {
     public Guid? CategoryId { get; set; }
 }
-

@@ -3,19 +3,20 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Grpc.Core;
-using ProductService.Application.Services;
-using AppRequests = ProductService.Application.DTOs.Requests;
+using MediatR;
+using ProductService.Application.Features.Products.GetById;
+using ProductService.Application.Features.Products.GetList;
 
 namespace ProductService.API.Services;
 
 public class ProductGrpcService : ProductGrpc.ProductGrpcBase
 {
-    private readonly ProductApplicationService _productService;
+    private readonly IMediator _mediator;
     private readonly IMapper _mapper;
 
-    public ProductGrpcService(ProductApplicationService productService, IMapper mapper)
+    public ProductGrpcService(IMediator mediator, IMapper mapper)
     {
-        _productService = productService;
+        _mediator = mediator;
         _mapper = mapper;
     }
 
@@ -26,19 +27,26 @@ public class ProductGrpcService : ProductGrpc.ProductGrpcBase
         {
             if (!Guid.TryParse(request.CategoryId, out var parsed))
             {
-                throw new RpcException(new Status(StatusCode.InvalidArgument, "category_id must be a valid GUID"));
+                throw new RpcException(new Status(StatusCode.InvalidArgument, "CategoryId passed is not a valid GUID"));
             }
             categoryId = parsed;
         }
 
-        var result = await _productService.GetProductsAsync(new AppRequests.GetProductsRequest { CategoryId = categoryId });
+        var query = new GetProductsQuery(categoryId);
+        var result = await _mediator.Send(query, context.CancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            var errorMessage = result.Errors.FirstOrDefault() ?? "Failed to get products";
+            throw new RpcException(new Status(StatusCode.Internal, errorMessage));
+        }
 
         var reply = new GetProductsReply
         {
-            TotalCount = result.TotalCount
+            TotalCount = result.Value.TotalCount
         };
 
-        reply.Products.AddRange(_mapper.Map<List<Product>>(result.Products));
+        reply.Products.AddRange(_mapper.Map<List<Product>>(result.Value.Products));
 
         return reply;
     }
@@ -50,15 +58,21 @@ public class ProductGrpcService : ProductGrpc.ProductGrpcBase
             throw new RpcException(new Status(StatusCode.InvalidArgument, "id must be a valid GUID"));
         }
 
-        var product = await _productService.GetProductByIdAsync(new AppRequests.GetProductByIdRequest { Id = id });
-        if (product == null)
+        var query = new GetProductByIdQuery(id);
+        var result = await _mediator.Send(query, context.CancellationToken);
+
+        if (!result.IsSuccess)
         {
-            throw new RpcException(new Status(StatusCode.NotFound, "Product not found"));
+            if (result.Status == Ardalis.Result.ResultStatus.NotFound)
+            {
+                throw new RpcException(new Status(StatusCode.NotFound, result.Errors.FirstOrDefault() ?? "Product not found"));
+            }
+            throw new RpcException(new Status(StatusCode.Internal, result.Errors.FirstOrDefault() ?? "Failed to get product"));
         }
 
         var reply = new GetProductByIdReply
         {
-            Product = _mapper.Map<Product>(product)
+            Product = _mapper.Map<Product>(result.Value)
         };
 
         return reply;
