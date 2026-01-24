@@ -1,7 +1,7 @@
 using System.Reflection;
 using AutoMapper;
+using DotNetEnv;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using ProductService.API.Mapping;
 using ProductService.API.Services;
 using ProductService.Application.Interfaces;
@@ -14,9 +14,15 @@ namespace ProductService
 {
     public class Program
     {
-        public static async Task Main(string[] args)
+        public static void Main(string[] args)
         {
+            // Load .env file
+            Env.Load("../.env");
+
             var builder = WebApplication.CreateBuilder(args);
+
+            // Add environment variables to configuration
+            builder.Configuration.AddEnvironmentVariables();
 
             // Add services to the container.
             builder.Services.AddGrpc();
@@ -36,16 +42,23 @@ namespace ProductService
                 });
             });
 
-            // Configure database context
-            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+            // Connect Db
+            var connectionString = builder.Configuration["DATABASE_CONNECTION_STRING"]
+                ?? "Host=localhost;Port=5432;Database=product_db;Username=admin;Password=12345";
+
             builder.Services.AddDbContext<ProductDbContext>(options =>
                 options.UseNpgsql(connectionString));
+
+            // Register interface
+            builder.Services.AddScoped<IProductDbContext>(provider =>
+                provider.GetRequiredService<ProductDbContext>());
+
 
             // Configure AutoMapper (REQUIRED - Services use IMapper)
             // Auto scan all Profile classes from API and Application assemblies
             var apiAssembly = Assembly.GetExecutingAssembly();
             var applicationAssembly = typeof(ProductMappingProfile).Assembly;
-            
+
             builder.Services.AddSingleton<IMapper>(_ =>
             {
                 var cfg = new MapperConfiguration(c =>
@@ -74,25 +87,6 @@ namespace ProductService
             });
 
             var app = builder.Build();
-
-            // Seed database (only in Development)
-            if (app.Environment.IsDevelopment())
-            {
-                using (var scope = app.Services.CreateScope())
-                {
-                    var services = scope.ServiceProvider;
-                    try
-                    {
-                        var context = services.GetRequiredService<ProductDbContext>();
-                        await DbInitializer.SeedAsync(context);
-                    }
-                    catch (Exception ex)
-                    {
-                        var logger = services.GetRequiredService<ILogger<Program>>();
-                        logger.LogError(ex, "An error occurred while seeding the database.");
-                    }
-                }
-            }
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())

@@ -5,7 +5,7 @@ using ProductService.Domain.Entities;
 
 namespace ProductService.Infrastructure.Data;
 
-public partial class ProductDbContext : DbContext
+public partial class ProductDbContext : DbContext, IProductDbContext
 {
     public ProductDbContext(DbContextOptions<ProductDbContext> options)
         : base(options)
