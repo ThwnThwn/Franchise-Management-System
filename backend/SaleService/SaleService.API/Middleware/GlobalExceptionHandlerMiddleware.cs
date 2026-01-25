@@ -3,7 +3,7 @@ using System.Text.Json;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 
-namespace SaleService.API.Middleware;
+namespace SalesService.API.Middleware;
 
 public class GlobalExceptionHandlerMiddleware : IMiddleware
 {
@@ -26,7 +26,7 @@ public class GlobalExceptionHandlerMiddleware : IMiddleware
             var detail = string.Join("; ", errors);
             await WriteProblemDetailsAsync(context, 400, "Validation Failed", detail);
         }
-        catch (System.ComponentModel.DataAnnotations.ValidationException vEx) // DataAnnotations
+        catch (ValidationException vEx) // DataAnnotations
         {
             await WriteProblemDetailsAsync(context, 400, "Validation Failed", vEx.Message);
         }

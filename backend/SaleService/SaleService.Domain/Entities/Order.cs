@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using SaleService.Domain.Enums;
+using SalesService.Domain.Enums;
 
-namespace SaleService.Domain.Entities;
+namespace SalesService.Domain.Entities;
 
 public partial class Order
 {

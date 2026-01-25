@@ -35,8 +35,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SaleService.Application\SaleService.Application.csproj" />
-    <ProjectReference Include="..\SaleService.Infrastructure\SaleService.Infrastructure.csproj" />
+    <ProjectReference Include="..\SaleService.Application\SalesService.Application.csproj" />
+    <ProjectReference Include="..\SaleService.Infrastructure\SalesService.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

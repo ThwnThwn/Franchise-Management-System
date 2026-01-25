@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using SaleService.Domain.Entities;
+using SalesService.Domain.Entities;
 
-namespace SaleService.Infrastructure.Data;
+namespace SalesService.Infrastructure.Data;
 
 public interface ISalesDbContext
 {
