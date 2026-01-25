@@ -1,3 +1,4 @@
+import { LoginModal } from "@/features/auth/components"
 import React from "react"
 
 /* ========================= A ========================= */
@@ -9,6 +10,7 @@ export const Modals = () => {
             {/* <ForgotPasswordModal />
             <LoginModal />
             <RegisterModal /> */}
+            <LoginModal />
         </div>
     )
 }
