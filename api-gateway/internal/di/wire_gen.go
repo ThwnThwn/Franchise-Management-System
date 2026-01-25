@@ -9,25 +9,36 @@ package di
 import (
 	"api-gateway/config"
 	"api-gateway/internal/api/handlers"
+	"api-gateway/internal/api/handlers/calc"
 	"api-gateway/internal/api/routes"
 	"api-gateway/internal/application/usecases"
 	"api-gateway/internal/bootstrap"
 	"api-gateway/internal/infrastructure/grpc_clients"
+	"api-gateway/internal/infrastructure/grpc_clients/identity"
 )
 
 // Injectors from wire.go:
 
 // InitializeApp nằm ở package 'di', trả về 'bootstrap.App'
 func InitializeApp(cfg *config.Config) (*bootstrap.App, error) {
-	string2 := cfg.CalcServiceUrl
-	iCalcService, err := grpc_clients.NewCalcGrpcClient(string2)
+	calcServiceUrl := cfg.CalcServiceUrl
+	iCalcService, err := grpc_clients.NewCalcGrpcClient(calcServiceUrl)
 	if err != nil {
 		return nil, err
 	}
 	iCalcUseCase := usecases.NewCalcUseCase(iCalcService)
-	calcHandler := handlers.NewCalcHandler(iCalcUseCase)
+	calcHandler := calc.NewCalcHandler(iCalcUseCase)
+	identityServiceUrl := cfg.IdentityServiceUrl
+	identityClientFactory, err := identity.NewIdentityClientFactory(identityServiceUrl)
+	if err != nil {
+		return nil, err
+	}
+	iAuthService := identity.ProvideAuthClient(identityClientFactory)
+	iAuthUseCase := usecases.NewAuthUseCase(iAuthService)
+	authHandler := handlers.NewAuthHandler(iAuthUseCase)
 	appHandlers := &handlers.AppHandlers{
 		CalcHandler: calcHandler,
+		AuthHandler: authHandler,
 	}
 	engine := routes.NewRouter(cfg, appHandlers)
 	app := bootstrap.NewApp(cfg, engine)

@@ -5,7 +5,7 @@ option go_package = "api-gateway/pkg/pb/identity";
 
 package identity.auth;
 
-import "identity-service/user.proto";
+import "identity/user.proto";
 
 service AuthGrpc {
   rpc Login(LoginRequest) returns (LoginResponse);

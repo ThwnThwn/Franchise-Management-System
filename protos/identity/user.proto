@@ -5,20 +5,19 @@ option go_package = "api-gateway/pkg/pb/identity";
 
 package identity.user;
 
-import "identity-service/role.proto";
+import "identity/role.proto";
+import "google/protobuf/empty.proto";
 
 service UserGrpc {
   rpc CustomerCreate(CustomerCreateUserRequest) returns (UserResponse);
   rpc AdminCreate(AdminCreateUserRequest) returns (UserResponse);
 
   rpc GetById(GetUserByIdRequest) returns (UserResponse);
-  rpc GetAll(Empty) returns (UserListResponse);
+  rpc GetAll(google.protobuf.Empty) returns (UserListResponse);
 
   rpc Update(UpdateUserRequest) returns (UserResponse);
   rpc Delete(DeleteUserRequest) returns (DeleteUserResponse);
 }
-
-message Empty {}
 
 message GetUserByIdRequest {
   string id = 1;
