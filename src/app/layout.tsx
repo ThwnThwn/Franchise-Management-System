@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google"
 import "./globals.css"
 import React from "react"
 import { AppProviders } from "@/providers"
-import { ClientHydration } from "@/components"
+import { ClientHydration, Modals } from "@/components"
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -32,7 +32,10 @@ export default function RootLayout({
                 min-h-screen min-w-xs max-w-screen"
             >
                 <ClientHydration>
-                    <AppProviders>{children}</AppProviders>
+                    <AppProviders>
+                        {children}
+                        <Modals />
+                    </AppProviders>
                 </ClientHydration>
             </body>
         </html>
