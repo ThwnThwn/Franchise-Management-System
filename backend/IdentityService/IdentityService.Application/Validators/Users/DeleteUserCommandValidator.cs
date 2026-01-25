@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using IdentityService.Application.Features.Users.Commands.Delete;
+using IdentityService.Application.Features.Users.Commands.DeleteUser;
 
 namespace IdentityService.Application.Validators.Users;
 

@@ -9,7 +9,7 @@ using MediatR;
 using System;
 using System.Security.Principal;
 
-namespace IdentityService.Application.Features.Users.Commands.Update;
+namespace IdentityService.Application.Features.Users.Commands.UpdateUser;
 
 public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, UserRep?>
 {

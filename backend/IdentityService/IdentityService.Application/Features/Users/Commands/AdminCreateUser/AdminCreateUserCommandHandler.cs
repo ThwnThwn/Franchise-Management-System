@@ -6,7 +6,7 @@ using IdentityService.Application.Persistences.Repositories;
 using IdentityService.Domain.Entities;
 using MediatR;
 
-namespace IdentityService.Application.Features.Users.Commands.AdminCreate;
+namespace IdentityService.Application.Features.Users.Commands.AdminCreateUser;
 
 public class AdminCreateUserCommandHandler
     : IRequestHandler<AdminCreateUserCommand, UserRep>

@@ -48,7 +48,7 @@ public class GrpcExceptionInterceptor : Interceptor
         }
         catch (RpcException)
         {
-            throw; 
+            throw;
         }
         catch (Exception ex)
         {

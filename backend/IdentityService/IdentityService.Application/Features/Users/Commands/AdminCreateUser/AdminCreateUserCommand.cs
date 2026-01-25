@@ -2,6 +2,6 @@
 using IdentityService.Application.Dtos.User.Respone;
 using MediatR;
 
-namespace IdentityService.Application.Features.Users.Commands.AdminCreate;
+namespace IdentityService.Application.Features.Users.Commands.AdminCreateUser;
 
 public record AdminCreateUserCommand(CreateUserReq Request) : IRequest<UserRep>;

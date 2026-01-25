@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using IdentityService.Application.Features.Users.Commands.AdminCreate;
+using IdentityService.Application.Features.Users.Commands.AdminCreateUser;
 
 namespace IdentityService.Application.Validators.Users;
 

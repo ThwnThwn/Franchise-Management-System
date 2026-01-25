@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using IdentityService.Application.Features.Users.Commands.Update;
+using IdentityService.Application.Features.Users.Commands.UpdateUser;
 
 namespace IdentityService.Application.Validators.Users;
 

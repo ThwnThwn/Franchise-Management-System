@@ -1,7 +1,7 @@
 ﻿using IdentityService.Application.Persistences.Repositories;
 using MediatR;
 
-namespace IdentityService.Application.Features.Users.Commands.Delete;
+namespace IdentityService.Application.Features.Users.Commands.DeleteUser;
 
 public class DeleteUserCommandHandler : IRequestHandler<DeleteUserCommand, bool>
 {

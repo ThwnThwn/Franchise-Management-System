@@ -7,18 +7,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace IdentityService.Infrastructure;
+namespace IdentityService.Infrastructure.DependencyInjection;
 
 public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(
-        this IServiceCollection services,
-        IConfiguration configuration)
+        this IServiceCollection services, string identityDbConn)
     {
-        services.AddDbContext<AppDbContext>(opt =>
-        {
-            opt.UseNpgsql(configuration.GetConnectionString("DefaultConnection"));
-        });
+        services.AddDbContext<IAppDbContext, AppDbContext>(opt => opt.UseNpgsql(identityDbConn));
 
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IRoleRepository, RoleRepository>();

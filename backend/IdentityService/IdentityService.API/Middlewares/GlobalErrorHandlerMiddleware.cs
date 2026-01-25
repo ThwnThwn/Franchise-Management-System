@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
 
-namespace homeword01_be.Middlewares
+namespace IdentityService.API.Middlewares
 {
     public class GlobalErrorHandlerMiddleware : IMiddleware
     {

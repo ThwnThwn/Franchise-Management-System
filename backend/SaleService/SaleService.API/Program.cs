@@ -15,7 +15,7 @@ using SaleService.Application.Interfaces.Orders;
 using SaleService.Application.Interfaces.Products;
 using SaleService.Application.Mapping.Orders;
 
-namespace SaleService;
+namespace SaleService.API;
 
 public class Program
 {
@@ -43,7 +43,7 @@ public class Program
         // Add services to the container.
         builder.Services.AddGrpc(options =>
         {
-            options.Interceptors.Add<API.Interceptors.GrpcExceptionInterceptor>();
+            options.Interceptors.Add<Interceptors.GrpcExceptionInterceptor>();
         });
         builder.Services.AddControllers();
 
@@ -72,7 +72,7 @@ public class Program
         // Configure AutoMapper
         var applicationAssembly = typeof(OrderMappingProfile).Assembly;
 
-        builder.Services.AddSingleton<IMapper>(_ =>
+        builder.Services.AddSingleton(_ =>
         {
             var cfg = new MapperConfiguration(c =>
             {
@@ -94,7 +94,7 @@ public class Program
         builder.Services.AddSingleton<GlobalExceptionHandlerMiddleware>();
 
         // Register gRPC Exception Interceptor
-        builder.Services.AddSingleton<API.Interceptors.GrpcExceptionInterceptor>();
+        builder.Services.AddSingleton<Interceptors.GrpcExceptionInterceptor>();
 
         // Add CORS
         builder.Services.AddCors(options =>
@@ -127,7 +127,7 @@ public class Program
         app.UseAuthorization();
 
         app.MapControllers();
-        app.MapGrpcService<SaleService.API.Services.Orders.OrderGrpcService>();
+        app.MapGrpcService<OrderGrpcService>();
         app.MapGet("/", () => "Sale Service API is running. Visit /swagger for API documentation.");
 
         app.Run();

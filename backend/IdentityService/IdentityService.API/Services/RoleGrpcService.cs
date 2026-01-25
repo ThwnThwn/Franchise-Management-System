@@ -9,7 +9,7 @@ using IdentityService.Grpc.Protos.Role;
 using Microsoft.AspNetCore.Authorization;
 using MediatR;
 
-namespace IdentityService.Grpc.Services;
+namespace IdentityService.API.Services;
 
 [Authorize]
 public class RoleGrpcService : RoleGrpc.RoleGrpcBase

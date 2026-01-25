@@ -1,8 +1,8 @@
 ﻿using System.Net;
-using CalcService.Services;
+using CalcService.API.Services;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 
-namespace CalcService
+namespace CalcService.API
 {
     public class Program
     {

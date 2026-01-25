@@ -6,19 +6,19 @@ using Microsoft.EntityFrameworkCore;
 using ProductService.API.Middleware;
 using ProductService.API.Mapping;
 using ProductService.API.Services;
-using ProductService.Application.Interfaces;
 using ProductService.Infrastructure.Extensions;
 using ProductService.Application.Mapping;
 using ProductService.Infrastructure.Data;
 using ProductService.Infrastructure.Repositories;
+using ProductService.Application.Repositories;
 
-namespace ProductService
+namespace ProductService.API
 {
     public class Program
     {
         public static void Main(string[] args)
         {
-            // Load .env file 
+            // Load .env file
             Env.Load("../../../.env");
 
             var builder = WebApplication.CreateBuilder(args);
@@ -56,20 +56,15 @@ namespace ProductService
             // Connect Db
             var connectionString = builder.Configuration["PRODUCT_DB_CONNECTION"];
 
-            builder.Services.AddDbContext<ProductDbContext>(options =>
+            builder.Services.AddDbContext<IProductDbContext, ProductDbContext>(options =>
                 options.UseNpgsql(connectionString));
-
-            // Register interface
-            builder.Services.AddScoped<IProductDbContext>(provider =>
-                provider.GetRequiredService<ProductDbContext>());
-
 
             // Configure AutoMapper
             // Auto scan all Profile classes from API and Application assemblies
             var apiAssembly = Assembly.GetExecutingAssembly();
             var applicationAssembly = typeof(ProductMappingProfile).Assembly;
 
-            builder.Services.AddSingleton<IMapper>(_ =>
+            builder.Services.AddSingleton(_ =>
             {
                 var cfg = new MapperConfiguration(c =>
                 {
@@ -89,7 +84,7 @@ namespace ProductService
             builder.Services.AddSingleton<GlobalExceptionHandlerMiddleware>();
 
             // Register gRPC Exception Interceptor
-            builder.Services.AddSingleton<API.Interceptors.GrpcExceptionInterceptor>();
+            builder.Services.AddSingleton<Interceptors.GrpcExceptionInterceptor>();
 
             // Add CORS
             builder.Services.AddCors(options =>

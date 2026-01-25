@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using ProductService.Domain.Entities;
 
-namespace ProductService.Application.Interfaces;
+namespace ProductService.Application.Repositories;
 
 public interface IProductRepository
 {

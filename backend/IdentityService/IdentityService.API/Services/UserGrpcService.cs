@@ -10,7 +10,7 @@ using IdentityService.Grpc.Protos.User;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 
-namespace IdentityService.Grpc.Services;
+namespace IdentityService.API.Services;
 
 [Authorize]
 public class UserGrpcService : UserGrpc.UserGrpcBase
@@ -111,8 +111,8 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
             CreatedAt = user.CreatedAt.ToString("O"),
             UpdatedAt = user.UpdatedAt.ToString("O"),
             Role = user.Role == null
-                ? new IdentityService.Grpc.Protos.Role.RoleUserResponse()
-                : new IdentityService.Grpc.Protos.Role.RoleUserResponse
+                ? new Grpc.Protos.Role.RoleUserResponse()
+                : new Grpc.Protos.Role.RoleUserResponse
                 {
                     Id = user.Role.Id.ToString(),
                     Name = user.Role.Name ?? ""

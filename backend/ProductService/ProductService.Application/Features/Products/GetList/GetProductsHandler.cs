@@ -5,7 +5,7 @@ using Ardalis.Result;
 using AutoMapper;
 using MediatR;
 using ProductService.Application.Features.Products.GetList;
-using ProductService.Application.Interfaces;
+using ProductService.Application.Repositories;
 
 namespace ProductService.Application.Features.Products.GetList;
 

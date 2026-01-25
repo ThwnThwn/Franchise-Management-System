@@ -3,7 +3,7 @@ using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using IdentityService.Application.Behaviors;
 
-namespace IdentityService.Application;
+namespace IdentityService.Application.DependencyInjection;
 
 public static class DependencyInjection
 {

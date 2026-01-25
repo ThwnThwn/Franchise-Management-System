@@ -7,7 +7,7 @@ using IdentityService.Grpc.Protos.Auth;
 using IdentityService.Grpc.Protos.User;
 using MediatR;
 
-namespace IdentityService.Grpc.Services;
+namespace IdentityService.API.Services;
 
 public class AuthGrpcService : AuthGrpc.AuthGrpcBase
 {
@@ -99,7 +99,7 @@ public class AuthGrpcService : AuthGrpc.AuthGrpcBase
         }
     }
 
-    private static UserResponse MapUser(IdentityService.Application.Dtos.User.Respone.UserRep user)
+    private static UserResponse MapUser(Application.Dtos.User.Respone.UserRep user)
     {
         return new UserResponse
         {
@@ -108,8 +108,8 @@ public class AuthGrpcService : AuthGrpc.AuthGrpcBase
             Phone = user.Phone ?? "",
             Address = user.Address ?? "",
             Role = user.Role == null
-                ? new IdentityService.Grpc.Protos.Role.RoleUserResponse()
-                : new IdentityService.Grpc.Protos.Role.RoleUserResponse
+                ? new Grpc.Protos.Role.RoleUserResponse()
+                : new Grpc.Protos.Role.RoleUserResponse
                 {
                     Id = user.Role.Id.ToString(),
                     Name = user.Role.Name ?? ""

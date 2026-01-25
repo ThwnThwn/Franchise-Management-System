@@ -1,7 +1,7 @@
 ﻿using Grpc.Core;
 using CalcService.Protos;
 
-namespace CalcService.Services
+namespace CalcService.API.Services
 {
     public class CalculatorService : Calculator.CalculatorBase
     {
