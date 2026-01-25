@@ -3,19 +3,18 @@ syntax = "proto3";
 option csharp_namespace = "IdentityService.Grpc.Protos.Role";
 
 package identity.role;
-
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
 service RoleGrpc {
   rpc Create(CreateRoleRequest) returns (RoleResponse);
 
   rpc GetById(GetRoleByIdRequest) returns (RoleResponse);
-  rpc GetAll(Empty) returns (RoleListResponse);
+  rpc GetAll(google.protobuf.Empty) returns (RoleListResponse);
 
   rpc Update(UpdateRoleRequest) returns (RoleResponse);
 
   rpc Delete(DeleteRoleRequest) returns (DeleteRoleResponse);
 }
-
-message Empty {}
 
 message GetRoleByIdRequest {
   string id = 1;
@@ -51,8 +50,8 @@ message RoleResponse {
   string slug = 3;
   string description = 4;
 
-  string createdAt = 5;
-  string updatedAt = 6;
+  google.protobuf.Timestamp createdAt = 5;
+  google.protobuf.Timestamp updatedAt = 6;
 }
 
 message RoleUserResponse {

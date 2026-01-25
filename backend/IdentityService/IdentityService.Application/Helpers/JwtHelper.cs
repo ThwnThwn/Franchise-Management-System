@@ -27,14 +27,18 @@ namespace IdentityService.Application.Helpers
             _refreshTokenExpirationDays = refreshTokenExpirationDays;
         }
 
-        public string GenerateAccessToken(Guid userId)
+        public string GenerateAccessToken(Guid userId, string roleSlug)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.UTF8.GetBytes(_secretKey);
 
             var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.NameIdentifier, userId.ToString())
+            new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
+            new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
+            new Claim(ClaimTypes.Role, roleSlug),
+            new Claim("role_slug", roleSlug),
+            new Claim("type", "access")
         };
 
             var tokenDescriptor = new SecurityTokenDescriptor
@@ -61,6 +65,7 @@ namespace IdentityService.Application.Helpers
 
             var refreshTokenClaims = new[]
             {
+            new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
             new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim("type", "refresh")
@@ -112,14 +117,21 @@ namespace IdentityService.Application.Helpers
             }
         }
 
-        public Guid? GetUserIdFromToken(ClaimsPrincipal principal)
+        public (Guid? UserId, string? RoleSlug) GetUserInfoFromToken(ClaimsPrincipal principal)
         {
-            var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim != null && Guid.TryParse(userIdClaim.Value, out Guid userId))
-            {
-                return userId;
-            }
-            return null;
+            var userIdValue =
+                principal.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                ?? principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+
+            Guid? userId = null;
+            if (!string.IsNullOrEmpty(userIdValue) && Guid.TryParse(userIdValue, out var parsed))
+                userId = parsed;
+
+            var roleSlug =
+                principal.FindFirst("role_slug")?.Value
+                ?? principal.FindFirst(ClaimTypes.Role)?.Value;
+
+            return (userId, roleSlug);
         }
 
         /// <summary>

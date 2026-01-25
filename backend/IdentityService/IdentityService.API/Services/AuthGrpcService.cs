@@ -1,8 +1,9 @@
 ﻿using Grpc.Core;
+using IdentityService.Application.Features.Auth.Commands.ConfirmOtp;
 using IdentityService.Application.Features.Auth.Commands.Login;
+using IdentityService.Application.Features.Auth.Commands.Logout;
 using IdentityService.Application.Features.Auth.Commands.Register;
 using IdentityService.Application.Features.Auth.Commands.TokenRefresh;
-using IdentityService.Application.Features.Auth.Commands.Logout;
 using IdentityService.Grpc.Protos.Auth;
 using IdentityService.Grpc.Protos.User;
 using MediatR;
@@ -97,6 +98,22 @@ public class AuthGrpcService : AuthGrpc.AuthGrpcBase
         {
             throw new RpcException(new Status(StatusCode.Internal, ex.Message));
         }
+    }
+
+    public override async Task<ConfirmOtpResponse> ConfirmOtp(
+            ConfirmOtpRequest request,
+            ServerCallContext context)
+    {
+        await _mediator.Send(new ConfirmOtpCommand( new()
+        {   Email = request.Email, 
+            Otp = request.Otp 
+        }));
+
+        return new ConfirmOtpResponse
+        {
+            Success = true,
+            Message = "Confirm OTP successfully"
+        };
     }
 
     private static UserResponse MapUser(Application.Dtos.User.Respone.UserRep user)
