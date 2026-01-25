@@ -1,15 +1,13 @@
-﻿using Google.Protobuf.WellKnownTypes;
-using Grpc.Core;
-using IdentityService.Application.Dtos.Role.Respone;
+﻿using Grpc.Core;
 using IdentityService.Application.Features.Roles.Commands.CreateRole;
-using IdentityService.Application.Features.Roles.Commands.DeleteRole;
 using IdentityService.Application.Features.Roles.Commands.UpdateRole;
-using IdentityService.Application.Features.Roles.Queries.GetAllRoles;
+using IdentityService.Application.Features.Roles.Commands.DeleteRole;
 using IdentityService.Application.Features.Roles.Queries.GetRoleById;
-using IdentityService.Domain.Entities;
+using IdentityService.Application.Features.Roles.Queries.GetAllRoles;
+using IdentityService.Application.Dtos.Role.Respone;
 using IdentityService.Grpc.Protos.Role;
-using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using MediatR;
 
 namespace IdentityService.API.Services;
 
@@ -86,8 +84,8 @@ public class RoleGrpcService : RoleGrpc.RoleGrpcBase
             Name = role.Name ?? "",
             Slug = role.Slug ?? "",
             Description = role.Description ?? "",
-            CreatedAt = Timestamp.FromDateTime(role.CreatedAt.UtcDateTime),
-            UpdatedAt = Timestamp.FromDateTime(role.UpdatedAt.UtcDateTime),
+            CreatedAt = role.CreatedAt.ToString("O"),
+            UpdatedAt = role.UpdatedAt.ToString("O"),
         };
     }
 }

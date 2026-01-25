@@ -9,7 +9,6 @@ service AuthGrpc {
   rpc Register(RegisterRequest) returns (RegisterResponse);
   rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
   rpc Logout(LogoutRequest) returns (LogoutResponse);
-  rpc ConfirmOtp (ConfirmOtpRequest) returns (ConfirmOtpResponse);
 }
 
 message LoginRequest {
@@ -50,14 +49,4 @@ message LoginResponse {
   string accessToken = 1;
   string refreshToken = 2;
   identity.user.UserResponse user = 3;
-}
-
-message ConfirmOtpRequest {
-  string email = 1;
-  string otp = 2;
-}
-
-message ConfirmOtpResponse {
-  bool success = 1;
-  string message = 2;
 }

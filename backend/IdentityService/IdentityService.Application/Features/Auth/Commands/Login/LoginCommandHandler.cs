@@ -33,13 +33,11 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, LoginRep>
 
         if (user.IsBlocked == true)
             throw new UnauthorizedAccessException("Account is blocked");
-        if(user.Role == null)
-            throw new UnauthorizedAccessException("Account's role is null");
 
         if (!BCrypt.Net.BCrypt.Verify(request.Request.Password, user.Password))
             throw new UnauthorizedAccessException("Invalid email or password");
 
-        var accessToken = _jwtHelper.GenerateAccessToken(user.Id, user.Role.Slug);
+        var accessToken = _jwtHelper.GenerateAccessToken(user.Id);
         var (refreshTokenValue, refreshTokenExpiry) = _jwtHelper.GenerateRefreshToken(user.Id);
 
         await _refreshTokenRepository.AddAsync(new Domain.Entities.RefreshToken
