@@ -1,9 +1,9 @@
 ﻿using Grpc.Core;
 using IdentityService.Application.Dtos.User.Respone;
-using IdentityService.Application.Features.Users.Commands.AdminCreate;
+using IdentityService.Application.Features.Users.Commands.AdminCreateUser;
 using IdentityService.Application.Features.Users.Commands.CustomerCreateUser;
-using IdentityService.Application.Features.Users.Commands.Delete;
-using IdentityService.Application.Features.Users.Commands.Update;
+using IdentityService.Application.Features.Users.Commands.DeleteUser;
+using IdentityService.Application.Features.Users.Commands.UpdateUser;
 using IdentityService.Application.Features.Users.Queries.GetAllUser;
 using IdentityService.Application.Features.Users.Queries.GetUserById;
 using IdentityService.Grpc.Protos.User;
