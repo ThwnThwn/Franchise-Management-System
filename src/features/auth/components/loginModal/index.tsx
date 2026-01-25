@@ -1,9 +1,9 @@
 "use client"
 import React from "react"
 import { ModalBody, ModalContent } from "@heroui/react"
-import { useLoginDiscloresureSingleton } from "@/hooks"
 import { ModalStyled } from "@/components/"
-import { LoginForm } from "./loginModal/loginForm"
+import { LoginForm } from "./LoginForm"
+import { useLoginDiscloresureSingleton } from "@/hooks"
 
 export function LoginModal() {
     const { isOpen, onOpenChange, onClose } = useLoginDiscloresureSingleton()

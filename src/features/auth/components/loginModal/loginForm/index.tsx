@@ -2,8 +2,8 @@
 
 import { ButtonStyled, ButtonToggleVisibility, InputStyled, LogoStyled } from "@/components"
 import { EMAIL_REGEX } from "@/constants/regexs"
-import { ERRORS, TEXT } from "@/features/auth/constants"
-import { useLogin } from "@/features/auth/hooks/useAuth"
+import { ERRORS, TEXT } from "@/features/"
+import { useLogin } from "@/features/"
 import { Checkbox, Divider } from "@heroui/react"
 import { useFormik } from "formik"
 import React, { useCallback, useState } from "react"
@@ -53,7 +53,7 @@ export function LoginForm({ onSuccess }: { onSuccess?: () => void }) {
                         {/* <AcmeIcon size={60} /> */}
                         <LogoStyled className="mb-3" />
                         <p className="text-xl font-medium">{TEXT.STRINGS.WELCOME}</p>
-                        <p className="text-small text-default-500">{TEXT.STRINGS.LOGIN_CONTINUE}</p>
+                        {/* <p className="text-small text-default-500">{TEXT.STRINGS.LOGIN_CONTINUE}</p> */}
                     </div>
 
                     <div className="flex flex-col gap-3">

@@ -1,6 +1,6 @@
 import { requestWrapper } from "@/utils/helpers/axiosHelper"
-import { TokenRes } from "../models/tokenRes"
 import axiosInstance from "@/utils/axios"
+import { TokenRes } from "@/features/auth/models/TokenRes"
 
 export const authApi = {
     login: ({ email, password }: { email: string; password: string }) =>

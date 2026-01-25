@@ -1,6 +1,6 @@
 import { useTokenStore } from "@/hooks"
 import { useMutation } from "@tanstack/react-query"
-import { authApi } from "../services"
+import { authApi } from "@/features/auth/services"
 import { addToast } from "@heroui/react"
 import { BackendError } from "@/models/common/respone"
 

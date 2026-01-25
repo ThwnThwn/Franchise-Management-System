@@ -1,4 +1,6 @@
-import { LoginModal } from "@/features/auth/components"
+"use client"
+
+import { LoginModal } from "@/features"
 import React from "react"
 
 /* ========================= A ========================= */

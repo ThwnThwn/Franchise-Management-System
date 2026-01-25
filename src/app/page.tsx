@@ -1,15 +1,10 @@
 "use client"
 
 import React from "react"
-import { Card, CardBody, Input, NavbarContent, NavbarItem } from "@heroui/react"
-import { ButtonStyled, NavbarStyled } from "@/components"
-import { useLoginDiscloresureSingleton, useTokenStore } from "@/hooks"
+import { Card, CardBody, Input } from "@heroui/react"
+import { ButtonStyled } from "@/components"
 
 export default function Home() {
-    // handle when login
-    const isLoggedIn = useTokenStore((s) => !!s.accessToken)
-    const { onOpen: onOpenLogin } = useLoginDiscloresureSingleton()
-
     return (
         <div className="p-10 gap-4 flex flex-col">
             {/* 1. Nút bấm */}
