@@ -109,8 +109,8 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
             Phone = user.Phone ?? "",
             Address = user.Address ?? "",
             IsBlocked = user.IsBlocked ?? false,
-            CreatedAt = user.CreatedAt.ToString("O"),
-            UpdatedAt = user.UpdatedAt.ToString("O"),
+            CreatedAt = Timestamp.FromDateTime(user.CreatedAt.UtcDateTime),
+            UpdatedAt = Timestamp.FromDateTime(user.UpdatedAt.UtcDateTime),
             Role = user.Role == null
                 ? new Grpc.Protos.Role.RoleUserResponse()
                 : new Grpc.Protos.Role.RoleUserResponse
