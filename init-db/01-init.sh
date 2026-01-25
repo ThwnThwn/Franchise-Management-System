@@ -44,4 +44,7 @@ run_sql_script "product_db" "/docker-entrypoint-initdb.d/schemas/03-product.sql"
 run_sql_script "product_db" "/docker-entrypoint-initdb.d/schemas/03-seeding-product.sql"
 run_sql_script "sales_db" "/docker-entrypoint-initdb.d/schemas/04-sales.sql"
 
+# Seed Role + User
+run_sql_script "identity_db" "/docker-entrypoint-initdb.d/02-init-seeding-identity.sql"
+
 echo "Database initialization process finished!"

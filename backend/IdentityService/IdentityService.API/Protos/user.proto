@@ -1,0 +1,78 @@
+syntax = "proto3";
+
+option csharp_namespace = "IdentityService.Grpc.Protos.User";
+
+package identity.user;
+import "role.proto";
+service UserGrpc {
+  rpc CustomerCreate(CustomerCreateUserRequest) returns (UserResponse);
+  rpc AdminCreate(AdminCreateUserRequest) returns (UserResponse);
+
+  rpc GetById(GetUserByIdRequest) returns (UserResponse);
+  rpc GetAll(Empty) returns (UserListResponse);
+
+  rpc Update(UpdateUserRequest) returns (UserResponse);
+  rpc Delete(DeleteUserRequest) returns (DeleteUserResponse);
+}
+
+message Empty {}
+
+message GetUserByIdRequest {
+  string id = 1;
+}
+
+message DeleteUserRequest {
+  string id = 1;
+}
+
+message DeleteUserResponse {
+  bool success = 1;
+}
+
+message UserListResponse {
+  repeated UserResponse users = 1;
+}
+
+message CustomerCreateUserRequest {
+  string email = 1;
+  string password = 2;
+  string username = 3;
+  string phone = 4;
+  string address = 5;
+}
+
+message AdminCreateUserRequest {
+  string email = 1;
+  string password = 2;
+  string username = 3;
+  string phone = 4;
+  string address = 5;
+  string roleId = 6; 
+}
+
+message UpdateUserRequest {
+  string id = 1;
+
+  string username = 2;
+  string email = 3;
+  string phone = 4;
+  string address = 5;
+  string Password = 8;
+  bool isBlocked = 6;
+  string roleId = 7;
+}
+
+message UserResponse {
+  string id = 1;
+  string email = 2;
+  string username = 3;
+  string phone = 4;
+  string address = 5;
+  bool isBlocked = 6;
+
+  identity.role.RoleUserResponse role = 7;
+
+  string createdAt = 8;
+  string updatedAt = 9;
+}
+
