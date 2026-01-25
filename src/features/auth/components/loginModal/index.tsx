@@ -2,7 +2,7 @@
 import React from "react"
 import { ModalBody, ModalContent } from "@heroui/react"
 import { ModalStyled } from "@/components/"
-import { LoginForm } from "./LoginForm"
+import { LoginForm } from "./loginForm"
 import { useLoginDiscloresureSingleton } from "@/hooks"
 
 export function LoginModal() {
