@@ -3,6 +3,7 @@ using IdentityService.API.Extensions;
 using IdentityService.API.Interceptors;
 using IdentityService.API.Services;
 using IdentityService.Application.Abstrations;
+using IdentityService.Application.AppConfigurations;
 using IdentityService.Application.DependencyInjection;
 using IdentityService.Application.Persistences.Caches;
 using IdentityService.Infrastructure.ApplicationDbContext;
@@ -22,7 +23,21 @@ namespace IdentityService.API
             Env.Load("../../../.env");
             var builder = WebApplication.CreateBuilder(args);
             builder.Configuration.AddEnvironmentVariables();
-
+            // -- SMTP EMAIL ---
+            builder.Services.Configure<OtpConfigs>(options =>
+            {
+                options.OtpTtl = int.Parse(builder.Configuration["OTP_TTL"] ?? "10"); // Default 10 minutes
+            });
+            builder.Services.Configure<SmtpSettings>(opt =>
+            {
+                opt.Host = Environment.GetEnvironmentVariable("SMTP_HOST") ?? "smtp.gmail.com";
+                opt.Port = int.Parse(Environment.GetEnvironmentVariable("SMTP_PORT") ?? "587");
+                opt.Username = Environment.GetEnvironmentVariable("SMTP_USERNAME") ?? "";
+                opt.Password = Environment.GetEnvironmentVariable("SMTP_PASSWORD") ?? "";
+                opt.EnableSsl = bool.Parse(Environment.GetEnvironmentVariable("SMTP_ENABLE_SSL") ?? "true");
+                opt.FromEmail = Environment.GetEnvironmentVariable("SMTP_FROM_EMAIL") ?? "";
+                opt.FromName = Environment.GetEnvironmentVariable("SMTP_FROM_NAME") ?? "CFMS";
+            });
             // --- GRPC & CORE ---
             builder.Services.AddGrpc(options => options.Interceptors.Add<GrpcExceptionInterceptor>());
             builder.Services.AddGrpcReflection();
