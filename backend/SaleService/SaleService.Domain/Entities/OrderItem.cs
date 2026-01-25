@@ -1,6 +1,6 @@
 using System;
 
-namespace SaleService.Domain.Entities;
+namespace SalesService.Domain.Entities;
 
 public partial class OrderItem
 {

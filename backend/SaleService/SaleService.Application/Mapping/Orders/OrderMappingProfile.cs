@@ -1,8 +1,8 @@
 using AutoMapper;
-using SaleService.Application.Features.Orders.Create;
-using SaleService.Domain.Entities;
+using SalesService.Application.Features.Orders.Create;
+using SalesService.Domain.Entities;
 
-namespace SaleService.Application.Mapping.Orders;
+namespace SalesService.Application.Mapping.Orders;
 
 public class OrderMappingProfile : Profile
 {

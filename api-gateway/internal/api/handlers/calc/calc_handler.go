@@ -1,11 +1,11 @@
-package handlers
+package calc
 
 import (
 	"context"
 	"net/http"
 	"time"
 
-	"api-gateway/internal/api/handlers/request"
+	"api-gateway/internal/api/handlers/calc/request"
 	"api-gateway/internal/application/abstractions"
 
 	"github.com/gin-gonic/gin"

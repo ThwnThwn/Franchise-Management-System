@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option csharp_namespace = "SaleService.API";
+option csharp_namespace = "SalesService.API";
 
 package order;
 

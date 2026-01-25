@@ -29,8 +29,7 @@
 		</PackageReference>
 	</ItemGroup>
 
-	<ItemGroup>
-		<!-- Proto files  -->
+	 <ItemGroup>
 		<Protobuf Include="Protos\auth.proto" GrpcServices="Server" ProtoRoot="Protos" />
 		<Protobuf Include="Protos\user.proto" GrpcServices="Server" ProtoRoot="Protos" />
 		<Protobuf Include="Protos\role.proto" GrpcServices="Server" ProtoRoot="Protos" />

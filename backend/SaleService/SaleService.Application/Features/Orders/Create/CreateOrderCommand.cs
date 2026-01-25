@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Ardalis.Result;
 using MediatR;
 
-namespace SaleService.Application.Features.Orders.Create;
+namespace SalesService.Application.Features.Orders.Create;
 
 public sealed record CreateOrderCommand(CreateOrderRequestDto Request)
     : IRequest<Result<CreateOrderResponseDto>>;

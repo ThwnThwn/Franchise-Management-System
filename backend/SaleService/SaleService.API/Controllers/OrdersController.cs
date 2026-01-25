@@ -1,9 +1,9 @@
 using Ardalis.Result;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using SaleService.Application.Features.Orders.Create;
+using SalesService.Application.Features.Orders.Create;
 
-namespace SaleService.API.Controllers;
+namespace SalesService.API.Controllers;
 
 [ApiController]
 [Route("api/orders")]

@@ -1,13 +1,10 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using Grpc.Core;
 using MediatR;
-using SaleService.API;
-using SaleService.Application.Features.Orders.Create;
+using SalesService.API;
+using SalesService.Application.Features.Orders.Create;
 
-namespace SaleService.API.Services.Orders;
+namespace SalesService.API.Services.Orders;
 
 public class OrderGrpcService : OrderGrpc.OrderGrpcBase
 {
@@ -26,7 +23,7 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
         var createOrderRequest = new CreateOrderRequestDto
         {
             Tax = request.Tax > 0 ? (decimal?)request.Tax : null,
-            PaymentMethod = request.PaymentMethod > 0 ? (int?)request.PaymentMethod : null,
+            PaymentMethod = request.PaymentMethod > 0 ? request.PaymentMethod : null,
             Notes = string.IsNullOrWhiteSpace(request.Notes) ? null : request.Notes,
             Items = request.Items.Select(item => new CartItemDto
             {

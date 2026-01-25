@@ -4,13 +4,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Ardalis.Result;
 using MediatR;
-using SaleService.Application.Features.Orders.Create;
-using SaleService.Application.Interfaces.Orders;
-using SaleService.Application.Interfaces.Products;
-using SaleService.Domain.Entities;
-using SaleService.Domain.Enums;
+using SalesService.Application.Interfaces.Orders;
+using SalesService.Application.Interfaces.Products;
+using SalesService.Domain.Entities;
+using SalesService.Domain.Enums;
 
-namespace SaleService.Application.Features.Orders.Create;
+namespace SalesService.Application.Features.Orders.Create;
 
 public sealed class CreateOrderHandler
     : IRequestHandler<CreateOrderCommand, Result<CreateOrderResponseDto>>

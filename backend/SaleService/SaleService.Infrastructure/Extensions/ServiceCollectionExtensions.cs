@@ -1,9 +1,9 @@
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
-using SaleService.Application.Behaviors;
+using SalesService.Application.Behaviors;
 
-namespace SaleService.Infrastructure.Extensions;
+namespace SalesService.Infrastructure.Extensions;
 
 public static class ServiceCollectionExtensions
 {

@@ -1,9 +1,9 @@
 using System;
 using Microsoft.EntityFrameworkCore;
-using SaleService.Domain.Entities;
-using SaleService.Domain.Enums;
+using SalesService.Domain.Entities;
+using SalesService.Domain.Enums;
 
-namespace SaleService.Infrastructure.Data;
+namespace SalesService.Infrastructure.Data;
 
 public partial class SalesDbContext : DbContext, ISalesDbContext
 {

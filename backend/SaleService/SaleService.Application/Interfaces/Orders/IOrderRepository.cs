@@ -1,8 +1,8 @@
 using System.Threading;
 using System.Threading.Tasks;
-using SaleService.Domain.Entities;
+using SalesService.Domain.Entities;
 
-namespace SaleService.Application.Interfaces.Orders;
+namespace SalesService.Application.Interfaces.Orders;
 
 public interface IOrderRepository
 {

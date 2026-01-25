@@ -3,7 +3,7 @@ using Grpc.Core;
 using Grpc.Core.Interceptors;
 using Microsoft.EntityFrameworkCore;
 
-namespace SaleService.API.Interceptors;
+namespace SalesService.API.Interceptors;
 
 public class GrpcExceptionInterceptor : Interceptor
 {
