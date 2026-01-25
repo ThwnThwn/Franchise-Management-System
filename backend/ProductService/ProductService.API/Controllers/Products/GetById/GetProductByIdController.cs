@@ -3,7 +3,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using ProductService.Application.Features.Products.GetById;
 
-namespace ProductService.API.Features.Products.GetById;
+namespace ProductService.API.Controllers.Products.GetById;
 
 [ApiController]
 [Route("api/products")]

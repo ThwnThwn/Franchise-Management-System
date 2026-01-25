@@ -3,7 +3,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using ProductService.Application.Features.Products.GetList;
 
-namespace ProductService.API.Features.Products.GetList;
+namespace ProductService.API.Controllers.Products.GetList;
 
 [ApiController]
 [Route("api/products")]

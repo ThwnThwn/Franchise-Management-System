@@ -10,7 +10,6 @@ using ProductService.Application.Features.Products.GetById;
 using ProductService.Application.Features.Products.GetList;
 using ProductService.Application.Interfaces;
 using ProductService.Application.Mapping;
-using ProductService.Application.Services;
 using ProductService.Infrastructure.Data;
 using ProductService.Infrastructure.Repositories;
 
@@ -20,18 +19,27 @@ namespace ProductService
     {
         public static void Main(string[] args)
         {
-            // Load .env file
-            Env.Load("../.env");
+            // Load .env file 
+            Env.Load("../../../.env");
 
             var builder = WebApplication.CreateBuilder(args);
 
             // Add environment variables to configuration
             builder.Configuration.AddEnvironmentVariables();
 
+            // Configure Kestrel for gRPC (HTTPS + HTTP/2)
+            var productServicePort = int.Parse(builder.Configuration["PRODUCTS_PORT"] ?? "5002");
+            builder.WebHost.ConfigureKestrel(options =>
+            {
+                options.ListenLocalhost(productServicePort, listenOptions =>
+                {
+                    listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2;
+                    listenOptions.UseHttps(); // Development certificate
+                });
+            });
+
             // Add services to the container.
             builder.Services.AddGrpc();
-
-            // Add REST API controllers
             builder.Services.AddControllers();
 
             // Add API documentation
@@ -47,8 +55,7 @@ namespace ProductService
             });
 
             // Connect Db
-            var connectionString = builder.Configuration["DATABASE_CONNECTION_STRING"]
-                ?? "Host=localhost;Port=5432;Database=product_db;Username=admin;Password=12345";
+            var connectionString = builder.Configuration["PRODUCT_DB_CONNECTION"];
 
             builder.Services.AddDbContext<ProductDbContext>(options =>
                 options.UseNpgsql(connectionString));
@@ -78,9 +85,6 @@ namespace ProductService
 
             // Register repositories
             builder.Services.AddScoped<IProductRepository, ProductRepository>();
-
-            // Register services
-            builder.Services.AddScoped<ProductApplicationService>();
 
             // Add CORS
             builder.Services.AddCors(options =>

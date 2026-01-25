@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+option csharp_namespace = "SaleService.API";
+
+package order;
+
+service OrderGrpc {
+  // Tạo đơn hàng từ giỏ hàng
+  rpc CreateOrder (CreateOrderRequest) returns (CreateOrderReply);
+  
+  // Lấy thông tin đơn hàng theo ID
+  rpc GetOrderById (GetOrderByIdRequest) returns (GetOrderByIdReply);
+}
+
+message CreateOrderRequest {
+  repeated CartItem items = 1;
+  double tax = 2;
+  int32 payment_method = 3;
+  string notes = 4;
+}
+
+message CartItem {
+  string sku = 1;
+  int32 quantity = 2;
+}
+
+message CreateOrderReply {
+  string order_id = 1;
+  string order_code = 2;
+  double total_amount = 3;
+}
+
+message GetOrderByIdRequest {
+  string id = 1;
+}
+
+message GetOrderByIdReply {
+  Order order = 1;
+}
+
+message Order {
+  string id = 1;
+  string code = 2;
+  double subtotal = 3;
+  double tax = 4;
+  double total_amount = 5;
+  double paid_amount = 6;
+  int32 payment_method = 7;
+  int32 status = 8;
+  string paid_at = 9;
+  string notes = 10;
+  string created_at = 11;
+  string updated_at = 12;
+  repeated OrderItem items = 13;
+}
+
+message OrderItem {
+  string id = 1;
+  string product_id = 2;
+  string variant_id = 3;
+  int32 quantity = 4;
+  double unit_price = 5;
+  string product_name = 6;
+  string sku = 7;
+  string image_url = 8;
+}
