@@ -1,13 +1,8 @@
-using System;
-using System.Linq;
-using System.Net.Http;
-using System.Threading.Tasks;
 using Grpc.Net.Client;
-using Microsoft.Extensions.Configuration;
 using ProductService.API;
-using SaleService.Application.Interfaces.Products;
+using SalesService.Application.Interfaces.Products;
 
-namespace SaleService.API.Services.Products;
+namespace SalesService.API.Services.Products;
 
 public class ProductServiceClient : IProductServiceClient
 {

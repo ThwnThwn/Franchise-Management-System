@@ -1,10 +1,10 @@
 using System.Threading;
 using System.Threading.Tasks;
-using SaleService.Application.Interfaces.Orders;
-using SaleService.Domain.Entities;
-using SaleService.Infrastructure.Data;
+using SalesService.Application.Interfaces.Orders;
+using SalesService.Domain.Entities;
+using SalesService.Infrastructure.Data;
 
-namespace SaleService.Infrastructure.Repositories.Orders;
+namespace SalesService.Infrastructure.Repositories.Orders;
 
 public class OrderRepository : IOrderRepository
 {

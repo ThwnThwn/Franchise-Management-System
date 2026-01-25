@@ -1,27 +1,23 @@
-using System.Reflection;
 using AutoMapper;
 using DotNetEnv;
 using Microsoft.EntityFrameworkCore;
-using SaleService.API.Middleware;
-using SaleService.Application.Features.Orders.Create;
-using SaleService.Infrastructure.Extensions;
-using SaleService.Application.Interfaces;
-using SaleService.Application.Mapping;
-using SaleService.API.Services.Orders;
-using SaleService.API.Services.Products;
-using SaleService.Infrastructure.Data;
-using SaleService.Infrastructure.Repositories.Orders;
-using SaleService.Application.Interfaces.Orders;
-using SaleService.Application.Interfaces.Products;
-using SaleService.Application.Mapping.Orders;
+using SalesService.API.Services.Orders;
+using SalesService.API.Services.Products;
+using SalesService.API.Middleware;
+using SalesService.Infrastructure.Repositories.Orders;
+using SalesService.Infrastructure.Extensions;
+using SalesService.Infrastructure.Data;
+using SalesService.Application.Interfaces.Orders;
+using SalesService.Application.Interfaces.Products;
+using SalesService.Application.Mapping.Orders;
 
-namespace SaleService.API;
+namespace SalesService.API;
 
 public class Program
 {
     public static void Main(string[] args)
     {
-        // Load .env file 
+        // Load .env file
         Env.Load("../../../.env");
 
         var builder = WebApplication.CreateBuilder(args);
@@ -60,7 +56,7 @@ public class Program
         });
 
         // Connect Db
-        var connectionString = builder.Configuration["SALE_DB_CONNECTION"];
+        var connectionString = builder.Configuration["SALES_DB_CONNECTION"];
 
         builder.Services.AddDbContext<SalesDbContext>(options =>
             options.UseNpgsql(connectionString));

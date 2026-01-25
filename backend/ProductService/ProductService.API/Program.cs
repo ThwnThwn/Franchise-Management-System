@@ -117,7 +117,6 @@ namespace ProductService.API
             app.UseAuthorization();
 
             app.MapControllers();
-            app.MapGrpcService<GreeterService>();
             app.MapGrpcService<ProductGrpcService>();
             app.MapGet("/", () => "Product Service API is running. Visit /swagger for API documentation.");
 
