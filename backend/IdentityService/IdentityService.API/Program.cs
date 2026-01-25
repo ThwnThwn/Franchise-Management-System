@@ -1,4 +1,5 @@
 using DotNetEnv;
+using IdentityService.API.Interceptors;
 using IdentityService.API.Services;
 using IdentityService.Application;
 using IdentityService.Application.Abstrations;
@@ -167,6 +168,11 @@ builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+//Interceptors
+builder.Services.AddGrpc(options =>
+{
+    options.Interceptors.Add<GrpcExceptionInterceptor>();
+});
 // Force HTTP/2 port
 builder.WebHost.ConfigureKestrel(options =>
 {
