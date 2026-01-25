@@ -5,7 +5,8 @@ using System.Threading.Tasks;
 using Ardalis.Result;
 using MediatR;
 using SaleService.Application.Features.Orders.Create;
-using SaleService.Application.Interfaces;
+using SaleService.Application.Interfaces.Orders;
+using SaleService.Application.Interfaces.Products;
 using SaleService.Domain.Entities;
 using SaleService.Domain.Enums;
 
@@ -112,7 +113,7 @@ public sealed class CreateOrderHandler
             order.OrderItems.Add(orderItem);
         }
 
-        var createdOrder = await _orderRepository.CreateOrderAsync(order);
+        var createdOrder = await _orderRepository.CreateAsync(order, cancellationToken);
 
         return Result.Success(new CreateOrderResponseDto
         {

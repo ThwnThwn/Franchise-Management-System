@@ -7,7 +7,7 @@ using MediatR;
 using SaleService.API;
 using SaleService.Application.Features.Orders.Create;
 
-namespace SaleService.API.Services;
+namespace SaleService.API.Services.Orders;
 
 public class OrderGrpcService : OrderGrpc.OrderGrpcBase
 {
@@ -50,11 +50,5 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             OrderCode = result.Value.OrderCode,
             TotalAmount = (double)result.Value.TotalAmount
         };
-    }
-
-    public override Task<GetOrderByIdReply> GetOrderById(GetOrderByIdRequest request, ServerCallContext context)
-    {
-        // TODO: Chờ làm sau ưu tiên task jira cho chuẩn trước
-        throw new RpcException(new Status(StatusCode.Unimplemented, "GetOrderById not implemented yet"));
     }
 }

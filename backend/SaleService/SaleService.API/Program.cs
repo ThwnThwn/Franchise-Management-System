@@ -6,9 +6,10 @@ using Microsoft.EntityFrameworkCore;
 using SaleService.Application.Features.Orders.Create;
 using SaleService.Application.Interfaces;
 using SaleService.Application.Mapping;
-using SaleService.API.Services;
+using SaleService.API.Services.Orders;
+using SaleService.API.Services.Products;
 using SaleService.Infrastructure.Data;
-using SaleService.Infrastructure.Repositories;
+using SaleService.Infrastructure.Repositories.Orders;
 
 namespace SaleService;
 
@@ -62,7 +63,7 @@ public class Program
             provider.GetRequiredService<SalesDbContext>());
 
         // Configure AutoMapper
-        var applicationAssembly = typeof(OrderMappingProfile).Assembly;
+        var applicationAssembly = typeof(Application.Mapping.Orders.OrderMappingProfile).Assembly;
 
         builder.Services.AddSingleton<IMapper>(_ =>
         {
@@ -77,10 +78,10 @@ public class Program
         builder.Services.AddMediatR(typeof(CreateOrderCommand).Assembly);
 
         // Register repositories
-        builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+        builder.Services.AddScoped<Application.Interfaces.Orders.IOrderRepository, Infrastructure.Repositories.Orders.OrderRepository>();
 
         // Register ProductService gRPC client
-        builder.Services.AddSingleton<IProductServiceClient, ProductServiceClient>();
+        builder.Services.AddSingleton<Application.Interfaces.Products.IProductServiceClient, API.Services.Products.ProductServiceClient>();
 
         // Add CORS
         builder.Services.AddCors(options =>
@@ -110,7 +111,7 @@ public class Program
         app.UseAuthorization();
 
         app.MapControllers();
-        app.MapGrpcService<OrderGrpcService>();
+        app.MapGrpcService<SaleService.API.Services.Orders.OrderGrpcService>();
         app.MapGet("/", () => "Sale Service API is running. Visit /swagger for API documentation.");
 
         app.Run();
