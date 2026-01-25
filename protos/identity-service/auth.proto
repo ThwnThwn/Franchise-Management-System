@@ -1,9 +1,12 @@
 syntax = "proto3";
 
 option csharp_namespace = "IdentityService.Grpc.Protos.Auth";
+option go_package = "api-gateway/pkg/pb/identity";
 
 package identity.auth;
-import "user.proto";
+
+import "identity-service/user.proto";
+
 service AuthGrpc {
   rpc Login(LoginRequest) returns (LoginResponse);
   rpc Register(RegisterRequest) returns (RegisterResponse);

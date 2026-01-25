@@ -6,10 +6,15 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Protobuf Include="Protos\greet.proto" GrpcServices="Server" />
+  <!-- <ItemGroup>
     <Protobuf Include="Protos\products.proto" GrpcServices="Server" />
-  </ItemGroup>
+  </ItemGroup> -->
+
+  <ItemGroup>
+		<Protobuf Include="..\..\..\protos\product-service\*.proto" 
+					GrpcServices="Server" 
+					ProtoRoot="..\..\..\protos" />
+	</ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Ardalis.Result" Version="10.1.0" />

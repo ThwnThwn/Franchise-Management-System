@@ -1,9 +1,12 @@
 syntax = "proto3";
 
 option csharp_namespace = "IdentityService.Grpc.Protos.User";
+option go_package = "api-gateway/pkg/pb/identity";
 
 package identity.user;
-import "role.proto";
+
+import "identity-service/role.proto";
+
 service UserGrpc {
   rpc CustomerCreate(CustomerCreateUserRequest) returns (UserResponse);
   rpc AdminCreate(AdminCreateUserRequest) returns (UserResponse);
