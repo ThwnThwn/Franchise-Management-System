@@ -41,6 +41,7 @@ create_db_safe "sales_db"
 
 run_sql_script "identity_db" "/docker-entrypoint-initdb.d/schemas/02-identity.sql"
 run_sql_script "product_db" "/docker-entrypoint-initdb.d/schemas/03-product.sql"
+run_sql_script "product_db" "/docker-entrypoint-initdb.d/schemas/03-seeding-product.sql"
 run_sql_script "sales_db" "/docker-entrypoint-initdb.d/schemas/04-sales.sql"
 
 # Seed Role + User
