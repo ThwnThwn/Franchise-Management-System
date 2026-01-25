@@ -22,7 +22,7 @@ public class ProductServiceClient : IProductServiceClient
         var httpHandler = new HttpClientHandler
         {
             ServerCertificateCustomValidationCallback =
-                HttpClientHandler.DangerousAcceptAnyServerCertificateValidator // Only for development
+                HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
         };
 
         var channel = GrpcChannel.ForAddress(_productServiceUrl, new GrpcChannelOptions

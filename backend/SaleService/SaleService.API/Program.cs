@@ -1,15 +1,19 @@
 using System.Reflection;
 using AutoMapper;
 using DotNetEnv;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
+using SaleService.API.Middleware;
 using SaleService.Application.Features.Orders.Create;
+using SaleService.Infrastructure.Extensions;
 using SaleService.Application.Interfaces;
 using SaleService.Application.Mapping;
 using SaleService.API.Services.Orders;
 using SaleService.API.Services.Products;
 using SaleService.Infrastructure.Data;
 using SaleService.Infrastructure.Repositories.Orders;
+using SaleService.Application.Interfaces.Orders;
+using SaleService.Application.Interfaces.Products;
+using SaleService.Application.Mapping.Orders;
 
 namespace SaleService;
 
@@ -37,7 +41,10 @@ public class Program
         });
 
         // Add services to the container.
-        builder.Services.AddGrpc();
+        builder.Services.AddGrpc(options =>
+        {
+            options.Interceptors.Add<API.Interceptors.GrpcExceptionInterceptor>();
+        });
         builder.Services.AddControllers();
 
         // Add API documentation
@@ -63,7 +70,7 @@ public class Program
             provider.GetRequiredService<SalesDbContext>());
 
         // Configure AutoMapper
-        var applicationAssembly = typeof(Application.Mapping.Orders.OrderMappingProfile).Assembly;
+        var applicationAssembly = typeof(OrderMappingProfile).Assembly;
 
         builder.Services.AddSingleton<IMapper>(_ =>
         {
@@ -74,14 +81,20 @@ public class Program
             return cfg.CreateMapper();
         });
 
-        // Register MediatR (scan Application assembly)
-        builder.Services.AddMediatR(typeof(CreateOrderCommand).Assembly);
+        // Register Application services (MediatR, FluentValidation, ValidationBehavior)
+        builder.Services.AddApplication();
 
         // Register repositories
-        builder.Services.AddScoped<Application.Interfaces.Orders.IOrderRepository, Infrastructure.Repositories.Orders.OrderRepository>();
+        builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 
         // Register ProductService gRPC client
-        builder.Services.AddSingleton<Application.Interfaces.Products.IProductServiceClient, API.Services.Products.ProductServiceClient>();
+        builder.Services.AddSingleton<IProductServiceClient, ProductServiceClient>();
+
+        // Register GlobalExceptionHandlerMiddleware
+        builder.Services.AddSingleton<GlobalExceptionHandlerMiddleware>();
+
+        // Register gRPC Exception Interceptor
+        builder.Services.AddSingleton<API.Interceptors.GrpcExceptionInterceptor>();
 
         // Add CORS
         builder.Services.AddCors(options =>
@@ -107,6 +120,9 @@ public class Program
         }
 
         app.UseCors();
+
+        // Add global exception handler middleware
+        app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
         app.UseAuthorization();
 

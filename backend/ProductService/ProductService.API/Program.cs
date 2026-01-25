@@ -2,13 +2,12 @@ using System.Reflection;
 using AutoMapper;
 using Ardalis.Result;
 using DotNetEnv;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
+using ProductService.API.Middleware;
 using ProductService.API.Mapping;
 using ProductService.API.Services;
-using ProductService.Application.Features.Products.GetById;
-using ProductService.Application.Features.Products.GetList;
 using ProductService.Application.Interfaces;
+using ProductService.Infrastructure.Extensions;
 using ProductService.Application.Mapping;
 using ProductService.Infrastructure.Data;
 using ProductService.Infrastructure.Repositories;
@@ -80,11 +79,17 @@ namespace ProductService
                 return cfg.CreateMapper();
             });
 
-            // Register MediatR (scan Application assembly)
-            builder.Services.AddMediatR(typeof(GetProductByIdQuery).Assembly);
+            // Register Application services (MediatR, FluentValidation, ValidationBehavior)
+            builder.Services.AddApplication();
 
             // Register repositories
             builder.Services.AddScoped<IProductRepository, ProductRepository>();
+
+            // Register GlobalExceptionHandlerMiddleware
+            builder.Services.AddSingleton<GlobalExceptionHandlerMiddleware>();
+
+            // Register gRPC Exception Interceptor
+            builder.Services.AddSingleton<API.Interceptors.GrpcExceptionInterceptor>();
 
             // Add CORS
             builder.Services.AddCors(options =>
@@ -110,6 +115,9 @@ namespace ProductService
             }
 
             app.UseCors();
+
+            // Add global exception handler middleware
+            app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
             app.UseAuthorization();
 

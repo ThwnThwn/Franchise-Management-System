@@ -3,15 +3,15 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using SaleService.Application.Features.Orders.Create;
 
-namespace SaleService.API.Controllers.Orders.Create;
+namespace SaleService.API.Controllers;
 
 [ApiController]
 [Route("api/orders")]
-public class CreateOrderController : ControllerBase
+public class OrdersController : ControllerBase
 {
     private readonly IMediator _mediator;
 
-    public CreateOrderController(IMediator mediator)
+    public OrdersController(IMediator mediator)
     {
         _mediator = mediator;
     }
