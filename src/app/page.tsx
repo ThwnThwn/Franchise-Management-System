@@ -27,6 +27,118 @@ export default function Home() {
                     <ButtonStyled color="danger">Xóa bỏ (Danger)</ButtonStyled>
                 </div>
             </div>
+            <div className="flex gap-4">
+                <div className="flex gap-4 p-10 bg-background">
+                    <ButtonStyled color="primary" variant="ghost">
+                        Đặt món ngay
+                    </ButtonStyled>
+                    <ButtonStyled color="secondary">Thêm Topping</ButtonStyled>
+                    <ButtonStyled color="default">Mặc định</ButtonStyled>
+
+                    {/* Hai nút này sẽ đổi màu mới */}
+                    <ButtonStyled color="success">Thành công (Success)</ButtonStyled>
+                    <ButtonStyled color="warning">Cảnh báo (Warning)</ButtonStyled>
+                    <ButtonStyled color="danger">Xóa bỏ (Danger)</ButtonStyled>
+                </div>
+            </div>
+            <div className="flex gap-4">
+                <div className="flex gap-4 p-10 bg-background">
+                    <ButtonStyled color="primary" variant="ghost">
+                        Đặt món ngay
+                    </ButtonStyled>
+                    <ButtonStyled color="secondary">Thêm Topping</ButtonStyled>
+                    <ButtonStyled color="default">Mặc định</ButtonStyled>
+
+                    {/* Hai nút này sẽ đổi màu mới */}
+                    <ButtonStyled color="success">Thành công (Success)</ButtonStyled>
+                    <ButtonStyled color="warning">Cảnh báo (Warning)</ButtonStyled>
+                    <ButtonStyled color="danger">Xóa bỏ (Danger)</ButtonStyled>
+                </div>
+            </div>
+            <div className="flex gap-4">
+                <div className="flex gap-4 p-10 bg-background">
+                    <ButtonStyled color="primary" variant="ghost">
+                        Đặt món ngay
+                    </ButtonStyled>
+                    <ButtonStyled color="secondary">Thêm Topping</ButtonStyled>
+                    <ButtonStyled color="default">Mặc định</ButtonStyled>
+
+                    {/* Hai nút này sẽ đổi màu mới */}
+                    <ButtonStyled color="success">Thành công (Success)</ButtonStyled>
+                    <ButtonStyled color="warning">Cảnh báo (Warning)</ButtonStyled>
+                    <ButtonStyled color="danger">Xóa bỏ (Danger)</ButtonStyled>
+                </div>
+            </div>
+            <div className="flex gap-4">
+                <div className="flex gap-4 p-10 bg-background">
+                    <ButtonStyled color="primary" variant="ghost">
+                        Đặt món ngay
+                    </ButtonStyled>
+                    <ButtonStyled color="secondary">Thêm Topping</ButtonStyled>
+                    <ButtonStyled color="default">Mặc định</ButtonStyled>
+
+                    {/* Hai nút này sẽ đổi màu mới */}
+                    <ButtonStyled color="success">Thành công (Success)</ButtonStyled>
+                    <ButtonStyled color="warning">Cảnh báo (Warning)</ButtonStyled>
+                    <ButtonStyled color="danger">Xóa bỏ (Danger)</ButtonStyled>
+                </div>
+            </div>
+            <div className="flex gap-4">
+                <div className="flex gap-4 p-10 bg-background">
+                    <ButtonStyled color="primary" variant="ghost">
+                        Đặt món ngay
+                    </ButtonStyled>
+                    <ButtonStyled color="secondary">Thêm Topping</ButtonStyled>
+                    <ButtonStyled color="default">Mặc định</ButtonStyled>
+
+                    {/* Hai nút này sẽ đổi màu mới */}
+                    <ButtonStyled color="success">Thành công (Success)</ButtonStyled>
+                    <ButtonStyled color="warning">Cảnh báo (Warning)</ButtonStyled>
+                    <ButtonStyled color="danger">Xóa bỏ (Danger)</ButtonStyled>
+                </div>
+            </div>
+            <div className="flex gap-4">
+                <div className="flex gap-4 p-10 bg-background">
+                    <ButtonStyled color="primary" variant="ghost">
+                        Đặt món ngay
+                    </ButtonStyled>
+                    <ButtonStyled color="secondary">Thêm Topping</ButtonStyled>
+                    <ButtonStyled color="default">Mặc định</ButtonStyled>
+
+                    {/* Hai nút này sẽ đổi màu mới */}
+                    <ButtonStyled color="success">Thành công (Success)</ButtonStyled>
+                    <ButtonStyled color="warning">Cảnh báo (Warning)</ButtonStyled>
+                    <ButtonStyled color="danger">Xóa bỏ (Danger)</ButtonStyled>
+                </div>
+            </div>
+            <div className="flex gap-4">
+                <div className="flex gap-4 p-10 bg-background">
+                    <ButtonStyled color="primary" variant="ghost">
+                        Đặt món ngay
+                    </ButtonStyled>
+                    <ButtonStyled color="secondary">Thêm Topping</ButtonStyled>
+                    <ButtonStyled color="default">Mặc định</ButtonStyled>
+
+                    {/* Hai nút này sẽ đổi màu mới */}
+                    <ButtonStyled color="success">Thành công (Success)</ButtonStyled>
+                    <ButtonStyled color="warning">Cảnh báo (Warning)</ButtonStyled>
+                    <ButtonStyled color="danger">Xóa bỏ (Danger)</ButtonStyled>
+                </div>
+            </div>
+            <div className="flex gap-4">
+                <div className="flex gap-4 p-10 bg-background">
+                    <ButtonStyled color="primary" variant="ghost">
+                        Đặt món ngay
+                    </ButtonStyled>
+                    <ButtonStyled color="secondary">Thêm Topping</ButtonStyled>
+                    <ButtonStyled color="default">Mặc định</ButtonStyled>
+
+                    {/* Hai nút này sẽ đổi màu mới */}
+                    <ButtonStyled color="success">Thành công (Success)</ButtonStyled>
+                    <ButtonStyled color="warning">Cảnh báo (Warning)</ButtonStyled>
+                    <ButtonStyled color="danger">Xóa bỏ (Danger)</ButtonStyled>
+                </div>
+            </div>
 
             {/* 2. Card sản phẩm */}
             {/* Tự động ăn màu nền trắng (content1) và chữ nâu (foreground) */}
