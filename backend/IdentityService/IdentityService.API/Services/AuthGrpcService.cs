@@ -1,31 +1,33 @@
 ﻿using Grpc.Core;
-using IdentityService.Application.Abstrations;
-using IdentityService.Application.Dtos.Auth.Request;
-using IdentityService.Application.Dtos.User.Respone;
+using IdentityService.Application.Features.Auth.Commands.Login;
+using IdentityService.Application.Features.Auth.Commands.Register;
+using IdentityService.Application.Features.Auth.Commands.TokenRefresh;
+using IdentityService.Application.Features.Auth.Commands.Logout;
 using IdentityService.Grpc.Protos.Auth;
 using IdentityService.Grpc.Protos.User;
+using MediatR;
 
 namespace IdentityService.Grpc.Services;
 
 public class AuthGrpcService : AuthGrpc.AuthGrpcBase
 {
-    private readonly IAuthService _authService;
+    private readonly IMediator _mediator;
 
-    public AuthGrpcService(IAuthService authService)
+    public AuthGrpcService(IMediator mediator)
     {
-        _authService = authService;
+        _mediator = mediator;
     }
 
     public override async Task<LoginResponse> Login(LoginRequest request, ServerCallContext context)
     {
         try
         {
-            var rep = await _authService.LoginAsync(new LoginReq
+            var rep = await _mediator.Send(new LoginCommand(new()
             {
                 Email = request.Email,
                 Password = request.Password
-            });
-            //Lấy từ proto
+            }));
+
             return new LoginResponse
             {
                 AccessToken = rep.AccessToken,
@@ -43,14 +45,14 @@ public class AuthGrpcService : AuthGrpc.AuthGrpcBase
     {
         try
         {
-            var rep = await _authService.RegisterAsync(new RegisterReq
+            var rep = await _mediator.Send(new RegisterCommand(new()
             {
                 Email = request.Email,
                 Password = request.Password,
                 Phone = request.Phone,
                 Address = request.Address
-            });
-            //Lấy từ proto
+            }));
+
             return new RegisterResponse
             {
                 Message = rep.Message
@@ -66,8 +68,8 @@ public class AuthGrpcService : AuthGrpc.AuthGrpcBase
     {
         try
         {
-            var rep = await _authService.RefreshTokenAsync(request.RefreshToken);
-            //Lấy từ proto
+            var rep = await _mediator.Send(new TokenRefreshCommand(request.RefreshToken));
+
             return new RefreshTokenResponse
             {
                 AccessToken = rep.AccessToken,
@@ -84,11 +86,11 @@ public class AuthGrpcService : AuthGrpc.AuthGrpcBase
     {
         try
         {
-            var ok = await _authService.LogoutAsync(
-                refreshToken: request.RefreshToken,
-                accessToken: string.IsNullOrWhiteSpace(request.AccessToken) ? null : request.AccessToken
-            );
-            //Lấy từ proto
+            var ok = await _mediator.Send(new LogoutCommand(
+                RefreshToken: request.RefreshToken,
+                AccessToken: string.IsNullOrWhiteSpace(request.AccessToken) ? null : request.AccessToken
+            ));
+
             return new LogoutResponse { Success = ok };
         }
         catch (Exception ex)
@@ -97,11 +99,11 @@ public class AuthGrpcService : AuthGrpc.AuthGrpcBase
         }
     }
 
-    private static UserResponse MapUser(UserRep user)
+    private static UserResponse MapUser(IdentityService.Application.Dtos.User.Respone.UserRep user)
     {
         return new UserResponse
         {
-            Id = user.Id.ToString() ?? "",
+            Id = user.Id.ToString(),
             Email = user.Email ?? "",
             Phone = user.Phone ?? "",
             Address = user.Address ?? "",

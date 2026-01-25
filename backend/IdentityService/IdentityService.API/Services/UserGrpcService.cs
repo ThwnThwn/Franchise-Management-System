@@ -1,8 +1,13 @@
 ﻿using Grpc.Core;
-using IdentityService.Application.Abstrations;
-using IdentityService.Application.Dtos.User.Request;
 using IdentityService.Application.Dtos.User.Respone;
+using IdentityService.Application.Features.Users.Commands.AdminCreate;
+using IdentityService.Application.Features.Users.Commands.CustomerCreateUser;
+using IdentityService.Application.Features.Users.Commands.Delete;
+using IdentityService.Application.Features.Users.Commands.Update;
+using IdentityService.Application.Features.Users.Queries.GetAllUser;
+using IdentityService.Application.Features.Users.Queries.GetUserById;
 using IdentityService.Grpc.Protos.User;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 
 namespace IdentityService.Grpc.Services;
@@ -10,30 +15,30 @@ namespace IdentityService.Grpc.Services;
 [Authorize]
 public class UserGrpcService : UserGrpc.UserGrpcBase
 {
-    private readonly IUserService _userService;
+    private readonly IMediator _mediator;
 
-    public UserGrpcService(IUserService userService)
+    public UserGrpcService(IMediator mediator)
     {
-        _userService = userService;
+        _mediator = mediator;
     }
 
     public override async Task<UserResponse> CustomerCreate(CustomerCreateUserRequest request, ServerCallContext context)
     {
-        var rep = await _userService.CustomerCreateAsync(new CustomerCreateUserReq
+        var rep = await _mediator.Send(new CustomerCreateUserCommand(new()
         {
             Email = request.Email,
             Password = request.Password,
-            Name = string.IsNullOrWhiteSpace(request.Name) ? null : request.Name,
+            Username = string.IsNullOrWhiteSpace(request.Username) ? null : request.Username,
             Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone,
             Address = string.IsNullOrWhiteSpace(request.Address) ? null : request.Address
-        });
+        }));
 
         return MapUser(rep);
     }
 
     public override async Task<UserResponse> AdminCreate(AdminCreateUserRequest request, ServerCallContext context)
     {
-        var rep = await _userService.AdminCreateAsync(new CreateUserReq
+        var rep = await _mediator.Send(new AdminCreateUserCommand(new()
         {
             Email = request.Email,
             Password = request.Password,
@@ -41,14 +46,14 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
             Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone,
             Address = string.IsNullOrWhiteSpace(request.Address) ? null : request.Address,
             RoleId = string.IsNullOrWhiteSpace(request.RoleId) ? null : Guid.Parse(request.RoleId)
-        });
+        }));
 
         return MapUser(rep);
     }
 
     public override async Task<UserResponse> GetById(GetUserByIdRequest request, ServerCallContext context)
     {
-        var rep = await _userService.GetByIdAsync(Guid.Parse(request.Id));
+        var rep = await _mediator.Send(new GetUserByIdQuery(Guid.Parse(request.Id)));
 
         if (rep == null)
             throw new RpcException(new Status(StatusCode.NotFound, "User not found"));
@@ -58,25 +63,27 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
 
     public override async Task<UserListResponse> GetAll(Empty request, ServerCallContext context)
     {
-        var users = await _userService.GetAllAsync();
+        var users = await _mediator.Send(new GetAllUsersQuery());
 
         var res = new UserListResponse();
         res.Users.AddRange(users.Select(MapUser));
-
         return res;
     }
 
     public override async Task<UserResponse> Update(UpdateUserRequest request, ServerCallContext context)
     {
-        var rep = await _userService.UpdateAsync(Guid.Parse(request.Id), new UpdateUserReq
-        {
-            Name = string.IsNullOrWhiteSpace(request.Name) ? null : request.Name,
-            Email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email,
-            Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone,
-            Address = string.IsNullOrWhiteSpace(request.Address) ? null : request.Address,
-            IsBlocked = request.IsBlocked, //Cannot be null
-            RoleId = string.IsNullOrWhiteSpace(request.RoleId) ? null : Guid.Parse(request.RoleId)
-        });
+        var rep = await _mediator.Send(new UpdateUserCommand(
+            Id: Guid.Parse(request.Id),
+            Request: new()
+            {
+                Username = string.IsNullOrWhiteSpace(request.Username) ? null : request.Username,
+                Email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email,
+                Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone,
+                Address = string.IsNullOrWhiteSpace(request.Address) ? null : request.Address,
+                IsBlocked = request.IsBlocked,
+                RoleId = string.IsNullOrWhiteSpace(request.RoleId) ? null : Guid.Parse(request.RoleId)
+            }
+        ));
 
         if (rep == null)
             throw new RpcException(new Status(StatusCode.NotFound, "User not found"));
@@ -86,12 +93,9 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
 
     public override async Task<DeleteUserResponse> Delete(DeleteUserRequest request, ServerCallContext context)
     {
-        var ok = await _userService.DeleteAsync(Guid.Parse(request.Id));
+        var ok = await _mediator.Send(new DeleteUserCommand(Guid.Parse(request.Id)));
 
-        return new DeleteUserResponse
-        {
-            Success = ok
-        };
+        return new DeleteUserResponse { Success = ok };
     }
 
     private static UserResponse MapUser(UserRep user)

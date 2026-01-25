@@ -1,37 +1,41 @@
 ﻿using Grpc.Core;
-using IdentityService.Application.Abstrations;
-using IdentityService.Application.Dtos.Role.Request;
+using IdentityService.Application.Features.Roles.Commands.CreateRole;
+using IdentityService.Application.Features.Roles.Commands.UpdateRole;
+using IdentityService.Application.Features.Roles.Commands.DeleteRole;
+using IdentityService.Application.Features.Roles.Queries.GetRoleById;
+using IdentityService.Application.Features.Roles.Queries.GetAllRoles;
 using IdentityService.Application.Dtos.Role.Respone;
 using IdentityService.Grpc.Protos.Role;
 using Microsoft.AspNetCore.Authorization;
+using MediatR;
 
 namespace IdentityService.Grpc.Services;
 
 [Authorize]
 public class RoleGrpcService : RoleGrpc.RoleGrpcBase
 {
-    private readonly IRoleService _roleService;
+    private readonly IMediator _mediator;
 
-    public RoleGrpcService(IRoleService roleService)
+    public RoleGrpcService(IMediator mediator)
     {
-        _roleService = roleService;
+        _mediator = mediator;
     }
 
     public override async Task<RoleResponse> Create(CreateRoleRequest request, ServerCallContext context)
     {
-        var rep = await _roleService.CreateAsync(new CreateRoleReq
+        var rep = await _mediator.Send(new CreateRoleCommand(new()
         {
             Name = request.Name,
             Slug = request.Slug,
             Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description
-        });
+        }));
 
         return MapRole(rep);
     }
 
     public override async Task<RoleResponse> GetById(GetRoleByIdRequest request, ServerCallContext context)
     {
-        var rep = await _roleService.GetByIdAsync(Guid.Parse(request.Id));
+        var rep = await _mediator.Send(new GetRoleByIdQuery(Guid.Parse(request.Id)));
 
         if (rep == null)
             throw new RpcException(new Status(StatusCode.NotFound, "Role not found"));
@@ -41,21 +45,23 @@ public class RoleGrpcService : RoleGrpc.RoleGrpcBase
 
     public override async Task<RoleListResponse> GetAll(Empty request, ServerCallContext context)
     {
-        var roles = await _roleService.GetAllAsync();
+        var roles = await _mediator.Send(new GetAllRolesQuery());
 
         var res = new RoleListResponse();
         res.Roles.AddRange(roles.Select(MapRole));
-
         return res;
     }
 
     public override async Task<RoleResponse> Update(UpdateRoleRequest request, ServerCallContext context)
     {
-        var rep = await _roleService.UpdateAsync(Guid.Parse(request.Id), new UpdateRoleReq
-        {
-            Name = request.Name,
-            Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description
-        });
+        var rep = await _mediator.Send(new UpdateRoleCommand(
+            Id: Guid.Parse(request.Id),
+            Request: new()
+            {
+                Name = request.Name,
+                Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description
+            }
+        ));
 
         if (rep == null)
             throw new RpcException(new Status(StatusCode.NotFound, "Role not found"));
@@ -65,12 +71,9 @@ public class RoleGrpcService : RoleGrpc.RoleGrpcBase
 
     public override async Task<DeleteRoleResponse> Delete(DeleteRoleRequest request, ServerCallContext context)
     {
-        var ok = await _roleService.DeleteAsync(Guid.Parse(request.Id));
+        var ok = await _mediator.Send(new DeleteRoleCommand(Guid.Parse(request.Id)));
 
-        return new DeleteRoleResponse
-        {
-            Success = ok
-        };
+        return new DeleteRoleResponse { Success = ok };
     }
 
     private static RoleResponse MapRole(RoleRep role)

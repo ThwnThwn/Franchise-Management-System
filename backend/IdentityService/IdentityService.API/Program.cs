@@ -1,5 +1,7 @@
 using DotNetEnv;
+using IdentityService.API.Services;
 using IdentityService.Application;
+using IdentityService.Application.Abstrations;
 using IdentityService.Application.Helpers;
 using IdentityService.Application.Persistences.Caches;
 using IdentityService.Grpc.Services;
@@ -147,14 +149,14 @@ var redisConn =
     ?? builder.Configuration["REDIS_CONFIGURATION"]
     ?? "localhost:6379,abortConnect=false";
 
-// 1) For IDistributedCache (AddStackExchangeRedisCache)
+//For IDistributedCache (AddStackExchangeRedisCache)
 builder.Services.AddStackExchangeRedisCache(options =>
 {
     options.Configuration = redisConn;
     options.InstanceName = "chb_redis";
 });
 
-// 2) For IConnectionMultiplexer (used in TokenBlacklist, etc.)
+//For IConnectionMultiplexer (used in TokenBlacklist, etc.)
 builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
 {
     return ConnectionMultiplexer.Connect(redisConn);
@@ -163,6 +165,8 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
 // Application + Infrastructure
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 // Force HTTP/2 port
 builder.WebHost.ConfigureKestrel(options =>
 {

@@ -17,7 +17,6 @@
 
 		<!-- gRPC reflection for testing with grpcurl/Postman -->
 		<PackageReference Include="Grpc.AspNetCore.Server.Reflection" Version="2.57.0" />
-		
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
 		<PackageReference Include="StackExchange.Redis" Version="2.10.1" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
@@ -32,9 +31,9 @@
 
 	<ItemGroup>
 		<!-- Proto files  -->
-		<Protobuf Include="Protos\auth.proto" GrpcServices="Server" ProtoRoot="Protos"/>
-		<Protobuf Include="Protos\user.proto" GrpcServices="Server" ProtoRoot="Protos"/>
-		<Protobuf Include="Protos\role.proto" GrpcServices="Server" ProtoRoot="Protos"/>
+		<Protobuf Include="Protos\auth.proto" GrpcServices="Server" ProtoRoot="Protos" />
+		<Protobuf Include="Protos\user.proto" GrpcServices="Server" ProtoRoot="Protos" />
+		<Protobuf Include="Protos\role.proto" GrpcServices="Server" ProtoRoot="Protos" />
 	</ItemGroup>
 
 	<ItemGroup>

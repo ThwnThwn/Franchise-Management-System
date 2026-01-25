@@ -18,7 +18,7 @@ namespace IdentityService.Application.Dtos.User.Request
         public string Password { get; set; } = null!;
 
         [MaxLength(100)]
-        public string? Name { get; set; }
+        public string? Username { get; set; }
 
         [Phone]
         public string? Phone { get; set; }

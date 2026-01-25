@@ -36,7 +36,7 @@ message UserListResponse {
 message CustomerCreateUserRequest {
   string email = 1;
   string password = 2;
-  string name = 3;
+  string username = 3;
   string phone = 4;
   string address = 5;
 }
@@ -53,11 +53,11 @@ message AdminCreateUserRequest {
 message UpdateUserRequest {
   string id = 1;
 
-  string name = 2;
+  string username = 2;
   string email = 3;
   string phone = 4;
   string address = 5;
-
+  string Password = 8;
   bool isBlocked = 6;
   string roleId = 7;
 }
