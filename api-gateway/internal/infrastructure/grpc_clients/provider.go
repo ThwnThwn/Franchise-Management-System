@@ -9,7 +9,6 @@ import (
 )
 
 var ClientSet = wire.NewSet(
-	NewCalcGrpcClient,
 	// Identity Service
 	identity.NewIdentityClientFactory,
 	identity.ProvideAuthClient,

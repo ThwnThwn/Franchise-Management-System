@@ -5,7 +5,6 @@ import (
 	"api-gateway/internal/api/handlers"
 	"api-gateway/internal/api/middleware"
 	authRouter "api-gateway/internal/api/routes/auth"
-	"api-gateway/internal/api/routes/calc"
 	orderRouter "api-gateway/internal/api/routes/order"
 	productRouter "api-gateway/internal/api/routes/product"
 
@@ -13,7 +12,6 @@ import (
 )
 
 type RouterGroup struct {
-	Calc    calc.RouterGroup
 	Auth    authRouter.RouterGroup
 	Product productRouter.RouterGroup
 	Order   orderRouter.RouterGroup
@@ -34,24 +32,16 @@ func NewRouter(cfg *config.Config, h *handlers.AppHandlers) *gin.Engine {
 		c.JSON(200, gin.H{"status": "Gateway is running", "port": cfg.Port})
 	})
 
-	calcGroup := RouterGroupApp.Calc
 	authGroup := RouterGroupApp.Auth
 	productGroup := RouterGroupApp.Product
 	orderGroup := RouterGroupApp.Order
 
 	MainGroup := r.Group("/api")
 	{
-		calcGroup.NewCalcRouter(cfg, MainGroup, h.CalcHandler)
 		authGroup.NewAuthRouter(cfg, MainGroup, h.AuthHandler)
 		productGroup.NewProductRouter(cfg, MainGroup, h.ProductHandler)
 		orderGroup.NewOrderRouter(cfg, MainGroup, h.OrderHandler)
 	}
-
-	// --- NHÓM API SALES SERVICE ---
-	// salesGroup := r.Group("/api/calc")
-	// {
-	// 	salesGroup.Any("/*proxyPath", proxy.NewReverseProxy(cfg.CalcServiceUrl))
-	// }
 
 	return r
 }
