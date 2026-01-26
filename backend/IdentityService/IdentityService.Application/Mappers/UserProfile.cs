@@ -23,6 +23,8 @@ namespace IdentityService.Application.Mappers
                 .ForAllMembers(opt =>
                     opt.Condition((src, dest, srcMember) => srcMember != null));
 
+            CreateMap<ChangePasswordReq, User>();
+
             CreateMap<User, UserRep>()
                 .ForMember(dest => dest.Role,
                     opt => opt.MapFrom(src => src.Role));

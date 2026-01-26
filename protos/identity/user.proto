@@ -17,6 +17,8 @@ service UserGrpc {
   rpc GetAll(google.protobuf.Empty) returns (UserListResponse);
 
   rpc Update(UpdateUserRequest) returns (UserResponse);
+  rpc ChangePassword(ChangePasswordRequest) returns (UserResponse);
+
   rpc Delete(DeleteUserRequest) returns (DeleteUserResponse);
 }
 
@@ -64,6 +66,12 @@ message UpdateUserRequest {
   string Password = 8;
   bool isBlocked = 6;
   string roleId = 7;
+}
+message ChangePasswordRequest{
+  string id = 1;
+  string oldPassword = 2;
+  string newPassword = 3;
+  string confirmNewPassword = 4;
 }
 
 message UserResponse {
