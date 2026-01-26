@@ -34,3 +34,8 @@ func (a *AuthUseCase) ExecuteRefreshToken(ctx context.Context, req *idenPb.Refre
 func (a *AuthUseCase) ExecuteRegister(ctx context.Context, req *idenPb.RegisterRequest) (*idenPb.RegisterResponse, error) {
 	return a.service.Register(ctx, req)
 }
+
+// ExecuteConfirmOtp implements abstractions.IAuthUseCase.
+func (a *AuthUseCase) ExecuteConfirmOtp(ctx context.Context, req *idenPb.ConfirmOtpRequest) (*idenPb.ConfirmOtpResponse, error) {
+	return a.service.ConfirmOtp(ctx, req)
+}

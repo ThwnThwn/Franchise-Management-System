@@ -10,9 +10,11 @@ import (
 var HandlerSet = wire.NewSet(
 	calc.NewCalcHandler,
 	NewAuthHandler,
+	NewProductHandler,
 )
 
 type AppHandlers struct {
-	CalcHandler *calc.CalcHandler
-	AuthHandler *AuthHandler
+	CalcHandler    *calc.CalcHandler
+	AuthHandler    *AuthHandler
+	ProductHandler *ProductHandler
 }

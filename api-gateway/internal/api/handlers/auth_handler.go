@@ -23,9 +23,7 @@ func NewAuthHandler(authUC abstractions.IAuthUseCase) *AuthHandler {
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req auth.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": validation.TranslateValidationError(err),
-		})
+		c.Error(validation.TranslateValidationError(err))
 		return
 	}
 
@@ -97,5 +95,54 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"accessToken": res.AccessToken,
+	})
+}
+
+func (h *AuthHandler) Register(c *gin.Context) {
+	var req auth.RegisterRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.Error(validation.TranslateValidationError(err))
+		return
+	}
+
+	ctx := c.Request.Context()
+	res, err := h.authUC.ExecuteRegister(ctx, &identity.RegisterRequest{
+		Email:    req.Email,
+		Password: req.Password,
+		Phone:    req.Phone,
+		Address:  req.Address,
+	})
+
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": res.Message,
+	})
+}
+
+func (h *AuthHandler) ConfirmOtp(c *gin.Context) {
+	var req auth.ConfirmOtpRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.Error(validation.TranslateValidationError(err))
+		return
+	}
+
+	ctx := c.Request.Context()
+	res, err := h.authUC.ExecuteConfirmOtp(ctx, &identity.ConfirmOtpRequest{
+		Email: req.Email,
+		Otp:   req.Otp,
+	})
+
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": res.Success,
+		"message": res.Message,
 	})
 }

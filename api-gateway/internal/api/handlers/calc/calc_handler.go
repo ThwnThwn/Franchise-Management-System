@@ -7,6 +7,7 @@ import (
 
 	"api-gateway/internal/api/handlers/calc/request"
 	"api-gateway/internal/application/abstractions"
+	"api-gateway/pkg/utils/validation"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,22 +22,19 @@ func NewCalcHandler(calcUC abstractions.ICalcUseCase) *CalcHandler {
 }
 
 func (h *CalcHandler) AddNumbers(c *gin.Context) {
-	var body request.AddRequest
-	if err := c.ShouldBindJSON(&body); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	var req request.AddRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.Error(validation.TranslateValidationError(err))
 		return
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
-	res, err := h.calcUC.ExecuteAdd(ctx, body.A, body.B)
+	res, err := h.calcUC.ExecuteAdd(ctx, req.A, req.B)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":   "Error from Calc Service",
-			"details": err.Error(),
-		})
+		c.Error(err)
 		return
 	}
 

@@ -6,6 +6,9 @@ import (
 )
 
 var (
+	// 400
+	ErrInvalidId = errors.New("invalid id")
+
 	// 401
 	ErrInvalidToken = errors.New("invalid token")
 
@@ -23,6 +26,11 @@ var InternalErrorMap = map[error]struct {
 	Title  string
 	Detail string
 }{
+	ErrInvalidId: {
+		Status: http.StatusBadRequest,
+		Title:  "Bad Request",
+		Detail: ErrInvalidId.Error(),
+	},
 	ErrInvalidToken: {
 		Status: http.StatusUnauthorized,
 		Title:  "Unauthorized",

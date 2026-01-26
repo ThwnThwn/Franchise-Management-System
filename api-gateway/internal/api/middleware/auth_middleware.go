@@ -42,6 +42,7 @@ func ValidateToken(secret []byte) gin.HandlerFunc {
 
 		c.Set("userID", userID)
 		c.Set("accessToken", token)
+		c.Set("roleSlug", claims.RoleSlug)
 		c.Next()
 	}
 }

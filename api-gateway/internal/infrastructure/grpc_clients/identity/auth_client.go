@@ -50,3 +50,12 @@ func (a *AuthGrpcClient) Register(ctx context.Context, req *authPb.RegisterReque
 	}
 	return res, nil
 }
+
+// ConfirmOtp implements identity.IAuthService.
+func (a *AuthGrpcClient) ConfirmOtp(ctx context.Context, req *authPb.ConfirmOtpRequest) (*authPb.ConfirmOtpResponse, error) {
+	res, err := a.client.ConfirmOtp(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}

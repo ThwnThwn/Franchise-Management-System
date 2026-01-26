@@ -13,6 +13,11 @@ type RegisterRequest struct {
 	Address         string `json:"address" binding:"required"`
 }
 
+type ConfirmOtpRequest struct {
+	Email string `json:"email" binding:"required"`
+	Otp   string `json:"otp" binding:"required"`
+}
+
 type RefreshTokenRequest struct {
 	RefreshToken string `json:"refreshToken" binding:"required"`
 }

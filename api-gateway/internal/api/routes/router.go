@@ -6,13 +6,15 @@ import (
 	"api-gateway/internal/api/middleware"
 	authRouter "api-gateway/internal/api/routes/auth"
 	"api-gateway/internal/api/routes/calc"
+	productRouter "api-gateway/internal/api/routes/product"
 
 	"github.com/gin-gonic/gin"
 )
 
 type RouterGroup struct {
-	Calc calc.RouterGroup
-	Auth authRouter.RouterGroup
+	Calc    calc.RouterGroup
+	Auth    authRouter.RouterGroup
+	Product productRouter.RouterGroup
 }
 
 var RouterGroupApp = new(RouterGroup)
@@ -32,11 +34,13 @@ func NewRouter(cfg *config.Config, h *handlers.AppHandlers) *gin.Engine {
 
 	calcGroup := RouterGroupApp.Calc
 	authGroup := RouterGroupApp.Auth
+	productGroup := RouterGroupApp.Product
 
 	MainGroup := r.Group("/api")
 	{
 		calcGroup.NewCalcRouter(cfg, MainGroup, h.CalcHandler)
 		authGroup.NewAuthRouter(cfg, MainGroup, h.AuthHandler)
+		productGroup.NewProductRouter(cfg, MainGroup, h.ProductHandler)
 	}
 
 	// --- NHÓM API SALES SERVICE ---

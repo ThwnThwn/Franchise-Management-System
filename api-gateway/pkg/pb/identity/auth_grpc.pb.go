@@ -26,6 +26,7 @@ type AuthGrpcClient interface {
 	Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
 	RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*RefreshTokenResponse, error)
 	Logout(ctx context.Context, in *LogoutRequest, opts ...grpc.CallOption) (*LogoutResponse, error)
+	ConfirmOtp(ctx context.Context, in *ConfirmOtpRequest, opts ...grpc.CallOption) (*ConfirmOtpResponse, error)
 }
 
 type authGrpcClient struct {
@@ -72,6 +73,15 @@ func (c *authGrpcClient) Logout(ctx context.Context, in *LogoutRequest, opts ...
 	return out, nil
 }
 
+func (c *authGrpcClient) ConfirmOtp(ctx context.Context, in *ConfirmOtpRequest, opts ...grpc.CallOption) (*ConfirmOtpResponse, error) {
+	out := new(ConfirmOtpResponse)
+	err := c.cc.Invoke(ctx, "/identity.auth.AuthGrpc/ConfirmOtp", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthGrpcServer is the server API for AuthGrpc service.
 // All implementations must embed UnimplementedAuthGrpcServer
 // for forward compatibility
@@ -80,6 +90,7 @@ type AuthGrpcServer interface {
 	Register(context.Context, *RegisterRequest) (*RegisterResponse, error)
 	RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenResponse, error)
 	Logout(context.Context, *LogoutRequest) (*LogoutResponse, error)
+	ConfirmOtp(context.Context, *ConfirmOtpRequest) (*ConfirmOtpResponse, error)
 	mustEmbedUnimplementedAuthGrpcServer()
 }
 
@@ -98,6 +109,9 @@ func (UnimplementedAuthGrpcServer) RefreshToken(context.Context, *RefreshTokenRe
 }
 func (UnimplementedAuthGrpcServer) Logout(context.Context, *LogoutRequest) (*LogoutResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Logout not implemented")
+}
+func (UnimplementedAuthGrpcServer) ConfirmOtp(context.Context, *ConfirmOtpRequest) (*ConfirmOtpResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ConfirmOtp not implemented")
 }
 func (UnimplementedAuthGrpcServer) mustEmbedUnimplementedAuthGrpcServer() {}
 
@@ -184,6 +198,24 @@ func _AuthGrpc_Logout_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthGrpc_ConfirmOtp_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ConfirmOtpRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthGrpcServer).ConfirmOtp(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/identity.auth.AuthGrpc/ConfirmOtp",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthGrpcServer).ConfirmOtp(ctx, req.(*ConfirmOtpRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AuthGrpc_ServiceDesc is the grpc.ServiceDesc for AuthGrpc service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -206,6 +238,10 @@ var AuthGrpc_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Logout",
 			Handler:    _AuthGrpc_Logout_Handler,
+		},
+		{
+			MethodName: "ConfirmOtp",
+			Handler:    _AuthGrpc_ConfirmOtp_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -15,13 +15,17 @@ func (a *AuthRouter) NewAuthRouter(cfg *config.Config,
 	authHander *handlers.AuthHandler,
 ) {
 	authApi := r.Group("/auth")
-
-	authApi.POST("/login", authHander.Login)
-	authApi.POST("/refresh-token", authHander.RefreshToken)
+	{
+		authApi.POST("/login", authHander.Login)
+		authApi.POST("/refresh-token", authHander.RefreshToken)
+		authApi.POST("/register", authHander.Register)
+		authApi.POST("/register/confirm-otp", authHander.ConfirmOtp)
+	}
 
 	accessTokenSecret := cfg.JwtSecret
 	privateApi := authApi.Group("/")
 	privateApi.Use(middleware.ValidateToken([]byte(accessTokenSecret)))
-	privateApi.POST("/logout", authHander.Logout)
-
+	{
+		privateApi.POST("/logout", authHander.Logout)
+	}
 }
