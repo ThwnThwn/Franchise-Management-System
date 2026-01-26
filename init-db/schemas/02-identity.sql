@@ -17,11 +17,15 @@ CREATE TABLE IF NOT EXISTS roles (
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
 
+    first_name VARCHAR(255) NOT NULL,
+    last_name VARCHAR(255),
     email VARCHAR(255) NOT NULL UNIQUE,
     username VARCHAR(70),
     password VARCHAR(255) NOT NULL,
     phone VARCHAR(20),
     address TEXT,
+    gender INT NOT NULL DEFAULT 0, -- 0: Male, 1: Female
+    date_or_birth TIMESTAMP NOT NULL,
     is_blocked BOOLEAN DEFAULT FALSE,
 
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,

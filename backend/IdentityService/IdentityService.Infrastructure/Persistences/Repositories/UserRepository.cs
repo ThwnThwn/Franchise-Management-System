@@ -13,7 +13,7 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
 {
     public class UserRepository : GenericRepository<User>, IUserRepository
     {
-        public UserRepository(IAppDbContext dbContext) : base(dbContext)
+        public UserRepository(IIdentityDbContext dbContext) : base(dbContext)
         {
         }
 
@@ -77,7 +77,6 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
                 );
         }
 
-
         public override async Task<User?> GetByIdAsync(Guid id)
         {
             var user = await _dbContext.Users
@@ -85,7 +84,5 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
                .FirstOrDefaultAsync(u => u.Id == id && !u.IsDeleted);
             return user;
         }
-
-        
     }
 }

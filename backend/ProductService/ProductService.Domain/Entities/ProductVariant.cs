@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using ProductService.Domain.Commons;
 
 namespace ProductService.Domain.Entities;
 
-public partial class ProductVariant
+public partial class ProductVariant : SoftDeletedEntity, IEntity
 {
     public Guid Id { get; set; }
 
@@ -19,11 +20,9 @@ public partial class ProductVariant
 
     public bool? IsActive { get; set; }
 
-    public DateTime? CreatedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
 
-    public DateTime? UpdatedAt { get; set; }
-
-    public bool? IsDeleted { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; }
 
     public Guid ProductId { get; set; }
 

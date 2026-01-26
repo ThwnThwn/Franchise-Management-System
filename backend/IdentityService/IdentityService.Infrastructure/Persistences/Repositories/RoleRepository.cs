@@ -8,7 +8,7 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
 {
     public class RoleRepository : GenericRepository<Role>, IRoleRepository
     {
-        public RoleRepository(IAppDbContext dbContext) : base(dbContext)
+        public RoleRepository(IIdentityDbContext dbContext) : base(dbContext)
         {
         }
 

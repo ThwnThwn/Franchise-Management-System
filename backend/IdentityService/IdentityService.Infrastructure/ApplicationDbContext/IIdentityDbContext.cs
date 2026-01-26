@@ -2,15 +2,10 @@
 using IdentityService.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace IdentityService.Infrastructure.ApplicationDbContext
 {
-    public interface IAppDbContext : IDisposable
+    public interface IIdentityDbContext : IDisposable
     {
         DbSet<RefreshToken> RefreshTokens { get; set; }
 
@@ -18,7 +13,7 @@ namespace IdentityService.Infrastructure.ApplicationDbContext
 
         DbSet<User> Users { get; set; }
 
-        DbSet<TEntity> Set<TEntity>() where TEntity : class;
+        public DbSet<T> Set<T>() where T : class, IEntity;
 
         public EntityEntry<T> Entry<T>(T entity) where T : class;
 

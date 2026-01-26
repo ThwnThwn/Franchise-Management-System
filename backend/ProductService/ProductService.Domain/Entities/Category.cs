@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using ProductService.Domain.Commons;
 
 namespace ProductService.Domain.Entities;
 
-public partial class Category
+public partial class Category : SoftDeletedEntity, IEntity
 {
     public Guid Id { get; set; }
 
@@ -13,11 +14,9 @@ public partial class Category
 
     public bool? IsActive { get; set; }
 
-    public DateTime? CreatedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
 
-    public DateTime? UpdatedAt { get; set; }
-
-    public bool? IsDeleted { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; }
 
     public virtual ICollection<Product> Products { get; set; } = new List<Product>();
 }

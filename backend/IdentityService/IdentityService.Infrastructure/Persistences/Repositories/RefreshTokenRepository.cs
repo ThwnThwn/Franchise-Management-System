@@ -8,10 +8,9 @@ namespace IdentityService.Infrastructure.Persistences.Repositories;
 
 public class RefreshTokenRepository : GenericRepository<RefreshToken>, IRefreshTokenRepository
 {
-    public RefreshTokenRepository(IAppDbContext dbContext) : base(dbContext)
+    public RefreshTokenRepository(IIdentityDbContext dbContext) : base(dbContext)
     {
     }
-
 
     public Task<RefreshToken?> GetRefreshTokenByAccountIdAsync(Guid Id)
     {
@@ -54,4 +53,3 @@ public class RefreshTokenRepository : GenericRepository<RefreshToken>, IRefreshT
         await _dbContext.SaveChangesAsync();
     }
 }
-

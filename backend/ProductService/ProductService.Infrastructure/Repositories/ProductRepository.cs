@@ -5,15 +5,15 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using ProductService.Application.Repositories;
 using ProductService.Domain.Entities;
-using ProductService.Infrastructure.Data;
+using ProductService.Infrastructure.ApplicationDbContext;
 
 namespace ProductService.Infrastructure.Repositories;
 
 public class ProductRepository : IProductRepository
 {
-    private readonly ProductDbContext _context;
+    private readonly IProductDbContext _context;
 
-    public ProductRepository(ProductDbContext context)
+    public ProductRepository(IProductDbContext context)
     {
         _context = context;
     }

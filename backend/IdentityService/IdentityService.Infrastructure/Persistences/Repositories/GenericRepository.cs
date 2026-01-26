@@ -13,10 +13,10 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
 {
     public class GenericRepository<T> : IGenericRepository<T> where T : class, IEntity
     {
-        protected readonly IAppDbContext _dbContext;
+        protected readonly IIdentityDbContext _dbContext;
         protected readonly DbSet<T> _dbSet;
 
-        public GenericRepository(IAppDbContext dbContext)
+        public GenericRepository(IIdentityDbContext dbContext)
         {
             _dbContext = dbContext;
             _dbSet = _dbContext.Set<T>();

@@ -2,7 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using SalesService.Application.Interfaces.Orders;
 using SalesService.Domain.Entities;
-using SalesService.Infrastructure.Data;
+using SalesService.Infrastructure.ApplicationDbContext;
 
 namespace SalesService.Infrastructure.Repositories.Orders;
 

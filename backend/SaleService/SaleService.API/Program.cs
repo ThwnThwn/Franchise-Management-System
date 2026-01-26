@@ -6,10 +6,11 @@ using SalesService.API.Services.Products;
 using SalesService.API.Middleware;
 using SalesService.Infrastructure.Repositories.Orders;
 using SalesService.Infrastructure.Extensions;
-using SalesService.Infrastructure.Data;
 using SalesService.Application.Interfaces.Orders;
 using SalesService.Application.Interfaces.Products;
 using SalesService.Application.Mapping.Orders;
+using SalesService.Infrastructure.ApplicationDbContext;
+using SalesService.Infrastructure.Models;
 
 namespace SalesService.API;
 
@@ -58,12 +59,8 @@ public class Program
         // Connect Db
         var connectionString = builder.Configuration["SALES_DB_CONNECTION"];
 
-        builder.Services.AddDbContext<SalesDbContext>(options =>
+        builder.Services.AddDbContext<ISalesDbContext, SalesDbContext>(options =>
             options.UseNpgsql(connectionString));
-
-        // Register interface
-        builder.Services.AddScoped<ISalesDbContext>(provider =>
-            provider.GetRequiredService<SalesDbContext>());
 
         // Configure AutoMapper
         var applicationAssembly = typeof(OrderMappingProfile).Assembly;

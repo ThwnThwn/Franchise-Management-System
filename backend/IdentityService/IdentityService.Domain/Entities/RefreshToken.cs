@@ -1,6 +1,7 @@
-﻿using IdentityService.Domain.Commons;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using IdentityService.Domain.Commons;
+using IdentityService.Domain.Entities;
 
 namespace IdentityService.Domain.Entities;
 
