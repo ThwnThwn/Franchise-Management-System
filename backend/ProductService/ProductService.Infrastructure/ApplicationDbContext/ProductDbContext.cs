@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using ProductService.Domain.Commons;
-using ProductService.Infrastructure.Interceptor;
 using ProductService.Domain.Entities;
+using ProductService.Infrastructure.Interceptor;
 
 namespace ProductService.Infrastructure.ApplicationDbContext;
 
@@ -161,8 +162,28 @@ public partial class ProductDbContext : DbContext, IProductDbContext
                 .HasConstraintName("fk_variants_product");
         });
 
+        foreach (var entity in modelBuilder.Model.GetEntityTypes())
+        {
+            if (typeof(SoftDeletedEntity).IsAssignableFrom(entity.ClrType))
+            {
+                // Cấu hình Query Filter: x => !x.IsDeleted
+                modelBuilder.Entity(entity.ClrType)
+                    .HasQueryFilter(GenerateIsDeletedExpression(entity.ClrType));
+            }
+        }
+
         OnModelCreatingPartial(modelBuilder);
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
+
+    private static LambdaExpression GenerateIsDeletedExpression(Type type)
+    {
+        var parameter = Expression.Parameter(type, "e");
+        var property = Expression.Property(parameter, nameof(SoftDeletedEntity.IsDeleted));
+        var constant = Expression.Constant(false);
+        var compare = Expression.Equal(property, constant);
+
+        return Expression.Lambda(compare, parameter);
+    }
 }

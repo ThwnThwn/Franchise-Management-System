@@ -11,6 +11,7 @@ using SalesService.Application.Interfaces.Products;
 using SalesService.Application.Mapping.Orders;
 using SalesService.Infrastructure.ApplicationDbContext;
 using SalesService.Infrastructure.Models;
+using SalesService.Infrastructure.Interceptor;
 
 namespace SalesService.API;
 
@@ -56,9 +57,11 @@ public class Program
             });
         });
 
+        // Interceptors
+        builder.Services.AddScoped<UpdateTimestampInterceptor>();
+
         // Connect Db
         var connectionString = builder.Configuration["SALES_DB_CONNECTION"];
-
         builder.Services.AddDbContext<ISalesDbContext, SalesDbContext>(options =>
             options.UseNpgsql(connectionString));
 

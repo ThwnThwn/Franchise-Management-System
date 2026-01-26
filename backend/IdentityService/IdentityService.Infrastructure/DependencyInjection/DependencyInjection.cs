@@ -4,6 +4,7 @@ using IdentityService.Application.Persistences.Caches;
 using IdentityService.Application.Persistences.Repositories;
 using IdentityService.Infrastructure.ApplicationDbContext;
 using IdentityService.Infrastructure.ExternalServices;
+using IdentityService.Infrastructure.Interceptor;
 using IdentityService.Infrastructure.Persistences.Cache;
 using IdentityService.Infrastructure.Persistences.Repositories;
 using Infrastructure.Persistences.Caches;
@@ -18,6 +19,8 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services, string identityDbConn)
     {
+        services.AddScoped<UpdateTimestampInterceptor>();
+
         services.AddDbContext<IIdentityDbContext, IdentityDbContext>(opt => opt.UseNpgsql(identityDbConn));
 
         services.AddScoped<IUserRepository, UserRepository>();

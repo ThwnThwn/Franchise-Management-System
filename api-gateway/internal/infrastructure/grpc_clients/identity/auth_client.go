@@ -3,6 +3,8 @@ package identity
 import (
 	identityGW "api-gateway/internal/application/gateways/identity"
 	"api-gateway/internal/domain/models/auth"
+	"api-gateway/internal/domain/models/role"
+	"api-gateway/internal/domain/models/user"
 	authPb "api-gateway/pkg/pb/identity"
 	"context"
 )
@@ -25,25 +27,25 @@ func (a *AuthGrpcClient) Login(ctx context.Context, req *auth.LoginRequest) (*au
 	if err != nil {
 		return nil, err
 	}
-	user := res.User
+	userRes := res.User
 	return &auth.LoginResponse{
 		RefreshTokenResponse: auth.RefreshTokenResponse{
 			AccessToken:  res.AccessToken,
 			RefreshToken: res.RefreshToken,
 		},
-		User: &auth.UserResponse{
-			Id:        user.Id,
-			Email:     user.Email,
-			Username:  user.Username,
-			Phone:     user.Phone,
-			Address:   user.Address,
-			IsBlocked: user.IsBlocked,
-			Role: &auth.RoleUserResponse{
-				Id:   user.Role.Id,
-				Name: user.Role.Name,
+		User: &user.UserResponse{
+			Id:        userRes.Id,
+			Email:     userRes.Email,
+			Username:  userRes.Username,
+			Phone:     userRes.Phone,
+			Address:   userRes.Address,
+			IsBlocked: userRes.IsBlocked,
+			Role: &role.RoleUserResponse{
+				Id:   userRes.Role.Id,
+				Name: userRes.Role.Name,
 			},
-			CreatedAt: user.CreatedAt,
-			UpdatedAt: user.UpdatedAt,
+			CreatedAt: userRes.CreatedAt,
+			UpdatedAt: userRes.UpdatedAt,
 		},
 	}, nil
 }

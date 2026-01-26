@@ -8,6 +8,7 @@ using ProductService.Application.Mapping;
 using ProductService.Application.Repositories;
 using ProductService.Infrastructure.ApplicationDbContext;
 using ProductService.Infrastructure.Extensions;
+using ProductService.Infrastructure.Interceptor;
 using ProductService.Infrastructure.Repositories;
 
 namespace ProductService.API
@@ -51,6 +52,8 @@ namespace ProductService.API
                 });
             });
 
+            // Interceptors
+            builder.Services.AddScoped<UpdateTimestampInterceptor>();
             // Connect Db
             var connectionString = builder.Configuration["PRODUCT_DB_CONNECTION"];
             builder.Services.AddDbContext<IProductDbContext, ProductDbContext>(options =>
