@@ -56,21 +56,22 @@ func TranslateValidationError(err error) *errormodel.BackendError {
 			paramName := fe.Param()
 			switch fe.Tag() {
 			case "required":
-				msg = fmt.Sprintf("%s is required", fieldName)
+				msg = fmt.Sprintf("Vui lòng nhập %s", fieldName)
 			case "email":
-				msg = fmt.Sprintf("%s must be an email", fieldName)
+				msg = "Định dạng email không hợp lệ"
 			case "username":
-				msg = fmt.Sprintf("%s must be 8–20 characters long and only contain letters, digits, dot (.), and underscore (_)", fieldName)
+				msg = "Username phải dài 8-20 kí tự, chỉ chứa chữ, số, dấu chấm (.), và dấu gạch dưới (_)"
+				// msg = fmt.Sprintf("%s must be 8–20 characters long and only contain letters, digits, dot (.), and underscore (_)", fieldName)
 			case "eqfield":
-				msg = fmt.Sprintf("%s must be equal to %s", fieldName, paramName)
+				msg = fmt.Sprintf("%s phải giống với %s", fieldName, paramName)
 			case "nefield":
-				msg = fmt.Sprintf("%s must be different from %s", fieldName, paramName)
+				msg = fmt.Sprintf("%s phải khác với %s", fieldName, paramName)
 			case "len":
-				msg = fmt.Sprintf("%s must be exactly %s characters long", fieldName, paramName)
+				msg = fmt.Sprintf("%s phải dài %s kí tự", fieldName, paramName)
 			case "min":
-				msg = fmt.Sprintf("%s must be at least %s characters", fieldName, paramName)
+				msg = fmt.Sprintf("%s phải dài ít nhất %s kí tự", fieldName, paramName)
 			case "max":
-				msg = fmt.Sprintf("%s must be at most %s characters", fieldName, paramName)
+				msg = fmt.Sprintf("%s không được vượt quá %s kí tự", fieldName, paramName)
 			default:
 				msg = fmt.Sprintf("%s: %s", fieldName, fe.Tag())
 			}

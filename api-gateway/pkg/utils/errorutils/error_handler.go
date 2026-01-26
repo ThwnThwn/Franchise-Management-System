@@ -26,52 +26,42 @@ func MapErrorToProblem(err error) (int, string, string) {
 	if ok {
 		detail := st.Message()
 		switch st.Code() {
-		case codes.Unauthenticated: // 16
-			return http.StatusUnauthorized, "Unauthorized", detail
-		case codes.PermissionDenied: // 7
-			return http.StatusForbidden, "Forbidden", detail
-		case codes.InvalidArgument: // 3
-			return http.StatusBadRequest, "Bad Request", detail
-		case codes.NotFound: // 5
-			return http.StatusNotFound, "Not Found", detail
-		case codes.AlreadyExists: // 6
-			return http.StatusConflict, "Conflict", detail
-		case codes.DeadlineExceeded: // 4
-			return http.StatusRequestTimeout, "Request Timeout", detail
-		case codes.Unavailable: // 14
-			return http.StatusServiceUnavailable, "Service Unavailable", "The server is currently unable to handle the request"
-		case codes.ResourceExhausted: // 8
-			return http.StatusTooManyRequests, "Too Many Requests", detail
+		case codes.OK:
+			return http.StatusOK, "Thành công", "Yêu cầu đã được xử lý"
+
+		case codes.InvalidArgument: // 3 -> 400
+			return http.StatusBadRequest, "Dữ liệu không hợp lệ", detail
+
+		case codes.Unauthenticated: // 16 -> 401
+			return http.StatusUnauthorized, "Chưa xác thực", "Vui lòng đăng nhập để tiếp tục"
+
+		case codes.PermissionDenied: // 7 -> 403
+			return http.StatusForbidden, "Không có quyền truy cập", "Bạn không có quyền thực hiện thao tác này"
+
+		case codes.NotFound: // 5 -> 404
+			return http.StatusNotFound, "Không tìm thấy", detail
+
+		case codes.AlreadyExists: // 6 -> 409
+			return http.StatusConflict, "Dữ liệu đã tồn tại", detail
+
+		case codes.ResourceExhausted: // 8 -> 429
+			return http.StatusTooManyRequests, "Quá nhiều yêu cầu", "Hệ thống đang bận, vui lòng thử lại sau"
+
+		case codes.DeadlineExceeded: // 4 -> 504 (hoặc 408)
+			return http.StatusGatewayTimeout, "Hết thời gian chờ", "Yêu cầu xử lý quá lâu"
+
+		case codes.Unavailable: // 14 -> 503
+			return http.StatusServiceUnavailable, "Dịch vụ tạm thời gián đoạn", "Máy chủ hiện không khả dụng, vui lòng thử lại sau"
+
+		case codes.Aborted: // 10 -> 409
+			return http.StatusConflict, "Thao tác bị hủy", detail
+
+		case codes.Internal: // 13 -> 500
+			fallthrough
+		default:
+			return http.StatusInternalServerError, "Lỗi máy chủ nội bộ", "Đã có lỗi không mong muốn xảy ra"
 		}
 	}
 
-	return http.StatusInternalServerError, "Internal Server Error", err.Error()
-}
-
-func GrpcToHttpStatus(err error) (int, string, string) {
-	st, ok := status.FromError(err)
-	if !ok {
-		return http.StatusInternalServerError, "Internal Server Error", "An unexpected error occurred"
-	}
-
-	detail := st.Message()
-
-	switch st.Code() {
-	case codes.Unauthenticated: // 16
-		return http.StatusUnauthorized, "Unauthorized", detail
-	case codes.PermissionDenied: // 7
-		return http.StatusForbidden, "Forbidden", detail
-	case codes.InvalidArgument: // 3
-		return http.StatusBadRequest, "Bad Request", detail
-	case codes.NotFound: // 5
-		return http.StatusNotFound, "Not Found", detail
-	case codes.AlreadyExists: // 6
-		return http.StatusConflict, "Conflict", detail
-	case codes.DeadlineExceeded: // 4
-		return http.StatusRequestTimeout, "Request Timeout", detail
-	case codes.Unavailable: // 14
-		return http.StatusServiceUnavailable, "Service Unavailable", "The server is currently unable to handle the request"
-	default:
-		return http.StatusInternalServerError, "Internal Server Error", detail
-	}
+	return http.StatusInternalServerError, "Lỗi hệ thống", err.Error()
 }
