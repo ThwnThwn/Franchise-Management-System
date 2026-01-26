@@ -28,6 +28,7 @@ type UserGrpcClient interface {
 	GetById(ctx context.Context, in *GetUserByIdRequest, opts ...grpc.CallOption) (*UserResponse, error)
 	GetAll(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*UserListResponse, error)
 	Update(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*UserResponse, error)
+	ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*UserResponse, error)
 	Delete(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error)
 }
 
@@ -84,6 +85,15 @@ func (c *userGrpcClient) Update(ctx context.Context, in *UpdateUserRequest, opts
 	return out, nil
 }
 
+func (c *userGrpcClient) ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*UserResponse, error) {
+	out := new(UserResponse)
+	err := c.cc.Invoke(ctx, "/identity.user.UserGrpc/ChangePassword", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *userGrpcClient) Delete(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error) {
 	out := new(DeleteUserResponse)
 	err := c.cc.Invoke(ctx, "/identity.user.UserGrpc/Delete", in, out, opts...)
@@ -102,6 +112,7 @@ type UserGrpcServer interface {
 	GetById(context.Context, *GetUserByIdRequest) (*UserResponse, error)
 	GetAll(context.Context, *emptypb.Empty) (*UserListResponse, error)
 	Update(context.Context, *UpdateUserRequest) (*UserResponse, error)
+	ChangePassword(context.Context, *ChangePasswordRequest) (*UserResponse, error)
 	Delete(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error)
 	mustEmbedUnimplementedUserGrpcServer()
 }
@@ -124,6 +135,9 @@ func (UnimplementedUserGrpcServer) GetAll(context.Context, *emptypb.Empty) (*Use
 }
 func (UnimplementedUserGrpcServer) Update(context.Context, *UpdateUserRequest) (*UserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
+}
+func (UnimplementedUserGrpcServer) ChangePassword(context.Context, *ChangePasswordRequest) (*UserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ChangePassword not implemented")
 }
 func (UnimplementedUserGrpcServer) Delete(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
@@ -231,6 +245,24 @@ func _UserGrpc_Update_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserGrpc_ChangePassword_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ChangePasswordRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserGrpcServer).ChangePassword(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/identity.user.UserGrpc/ChangePassword",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserGrpcServer).ChangePassword(ctx, req.(*ChangePasswordRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _UserGrpc_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteUserRequest)
 	if err := dec(in); err != nil {
@@ -275,6 +307,10 @@ var UserGrpc_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Update",
 			Handler:    _UserGrpc_Update_Handler,
+		},
+		{
+			MethodName: "ChangePassword",
+			Handler:    _UserGrpc_ChangePassword_Handler,
 		},
 		{
 			MethodName: "Delete",

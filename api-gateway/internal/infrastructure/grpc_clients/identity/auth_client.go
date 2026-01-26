@@ -19,8 +19,8 @@ func ProvideAuthClient(f *identityClientFactory) identityGW.IAuthService {
 // Login implements identity.IAuthService.
 func (a *AuthGrpcClient) Login(ctx context.Context, req *auth.LoginRequest) (*auth.LoginResponse, error) {
 	res, err := a.client.Login(ctx, &authPb.LoginRequest{
-		Email:    req.Email,
-		Password: req.Password,
+		EmailOrUsername: req.EmailOrUsername,
+		Password:        req.Password,
 	})
 	if err != nil {
 		return nil, err

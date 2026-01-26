@@ -28,8 +28,8 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 	ctx := c.Request.Context()
 	res, err := h.authUC.ExecuteLogin(ctx, &auth.LoginRequest{
-		Email:    req.Email,
-		Password: req.Password,
+		EmailOrUsername: req.EmailOrUsername,
+		Password:        req.Password,
 	})
 	if err != nil {
 		c.Error(err)
