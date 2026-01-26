@@ -29,12 +29,12 @@
 		</PackageReference>
 	</ItemGroup>
 
-	 <ItemGroup>
-		<Protobuf Include="Protos\auth.proto" GrpcServices="Server" ProtoRoot="Protos" />
-		<Protobuf Include="Protos\user.proto" GrpcServices="Server" ProtoRoot="Protos" />
-		<Protobuf Include="Protos\role.proto" GrpcServices="Server" ProtoRoot="Protos" />
+	<ItemGroup>
+		<Protobuf Include="..\..\..\protos\identity\*.proto"
+                    GrpcServices="Server"
+                    ProtoRoot="..\..\..\protos" />
 	</ItemGroup>
-
+	
 	<ItemGroup>
 		<ProjectReference Include="..\IdentityService.Application\IdentityService.Application.csproj" />
 		<ProjectReference Include="..\IdentityService.Infrastructure\IdentityService.Infrastructure.csproj" />
