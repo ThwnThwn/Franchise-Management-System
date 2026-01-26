@@ -9,25 +9,18 @@ package di
 import (
 	"api-gateway/config"
 	"api-gateway/internal/api/handlers"
-	"api-gateway/internal/api/handlers/calc"
 	"api-gateway/internal/api/routes"
 	"api-gateway/internal/application/usecases"
 	"api-gateway/internal/bootstrap"
-	"api-gateway/internal/infrastructure/grpc_clients"
 	"api-gateway/internal/infrastructure/grpc_clients/identity"
+	"api-gateway/internal/infrastructure/grpc_clients/product"
+	"api-gateway/internal/infrastructure/grpc_clients/sales"
 )
 
 // Injectors from wire.go:
 
 // InitializeApp nằm ở package 'di', trả về 'bootstrap.App'
 func InitializeApp(cfg *config.Config) (*bootstrap.App, error) {
-	calcServiceUrl := cfg.CalcServiceUrl
-	iCalcService, err := grpc_clients.NewCalcGrpcClient(calcServiceUrl)
-	if err != nil {
-		return nil, err
-	}
-	iCalcUseCase := usecases.NewCalcUseCase(iCalcService)
-	calcHandler := calc.NewCalcHandler(iCalcUseCase)
 	identityServiceUrl := cfg.IdentityServiceUrl
 	identityClientFactory, err := identity.NewIdentityClientFactory(identityServiceUrl)
 	if err != nil {
@@ -36,9 +29,25 @@ func InitializeApp(cfg *config.Config) (*bootstrap.App, error) {
 	iAuthService := identity.ProvideAuthClient(identityClientFactory)
 	iAuthUseCase := usecases.NewAuthUseCase(iAuthService)
 	authHandler := handlers.NewAuthHandler(iAuthUseCase)
+	productServiceUrl := cfg.ProductServiceUrl
+	iProductService, err := product.NewProductClient(productServiceUrl)
+	if err != nil {
+		return nil, err
+	}
+	iProductUseCase := usecases.NewProductUseCase(iProductService)
+	productHandler := handlers.NewProductHandler(iProductUseCase)
+	salesServiceUrl := cfg.SalesServiceUrl
+	salesClientFactory, err := sales.NewSalesClientFactory(salesServiceUrl)
+	if err != nil {
+		return nil, err
+	}
+	iOrderService := sales.ProvideOrderClient(salesClientFactory)
+	iOrderUseCase := usecases.NewOrderUseCase(iOrderService)
+	orderHandler := handlers.NewOrderHandler(iOrderUseCase)
 	appHandlers := &handlers.AppHandlers{
-		CalcHandler: calcHandler,
-		AuthHandler: authHandler,
+		AuthHandler:    authHandler,
+		ProductHandler: productHandler,
+		OrderHandler:   orderHandler,
 	}
 	engine := routes.NewRouter(cfg, appHandlers)
 	app := bootstrap.NewApp(cfg, engine)

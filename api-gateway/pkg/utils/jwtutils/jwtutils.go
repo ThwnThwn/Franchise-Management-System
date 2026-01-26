@@ -6,8 +6,13 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
-func ValidateToken(secret []byte, tokenString string) (*jwt.RegisteredClaims, error) {
-	claims := &jwt.RegisteredClaims{}
+type CustomClaims struct {
+	RoleSlug string `json:"role_slug"`
+	jwt.RegisteredClaims
+}
+
+func ValidateToken(secret []byte, tokenString string) (*CustomClaims, error) {
+	claims := &CustomClaims{}
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(t *jwt.Token) (any, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errorcode.ErrUnexpectedSigningToken

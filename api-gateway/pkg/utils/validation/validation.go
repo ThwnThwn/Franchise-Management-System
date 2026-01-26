@@ -1,8 +1,10 @@
 package validation
 
 import (
+	"api-gateway/internal/domain/models/errormodel"
 	"errors"
 	"fmt"
+	"net/http"
 	"regexp"
 	"strings"
 
@@ -44,7 +46,7 @@ func init() {
 	}
 }
 
-func TranslateValidationError(err error) string {
+func TranslateValidationError(err error) *errormodel.BackendError {
 	var ve validator.ValidationErrors
 	if errors.As(err, &ve) {
 		msgs := []string{}
@@ -74,7 +76,15 @@ func TranslateValidationError(err error) string {
 			}
 			msgs = append(msgs, msg)
 		}
-		return strings.Join(msgs, "; ")
+		return &errormodel.BackendError{
+			Status: http.StatusBadRequest,
+			Title:  "Bad Request",
+			Detail: strings.Join(msgs, "; "),
+		}
 	}
-	return err.Error()
+	return &errormodel.BackendError{
+		Status: http.StatusBadRequest,
+		Title:  "Bad Request",
+		Detail: err.Error(),
+	}
 }

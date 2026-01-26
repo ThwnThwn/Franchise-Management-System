@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"api-gateway/internal/domain/models/errormodel"
 	"api-gateway/pkg/utils/errorutils"
 
 	"github.com/gin-gonic/gin"
@@ -13,13 +14,12 @@ func GlobalErrorHandler() gin.HandlerFunc {
 		if len(c.Errors) > 0 {
 			err := c.Errors.Last().Err
 
-			// Sử dụng hàm nâng cấp
 			status, title, detail := errorutils.MapErrorToProblem(err)
 
-			c.JSON(status, gin.H{
-				"title":  title,
-				"detail": detail,
-				// "status": status,
+			c.JSON(status, errormodel.BackendError{
+				Title:  title,
+				Status: status,
+				Detail: detail,
 			})
 			c.Abort()
 		}

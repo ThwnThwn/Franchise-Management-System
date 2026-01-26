@@ -7,6 +7,7 @@ WIRE_PATH=./internal/di
 PROTO_SOURCE_DIR = ../protos
 GO_PB_DIR = pkg/pb
 
+PROTOBUF_REGEX = `protobuf:.*?"\s+json:".*?"`
 
 .PHONY: build
 build:
