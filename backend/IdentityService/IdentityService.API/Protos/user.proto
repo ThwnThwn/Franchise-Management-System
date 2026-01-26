@@ -65,6 +65,12 @@ message UpdateUserRequest {
   string roleId = 7;
 }
 
+message ChangePasswordRequest{
+  string OldPassword = 1;
+  string NewPassword = 2;
+  string ConfirmNewPassword = 3;
+}
+
 message UserResponse {
   string id = 1;
   string email = 2;
