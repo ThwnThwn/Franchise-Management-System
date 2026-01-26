@@ -10,6 +10,8 @@ namespace IdentityService.Application.Persistences.Repositories
     public interface IUserRepository : IGenericRepository<User>
     {
         Task<User?> GetByEmailAsync(string? email);
+        Task<User?> GetByUsernameAsync(string?  username);
+        Task<User?> GetByEmailOrUserNameAsync(string? emailOrUserName);
         Task<IEnumerable<User?>> GetAllWithRoleAsync();
         Task<User?> AddWithRoleAsync(User? user);
     }

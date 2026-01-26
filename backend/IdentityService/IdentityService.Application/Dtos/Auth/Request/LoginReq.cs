@@ -5,8 +5,7 @@ namespace IdentityService.Application.Dtos.Auth.Request;
 public class LoginReq
 {
     [Required]
-    [EmailAddress]
-    public string Email { get; set; } = null!;
+    public string EmailOrUsername { get; set; } = null!;
 
     [Required]
     [MinLength(6)]

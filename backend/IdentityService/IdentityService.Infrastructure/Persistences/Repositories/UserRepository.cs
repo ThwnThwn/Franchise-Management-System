@@ -51,6 +51,33 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
             return user;
         }
 
+        public async Task<User?> GetByUsernameAsync(string? username)
+        {
+            if (string.IsNullOrEmpty(username))
+                return null;
+
+            var user = await _dbContext.Users
+                .Include(u => u.Role)
+                .Where(u => u.Username.ToLower() == username.ToLower())
+                .FirstOrDefaultAsync();
+            return user;
+        }
+
+        public async Task<User?> GetByEmailOrUserNameAsync(string? emailOrUserName)
+        {
+            if (string.IsNullOrWhiteSpace(emailOrUserName))
+                return null;
+
+            var key = emailOrUserName.Trim();
+
+            return await _dbContext.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u =>
+                    u.Email == key || u.Username == key
+                );
+        }
+
+
         public override async Task<User?> GetByIdAsync(Guid id)
         {
             var user = await _dbContext.Users
@@ -58,5 +85,7 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
                .FirstOrDefaultAsync(u => u.Id == id && !u.IsDeleted);
             return user;
         }
+
+        
     }
 }

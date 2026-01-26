@@ -13,7 +13,7 @@ namespace IdentityService.Application.Dtos.User.Respone
 
         public string Email { get; set; } = null!;
 
-        public string? Username { get; set; }
+        public string Username { get; set; } = null!;
 
         public string? Phone { get; set; }
 

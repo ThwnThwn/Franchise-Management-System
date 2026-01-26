@@ -25,7 +25,7 @@ public class AuthGrpcService : AuthGrpc.AuthGrpcBase
         {
             var rep = await _mediator.Send(new LoginCommand(new()
             {
-                Email = request.Email,
+                EmailOrUsername = request.EmailOrUsername,
                 Password = request.Password
             }));
 
@@ -49,6 +49,7 @@ public class AuthGrpcService : AuthGrpc.AuthGrpcBase
             var rep = await _mediator.Send(new RegisterCommand(new()
             {
                 Email = request.Email,
+                Username = request.Username,
                 Password = request.Password,
                 Phone = request.Phone,
                 Address = request.Address
@@ -123,6 +124,7 @@ public class AuthGrpcService : AuthGrpc.AuthGrpcBase
             Id = user.Id.ToString(),
             Email = user.Email ?? "",
             Phone = user.Phone ?? "",
+            Username = user.Username ?? "",
             Address = user.Address ?? "",
             Role = user.Role == null
                 ? new Grpc.Protos.Role.RoleUserResponse()

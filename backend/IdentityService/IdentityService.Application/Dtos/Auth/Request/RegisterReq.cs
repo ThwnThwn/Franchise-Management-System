@@ -9,7 +9,10 @@ public class RegisterReq
     public string Email { get; set; } = null!;
 
     [Required]
-    [MinLength(6)]
+    public string Username { get; set; } = null!;
+
+    [Required]
+    [MinLength(5)]
     public string Password { get; set; } = null!;
 
     [Required]
