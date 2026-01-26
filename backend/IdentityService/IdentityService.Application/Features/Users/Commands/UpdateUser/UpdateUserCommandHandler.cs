@@ -46,6 +46,10 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, UserR
         var existingUser = await _userRepository.GetByEmailAsync(request.Email);
         if (existingUser != null && existingUser.Id != command.Id)
             throw new ConflictDuplicateException(Message.UserMessage.ExistingUser);
+        //Check username
+        existingUser = await _userRepository.GetByUsernameAsync(request.Username);
+        if (existingUser != null)
+            throw new ConflictDuplicateException(Message.UserMessage.ExistingUser);
 
         var user = await _userRepository.GetByIdAsync(command.Id);
         if (user == null)

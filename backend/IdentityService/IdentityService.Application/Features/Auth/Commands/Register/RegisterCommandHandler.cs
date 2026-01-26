@@ -6,6 +6,7 @@ using IdentityService.Application.ExternalServices;
 using IdentityService.Application.Persistences.Repositories;
 using IdentityService.Domain.Entities;
 using MediatR;
+using System.Security.Cryptography;
 using System.Text.Json;
 
 namespace IdentityService.Application.Features.Auth.Commands.Register;
@@ -29,15 +30,21 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, RegisterR
     {
         var request = command.Request;
 
-        // check mail
+        //Check mail
         var existingUser = await _userRepository.GetByEmailAsync(request.Email);
         if (existingUser != null)
             throw new ConflictDuplicateException($"Email '{request.Email}' already exists");
 
+        //Check username
+        existingUser = await _userRepository.GetByUsernameAsync(request.Username);
+        if (existingUser != null)
+            throw new ConflictDuplicateException($"Username '{request.Username}' already exists");
+
+
         var hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
         var random = new Random();
-        var otp = random.Next(100000, 999999).ToString();
+        var otp = RandomNumberGenerator.GetInt32(0, 1_000_000).ToString("D6");
 
         Role? role = await _roleRepository.GetByNameAsync("User");
         if (role == null)
@@ -47,6 +54,7 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, RegisterR
         {
             Email = request.Email,
             Password = hashedPassword,
+            Username = request.Username,
             Phone = request.Phone,
             Address = request.Address,
             RoleId = role.Id,

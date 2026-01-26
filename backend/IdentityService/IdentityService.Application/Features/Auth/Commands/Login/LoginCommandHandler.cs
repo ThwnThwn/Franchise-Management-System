@@ -27,17 +27,18 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, LoginRep>
 
     public async Task<LoginRep> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
-        var user = await _userRepository.GetByEmailAsync(request.Request.Email);
+        var user = await _userRepository.GetByEmailOrUserNameAsync(request.Request.EmailOrUsername);
         if (user == null)
-            throw new UnauthorizedAccessException("Invalid email or password");
+            throw new UnauthorizedAccessException("Invalid email/username or password");
 
         if (user.IsBlocked == true)
             throw new UnauthorizedAccessException("Account is blocked");
+
         if(user.Role == null)
             throw new UnauthorizedAccessException("Account's role is null");
 
         if (!BCrypt.Net.BCrypt.Verify(request.Request.Password, user.Password))
-            throw new UnauthorizedAccessException("Invalid email or password");
+            throw new UnauthorizedAccessException("Wrong password");
 
         var accessToken = _jwtHelper.GenerateAccessToken(user.Id, user.Role.Slug);
         var (refreshTokenValue, refreshTokenExpiry) = _jwtHelper.GenerateRefreshToken(user.Id);
