@@ -8,6 +8,6 @@ import (
 )
 
 type IOrderUseCase interface {
-	CreateOrder(ctx context.Context, req order.CreateOrderRequest) (*order.CreateOrderReply, error)
+	CreateOrder(ctx context.Context, req *order.CreateOrderRequest) (*order.CreateOrderReply, error)
 	GetOrderById(ctx context.Context, id uuid.UUID) (*order.Order, error)
 }

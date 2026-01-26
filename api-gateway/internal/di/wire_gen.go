@@ -29,11 +29,15 @@ func InitializeApp(cfg *config.Config) (*bootstrap.App, error) {
 	iAuthService := identity.ProvideAuthClient(identityClientFactory)
 	iAuthUseCase := usecases.NewAuthUseCase(iAuthService)
 	authHandler := handlers.NewAuthHandler(iAuthUseCase)
+	iUserService := identity.ProvideUserClient(identityClientFactory)
+	iUserUseCase := usecases.NewUserUseCase(iUserService)
+	userHandler := handlers.NewUserHandler(iUserUseCase)
 	productServiceUrl := cfg.ProductServiceUrl
-	iProductService, err := product.NewProductClient(productServiceUrl)
+	clientFactory, err := product.NewProductClientFactory(productServiceUrl)
 	if err != nil {
 		return nil, err
 	}
+	iProductService := product.ProvideProductClient(clientFactory)
 	iProductUseCase := usecases.NewProductUseCase(iProductService)
 	productHandler := handlers.NewProductHandler(iProductUseCase)
 	salesServiceUrl := cfg.SalesServiceUrl
@@ -46,6 +50,7 @@ func InitializeApp(cfg *config.Config) (*bootstrap.App, error) {
 	orderHandler := handlers.NewOrderHandler(iOrderUseCase)
 	appHandlers := &handlers.AppHandlers{
 		AuthHandler:    authHandler,
+		UserHandler:    userHandler,
 		ProductHandler: productHandler,
 		OrderHandler:   orderHandler,
 	}

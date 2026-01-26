@@ -1,26 +1,27 @@
 package identity
 
 import (
-	identityGW "api-gateway/internal/application/gateways/identity"
+	idenGW "api-gateway/internal/application/gateways/identity"
 	"api-gateway/internal/domain/models/auth"
 	"api-gateway/internal/domain/models/role"
 	"api-gateway/internal/domain/models/user"
-	authPb "api-gateway/pkg/pb/identity"
+	idenPb "api-gateway/pkg/pb/identity"
+	"api-gateway/pkg/utils/timeutils"
 	"context"
 )
 
 type AuthGrpcClient struct {
-	client authPb.AuthGrpcClient
+	client idenPb.AuthGrpcClient
 }
 
 // ProvideAuthClient trích xuất Auth Client từ Factory
-func ProvideAuthClient(f *identityClientFactory) identityGW.IAuthService {
-	return &AuthGrpcClient{client: authPb.NewAuthGrpcClient(f.conn)}
+func ProvideAuthClient(f *identityClientFactory) idenGW.IAuthService {
+	return &AuthGrpcClient{client: idenPb.NewAuthGrpcClient(f.conn)}
 }
 
 // Login implements identity.IAuthService.
 func (a *AuthGrpcClient) Login(ctx context.Context, req *auth.LoginRequest) (*auth.LoginResponse, error) {
-	res, err := a.client.Login(ctx, &authPb.LoginRequest{
+	res, err := a.client.Login(ctx, &idenPb.LoginRequest{
 		EmailOrUsername: req.EmailOrUsername,
 		Password:        req.Password,
 	})
@@ -44,15 +45,15 @@ func (a *AuthGrpcClient) Login(ctx context.Context, req *auth.LoginRequest) (*au
 				Id:   userRes.Role.Id,
 				Name: userRes.Role.Name,
 			},
-			CreatedAt: userRes.CreatedAt,
-			UpdatedAt: userRes.UpdatedAt,
+			CreatedAt: timeutils.ProtoToTimePtr(userRes.CreatedAt),
+			UpdatedAt: timeutils.ProtoToTimePtr(userRes.UpdatedAt),
 		},
 	}, nil
 }
 
 // Logout implements identity.IAuthService.
 func (a *AuthGrpcClient) Logout(ctx context.Context, req *auth.LogoutRequest) (bool, error) {
-	res, err := a.client.Logout(ctx, &authPb.LogoutRequest{
+	res, err := a.client.Logout(ctx, &idenPb.LogoutRequest{
 		AccessToken:  req.AccessToken,
 		RefreshToken: req.RefreshToken,
 	})
@@ -61,7 +62,7 @@ func (a *AuthGrpcClient) Logout(ctx context.Context, req *auth.LogoutRequest) (b
 
 // RefreshToken implements identity.IAuthService.
 func (a *AuthGrpcClient) RefreshToken(ctx context.Context, req *auth.RefreshTokenRequest) (*auth.RefreshTokenResponse, error) {
-	res, err := a.client.RefreshToken(ctx, &authPb.RefreshTokenRequest{
+	res, err := a.client.RefreshToken(ctx, &idenPb.RefreshTokenRequest{
 		RefreshToken: req.RefreshToken,
 	})
 	if err != nil {
@@ -74,27 +75,27 @@ func (a *AuthGrpcClient) RefreshToken(ctx context.Context, req *auth.RefreshToke
 }
 
 // Register implements identity.IAuthService.
-func (a *AuthGrpcClient) Register(ctx context.Context, req *auth.RegisterRequest) (*string, error) {
-	res, err := a.client.Register(ctx, &authPb.RegisterRequest{
+func (a *AuthGrpcClient) Register(ctx context.Context, req *auth.RegisterRequest) (string, error) {
+	res, err := a.client.Register(ctx, &idenPb.RegisterRequest{
 		Email:    req.Email,
 		Password: req.Password,
 		Phone:    req.Phone,
 		Address:  req.Address,
 	})
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	return &res.Message, nil
+	return res.Message, nil
 }
 
 // ConfirmOtp implements identity.IAuthService.
-func (a *AuthGrpcClient) ConfirmOtp(ctx context.Context, req *auth.ConfirmOtpRequest) (bool, *string, error) {
-	res, err := a.client.ConfirmOtp(ctx, &authPb.ConfirmOtpRequest{
+func (a *AuthGrpcClient) ConfirmOtp(ctx context.Context, req *auth.ConfirmOtpRequest) (bool, string, error) {
+	res, err := a.client.ConfirmOtp(ctx, &idenPb.ConfirmOtpRequest{
 		Email: req.Email,
 		Otp:   req.Otp,
 	})
 	if err != nil {
-		return false, nil, err
+		return false, "", err
 	}
-	return res.Success, &res.Message, nil
+	return res.Success, res.Message, nil
 }

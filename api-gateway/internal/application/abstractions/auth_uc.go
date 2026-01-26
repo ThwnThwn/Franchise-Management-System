@@ -6,9 +6,9 @@ import (
 )
 
 type IAuthUseCase interface {
-	ExecuteLogin(ctx context.Context, req *auth.LoginRequest) (*auth.LoginResponse, error)
-	ExecuteLogout(ctx context.Context, req *auth.LogoutRequest) (bool, error)
-	ExecuteRegister(ctx context.Context, req *auth.RegisterRequest) (*string, error)
-	ExecuteConfirmOtp(ctx context.Context, req *auth.ConfirmOtpRequest) (bool, *string, error)
-	ExecuteRefreshToken(ctx context.Context, req *auth.RefreshTokenRequest) (*auth.RefreshTokenResponse, error)
+	Login(ctx context.Context, req *auth.LoginRequest) (*auth.LoginResponse, error)
+	Logout(ctx context.Context, req *auth.LogoutRequest) (bool, error)
+	Register(ctx context.Context, req *auth.RegisterRequest) (string, error)
+	ConfirmOtp(ctx context.Context, req *auth.ConfirmOtpRequest) (bool, string, error)
+	RefreshToken(ctx context.Context, req *auth.RefreshTokenRequest) (*auth.RefreshTokenResponse, error)
 }

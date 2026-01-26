@@ -12,9 +12,12 @@ var ClientSet = wire.NewSet(
 	// Identity Service
 	identity.NewIdentityClientFactory,
 	identity.ProvideAuthClient,
+	identity.ProvideUserClient,
 
 	// Product Service
-	product.NewProductClient,
+	product.NewProductClientFactory,
+	product.ProvideCategoryClient,
+	product.ProvideProductClient,
 
 	// Sales Service
 	sales.NewSalesClientFactory,

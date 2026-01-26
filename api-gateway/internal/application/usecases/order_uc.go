@@ -18,7 +18,7 @@ func NewOrderUseCase(service sales.IOrderService) abstractions.IOrderUseCase {
 }
 
 // CreateOrder implements abstractions.IOrderUseCase.
-func (o *OrderUseCase) CreateOrder(ctx context.Context, req order.CreateOrderRequest) (*order.CreateOrderReply, error) {
+func (o *OrderUseCase) CreateOrder(ctx context.Context, req *order.CreateOrderRequest) (*order.CreateOrderReply, error) {
 	return o.service.CreateOrder(ctx, req)
 }
 

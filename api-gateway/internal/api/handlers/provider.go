@@ -7,12 +7,20 @@ import (
 // Gom nhóm tất cả Handler lại
 var HandlerSet = wire.NewSet(
 	NewAuthHandler,
+	NewUserHandler,
+
 	NewProductHandler,
+	NewCategoryHandler,
+
 	NewOrderHandler,
 )
 
 type AppHandlers struct {
-	AuthHandler    *AuthHandler
-	ProductHandler *ProductHandler
-	OrderHandler   *OrderHandler
+	*AuthHandler
+	*UserHandler
+
+	*ProductHandler
+	*CategoryHandler
+
+	*OrderHandler
 }

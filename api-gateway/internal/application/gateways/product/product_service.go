@@ -1,7 +1,6 @@
 package product
 
 import (
-	"api-gateway/internal/domain/entity"
 	"api-gateway/internal/domain/models/product"
 	"context"
 
@@ -12,5 +11,5 @@ type IProductService interface {
 	// Get product list with sizes and prices. Optional filter by categoryId.
 	GetProducts(ctx context.Context, req *product.GetProductsRequest) (*product.GetProductsReply, error)
 	// Get product details by id.
-	GetProductById(ctx context.Context, id uuid.UUID) (*entity.Product, error)
+	GetProductById(ctx context.Context, id uuid.UUID) (*product.Product, error)
 }

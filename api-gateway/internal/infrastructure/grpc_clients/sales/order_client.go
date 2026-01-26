@@ -4,6 +4,7 @@ import (
 	salesGW "api-gateway/internal/application/gateways/sales"
 	"api-gateway/internal/domain/models/order"
 	salesPb "api-gateway/pkg/pb/sales"
+	"api-gateway/pkg/utils/timeutils"
 	"context"
 
 	"github.com/google/uuid"
@@ -20,7 +21,7 @@ func ProvideOrderClient(f *salesClientFactory) salesGW.IOrderService {
 }
 
 // CreateOrder implements sales.IOrderService.
-func (o *OrderGrpcClient) CreateOrder(ctx context.Context, req order.CreateOrderRequest) (*order.CreateOrderReply, error) {
+func (o *OrderGrpcClient) CreateOrder(ctx context.Context, req *order.CreateOrderRequest) (*order.CreateOrderReply, error) {
 	pbItems := []*salesPb.CartItem{}
 
 	copier.Copy(&pbItems, &req.Items)
@@ -48,7 +49,21 @@ func (o *OrderGrpcClient) GetOrderById(ctx context.Context, id uuid.UUID) (*orde
 	if err != nil {
 		return nil, err
 	}
-	order := &order.Order{}
-	copier.Copy(order, res)
+	items := []*order.OrderItem{}
+	copier.Copy(&items, &res.Order.Items)
+
+	order := &order.Order{
+		Id:            res.Order.Id,
+		Code:          res.Order.Code,
+		Status:        res.Order.Status,
+		TotalAmount:   res.Order.TotalAmount,
+		Tax:           res.Order.Tax,
+		PaymentMethod: res.Order.PaymentMethod,
+		Notes:         res.Order.Notes,
+		Items:         items,
+		CreatedAt:     timeutils.StringToTime(res.Order.CreatedAt),
+		UpdatedAt:     timeutils.StringToTime(res.Order.UpdatedAt),
+	}
+
 	return order, nil
 }

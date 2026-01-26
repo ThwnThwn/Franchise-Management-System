@@ -26,7 +26,7 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
 	}
 
 	ctx := c.Request.Context()
-	res, err := h.orderUC.CreateOrder(ctx, req)
+	res, err := h.orderUC.CreateOrder(ctx, &req)
 	if err != nil {
 		c.Error(err)
 		return

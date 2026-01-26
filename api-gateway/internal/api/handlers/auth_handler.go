@@ -27,10 +27,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	}
 
 	ctx := c.Request.Context()
-	res, err := h.authUC.ExecuteLogin(ctx, &auth.LoginRequest{
-		EmailOrUsername: req.EmailOrUsername,
-		Password:        req.Password,
-	})
+	res, err := h.authUC.Login(ctx, &req)
 	if err != nil {
 		c.Error(err)
 		return
@@ -58,7 +55,7 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 	}
 
 	ctx := c.Request.Context()
-	res, err := h.authUC.ExecuteLogout(ctx, &auth.LogoutRequest{
+	res, err := h.authUC.Logout(ctx, &auth.LogoutRequest{
 		AccessToken:  accessToken.(string),
 		RefreshToken: refreshToken,
 	})
@@ -81,7 +78,7 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	}
 
 	ctx := c.Request.Context()
-	res, err := h.authUC.ExecuteRefreshToken(ctx, &auth.RefreshTokenRequest{
+	res, err := h.authUC.RefreshToken(ctx, &auth.RefreshTokenRequest{
 		RefreshToken: refreshToken,
 	})
 	if err != nil {
@@ -105,7 +102,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	}
 
 	ctx := c.Request.Context()
-	res, err := h.authUC.ExecuteRegister(ctx, &auth.RegisterRequest{
+	res, err := h.authUC.Register(ctx, &auth.RegisterRequest{
 		Email:    req.Email,
 		Password: req.Password,
 		Phone:    req.Phone,
@@ -130,7 +127,7 @@ func (h *AuthHandler) ConfirmOtp(c *gin.Context) {
 	}
 
 	ctx := c.Request.Context()
-	success, msg, err := h.authUC.ExecuteConfirmOtp(ctx, &auth.ConfirmOtpRequest{
+	success, msg, err := h.authUC.ConfirmOtp(ctx, &auth.ConfirmOtpRequest{
 		Email: req.Email,
 		Otp:   req.Otp,
 	})

@@ -1,4 +1,4 @@
-package calc
+package product
 
 type RouterGroup struct {
 	ProductRouter

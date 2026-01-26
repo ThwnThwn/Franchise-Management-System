@@ -27,7 +27,7 @@ func (h *ProductHandler) GetProducts(c *gin.Context) {
 	}
 
 	ctx := c.Request.Context()
-	res, err := h.productUC.ExecuteGetProducts(ctx, &product.GetProductsRequest{
+	res, err := h.productUC.GetProducts(ctx, &product.GetProductsRequest{
 		CategoryId: req.CategoryId,
 	})
 	if err != nil {
@@ -50,7 +50,7 @@ func (h *ProductHandler) GetProductById(c *gin.Context) {
 	}
 
 	ctx := c.Request.Context()
-	res, err := h.productUC.ExecuteGetProductById(ctx, productId)
+	res, err := h.productUC.GetProductById(ctx, productId)
 	if err != nil {
 		c.Error(err)
 		return

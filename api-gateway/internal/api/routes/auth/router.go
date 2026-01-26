@@ -1,4 +1,4 @@
-package calc
+package auth
 
 import (
 	"api-gateway/config"

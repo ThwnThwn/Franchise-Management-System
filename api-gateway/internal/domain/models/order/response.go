@@ -1,5 +1,7 @@
 package order
 
+import "time"
+
 type CreateOrderReply struct {
 	OrderId     string  `json:"orderId"`
 	OrderCode   string  `json:"orderCode"`
@@ -15,10 +17,10 @@ type Order struct {
 	PaidAmount    float64
 	PaymentMethod int32
 	Status        int32
-	PaidAt        string
+	PaidAt        time.Time
 	Notes         string
-	CreatedAt     string
-	UpdatedAt     string
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
 	Items         []*OrderItem
 }
 

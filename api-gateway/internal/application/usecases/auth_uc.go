@@ -15,27 +15,27 @@ func NewAuthUseCase(service idenGW.IAuthService) abstractions.IAuthUseCase {
 	return &AuthUseCase{service: service}
 }
 
-// ExecuteLogin implements abstractions.IAuthUseCase.
-func (a *AuthUseCase) ExecuteLogin(ctx context.Context, req *auth.LoginRequest) (*auth.LoginResponse, error) {
+// Login implements abstractions.IAuthUseCase.
+func (a *AuthUseCase) Login(ctx context.Context, req *auth.LoginRequest) (*auth.LoginResponse, error) {
 	return a.service.Login(ctx, req)
 }
 
-// ExecuteLogout implements abstractions.IAuthUseCase.
-func (a *AuthUseCase) ExecuteLogout(ctx context.Context, req *auth.LogoutRequest) (bool, error) {
+// Logout implements abstractions.IAuthUseCase.
+func (a *AuthUseCase) Logout(ctx context.Context, req *auth.LogoutRequest) (bool, error) {
 	return a.service.Logout(ctx, req)
 }
 
-// ExecuteRefreshToken implements abstractions.IAuthUseCase.
-func (a *AuthUseCase) ExecuteRefreshToken(ctx context.Context, req *auth.RefreshTokenRequest) (*auth.RefreshTokenResponse, error) {
+// RefreshToken implements abstractions.IAuthUseCase.
+func (a *AuthUseCase) RefreshToken(ctx context.Context, req *auth.RefreshTokenRequest) (*auth.RefreshTokenResponse, error) {
 	return a.service.RefreshToken(ctx, req)
 }
 
-// ExecuteRegister implements abstractions.IAuthUseCase.
-func (a *AuthUseCase) ExecuteRegister(ctx context.Context, req *auth.RegisterRequest) (*string, error) {
+// Register implements abstractions.IAuthUseCase.
+func (a *AuthUseCase) Register(ctx context.Context, req *auth.RegisterRequest) (string, error) {
 	return a.service.Register(ctx, req)
 }
 
-// ExecuteConfirmOtp implements abstractions.IAuthUseCase.
-func (a *AuthUseCase) ExecuteConfirmOtp(ctx context.Context, req *auth.ConfirmOtpRequest) (bool, *string, error) {
+// ConfirmOtp implements abstractions.IAuthUseCase.
+func (a *AuthUseCase) ConfirmOtp(ctx context.Context, req *auth.ConfirmOtpRequest) (bool, string, error) {
 	return a.service.ConfirmOtp(ctx, req)
 }
