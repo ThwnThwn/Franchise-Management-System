@@ -5,7 +5,6 @@ import (
 	"api-gateway/internal/application/abstractions"
 	"api-gateway/internal/application/constants/errorcode"
 	"api-gateway/internal/domain/models/auth"
-	"api-gateway/pkg/pb/identity"
 	"api-gateway/pkg/utils/validation"
 	"net/http"
 
@@ -28,7 +27,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	}
 
 	ctx := c.Request.Context()
-	res, err := h.authUC.ExecuteLogin(ctx, &identity.LoginRequest{
+	res, err := h.authUC.ExecuteLogin(ctx, &auth.LoginRequest{
 		Email:    req.Email,
 		Password: req.Password,
 	})
@@ -59,7 +58,7 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 	}
 
 	ctx := c.Request.Context()
-	res, err := h.authUC.ExecuteLogout(ctx, &identity.LogoutRequest{
+	res, err := h.authUC.ExecuteLogout(ctx, &auth.LogoutRequest{
 		AccessToken:  accessToken.(string),
 		RefreshToken: refreshToken,
 	})
@@ -70,7 +69,7 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 
 	c.SetCookie("refresh_token", "", -1, "/", "", false, true)
 	c.JSON(http.StatusOK, gin.H{
-		"success": res.Success,
+		"success": res,
 	})
 }
 
@@ -82,7 +81,7 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	}
 
 	ctx := c.Request.Context()
-	res, err := h.authUC.ExecuteRefreshToken(ctx, &identity.RefreshTokenRequest{
+	res, err := h.authUC.ExecuteRefreshToken(ctx, &auth.RefreshTokenRequest{
 		RefreshToken: refreshToken,
 	})
 	if err != nil {
@@ -106,7 +105,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	}
 
 	ctx := c.Request.Context()
-	res, err := h.authUC.ExecuteRegister(ctx, &identity.RegisterRequest{
+	res, err := h.authUC.ExecuteRegister(ctx, &auth.RegisterRequest{
 		Email:    req.Email,
 		Password: req.Password,
 		Phone:    req.Phone,
@@ -119,7 +118,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": res.Message,
+		"message": res,
 	})
 }
 
@@ -131,7 +130,7 @@ func (h *AuthHandler) ConfirmOtp(c *gin.Context) {
 	}
 
 	ctx := c.Request.Context()
-	res, err := h.authUC.ExecuteConfirmOtp(ctx, &identity.ConfirmOtpRequest{
+	success, msg, err := h.authUC.ExecuteConfirmOtp(ctx, &auth.ConfirmOtpRequest{
 		Email: req.Email,
 		Otp:   req.Otp,
 	})
@@ -142,7 +141,7 @@ func (h *AuthHandler) ConfirmOtp(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"success": res.Success,
-		"message": res.Message,
+		"success": success,
+		"message": msg,
 	})
 }

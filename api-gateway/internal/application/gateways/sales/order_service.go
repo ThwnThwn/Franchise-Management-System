@@ -1,12 +1,13 @@
 package sales
 
 import (
+	"api-gateway/internal/domain/models/order"
 	"context"
 
-	salesPb "api-gateway/pkg/pb/sales"
+	"github.com/google/uuid"
 )
 
 type IOrderService interface {
-	CreateOrder(ctx context.Context, req *salesPb.CreateOrderRequest) (*salesPb.CreateOrderReply, error)
-	GetOrderById(ctx context.Context, req *salesPb.GetOrderByIdRequest) (*salesPb.GetOrderByIdReply, error)
+	CreateOrder(ctx context.Context, req order.CreateOrderRequest) (*order.CreateOrderReply, error)
+	GetOrderById(ctx context.Context, id uuid.UUID) (*order.Order, error)
 }

@@ -4,7 +4,6 @@ import (
 	"api-gateway/internal/application/abstractions"
 	"api-gateway/internal/application/constants/errorcode"
 	"api-gateway/internal/domain/models/product"
-	productPb "api-gateway/pkg/pb/product"
 	"api-gateway/pkg/utils/validation"
 	"net/http"
 
@@ -28,8 +27,8 @@ func (h *ProductHandler) GetProducts(c *gin.Context) {
 	}
 
 	ctx := c.Request.Context()
-	res, err := h.productUC.ExecuteGetProducts(ctx, &productPb.GetProductsRequest{
-		CategoryId: req.CategoryId.String(),
+	res, err := h.productUC.ExecuteGetProducts(ctx, &product.GetProductsRequest{
+		CategoryId: req.CategoryId,
 	})
 	if err != nil {
 		c.Error(err)
@@ -57,5 +56,5 @@ func (h *ProductHandler) GetProductById(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, res.Product)
+	c.JSON(http.StatusOK, res)
 }

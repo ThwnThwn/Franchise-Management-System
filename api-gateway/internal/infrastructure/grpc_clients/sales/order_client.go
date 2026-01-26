@@ -2,8 +2,12 @@ package sales
 
 import (
 	salesGW "api-gateway/internal/application/gateways/sales"
+	"api-gateway/internal/domain/models/order"
 	salesPb "api-gateway/pkg/pb/sales"
 	"context"
+
+	"github.com/google/uuid"
+	"github.com/jinzhu/copier"
 )
 
 type OrderGrpcClient struct {
@@ -16,19 +20,35 @@ func ProvideOrderClient(f *salesClientFactory) salesGW.IOrderService {
 }
 
 // CreateOrder implements sales.IOrderService.
-func (o *OrderGrpcClient) CreateOrder(ctx context.Context, req *salesPb.CreateOrderRequest) (*salesPb.CreateOrderReply, error) {
-	res, err := o.client.CreateOrder(ctx, req)
+func (o *OrderGrpcClient) CreateOrder(ctx context.Context, req order.CreateOrderRequest) (*order.CreateOrderReply, error) {
+	pbItems := []*salesPb.CartItem{}
+
+	copier.Copy(&pbItems, &req.Items)
+
+	res, err := o.client.CreateOrder(ctx, &salesPb.CreateOrderRequest{
+		Items:         pbItems,
+		Tax:           req.Tax,
+		PaymentMethod: req.PaymentMethod,
+		Notes:         req.Notes,
+	})
+
 	if err != nil {
 		return nil, err
 	}
-	return res, nil
+	return &order.CreateOrderReply{
+		OrderId:     res.OrderId,
+		OrderCode:   res.OrderCode,
+		TotalAmount: res.TotalAmount,
+	}, nil
 }
 
 // GetOrderById implements sales.IOrderService.
-func (o *OrderGrpcClient) GetOrderById(ctx context.Context, req *salesPb.GetOrderByIdRequest) (*salesPb.GetOrderByIdReply, error) {
-	res, err := o.client.GetOrderById(ctx, req)
+func (o *OrderGrpcClient) GetOrderById(ctx context.Context, id uuid.UUID) (*order.Order, error) {
+	res, err := o.client.GetOrderById(ctx, &salesPb.GetOrderByIdRequest{Id: id.String()})
 	if err != nil {
 		return nil, err
 	}
-	return res, nil
+	order := &order.Order{}
+	copier.Copy(order, res)
+	return order, nil
 }

@@ -17,4 +17,5 @@ type AppHandlers struct {
 	CalcHandler    *calc.CalcHandler
 	AuthHandler    *AuthHandler
 	ProductHandler *ProductHandler
+	OrderHandler   *OrderHandler
 }

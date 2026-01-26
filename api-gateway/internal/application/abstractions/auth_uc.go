@@ -1,14 +1,14 @@
 package abstractions
 
 import (
-	"api-gateway/pkg/pb/identity"
+	"api-gateway/internal/domain/models/auth"
 	"context"
 )
 
 type IAuthUseCase interface {
-	ExecuteLogin(ctx context.Context, req *identity.LoginRequest) (*identity.LoginResponse, error)
-	ExecuteLogout(ctx context.Context, req *identity.LogoutRequest) (*identity.LogoutResponse, error)
-	ExecuteRegister(ctx context.Context, req *identity.RegisterRequest) (*identity.RegisterResponse, error)
-	ExecuteConfirmOtp(ctx context.Context, req *identity.ConfirmOtpRequest) (*identity.ConfirmOtpResponse, error)
-	ExecuteRefreshToken(ctx context.Context, req *identity.RefreshTokenRequest) (*identity.RefreshTokenResponse, error)
+	ExecuteLogin(ctx context.Context, req *auth.LoginRequest) (*auth.LoginResponse, error)
+	ExecuteLogout(ctx context.Context, req *auth.LogoutRequest) (bool, error)
+	ExecuteRegister(ctx context.Context, req *auth.RegisterRequest) (*string, error)
+	ExecuteConfirmOtp(ctx context.Context, req *auth.ConfirmOtpRequest) (bool, *string, error)
+	ExecuteRefreshToken(ctx context.Context, req *auth.RefreshTokenRequest) (*auth.RefreshTokenResponse, error)
 }
