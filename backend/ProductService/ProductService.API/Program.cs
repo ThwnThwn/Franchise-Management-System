@@ -79,6 +79,7 @@ namespace ProductService.API
 
             // Register repositories
             builder.Services.AddScoped<IProductRepository, ProductRepository>();
+            builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 
             // Register GlobalExceptionHandlerMiddleware
             builder.Services.AddSingleton<GlobalExceptionHandlerMiddleware>();
@@ -118,6 +119,7 @@ namespace ProductService.API
 
             app.MapControllers();
             app.MapGrpcService<ProductGrpcService>();
+            app.MapGrpcService<Services.CategoryGrpcService>();
             app.MapGet("/", () => "Product Service API is running. Visit /swagger for API documentation.");
 
             app.Run();
