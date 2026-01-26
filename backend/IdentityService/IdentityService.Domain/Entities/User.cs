@@ -12,7 +12,7 @@ public partial class User : SoftDeletedEntity, IEntity
 
     public string Email { get; set; } = null!;
 
-    public string? Username { get; set; }
+    public string Username { get; set; } = null!;
 
     public string Password { get; set; } = null!;
 
@@ -22,7 +22,7 @@ public partial class User : SoftDeletedEntity, IEntity
 
     public int Gender { get; set; }
 
-    public DateTime DateOrBirth { get; set; }
+    public DateTime? DateOrBirth { get; set; }
 
     public bool? IsBlocked { get; set; }
 

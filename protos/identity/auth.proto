@@ -23,9 +23,13 @@ message LoginRequest {
 message RegisterRequest {
   string email = 1;
   string username = 2;
-  string password = 3;
-  string phone = 4;
-  string address = 5;
+  string firstName = 3;
+  string lastName = 4;
+  string password = 5;
+  string phone = 6;
+  string address = 7;
+  int32 gender = 8;       
+  string dateOfBirth = 9; // "2002-10-21"
 }
 
 message RefreshTokenRequest {
