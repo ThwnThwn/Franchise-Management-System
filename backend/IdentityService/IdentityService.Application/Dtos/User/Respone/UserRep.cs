@@ -15,9 +15,17 @@ namespace IdentityService.Application.Dtos.User.Respone
 
         public string Username { get; set; } = null!;
 
+        public string FirstName { get; set; } = null!;
+
+        public string? LastName { get; set; }
+
         public string? Phone { get; set; }
 
         public string? Address { get; set; }
+
+        public int Gender { get; set; }
+
+        public DateTime? DateOfBirth { get; set; }
 
         public bool? IsBlocked { get; set; }
 

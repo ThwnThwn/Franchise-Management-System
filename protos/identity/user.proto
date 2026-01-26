@@ -45,6 +45,11 @@ message CustomerCreateUserRequest {
   string username = 3;
   string phone = 4;
   string address = 5;
+
+  string firstName = 6;
+  string lastName = 7;
+  int32 gender = 8;
+  google.protobuf.Timestamp dateOfBirth = 9;
 }
 
 message AdminCreateUserRequest {
@@ -54,6 +59,11 @@ message AdminCreateUserRequest {
   string phone = 4;
   string address = 5;
   string roleId = 6; 
+  
+  string firstName = 7;
+  string lastName = 8;
+  int32 gender = 9;
+  google.protobuf.Timestamp dateOfBirth = 10;
 }
 
 message UpdateUserRequest {
@@ -63,9 +73,14 @@ message UpdateUserRequest {
   string email = 3;
   string phone = 4;
   string address = 5;
-  string Password = 8;
-  bool isBlocked = 6;
-  string roleId = 7;
+
+  string firstName = 6;
+  string lastName = 7;
+  int32 gender = 8;
+  google.protobuf.Timestamp dateOfBirth = 9;
+
+  bool isBlocked = 10;
+  string roleId = 11;
 }
 message ChangePasswordRequest{
   string id = 1;
@@ -82,8 +97,12 @@ message UserResponse {
   string address = 5;
   bool isBlocked = 6;
 
-  identity.role.RoleUserResponse role = 7;
+  string firstName = 7;
+  string lastName = 8;
+  int32 gender = 9;
+  google.protobuf.Timestamp dateOfBirth = 10;
 
-  google.protobuf.Timestamp createdAt = 8;
-  google.protobuf.Timestamp updatedAt = 9;
+  identity.role.RoleUserResponse role = 11;
+  google.protobuf.Timestamp createdAt = 12;
+  google.protobuf.Timestamp updatedAt = 13;
 }

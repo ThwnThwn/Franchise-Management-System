@@ -32,6 +32,9 @@ public class CustomerCreateUserCommandHandler
         var existingUser = await _userRepository.GetByEmailAsync(request.Email);
         if (existingUser != null)
             throw new ConflictDuplicateException(Message.UserMessage.ExistingUser);
+        existingUser = await _userRepository.GetByUsernameAsync(request.Username);
+        if (existingUser != null)
+            throw new ConflictDuplicateException(Message.UserMessage.ExistingUser);
 
         var user = _mapper.Map<User>(request);
         user.Password = BCrypt.Net.BCrypt.HashPassword(request.Password);

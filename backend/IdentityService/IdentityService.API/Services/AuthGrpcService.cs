@@ -1,4 +1,5 @@
-﻿using Grpc.Core;
+﻿using Google.Protobuf.WellKnownTypes;
+using Grpc.Core;
 using IdentityService.Application.Features.Auth.Commands.ConfirmOtp;
 using IdentityService.Application.Features.Auth.Commands.Login;
 using IdentityService.Application.Features.Auth.Commands.Logout;
@@ -7,6 +8,7 @@ using IdentityService.Application.Features.Auth.Commands.TokenRefresh;
 using IdentityService.Grpc.Protos.Auth;
 using IdentityService.Grpc.Protos.User;
 using MediatR;
+using System.Globalization;
 
 namespace IdentityService.API.Services;
 
@@ -46,13 +48,24 @@ public class AuthGrpcService : AuthGrpc.AuthGrpcBase
     {
         try
         {
+
+            var dob = DateTime.ParseExact(
+                request.DateOfBirth,
+                "yyyy-MM-dd",
+                CultureInfo.InvariantCulture
+            );
+
             var rep = await _mediator.Send(new RegisterCommand(new()
             {
                 Email = request.Email,
                 Username = request.Username,
                 Password = request.Password,
                 Phone = request.Phone,
-                Address = request.Address
+                Address = request.Address,
+                FirstName = request.FirstName,
+                LastName = request.LastName,
+                DateOrBirth = dob,
+                Gender = request.Gender
             }));
 
             return new RegisterResponse
@@ -126,6 +139,12 @@ public class AuthGrpcService : AuthGrpc.AuthGrpcBase
             Phone = user.Phone ?? "",
             Username = user.Username ?? "",
             Address = user.Address ?? "",
+            FirstName = user.FirstName ?? "",
+            LastName = user.LastName ?? "",
+            Gender = user.Gender,
+            DateOfBirth = user.DateOfBirth.HasValue
+            ? Timestamp.FromDateTime(user.DateOfBirth.Value.ToUniversalTime())
+            : null,
             Role = user.Role == null
                 ? new Grpc.Protos.Role.RoleUserResponse()
                 : new Grpc.Protos.Role.RoleUserResponse

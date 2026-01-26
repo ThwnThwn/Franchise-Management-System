@@ -32,6 +32,10 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
             Email = request.Email,
             Password = request.Password,
             Username = string.IsNullOrWhiteSpace(request.Username) ? null : request.Username,
+            FirstName = request.FirstName,
+            LastName = string.IsNullOrWhiteSpace(request.LastName) ? null : request.LastName,
+            Gender = request.Gender,
+            DateOfBirth = request.DateOfBirth.ToDateTime(),
             Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone,
             Address = string.IsNullOrWhiteSpace(request.Address) ? null : request.Address
         }));
@@ -46,6 +50,10 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
             Email = request.Email,
             Password = request.Password,
             Username = string.IsNullOrWhiteSpace(request.Username) ? null : request.Username,
+            FirstName = request.FirstName,
+            LastName = string.IsNullOrWhiteSpace(request.LastName) ? null : request.LastName,
+            Gender = request.Gender,
+            DateOfBirth = request.DateOfBirth.ToDateTime(),
             Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone,
             Address = string.IsNullOrWhiteSpace(request.Address) ? null : request.Address,
             RoleId = string.IsNullOrWhiteSpace(request.RoleId) ? null : Guid.Parse(request.RoleId)
@@ -81,6 +89,10 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
             {
                 Username = string.IsNullOrWhiteSpace(request.Username) ? null : request.Username,
                 Email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email,
+                FirstName = request.FirstName,
+                LastName = string.IsNullOrWhiteSpace(request.LastName) ? null : request.LastName,
+                Gender = request.Gender,
+                DateOfBirth = request.DateOfBirth.ToDateTime(),
                 Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone,
                 Address = string.IsNullOrWhiteSpace(request.Address) ? null : request.Address,
                 IsBlocked = request.IsBlocked,
