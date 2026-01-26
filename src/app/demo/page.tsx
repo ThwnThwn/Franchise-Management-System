@@ -1,7 +1,8 @@
 "use client"
 
 import React from "react"
-import MenuPage from "@/features/menu/pages/menuPage"
+// import MenuPage from "@/features/menu/pages/MenuPage"
+import { RegisterModal } from "@/features/auth/components/RegisterModal"
 
 export default function Home() {
     // handle when log
@@ -61,7 +62,7 @@ export default function Home() {
         //     </NavbarStyled>
         // </div>
         <>
-            <MenuPage />
+            <RegisterModal />
         </>
     )
 }

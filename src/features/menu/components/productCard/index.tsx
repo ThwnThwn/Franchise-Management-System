@@ -1,8 +1,9 @@
+"use client"
 import { CardStyled, ImageStyled } from "@/components"
 import { CardBody, CardFooter } from "@heroui/react"
 import React from "react"
 import { formatCurrencyWithSymbol } from "@/utils/helpers/currency"
-import { TYPE } from "../../constants"
+import { MENU_TYPE } from "../../constants"
 import { GetProductListItemDto, ProductSizeListItemDto } from "../../models/schema/respone"
 
 export function CardProductStyled({
@@ -11,11 +12,11 @@ export function CardProductStyled({
     getProductListItemDto: GetProductListItemDto
 }) {
     return (
-        <CardStyled className="hover:shadow-xl interactive-scale" shadow="sm">
+        <CardStyled className="hover:shadow-xl interactive-scale w-xs" shadow="sm">
             <CardBody className="overflow-visible ">
                 <ImageStyled
                     alt={getProductListItemDto.name}
-                    className="w-[300px] object-cover h-[188px] shadow-lg"
+                    className="object-cover h-47 shadow-lg w-auto"
                     src={getProductListItemDto.imageUrl}
                     width={300}
                     height={188}
@@ -34,10 +35,10 @@ export function CardProductStyled({
                 <hr className=" text-gray-300 border-1 w-full m-1" />
 
                 <div className=" flex items-center justify-center mt-2 mb-2 p-2 ">
-                    <span className="text-2xl font-bold text-green-600 whitespace-nowrap">
+                    <span className="text-2xl font-bold text-primary whitespace-nowrap">
                         {formatCurrencyWithSymbol(
                             getProductListItemDto.sizes.find(
-                                (s: ProductSizeListItemDto) => s.name === TYPE.MIN_SIZE
+                                (s: ProductSizeListItemDto) => s.name === MENU_TYPE.MIN_SIZE
                             )?.basePrice ?? 0
                         )}{" "}
                         &nbsp;

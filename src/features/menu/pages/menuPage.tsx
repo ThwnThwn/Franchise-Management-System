@@ -2,9 +2,10 @@ import React from "react"
 import { motion, AnimatePresence } from "framer-motion"
 // import { useGetAllProducts } from "../hooks"
 
-import { CardProductStyled } from "../components/productCard"
+import { CardProductStyled } from "../components/ProductCard"
 import { MOCK_PRODUCTS_DATA } from "@/utils/mockData"
 import Link from "next/link"
+import { MENU_ERRORS } from "../constants"
 
 export default function MenuPage() {
     // const { data: products, isLoading } = useGetAllProducts({})
@@ -14,7 +15,7 @@ export default function MenuPage() {
     // if (isLoading) return <SpinnerStyled />
 
     return (
-        <div className="min-h-[80vh] max-w-screen-xl mx-auto p-6 text-center">
+        <div className="min-h-[80vh] max-w-7xl mx-auto p-6 text-center">
             {/* <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -47,7 +48,7 @@ export default function MenuPage() {
                                 transition={{ duration: 0.4 }}
                                 className="text-gray-500 mt-10 text-base"
                             >
-                                {"vehicle_filter.no_suitable_vehicle_found"}
+                                {MENU_ERRORS.NOT_HAVE_PRODUCT}
                             </motion.div>
                         ) : (
                             <motion.div
@@ -65,7 +66,7 @@ export default function MenuPage() {
                                         }
                                     }
                                 }}
-                                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
+                                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
                             >
                                 {products.Products.map((product) => (
                                     <motion.div

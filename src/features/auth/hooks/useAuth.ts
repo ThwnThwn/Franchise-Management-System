@@ -3,6 +3,9 @@ import { useMutation } from "@tanstack/react-query"
 import { authApi } from "@/features/auth/services"
 import { addToast } from "@heroui/react"
 import { BackendError } from "@/models/common/respone"
+import { useInvalidateMeQuery, useRemoveMeQuery } from "@/hooks/queries/useProfile"
+import { AUTH_TEXT } from "../constants"
+import { NOTIFICATION } from "@/constants/constants"
 
 export const useLogin = ({
     rememberMe,
@@ -27,6 +30,70 @@ export const useLogin = ({
         onError: (error: BackendError) => {
             addToast({
                 title: error.title || "toast.error",
+                description: error.detail,
+                color: "danger"
+            })
+        }
+    })
+}
+
+export const useLogout = ({ onSuccess }: { onSuccess?: () => void }) => {
+    const removeAccessToken = useTokenStore((s) => s.removeAccessToken)
+    const removeMeQuery = useRemoveMeQuery()
+
+    return useMutation({
+        mutationFn: authApi.logout,
+        onSuccess: () => {
+            onSuccess?.()
+            removeAccessToken()
+            removeMeQuery()
+            addToast({
+                title: AUTH_TEXT.RESPONE_TEXT.SUCCESS,
+                description: AUTH_TEXT.STRINGS.SUCCESS_LOGOUT,
+                color: "success"
+            })
+        },
+        onError: (error: BackendError) => {
+            addToast({
+                title: error.title || AUTH_TEXT.RESPONE_TEXT.ERROR,
+                description: error.detail,
+                color: "danger"
+            })
+        }
+    })
+}
+
+export const useRegister = ({ onSuccess }: { onSuccess?: () => void }) => {
+    return useMutation({
+        mutationFn: authApi.regsiter,
+        onSuccess: onSuccess,
+        onError: (error: BackendError) => {
+            addToast({
+                title: error.title || NOTIFICATION.ERROR,
+                description: error.detail,
+                color: "danger"
+            })
+        }
+    })
+}
+
+export const useRegisterVerify = ({ onSuccess }: { onSuccess?: () => void }) => {
+    const invalidateMeQuery = useInvalidateMeQuery()
+
+    return useMutation({
+        mutationFn: authApi.registerVerify,
+        onSuccess: () => {
+            invalidateMeQuery()
+            onSuccess?.()
+            addToast({
+                title: NOTIFICATION.SUCCESS,
+                description: AUTH_TEXT.STRINGS.REGISTER_SUCCESS,
+                color: "success"
+            })
+        },
+        onError: (error: BackendError) => {
+            addToast({
+                title: error.title || NOTIFICATION.ERROR,
                 description: error.detail,
                 color: "danger"
             })

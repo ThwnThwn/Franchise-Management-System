@@ -1,12 +1,14 @@
 "use client"
 
-import React from "react"
+import React, { useCallback } from "react"
 import { DropdownTrigger, DropdownMenu, DropdownItem, User } from "@heroui/react"
 import { DropdownStyled } from "@/components"
 import Link from "next/link"
 import { DEFAULT_AVATAR_URL } from "@/constants/constants"
 import { RoleName } from "@/constants/enums"
 import { STRINGS } from "@/constants/strings"
+import { useRouter } from "next/router"
+import { useLogout } from "@/features"
 
 type DropdownLinkItem = {
     key: string
@@ -54,8 +56,8 @@ export const buildItems = ({
 }
 
 export function ProfileDropdown({ onOpen = undefined }: { onOpen?: () => void }) {
-    // const router = useRouter()
-    // const logoutMutation = useLogout({ onSuccess: () => router.replace("/") })
+    const router = useRouter()
+    const logoutMutation = useLogout({ onSuccess: () => router.replace("/") })
 
     // const { data: user, isLoading: isGetMeLoading, isError: isGetMeError } = useGetMe()
 
@@ -90,9 +92,9 @@ export function ProfileDropdown({ onOpen = undefined }: { onOpen?: () => void })
         bottomItems
     })
 
-    // const handleLogout = useCallback(async () => {
-    //     await logoutMutation.mutateAsync()
-    // }, [logoutMutation])
+    const handleLogout = useCallback(async () => {
+        await logoutMutation.mutateAsync()
+    }, [logoutMutation])
 
     // handle get me error
     // if (isGetMeLoading || isGetMeError) return <Spinner />
@@ -140,7 +142,7 @@ export function ProfileDropdown({ onOpen = undefined }: { onOpen?: () => void })
                                 textValue={item.label}
                                 color={item.color}
                                 className="block pr-5"
-                                // onPress={handleLogout}
+                                onPress={handleLogout}
                             >
                                 {item.label}
                             </DropdownItem>

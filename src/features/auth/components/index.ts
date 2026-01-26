@@ -1,1 +1,2 @@
-export * from "./loginModal"
+export * from "./LoginModal"
+export * from "./RegisterModal"

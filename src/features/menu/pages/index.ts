@@ -1,1 +1,1 @@
-export * from "./menuPage"
+export * from "./MenuPage"

@@ -2,17 +2,20 @@
 
 import { ButtonStyled, ButtonToggleVisibility, InputStyled, LogoStyled } from "@/components"
 import { EMAIL_REGEX } from "@/constants/regexs"
-import { ERRORS, TEXT } from "@/features/"
+import { AUTH_ERRORS, AUTH_TEXT } from "@/features/auth/constants"
 import { useLogin } from "@/features/"
-import { Checkbox, Divider } from "@heroui/react"
+import { Checkbox, Divider, Link } from "@heroui/react"
 import { useFormik } from "formik"
 import React, { useCallback, useState } from "react"
 import * as Yup from "yup"
+import { useLoginDiscloresureSingleton, useRegisterDiscloresureSingleton } from "@/hooks"
 
 export function LoginForm({ onSuccess }: { onSuccess?: () => void }) {
     const [isVisible, setIsvisible] = useState(false)
     const [rememberMe, setRememberMe] = useState(true)
     const loginMutation = useLogin({ rememberMe, onSuccess })
+    const { onClose: onCloseLogin } = useLoginDiscloresureSingleton()
+    const { onOpen: onOpenRegister } = useRegisterDiscloresureSingleton()
 
     // const { onClose: onCloseLogin } = useLoginDiscloresureSingleton()
 
@@ -25,6 +28,11 @@ export function LoginForm({ onSuccess }: { onSuccess?: () => void }) {
         [loginMutation]
     )
 
+    const handleOpenRegister = useCallback(() => {
+        onCloseLogin()
+        onOpenRegister()
+    }, [onCloseLogin, onOpenRegister])
+
     const formik = useFormik({
         initialValues: {
             email: "",
@@ -33,11 +41,11 @@ export function LoginForm({ onSuccess }: { onSuccess?: () => void }) {
         },
         validationSchema: Yup.object().shape({
             email: Yup.string()
-                .required(ERRORS.AUTH.EMAIL_REQUIRED)
-                .matches(EMAIL_REGEX, ERRORS.AUTH.INVALID_EMAIL),
+                .required(AUTH_ERRORS.AUTH.EMAIL_REQUIRED)
+                .matches(EMAIL_REGEX, AUTH_ERRORS.AUTH.INVALID_EMAIL),
             password: Yup.string()
-                .required(ERRORS.AUTH.PASSWORD_REQUIRED)
-                .min(8, ERRORS.AUTH.PASSWORD_TOO_SHORT)
+                .required(AUTH_ERRORS.AUTH.PASSWORD_REQUIRED)
+                .min(8, AUTH_ERRORS.AUTH.PASSWORD_TOO_SHORT)
         }),
         onSubmit: handleLogin
     })
@@ -52,7 +60,7 @@ export function LoginForm({ onSuccess }: { onSuccess?: () => void }) {
                     <div className="flex flex-col items-center pb-6">
                         {/* <AcmeIcon size={60} /> */}
                         <LogoStyled className="mb-3" />
-                        <p className="text-xl font-medium">{TEXT.STRINGS.WELCOME}</p>
+                        <p className="text-xl font-medium">{AUTH_TEXT.STRINGS.WELCOME}</p>
                         {/* <p className="text-small text-default-500">{TEXT.STRINGS.LOGIN_CONTINUE}</p> */}
                     </div>
 
@@ -60,7 +68,7 @@ export function LoginForm({ onSuccess }: { onSuccess?: () => void }) {
                         <InputStyled
                             // className="my-3"
                             variant="bordered"
-                            label={TEXT.TITLES.EMAIL}
+                            label={AUTH_TEXT.TITLES.EMAIL}
                             value={formik.values.email}
                             onValueChange={(value) => formik.setFieldValue("email", value)}
                             isInvalid={!!(formik.touched.email && formik.errors.email)}
@@ -71,7 +79,7 @@ export function LoginForm({ onSuccess }: { onSuccess?: () => void }) {
                         />
                         <InputStyled
                             variant="bordered"
-                            label={TEXT.TITLES.PASSWORD}
+                            label={AUTH_TEXT.TITLES.PASSWORD}
                             type={isVisible ? "text" : "password"}
                             value={formik.values.password}
                             onValueChange={(value) => formik.setFieldValue("password", value)}
@@ -101,7 +109,7 @@ export function LoginForm({ onSuccess }: { onSuccess?: () => void }) {
                                 isSelected={rememberMe}
                                 onValueChange={(isSelected) => setRememberMe(isSelected)}
                             >
-                                {TEXT.STRINGS.REMEMBER_ME}
+                                {AUTH_TEXT.STRINGS.REMEMBER_ME}
                             </Checkbox>
                         </div>
                         <div>
@@ -123,23 +131,23 @@ export function LoginForm({ onSuccess }: { onSuccess?: () => void }) {
                         isDisabled={!formik.isValid}
                         onPress={() => formik.submitForm()}
                     >
-                        {TEXT.TITLES.LOGIN}
+                        {AUTH_TEXT.TITLES.LOGIN}
                     </ButtonStyled>
                 </div>
             </form>
             <div className="flex items-center gap-4 py-2">
                 <Divider className="flex-1" />
-                <p className="text-tiny text-default-500 shrink-0">{TEXT.STRINGS.OR}</p>
+                <p className="text-tiny text-default-500 shrink-0">{AUTH_TEXT.STRINGS.OR}</p>
                 <Divider className="flex-1" />
             </div>
             {/* <div className="flex flex-col gap-2">
                 <GoogleLoginButton rememberMe={rememberMe} onSuccess={onSuccess} />
             </div> */}
             <p className="text-small text-center">
-                {TEXT.STRINGS.NOT_HAVE_ACCOUNT}&nbsp;
-                {/* <Link isBlock onPress={handleOpenRegister} className="cursor-pointer">
-                    {t("login.register")}
-                </Link> */}
+                {AUTH_TEXT.STRINGS.NOT_HAVE_ACCOUNT}&nbsp;
+                <Link isBlock onPress={handleOpenRegister} className="cursor-pointer">
+                    {AUTH_TEXT.STRINGS.REGISTER}
+                </Link>
             </p>
         </div>
     )
