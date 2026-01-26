@@ -3,6 +3,7 @@ package handlers
 import (
 	"api-gateway/internal/application/abstractions"
 	"api-gateway/internal/application/constants/errorcode"
+	"api-gateway/pkg/utils/grpcutils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -20,11 +21,16 @@ func NewUserHandler(userUC abstractions.IUserUseCase) *UserHandler {
 func (h *UserHandler) GetMe(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.Error(errorcode.ErrInvalidId)
+		c.Error(errorcode.ErrInvalidToken)
 		return
 	}
 
-	ctx := c.Request.Context()
+	ctx, err := grpcutils.BuildAuthContext(c)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
 	res, err := h.userUC.GetById(ctx, userID.(uuid.UUID))
 	if err != nil {
 		c.Error(err)

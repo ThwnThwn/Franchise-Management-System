@@ -20,6 +20,6 @@ func (u *UserRouter) NewUserRouter(cfg *config.Config,
 	privateApi := userApi.Group("/")
 	privateApi.Use(middleware.ValidateToken([]byte(accessTokenSecret)))
 	{
-		privateApi.POST("/me", userHander.GetMe)
+		privateApi.GET("/me", userHander.GetMe)
 	}
 }
