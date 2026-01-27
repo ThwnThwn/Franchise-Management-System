@@ -1,5 +1,5 @@
 using AutoMapper;
-using SalesService.Application.Features.Orders.Create;
+using SalesService.Application.Features.Orders.Commands.Create;
 using SalesService.Domain.Entities;
 
 namespace SalesService.Application.Mapping.Orders;

@@ -30,6 +30,20 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, RegisterR
     {
         var request = command.Request;
 
+        // RATE LIMITING: Check if OTP was sent recently (within 5 minutes)
+        var lastOtpTime = await _otpStore.GetLastOtpRequestTimeAsync(request.Email);
+        if (lastOtpTime.HasValue)
+        {
+            var timeSinceLastRequest = DateTimeOffset.UtcNow - lastOtpTime.Value;
+            var waitTime = TimeSpan.FromMinutes(5) - timeSinceLastRequest;
+            
+            if (waitTime > TimeSpan.Zero)
+            {
+                throw new BusinessException(
+                    $"Please wait {Math.Ceiling(waitTime.TotalMinutes)} minute(s) before requesting a new OTP.");
+            }
+        }
+
         //Check mail
         var existingUser = await _userRepository.GetByEmailAsync(request.Email);
         if (existingUser != null)
@@ -43,7 +57,6 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, RegisterR
 
         var hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
-        var random = new Random();
         var otp = RandomNumberGenerator.GetInt32(0, 1_000_000).ToString("D6");
 
         Role? role = await _roleRepository.GetByNameAsync("Customer");
@@ -72,6 +85,12 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, RegisterR
         await _otpStore.SaveRegistrationDataAsync(request.Email, registrationDataJson);
 
         await _otpStore.SaveOTPAsyns(request.Email, otp);
+
+        // Save the time when OTP was sent for rate limiting
+        await _otpStore.SaveLastOtpRequestTimeAsync(request.Email, DateTimeOffset.UtcNow);
+
+        // Reset attempt count when new OTP is sent
+        await _otpStore.ResetOtpAttemptAsync(request.Email);
 
         await _emailService.SendOtpEmailAsync(request.Email, otp);
 

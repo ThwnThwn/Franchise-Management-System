@@ -33,4 +33,27 @@ public class OrderRepository : IOrderRepository
                 o => o.Id == id && !o.IsDeleted,
                 cancellationToken);
     }
+
+    public async Task<List<Order>> GetOrdersByCustomerIdAsync(
+    Guid customerId,
+    int page,
+    int pageSize,
+    CancellationToken cancellationToken = default)
+    {
+        return await _context.Orders
+            .Where(o => o.CustomerId == customerId)
+            .OrderByDescending(o => o.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<int> CountOrdersByCustomerIdAsync(
+    Guid customerId,
+    CancellationToken cancellationToken = default)
+    {
+        return await _context.Orders
+            .Where(o => o.CustomerId == customerId)
+            .CountAsync(cancellationToken);
+    }
 }
