@@ -1,7 +1,6 @@
 syntax = "proto3";
 
 option csharp_namespace = "ProductService.API";
-option go_package = "api-gateway/pkg/pb/product";
 
 package category;
 
@@ -23,5 +22,5 @@ message Category {
   string name = 2;
   string description = 3;
   string image_url = 4;
-  optional bool is_active = 5;
+  bool is_active = 5;
 }

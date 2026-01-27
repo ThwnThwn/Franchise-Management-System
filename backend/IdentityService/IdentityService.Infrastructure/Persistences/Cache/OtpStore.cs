@@ -65,4 +65,60 @@ public class OtpStore : IOtpStore
     {
         await _cache.RemoveAsync($"register:{key}");
     }
+
+    public async Task<DateTimeOffset?> GetLastOtpRequestTimeAsync(string key)
+    {
+        var value = await _cache.GetStringAsync($"otp_request_time:{key}");
+        if (string.IsNullOrEmpty(value))
+            return null;
+
+        if (DateTimeOffset.TryParse(value, out var time))
+            return time;
+
+        return null;
+    }
+
+    public async Task SaveLastOtpRequestTimeAsync(string key, DateTimeOffset time)
+    {
+        await _cache.SetStringAsync(
+            $"otp_request_time:{key}",
+            time.ToString("O"),
+            new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
+            }
+        );
+    }
+
+    public async Task<int> GetOtpAttemptCountAsync(string key)
+    {
+        var value = await _cache.GetStringAsync($"otp_attempts:{key}");
+        if (string.IsNullOrEmpty(value))
+            return 0;
+
+        if (int.TryParse(value, out var count))
+            return count;
+
+        return 0;
+    }
+
+    public async Task IncrementOtpAttemptAsync(string key)
+    {
+        var currentCount = await GetOtpAttemptCountAsync(key);
+        var newCount = currentCount + 1;
+
+        await _cache.SetStringAsync(
+            $"otp_attempts:{key}",
+            newCount.ToString(),
+            new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(_otpCfg.OtpTtl)
+            }
+        );
+    }
+
+    public async Task ResetOtpAttemptAsync(string key)
+    {
+        await _cache.RemoveAsync($"otp_attempts:{key}");
+    }
 }
