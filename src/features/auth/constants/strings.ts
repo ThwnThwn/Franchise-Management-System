@@ -1,6 +1,6 @@
 export const ERRORS = {
     AUTH: {
-        EMAIL_REQUIRED: "Vui lòng nhập email",
+        EMAIL_REQUIRED: "Vui lòng nhập email hoặc username",
         PASSWORD_REQUIRED: "Vui lòng nhập mật khẩu",
         INVALID_EMAIL: "Vui lòng nhập đúng định dạng email",
         PASSWORD_TOO_SHORT: "Vui lòng nhập mật khẩu có độ bảo mật cao hơn"
@@ -9,7 +9,7 @@ export const ERRORS = {
 
 export const TEXT = {
     TITLES: {
-        EMAIL: "Email",
+        EMAIL: "Email hoặc username",
         PASSWORD: "Mật khẩu",
         LOGIN: "LOGIN"
     } as const,

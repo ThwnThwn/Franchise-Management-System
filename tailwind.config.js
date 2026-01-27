@@ -13,15 +13,16 @@ module.exports = {
     darkMode: "class",
     plugins: [
         heroui({
+            defaultTheme: "coffee-theme",
             themes: {
                 "coffee-theme": {
                     extend: "light",
                     colors: {
-                        // --- CÁC MÀU CƠ BẢN (Như cũ) ---
                         background: "#FAF8F5", // Be sáng
-                        foreground: "#3E2723", // Nâu đen (Quan trọng!)
-
+                        foreground: "#3E2723", // Nâu đen
                         primary: {
+                            50: "#EFEBE9",
+                            400: "#8D6E63",
                             DEFAULT: "#5D4037", // Nâu Mocha
                             foreground: "#FFFFFF"
                         },
@@ -33,8 +34,6 @@ module.exports = {
                             DEFAULT: "#D7CCC8", // Be xám
                             foreground: "#3E2723"
                         },
-
-                        // --- CẬP NHẬT CÁC MÀU TRẠNG THÁI ---
 
                         // 1. Success (Thành công): Xanh Matcha trầm
                         success: {

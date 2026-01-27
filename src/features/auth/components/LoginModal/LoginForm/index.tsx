@@ -1,7 +1,6 @@
 "use client"
 
 import { ButtonStyled, ButtonToggleVisibility, InputStyled, LogoStyled } from "@/components"
-import { EMAIL_REGEX } from "@/constants/regexs"
 import { ERRORS, TEXT } from "@/features/"
 import { useLogin } from "@/features/"
 import { Checkbox, Divider } from "@heroui/react"
@@ -19,7 +18,7 @@ export function LoginForm({ onSuccess }: { onSuccess?: () => void }) {
     const toggleVisibility = () => setIsvisible(!isVisible)
 
     const handleLogin = useCallback(
-        async (values: { email: string; password: string }) => {
+        async (values: { emailOrUsername: string; password: string }) => {
             await loginMutation.mutateAsync(values)
         },
         [loginMutation]
@@ -27,17 +26,15 @@ export function LoginForm({ onSuccess }: { onSuccess?: () => void }) {
 
     const formik = useFormik({
         initialValues: {
-            email: "",
+            emailOrUsername: "",
             password: ""
             // rememberMe: false
         },
         validationSchema: Yup.object().shape({
-            email: Yup.string()
-                .required(ERRORS.AUTH.EMAIL_REQUIRED)
-                .matches(EMAIL_REGEX, ERRORS.AUTH.INVALID_EMAIL),
-            password: Yup.string()
-                .required(ERRORS.AUTH.PASSWORD_REQUIRED)
-                .min(8, ERRORS.AUTH.PASSWORD_TOO_SHORT)
+            emailOrUsername: Yup.string().required(ERRORS.AUTH.EMAIL_REQUIRED),
+            // .matches(EMAIL_REGEX, ERRORS.AUTH.INVALID_EMAIL),
+            password: Yup.string().required(ERRORS.AUTH.PASSWORD_REQUIRED)
+            // .min(8, ERRORS.AUTH.PASSWORD_TOO_SHORT)
         }),
         onSubmit: handleLogin
     })
@@ -61,12 +58,16 @@ export function LoginForm({ onSuccess }: { onSuccess?: () => void }) {
                             // className="my-3"
                             variant="bordered"
                             label={TEXT.TITLES.EMAIL}
-                            value={formik.values.email}
-                            onValueChange={(value) => formik.setFieldValue("email", value)}
-                            isInvalid={!!(formik.touched.email && formik.errors.email)}
-                            errorMessage={formik.errors.email}
+                            value={formik.values.emailOrUsername}
+                            onValueChange={(value) =>
+                                formik.setFieldValue("emailOrUsername", value)
+                            }
+                            isInvalid={
+                                !!(formik.touched.emailOrUsername && formik.errors.emailOrUsername)
+                            }
+                            errorMessage={formik.errors.emailOrUsername}
                             onBlur={() => {
-                                formik.setFieldTouched("email")
+                                formik.setFieldTouched("emailOrUsername")
                             }}
                         />
                         <InputStyled
