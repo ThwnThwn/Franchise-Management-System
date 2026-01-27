@@ -1,9 +1,10 @@
-using System;
 using AutoMapper;
 using Grpc.Core;
 using MediatR;
 using SalesService.API;
 using SalesService.Application.Features.Orders.Create;
+using SalesService.Application.Features.Orders.GetById;
+using System;
 
 namespace SalesService.API.Services.Orders;
 
@@ -62,4 +63,70 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             CustomerId = customerId.ToString()
         };
     }
+
+
+public override async Task<GetOrderByIdReply> GetOrderById(
+    GetOrderByIdRequest request,
+    ServerCallContext context)
+{
+    if (!Guid.TryParse(request.Id, out var orderId))
+    {
+        throw new RpcException(
+            new Status(StatusCode.InvalidArgument, "Invalid order id"));
+    }
+
+    var query = new GetOrderByIdQuery(orderId);
+    var result = await _mediator.Send(query, context.CancellationToken);
+
+    if (result.Status == Ardalis.Result.ResultStatus.NotFound)
+    {
+        throw new RpcException(
+            new Status(StatusCode.NotFound, result.Errors.FirstOrDefault()));
+    }
+
+    if (!result.IsSuccess)
+    {
+        throw new RpcException(
+            new Status(StatusCode.Internal, result.Errors.FirstOrDefault()));
+    }
+
+    var dto = result.Value;
+
+    var orderMessage = new Order
+    {
+        Id = dto.OrderId.ToString(),
+        Code = dto.OrderCode,
+        Subtotal = (double)dto.Subtotal,
+        Tax = (double)dto.Tax,
+        TotalAmount = (double)dto.TotalAmount,
+        PaidAmount = dto.PaidAmount.HasValue
+            ? (double)dto.PaidAmount.Value
+            : 0,
+        PaymentMethod = dto.PaymentMethod ?? 0,
+        Status = dto.Status,
+        PaidAt = dto.PaidAt.ToString("O"),
+        Notes = dto.Notes ?? string.Empty,
+        CreatedAt = dto.CreatedAt.ToString("O"),
+        UpdatedAt = dto.UpdatedAt.ToString("O")
+    };
+
+    orderMessage.Items.AddRange(dto.Items.Select(i => new OrderItem
+    {
+        Id = i.Id.ToString(),
+        ProductId = i.ProductId.ToString(),
+        VariantId = i.VariantId.ToString(),
+        Quantity = i.Quantity,
+        UnitPrice = (double)i.UnitPrice,
+        ProductName = i.ProductName,
+        Sku = i.Sku,
+        ImageUrl = i.ImageUrl ?? string.Empty
+    }));
+
+    return new GetOrderByIdReply
+    {
+        Order = orderMessage
+    };
+}
+
+
 }

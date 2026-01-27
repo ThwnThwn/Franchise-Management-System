@@ -1,8 +1,9 @@
-using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using SalesService.Application.Interfaces.Orders;
 using SalesService.Domain.Entities;
 using SalesService.Infrastructure.ApplicationDbContext;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace SalesService.Infrastructure.Repositories.Orders;
 
@@ -22,10 +23,14 @@ public class OrderRepository : IOrderRepository
         return order;
     }
 
-    async Task<Order> IOrderRepository.GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<Order?> GetByIdAsync(
+        Guid id,
+        CancellationToken cancellationToken)
     {
-        _context.Orders.Find(id);
-        await _context.SaveChangesAsync(cancellationToken);
-        throw new NotImplementedException();
+        return await _context.Orders
+            .Include(o => o.OrderItems)
+            .FirstOrDefaultAsync(
+                o => o.Id == id && !o.IsDeleted,
+                cancellationToken);
     }
 }
