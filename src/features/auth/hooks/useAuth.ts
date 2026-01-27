@@ -22,14 +22,14 @@ export const useLogin = ({
             setAccessToken(data.accessToken, rememberMe)
             onSuccess?.()
             addToast({
-                title: "toast.success",
-                description: "success.login",
+                title: STRINGS.NOTIFICATION.SUCCESS,
+                description: STRINGS.NOTIFICATION.SUCCESS,
                 color: "success"
             })
         },
         onError: (error: BackendError) => {
             addToast({
-                title: error.title || "toast.error",
+                title: error.title || STRINGS.NOTIFICATION.ERROR,
                 description: error.detail,
                 color: "danger"
             })
