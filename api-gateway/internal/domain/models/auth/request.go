@@ -14,7 +14,7 @@ type RegisterRequest struct {
 	ConfirmPassword string `json:"confirmPassword" binding:"required,eqfield=Password"`
 	Phone           string `json:"phone" binding:"required"`
 	Address         string `json:"address" binding:"required"`
-	Gender          int32  `json:"gender" binding:"required"`
+	Gender          *int32 `json:"gender" binding:"required"`
 	DateOfBirth     string `json:"dateOfBirth" binding:"required"`
 }
 

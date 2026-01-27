@@ -6,6 +6,7 @@ import (
 	"api-gateway/internal/domain/models/role"
 	"api-gateway/internal/domain/models/user"
 	idenPb "api-gateway/pkg/pb/identity"
+	"api-gateway/pkg/utils/numberutils"
 	"api-gateway/pkg/utils/timeutils"
 	"context"
 )
@@ -77,10 +78,15 @@ func (a *AuthGrpcClient) RefreshToken(ctx context.Context, req *auth.RefreshToke
 // Register implements identity.IAuthService.
 func (a *AuthGrpcClient) Register(ctx context.Context, req *auth.RegisterRequest) (string, error) {
 	res, err := a.client.Register(ctx, &idenPb.RegisterRequest{
-		Email:    req.Email,
-		Password: req.Password,
-		Phone:    req.Phone,
-		Address:  req.Address,
+		Email:       req.Email,
+		Username:    req.Username,
+		FirstName:   req.FirstName,
+		LastName:    req.LastName,
+		Password:    req.Password,
+		Phone:       req.Phone,
+		Address:     req.Address,
+		Gender:      numberutils.GetInt32(req.Gender),
+		DateOfBirth: req.DateOfBirth,
 	})
 	if err != nil {
 		return "", err

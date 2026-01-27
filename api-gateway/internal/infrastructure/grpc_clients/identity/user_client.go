@@ -25,12 +25,16 @@ func (u *UserGrpcClient) GetUserById(ctx context.Context, id uuid.UUID) (*user.U
 		return nil, err
 	}
 	return &user.UserResponse{
-		Id:        res.Id,
-		Email:     res.Email,
-		Username:  res.Username,
-		Phone:     res.Phone,
-		Address:   res.Address,
-		IsBlocked: res.IsBlocked,
+		Id:          res.Id,
+		Email:       res.Email,
+		FirstName:   res.FirstName,
+		LastName:    res.LastName,
+		Username:    res.Username,
+		Phone:       res.Phone,
+		Address:     res.Address,
+		Gender:      res.Gender,
+		DateOfBirth: timeutils.ProtoToTimePtr(res.DateOfBirth),
+		IsBlocked:   res.IsBlocked,
 		Role: &role.RoleUserResponse{
 			Id:   res.Role.Id,
 			Name: res.Role.Name,

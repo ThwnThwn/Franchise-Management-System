@@ -103,10 +103,16 @@ func (h *AuthHandler) Register(c *gin.Context) {
 
 	ctx := c.Request.Context()
 	res, err := h.authUC.Register(ctx, &auth.RegisterRequest{
-		Email:    req.Email,
-		Password: req.Password,
-		Phone:    req.Phone,
-		Address:  req.Address,
+		Email:           req.Email,
+		Username:        req.Username,
+		FirstName:       req.FirstName,
+		LastName:        req.LastName,
+		Password:        req.Password,
+		ConfirmPassword: req.ConfirmPassword,
+		Phone:           req.Phone,
+		Address:         req.Address,
+		Gender:          req.Gender,
+		DateOfBirth:     req.DateOfBirth,
 	})
 
 	if err != nil {

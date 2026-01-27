@@ -4,6 +4,7 @@ import (
 	salesGW "api-gateway/internal/application/gateways/sales"
 	"api-gateway/internal/domain/models/order"
 	salesPb "api-gateway/pkg/pb/sales"
+	"api-gateway/pkg/utils/numberutils"
 	"api-gateway/pkg/utils/timeutils"
 	"context"
 
@@ -28,8 +29,8 @@ func (o *OrderGrpcClient) CreateOrder(ctx context.Context, req *order.CreateOrde
 
 	res, err := o.client.CreateOrder(ctx, &salesPb.CreateOrderRequest{
 		Items:         pbItems,
-		Tax:           req.Tax,
-		PaymentMethod: req.PaymentMethod,
+		Tax:           numberutils.GetFloat64(req.Tax),
+		PaymentMethod: numberutils.GetInt32(req.PaymentMethod),
 		Notes:         req.Notes,
 	})
 
@@ -55,14 +56,17 @@ func (o *OrderGrpcClient) GetOrderById(ctx context.Context, id uuid.UUID) (*orde
 	order := &order.Order{
 		Id:            res.Order.Id,
 		Code:          res.Order.Code,
-		Status:        res.Order.Status,
-		TotalAmount:   res.Order.TotalAmount,
+		Subtotal:      res.Order.Subtotal,
 		Tax:           res.Order.Tax,
+		TotalAmount:   res.Order.TotalAmount,
+		PaidAmount:    res.Order.PaidAmount,
 		PaymentMethod: res.Order.PaymentMethod,
+		Status:        res.Order.Status,
+		PaidAt:        timeutils.StringToTime(res.Order.PaidAt),
 		Notes:         res.Order.Notes,
-		Items:         items,
 		CreatedAt:     timeutils.StringToTime(res.Order.CreatedAt),
 		UpdatedAt:     timeutils.StringToTime(res.Order.UpdatedAt),
+		Items:         items,
 	}
 
 	return order, nil
