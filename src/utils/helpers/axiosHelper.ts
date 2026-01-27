@@ -29,16 +29,16 @@ export const requestWrapper = async <T>(fn: () => Promise<T>): Promise<T> => {
         if (axios.isAxiosError(error)) {
             const data = error.response?.data
             const backendError: BackendError = {
-                title: data?.title ?? "Internal Server Error",
+                title: data?.title ?? "Lỗi hệ thống",
                 status: data?.status ?? error.response?.status,
                 detail: data?.detail ?? error.message
             }
             throw backendError
         }
         throw {
-            title: "Internal Server Error",
+            title: "Lỗi hệ thống",
             status: 500,
-            detail: "common.unexpected_error"
+            detail: "Xảy ra lỗi bất thường"
         }
     }
 }

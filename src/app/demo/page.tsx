@@ -2,8 +2,8 @@
 
 import React from "react"
 // import MenuPage from "@/features/menu/pages/MenuPage"
-import { RegisterModal } from "@/features/auth/components/RegisterModal"
 import MenuPage from "@/features/menu/pages/MenuPage"
+import OrdersPage from "@/features/orders/pages/OrdersView"
 
 export default function Home() {
     // handle when log
@@ -64,6 +64,7 @@ export default function Home() {
         // </div>
         <>
             <MenuPage />
+            <OrdersPage />
         </>
     )
 }
