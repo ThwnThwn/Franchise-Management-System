@@ -6,7 +6,7 @@ public interface IOrderRepository
 {
     Task<Order> CreateAsync(Order order, CancellationToken cancellationToken = default);
 
-    Task<Order> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<Order?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
     Task<List<Order>> GetOrdersByCustomerIdAsync(Guid customerId, int page, int pageSize, CancellationToken cancellationToken = default);
 

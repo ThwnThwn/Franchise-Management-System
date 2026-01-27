@@ -9,7 +9,6 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/jinzhu/copier"
 )
 
 type OrderGrpcClient struct {
@@ -25,12 +24,17 @@ func ProvideOrderClient(f *salesClientFactory) salesGW.IOrderService {
 func (o *OrderGrpcClient) CreateOrder(ctx context.Context, req *order.CreateOrderRequest) (*order.CreateOrderReply, error) {
 	pbItems := []*salesPb.CartItem{}
 
-	copier.Copy(&pbItems, &req.Items)
+	for _, item := range req.Items {
+		pbItems = append(pbItems, &salesPb.CartItem{
+			Sku:      item.Sku,
+			Quantity: numberutils.GetInt32(item.Quantity),
+		})
+	}
 
 	res, err := o.client.CreateOrder(ctx, &salesPb.CreateOrderRequest{
 		Items:         pbItems,
-		Tax:           numberutils.GetFloat64(req.Tax),
-		PaymentMethod: numberutils.GetInt32(req.PaymentMethod),
+		Tax:           req.Tax,
+		PaymentMethod: req.PaymentMethod,
 		Notes:         req.Notes,
 	})
 
@@ -51,17 +55,28 @@ func (o *OrderGrpcClient) GetOrderById(ctx context.Context, id uuid.UUID) (*orde
 		return nil, err
 	}
 	items := []*order.OrderItem{}
-	copier.Copy(&items, &res.Order.Items)
+	for _, item := range res.Order.Items {
+		items = append(items, &order.OrderItem{
+			Id:          item.Id,
+			ProductId:   item.ProductId,
+			VariantId:   item.VariantId,
+			Quantity:    item.Quantity,
+			UnitPrice:   item.UnitPrice,
+			ProductName: item.ProductName,
+			Sku:         item.Sku,
+			ImageUrl:    item.ImageUrl,
+		})
+	}
 
 	order := &order.Order{
 		Id:            res.Order.Id,
 		Code:          res.Order.Code,
 		Subtotal:      res.Order.Subtotal,
-		Tax:           res.Order.Tax,
+		Tax:           numberutils.GetFloat64(res.Order.Tax),
 		TotalAmount:   res.Order.TotalAmount,
 		PaidAmount:    res.Order.PaidAmount,
-		PaymentMethod: res.Order.PaymentMethod,
-		Status:        res.Order.Status,
+		PaymentMethod: numberutils.GetInt32(res.Order.PaymentMethod),
+		Status:        numberutils.GetInt32(res.Order.Status),
 		PaidAt:        timeutils.StringToTime(res.Order.PaidAt),
 		Notes:         res.Order.Notes,
 		CreatedAt:     timeutils.StringToTime(res.Order.CreatedAt),

@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS users (
     phone VARCHAR(20),
     address TEXT,
     gender INT NOT NULL DEFAULT 0, -- 0: Male, 1: Female
-    date_or_birth TIMESTAMP NOT NULL,
+    date_of_birth TIMESTAMP NOT NULL,
     is_blocked BOOLEAN DEFAULT FALSE,
 
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,

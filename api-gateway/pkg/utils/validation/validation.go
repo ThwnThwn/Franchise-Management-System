@@ -79,13 +79,13 @@ func TranslateValidationError(err error) *errormodel.BackendError {
 		}
 		return &errormodel.BackendError{
 			Status: http.StatusBadRequest,
-			Title:  "Bad Request",
+			Title:  "Yêu cầu không hợp lệ",
 			Detail: strings.Join(msgs, "; "),
 		}
 	}
 	return &errormodel.BackendError{
 		Status: http.StatusBadRequest,
-		Title:  "Bad Request",
+		Title:  "Yêu cầu không hợp lệ",
 		Detail: err.Error(),
 	}
 }

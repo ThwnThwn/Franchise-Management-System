@@ -116,9 +116,9 @@ public partial class IdentityDbContext : DbContext, IIdentityDbContext
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("created_at");
-            entity.Property(e => e.DateOrBirth)
+            entity.Property(e => e.DateOfBirth)
                 .HasColumnType("timestamp without time zone")
-                .HasColumnName("date_or_birth");
+                .HasColumnName("date_of_birth");
             entity.Property(e => e.Email)
                 .HasMaxLength(255)
                 .HasColumnName("email");

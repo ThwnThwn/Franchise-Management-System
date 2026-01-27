@@ -23,7 +23,7 @@ func (c *CategoryGrpcClient) GetCategories(ctx context.Context) ([]category.Cate
 		return nil, err
 	}
 
-	categories := make([]category.Category, len(res.Categories))
+	categories := make([]category.Category, 0, len(res.Categories))
 	for _, c := range res.Categories {
 		categories = append(categories, category.Category{
 			Id:          c.Id,

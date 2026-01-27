@@ -71,7 +71,7 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, RegisterR
             FirstName = request.FirstName,
             LastName = request.LastName,
             Gender = request.Gender,
-            DateOrBirth = request.DateOrBirth,
+            DateOfBirth = request.DateOrBirth,
             Phone = request.Phone,
             Address = request.Address,
             RoleId = role.Id,
