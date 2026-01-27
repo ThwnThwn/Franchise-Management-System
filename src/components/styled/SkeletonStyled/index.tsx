@@ -13,5 +13,5 @@ export function CircleSkeleton(props: SkeletonProps) {
 
 // Skeleton cho title (heading)
 export function TitleSkeleton(props: SkeletonProps) {
-    return <Skeleton {...props} className={cn("h-30 w-[60vh] rounded-lg", props.className)} />
+    return <Skeleton {...props} className={cn("rounded-lg", props.className)} />
 }

@@ -6,6 +6,7 @@ import { X, ShoppingBag } from "lucide-react"
 import { useCart } from "../hooks/useCart"
 import { CartItem } from "./CartItem"
 import { useCreateOrder } from "../hooks/useCreateOrder"
+import { ButtonIconStyled } from "@/components"
 
 interface CartDrawerProps {
     isOpen: boolean
@@ -55,8 +56,9 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
 
             {/* Drawer */}
             <div
-                className={`fixed top-0 right-0 h-full w-full max-w-md bg-background shadow-xl z-50 transform transition-transform duration-300 ${isOpen ? "translate-x-0" : "translate-x-full"
-                    }`}
+                className={`fixed top-0 right-0 h-full w-full max-w-md bg-background shadow-xl z-50 transform transition-transform duration-300 ${
+                    isOpen ? "translate-x-0" : "translate-x-full"
+                }`}
             >
                 <div className="flex flex-col h-full">
                     {/* Header */}
@@ -65,9 +67,9 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                             <ShoppingBag size={24} />
                             Giỏ hàng ({items.length})
                         </h2>
-                        <Button isIconOnly variant="light" onClick={onClose}>
+                        <ButtonIconStyled variant="light" onPress={onClose}>
                             <X size={24} />
-                        </Button>
+                        </ButtonIconStyled>
                     </div>
 
                     {/* Cart Items */}
@@ -126,8 +128,6 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                     )}
                 </div>
             </div>
-
-
         </>
     )
 }

@@ -1,10 +1,10 @@
 "use client"
 
 import React from "react"
-import { Card, CardBody, Button } from "@heroui/react"
+import { Card, CardBody } from "@heroui/react"
 import { Minus, Plus, Trash2 } from "lucide-react"
 import { CartItem as CartItemType } from "../models/types"
-import Image from "next/image"
+import { ButtonIconStyled, ImageStyled } from "@/components"
 
 interface CartItemProps {
     item: CartItemType
@@ -30,20 +30,12 @@ export const CartItem: React.FC<CartItemProps> = ({ item, onUpdateQuantity, onRe
             <CardBody className="p-3">
                 <div className="flex gap-3">
                     {/* Product Image */}
-                    <div className="relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
-                        {item.imageUrl ? (
-                            <Image
-                                src={item.imageUrl}
-                                alt={item.productName}
-                                fill
-                                className="object-cover"
-                            />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-400">
-                                No Image
-                            </div>
-                        )}
-                    </div>
+                    <ImageStyled
+                        src={item.imageUrl}
+                        alt={item.productName}
+                        width={80}
+                        height={80}
+                    />
 
                     {/* Product Info */}
                     <div className="flex-1 min-w-0">
@@ -60,42 +52,28 @@ export const CartItem: React.FC<CartItemProps> = ({ item, onUpdateQuantity, onRe
 
                         {/* Quantity Controls */}
                         <div className="flex items-center gap-2 mt-2">
-                            <Button
-                                isIconOnly
-                                size="sm"
-                                variant="flat"
-                                onClick={handleDecrease}
-                                className="min-w-8 h-8"
-                            >
+                            <ButtonIconStyled size="sm" variant="flat" onPress={handleDecrease}>
                                 <Minus size={14} />
-                            </Button>
+                            </ButtonIconStyled>
                             <span className="text-sm font-medium w-8 text-center">
                                 {item.quantity}
                             </span>
-                            <Button
-                                isIconOnly
-                                size="sm"
-                                variant="flat"
-                                onClick={handleIncrease}
-                                className="min-w-8 h-8"
-                            >
+                            <ButtonIconStyled size="sm" variant="flat" onPress={handleIncrease}>
                                 <Plus size={14} />
-                            </Button>
+                            </ButtonIconStyled>
                         </div>
                     </div>
 
                     {/* Item Total & Remove */}
                     <div className="flex flex-col items-end justify-between">
-                        <Button
-                            isIconOnly
+                        <ButtonIconStyled
                             size="sm"
                             variant="light"
                             color="danger"
-                            onClick={() => onRemove(item.sku)}
-                            className="min-w-8 h-8"
+                            onPress={() => onRemove(item.sku)}
                         >
                             <Trash2 size={16} />
-                        </Button>
+                        </ButtonIconStyled>
                         <p className="font-semibold text-sm">
                             {itemTotal.toLocaleString("vi-VN")} đ
                         </p>

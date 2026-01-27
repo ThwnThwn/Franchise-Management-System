@@ -31,13 +31,15 @@ export default function RootLayout({
                 className="coffee-theme text-foreground bg-background antialiased 
                 min-h-screen min-w-xs max-w-screen"
             >
-                <ClientHydration>
-                    <AppProviders>
-                        <Navbar />
-                        {children}
-                        <Modals />
-                    </AppProviders>
-                </ClientHydration>
+                <div className="min-h-screen flex flex-col items-center pt-25 mb-6">
+                    <ClientHydration>
+                        <AppProviders>
+                            <Navbar />
+                            {children}
+                            <Modals />
+                        </AppProviders>
+                    </ClientHydration>
+                </div>
             </body>
         </html>
     )

@@ -5,7 +5,7 @@ import { DropdownTrigger, DropdownMenu, DropdownItem, User } from "@heroui/react
 import { DropdownStyled } from "@/components"
 import Link from "next/link"
 import { DEFAULT_AVATAR_URL } from "@/constants/constants"
-import { RoleName } from "@/constants/enums"
+import { RoleSlug } from "@/constants/enums"
 import { STRINGS } from "@/constants/strings"
 import { useLogout } from "@/features"
 import { useRouter } from "next/navigation"
@@ -18,7 +18,7 @@ type DropdownLinkItem = {
 }
 
 export const buildItems = ({
-    roleName,
+    roleSlug,
     defaultItems,
     customerItems = [],
     staffItems = [],
@@ -26,7 +26,7 @@ export const buildItems = ({
     managerItems = [],
     bottomItems = []
 }: {
-    roleName?: RoleName
+    roleSlug?: RoleSlug
     defaultItems: DropdownLinkItem[]
     customerItems?: DropdownLinkItem[]
     staffItems?: DropdownLinkItem[]
@@ -34,13 +34,13 @@ export const buildItems = ({
     managerItems?: DropdownLinkItem[]
     bottomItems?: DropdownLinkItem[]
 }) => {
-    const roleItemsMap: Record<RoleName, DropdownLinkItem[]> = {
-        [RoleName.Customer]: customerItems,
-        [RoleName.Staff]: staffItems,
-        [RoleName.Manager]: managerItems,
-        [RoleName.Admin]: adminItems
+    const roleItemsMap: Record<RoleSlug, DropdownLinkItem[]> = {
+        [RoleSlug.Customer]: customerItems,
+        [RoleSlug.Staff]: staffItems,
+        [RoleSlug.Manager]: managerItems,
+        [RoleSlug.Admin]: adminItems
     }
-    const combinedItems = [...defaultItems, ...(roleName ? roleItemsMap[roleName] : [])]
+    const combinedItems = [...defaultItems, ...(roleSlug ? roleItemsMap[roleSlug] : [])]
 
     const uniqueItems: DropdownLinkItem[] = []
     const seenKeys = new Set<string>()
@@ -82,8 +82,8 @@ export function ProfileDropdown({ onOpen = undefined }: { onOpen?: () => void })
     const staffItems: DropdownLinkItem[] = []
 
     const dropdownItems = buildItems({
-        // roleName: user?.role?.name as RoleName | undefined,
-        roleName: undefined,
+        // roleSlug: user?.role?.name as RoleSlug | undefined,
+        roleSlug: undefined,
         defaultItems,
         managerItems,
         adminItems,

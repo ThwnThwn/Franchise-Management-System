@@ -8,12 +8,11 @@ import { GetProductListItemDto } from "../models/schema/respone"
 import { useGetAllProducts } from "../hooks"
 import { SpinnerStyled } from "@/components"
 import { useLoginDiscloresureSingleton, useTokenStore } from "@/hooks"
-import { CartButton, CartDrawer } from "@/features/cart/components"
 
 export default function MenuPage() {
     const { data: products, isLoading } = useGetAllProducts({})
     const [selectedProduct, setSelectedProduct] = useState<GetProductListItemDto | null>(null)
-    const [isCartOpen, setIsCartOpen] = useState(false)
+    // const [isCartOpen, setIsCartOpen] = useState(false)
     const isModalOpen = selectedProduct !== null
 
     const { onOpen: onOpenLogin } = useLoginDiscloresureSingleton()
@@ -38,11 +37,11 @@ export default function MenuPage() {
     return (
         <div className="min-h-[80vh] max-w-7xl mx-auto p-6 text-center relative">
             {/* Cart Button - Fixed Position */}
-            {isLogined && (
+            {/* {isLogined && (
                 <div className="fixed bottom-6 right-6 z-30">
-                    <CartButton onClick={() => setIsCartOpen(true)} />
+                    <CartButton onPress={() => setIsCartOpen(true)} />
                 </div>
-            )}
+            )} */}
 
             <div className="mt-10">
                 <AnimatePresence mode="wait">
@@ -73,7 +72,7 @@ export default function MenuPage() {
                                     }
                                 }
                             }}
-                            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+                            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
                         >
                             {products.products.map((product) => (
                                 <motion.div
@@ -112,7 +111,7 @@ export default function MenuPage() {
             />
 
             {/* Cart Drawer */}
-            <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+            {/* <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} /> */}
         </div>
     )
 }

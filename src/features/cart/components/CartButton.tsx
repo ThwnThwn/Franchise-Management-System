@@ -1,29 +1,29 @@
 "use client"
 
 import React from "react"
-import { Button, Badge } from "@heroui/react"
+import { Badge } from "@heroui/react"
 import { ShoppingCart } from "lucide-react"
 import { useCart } from "../hooks/useCart"
+import { ButtonIconStyled } from "@/components"
 
 interface CartButtonProps {
-    onClick: () => void
+    onPress: () => void
 }
 
-export const CartButton: React.FC<CartButtonProps> = ({ onClick }) => {
+export const CartButton: React.FC<CartButtonProps> = ({ onPress }) => {
     const { itemCount } = useCart()
 
     return (
         <Badge content={itemCount} color="primary" isInvisible={itemCount === 0} shape="circle">
-            <Button
-                isIconOnly
+            <ButtonIconStyled
                 variant="flat"
                 color="primary"
-                onClick={onClick}
+                onPress={onPress}
                 className="relative"
                 aria-label="Giỏ hàng"
             >
                 <ShoppingCart size={20} />
-            </Button>
+            </ButtonIconStyled>
         </Badge>
     )
 }

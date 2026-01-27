@@ -6,10 +6,9 @@ import Link from "next/link"
 import { ButtonStyled, NavbarStyled, LogoStyled, ButtonIconStyled } from "@/components/"
 import { useLoginDiscloresureSingleton, useTokenStore } from "@/hooks"
 import { ProfileDropdown } from "./ProfileDropdown"
-import { CartPopover } from "./CartPopover"
 import { usePathname } from "next/navigation"
 import clsx from "clsx"
-import { X, Menu } from "lucide-react" 
+import { X, Menu } from "lucide-react"
 import { motion } from "framer-motion"
 import { createPortal } from "react-dom"
 import { STRINGS } from "@/constants/strings"
@@ -224,9 +223,9 @@ export function Navbar() {
                 </div>
 
                 {/* nút giỏ hàng */}
-                <NavbarItem className="flex items-center z-9999">
+                {/* <NavbarItem className="flex items-center z-9999">
                     <CartPopover />
-                </NavbarItem>
+                </NavbarItem> */}
 
                 <NavbarItem className="flex items-center z-9999">
                     {isLoggedIn ? (
