@@ -11,8 +11,12 @@ public class ProductServiceClient : IProductServiceClient
 
     public ProductServiceClient(IConfiguration configuration)
     {
-        _productServiceUrl = configuration["PRODUCT_SERVICE_URL"]
-            ?? "https://localhost:5002";
+        var rawUrl = configuration["PRODUCT_SERVICE_URL"] ?? "https://localhost:5002";
+        // Allow env var values like "localhost:5002" by normalizing to an absolute URI.
+        _productServiceUrl = rawUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+                             rawUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
+            ? rawUrl
+            : $"https://{rawUrl}";
 
         var httpHandler = new HttpClientHandler
         {
@@ -55,7 +59,7 @@ public class ProductServiceClient : IProductServiceClient
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error calling ProductService: {ex.Message}");
+            Console.WriteLine($"Error calling ProductService ({_productServiceUrl}): {ex.Message}");
             throw;
         }
     }

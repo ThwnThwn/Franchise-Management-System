@@ -100,6 +100,7 @@ public sealed class CreateOrderHandler
                 : null,
             Status = OrderStatus.Pending,
             Notes = request.Request.Notes,
+            CustomerId = request.Request.CustomerId,
             CreatedAt = now,
             UpdatedAt = now,
             IsDeleted = false

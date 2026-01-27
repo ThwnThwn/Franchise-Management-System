@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using ProductService.Application.Repositories;
 using ProductService.Domain.Entities;
-using ProductService.Infrastructure.Data;
+using ProductService.Infrastructure.ApplicationDbContext;
 
 namespace ProductService.Infrastructure.Repositories
 {

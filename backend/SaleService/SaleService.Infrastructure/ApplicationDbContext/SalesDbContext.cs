@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using SalesService.Domain.Commons;
 using SalesService.Domain.Entities;
+using SalesService.Domain.Enums;
 using SalesService.Infrastructure.ApplicationDbContext;
 using SalesService.Infrastructure.Interceptor;
 
@@ -71,7 +72,7 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
             entity.Property(e => e.PaidAt).HasColumnName("paid_at");
             entity.Property(e => e.PaymentMethod).HasColumnName("payment_method");
             entity.Property(e => e.Status)
-                .HasDefaultValue(0)
+                .HasDefaultValue(OrderStatus.Pending)
                 .HasColumnName("status");
             entity.Property(e => e.Subtotal)
                 .HasPrecision(12, 2)
