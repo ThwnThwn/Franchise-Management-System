@@ -82,7 +82,9 @@ public sealed class CreateOrderHandler
             });
         }
 
-        decimal tax = request.Request.Tax ?? 0;
+        // tax 10%
+        const decimal taxRate = 0.1m;
+        decimal tax = subtotal * taxRate;
         decimal totalAmount = subtotal + tax;
 
         var order = new Order
