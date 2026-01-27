@@ -4,27 +4,36 @@ import { motion, AnimatePresence } from "framer-motion"
 // import { useGetAllProducts } from "../hooks"
 
 import { CardProductStyled, ProductVariantsModal } from "../components"
-import { MOCK_PRODUCTS_DATA } from "@/utils/mockData"
 import { MENU_ERRORS } from "../constants"
 import { GetProductListItemDto } from "../models/schema/respone"
+import { useGetAllProducts } from "../hooks"
+import { SpinnerStyled } from "@/components"
+import { useLoginDiscloresureSingleton, useTokenStore } from "@/hooks"
 
 export default function MenuPage() {
-    // const { data: products, isLoading } = useGetAllProducts({})
-    const products = MOCK_PRODUCTS_DATA
+    const { data: products, isLoading } = useGetAllProducts({})
+    // const products = MOCK_PRODUCTS_DATA
     const [selectedProduct, setSelectedProduct] = useState<GetProductListItemDto | null>(null)
     const isModalOpen = selectedProduct !== null
 
-    const handleOpenProduct = useCallback((product: GetProductListItemDto) => {
-        setSelectedProduct(product)
-    }, [])
+    const { onOpen: onOpenLogin } = useLoginDiscloresureSingleton()
+    const isLogined = useTokenStore((s) => !!s.accessToken)
+
+    const handleOpenProduct = useCallback(
+        (product: GetProductListItemDto) => {
+            if (!isLogined) {
+                onOpenLogin()
+            } else setSelectedProduct(product)
+        },
+        [isLogined, onOpenLogin]
+    )
 
     const handleModalOpenChange = useCallback((open: boolean) => {
         if (!open) setSelectedProduct(null)
     }, [])
     // const [isSearching, setIsSearching] = useState(false)
-    const isEmpty = !products || products.Products.length === 0
-    // if (isLoading) return <SpinnerStyled />
-
+    const isEmpty = !products || products.products == undefined || products.products.length === 0
+    if (isLoading) return <SpinnerStyled />
     return (
         <div className="min-h-[80vh] max-w-7xl mx-auto p-6 text-center">
             {/* <motion.div
@@ -79,7 +88,7 @@ export default function MenuPage() {
                                 }}
                                 className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
                             >
-                                {products.Products.map((product) => (
+                                {products.products.map((product) => (
                                     <motion.div
                                         key={product.id}
                                         variants={{

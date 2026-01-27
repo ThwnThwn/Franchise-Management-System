@@ -1,20 +1,20 @@
 "use client"
-
+import React from "react"
 import { DropdownTrigger, DropdownMenu, DropdownItem } from "@heroui/react"
 import { DropdownStyled, ButtonIconStyled, ButtonStyled } from "@/components"
 import { ShoppingCart, X } from "lucide-react"
 import { STRINGS } from "@/constants/strings"
-import { useCartStore } from "@/hooks"
+import { useCartStore, useTokenStore } from "@/hooks"
 import { formatCurrencyWithSymbol } from "@/utils/helpers/currency"
 
 export function CartPopover() {
     const items = useCartStore((s) => s.items)
     const removeItem = useCartStore((s) => s.removeItem)
     const isEmpty = items.length === 0
-
+    const isLogined = useTokenStore((s) => !!s.accessToken)
     const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0)
     const totalPrice = items.reduce((sum, item) => sum + item.basePrice * item.quantity, 0)
-
+    if (!isLogined) return null
     return (
         <DropdownStyled classNames={{ content: "min-w-56 max-w-80" }}>
             <DropdownTrigger>
@@ -35,7 +35,6 @@ export function CartPopover() {
                     <>
                         {items.map((item, i) => (
                             <DropdownItem
-                           
                                 key={`${item.productId}-${item.sizeId}-${i}`}
                                 className="cursor-default py-3 px-4 "
                                 textValue={item.productName}

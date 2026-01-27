@@ -7,12 +7,13 @@ export type GetProductListItemDto = {
     imageUrl: string
     isActive: boolean
     categoryId: UUID
+    categoryName: string
     sizes: ProductSizeListItemDto[]
 }
 
-export type getProductsResultDto = {
-    Products: GetProductListItemDto[]
-    TotalCount: number
+export type GetProductsResultDto = {
+    products: GetProductListItemDto[]
+    totalCount: number
 }
 
 export type ProductSizeListItemDto = {
