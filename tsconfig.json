@@ -29,7 +29,7 @@
         ".next/types/**/*.ts",
         ".next/dev/types/**/*.ts",
         "**/*.mts",
-        "src/features/menu/pages/MenuPageaaaa.tsx"
+        "src/features/menu/pages/MenuPage.tsx"
     ],
     "exclude": ["node_modules"]
 }

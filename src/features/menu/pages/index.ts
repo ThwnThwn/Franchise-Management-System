@@ -1,1 +1,1 @@
-export * from "./MenuPageaaaa.tsx"
+export * from "./MenuPage.js"
