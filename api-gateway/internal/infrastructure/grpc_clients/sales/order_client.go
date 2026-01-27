@@ -69,20 +69,54 @@ func (o *OrderGrpcClient) GetOrderById(ctx context.Context, id uuid.UUID) (*orde
 	}
 
 	order := &order.Order{
-		Id:            res.Order.Id,
-		Code:          res.Order.Code,
-		Subtotal:      res.Order.Subtotal,
-		Tax:           numberutils.GetFloat64(res.Order.Tax),
-		TotalAmount:   res.Order.TotalAmount,
-		PaidAmount:    res.Order.PaidAmount,
-		PaymentMethod: numberutils.GetInt32(res.Order.PaymentMethod),
-		Status:        numberutils.GetInt32(res.Order.Status),
-		PaidAt:        timeutils.StringToTime(res.Order.PaidAt),
-		Notes:         res.Order.Notes,
-		CreatedAt:     timeutils.StringToTime(res.Order.CreatedAt),
-		UpdatedAt:     timeutils.StringToTime(res.Order.UpdatedAt),
-		Items:         items,
+		OrderHeader: order.OrderHeader{
+			Id:            res.Order.Id,
+			Code:          res.Order.Code,
+			Subtotal:      res.Order.Subtotal,
+			Tax:           numberutils.GetFloat64(res.Order.Tax),
+			TotalAmount:   res.Order.TotalAmount,
+			PaidAmount:    res.Order.PaidAmount,
+			PaymentMethod: numberutils.GetInt32(res.Order.PaymentMethod),
+			Status:        numberutils.GetInt32(res.Order.Status),
+			PaidAt:        timeutils.StringToTime(res.Order.PaidAt),
+			Notes:         res.Order.Notes,
+			CreatedAt:     timeutils.StringToTime(res.Order.CreatedAt),
+			UpdatedAt:     timeutils.StringToTime(res.Order.UpdatedAt),
+		},
+		Items: items,
 	}
 
 	return order, nil
+}
+
+// GetMyOrders implements sales.IOrderService.
+func (o *OrderGrpcClient) GetMyOrders(ctx context.Context, req *order.GetMyOrdersRequest) ([]*order.OrderSummary, error) {
+	res, err := o.client.GetMyOrders(ctx, &salesPb.GetMyOrdersRequest{
+		Page:     req.Page,
+		PageSize: req.PageSize,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	orders := make([]*order.OrderSummary, 0, len(res.Orders))
+	for _, o := range res.Orders {
+		orders = append(orders, &order.OrderSummary{
+			OrderHeader: order.OrderHeader{
+				Id:            o.Id,
+				Code:          o.Code,
+				Subtotal:      o.Subtotal,
+				Tax:           numberutils.GetFloat64(o.Tax),
+				TotalAmount:   o.TotalAmount,
+				PaidAmount:    numberutils.GetFloat64(o.PaidAmount),
+				PaymentMethod: numberutils.GetInt32(o.PaymentMethod),
+				Status:        numberutils.GetInt32(o.Status),
+				PaidAt:        timeutils.StringToTime(o.PaidAt),
+				Notes:         o.Notes,
+				CreatedAt:     timeutils.StringToTime(o.CreatedAt),
+				UpdatedAt:     timeutils.StringToTime(o.UpdatedAt)},
+		})
+	}
+
+	return orders, nil
 }

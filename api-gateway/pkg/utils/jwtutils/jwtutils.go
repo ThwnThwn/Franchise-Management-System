@@ -7,7 +7,7 @@ import (
 )
 
 type CustomClaims struct {
-	RoleSlug string `json:"role_slug"`
+	// RoleSlug string `json:"role_slug"`
 	jwt.RegisteredClaims
 }
 

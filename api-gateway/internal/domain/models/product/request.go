@@ -1,5 +1,5 @@
 package product
 
 type GetProductsRequest struct {
-	CategoryId string `json:"categoryId"`
+	CategoryId string `form:"categoryId"`
 }

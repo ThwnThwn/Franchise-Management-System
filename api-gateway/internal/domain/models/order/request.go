@@ -1,5 +1,7 @@
 package order
 
+import "api-gateway/internal/domain/models/common"
+
 type CreateOrderRequest struct {
 	Items         []*CartItem `json:"items"`
 	Tax           *float64    `json:"tax"`
@@ -10,4 +12,8 @@ type CreateOrderRequest struct {
 type CartItem struct {
 	Sku      string `json:"sku"`
 	Quantity *int32 `json:"quantity"`
+}
+
+type GetMyOrdersRequest struct {
+	common.PaginationQuery
 }

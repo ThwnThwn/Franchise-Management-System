@@ -25,3 +25,8 @@ func (o *OrderUseCase) CreateOrder(ctx context.Context, req *order.CreateOrderRe
 func (o *OrderUseCase) GetOrderById(ctx context.Context, id uuid.UUID) (*order.Order, error) {
 	return o.service.GetOrderById(ctx, id)
 }
+
+// GetMyOrders implements abstractions.IOrderUseCase.
+func (o *OrderUseCase) GetMyOrders(ctx context.Context, req *order.GetMyOrdersRequest) ([]*order.OrderSummary, error) {
+	return o.service.GetMyOrders(ctx, req)
+}

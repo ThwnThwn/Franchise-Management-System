@@ -25,7 +25,6 @@ func ValidateToken(secret []byte) gin.HandlerFunc {
 		}
 
 		token := strings.TrimPrefix(authHeader, "Bearer ")
-
 		claims, err := jwtutils.ValidateToken(secret, token)
 		if err != nil {
 			c.Error(errorcode.ErrInvalidToken)
@@ -42,7 +41,7 @@ func ValidateToken(secret []byte) gin.HandlerFunc {
 
 		c.Set("userID", userID)
 		c.Set("accessToken", token)
-		c.Set("roleSlug", claims.RoleSlug)
+		// c.Set("roleSlug", claims.RoleSlug)
 		c.Next()
 	}
 }
