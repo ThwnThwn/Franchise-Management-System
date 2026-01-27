@@ -10,7 +10,8 @@ export const STRINGS = {
         HOME: "Trang chủ",
         LOGIN: "Đăng nhập",
         LOGOUT: "Đăng xuất",
-        PROFILE: "Hồ sơ"
+        PROFILE: "Hồ sơ",
+        CART_EMPTY: "Giỏ hàng trống"
     },
     AUTH: {
         LOGIN_TITLE: "Đăng nhập hệ thống",

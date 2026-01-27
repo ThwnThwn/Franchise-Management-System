@@ -11,6 +11,7 @@ export function CardProductStyled({
 }: {
     getProductListItemDto: GetProductListItemDto
 }) {
+
     return (
         <CardStyled className="hover:shadow-xl interactive-scale w-xs" shadow="sm">
             <CardBody className="overflow-visible ">

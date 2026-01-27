@@ -1,15 +1,26 @@
-import React from "react"
+"use client"
+import React, { useState, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 // import { useGetAllProducts } from "../hooks"
 
-import { CardProductStyled } from "../components/ProductCard"
+import { CardProductStyled, ProductVariantsModal } from "../components"
 import { MOCK_PRODUCTS_DATA } from "@/utils/mockData"
-import Link from "next/link"
 import { MENU_ERRORS } from "../constants"
+import { GetProductListItemDto } from "../models/schema/respone"
 
 export default function MenuPage() {
     // const { data: products, isLoading } = useGetAllProducts({})
     const products = MOCK_PRODUCTS_DATA
+    const [selectedProduct, setSelectedProduct] = useState<GetProductListItemDto | null>(null)
+    const isModalOpen = selectedProduct !== null
+
+    const handleOpenProduct = useCallback((product: GetProductListItemDto) => {
+        setSelectedProduct(product)
+    }, [])
+
+    const handleModalOpenChange = useCallback((open: boolean) => {
+        if (!open) setSelectedProduct(null)
+    }, [])
     // const [isSearching, setIsSearching] = useState(false)
     const isEmpty = !products || products.Products.length === 0
     // if (isLoading) return <SpinnerStyled />
@@ -79,10 +90,18 @@ export default function MenuPage() {
                                             scale: 1.03,
                                             transition: { duration: 0.2 }
                                         }}
+                                        role="button"
+                                        tabIndex={0}
+                                        onClick={() => handleOpenProduct(product)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Enter" || e.key === " ") {
+                                                e.preventDefault()
+                                                handleOpenProduct(product)
+                                            }
+                                        }}
+                                        className="cursor-pointer"
                                     >
-                                        <Link href={`https://www.facebook.com/`}>
-                                            <CardProductStyled getProductListItemDto={product} />
-                                        </Link>
+                                        <CardProductStyled getProductListItemDto={product} />
                                     </motion.div>
                                 ))}
                             </motion.div>
@@ -90,6 +109,12 @@ export default function MenuPage() {
                     }
                 </AnimatePresence>
             </div>
+
+            <ProductVariantsModal
+                product={selectedProduct}
+                isOpen={isModalOpen}
+                onOpenChange={handleModalOpenChange}
+            />
         </div>
     )
 }

@@ -6,9 +6,10 @@ import Link from "next/link"
 import { ButtonStyled, NavbarStyled, LogoStyled, ButtonIconStyled } from "@/components/"
 import { useLoginDiscloresureSingleton, useTokenStore } from "@/hooks"
 import { ProfileDropdown } from "./ProfileDropdown"
+import { CartPopover } from "./CartPopover"
 import { usePathname } from "next/navigation"
 import clsx from "clsx"
-import { X, Menu, ShoppingCart } from "lucide-react" 
+import { X, Menu } from "lucide-react" 
 import { motion } from "framer-motion"
 import { createPortal } from "react-dom"
 import { STRINGS } from "@/constants/strings"
@@ -222,17 +223,9 @@ export function Navbar() {
                     </motion.div>
                 </div>
 
-                {/* nút giỏ hàng*/}
+                {/* nút giỏ hàng */}
                 <NavbarItem className="flex items-center z-9999">
-                    <ButtonIconStyled
-                        onPress={() => {
-                           
-                            console.log("test click")
-                        }}
-                        className="z-9999"
-                    >
-                        <ShoppingCart size={24} />
-                    </ButtonIconStyled>
+                    <CartPopover />
                 </NavbarItem>
 
                 <NavbarItem className="flex items-center z-9999">
