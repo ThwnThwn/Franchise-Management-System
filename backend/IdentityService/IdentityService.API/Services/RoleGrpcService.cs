@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace IdentityService.API.Services;
 
-[Authorize]
 public class RoleGrpcService : RoleGrpc.RoleGrpcBase
 {
     private readonly IMediator _mediator;
