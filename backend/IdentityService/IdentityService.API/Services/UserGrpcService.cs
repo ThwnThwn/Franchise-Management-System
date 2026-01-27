@@ -14,8 +14,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore.Storage.Json;
 
 namespace IdentityService.API.Services;
-
-[Authorize]
 public class UserGrpcService : UserGrpc.UserGrpcBase
 {
     private readonly IMediator _mediator;
