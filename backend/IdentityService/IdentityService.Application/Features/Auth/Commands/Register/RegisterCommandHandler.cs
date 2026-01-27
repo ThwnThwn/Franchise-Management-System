@@ -46,7 +46,7 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, RegisterR
         var random = new Random();
         var otp = RandomNumberGenerator.GetInt32(0, 1_000_000).ToString("D6");
 
-        Role? role = await _roleRepository.GetByNameAsync("User");
+        Role? role = await _roleRepository.GetByNameAsync("Customer");
         if (role == null)
             throw new ForbidenException(Message.RoleMessage.NotFound);
 
