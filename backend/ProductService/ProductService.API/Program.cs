@@ -38,6 +38,7 @@ namespace ProductService.API
 
             // Add services to the container.
             builder.Services.AddGrpc();
+            builder.Services.AddGrpcReflection(); // Enable gRPC Server Reflection
             builder.Services.AddControllers();
 
             // Add API documentation
@@ -56,8 +57,20 @@ namespace ProductService.API
             builder.Services.AddScoped<UpdateTimestampInterceptor>();
             // Connect Db
             var connectionString = builder.Configuration["PRODUCT_DB_CONNECTION"];
-            builder.Services.AddDbContext<IProductDbContext, ProductDbContext>(options =>
-                options.UseNpgsql(connectionString));
+            
+            // EF Core interceptors used by ProductDbContext
+            builder.Services.AddScoped<UpdateTimestampInterceptor>();
+            
+            // DbContext + wire interceptor via DI
+            builder.Services.AddDbContext<ProductDbContext>(
+                (sp, opt) =>
+                {
+                    opt.UseNpgsql(connectionString);
+                    opt.AddInterceptors(sp.GetRequiredService<UpdateTimestampInterceptor>());
+                });
+            
+            // Expose DbContext via abstraction used by repositories
+            builder.Services.AddScoped<IProductDbContext>(sp => sp.GetRequiredService<ProductDbContext>());
 
             // Configure AutoMapper
             // Auto scan all Profile classes from API and Application assemblies
@@ -120,6 +133,7 @@ namespace ProductService.API
             app.MapControllers();
             app.MapGrpcService<ProductGrpcService>();
             app.MapGrpcService<Services.CategoryGrpcService>();
+            app.MapGrpcReflectionService(); // Enable gRPC Server Reflection endpoint
             app.MapGet("/", () => "Product Service API is running. Visit /swagger for API documentation.");
 
             app.Run();

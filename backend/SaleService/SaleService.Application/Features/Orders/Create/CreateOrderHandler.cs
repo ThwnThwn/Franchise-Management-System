@@ -48,7 +48,6 @@ public sealed class CreateOrderHandler
         // Gọi ProductService để lấy thông tin sản phẩm từ SKU
         decimal subtotal = 0;
         var orderItems = new List<OrderItem>();
-        var now = DateTime.UtcNow;
 
         foreach (var item in request.Request.Items)
         {
@@ -79,8 +78,6 @@ public sealed class CreateOrderHandler
                 ProductName = productVariant.ProductName,
                 Sku = productVariant.Sku,
                 ImageUrl = productVariant.ImageUrl,
-                CreatedAt = now,
-                UpdatedAt = now,
                 IsDeleted = false
             });
         }
@@ -100,8 +97,7 @@ public sealed class CreateOrderHandler
                 : null,
             Status = OrderStatus.Pending,
             Notes = request.Request.Notes,
-            CreatedAt = now,
-            UpdatedAt = now,
+            CustomerId = request.Request.CustomerId,
             IsDeleted = false
         };
 

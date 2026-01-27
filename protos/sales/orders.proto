@@ -15,8 +15,8 @@ service OrderGrpc {
 
 message CreateOrderRequest {
   repeated CartItem items = 1;
-  double tax = 2;
-  int32 payment_method = 3;
+  optional double tax = 2;
+  optional int32 payment_method = 3;
   string notes = 4;
 }
 
@@ -29,6 +29,7 @@ message CreateOrderReply {
   string order_id = 1;
   string order_code = 2;
   double total_amount = 3;
+  string customer_id = 4;
 }
 
 message GetOrderByIdRequest {

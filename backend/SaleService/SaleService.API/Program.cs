@@ -10,6 +10,7 @@ using SalesService.Application.Interfaces.Orders;
 using SalesService.Application.Interfaces.Products;
 using SalesService.Application.Mapping.Orders;
 using SalesService.Infrastructure.ApplicationDbContext;
+using SalesService.Infrastructure.Interceptor;
 using SalesService.Infrastructure.Models;
 using SalesService.Infrastructure.Interceptor;
 
@@ -43,6 +44,7 @@ public class Program
         {
             options.Interceptors.Add<Interceptors.GrpcExceptionInterceptor>();
         });
+        builder.Services.AddGrpcReflection(); // Enable gRPC Server Reflection
         builder.Services.AddControllers();
 
         // Add API documentation
@@ -62,8 +64,20 @@ public class Program
 
         // Connect Db
         var connectionString = builder.Configuration["SALES_DB_CONNECTION"];
-        builder.Services.AddDbContext<ISalesDbContext, SalesDbContext>(options =>
-            options.UseNpgsql(connectionString));
+        
+        // EF Core interceptors used by SalesDbContext
+        builder.Services.AddScoped<UpdateTimestampInterceptor>();
+        
+        // DbContext + wire interceptor via DI
+        builder.Services.AddDbContext<SalesDbContext>(
+            (sp, opt) =>
+            {
+                opt.UseNpgsql(connectionString);
+                opt.AddInterceptors(sp.GetRequiredService<UpdateTimestampInterceptor>());
+            });
+        
+        // Expose DbContext via abstraction used by repositories
+        builder.Services.AddScoped<ISalesDbContext>(sp => sp.GetRequiredService<SalesDbContext>());
 
         // Configure AutoMapper
         var applicationAssembly = typeof(OrderMappingProfile).Assembly;
@@ -124,6 +138,7 @@ public class Program
 
         app.MapControllers();
         app.MapGrpcService<OrderGrpcService>();
+        app.MapGrpcReflectionService(); // Enable gRPC Server Reflection endpoint
         app.MapGet("/", () => "Sale Service API is running. Visit /swagger for API documentation.");
 
         app.Run();

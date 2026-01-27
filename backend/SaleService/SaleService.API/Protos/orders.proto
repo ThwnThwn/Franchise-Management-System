@@ -14,20 +14,21 @@ service OrderGrpc {
 
 message CreateOrderRequest {
   repeated CartItem items = 1;
-  double tax = 2;
-  int32 payment_method = 3;
+  optional double tax = 2;
+  optional int32 payment_method = 3;
   string notes = 4;
 }
 
 message CartItem {
   string sku = 1;
-  int32 quantity = 2;
+  optional int32 quantity = 2;
 }
 
 message CreateOrderReply {
   string order_id = 1;
   string order_code = 2;
-  double total_amount = 3;
+  optional double total_amount = 3;
+  string customer_id = 4;
 }
 
 message GetOrderByIdRequest {
@@ -41,12 +42,12 @@ message GetOrderByIdReply {
 message Order {
   string id = 1;
   string code = 2;
-  double subtotal = 3;
-  double tax = 4;
-  double total_amount = 5;
-  double paid_amount = 6;
-  int32 payment_method = 7;
-  int32 status = 8;
+  optional double subtotal = 3;
+  optional double tax = 4;
+  optional double total_amount = 5;
+  optional double paid_amount = 6;
+  optional int32 payment_method = 7;
+  optional int32 status = 8;
   string paid_at = 9;
   string notes = 10;
   string created_at = 11;
@@ -58,8 +59,8 @@ message OrderItem {
   string id = 1;
   string product_id = 2;
   string variant_id = 3;
-  int32 quantity = 4;
-  double unit_price = 5;
+  optional int32 quantity = 4;
+  optional double unit_price = 5;
   string product_name = 6;
   string sku = 7;
   string image_url = 8;
