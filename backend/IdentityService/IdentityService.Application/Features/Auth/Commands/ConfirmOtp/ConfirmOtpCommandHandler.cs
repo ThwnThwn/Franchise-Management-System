@@ -54,6 +54,10 @@ namespace IdentityService.Application.Features.Auth.Commands.ConfirmOtp
                 Password = registrationData.Password, //hashpassword
                 Phone = registrationData.Phone,
                 Username = registrationData.Username,
+                FirstName = registrationData.FirstName,
+                LastName = registrationData.LastName,
+                Gender = registrationData.Gender,
+                DateOrBirth = registrationData.DateOrBirth,
                 Address = registrationData.Address,
                 RoleId = registrationData.RoleId, // default role: User
                 IsBlocked = false,
