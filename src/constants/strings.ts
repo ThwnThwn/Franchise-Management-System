@@ -5,6 +5,7 @@ export const STRINGS = {
         SAVE: "Lưu lại",
         DELETE_CONFIRM: "Xác nhận xoá",
         DELETE: "Xóa",
+        SUCCESS: "Thành công",
         ERROR: "Lỗi"
     },
     NAVBAR: {

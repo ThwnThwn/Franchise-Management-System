@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react"
 import { addToast, useDisclosure } from "@heroui/react"
 import { OrderCard, OrderDetailModal } from "@/features/orders/components/"
-import { Order } from "@/features/orders/models/response"
+import { OrderSummary } from "@/features/orders/models/response"
 import { ORDER_TEXT } from "@/features/orders/constants"
 import { mockOrders } from "./mock-data"
 import { useGetMyOrders } from "@/features/orders/hooks"
@@ -13,11 +13,11 @@ import { STRINGS } from "@/constants/strings"
 
 export default function OrdersView() {
     const { isOpen, onOpen, onOpenChange } = useDisclosure()
-    const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
+    const [selectedOrder, setSelectedOrder] = useState<OrderSummary | undefined>(undefined)
 
     const { data: ordes, isLoading, error } = useGetMyOrders()
 
-    const handleOpenDetail = (order: Order) => {
+    const handleOpenDetail = (order: OrderSummary) => {
         setSelectedOrder(order)
         onOpen()
     }
@@ -51,7 +51,7 @@ export default function OrdersView() {
                 <OrderDetailModal
                     isOpen={isOpen}
                     onOpenChange={onOpenChange}
-                    order={selectedOrder}
+                    orderId={selectedOrder.id}
                 />
             )}
         </div>

@@ -6,6 +6,7 @@ export const ORDER_TEXT = {
         TOTAL_AMOUNT: "Tổng tiền:",
         PRODUCTS: "sản phẩm",
         CREATED_AT: "Ngày tạo",
+        CREATED_SUCCESS: "Đặt hàng thành công",
 
         ORDER_DETAIL_TITLE: "Chi tiết đơn hàng",
         ORDER_DATE: "Ngày đặt:",

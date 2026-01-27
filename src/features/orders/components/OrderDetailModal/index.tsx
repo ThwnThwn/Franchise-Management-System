@@ -1,25 +1,50 @@
-import React from "react"
-import { ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Chip } from "@heroui/react"
-import { Order } from "@/features/orders/models/response"
+import React, { useEffect } from "react"
+import {
+    ModalContent,
+    ModalHeader,
+    ModalBody,
+    ModalFooter,
+    Button,
+    Chip,
+    Spinner,
+    addToast
+} from "@heroui/react"
 import { getOrderStatusColor, getOrderStatusLabel } from "@/features/orders/utils"
 import { ModalStyled } from "@/components"
 import { OrderDetail } from "./OrderDetail"
 import { ORDER_TEXT } from "@/features/orders/constants"
 import { useDay } from "@/hooks"
 import { DEFAULT_DATE_FORMAT } from "@/constants/constants"
+import { useGetOrderById } from "@/features/orders/hooks"
+import { STRINGS } from "@/constants/strings"
+import { BackendError } from "@/models/common/respone"
 
 interface OrderDetailModalProps {
     isOpen: boolean
     onOpenChange: () => void
-    order: Order
+    orderId: string
 }
 
-export const OrderDetailModal = ({ isOpen, onOpenChange, order }: OrderDetailModalProps) => {
+export const OrderDetailModal = ({ isOpen, onOpenChange, orderId }: OrderDetailModalProps) => {
+    const { data: order, isLoading, error } = useGetOrderById({ id: orderId })
     const { formatDateTime } = useDay({ defaultFormat: DEFAULT_DATE_FORMAT })
 
     const handlePrintInvoice = () => {
         alert(ORDER_TEXT.labels.INVOICE_FEATURE_ALERT)
     }
+
+    useEffect(() => {
+        if (error) {
+            const backendErr = error as BackendError
+            addToast({
+                title: STRINGS.COMMON.ERROR,
+                description: backendErr.detail,
+                color: "danger"
+            })
+        }
+    }, [error])
+
+    if (isLoading || !order) return <Spinner />
 
     return (
         <ModalStyled

@@ -1,5 +1,11 @@
 import { OrderStatus, PaymentMethod } from "@/features/orders/constants"
 
+export interface CreateOrderReply {
+    orderId: string
+    orderCode: string
+    totalAmount: number
+}
+
 export interface OrderItem {
     id: string
     quantity: number
@@ -12,7 +18,7 @@ export interface OrderItem {
     variantId: string
 }
 
-export interface Order {
+export interface OrderHeader {
     id: string
     code: string
 
@@ -33,3 +39,9 @@ export interface Order {
 
     items: OrderItem[]
 }
+
+export interface Order extends OrderHeader {
+    items: OrderItem[]
+}
+
+export interface OrderSummary extends OrderHeader {}
