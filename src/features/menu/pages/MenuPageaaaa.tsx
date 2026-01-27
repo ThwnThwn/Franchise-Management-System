@@ -2,7 +2,7 @@ import React from "react"
 import { motion, AnimatePresence } from "framer-motion"
 // import { useGetAllProducts } from "../hooks"
 
-import { CardProductStyled } from "../components/ProductCard"
+import { CardProductStyled } from "../components/ProductCarddddd"
 import { MOCK_PRODUCTS_DATA } from "@/utils/mockData"
 import Link from "next/link"
 import { MENU_ERRORS } from "../constants"
