@@ -14,8 +14,8 @@ import { UserUpdateReq } from "@/features/profile/models/request"
 import { useDay } from "@/hooks"
 import { useUserHelper } from "@/hooks/reuseable/useUserHelper"
 import { EnumPicker } from "@/Modules/EnumPicker"
-import { NotePencilIcon } from "@phosphor-icons/react"
 import { useFormik } from "formik"
+import { Pencil } from "lucide-react"
 import React, { useCallback, useState } from "react"
 import * as Yup from "yup"
 
@@ -96,7 +96,7 @@ export default function ProfilePage() {
                                         variant="ghost"
                                         onPress={() => setEditable(!editable)}
                                     >
-                                        <NotePencilIcon />
+                                        <Pencil />
                                     </ButtonIconStyled>
                                 )}
                             </div>
