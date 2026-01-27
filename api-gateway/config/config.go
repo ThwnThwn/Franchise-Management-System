@@ -9,6 +9,8 @@ import (
 )
 
 type Config struct {
+	FrontEndOrigin string
+
 	Port               string
 	CalcServiceUrl     CalcServiceUrl
 	IdentityServiceUrl IdentityServiceUrl
@@ -36,7 +38,9 @@ func LoadConfig() *Config {
 	}
 
 	return &Config{
-		Port:               getEnv("GATEWAY_PORT", "8080"),
+		Port:           getEnv("GATEWAY_PORT", "8080"),
+		FrontEndOrigin: getEnv("FRONTEND_ORIGIN", "http://localhost:3000"),
+
 		CalcServiceUrl:     CalcServiceUrl(getEnv("CALC_SERVICE_URL", "localhost:5099")),
 		IdentityServiceUrl: IdentityServiceUrl(getEnv("IDENTITY_SERVICE_URL", "localhost:5001")),
 		ProductServiceUrl:  ProductServiceUrl(getEnv("PRODUCT_SERVICE_URL", "localhost:5002")),

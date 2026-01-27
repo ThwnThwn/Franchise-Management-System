@@ -1,11 +1,16 @@
 package middleware
 
-import "github.com/gin-gonic/gin"
+import (
+	"api-gateway/global"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+)
 
 func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// 1. Cho phép tất cả các nguồn (hoặc cụ thể domain Frontend của bạn)
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Origin", global.Config.FrontEndOrigin)
 
 		// 2. Cho phép gửi kèm Credentials (nếu cần cookie/token)
 		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
@@ -19,7 +24,7 @@ func CORSMiddleware() gin.HandlerFunc {
 		// 5. Xử lý Preflight Request (OPTIONS)
 		// Trình duyệt sẽ gửi OPTIONS trước khi gửi PUT/DELETE/POST
 		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(204) // Trả về 204 No Content là OK
+			c.AbortWithStatus(http.StatusNoContent) // Trả về 204 No Content là OK
 			return
 		}
 

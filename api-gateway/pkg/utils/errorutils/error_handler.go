@@ -33,10 +33,10 @@ func MapErrorToProblem(err error) (int, string, string) {
 			return http.StatusBadRequest, "Dữ liệu không hợp lệ", detail
 
 		case codes.Unauthenticated: // 16 -> 401
-			return http.StatusUnauthorized, "Chưa xác thực", "Vui lòng đăng nhập để tiếp tục"
+			return http.StatusUnauthorized, "Lỗi xác thực", detail
 
 		case codes.PermissionDenied: // 7 -> 403
-			return http.StatusForbidden, "Không có quyền truy cập", "Bạn không có quyền thực hiện thao tác này"
+			return http.StatusForbidden, "Không có quyền truy cập", detail
 
 		case codes.NotFound: // 5 -> 404
 			return http.StatusNotFound, "Không tìm thấy", detail
@@ -45,13 +45,13 @@ func MapErrorToProblem(err error) (int, string, string) {
 			return http.StatusConflict, "Dữ liệu đã tồn tại", detail
 
 		case codes.ResourceExhausted: // 8 -> 429
-			return http.StatusTooManyRequests, "Quá nhiều yêu cầu", "Hệ thống đang bận, vui lòng thử lại sau"
+			return http.StatusTooManyRequests, "Quá nhiều yêu cầu", detail
 
 		case codes.DeadlineExceeded: // 4 -> 504 (hoặc 408)
-			return http.StatusGatewayTimeout, "Hết thời gian chờ", "Yêu cầu xử lý quá lâu"
+			return http.StatusGatewayTimeout, "Hết thời gian chờ", detail
 
 		case codes.Unavailable: // 14 -> 503
-			return http.StatusServiceUnavailable, "Dịch vụ tạm thời gián đoạn", "Máy chủ hiện không khả dụng, vui lòng thử lại sau"
+			return http.StatusServiceUnavailable, "Dịch vụ tạm thời gián đoạn", detail
 
 		case codes.Aborted: // 10 -> 409
 			return http.StatusConflict, "Thao tác bị hủy", detail
@@ -59,7 +59,7 @@ func MapErrorToProblem(err error) (int, string, string) {
 		case codes.Internal: // 13 -> 500
 			fallthrough
 		default:
-			return http.StatusInternalServerError, "Lỗi máy chủ nội bộ", "Đã có lỗi không mong muốn xảy ra"
+			return http.StatusInternalServerError, "Lỗi hệ thống", detail
 		}
 	}
 
