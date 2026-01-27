@@ -1,8 +1,7 @@
 "use client"
 
 import React from "react"
-// import MenuPage from "@/features/menu/pages/MenuPage"
-import { RegisterModal } from "@/features/auth/components/RegisterModal"
+import ProfilePage from "../(private)/profile/page"
 import MenuPage from "@/features/menu/pages/MenuPage"
 
 export default function Home() {
@@ -63,6 +62,7 @@ export default function Home() {
         //     </NavbarStyled>
         // </div>
         <>
+            <ProfilePage />
             <MenuPage />
         </>
     )

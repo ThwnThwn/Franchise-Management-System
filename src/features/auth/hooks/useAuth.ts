@@ -5,7 +5,7 @@ import { addToast } from "@heroui/react"
 import { BackendError } from "@/models/common/respone"
 import { useInvalidateMeQuery, useRemoveMeQuery } from "@/hooks/queries/useProfile"
 import { AUTH_TEXT } from "../constants"
-import { NOTIFICATION } from "@/constants/constants"
+import { STRINGS } from "@/constants/strings"
 
 export const useLogin = ({
     rememberMe,
@@ -69,7 +69,7 @@ export const useRegister = ({ onSuccess }: { onSuccess?: () => void }) => {
         onSuccess: onSuccess,
         onError: (error: BackendError) => {
             addToast({
-                title: error.title || NOTIFICATION.ERROR,
+                title: error.title || STRINGS.NOTIFICATION.ERROR,
                 description: error.detail,
                 color: "danger"
             })
@@ -86,14 +86,14 @@ export const useRegisterVerify = ({ onSuccess }: { onSuccess?: () => void }) => 
             invalidateMeQuery()
             onSuccess?.()
             addToast({
-                title: NOTIFICATION.SUCCESS,
+                title: STRINGS.NOTIFICATION.SUCCESS,
                 description: AUTH_TEXT.STRINGS.REGISTER_SUCCESS,
                 color: "success"
             })
         },
         onError: (error: BackendError) => {
             addToast({
-                title: error.title || NOTIFICATION.ERROR,
+                title: error.title || STRINGS.NOTIFICATION.ERROR,
                 description: error.detail,
                 color: "danger"
             })
