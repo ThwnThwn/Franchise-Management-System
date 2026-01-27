@@ -34,7 +34,8 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
         // Map từ gRPC request sang DTO
         var createOrderRequest = new CreateOrderRequestDto
         {
-            Tax = request.Tax > 0 ? (decimal?)request.Tax : null,
+            // Tax is computed server-side (fixed 10%). Ignore any client-provided tax.
+            Tax = null,
             PaymentMethod = request.PaymentMethod > 0 ? request.PaymentMethod : null,
             Notes = string.IsNullOrWhiteSpace(request.Notes) ? null : request.Notes,
             CustomerId = customerId,
