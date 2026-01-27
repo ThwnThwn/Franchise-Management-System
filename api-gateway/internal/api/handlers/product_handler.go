@@ -4,7 +4,6 @@ import (
 	"api-gateway/internal/application/abstractions"
 	"api-gateway/internal/application/constants/errorcode"
 	"api-gateway/internal/domain/models/product"
-	"api-gateway/pkg/utils/validation"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -20,15 +19,18 @@ func NewProductHandler(productUC abstractions.IProductUseCase) *ProductHandler {
 }
 
 func (h *ProductHandler) GetProducts(c *gin.Context) {
-	var req product.GetProductsRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(validation.TranslateValidationError(err))
-		return
+	categoryId := c.Query("categoryId")
+	if categoryId != "" {
+		_, err := uuid.Parse(categoryId)
+		if err != nil {
+			c.Error(errorcode.ErrInvalidId)
+			return
+		}
 	}
 
 	ctx := c.Request.Context()
 	res, err := h.productUC.GetProducts(ctx, &product.GetProductsRequest{
-		CategoryId: req.CategoryId,
+		CategoryId: categoryId,
 	})
 	if err != nil {
 		c.Error(err)

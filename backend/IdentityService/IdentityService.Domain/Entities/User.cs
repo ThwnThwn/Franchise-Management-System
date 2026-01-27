@@ -22,7 +22,7 @@ public partial class User : SoftDeletedEntity, IEntity
 
     public int Gender { get; set; }
 
-    public DateTime? DateOrBirth { get; set; }
+    public DateTime? DateOfBirth { get; set; }
 
     public bool? IsBlocked { get; set; }
 

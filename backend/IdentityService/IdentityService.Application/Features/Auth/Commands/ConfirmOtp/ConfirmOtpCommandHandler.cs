@@ -75,7 +75,7 @@ namespace IdentityService.Application.Features.Auth.Commands.ConfirmOtp
                 FirstName = registrationData.FirstName,
                 LastName = registrationData.LastName,
                 Gender = registrationData.Gender,
-                DateOrBirth = registrationData.DateOrBirth,
+                DateOfBirth = registrationData.DateOfBirth,
                 Address = registrationData.Address,
                 RoleId = registrationData.RoleId, // default role: User
                 IsBlocked = false,

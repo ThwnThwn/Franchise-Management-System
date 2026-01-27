@@ -48,7 +48,6 @@ public class AuthGrpcService : AuthGrpc.AuthGrpcBase
     {
         try
         {
-
             var dob = DateTime.ParseExact(
                 request.DateOfBirth,
                 "yyyy-MM-dd",
@@ -118,9 +117,10 @@ public class AuthGrpcService : AuthGrpc.AuthGrpcBase
             ConfirmOtpRequest request,
             ServerCallContext context)
     {
-        await _mediator.Send(new ConfirmOtpCommand( new()
-        {   Email = request.Email, 
-            Otp = request.Otp 
+        await _mediator.Send(new ConfirmOtpCommand(new()
+        {
+            Email = request.Email,
+            Otp = request.Otp
         }));
 
         return new ConfirmOtpResponse
@@ -143,8 +143,11 @@ public class AuthGrpcService : AuthGrpc.AuthGrpcBase
             LastName = user.LastName ?? "",
             Gender = user.Gender,
             DateOfBirth = user.DateOfBirth.HasValue
-            ? Timestamp.FromDateTime(user.DateOfBirth.Value.ToUniversalTime())
-            : null,
+                ? Timestamp.FromDateTime(user.DateOfBirth.Value.ToUniversalTime())
+                : null,
+            IsBlocked = user.IsBlocked ?? false,
+            CreatedAt = Timestamp.FromDateTime(user.CreatedAt.UtcDateTime),
+            UpdatedAt = Timestamp.FromDateTime(user.UpdatedAt.UtcDateTime),
             Role = user.Role == null
                 ? new Grpc.Protos.Role.RoleUserResponse()
                 : new Grpc.Protos.Role.RoleUserResponse
