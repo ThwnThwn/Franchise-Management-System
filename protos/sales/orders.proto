@@ -1,7 +1,6 @@
 syntax = "proto3";
 
 option csharp_namespace = "SalesService.API";
-option go_package = "api-gateway/pkg/pb/sales";
 
 package order;
 
@@ -44,11 +43,11 @@ message Order {
   string id = 1;
   string code = 2;
   double subtotal = 3;
-  double tax = 4;
+  optional double tax = 4;
   double total_amount = 5;
   double paid_amount = 6;
-  int32 payment_method = 7;
-  int32 status = 8;
+  optional int32 payment_method = 7;
+  optional int32 status = 8;
   string paid_at = 9;
   string notes = 10;
   string created_at = 11;
