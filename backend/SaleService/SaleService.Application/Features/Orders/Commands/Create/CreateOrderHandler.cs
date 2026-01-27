@@ -1,7 +1,3 @@
-using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Ardalis.Result;
 using MediatR;
 using SalesService.Application.Interfaces.Orders;
@@ -9,7 +5,7 @@ using SalesService.Application.Interfaces.Products;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
 
-namespace SalesService.Application.Features.Orders.Create;
+namespace SalesService.Application.Features.Orders.Commands.Create;
 
 public sealed class CreateOrderHandler
     : IRequestHandler<CreateOrderCommand, Result<CreateOrderResponseDto>>

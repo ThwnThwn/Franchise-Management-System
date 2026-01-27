@@ -22,5 +22,5 @@ message Category {
   string name = 2;
   string description = 3;
   string image_url = 4;
-  optional bool is_active = 5;
+  bool is_active = 5;
 }
