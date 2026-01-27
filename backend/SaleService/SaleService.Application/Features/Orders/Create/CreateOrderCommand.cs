@@ -13,6 +13,7 @@ public sealed class CreateOrderRequestDto
     public decimal? Tax { get; set; }
     public int? PaymentMethod { get; set; }
     public string? Notes { get; set; }
+    public Guid? CustomerId { get; set; }
 }
 
 public sealed class CartItemDto

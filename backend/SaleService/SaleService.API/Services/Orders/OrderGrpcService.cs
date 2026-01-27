@@ -1,3 +1,4 @@
+using System;
 using AutoMapper;
 using Grpc.Core;
 using MediatR;
@@ -19,12 +20,24 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
 
     public override async Task<CreateOrderReply> CreateOrder(CreateOrderRequest request, ServerCallContext context)
     {
+        // Lấy UserId từ Metadata header
+        var userIdEntry = context.RequestHeaders.FirstOrDefault(h =>
+            h.Key.Equals("x-user-id", StringComparison.OrdinalIgnoreCase));
+
+        if (userIdEntry == null)
+        {
+            throw new RpcException(new Status(StatusCode.Unauthenticated, "Missing x-user-id in request headers"));
+        }
+
+        var customerId = Guid.Parse(userIdEntry.Value);
+
         // Map từ gRPC request sang DTO
         var createOrderRequest = new CreateOrderRequestDto
         {
             Tax = request.Tax > 0 ? (decimal?)request.Tax : null,
             PaymentMethod = request.PaymentMethod > 0 ? request.PaymentMethod : null,
             Notes = string.IsNullOrWhiteSpace(request.Notes) ? null : request.Notes,
+            CustomerId = customerId,
             Items = request.Items.Select(item => new CartItemDto
             {
                 Sku = item.Sku,
@@ -45,7 +58,8 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
         {
             OrderId = result.Value.OrderId.ToString(),
             OrderCode = result.Value.OrderCode,
-            TotalAmount = (double)result.Value.TotalAmount
+            TotalAmount = (double)result.Value.TotalAmount,
+            CustomerId = customerId.ToString()
         };
     }
 }
