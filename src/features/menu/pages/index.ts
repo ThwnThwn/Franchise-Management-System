@@ -1,1 +1,1 @@
-export * from "./MenuPage.js"
+export * from "./MenuPage"
