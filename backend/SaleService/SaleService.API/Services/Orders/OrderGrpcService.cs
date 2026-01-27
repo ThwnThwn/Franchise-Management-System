@@ -1,9 +1,8 @@
-using System;
 using AutoMapper;
 using Grpc.Core;
 using MediatR;
-using SalesService.API;
-using SalesService.Application.Features.Orders.Create;
+using SalesService.Application.Features.Orders.Commands.Create;
+using SalesService.Application.Features.Orders.Queries.GetMyOrders;
 
 namespace SalesService.API.Services.Orders;
 
@@ -62,5 +61,65 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             TotalAmount = (double)result.Value.TotalAmount,
             CustomerId = customerId.ToString()
         };
+    }
+
+
+    public override async Task<GetMyOrdersReply> GetMyOrders(GetMyOrdersRequest request, ServerCallContext context)
+    {
+        //Lấy x-user-id từ metadata
+        var userIdEntry = context.RequestHeaders.FirstOrDefault(h =>
+            h.Key.Equals("x-user-id", StringComparison.OrdinalIgnoreCase));
+
+        if (userIdEntry == null)
+        {
+            throw new RpcException(new Status(
+                StatusCode.Unauthenticated,
+                "Missing x-user-id in request headers"));
+        }
+
+        var customerId = Guid.Parse(userIdEntry.Value);
+
+        //phân trang
+        var page = request.Page > 0 ? request.Page : 1;
+        var pageSize = request.PageSize > 0 ? request.PageSize : 10;
+
+        var query = new GetMyOrdersQuery(customerId, page, pageSize);
+
+        var result = await _mediator.Send(query, context.CancellationToken);
+
+        // Map sang gRPC response
+        var reply = new GetMyOrdersReply
+        {
+            TotalCount = result.TotalCount
+        };
+
+        foreach (var order in result.Orders)
+        {
+            var orderSummary = new OrderSummary
+            {
+                Id = order.Id.ToString(),
+                Code = order.Code,
+                Subtotal = (double)order.Subtotal,
+                TotalAmount = (double)order.TotalAmount,
+                Status = order.Status,
+                PaidAt = order.PaidAt.ToString("O"),
+                CreatedAt = order.CreatedAt.ToString("O"),
+                UpdatedAt = order.UpdatedAt.ToString("O"),
+
+                //dùng -1 cho NULL (chưa thanh toán)
+                Tax = order.Tax.HasValue ? (double)order.Tax.Value : -1,
+                PaidAmount = order.PaidAmount.HasValue ? (double)order.PaidAmount.Value : -1,
+                PaymentMethod = order.PaymentMethod ?? -1
+            };
+
+            if (!string.IsNullOrEmpty(order.Notes))
+            {
+                orderSummary.Notes = order.Notes;
+            }
+
+            reply.Orders.Add(orderSummary);
+        }
+
+        return reply;
     }
 }

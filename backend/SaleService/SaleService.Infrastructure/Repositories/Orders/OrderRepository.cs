@@ -1,5 +1,4 @@
-using System.Threading;
-using System.Threading.Tasks;
+﻿using Microsoft.EntityFrameworkCore;
 using SalesService.Application.Interfaces.Orders;
 using SalesService.Domain.Entities;
 using SalesService.Infrastructure.ApplicationDbContext;
@@ -20,5 +19,28 @@ public class OrderRepository : IOrderRepository
         _context.Orders.Add(order);
         await _context.SaveChangesAsync(cancellationToken);
         return order;
+    }
+
+    public async Task<List<Order>> GetOrdersByCustomerIdAsync(
+    Guid customerId,
+    int page,
+    int pageSize,
+    CancellationToken cancellationToken = default)
+    {
+        return await _context.Orders
+            .Where(o => o.CustomerId == customerId)
+            .OrderByDescending(o => o.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<int> CountOrdersByCustomerIdAsync(
+    Guid customerId,
+    CancellationToken cancellationToken = default)
+    {
+        return await _context.Orders
+            .Where(o => o.CustomerId == customerId)
+            .CountAsync(cancellationToken);
     }
 }

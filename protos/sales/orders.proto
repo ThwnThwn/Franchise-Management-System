@@ -11,6 +11,9 @@ service OrderGrpc {
   
   // Lấy thông tin đơn hàng theo ID
   rpc GetOrderById (GetOrderByIdRequest) returns (GetOrderByIdReply);
+
+  // Lấy danh sách đơn hàng của khách hàng hiện tại
+  rpc GetMyOrders (GetMyOrdersRequest) returns (GetMyOrdersReply);
 }
 
 message CreateOrderRequest {
@@ -65,4 +68,29 @@ message OrderItem {
   string product_name = 6;
   string sku = 7;
   string image_url = 8;
+}
+
+message GetMyOrdersRequest {
+  optional int32 page = 1;
+  optional int32 page_size = 2;
+}
+
+message GetMyOrdersReply {
+  repeated OrderSummary orders = 1;
+  int32 total_count = 2;
+}
+
+message OrderSummary {
+  string id = 1;
+  string code = 2;
+  double subtotal = 3;
+  optional double tax = 4;
+  double total_amount = 5;
+  optional double paid_amount = 6;
+  optional int32 payment_method = 7;
+  optional int32 status = 8;
+  string paid_at = 9;
+  string notes = 10;
+  string created_at = 11;
+  string updated_at = 12;
 }
