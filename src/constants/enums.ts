@@ -4,3 +4,8 @@ export enum RoleName {
     Staff = "Staff",
     Customer = "Customer"
 }
+
+export enum Gender {
+    Male = 0,
+    Female = 1
+}
