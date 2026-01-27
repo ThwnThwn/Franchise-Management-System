@@ -1,8 +1,8 @@
-export enum RoleName {
-    Admin = "Admin",
-    Manager = "Manager",
-    Staff = "Staff",
-    Customer = "Customer"
+export enum RoleSlug {
+    Admin = "admin",
+    Manager = "manager",
+    Staff = "staff",
+    Customer = "customer"
 }
 
 export enum Gender {

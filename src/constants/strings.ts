@@ -4,7 +4,9 @@ export const STRINGS = {
         CANCEL: "Hủy bỏ",
         SAVE: "Lưu lại",
         DELETE_CONFIRM: "Xác nhận xoá",
-        DELETE: "Xóa"
+        DELETE: "Xóa",
+        SUCCESS: "Thành công",
+        ERROR: "Lỗi"
     },
     NAVBAR: {
         HOME: "Trang chủ",

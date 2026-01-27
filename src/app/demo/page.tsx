@@ -1,8 +1,10 @@
 "use client"
 
 import React from "react"
+// import MenuPage from "@/features/menu/pages/MenuPage"
 import ProfilePage from "../(private)/profile/page"
 import MenuPage from "@/features/menu/pages/MenuPage"
+import OrdersPage from "@/features/orders/pages/OrdersView"
 
 export default function Home() {
     // handle when log
@@ -64,6 +66,7 @@ export default function Home() {
         <>
             <ProfilePage />
             <MenuPage />
+            <OrdersPage />
         </>
     )
 }
