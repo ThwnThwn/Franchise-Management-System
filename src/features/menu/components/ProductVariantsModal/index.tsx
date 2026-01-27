@@ -4,7 +4,7 @@ import React, { useState, useCallback } from "react"
 import { ModalBody, ModalContent, ModalHeader } from "@heroui/react"
 import { ModalStyled, ImageStyled, ButtonStyled, NumberInputStyled } from "@/components"
 import { formatCurrencyWithSymbol } from "@/utils/helpers/currency"
-import { useCartStore } from "@/hooks"
+import { useCart } from "@/features/cart"
 import { GetProductListItemDto, ProductSizeListItemDto } from "../../models/schema/respone"
 
 type ProductVariantsModalProps = {
@@ -16,7 +16,7 @@ type ProductVariantsModalProps = {
 export function ProductVariantsModal({ product, isOpen, onOpenChange }: ProductVariantsModalProps) {
     const [selectedSize, setSelectedSize] = useState<ProductSizeListItemDto | null>(null)
     const [quantity, setQuantity] = useState<number>(1)
-    const addItem = useCartStore((s) => s.addItem)
+    const { addItem } = useCart()
 
     const handleClose = useCallback(() => {
         onOpenChange(false)
@@ -27,7 +27,20 @@ export function ProductVariantsModal({ product, isOpen, onOpenChange }: ProductV
     const handleConfirm = useCallback(() => {
         if (!product || !selectedSize) return
         const safeQty = quantity > 0 ? quantity : 1
-        addItem(product, selectedSize, safeQty)
+
+        // Add to cart using new cart store
+        addItem({
+            sku: selectedSize.sku,
+            productId: product.id,
+            variantId: selectedSize.id,
+            productName: product.name,
+            sizeName: selectedSize.name,
+            attributes: selectedSize.attributes,
+            basePrice: selectedSize.basePrice,
+            imageUrl: product.imageUrl,
+            quantity: safeQty
+        })
+
         handleClose()
     }, [product, selectedSize, quantity, addItem, handleClose])
 
@@ -62,11 +75,10 @@ export function ProductVariantsModal({ product, isOpen, onOpenChange }: ProductV
                                     key={size.id}
                                     type="button"
                                     onClick={() => setSelectedSize(size)}
-                                    className={`rounded-xl border-2 px-4 py-2 text-left transition-colors ${
-                                        selectedSize?.id === size.id
-                                            ? "border-primary bg-primary/10 text-primary"
-                                            : "border-default-200 hover:border-primary/50"
-                                    }`}
+                                    className={`rounded-xl border-2 px-4 py-2 text-left transition-colors ${selectedSize?.id === size.id
+                                        ? "border-primary bg-primary/10 text-primary"
+                                        : "border-default-200 hover:border-primary/50"
+                                        }`}
                                 >
                                     <span className="font-medium">{size.name}</span>
                                     {size.attributes && (
@@ -99,7 +111,7 @@ export function ProductVariantsModal({ product, isOpen, onOpenChange }: ProductV
                         onPress={handleConfirm}
                         className="w-full"
                     >
-                        Xác nhận
+                        Thêm vào giỏ hàng
                     </ButtonStyled>
                 </ModalBody>
             </ModalContent>

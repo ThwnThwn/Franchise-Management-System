@@ -1,25 +1,54 @@
 "use client"
-import React from "react"
+
 import { DropdownTrigger, DropdownMenu, DropdownItem } from "@heroui/react"
 import { DropdownStyled, ButtonIconStyled, ButtonStyled } from "@/components"
 import { ShoppingCart, X } from "lucide-react"
 import { STRINGS } from "@/constants/strings"
-import { useCartStore, useTokenStore } from "@/hooks"
+import { useCart } from "@/features/cart"
+import { useCreateOrder } from "@/features/cart/hooks/useCreateOrder"
 import { formatCurrencyWithSymbol } from "@/utils/helpers/currency"
 
+const TAX_RATE = 0.1 // 10% VAT
+
 export function CartPopover() {
-    const items = useCartStore((s) => s.items)
-    const removeItem = useCartStore((s) => s.removeItem)
+    const { items, total, itemCount, removeItem } = useCart()
+    const createOrderMutation = useCreateOrder()
     const isEmpty = items.length === 0
-    const isLogined = useTokenStore((s) => !!s.accessToken)
-    const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0)
-    const totalPrice = items.reduce((sum, item) => sum + item.basePrice * item.quantity, 0)
-    if (!isLogined) return null
+
+    const tax = total * TAX_RATE
+    const finalTotal = total + tax
+
+    const handleCheckout = async () => {
+        if (items.length === 0) return
+
+        try {
+            const result = await createOrderMutation.mutateAsync({
+                items: items.map((item) => ({
+                    sku: item.sku,
+                    quantity: item.quantity
+                })),
+                tax,
+                paymentMethod: 0, // Default: Cash
+                notes: ""
+            })
+
+            alert(`Đặt hàng thành công! Mã đơn hàng: ${result.orderCode}`)
+        } catch (error) {
+            console.error("Failed to create order:", error)
+            alert("Đặt hàng thất bại. Vui lòng thử lại!")
+        }
+    }
+
     return (
         <DropdownStyled classNames={{ content: "min-w-56 max-w-80" }}>
             <DropdownTrigger>
-                <ButtonIconStyled className="z-9999" aria-label="Giỏ hàng">
+                <ButtonIconStyled className="z-9999 relative" aria-label="Giỏ hàng">
                     <ShoppingCart size={24} />
+                    {itemCount > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-danger text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                            {itemCount}
+                        </span>
+                    )}
                 </ButtonIconStyled>
             </DropdownTrigger>
             <DropdownMenu aria-label="Giỏ hàng" disabledKeys={isEmpty ? ["empty"] : []}>
@@ -35,15 +64,15 @@ export function CartPopover() {
                     <>
                         {items.map((item, i) => (
                             <DropdownItem
-                                key={`${item.productId}-${item.sizeId}-${i}`}
-                                className="cursor-default py-3 px-4 "
+                                key={`${item.sku}-${i}`}
+                                className="cursor-default py-3 px-4"
                                 textValue={item.productName}
                             >
                                 <div className="flex items-start gap-2">
                                     <div className="flex flex-col gap-0.5 flex-1">
                                         <span className="font-medium">{item.productName}</span>
                                         <span className="text-small text-default-500">
-                                            Size {item.sizeName} × {item.quantity} —{" "}
+                                            {item.sizeName && `Size ${item.sizeName}`} × {item.quantity} —{" "}
                                             {formatCurrencyWithSymbol(
                                                 item.basePrice * item.quantity
                                             )}
@@ -55,7 +84,7 @@ export function CartPopover() {
                                         onClick={(e) => {
                                             e.preventDefault()
                                             e.stopPropagation()
-                                            removeItem(item.productId, item.sizeId)
+                                            removeItem(item.sku)
                                         }}
                                         aria-label="Xóa sản phẩm khỏi giỏ"
                                     >
@@ -71,27 +100,32 @@ export function CartPopover() {
                             <div className="flex flex-col gap-2">
                                 <div className="flex flex-col gap-1">
                                     <span className="text-small text-default-500">
-                                        Tổng số lượng:{" "}
+                                        Tạm tính:{" "}
                                         <span className="font-semibold text-foreground">
-                                            {totalQuantity}
+                                            {formatCurrencyWithSymbol(total)}
                                         </span>
                                     </span>
                                     <span className="text-small text-default-500">
-                                        Tổng tiền:{" "}
+                                        Thuế VAT (10%):{" "}
+                                        <span className="font-semibold text-foreground">
+                                            {formatCurrencyWithSymbol(tax)}
+                                        </span>
+                                    </span>
+                                    <span className="text-small text-default-500">
+                                        Tổng cộng:{" "}
                                         <span className="font-semibold text-primary">
-                                            {formatCurrencyWithSymbol(totalPrice)}
+                                            {formatCurrencyWithSymbol(finalTotal)}
                                         </span>
                                     </span>
                                 </div>
                                 <ButtonStyled
                                     color="primary"
                                     className="w-full mt-1 pointer-events-auto"
-                                    onPress={() => {
-                                        // TODO: điều hướng tới trang thanh toán
-                                        console.log("Go to checkout")
-                                    }}
+                                    onPress={handleCheckout}
+                                    isLoading={createOrderMutation.isPending}
+                                    isDisabled={isEmpty}
                                 >
-                                    Thanh toán
+                                    Đặt hàng
                                 </ButtonStyled>
                             </div>
                         </DropdownItem>

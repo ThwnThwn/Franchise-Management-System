@@ -5,7 +5,7 @@ export type CartItem = {
     productId: string
     productName: string
     imageUrl: string
-    sku: string
+    sku: string // lấy sku và attribute
     sizeId: string
     sizeName: string
     basePrice: number
@@ -36,7 +36,7 @@ const getInitialItems = (): CartItem[] => {
 
 export const useCartStore = create<CartStore>()((set) => ({
     items: getInitialItems(),
- 
+
     addItem: (product, size, quantity = 1) => {
         set((state) => {
             const index = state.items.findIndex(
@@ -46,21 +46,21 @@ export const useCartStore = create<CartStore>()((set) => ({
             const nextItems =
                 index >= 0
                     ? state.items.map((item, idx) =>
-                          idx === index ? { ...item, quantity: item.quantity + quantity } : item
-                      )
+                        idx === index ? { ...item, quantity: item.quantity + quantity } : item
+                    )
                     : [
-                          ...state.items,
-                          {
-                              productId: product.id as unknown as string,
-                              productName: product.name,
-                              imageUrl: product.imageUrl,
-                              sku: size.sku,
-                              sizeId: size.id as unknown as string,
-                              sizeName: size.name ?? "",
-                              basePrice: size.basePrice,
-                              quantity
-                          }
-                      ]
+                        ...state.items,
+                        {
+                            productId: product.id as unknown as string,
+                            productName: product.name,
+                            imageUrl: product.imageUrl,
+                            sku: size.sku,
+                            sizeId: size.id as unknown as string,
+                            sizeName: size.name ?? "",
+                            basePrice: size.basePrice,
+                            quantity
+                        }
+                    ]
 
             try {
                 if (typeof window !== "undefined") {
