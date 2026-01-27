@@ -2,6 +2,7 @@ using Ardalis.Result;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using SalesService.Application.Features.Orders.Create;
+using SalesService.Application.Features.Orders.GetById;
 
 namespace SalesService.API.Controllers;
 
@@ -28,5 +29,24 @@ public class OrdersController : ControllerBase
             return Ok(result.Value);
 
         return BadRequest(result.Errors);
+    }
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<GetOrderByIdResponse>> GetById(
+        Guid id,
+        CancellationToken ct)
+    {
+        var query = new GetOrderByIdQuery(id);
+        var result = await _mediator.Send(query, ct);
+
+        if (result.IsSuccess)
+            return Ok(result.Value);
+
+        if (result.Status == Ardalis.Result.ResultStatus.NotFound)
+            return NotFound(result.Errors);
+
+        if (result.Status == Ardalis.Result.ResultStatus.Invalid)
+            return BadRequest(result.ValidationErrors);
+
+        return StatusCode(500, result.Errors);
     }
 }

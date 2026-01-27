@@ -21,4 +21,11 @@ public class OrderRepository : IOrderRepository
         await _context.SaveChangesAsync(cancellationToken);
         return order;
     }
+
+    async Task<Order> IOrderRepository.GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    {
+        _context.Orders.Find(id);
+        await _context.SaveChangesAsync(cancellationToken);
+        throw new NotImplementedException();
+    }
 }
