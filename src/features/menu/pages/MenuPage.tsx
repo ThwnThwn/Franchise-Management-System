@@ -4,13 +4,14 @@ import { motion, AnimatePresence } from "framer-motion"
 // import { useGetAllProducts } from "../hooks"
 
 import { CardProductStyled, ProductVariantsModal } from "../components"
-import { MOCK_PRODUCTS_DATA } from "@/utils/mockData"
 import { MENU_ERRORS } from "../constants"
 import { GetProductListItemDto } from "../models/schema/respone"
+import { useGetAllProducts } from "../hooks"
+import { SpinnerStyled } from "@/components"
 
 export default function MenuPage() {
-    // const { data: products, isLoading } = useGetAllProducts({})
-    const products = MOCK_PRODUCTS_DATA
+    const { data: products, isLoading } = useGetAllProducts({})
+    // const products = MOCK_PRODUCTS_DATA
     const [selectedProduct, setSelectedProduct] = useState<GetProductListItemDto | null>(null)
     const isModalOpen = selectedProduct !== null
 
@@ -23,7 +24,7 @@ export default function MenuPage() {
     }, [])
     // const [isSearching, setIsSearching] = useState(false)
     const isEmpty = !products || products.Products.length === 0
-    // if (isLoading) return <SpinnerStyled />
+    if (isLoading) return <SpinnerStyled />
 
     return (
         <div className="min-h-[80vh] max-w-7xl mx-auto p-6 text-center">

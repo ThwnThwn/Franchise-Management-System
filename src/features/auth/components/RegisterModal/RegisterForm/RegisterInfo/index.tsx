@@ -77,14 +77,14 @@ export function Register({ email, setEmail, onSuccess }: RegisterInfoProps) {
     })
 
     return (
-        <form onSubmit={formik.handleSubmit} className="flex flex-col gap-2 w-full max-w-110">
+        <form onSubmit={formik.handleSubmit} className="flex flex-col gap-2 w-full max-w-110 ">
             {/* Title */}
             <div className="mx-auto mt-2">
                 <div className="text-center">{AUTH_TEXT.STRINGS.REGISTER_INFO}</div>
             </div>
 
             {/* Input InFo */}
-            <div className="w-full mx-auto space-y-2">
+            <div className="w-full mx-auto space-y-2 ">
                 <InputStyled
                     // className="my-3"
                     variant="bordered"
