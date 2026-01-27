@@ -3,6 +3,7 @@
 import React from "react"
 // import MenuPage from "@/features/menu/pages/MenuPage"
 import { RegisterModal } from "@/features/auth/components/RegisterModal"
+import MenuPage from "@/features/menu/pages/MenuPage"
 
 export default function Home() {
     // handle when log
@@ -62,7 +63,7 @@ export default function Home() {
         //     </NavbarStyled>
         // </div>
         <>
-            <RegisterModal />
+            <MenuPage />
         </>
     )
 }

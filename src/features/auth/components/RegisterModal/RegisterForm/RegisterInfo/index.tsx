@@ -1,5 +1,6 @@
 "use client"
 import { ButtonStyled, ButtonToggleVisibility, DatePickerStyled, InputStyled } from "@/components"
+import { DEFAULT_DATE_FORMAT } from "@/constants/constants"
 import { Gender } from "@/constants/enums"
 import { GenderLabels } from "@/constants/labels"
 import { EMAIL_REGEX, NAME_REGEX, PASSWORD_REGEX, PHONE_REGEX } from "@/constants/regexs"
@@ -9,6 +10,7 @@ import { UserRegisterReq } from "@/features/auth/models/request"
 import { useDay } from "@/hooks"
 import { EnumPicker } from "@/Modules/EnumPicker"
 import { useFormik } from "formik"
+import { number } from "framer-motion"
 import React, { useCallback, useState } from "react"
 import * as Yup from "yup"
 
@@ -18,14 +20,13 @@ interface RegisterInfoProps {
     onSuccess?: () => void
 }
 export function Register({ email, setEmail, onSuccess }: RegisterInfoProps) {
-    const { formatDateTime } = useDay({})
+    const { formatDateTime } = useDay({ defaultFormat: DEFAULT_DATE_FORMAT })
     const registerMutation = useRegister({ onSuccess })
 
     const [isVisible, setIsVisible] = useState(false)
     const toggleVisibility = () => setIsVisible(!isVisible)
     const [isConfirmVisible, setIsConfirmVisible] = useState(false)
     const toggleConFirmVisibility = () => setIsConfirmVisible(!isConfirmVisible)
-
     const handleRegister = useCallback(
         async (values: UserRegisterReq) => {
             await registerMutation.mutateAsync(values)
@@ -70,7 +71,7 @@ export function Register({ email, setEmail, onSuccess }: RegisterInfoProps) {
             phone: Yup.string()
                 .required(AUTH_ERRORS.AUTH.PHONE_REQUIRED)
                 .matches(PHONE_REGEX, AUTH_ERRORS.AUTH.INVALID_PHONE),
-            gender: Yup.number().required(AUTH_ERRORS.AUTH.Gender)
+            gender: Yup.number().required(AUTH_ERRORS.AUTH.GENDER)
         }),
         onSubmit: handleRegister
     })
@@ -214,9 +215,10 @@ export function Register({ email, setEmail, onSuccess }: RegisterInfoProps) {
                     label={AUTH_TEXT.TITLES.GENDER}
                     labels={GenderLabels}
                     value={formik.values.gender}
-                    onChange={(val) => formik.setFieldValue("gender", val)}
+                    onChange={(val) =>
+                        formik.setFieldValue("gender", number.parse(val?.toString() ?? ""))
+                    }
                 />
-
                 <DatePickerStyled
                     label={AUTH_TEXT.TITLES.DATE_OF_BIRTH}
                     isInvalid={!!(formik.touched.dateOfBirth && formik.errors.dateOfBirth)}
@@ -228,7 +230,6 @@ export function Register({ email, setEmail, onSuccess }: RegisterInfoProps) {
                         }
 
                         const dob = formatDateTime({ date: value })
-
                         formik.setFieldValue("dateOfBirth", dob)
                     }}
                 />

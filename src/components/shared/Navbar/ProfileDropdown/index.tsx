@@ -7,8 +7,8 @@ import Link from "next/link"
 import { DEFAULT_AVATAR_URL } from "@/constants/constants"
 import { RoleName } from "@/constants/enums"
 import { STRINGS } from "@/constants/strings"
-import { useRouter } from "next/router"
 import { useLogout } from "@/features"
+import { useRouter } from "next/navigation"
 
 type DropdownLinkItem = {
     key: string

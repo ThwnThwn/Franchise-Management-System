@@ -1,7 +1,6 @@
 "use client"
 
 import { ButtonStyled, ButtonToggleVisibility, InputStyled, LogoStyled } from "@/components"
-import { EMAIL_REGEX } from "@/constants/regexs"
 import { AUTH_ERRORS, AUTH_TEXT } from "@/features/auth/constants"
 import { useLogin } from "@/features/"
 import { Checkbox, Divider, Link } from "@heroui/react"
@@ -40,12 +39,10 @@ export function LoginForm({ onSuccess }: { onSuccess?: () => void }) {
             // rememberMe: false
         },
         validationSchema: Yup.object().shape({
-            email: Yup.string()
-                .required(AUTH_ERRORS.AUTH.EMAIL_REQUIRED)
-                .matches(EMAIL_REGEX, AUTH_ERRORS.AUTH.INVALID_EMAIL),
-            password: Yup.string()
-                .required(AUTH_ERRORS.AUTH.PASSWORD_REQUIRED)
-                .min(8, AUTH_ERRORS.AUTH.PASSWORD_TOO_SHORT)
+            emailOrUsername: Yup.string().required(AUTH_ERRORS.AUTH.EMAIL_REQUIRED),
+            // .matches(EMAIL_REGEX, AUTH_ERRORS.AUTH.INVALID_EMAIL),
+            password: Yup.string().required(AUTH_ERRORS.AUTH.PASSWORD_REQUIRED)
+            // .min(8, AUTH_ERRORS.AUTH.PASSWORD_TOO_SHORT)
         }),
         onSubmit: handleLogin
     })
@@ -68,7 +65,7 @@ export function LoginForm({ onSuccess }: { onSuccess?: () => void }) {
                         <InputStyled
                             // className="my-3"
                             variant="bordered"
-                            label={AUTH_TEXT.TITLES.EMAIL}
+                            label={AUTH_TEXT.TITLES.EMAIL_OR_USERNAME}
                             value={formik.values.emailOrUsername}
                             onValueChange={(value) =>
                                 formik.setFieldValue("emailOrUsername", value)

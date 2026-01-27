@@ -41,7 +41,7 @@ export function RegisterForm({ onSuccess }: { onSuccess?: () => void }) {
             <div
                 className={cn(
                     "flex flex-col gap-2 rounded-2xl transition-all duration-300 overflow-hidden",
-                    step == 0 && "w-125 h-131",
+                    step == 0 && "w-125 h-170",
                     step == 1 && "w-125 h-131"
                 )}
             >
@@ -49,7 +49,7 @@ export function RegisterForm({ onSuccess }: { onSuccess?: () => void }) {
                     <RowStep n={step} />
                 </div>
 
-                <div className="relative flex-1 ">
+                <div className="relative flex-1">
                     <AnimatePresence mode="wait" custom={direction}>
                         {step === 0 && (
                             <motion.div
@@ -60,7 +60,7 @@ export function RegisterForm({ onSuccess }: { onSuccess?: () => void }) {
                                 animate="center"
                                 exit="exit"
                                 transition={{ duration: 0.4 }}
-                                className="w-full flex justify-center"
+                                className="absolute w-full flex justify-center"
                             >
                                 <Register
                                     email={email}
@@ -78,7 +78,7 @@ export function RegisterForm({ onSuccess }: { onSuccess?: () => void }) {
                                 animate="center"
                                 exit="exit"
                                 transition={{ duration: 0.4 }}
-                                className="w-full flex justify-center"
+                                className="absolute w-full flex justify-center"
                             >
                                 <RegisterOTP
                                     email={email}

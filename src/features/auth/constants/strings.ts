@@ -14,7 +14,7 @@ export const AUTH_ERRORS = {
         DATE_OF_BIRTH_REQUIRED: "Vui lòng chọn ngày tháng năm sinh",
         PHONE_REQUIRED: "Vui lòng nhập số điện thoại",
         INVALID_PHONE: "Vui lòng nhập đúng định dạng số điện thoại",
-        Gender: "Vui lòng chọn giớis tính",
+        GENDER: "Vui lòng chọn giớis tính",
         ADDRESS_TO_LONG: "Vui lòng nhập địa chỉ ngắn hơn",
         OTP_REQUIRED: "Vui lòng nhập otp",
         INVALID_OTP: "Vui lòng nhập đúng định dạng OTP"
@@ -23,7 +23,7 @@ export const AUTH_ERRORS = {
 
 export const AUTH_TEXT = {
     TITLES: {
-        EMAIL: "Email hoặc username",
+        EMAIL: "Email",
         PASSWORD: "Mật khẩu",
         LOGIN: "Đăng nhập",
         FIRSTNAME: "Tên",
@@ -34,7 +34,9 @@ export const AUTH_TEXT = {
         GENDER: "Giới tính",
         DATE_OF_BIRTH: "Ngày tháng năm sinh",
         ADDRESS: "Địa chỉ",
-        REGISTER: "Đăng ký tài khoản"
+        REGISTER: "Đăng ký tài khoản",
+        EMAIL_OR_USERNAME: "Email hoặc Username",
+        CONFIRM_OTP: "Xác nhận OTP"
     },
     STRINGS: {
         WELCOME: "Xin chào",
