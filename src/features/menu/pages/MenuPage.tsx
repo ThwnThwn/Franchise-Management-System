@@ -8,6 +8,7 @@ import { MENU_ERRORS } from "../constants"
 import { GetProductListItemDto } from "../models/schema/respone"
 import { useGetAllProducts } from "../hooks"
 import { SpinnerStyled } from "@/components"
+import { useLoginDiscloresureSingleton, useTokenStore } from "@/hooks"
 
 export default function MenuPage() {
     const { data: products, isLoading } = useGetAllProducts({})
@@ -15,9 +16,17 @@ export default function MenuPage() {
     const [selectedProduct, setSelectedProduct] = useState<GetProductListItemDto | null>(null)
     const isModalOpen = selectedProduct !== null
 
-    const handleOpenProduct = useCallback((product: GetProductListItemDto) => {
-        setSelectedProduct(product)
-    }, [])
+    const { onOpen: onOpenLogin } = useLoginDiscloresureSingleton()
+    const isLogined = useTokenStore((s) => !!s.accessToken)
+
+    const handleOpenProduct = useCallback(
+        (product: GetProductListItemDto) => {
+            if (!isLogined) {
+                onOpenLogin()
+            } else setSelectedProduct(product)
+        },
+        [isLogined, onOpenLogin]
+    )
 
     const handleModalOpenChange = useCallback((open: boolean) => {
         if (!open) setSelectedProduct(null)
@@ -25,7 +34,6 @@ export default function MenuPage() {
     // const [isSearching, setIsSearching] = useState(false)
     const isEmpty = !products || products.products == undefined || products.products.length === 0
     if (isLoading) return <SpinnerStyled />
-    console.log(products?.products)
     return (
         <div className="min-h-[80vh] max-w-7xl mx-auto p-6 text-center">
             {/* <motion.div
