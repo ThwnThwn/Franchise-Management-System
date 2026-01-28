@@ -52,13 +52,7 @@ export const OrderDetailModal = ({ isOpen, onOpenChange, orderId }: OrderDetailM
     if (isLoading || !order) return <Spinner />
 
     return (
-        <ModalStyled
-            isOpen={isOpen}
-            isDismissable
-            onOpenChange={onOpenChange}
-            size="2xl"
-            backdrop="blur"
-        >
+        <ModalStyled isOpen={isOpen} isDismissable onOpenChange={onOpenChange} size="2xl">
             <ModalContent>
                 {(onOpenChange) => (
                     <>

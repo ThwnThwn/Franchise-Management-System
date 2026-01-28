@@ -14,7 +14,7 @@ export const AUTH_ERRORS = {
         DATE_OF_BIRTH_REQUIRED: "Vui lòng chọn ngày tháng năm sinh",
         PHONE_REQUIRED: "Vui lòng nhập số điện thoại",
         INVALID_PHONE: "Vui lòng nhập đúng định dạng số điện thoại",
-        GENDER: "Vui lòng chọn giớis tính",
+        GENDER: "Vui lòng chọn giới tính",
         ADDRESS_TO_LONG: "Vui lòng nhập địa chỉ ngắn hơn",
         OTP_REQUIRED: "Vui lòng nhập otp",
         INVALID_OTP: "Vui lòng nhập đúng định dạng OTP"
@@ -41,10 +41,11 @@ export const AUTH_TEXT = {
     STRINGS: {
         WELCOME: "Xin chào",
         LOGIN_CONTINUE: "Tiếp tục đăng nhập",
-        REMEMBER_ME: "Ghi nhớ tôi",
+        LOGIN_SUCCESS: "Đăng nhập thành công",
+        REMEMBER_ME: "Ghi nhớ đăng nhập",
         NOT_HAVE_ACCOUNT: "Chưa có tài khoản?",
         OR: "Hoặc",
-        SUCCESS_LOGOUT: "Đăng suất thành công",
+        SUCCESS_LOGOUT: "Đăng xuất thành công",
         REGISTER: "Đăng ký",
         REGISTER_SUCCESS: "Đăng ký thành công",
         REGISTER_INFO: "Nhập thông tin đăng ký tài khoản",

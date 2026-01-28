@@ -33,3 +33,18 @@ button {
         transform: scale(0.99);
     }
 }
+
+/* --- UTILITIES --- */
+@layer utilities {
+    .florage-background {
+        background-image: url("/textures/floragething.png");
+    }
+
+    .asfalt-background {
+        background-image: url("/textures/asfalt-dark.png");
+    }
+
+    .diamond-background {
+        background-image: url("/textures/diagmonds-light.png");
+    }
+}

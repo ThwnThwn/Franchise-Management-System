@@ -16,6 +16,7 @@ import { CreateOrderRequest } from "@/features/orders/models/request"
 import { EnumPicker } from "@/components/modules/EnumPicker"
 import { PaymentMethodLabels } from "@/features/orders/constants/"
 import { TextareaStyled } from "@/components"
+import { formatCurrencyWithSymbol } from "@/utils/helpers/currency"
 
 interface CheckoutModalProps {
     isOpen: boolean
@@ -106,17 +107,17 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
                     <div className="space-y-2">
                         <div className="flex justify-between text-sm">
                             <span>Tạm tính:</span>
-                            <span>{total.toLocaleString("vi-VN")} đ</span>
+                            <span>{formatCurrencyWithSymbol(total)}</span>
                         </div>
                         <div className="flex justify-between text-sm">
                             <span>Thuế VAT (10%):</span>
-                            <span>{tax.toLocaleString("vi-VN")} đ</span>
+                            <span>{formatCurrencyWithSymbol(tax)}</span>
                         </div>
                         <Divider />
                         <div className="flex justify-between text-lg font-bold">
                             <span>Tổng cộng:</span>
                             <span className="text-primary">
-                                {finalTotal.toLocaleString("vi-VN")} đ
+                                {formatCurrencyWithSymbol(finalTotal)}
                             </span>
                         </div>
                     </div>

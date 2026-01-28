@@ -19,7 +19,7 @@ export function RegisterOTP({ email, onBack }: RegisterOTPProps) {
 
     const goToHome = () => {
         // Lưu ý: (public) là Route Group nên nó bị lược bỏ khỏi URL
-        router.push("/demo")
+        router.push("/")
     }
 
     const registerVerifyMutation = useRegisterVerify({ onSuccess: goToHome })

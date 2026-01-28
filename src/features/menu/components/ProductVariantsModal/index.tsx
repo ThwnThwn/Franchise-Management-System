@@ -88,7 +88,7 @@ export function ProductVariantsModal({ product, isOpen, onOpenChange }: ProductV
                                             key={size.id}
                                             variant="ghost"
                                             onPress={() => setSelectedSize(size)}
-                                            className={`flex flex-col min-h-fit w-full items-start px-4 py-2 ${
+                                            className={`flex flex-col gap-0 min-h-fit w-full items-start px-3 py-2 ${
                                                 selectedSize?.id === size.id &&
                                                 "border-primary bg-primary/10 text-primary"
                                             }`}

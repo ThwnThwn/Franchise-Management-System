@@ -4,6 +4,7 @@ import { Minus, Plus, Trash2 } from "lucide-react"
 import { CartItem as CartItemType } from "../models/types"
 import { ButtonIconStyled, CardStyled, ImageStyled } from "@/components"
 import { parseAttributes } from "@/features/menu/utils/utils"
+import { formatCurrencyWithSymbol } from "@/utils/helpers/currency"
 
 interface CartItemProps {
     item: CartItemType
@@ -26,8 +27,8 @@ export const CartItem: React.FC<CartItemProps> = ({ item, onUpdateQuantity, onRe
     const attrs = parseAttributes(item.attributes)
 
     return (
-        <CardStyled className="mb-3">
-            <CardBody>
+        <CardStyled className="mb-3 h-fit">
+            <CardBody className="py-0">
                 <div className="flex justify-between items-center gap-3 w-full">
                     {/* Product Info */}
                     <div className="flex gap-3">
@@ -62,7 +63,7 @@ export const CartItem: React.FC<CartItemProps> = ({ item, onUpdateQuantity, onRe
                             )}
 
                             <p className="text-sm font-medium text-primary mt-1">
-                                {item.basePrice.toLocaleString("vi-VN")} đ
+                                {formatCurrencyWithSymbol(item.basePrice)}
                             </p>
                         </div>
                     </div>
@@ -78,17 +79,28 @@ export const CartItem: React.FC<CartItemProps> = ({ item, onUpdateQuantity, onRe
                             <Trash2 size={16} />
                         </ButtonIconStyled>
                         <p className="font-semibold text-sm">
-                            {itemTotal.toLocaleString("vi-VN")} đ
+                            {formatCurrencyWithSymbol(itemTotal)}
                         </p>
                     </div>
                 </div>
                 {/* Quantity Controls */}
                 <div className="flex justify-end items-center gap-2 mt-2">
-                    <ButtonIconStyled size="sm" variant="flat" onPress={handleDecrease}>
+                    <ButtonIconStyled
+                        isDisabled={item.quantity <= 1}
+                        variant="flat"
+                        size="sm"
+                        onPress={handleDecrease}
+                        className="p-2"
+                    >
                         <Minus size={14} />
                     </ButtonIconStyled>
                     <span className="text-sm font-medium w-8 text-center">{item.quantity}</span>
-                    <ButtonIconStyled size="sm" variant="flat" onPress={handleIncrease}>
+                    <ButtonIconStyled
+                        variant="flat"
+                        size="sm"
+                        onPress={handleIncrease}
+                        className="p-2"
+                    >
                         <Plus size={14} />
                     </ButtonIconStyled>
                 </div>

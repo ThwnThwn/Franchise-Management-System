@@ -3,5 +3,11 @@ import { ButtonStyled } from "@/components"
 import { ButtonProps, cn } from "@heroui/react"
 
 export function ButtonIconStyled(props: ButtonProps) {
-    return <ButtonStyled isIconOnly {...props} className={cn("p-3 min-w-fit", props.className)} />
+    return (
+        <ButtonStyled
+            isIconOnly
+            {...props}
+            className={cn("p-3 min-w-fit min-h-fit", props.className)}
+        />
+    )
 }
