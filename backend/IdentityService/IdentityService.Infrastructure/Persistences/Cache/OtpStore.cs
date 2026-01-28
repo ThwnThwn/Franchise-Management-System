@@ -56,6 +56,23 @@ public class OtpStore : IOtpStore
             );
     }
 
+    public async Task SaveForgetPasswordDataAsync(string key, string data)
+    {
+        await _cache.SetStringAsync(
+                $"forgetpassword:{key}",
+                data,
+                new DistributedCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(_otpCfg.OtpTtl)
+                }
+            );
+    }
+
+    public async Task<string?> GetForgetPasswordAsync(string key)
+    {
+        return await _cache.GetStringAsync($"forgetpassword:{key}");
+    }
+
     public async Task<string?> GetRegistrationDataAsync(string key)
     {
         return await _cache.GetStringAsync($"register:{key}");
@@ -120,5 +137,10 @@ public class OtpStore : IOtpStore
     public async Task ResetOtpAttemptAsync(string key)
     {
         await _cache.RemoveAsync($"otp_attempts:{key}");
+    }
+
+    public async Task RemoveForgetPasswordDataAsync(string key)
+    {
+        await _cache.RemoveAsync($"forgetpassword:{key}");
     }
 }

@@ -16,9 +16,15 @@ public interface IOtpStore
 
     Task SaveRegistrationDataAsync(string key, string data);
 
+    Task SaveForgetPasswordDataAsync(string key, string data);
+
     Task<string?> GetRegistrationDataAsync(string key);
 
     Task RemoveRegistrationDataAsync(string key);
+
+    Task RemoveForgetPasswordDataAsync(string key);
+
+    Task<string?> GetForgetPasswordAsync(string key);
 
     /// <summary>
     /// Lấy thời điểm request OTP lần cuối cùng để thực hiện rate limiting.
