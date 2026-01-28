@@ -9,6 +9,9 @@ public interface ISalesDbContext : IDisposable
 {
     DbSet<Order> Orders { get; set; }
     DbSet<OrderItem> OrderItems { get; set; }
+    DbSet<Payment> Payments { get; set; }
+    DbSet<PaymentEvent> PaymentEvents { get; set; }
+
 
     public DbSet<T> Set<T>() where T : class, IEntity;
 

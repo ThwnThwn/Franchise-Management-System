@@ -1,14 +1,17 @@
 using AutoMapper;
 using DotNetEnv;
 using Microsoft.EntityFrameworkCore;
-using SalesService.API.Services.Orders;
 using SalesService.API.Services.Products;
+using SalesService.API.Services.Payments;
+using SalesService.API.Services.Orders;
 using SalesService.API.Middleware;
-using SalesService.Infrastructure.Repositories.Orders;
-using SalesService.Infrastructure.Extensions;
 using SalesService.Application.Interfaces.Orders;
 using SalesService.Application.Interfaces.Products;
+using SalesService.Infrastructure.Extensions;
 using SalesService.Application.Mapping.Orders;
+using SalesService.Application.Interfaces.Payments;
+using SalesService.Infrastructure.Repositories.Orders;
+using SalesService.Infrastructure.Repositories.Payments;
 using SalesService.Infrastructure.ApplicationDbContext;
 using SalesService.Infrastructure.Interceptor;
 using SalesService.Infrastructure.Models;
@@ -64,10 +67,10 @@ public class Program
 
         // Connect Db
         var connectionString = builder.Configuration["SALES_DB_CONNECTION"];
-        
+
         // EF Core interceptors used by SalesDbContext
         builder.Services.AddScoped<UpdateTimestampInterceptor>();
-        
+
         // DbContext + wire interceptor via DI
         builder.Services.AddDbContext<SalesDbContext>(
             (sp, opt) =>
@@ -75,7 +78,7 @@ public class Program
                 opt.UseNpgsql(connectionString);
                 opt.AddInterceptors(sp.GetRequiredService<UpdateTimestampInterceptor>());
             });
-        
+
         // Expose DbContext via abstraction used by repositories
         builder.Services.AddScoped<ISalesDbContext>(sp => sp.GetRequiredService<SalesDbContext>());
 
@@ -96,6 +99,7 @@ public class Program
 
         // Register repositories
         builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+        builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 
         // Register ProductService gRPC client
         builder.Services.AddSingleton<IProductServiceClient, ProductServiceClient>();
@@ -139,6 +143,7 @@ public class Program
 
         app.MapControllers();
         app.MapGrpcService<OrderGrpcService>();
+        app.MapGrpcService<PaymentGrpcService>();
         app.MapGrpcReflectionService(); // Enable gRPC Server Reflection endpoint
         app.MapGet("/", () => "Sale Service API is running. Visit /swagger for API documentation.");
 
