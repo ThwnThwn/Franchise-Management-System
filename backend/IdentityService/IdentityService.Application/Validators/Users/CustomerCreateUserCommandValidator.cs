@@ -13,9 +13,9 @@ public class CustomerCreateUserCommandValidator : AbstractValidator<CustomerCrea
             .NotEmpty().WithMessage("Email is required")
             .EmailAddress().WithMessage("Email is invalid");
 
-        RuleFor(x => x.Request.Password)
-            .NotEmpty().WithMessage("Password is required")
-            .MinimumLength(5).WithMessage("Password must be at least 5 characters");
+        RuleFor(x => x.Request.RoleSlug)
+            .NotEmpty().WithMessage("RoleSug is required")
+            .MinimumLength(5).WithMessage("RoleSug is invalid");
 
         RuleFor(x => x.Request.Phone)
             .MaximumLength(20).WithMessage("Phone is too long")

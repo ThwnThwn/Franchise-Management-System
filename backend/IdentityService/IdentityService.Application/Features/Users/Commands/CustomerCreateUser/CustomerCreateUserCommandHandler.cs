@@ -37,12 +37,13 @@ public class CustomerCreateUserCommandHandler
             throw new ConflictDuplicateException(Message.UserMessage.ExistingUser);
 
         var user = _mapper.Map<User>(request);
-        user.Password = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
-        var role = await _roleRepository.GetByNameAsync("User");
+        var role = await _roleRepository.GetBySlugAsync(request.RoleSlug);
         if (role == null)
-            throw new Exception("Role 'User' not found");
+            throw new Exception("Slug" + request.RoleSlug + " not found");
+        var hashedPassword = BCrypt.Net.BCrypt.HashPassword("1");
 
+        user.Password = hashedPassword;
         user.RoleId ??= role.Id;
         user.CreatedAt = DateTimeOffset.UtcNow;
         user.UpdatedAt = DateTimeOffset.UtcNow;
