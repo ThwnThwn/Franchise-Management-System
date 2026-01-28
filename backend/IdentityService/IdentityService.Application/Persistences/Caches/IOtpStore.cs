@@ -8,15 +8,15 @@ namespace Application.Persistences.Caches;
 
 public interface IOtpStore
 {
-    Task<string?> GetOtpAsync(string key);
+    Task<string?> GetOtpAsync(string key, string purpose);
 
-    Task SaveOTPAsyns(string key, string otp);
+    Task SaveOTPAsyns(string key, string otp, string purpose);
 
-    Task RemoveOTPAsync(string key);
+    Task RemoveOTPAsync(string key, string purpose);
 
-    Task SaveRegistrationDataAsync(string key, string data);
+    Task SaveRegistrationDataAsync(string key ,string data);
 
-    Task SaveForgetPasswordDataAsync(string key, string data);
+    Task SaveForgetPasswordDataAsync(string key , string data);
 
     Task<string?> GetRegistrationDataAsync(string key);
 
@@ -35,7 +35,7 @@ public interface IOtpStore
     /// Thời điểm <see cref="DateTimeOffset"/> khi OTP được request lần cuối,
     /// hoặc null nếu chưa có request trước đó hoặc đã hết thời gian chờ.
     /// </returns>
-    Task<DateTimeOffset?> GetLastOtpRequestTimeAsync(string key);
+    Task<DateTimeOffset?> GetLastOtpRequestTimeAsync(string key, string purpose);
 
     /// <summary>
     /// Lưu thời điểm khi OTP được request để thực thi rate limiting.
@@ -44,7 +44,7 @@ public interface IOtpStore
     /// </summary>
     /// <param name="key">Định danh duy nhất (thường là email) liên kết với request OTP.</param>
     /// <param name="time">Thời điểm khi OTP được request.</param>
-    Task SaveLastOtpRequestTimeAsync(string key, DateTimeOffset time);
+    Task SaveLastOtpRequestTimeAsync(string key, DateTimeOffset time, string purpose);
 
     /// <summary>
     /// Lấy số lần thử xác thực OTP sai hiện tại.
@@ -55,7 +55,7 @@ public interface IOtpStore
     /// Số lần thử xác thực OTP thất bại. Trả về 0 nếu chưa có lần thử nào
     /// hoặc bộ đếm đã được reset.
     /// </returns>
-    Task<int> GetOtpAttemptCountAsync(string key);
+    Task<int> GetOtpAttemptCountAsync(string key, string purpose);
 
     /// <summary>
     /// Tăng bộ đếm số lần thử xác thực OTP sai lên 1.
@@ -63,7 +63,7 @@ public interface IOtpStore
     /// cho phép (thường là 5), OTP sẽ bị vô hiệu hóa và phải request lại.
     /// </summary>
     /// <param name="key">Định danh duy nhất (thường là email) liên kết với việc xác thực OTP.</param>
-    Task IncrementOtpAttemptAsync(string key);
+    Task IncrementOtpAttemptAsync(string key, string purpose);
 
     /// <summary>
     /// Reset bộ đếm số lần thử xác thực OTP sai về 0.
@@ -71,5 +71,5 @@ public interface IOtpStore
     /// cho phép người dùng bắt đầu lại với số lần thử mới.
     /// </summary>
     /// <param name="key">Định danh duy nhất (thường là email) liên kết với việc xác thực OTP.</param>
-    Task ResetOtpAttemptAsync(string key);
+    Task ResetOtpAttemptAsync(string key, string purpose);
 }

@@ -83,6 +83,5 @@ message ConfirmOtpForgetPasswordOtpResponse {
 }
 
 message NewPasswordRequest{
-  string email = 1;
   string newPassword = 2;
 }

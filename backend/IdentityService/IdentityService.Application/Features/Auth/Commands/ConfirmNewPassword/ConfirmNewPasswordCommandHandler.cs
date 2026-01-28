@@ -30,22 +30,22 @@ public class ConfirmNewPasswordCommandHandler
     {
         var request = command.Request;
 
-        var attemptCount = await _otpStore.GetOtpAttemptCountAsync(request.Email);
+        var attemptCount = await _otpStore.GetOtpAttemptCountAsync(request.Email, "forgetpassword");
 
         if (attemptCount >= 5)
         {
-            await _otpStore.RemoveOTPAsync(request.Email);
+            await _otpStore.RemoveOTPAsync(request.Email, "forgetpassword");
             await _otpStore.RemoveForgetPasswordDataAsync(request.Email);
-            await _otpStore.ResetOtpAttemptAsync(request.Email);
+            await _otpStore.ResetOtpAttemptAsync(request.Email, "forgetpassword");
 
             throw new BusinessException("Too many failed attempts. Please request a new OTP.");
         }
 
-        var storedOtp = await _otpStore.GetOtpAsync(request.Email);
+        var storedOtp = await _otpStore.GetOtpAsync(request.Email, "forgetpassword");
 
         if (storedOtp == null || storedOtp != request.Otp)
         {
-            await _otpStore.IncrementOtpAttemptAsync(request.Email);
+            await _otpStore.IncrementOtpAttemptAsync(request.Email, "forgetpassword");
 
             var remainingAttempts = 5 - (attemptCount + 1);
 
@@ -66,9 +66,9 @@ public class ConfirmNewPasswordCommandHandler
 
         var accessToken = _jwtHelper.GenerateForgetPasswordToken(request.Email);
 
-        await _otpStore.RemoveOTPAsync(request.Email);
+        await _otpStore.RemoveOTPAsync(request.Email, "forgetpassword");
         await _otpStore.RemoveForgetPasswordDataAsync(request.Email);
-        await _otpStore.ResetOtpAttemptAsync(request.Email);
+        await _otpStore.ResetOtpAttemptAsync(request.Email, "forgetpassword");
 
         return new ConfirmOtpForgetPasswordOtpRep
         {

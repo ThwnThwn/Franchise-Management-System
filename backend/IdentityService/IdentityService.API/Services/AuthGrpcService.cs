@@ -81,6 +81,20 @@ public class AuthGrpcService : AuthGrpc.AuthGrpcBase
         }
     }
 
+    public override async Task<ConfirmOtpResponse> ConfirmRegisterOtp(ConfirmOtpRequest request, ServerCallContext context)
+    {
+        await _mediator.Send(new ConfirmOtpCommand(new()
+        {
+            Email = request.Email,
+            Otp = request.Otp
+        }));
+
+        return new ConfirmOtpResponse
+        {
+            Success = true,
+            Message = "Confirm OTP successfully"
+        };
+    }
     public override async Task<RefreshTokenResponse> RefreshToken(RefreshTokenRequest request, ServerCallContext context)
     {
         try
@@ -116,22 +130,7 @@ public class AuthGrpcService : AuthGrpc.AuthGrpcBase
         }
     }
 
-    public override async Task<ConfirmOtpResponse> ConfirmRegisterOtp(ConfirmOtpRequest request,ServerCallContext context)
-    {
-        await _mediator.Send(new ConfirmOtpCommand(new()
-        {
-            Email = request.Email,
-            Otp = request.Otp
-        }));
-
-        return new ConfirmOtpResponse
-        {
-            Success = true,
-            Message = "Confirm OTP successfully"
-        };
-    }
-
-    public override async Task<RegisterResponse> ForgetPassword (ForgetPasswordRequest request,ServerCallContext context)
+    public override async Task<RegisterResponse> ForgetPassword(ForgetPasswordRequest request, ServerCallContext context)
     {
         await _mediator.Send(new ForgetPasswordCommand(new()
         {
@@ -144,9 +143,7 @@ public class AuthGrpcService : AuthGrpc.AuthGrpcBase
         };
     }
 
-    public override async Task<ConfirmOtpForgetPasswordOtpResponse> ConfirmForgetPasswordOtp(
-    ConfirmOtpRequest request,
-    ServerCallContext context)
+    public override async Task<ConfirmOtpForgetPasswordOtpResponse> ConfirmForgetPasswordOtp(ConfirmOtpRequest request,ServerCallContext context)
     {
         var rep = await _mediator.Send(new ConfirmNewPasswordCommand(new()
         {

@@ -29,7 +29,7 @@ public class ForgetPasswordCommandHandler
     public async Task<Unit> Handle(ForgetPasswordCommand command,CancellationToken cancellationToken)
     {
         var request = command.Request;
-        var lastOtpTime = await _otpStore.GetLastOtpRequestTimeAsync(request.Email);
+        var lastOtpTime = await _otpStore.GetLastOtpRequestTimeAsync(request.Email, "forgetpassword");
         if (lastOtpTime.HasValue)
         {
             var timeSinceLastRequest = DateTimeOffset.UtcNow - lastOtpTime.Value;
@@ -56,9 +56,9 @@ public class ForgetPasswordCommandHandler
         var forgetPasswordJson = JsonSerializer.Serialize(forgetPasswordData);
         await _otpStore.SaveForgetPasswordDataAsync(request.Email, forgetPasswordJson);
 
-        await _otpStore.SaveOTPAsyns(request.Email, otp);
-        await _otpStore.SaveLastOtpRequestTimeAsync(request.Email, DateTimeOffset.UtcNow);
-        await _otpStore.ResetOtpAttemptAsync(request.Email);
+        await _otpStore.SaveOTPAsyns(request.Email, otp, "forgetpassword");
+        await _otpStore.SaveLastOtpRequestTimeAsync(request.Email, DateTimeOffset.UtcNow, "forgetpassword");
+        await _otpStore.ResetOtpAttemptAsync(request.Email, "forgetpassword");
         await _emailService.SendOtpEmailAsync(request.Email, otp);
 
         return Unit.Value;
