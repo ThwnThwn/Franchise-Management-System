@@ -7,15 +7,22 @@ import { Checkbox, Divider, Link } from "@heroui/react"
 import { useFormik } from "formik"
 import React, { useCallback, useState } from "react"
 import * as Yup from "yup"
-import { useLoginDiscloresureSingleton, useRegisterDiscloresureSingleton } from "@/hooks"
+import { useLoginDiscloresureSingleton } from "@/hooks"
+import { useRouter } from "next/navigation"
 
 export function LoginForm({ onSuccess }: { onSuccess?: () => void }) {
     const [isVisible, setIsvisible] = useState(false)
     const [rememberMe, setRememberMe] = useState(true)
     const loginMutation = useLogin({ rememberMe, onSuccess })
     const { onClose: onCloseLogin } = useLoginDiscloresureSingleton()
-    const { onOpen: onOpenRegister } = useRegisterDiscloresureSingleton()
+    // const { onOpen: onOpenRegister } = useRegisterDiscloresureSingleton()
+    const router = useRouter()
 
+    const goToRegister = () => {
+        // Lưu ý: (public) là Route Group nên nó bị lược bỏ khỏi URL
+        onCloseLogin()
+        router.push("/auth/register")
+    }
     // const { onClose: onCloseLogin } = useLoginDiscloresureSingleton()
 
     const toggleVisibility = () => setIsvisible(!isVisible)
@@ -27,10 +34,10 @@ export function LoginForm({ onSuccess }: { onSuccess?: () => void }) {
         [loginMutation]
     )
 
-    const handleOpenRegister = useCallback(() => {
-        onCloseLogin()
-        onOpenRegister()
-    }, [onCloseLogin, onOpenRegister])
+    // const handleOpenRegister = useCallback(() => {
+    //     onCloseLogin()
+    //     onOpenRegister()
+    // }, [onCloseLogin, onOpenRegister])
 
     const formik = useFormik({
         initialValues: {
@@ -146,7 +153,7 @@ export function LoginForm({ onSuccess }: { onSuccess?: () => void }) {
             </div> */}
             <p className="text-small text-center">
                 {AUTH_TEXT.STRINGS.NOT_HAVE_ACCOUNT}&nbsp;
-                <Link isBlock onPress={handleOpenRegister} className="cursor-pointer">
+                <Link isBlock onPress={goToRegister} className="cursor-pointer">
                     {AUTH_TEXT.STRINGS.REGISTER}
                 </Link>
             </p>

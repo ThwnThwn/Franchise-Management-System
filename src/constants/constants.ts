@@ -1,6 +1,7 @@
 // common
 export const CHB = "Cà Hong Bạn"
 export const CHB_SHORT = "CHB"
+export const SLOGAN = "Hóng một tách cà, pha đôi câu chuyện"
 
 // url
 export const DEFAULT_AVATAR_URL = "/images/avtFallback.jpg"

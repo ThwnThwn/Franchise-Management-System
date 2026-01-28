@@ -22,5 +22,9 @@ export const STRINGS = {
     },
     TABLE: {
         EMPTY: "Trống"
+    },
+    NOTIFICATION: {
+        SUCCESS: "Thành công",
+        ERROR: "Thất bại"
     }
 } as const
