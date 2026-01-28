@@ -3,7 +3,6 @@ package product
 import (
 	"api-gateway/config"
 	"api-gateway/internal/api/handlers"
-	"api-gateway/internal/api/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -20,9 +19,9 @@ func (a *ProductRouter) NewProductRouter(cfg *config.Config,
 		productApi.GET("/:id", productHandler.GetProductById)
 	}
 
-	accessTokenSecret := cfg.JwtSecret
-	privateApi := productApi.Group("/")
-	privateApi.Use(middleware.ValidateToken([]byte(accessTokenSecret)))
-	{
-	}
+	// accessTokenSecret := cfg.JwtSecret
+	// privateApi := productApi.Group("/")
+	// privateApi.Use(middleware.ValidateToken([]byte(accessTokenSecret)))
+	// {
+	// }
 }

@@ -1,6 +1,6 @@
 using FluentValidation;
 
-namespace SalesService.Application.Features.Orders.Create;
+namespace SalesService.Application.Features.Orders.Commands.Create;
 
 public class CreateOrderCommandValidator : AbstractValidator<CreateOrderCommand>
 {

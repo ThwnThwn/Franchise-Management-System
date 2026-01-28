@@ -8,20 +8,28 @@ type CreateOrderReply struct {
 	TotalAmount float64 `json:"totalAmount"`
 }
 
+type OrderHeader struct {
+	Id            string    `json:"id"`
+	Code          string    `json:"code"`
+	Subtotal      float64   `json:"subtotal"`
+	Tax           float64   `json:"tax"`
+	TotalAmount   float64   `json:"totalAmount"`
+	PaidAmount    float64   `json:"paidAmount"`
+	PaymentMethod int32     `json:"paymentMethod"`
+	Status        int32     `json:"status"`
+	PaidAt        time.Time `json:"paidAt"`
+	Notes         string    `json:"notes"`
+	CreatedAt     time.Time `json:"createdAt"`
+	UpdatedAt     time.Time `json:"updatedAt"`
+}
+
 type Order struct {
-	Id            string       `json:"id"`
-	Code          string       `json:"code"`
-	Subtotal      float64      `json:"subtotal"`
-	Tax           float64      `json:"tax"`
-	TotalAmount   float64      `json:"totalAmount"`
-	PaidAmount    float64      `json:"paidAmount"`
-	PaymentMethod int32        `json:"paymentMethod"`
-	Status        int32        `json:"status"`
-	PaidAt        time.Time    `json:"paidAt"`
-	Notes         string       `json:"notes"`
-	CreatedAt     time.Time    `json:"createdAt"`
-	UpdatedAt     time.Time    `json:"updatedAt"`
-	Items         []*OrderItem `json:"items"`
+	OrderHeader
+	Items []*OrderItem `json:"items"`
+}
+
+type OrderSummary struct {
+	OrderHeader
 }
 
 type OrderItem struct {

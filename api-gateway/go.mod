@@ -5,7 +5,6 @@ go 1.24.5
 require (
 	github.com/gin-gonic/gin v1.11.0
 	github.com/google/wire v0.7.0
-	github.com/jinzhu/copier v0.4.0
 	github.com/joho/godotenv v1.5.1
 )
 

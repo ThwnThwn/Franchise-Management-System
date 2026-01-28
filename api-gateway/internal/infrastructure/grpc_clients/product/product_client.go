@@ -5,10 +5,10 @@ import (
 
 	"api-gateway/internal/domain/models/product"
 	productPb "api-gateway/pkg/pb/product"
+	"api-gateway/pkg/utils/numberutils"
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/jinzhu/copier"
 )
 
 type ProductGrpcClient struct {
@@ -20,15 +20,24 @@ func ProvideProductClient(f *clientFactory) productGW.IProductService {
 }
 
 func (c *ProductGrpcClient) GetProducts(ctx context.Context, req *product.GetProductsRequest) (*product.GetProductsReply, error) {
-	res, err := c.client.GetProducts(ctx, &productPb.GetProductsRequest{CategoryId: req.CategoryId.String()})
+	res, err := c.client.GetProducts(ctx, &productPb.GetProductsRequest{CategoryId: req.CategoryId})
 	if err != nil {
 		return nil, err
 	}
 
-	products := make([]*product.Product, len(res.Products))
+	products := make([]*product.Product, 0, len(res.Products))
 	for _, p := range res.Products {
-		sizes := make([]*product.ProductSize, len(p.Sizes))
-		copier.Copy(sizes, p.Sizes)
+		sizes := make([]*product.ProductSize, 0, len(p.Sizes))
+		for _, s := range p.Sizes {
+			sizes = append(sizes, &product.ProductSize{
+				Id:         s.Id,
+				Sku:        s.Sku,
+				Name:       s.Name,
+				Attributes: s.Attributes,
+				BasePrice:  s.BasePrice,
+				IsActive:   s.IsActive,
+			})
+		}
 		products = append(products, &product.Product{
 			Id:           p.Id,
 			Name:         p.Name,
@@ -42,7 +51,7 @@ func (c *ProductGrpcClient) GetProducts(ctx context.Context, req *product.GetPro
 	}
 	return &product.GetProductsReply{
 		Products:   products,
-		TotalCount: res.TotalCount,
+		TotalCount: numberutils.GetInt32(res.TotalCount),
 	}, nil
 }
 
@@ -53,8 +62,17 @@ func (c *ProductGrpcClient) GetProductById(ctx context.Context, id uuid.UUID) (*
 	}
 
 	productRes := res.Product
-	sizes := make([]*product.ProductSize, len(productRes.Sizes))
-	copier.Copy(sizes, productRes.Sizes)
+	sizes := make([]*product.ProductSize, 0, len(productRes.Sizes))
+	for _, s := range productRes.Sizes {
+		sizes = append(sizes, &product.ProductSize{
+			Id:         s.Id,
+			Sku:        s.Sku,
+			Name:       s.Name,
+			Attributes: s.Attributes,
+			BasePrice:  s.BasePrice,
+			IsActive:   s.IsActive,
+		})
+	}
 	return &product.Product{
 		Id:           productRes.Id,
 		Name:         productRes.Name,

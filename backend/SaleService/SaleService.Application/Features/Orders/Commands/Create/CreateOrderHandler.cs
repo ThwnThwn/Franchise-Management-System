@@ -1,7 +1,3 @@
-using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Ardalis.Result;
 using MediatR;
 using SalesService.Application.Interfaces.Orders;
@@ -9,7 +5,7 @@ using SalesService.Application.Interfaces.Products;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
 
-namespace SalesService.Application.Features.Orders.Create;
+namespace SalesService.Application.Features.Orders.Commands.Create;
 
 public sealed class CreateOrderHandler
     : IRequestHandler<CreateOrderCommand, Result<CreateOrderResponseDto>>
@@ -82,7 +78,9 @@ public sealed class CreateOrderHandler
             });
         }
 
-        decimal tax = request.Request.Tax ?? 0;
+        // tax 10%
+        const decimal taxRate = 0.1m;
+        decimal tax = subtotal * taxRate;
         decimal totalAmount = subtotal + tax;
 
         var order = new Order

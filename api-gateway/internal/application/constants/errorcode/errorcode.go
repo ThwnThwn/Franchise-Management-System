@@ -28,22 +28,22 @@ var InternalErrorMap = map[error]struct {
 }{
 	ErrInvalidId: {
 		Status: http.StatusBadRequest,
-		Title:  "Bad Request",
+		Title:  "Yêu cầu không hợp lệ",
 		Detail: ErrInvalidId.Error(),
 	},
 	ErrInvalidToken: {
 		Status: http.StatusUnauthorized,
-		Title:  "Unauthorized",
+		Title:  "Lỗi xác thực",
 		Detail: ErrInvalidToken.Error(),
 	},
 	ErrOTPRateLimit: {
 		Status: http.StatusTooManyRequests,
-		Title:  "Too Many Requests",
+		Title:  "Quá nhiều yêu cầu",
 		Detail: ErrOTPRateLimit.Error(),
 	},
 	ErrOTPTooManyAttempts: {
 		Status: http.StatusTooManyRequests,
-		Title:  "Too Many Requests",
+		Title:  "Quá nhiều yêu cầu",
 		Detail: ErrOTPTooManyAttempts.Error(),
 	},
 }

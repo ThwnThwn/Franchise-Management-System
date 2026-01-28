@@ -4,6 +4,7 @@ import (
 	"api-gateway/internal/application/abstractions"
 	"api-gateway/internal/application/constants/errorcode"
 	"api-gateway/internal/domain/models/order"
+	"api-gateway/pkg/utils/grpcutils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -25,7 +26,12 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
 		return
 	}
 
-	ctx := c.Request.Context()
+	ctx, err := grpcutils.BuildAuthContext(c)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
 	res, err := h.orderUC.CreateOrder(ctx, &req)
 	if err != nil {
 		c.Error(err)
@@ -45,6 +51,28 @@ func (h *OrderHandler) GetOrderById(c *gin.Context) {
 
 	ctx := c.Request.Context()
 	res, err := h.orderUC.GetOrderById(ctx, orderId)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, res)
+}
+
+func (h *OrderHandler) GetMyOrders(c *gin.Context) {
+	var req order.GetMyOrdersRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		c.Error(err)
+		return
+	}
+
+	ctx, err := grpcutils.BuildAuthContext(c)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	res, err := h.orderUC.GetMyOrders(ctx, &req)
 	if err != nil {
 		c.Error(err)
 		return

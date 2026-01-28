@@ -26,6 +26,10 @@ namespace IdentityService.Application.Mappers
             CreateMap<ChangePasswordReq, User>();
 
             CreateMap<User, UserRep>()
+                //.ForMember(dest => dest.CreatedAt,
+                //    opt => opt.MapFrom(src => src.CreatedAt))
+                //.ForMember(dest => dest.UpdatedAt,
+                //    opt => opt.MapFrom(src => src.UpdatedAt))
                 .ForMember(dest => dest.Role,
                     opt => opt.MapFrom(src => src.Role));
 

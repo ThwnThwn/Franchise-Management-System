@@ -101,13 +101,14 @@ namespace ProductService.API
             builder.Services.AddSingleton<Interceptors.GrpcExceptionInterceptor>();
 
             // Add CORS
+            var frontEndOrigin = builder.Configuration["FRONTEND_ORIGIN"] ?? "http://localhost:3000";
             builder.Services.AddCors(options =>
             {
                 options.AddDefaultPolicy(policy =>
                 {
-                    policy.AllowAnyOrigin()
-                          .AllowAnyMethod()
-                          .AllowAnyHeader();
+                    policy.AllowAnyMethod()
+                          .AllowAnyHeader()
+                          .WithOrigins(frontEndOrigin);
                 });
             });
 

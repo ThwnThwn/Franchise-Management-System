@@ -29,6 +29,10 @@ public class GrpcExceptionInterceptor : Interceptor
             var msg = string.Join(" | ", ex.Errors.Select(x => x.ErrorMessage));
             throw new RpcException(new Status(StatusCode.InvalidArgument, msg));
         }
+        catch (BusinessException ex) 
+        {
+            throw new RpcException(new Status(StatusCode.InvalidArgument, ex.Message));
+        }
         catch (ForbidenException ex)
         {
             throw new RpcException(new Status(StatusCode.PermissionDenied, ex.Message));

@@ -34,7 +34,7 @@ BEGIN
     -- LOOP 1: TẠO 1 ADMIN (admin1@email.com)
     -- =================================================
     FOR i IN 1..1 LOOP
-        INSERT INTO users (first_name, last_name, email, username, password, phone, address, gender, date_or_birth, role_id)
+        INSERT INTO users (first_name, last_name, email, username, password, phone, address, gender, date_of_birth, role_id)
         VALUES (
             'Admin', 'System', 
             'admin' || i || '@email.com',  -- admin1@email.com
@@ -48,7 +48,7 @@ BEGIN
     -- LOOP 2: TẠO 2 MANAGERS (manager1 -> manager2)
     -- =================================================
     FOR i IN 1..2 LOOP
-        INSERT INTO users (first_name, last_name, email, username, password, phone, address, gender, date_or_birth, role_id)
+        INSERT INTO users (first_name, last_name, email, username, password, phone, address, gender, date_of_birth, role_id)
         VALUES (
             'Manager', 'Num ' || i, 
             'manager' || i || '@email.com', -- manager1@email.com
@@ -62,7 +62,7 @@ BEGIN
     -- LOOP 3: TẠO 5 STAFFS (staff1 -> staff5)
     -- =================================================
     FOR i IN 1..5 LOOP
-        INSERT INTO users (first_name, last_name, email, username, password, phone, address, gender, date_or_birth, role_id)
+        INSERT INTO users (first_name, last_name, email, username, password, phone, address, gender, date_of_birth, role_id)
         VALUES (
             'Staff', 'Num ' || i, 
             'staff' || i || '@email.com',   -- staff1@email.com
@@ -76,7 +76,7 @@ BEGIN
     -- LOOP 4: TẠO 92 CUSTOMERS (customer1 -> customer92)
     -- =================================================
     FOR i IN 1..92 LOOP
-        INSERT INTO users (first_name, last_name, email, username, password, phone, address, gender, date_or_birth, role_id)
+        INSERT INTO users (first_name, last_name, email, username, password, phone, address, gender, date_of_birth, role_id)
         VALUES (
             'Customer', 'Num ' || i, 
             'customer' || i || '@email.com', -- customer1@email.com

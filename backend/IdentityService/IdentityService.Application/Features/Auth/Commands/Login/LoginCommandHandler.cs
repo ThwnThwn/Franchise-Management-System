@@ -34,7 +34,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, LoginRep>
         if (user.IsBlocked == true)
             throw new UnauthorizedAccessException("Account is blocked");
 
-        if(user.Role == null)
+        if (user.Role == null)
             throw new UnauthorizedAccessException("Account's role is null");
 
         if (!BCrypt.Net.BCrypt.Verify(request.Request.Password, user.Password))
@@ -50,8 +50,6 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, LoginRep>
             IssuedAt = DateTimeOffset.UtcNow,
             ExpiresAt = new DateTimeOffset(refreshTokenExpiry, TimeSpan.Zero),
             IsRevoked = false,
-            CreatedAt = DateTimeOffset.UtcNow,
-            UpdatedAt = DateTimeOffset.UtcNow
         });
 
         var userRep = _mapper.Map<Dtos.User.Respone.UserRep>(user);

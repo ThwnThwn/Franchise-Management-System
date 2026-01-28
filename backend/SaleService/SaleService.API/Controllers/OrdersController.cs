@@ -1,8 +1,7 @@
-using Ardalis.Result;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using SalesService.Application.Features.Orders.Create;
 using SalesService.Application.Features.Orders.GetById;
+using SalesService.Application.Features.Orders.Commands.Create;
 
 namespace SalesService.API.Controllers;
 
@@ -30,6 +29,7 @@ public class OrdersController : ControllerBase
 
         return BadRequest(result.Errors);
     }
+
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<GetOrderByIdResponse>> GetById(
         Guid id,
