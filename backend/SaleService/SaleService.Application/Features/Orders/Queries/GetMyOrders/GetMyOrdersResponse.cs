@@ -14,6 +14,7 @@
         DateTimeOffset PaidAt,
         string? Notes,
         DateTimeOffset CreatedAt,
-        DateTimeOffset UpdatedAt
+        DateTimeOffset UpdatedAt,
+        Guid? CustomerId
     );
 }
