@@ -1,12 +1,15 @@
 "use client"
 
-import React from "react"
-import { Button, Divider } from "@heroui/react"
+import React, { useCallback } from "react"
+import { Divider } from "@heroui/react"
 import { X, ShoppingBag } from "lucide-react"
-import { useCart } from "../hooks/useCart"
 import { CartItem } from "./CartItem"
-import { useCreateOrder } from "../hooks/useCreateOrder"
-import { ButtonIconStyled } from "@/components"
+import { ButtonIconStyled, ButtonStyled } from "@/components"
+import { useCartStore } from "@/features/cart/store"
+import { PaymentMethod, useCreateOrder } from "@/features/orders"
+import { useRouter } from "next/navigation"
+import { useTokenStore } from "@/hooks"
+import { RoleSlug } from "@/constants/enums"
 
 interface CartDrawerProps {
     isOpen: boolean
@@ -16,8 +19,22 @@ interface CartDrawerProps {
 const TAX_RATE = 0.1
 
 export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
-    const { items, total, updateQuantity, removeItem } = useCart()
-    const createOrderMutation = useCreateOrder()
+    const router = useRouter()
+    const roleSlug = useTokenStore((s) => s.roleSlug)
+    const isCustomer = roleSlug === RoleSlug.Customer
+
+    const items = useCartStore((s) => s.items)
+    const total = useCartStore((state) => state.total)
+    const updateQuantity = useCartStore((state) => state.updateQuantity)
+    const removeItem = useCartStore((state) => state.removeItem)
+
+    const handleSuccess = useCallback(() => {
+        const redirectPath = isCustomer ? "/orders" : "/"
+        router.push(redirectPath)
+        onClose()
+    }, [isCustomer, onClose, router])
+
+    const createOrderMutation = useCreateOrder({ onSuccess: handleSuccess })
 
     const tax = total * TAX_RATE
     const finalTotal = total + tax
@@ -25,23 +42,15 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
     const handleCheckout = async () => {
         if (items.length === 0) return
 
-        try {
-            const result = await createOrderMutation.mutateAsync({
-                items: items.map((item) => ({
-                    sku: item.sku,
-                    quantity: item.quantity
-                })),
-                tax,
-                paymentMethod: 0, // Default: Cash
-                notes: ""
-            })
-
-            alert(`Đặt hàng thành công! Mã đơn hàng: ${result.orderCode}`)
-            onClose()
-        } catch (error) {
-            console.error("Failed to create order:", error)
-            alert("Đặt hàng thất bại. Vui lòng thử lại!")
-        }
+        await createOrderMutation.mutateAsync({
+            items: items.map((item) => ({
+                sku: item.sku,
+                quantity: item.quantity
+            })),
+            tax,
+            paymentMethod: PaymentMethod.Cash,
+            notes: ""
+        })
     }
 
     return (
@@ -114,16 +123,16 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                                     </span>
                                 </div>
                             </div>
-                            <Button
+                            <ButtonStyled
                                 color="primary"
                                 size="lg"
                                 className="w-full"
-                                onClick={handleCheckout}
+                                onPress={handleCheckout}
                                 isLoading={createOrderMutation.isPending}
                                 isDisabled={items.length === 0}
                             >
                                 Đặt hàng
-                            </Button>
+                            </ButtonStyled>
                         </div>
                     )}
                 </div>

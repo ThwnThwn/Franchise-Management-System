@@ -1,3 +1,5 @@
+"use client"
+
 import {
     ButtonIconStyled,
     ButtonStyled,
@@ -13,7 +15,7 @@ import { useGetMe, useUpdateMe } from "@/features/profile/hooks/useProfile"
 import { UserUpdateReq } from "@/features/profile/models/request"
 import { useDay } from "@/hooks"
 import { useUserHelper } from "@/hooks/reuseable/useUserHelper"
-import { EnumPicker } from "@/Modules/EnumPicker"
+import { EnumPicker } from "@/components/modules/EnumPicker"
 import { useFormik } from "formik"
 import { Pencil } from "lucide-react"
 import React, { useCallback, useState } from "react"

@@ -1,5 +1,6 @@
 import { create } from "zustand"
 import { jwtDecode } from "jwt-decode"
+import { RoleSlug } from "@/constants/enums"
 
 interface JwtPayload {
     sub?: string
@@ -8,7 +9,7 @@ interface JwtPayload {
 
 type TokenStore = {
     accessToken: string | null
-    roleSlug: string | null
+    roleSlug: RoleSlug | null
     isHydrated: boolean
     hydrate: () => void
     setAccessToken: (token: string, rememberMe?: boolean) => void
@@ -17,11 +18,11 @@ type TokenStore = {
     removeRememberMe: () => void
 }
 
-const getRoleFromToken = (token: string | null): string | null => {
+const getRoleFromToken = (token: string | null): RoleSlug | null => {
     if (!token) return null
     try {
         const decoded = jwtDecode<JwtPayload>(token)
-        return decoded.role_slug || null
+        return (decoded.role_slug as RoleSlug) || null
     } catch (error) {
         console.error("Invalid token:", error)
         return null

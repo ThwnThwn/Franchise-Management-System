@@ -1,3 +1,5 @@
+"use client"
+
 import React, { useEffect } from "react"
 import {
     ModalContent,
@@ -30,7 +32,10 @@ export const OrderDetailModal = ({ isOpen, onOpenChange, orderId }: OrderDetailM
     const { formatDateTime } = useDay({ defaultFormat: DEFAULT_DATE_FORMAT })
 
     const handlePrintInvoice = () => {
-        alert(ORDER_TEXT.labels.INVOICE_FEATURE_ALERT)
+        addToast({
+            title: STRINGS.COMMON.NOTIFICATION,
+            description: ORDER_TEXT.labels.INVOICE_FEATURE_ALERT
+        })
     }
 
     useEffect(() => {

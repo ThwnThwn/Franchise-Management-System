@@ -8,15 +8,14 @@ import {
     ModalBody,
     ModalFooter,
     Button,
-    Select,
-    SelectItem,
-    Textarea,
     Divider
 } from "@heroui/react"
-import { PaymentMethod } from "@/features/menu/models/schema/order"
-import { useCreateOrder } from "../hooks/useCreateOrder"
-import { useCart } from "../hooks/useCart"
-import { CreateOrderPayload } from "@/features/menu/services/orderApi"
+import { useCartStore } from "@/features/cart/store"
+import { PaymentMethod, useCreateOrder } from "@/features/orders"
+import { CreateOrderRequest } from "@/features/orders/models/request"
+import { EnumPicker } from "@/components/modules/EnumPicker"
+import { PaymentMethodLabels } from "@/features/orders/constants/"
+import { TextareaStyled } from "@/components"
 
 interface CheckoutModalProps {
     isOpen: boolean
@@ -26,18 +25,12 @@ interface CheckoutModalProps {
 
 const TAX_RATE = 0.1 // 10% VAT
 
-const paymentMethods = [
-    { value: PaymentMethod.CASH, label: "Tiền mặt" },
-    { value: PaymentMethod.CARD, label: "Thẻ ngân hàng" },
-    { value: PaymentMethod.E_WALLET, label: "Ví điện tử" },
-    { value: PaymentMethod.BANK_TRANSFER, label: "Chuyển khoản" }
-]
-
 export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, onSuccess }) => {
-    const { items, total } = useCart()
+    const items = useCartStore((s) => s.items)
+    const total = useCartStore((state) => state.total)
     const createOrderMutation = useCreateOrder()
 
-    const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(PaymentMethod.CASH)
+    const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(PaymentMethod.Cash)
     const [notes, setNotes] = useState("")
 
     const tax = total * TAX_RATE
@@ -46,14 +39,14 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
     const handleCheckout = async () => {
         if (items.length === 0) return
 
-        const payload: CreateOrderPayload = {
+        const payload: CreateOrderRequest = {
             items: items.map((item) => ({
                 sku: item.sku,
                 quantity: item.quantity
             })),
             tax,
-            paymentMethod,
-            notes: notes.trim() || undefined
+            paymentMethod: paymentMethod,
+            notes: notes.trim()
         }
 
         try {
@@ -78,23 +71,28 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
                         <label className="text-sm font-medium mb-2 block">
                             Phương thức thanh toán
                         </label>
-                        <Select
+                        {/* <Select
                             selectedKeys={[paymentMethod.toString()]}
                             onChange={(e) => setPaymentMethod(Number(e.target.value))}
                             placeholder="Chọn phương thức thanh toán"
                         >
                             {paymentMethods.map((method) => (
-                                <SelectItem key={method.value}>
-                                    {method.label}
-                                </SelectItem>
+                                <SelectItem key={method.value}>{method.label}</SelectItem>
                             ))}
-                        </Select>
+                        </Select> */}
+                        <EnumPicker
+                            label={"Chọn phương thức thanh toán"}
+                            labels={PaymentMethodLabels}
+                            value={paymentMethod}
+                            onChange={(val) => setPaymentMethod(val as PaymentMethod)}
+                            isClearable={false}
+                        />
                     </div>
 
                     {/* Notes */}
                     <div>
                         <label className="text-sm font-medium mb-2 block">Ghi chú</label>
-                        <Textarea
+                        <TextareaStyled
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
                             placeholder="Thêm ghi chú cho đơn hàng (tùy chọn)"

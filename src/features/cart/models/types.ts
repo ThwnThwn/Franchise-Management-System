@@ -11,13 +11,3 @@ export interface CartItem {
     quantity: number
     imageUrl?: string
 }
-
-export interface CartState {
-    items: CartItem[]
-    addItem: (item: Omit<CartItem, "quantity"> & { quantity?: number }) => void
-    removeItem: (sku: string) => void
-    updateQuantity: (sku: string, quantity: number) => void
-    clearCart: () => void
-    getCartTotal: () => number
-    getCartItemCount: () => number
-}

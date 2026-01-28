@@ -6,14 +6,15 @@ export const STRINGS = {
         DELETE_CONFIRM: "Xác nhận xoá",
         DELETE: "Xóa",
         SUCCESS: "Thành công",
-        ERROR: "Lỗi"
+        ERROR: "Lỗi",
+        NOTIFICATION: "Thông báo"
     },
     NAVBAR: {
         HOME: "Trang chủ",
         LOGIN: "Đăng nhập",
         LOGOUT: "Đăng xuất",
         PROFILE: "Hồ sơ",
-        CART_EMPTY: "Giỏ hàng trống"
+        ORDER_HISTORY: "Lịch sử mua hàng"
     },
     AUTH: {
         LOGIN_TITLE: "Đăng nhập hệ thống",

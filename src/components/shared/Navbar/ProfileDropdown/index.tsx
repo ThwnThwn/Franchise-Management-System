@@ -9,6 +9,7 @@ import { RoleSlug } from "@/constants/enums"
 import { STRINGS } from "@/constants/strings"
 import { useLogout } from "@/features"
 import { useRouter } from "next/navigation"
+import { useTokenStore } from "@/hooks"
 
 type DropdownLinkItem = {
     key: string
@@ -59,7 +60,7 @@ export function ProfileDropdown({ onOpen = undefined }: { onOpen?: () => void })
     const router = useRouter()
     const logoutMutation = useLogout({ onSuccess: () => router.replace("/") })
 
-    // const { data: user, isLoading: isGetMeLoading, isError: isGetMeError } = useGetMe()
+    const roleSlug = useTokenStore((s) => s.roleSlug)
 
     const defaultItems: DropdownLinkItem[] = [
         {
@@ -73,7 +74,13 @@ export function ProfileDropdown({ onOpen = undefined }: { onOpen?: () => void })
         { key: "logout", label: STRINGS.NAVBAR.LOGOUT, color: "danger" }
     ]
 
-    const customerItems: DropdownLinkItem[] = []
+    const customerItems: DropdownLinkItem[] = [
+        {
+            key: "orders",
+            href: "/orders",
+            label: STRINGS.NAVBAR.ORDER_HISTORY
+        }
+    ]
 
     const adminItems: DropdownLinkItem[] = []
 
@@ -82,8 +89,7 @@ export function ProfileDropdown({ onOpen = undefined }: { onOpen?: () => void })
     const staffItems: DropdownLinkItem[] = []
 
     const dropdownItems = buildItems({
-        // roleSlug: user?.role?.name as RoleSlug | undefined,
-        roleSlug: undefined,
+        roleSlug: roleSlug || undefined,
         defaultItems,
         managerItems,
         adminItems,

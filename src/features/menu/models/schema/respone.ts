@@ -24,3 +24,9 @@ export type ProductSizeListItemDto = {
     basePrice: number
     isActive: boolean
 }
+
+export interface ProductAttribute {
+    key: string
+    value: string
+    originalKey: string
+}

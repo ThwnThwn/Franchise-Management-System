@@ -8,13 +8,13 @@ import { GetProductListItemDto } from "../models/schema/respone"
 import { useGetAllProducts } from "../hooks"
 import { SpinnerStyled } from "@/components"
 import { useLoginDiscloresureSingleton, useTokenStore } from "@/hooks"
+import { useDisclosure } from "@heroui/react"
 
 export default function MenuPage() {
     const { data: products, isLoading } = useGetAllProducts({})
     const [selectedProduct, setSelectedProduct] = useState<GetProductListItemDto | null>(null)
-    // const [isCartOpen, setIsCartOpen] = useState(false)
-    const isModalOpen = selectedProduct !== null
 
+    const { isOpen, onOpen, onOpenChange } = useDisclosure()
     const { onOpen: onOpenLogin } = useLoginDiscloresureSingleton()
     const isLogined = useTokenStore((s) => !!s.accessToken)
 
@@ -22,14 +22,17 @@ export default function MenuPage() {
         (product: GetProductListItemDto) => {
             if (!isLogined) {
                 onOpenLogin()
-            } else setSelectedProduct(product)
+            } else {
+                setSelectedProduct(product)
+                onOpen()
+            }
         },
-        [isLogined, onOpenLogin]
+        [isLogined, onOpen, onOpenLogin]
     )
 
-    const handleModalOpenChange = useCallback((open: boolean) => {
-        if (!open) setSelectedProduct(null)
-    }, [])
+    // const handleModalOpenChange = useCallback(() => {
+    //     if () setSelectedProduct(null)
+    // }, [])
 
     const isEmpty = !products || products.products == undefined || products.products.length === 0
     if (isLoading) return <SpinnerStyled />
@@ -106,8 +109,8 @@ export default function MenuPage() {
 
             <ProductVariantsModal
                 product={selectedProduct}
-                isOpen={isModalOpen}
-                onOpenChange={handleModalOpenChange}
+                isOpen={isOpen}
+                onOpenChange={onOpenChange}
             />
 
             {/* Cart Drawer */}

@@ -11,16 +11,13 @@ export function CardProductStyled({
 }: {
     getProductListItemDto: GetProductListItemDto
 }) {
-
     return (
         <CardStyled className="hover:shadow-xl interactive-scale w-xs" shadow="sm">
             <CardBody className="overflow-visible ">
                 <ImageStyled
                     alt={getProductListItemDto.name}
-                    className="object-cover h-47 shadow-lg w-auto"
+                    className="object-cover h-47 w-72 shadow-lg"
                     src={getProductListItemDto.imageUrl}
-                    width={300}
-                    height={188}
                 />
                 {getProductListItemDto.isActive === false && (
                     <span className="absolute top-3 right-3 bg-red-500 text-white px-3 py-1 text-xs rounded z-10">

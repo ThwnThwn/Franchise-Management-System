@@ -2,21 +2,20 @@ import React from "react"
 import Image from "next/image"
 import { cn } from "@heroui/react"
 import { TitleSkeleton } from "../SkeletonStyled"
+import { getPixelSizeFromClass } from "@/utils/helpers/uiHelper"
 
 export function ImageStyled({
     src,
     alt,
-    className,
-    width,
-    height
+    className
 }: {
     src?: string
     alt: string
     className?: string
-    width?: number
-    height?: number
 }) {
-    if (!src) return <TitleSkeleton className={`w-[${width}px] h-[${height}px]`} />
+    const { width, height } = getPixelSizeFromClass(className)
+
+    if (!src) return <TitleSkeleton className={className} />
     return (
         <Image
             alt={alt}

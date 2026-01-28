@@ -4,22 +4,28 @@ import React, { useState, useCallback } from "react"
 import { ModalBody, ModalContent, ModalHeader } from "@heroui/react"
 import { ModalStyled, ImageStyled, ButtonStyled, NumberInputStyled } from "@/components"
 import { formatCurrencyWithSymbol } from "@/utils/helpers/currency"
-import { useCart } from "@/features/cart"
+import { useCartStore } from "@/features/cart/store"
 import { GetProductListItemDto, ProductSizeListItemDto } from "../../models/schema/respone"
+import { parseAttributes } from "../../utils/utils"
 
 type ProductVariantsModalProps = {
     product: GetProductListItemDto | null
     isOpen: boolean
-    onOpenChange: (open: boolean) => void
+    onOpenChange: () => void
 }
 
 export function ProductVariantsModal({ product, isOpen, onOpenChange }: ProductVariantsModalProps) {
     const [selectedSize, setSelectedSize] = useState<ProductSizeListItemDto | null>(null)
     const [quantity, setQuantity] = useState<number>(1)
-    const { addItem } = useCart()
+    const addItem = useCartStore((state) => state.addItem)
+
+    const handleOpenChange = useCallback(() => {
+        setSelectedSize(null)
+        onOpenChange()
+    }, [onOpenChange])
 
     const handleClose = useCallback(() => {
-        onOpenChange(false)
+        onOpenChange()
         setSelectedSize(null)
         setQuantity(1)
     }, [onOpenChange])
@@ -49,7 +55,12 @@ export function ProductVariantsModal({ product, isOpen, onOpenChange }: ProductV
     const sizes = product.sizes?.filter((s) => s.isActive) ?? []
 
     return (
-        <ModalStyled isOpen={isOpen} onOpenChange={onOpenChange}>
+        <ModalStyled
+            isDismissable
+            id={selectedSize?.id}
+            isOpen={isOpen}
+            onOpenChange={handleOpenChange}
+        >
             <ModalContent className="max-w-md py-4">
                 <ModalHeader className="flex flex-col gap-1 pb-2">
                     <span className="text-lg font-semibold">{product.name}</span>
@@ -63,34 +74,50 @@ export function ProductVariantsModal({ product, isOpen, onOpenChange }: ProductV
                     <ImageStyled
                         alt={product.name}
                         src={product.imageUrl}
-                        className="object-cover rounded-xl w-full aspect-video"
-                        width={400}
-                        height={220}
+                        className="mx-auto w-96 h-48"
                     />
                     <div>
                         <p className="text-small text-default-500 mb-2">Chọn size</p>
                         <div className="flex flex-wrap gap-2">
-                            {sizes.map((size) => (
-                                <button
-                                    key={size.id}
-                                    type="button"
-                                    onClick={() => setSelectedSize(size)}
-                                    className={`rounded-xl border-2 px-4 py-2 text-left transition-colors ${selectedSize?.id === size.id
-                                        ? "border-primary bg-primary/10 text-primary"
-                                        : "border-default-200 hover:border-primary/50"
-                                        }`}
-                                >
-                                    <span className="font-medium">{size.name}</span>
-                                    {size.attributes && (
-                                        <span className="text-default-500 text-small block">
-                                            {size.attributes}
-                                        </span>
-                                    )}
-                                    <span className="text-primary font-semibold">
-                                        {formatCurrencyWithSymbol(size.basePrice)}
-                                    </span>
-                                </button>
-                            ))}
+                            {sizes
+                                .sort((a, b) => b.basePrice - a.basePrice)
+                                .map((size) => {
+                                    const attrs = parseAttributes(size.attributes)
+                                    return (
+                                        <ButtonStyled
+                                            key={size.id}
+                                            variant="ghost"
+                                            onPress={() => setSelectedSize(size)}
+                                            className={`flex flex-col min-h-fit w-full items-start px-4 py-2 ${
+                                                selectedSize?.id === size.id &&
+                                                "border-primary bg-primary/10 text-primary"
+                                            }`}
+                                        >
+                                            <div className="w-full flex justify-between">
+                                                <span className="font-medium">{size.sku}</span>
+                                                <span className="text-primary font-semibold">
+                                                    {formatCurrencyWithSymbol(size.basePrice)}
+                                                </span>
+                                            </div>
+                                            {size.attributes && (
+                                                <div className="flex gap-2">
+                                                    {attrs.map((attr) => (
+                                                        <span
+                                                            key={attr.originalKey}
+                                                            className="px-2 py-1 text-xs bg-gray-100 rounded text-gray-600"
+                                                        >
+                                                            {/* Hiển thị kiểu: Size: L */}
+                                                            <span className="font-semibold">
+                                                                {attr.key}:
+                                                            </span>{" "}
+                                                            {attr.value}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </ButtonStyled>
+                                    )
+                                })}
                         </div>
                     </div>
                     <div className="flex items-center justify-between gap-4">
@@ -106,7 +133,7 @@ export function ProductVariantsModal({ product, isOpen, onOpenChange }: ProductV
                         />
                     </div>
                     <ButtonStyled
-                        isDisabled={!selectedSize || quantity <= 0}
+                        isDisabled={!selectedSize?.id || quantity <= 0}
                         color="primary"
                         onPress={handleConfirm}
                         className="w-full"

@@ -1,11 +1,10 @@
 "use client"
 
+import React from "react"
 import { DropdownTrigger, DropdownMenu, DropdownItem } from "@heroui/react"
 import { DropdownStyled, ButtonIconStyled, ButtonStyled } from "@/components"
 import { ShoppingCart, X } from "lucide-react"
-import { STRINGS } from "@/constants/strings"
-import { useCart } from "@/features/cart"
-import { useCreateOrder } from "@/features/cart/hooks/useCreateOrder"
+import { CART_TEXT, useCart, useCreateOrder } from "@/features/cart"
 import { formatCurrencyWithSymbol } from "@/utils/helpers/currency"
 
 const TAX_RATE = 0.1 // 10% VAT
@@ -58,7 +57,7 @@ export function CartPopover() {
                         isDisabled
                         className="cursor-default justify-center py-4"
                     >
-                        {STRINGS.NAVBAR.CART_EMPTY}
+                        {CART_TEXT.labels.CART_EMPTY}
                     </DropdownItem>
                 ) : (
                     <>
@@ -72,7 +71,8 @@ export function CartPopover() {
                                     <div className="flex flex-col gap-0.5 flex-1">
                                         <span className="font-medium">{item.productName}</span>
                                         <span className="text-small text-default-500">
-                                            {item.sizeName && `Size ${item.sizeName}`} × {item.quantity} —{" "}
+                                            {item.sizeName && `Size ${item.sizeName}`} ×{" "}
+                                            {item.quantity} —{" "}
                                             {formatCurrencyWithSymbol(
                                                 item.basePrice * item.quantity
                                             )}

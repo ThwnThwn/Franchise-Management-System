@@ -3,15 +3,15 @@
 import React from "react"
 import { Badge } from "@heroui/react"
 import { ShoppingCart } from "lucide-react"
-import { useCart } from "../hooks/useCart"
 import { ButtonIconStyled } from "@/components"
+import { useCartStore } from "@/features/cart/store"
 
 interface CartButtonProps {
     onPress: () => void
 }
 
 export const CartButton: React.FC<CartButtonProps> = ({ onPress }) => {
-    const { itemCount } = useCart()
+    const itemCount = useCartStore((state) => state.count)
 
     return (
         <Badge content={itemCount} color="primary" isInvisible={itemCount === 0} shape="circle">

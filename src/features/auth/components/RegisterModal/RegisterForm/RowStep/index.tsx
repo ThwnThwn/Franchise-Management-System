@@ -1,6 +1,6 @@
 "use client"
 import { AUTH_TEXT } from "@/features/auth/constants"
-import RowSteps from "@/Modules/RowSteps"
+import RowSteps from "@/components/modules/RowSteps"
 import React from "react"
 
 interface RowStepProps {

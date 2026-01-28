@@ -3,10 +3,13 @@
 import React from "react"
 import { Card, CardBody, Input } from "@heroui/react"
 import { ButtonStyled } from "@/components"
+import MenuPage from "@/features/menu/pages/MenuPage"
 
 export default function Home() {
     return (
         <div className="p-10 gap-4 flex flex-col">
+            <MenuPage />
+
             {/* 1. Nút bấm */}
             <div className="flex gap-4">
                 <div className="flex gap-4 p-10 bg-background">

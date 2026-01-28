@@ -18,7 +18,7 @@ export const ordersApi = {
 
     createOrder: (req: CreateOrderRequest) =>
         requestWrapper<CreateOrderReply>(async () => {
-            const res = await axiosInstance.post("/orders", req)
+            const res = await axiosInstance.post("/orders/", req)
             return res.data
         })
 }
