@@ -10,7 +10,8 @@ var (
 	ErrInvalidId = errors.New("invalid id")
 
 	// 401
-	ErrInvalidToken = errors.New("invalid token")
+	ErrInvalidToken       = errors.New("invalid token")
+	ErrInvalidAccessToken = errors.New("invalid access token")
 
 	// 429
 	ErrOTPRateLimit       = errors.New("otp rate limit")
@@ -35,6 +36,11 @@ var InternalErrorMap = map[error]struct {
 		Status: http.StatusUnauthorized,
 		Title:  "Lỗi xác thực",
 		Detail: ErrInvalidToken.Error(),
+	},
+	ErrInvalidAccessToken: {
+		Status: http.StatusUnauthorized,
+		Title:  "Lỗi xác thực",
+		Detail: ErrInvalidAccessToken.Error(),
 	},
 	ErrOTPRateLimit: {
 		Status: http.StatusTooManyRequests,

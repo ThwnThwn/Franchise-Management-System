@@ -13,13 +13,13 @@ func ValidateToken(secret []byte) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			c.Error(errorcode.ErrInvalidToken)
+			c.Error(errorcode.ErrInvalidAccessToken)
 			c.Abort()
 			return
 		}
 
 		if !strings.HasPrefix(authHeader, "Bearer ") {
-			c.Error(errorcode.ErrInvalidToken)
+			c.Error(errorcode.ErrInvalidAccessToken)
 			c.Abort()
 			return
 		}
@@ -27,7 +27,7 @@ func ValidateToken(secret []byte) gin.HandlerFunc {
 		token := strings.TrimPrefix(authHeader, "Bearer ")
 		claims, err := jwtutils.ValidateToken(secret, token)
 		if err != nil {
-			c.Error(errorcode.ErrInvalidToken)
+			c.Error(errorcode.ErrInvalidAccessToken)
 			c.Abort()
 			return
 		}

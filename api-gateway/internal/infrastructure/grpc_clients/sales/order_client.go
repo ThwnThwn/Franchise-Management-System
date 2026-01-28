@@ -82,6 +82,7 @@ func (o *OrderGrpcClient) GetOrderById(ctx context.Context, id uuid.UUID) (*orde
 			Notes:         res.Order.Notes,
 			CreatedAt:     timeutils.StringToTime(res.Order.CreatedAt),
 			UpdatedAt:     timeutils.StringToTime(res.Order.UpdatedAt),
+			CustomerId:    res.Order.CustomerId,
 		},
 		Items: items,
 	}
@@ -114,7 +115,10 @@ func (o *OrderGrpcClient) GetMyOrders(ctx context.Context, req *order.GetMyOrder
 				PaidAt:        timeutils.StringToTime(o.PaidAt),
 				Notes:         o.Notes,
 				CreatedAt:     timeutils.StringToTime(o.CreatedAt),
-				UpdatedAt:     timeutils.StringToTime(o.UpdatedAt)},
+				UpdatedAt:     timeutils.StringToTime(o.UpdatedAt),
+
+				CustomerId: o.CustomerId,
+			},
 		})
 	}
 

@@ -21,6 +21,7 @@ type OrderHeader struct {
 	Notes         string    `json:"notes"`
 	CreatedAt     time.Time `json:"createdAt"`
 	UpdatedAt     time.Time `json:"updatedAt"`
+	CustomerId    string    `json:"customerId"`
 }
 
 type Order struct {
