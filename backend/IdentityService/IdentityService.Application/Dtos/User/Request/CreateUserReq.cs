@@ -20,10 +20,6 @@ namespace IdentityService.Application.Dtos.User.Request
         [MaxLength(50)]
         public string? LastName { get; set; }
 
-        [Required]
-        [MinLength(8)]
-        public string Password { get; set; } = null!;
-
         [MaxLength(100)]
         public string? Username { get; set; }
 
@@ -40,6 +36,7 @@ namespace IdentityService.Application.Dtos.User.Request
         [Required]
         public DateTime DateOfBirth { get; set; }
 
-        public Guid? RoleId { get; set; }
+        [Required]
+        public string RoleSlug { get; set; } = null!;
     }
 }

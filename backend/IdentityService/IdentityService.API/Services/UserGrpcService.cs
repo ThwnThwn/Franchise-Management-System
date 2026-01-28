@@ -12,6 +12,7 @@ using IdentityService.Grpc.Protos.User;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore.Storage.Json;
+using System.Globalization;
 
 namespace IdentityService.API.Services;
 public class UserGrpcService : UserGrpc.UserGrpcBase
@@ -25,17 +26,22 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
 
     public override async Task<UserResponse> CustomerCreate(CustomerCreateUserRequest request, ServerCallContext context)
     {
+        var dob = DateTime.ParseExact(
+                request.DateOfBirth,
+                "yyyy-MM-dd",
+                CultureInfo.InvariantCulture
+            );
         var rep = await _mediator.Send(new CustomerCreateUserCommand(new()
         {
             Email = request.Email,
-            Password = request.Password,
             Username = string.IsNullOrWhiteSpace(request.Username) ? null : request.Username,
             FirstName = request.FirstName,
             LastName = string.IsNullOrWhiteSpace(request.LastName) ? null : request.LastName,
             Gender = request.Gender,
-            DateOfBirth = request.DateOfBirth.ToDateTime(),
+            DateOfBirth = dob,
             Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone,
-            Address = string.IsNullOrWhiteSpace(request.Address) ? null : request.Address
+            Address = string.IsNullOrWhiteSpace(request.Address) ? null : request.Address,
+            RoleSlug = request.RoleSlug
         }));
 
         return MapUser(rep);
@@ -43,18 +49,22 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
 
     public override async Task<UserResponse> AdminCreate(AdminCreateUserRequest request, ServerCallContext context)
     {
+        var dob = DateTime.ParseExact(
+                request.DateOfBirth,
+                "yyyy-MM-dd",
+                CultureInfo.InvariantCulture
+            );
         var rep = await _mediator.Send(new AdminCreateUserCommand(new()
         {
             Email = request.Email,
-            Password = request.Password,
             Username = string.IsNullOrWhiteSpace(request.Username) ? null : request.Username,
             FirstName = request.FirstName,
             LastName = string.IsNullOrWhiteSpace(request.LastName) ? null : request.LastName,
             Gender = request.Gender,
-            DateOfBirth = request.DateOfBirth.ToDateTime(),
+            DateOfBirth = dob,
             Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone,
             Address = string.IsNullOrWhiteSpace(request.Address) ? null : request.Address,
-            RoleId = string.IsNullOrWhiteSpace(request.RoleId) ? null : Guid.Parse(request.RoleId)
+            RoleSlug = request.RoleSlug
         }));
 
         return MapUser(rep);
@@ -81,6 +91,11 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
 
     public override async Task<UserResponse> Update(UpdateUserRequest request, ServerCallContext context)
     {
+        var dob = DateTime.ParseExact(
+                request.DateOfBirth,
+                "yyyy-MM-dd",
+                CultureInfo.InvariantCulture
+            );
         var rep = await _mediator.Send(new UpdateUserCommand(
             Id: Guid.Parse(request.Id),
             Request: new()
@@ -90,11 +105,11 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
                 FirstName = request.FirstName,
                 LastName = string.IsNullOrWhiteSpace(request.LastName) ? null : request.LastName,
                 Gender = request.Gender,
-                DateOfBirth = request.DateOfBirth.ToDateTime(),
+                DateOfBirth = dob,
                 Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone,
                 Address = string.IsNullOrWhiteSpace(request.Address) ? null : request.Address,
                 IsBlocked = request.IsBlocked,
-                RoleId = string.IsNullOrWhiteSpace(request.RoleId) ? null : Guid.Parse(request.RoleId)
+                RoleSlug = request.RoleSlug
             }
         ));
 
