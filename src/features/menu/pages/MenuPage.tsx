@@ -2,7 +2,7 @@
 import React, { useState, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 
-import { CardProductStyled, ProductVariantsModal } from "../components"
+import { ProductCard, ProductVariantsModal } from "../components"
 import { MENU_ERRORS } from "../constants"
 import { GetProductListItemDto } from "../models/schema/respone"
 import { useGetAllProducts } from "../hooks"
@@ -38,7 +38,7 @@ export default function MenuPage() {
     if (isLoading) return <SpinnerStyled />
 
     return (
-        <div className="min-h-[80vh] max-w-7xl mx-auto p-6 text-center relative">
+        <div className="min-h-[80vh] max-w-7xl">
             {/* Cart Button - Fixed Position */}
             {/* {isLogined && (
                 <div className="fixed bottom-6 right-6 z-30">
@@ -91,15 +91,15 @@ export default function MenuPage() {
                                     role="button"
                                     tabIndex={0}
                                     onClick={() => handleOpenProduct(product)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === "Enter" || e.key === " ") {
-                                            e.preventDefault()
-                                            handleOpenProduct(product)
-                                        }
-                                    }}
+                                    // onKeyDown={(e) => {
+                                    //     if (e.key === "Enter" || e.key === " ") {
+                                    //         e.preventDefault()
+                                    //         handleOpenProduct(product)
+                                    //     }
+                                    // }}
                                     className="cursor-pointer"
                                 >
-                                    <CardProductStyled getProductListItemDto={product} />
+                                    <ProductCard getProductListItemDto={product} />
                                 </motion.div>
                             ))}
                         </motion.div>

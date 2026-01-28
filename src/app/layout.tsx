@@ -29,10 +29,10 @@ export default function RootLayout({
     return (
         <html lang="en" className={`${geistSans.variable} ${geistMono.variable} min-w-xs`}>
             <body
-                className="coffee-theme text-foreground bg-background antialiased 
+                className="coffee-theme text-foreground bg-background florage-background antialiased 
                 min-h-screen min-w-xs max-w-screen"
             >
-                <div className="min-h-screen flex flex-col items-center pt-25 mb-6">
+                <div className="min-h-screen flex flex-col items-center pt-25">
                     <ClientHydration>
                         <AppProviders>
                             <Navbar />

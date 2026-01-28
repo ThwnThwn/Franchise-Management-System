@@ -23,7 +23,7 @@ export const useLogin = ({
             onSuccess?.()
             addToast({
                 title: STRINGS.NOTIFICATION.SUCCESS,
-                description: STRINGS.NOTIFICATION.SUCCESS,
+                description: AUTH_TEXT.STRINGS.LOGIN_SUCCESS,
                 color: "success"
             })
         },

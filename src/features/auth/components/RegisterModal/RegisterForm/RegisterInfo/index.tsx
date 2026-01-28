@@ -3,7 +3,7 @@ import { ButtonStyled, ButtonToggleVisibility, DatePickerStyled, InputStyled } f
 import { DEFAULT_DATE_FORMAT } from "@/constants/constants"
 import { Gender } from "@/constants/enums"
 import { GenderLabels } from "@/constants/labels"
-import { EMAIL_REGEX, NAME_REGEX, PASSWORD_REGEX, PHONE_REGEX } from "@/constants/regexs"
+import { EMAIL_REGEX, NAME_REGEX, PHONE_REGEX } from "@/constants/regexs"
 import { AUTH_ERRORS, AUTH_TEXT } from "@/features/auth/constants"
 import { useRegister } from "@/features/auth/hooks"
 import { UserRegisterReq } from "@/features/auth/models/request"
@@ -59,10 +59,9 @@ export function Register({ email, setEmail, onSuccess }: RegisterInfoProps) {
             firstName: Yup.string()
                 .required(AUTH_ERRORS.AUTH.FIRST_NAME_REQUIRED)
                 .matches(NAME_REGEX, AUTH_ERRORS.AUTH.INVALID_FIRST_NAME),
-            password: Yup.string()
-                .required(AUTH_ERRORS.AUTH.PASSWORD_REQUIRED)
-                .min(8, AUTH_ERRORS.AUTH.PASSWORD_TOO_SHORT)
-                .matches(PASSWORD_REGEX, AUTH_ERRORS.AUTH.PASSWORD_MUST_STRONGER),
+            password: Yup.string().required(AUTH_ERRORS.AUTH.PASSWORD_REQUIRED),
+            // .min(8, AUTH_ERRORS.AUTH.PASSWORD_TOO_SHORT)
+            // .matches(PASSWORD_REGEX, AUTH_ERRORS.AUTH.PASSWORD_MUST_STRONGER),
             confirmPassword: Yup.string()
                 .oneOf([Yup.ref("password")], AUTH_ERRORS.AUTH.CONFIRM_PASSWORD_NOT_MATCHED)
                 .required(AUTH_ERRORS.AUTH.PASSWORD_REQUIRED),

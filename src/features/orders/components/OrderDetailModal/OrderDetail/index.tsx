@@ -18,8 +18,7 @@ export const OrderDetail = ({ order }: { order: Order }) => {
                         {ORDER_TEXT.labels.CUSTOMER}
                     </p>
                     <p className="font-semibold">
-                        {/* {order.customerId ? ORDER_TEXT.labels.MEMBER : ORDER_TEXT.labels.GUEST} */}
-                        {ORDER_TEXT.labels.MEMBER}
+                        {order.customerId ? ORDER_TEXT.labels.MEMBER : ORDER_TEXT.labels.GUEST}
                     </p>
                 </div>
                 <div>
