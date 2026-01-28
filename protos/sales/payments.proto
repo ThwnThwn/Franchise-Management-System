@@ -1,0 +1,21 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "SalesService.API";
+option go_package = "api-gateway/pkg/pb/sales";
+
+package payment;
+
+service PaymentGrpc {
+  // Tạo URL thanh toán VNPay cho một đơn hàng
+  rpc CreateVnPayPaymentUrl (CreateVnPayPaymentUrlRequest) returns (CreateVnPayPaymentUrlReply);
+}
+
+message CreateVnPayPaymentUrlRequest {
+  string order_id = 1;
+}
+
+message CreateVnPayPaymentUrlReply {
+  string payment_url = 1;
+}
+
+
