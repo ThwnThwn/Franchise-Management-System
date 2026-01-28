@@ -57,6 +57,34 @@ namespace IdentityService.Application.Helpers
             return tokenHandler.WriteToken(token);
         }
 
+        public string GenerateForgetPasswordToken(string email)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.UTF8.GetBytes(_secretKey);
+
+            var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.NameIdentifier, email),
+            new Claim(JwtRegisteredClaimNames.Sub, email),
+            new Claim("type", "forget-password")
+        };
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claims),
+                Expires = DateTime.UtcNow.AddMinutes(_accessTokenExpirationMinutes),
+                Issuer = _issuer,
+                Audience = _audience,
+                SigningCredentials = new SigningCredentials(
+                    new SymmetricSecurityKey(key),
+                    SecurityAlgorithms.HmacSha256Signature
+                )
+            };
+
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
+        }
+
         public (string RefreshToken, DateTime RefreshTokenExpiration) GenerateRefreshToken(Guid userId)
         {
             var refreshTokenExpiration = DateTime.UtcNow.AddDays(_refreshTokenExpirationDays);

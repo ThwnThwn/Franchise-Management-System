@@ -12,7 +12,11 @@ service AuthGrpc {
   rpc Register(RegisterRequest) returns (RegisterResponse);
   rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
   rpc Logout(LogoutRequest) returns (LogoutResponse);
-  rpc ConfirmOtp (ConfirmOtpRequest) returns (ConfirmOtpResponse);
+  rpc ConfirmRegisterOtp (ConfirmOtpRequest) returns (ConfirmOtpResponse);
+
+  rpc ForgetPassword(ForgetPasswordRequest) returns (RegisterResponse);
+  rpc ConfirmForgetPasswordOtp(ConfirmOtpRequest) returns (ConfirmOtpForgetPasswordOtpResponse);
+  rpc NewPassword(NewPasswordRequest) returns (ConfirmOtpResponse);
 }
 
 message LoginRequest {
@@ -68,4 +72,16 @@ message ConfirmOtpRequest {
 message ConfirmOtpResponse {
   bool success = 1;
   string message = 2;
+}
+
+message ForgetPasswordRequest{
+  string email = 1;
+}
+
+message ConfirmOtpForgetPasswordOtpResponse {
+  string accessForgetPasswordToken = 1;
+}
+
+message NewPasswordRequest{
+  string newPassword = 2;
 }
