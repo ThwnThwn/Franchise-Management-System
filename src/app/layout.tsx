@@ -4,6 +4,7 @@ import "./globals.css"
 import React from "react"
 import { AppProviders } from "@/providers"
 import { ClientHydration, Navbar, Modals } from "@/components"
+import Footer from "@/components/shared/Footer"
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -36,6 +37,7 @@ export default function RootLayout({
                         <AppProviders>
                             <Navbar />
                             {children}
+                            <Footer />
                             <Modals />
                         </AppProviders>
                     </ClientHydration>

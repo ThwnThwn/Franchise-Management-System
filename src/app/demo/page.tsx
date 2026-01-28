@@ -5,6 +5,7 @@ import React from "react"
 import ProfilePage from "../(private)/profile/page"
 import MenuPage from "@/features/menu/pages/MenuPage"
 import OrdersPage from "@/features/orders/pages/OrdersView"
+import CoffeeHome from "@/features/home/pages/HomeView"
 
 export default function Home() {
     // handle when log
@@ -64,9 +65,7 @@ export default function Home() {
         //     </NavbarStyled>
         // </div>
         <>
-            <ProfilePage />
-            <MenuPage />
-            <OrdersPage />
+            <CoffeeHome />
         </>
     )
 }
