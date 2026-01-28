@@ -38,10 +38,12 @@ run_sql_script() {
 create_db_safe "identity_db"
 create_db_safe "product_db"
 create_db_safe "sales_db"
+create_db_safe "inventory_db"
 
 run_sql_script "identity_db" "/docker-entrypoint-initdb.d/schemas/02-identity.sql"
 run_sql_script "product_db" "/docker-entrypoint-initdb.d/schemas/03-product.sql"
 run_sql_script "sales_db" "/docker-entrypoint-initdb.d/schemas/04-sales.sql"
+run_sql_script "inventory_db" "/docker-entrypoint-initdb.d/schemas/05-inventory.sql"
 
 # Seed Role + User
 run_sql_script "identity_db" "/docker-entrypoint-initdb.d/seeding/01-init-seeding-identity.sql"

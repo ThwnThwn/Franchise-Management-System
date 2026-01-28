@@ -1,8 +1,8 @@
-﻿using Application.Persistences.Caches;
-using IdentityService.Application.AppExceptions;
+﻿using IdentityService.Application.AppExceptions;
 using IdentityService.Application.Constants;
 using IdentityService.Application.Dtos.Auth.Response;
 using IdentityService.Application.ExternalServices;
+using IdentityService.Application.Persistences.Caches;
 using IdentityService.Application.Persistences.Repositories;
 using IdentityService.Domain.Entities;
 using MediatR;

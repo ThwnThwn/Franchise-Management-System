@@ -11,7 +11,6 @@ using SalesService.Application.Interfaces.Products;
 using SalesService.Application.Mapping.Orders;
 using SalesService.Infrastructure.ApplicationDbContext;
 using SalesService.Infrastructure.Interceptor;
-using SalesService.Infrastructure.Models;
 using SalesService.Infrastructure.Interceptor;
 
 namespace SalesService.API;

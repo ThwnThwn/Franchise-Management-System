@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Application.Persistences.Caches;
 using IdentityService.Application.AppConfigurations;
 using IdentityService.Application.Persistences.Caches;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
 
-namespace Infrastructure.Persistences.Caches;
+namespace IdentityService.Infrastructure.Persistences.Cache;
 
 public class OtpStore : IOtpStore
 {

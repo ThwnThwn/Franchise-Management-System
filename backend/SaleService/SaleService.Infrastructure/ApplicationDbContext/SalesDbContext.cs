@@ -5,10 +5,9 @@ using Microsoft.EntityFrameworkCore;
 using SalesService.Domain.Commons;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
-using SalesService.Infrastructure.ApplicationDbContext;
 using SalesService.Infrastructure.Interceptor;
 
-namespace SalesService.Infrastructure.Models;
+namespace SalesService.Infrastructure.ApplicationDbContext;
 
 public partial class SalesDbContext : DbContext, ISalesDbContext
 {
