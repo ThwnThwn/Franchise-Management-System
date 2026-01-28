@@ -17,8 +17,9 @@ type Config struct {
 	ProductServiceUrl  ProductServiceUrl
 	SalesServiceUrl    SalesServiceUrl
 
-	JwtRefreshTokenExpDays int
-	JwtSecret              string
+	JwtRefreshTokenExpDays          int
+	JwtSecret                       string
+	JwtAccessTokenExpirationMinutes int
 }
 
 type CalcServiceUrl string
@@ -46,8 +47,9 @@ func LoadConfig() *Config {
 		ProductServiceUrl:  ProductServiceUrl(getEnv("PRODUCT_SERVICE_URL", "localhost:5002")),
 		SalesServiceUrl:    SalesServiceUrl(getEnv("SALES_SERVICE_URL", "localhost:5003")),
 
-		JwtRefreshTokenExpDays: getEnvInt("JWT_REFRESH_TOKEN_EXPIRATION_DAYS", 7),
-		JwtSecret:              getEnv("JWT_SECRET", ""),
+		JwtRefreshTokenExpDays:          getEnvInt("JWT_REFRESH_TOKEN_EXPIRATION_DAYS", 7),
+		JwtSecret:                       getEnv("JWT_SECRET", ""),
+		JwtAccessTokenExpirationMinutes: getEnvInt("JWT_ACCESS_TOKEN_EXPIRATION_MINUTES", 15),
 	}
 }
 

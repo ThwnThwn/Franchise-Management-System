@@ -17,7 +17,7 @@ func (u *UserRouter) NewUserRouter(cfg *config.Config,
 	userApi := r.Group("/users")
 
 	accessTokenSecret := cfg.JwtSecret
-	privateApi := userApi.Group("/")
+	privateApi := userApi.Group("")
 	privateApi.Use(middleware.ValidateToken([]byte(accessTokenSecret)))
 	{
 		privateApi.GET("/me", userHander.GetMe)
