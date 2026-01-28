@@ -35,7 +35,7 @@ public class EmailService : IEmailService
             <!-- Logo / Title -->
             <div style='text-align: center; margin-bottom: 25px;'>
                 <h1 style='margin: 0; font-size: 28px; color: #4b2e2a;'>
-                    ☕ Cà Hong bạn
+                     Cà Hong bạn
                 </h1>
                 <p style='margin: 6px 0 0; font-size: 13px; color: #a67c52;'>
                     A warm cup. A safe login.
@@ -80,7 +80,7 @@ public class EmailService : IEmailService
             <!-- Footer -->
             <div style='margin-top: 35px; text-align: center; font-size: 12px; color: #aaa;'>
                 <p style='margin: 0;'>
-                    Cà Hông Bạn — brewed with care ☕
+                    Cà Hông Bạn — brewed with care 
                 </p>
                 <p style='margin: 5px 0 0;'>
                     © {DateTime.Now.Year}
