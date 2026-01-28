@@ -2,6 +2,7 @@
 using MediatR;
 using SalesService.Application.Interfaces.Orders;
 using SalesService.Domain.Entities;
+using SalesService.Domain.Enums;
 
 namespace SalesService.Application.Features.Orders.GetById;
 
@@ -46,7 +47,7 @@ public sealed class GetOrderByIdQueryHandler
             TotalAmount = order.TotalAmount,
             PaidAmount = order.PaidAmount,
             PaymentMethod = order.PaymentMethod.HasValue
-                ? (int)order.PaymentMethod.Value
+                ? (PaymentMethod?)order.PaymentMethod.Value
                 : null,
             Status = (int)order.Status,
             PaidAt = order.PaidAt,

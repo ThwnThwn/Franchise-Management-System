@@ -1,6 +1,7 @@
 ﻿
 using Ardalis.Result;
 using MediatR;
+using SalesService.Domain.Enums;
 
 namespace SalesService.Application.Features.Orders.GetById
 {
@@ -16,7 +17,7 @@ namespace SalesService.Application.Features.Orders.GetById
             public decimal Tax { get; set; }
             public decimal TotalAmount { get; set; }
             public decimal? PaidAmount { get; set; }
-            public int? PaymentMethod { get; set; }
+            public PaymentMethod? PaymentMethod { get; set; }
             public int Status { get; set; }
             public DateTimeOffset PaidAt { get; set; } 
             public string? Notes { get; set; }

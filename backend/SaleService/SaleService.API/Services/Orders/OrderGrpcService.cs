@@ -102,7 +102,7 @@ public override async Task<GetOrderByIdReply> GetOrderById(
         PaidAmount = dto.PaidAmount.HasValue
             ? (double)dto.PaidAmount.Value
             : 0,
-        PaymentMethod = dto.PaymentMethod ?? 0,
+        PaymentMethod = dto.PaymentMethod.HasValue ? (int)dto.PaymentMethod.Value : 0,
         Status = dto.Status,
         PaidAt = dto.PaidAt.ToString("O"),
         Notes = dto.Notes ?? string.Empty,
