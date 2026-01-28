@@ -29,23 +29,23 @@ public class ConfirmNewPasswordCommandHandler
     public async Task<ConfirmOtpForgetPasswordOtpRep> Handle(ConfirmNewPasswordCommand command, CancellationToken cancellationToken)
     {
         var request = command.Request;
-
-        var attemptCount = await _otpStore.GetOtpAttemptCountAsync(request.Email, "forgetpassword");
+        var forgetPassword = "forget-password";
+        var attemptCount = await _otpStore.GetOtpAttemptCountAsync(request.Email, forgetPassword);
 
         if (attemptCount >= 5)
         {
-            await _otpStore.RemoveOTPAsync(request.Email, "forgetpassword");
+            await _otpStore.RemoveOTPAsync(request.Email, forgetPassword);
             await _otpStore.RemoveForgetPasswordDataAsync(request.Email);
-            await _otpStore.ResetOtpAttemptAsync(request.Email, "forgetpassword");
+            await _otpStore.ResetOtpAttemptAsync(request.Email, forgetPassword);
 
             throw new BusinessException("Too many failed attempts. Please request a new OTP.");
         }
 
-        var storedOtp = await _otpStore.GetOtpAsync(request.Email, "forgetpassword");
+        var storedOtp = await _otpStore.GetOtpAsync(request.Email, forgetPassword);
 
         if (storedOtp == null || storedOtp != request.Otp)
         {
-            await _otpStore.IncrementOtpAttemptAsync(request.Email, "forgetpassword");
+            await _otpStore.IncrementOtpAttemptAsync(request.Email, forgetPassword);
 
             var remainingAttempts = 5 - (attemptCount + 1);
 
@@ -66,9 +66,9 @@ public class ConfirmNewPasswordCommandHandler
 
         var accessToken = _jwtHelper.GenerateForgetPasswordToken(request.Email);
 
-        await _otpStore.RemoveOTPAsync(request.Email, "forgetpassword");
+        await _otpStore.RemoveOTPAsync(request.Email, forgetPassword);
         await _otpStore.RemoveForgetPasswordDataAsync(request.Email);
-        await _otpStore.ResetOtpAttemptAsync(request.Email, "forgetpassword");
+        await _otpStore.ResetOtpAttemptAsync(request.Email, forgetPassword);
 
         return new ConfirmOtpForgetPasswordOtpRep
         {

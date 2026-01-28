@@ -29,9 +29,9 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, RegisterR
     public async Task<RegisterRep> Handle(RegisterCommand command, CancellationToken cancellationToken)
     {
         var request = command.Request;
-
+        var register = "register";
         // RATE LIMITING: Check if OTP was sent recently (within 5 minutes)
-        var lastOtpTime = await _otpStore.GetLastOtpRequestTimeAsync(request.Email, "register");
+        var lastOtpTime = await _otpStore.GetLastOtpRequestTimeAsync(request.Email, register);
         if (lastOtpTime.HasValue)
         {
             var timeSinceLastRequest = DateTimeOffset.UtcNow - lastOtpTime.Value;
@@ -84,13 +84,13 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, RegisterR
 
         await _otpStore.SaveRegistrationDataAsync(request.Email, registrationDataJson);
 
-        await _otpStore.SaveOTPAsyns(request.Email,otp, "register");
+        await _otpStore.SaveOTPAsyns(request.Email,otp, register);
 
         // Save the time when OTP was sent for rate limiting
-        await _otpStore.SaveLastOtpRequestTimeAsync(request.Email, DateTimeOffset.UtcNow, "register");
+        await _otpStore.SaveLastOtpRequestTimeAsync(request.Email, DateTimeOffset.UtcNow, register);
 
         // Reset attempt count when new OTP is sent
-        await _otpStore.ResetOtpAttemptAsync(request.Email, "register");
+        await _otpStore.ResetOtpAttemptAsync(request.Email, register);
 
         await _emailService.SendOtpEmailAsync(request.Email, otp);
 
