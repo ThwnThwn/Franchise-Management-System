@@ -37,7 +37,8 @@ namespace SalesService.Application.Features.Orders.Queries.GetMyOrders
                 o.PaidAt,
                 o.Notes,
                 o.CreatedAt,
-                o.UpdatedAt
+                o.UpdatedAt,
+                o.CustomerId
             )).ToList();
             return new GetMyOrdersResponse(orderDtos, totalCount);
         }

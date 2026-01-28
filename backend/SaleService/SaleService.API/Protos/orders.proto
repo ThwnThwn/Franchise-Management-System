@@ -92,4 +92,5 @@ message OrderSummary {
   string notes = 10;
   string created_at = 11;
   string updated_at = 12;
+  string customer_id = 13;
 }
