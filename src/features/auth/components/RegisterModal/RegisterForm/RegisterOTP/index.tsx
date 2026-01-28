@@ -4,6 +4,7 @@ import { AUTH_ERRORS, AUTH_TEXT } from "@/features/auth/constants"
 import { useRegisterVerify } from "@/features/auth/hooks"
 import { InputOtp } from "@heroui/react"
 import { useFormik } from "formik"
+import { useRouter } from "next/navigation"
 import React, { useCallback } from "react"
 import * as Yup from "yup"
 
@@ -13,8 +14,15 @@ interface RegisterOTPProps {
     onSuccess?: () => void
 }
 
-export function RegisterOTP({ email, onBack, onSuccess }: RegisterOTPProps) {
-    const registerVerifyMutation = useRegisterVerify({ onSuccess })
+export function RegisterOTP({ email, onBack }: RegisterOTPProps) {
+    const router = useRouter()
+
+    const goToHome = () => {
+        // Lưu ý: (public) là Route Group nên nó bị lược bỏ khỏi URL
+        router.push("/demo")
+    }
+
+    const registerVerifyMutation = useRegisterVerify({ onSuccess: goToHome })
 
     const handleRegisterVerify = useCallback(
         async (values: { otp: string; email: string }) => {
