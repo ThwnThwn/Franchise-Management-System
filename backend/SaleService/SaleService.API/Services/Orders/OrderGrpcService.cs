@@ -107,7 +107,8 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             PaidAt = dto.PaidAt.ToString("O"),
             Notes = dto.Notes ?? string.Empty,
             CreatedAt = dto.CreatedAt.ToString("O"),
-            UpdatedAt = dto.UpdatedAt.ToString("O")
+            UpdatedAt = dto.UpdatedAt.ToString("O"),
+            CustomerId = dto.CustomerId.ToString(),
         };
 
         orderMessage.Items.AddRange(dto.Items.Select(i => new OrderItem

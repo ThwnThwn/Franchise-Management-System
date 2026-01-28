@@ -56,7 +56,8 @@ message Order {
   string notes = 10;
   string created_at = 11;
   string updated_at = 12;
-  repeated OrderItem items = 13;
+  string customer_id = 13;
+  repeated OrderItem items = 14;
 }
 
 message OrderItem {
