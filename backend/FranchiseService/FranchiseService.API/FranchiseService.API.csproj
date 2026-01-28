@@ -7,16 +7,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Protos\calc.proto" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Protobuf Include="Protos\calc.proto" GrpcServices="Server" />
-    <Protobuf Include="Protos\greet.proto" GrpcServices="Server" />
-  </ItemGroup>
+    <Protobuf Include="..\..\..\protos\franchise\*.proto" GrpcServices="Server" ProtoRoot="..\..\..\protos" />
+	</ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Grpc.AspNetCore" Version="2.57.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Services\" />
   </ItemGroup>
 
 </Project>

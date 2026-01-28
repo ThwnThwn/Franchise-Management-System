@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option csharp_namespace = "CalcService.API";
+option csharp_namespace = "FranchiseService.API";
 
 package greet;
 
