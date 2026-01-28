@@ -8,5 +8,6 @@ import (
 )
 
 type IUserService interface {
-	GetUserById(ctx context.Context, id uuid.UUID) (*user.UserResponse, error)
+	GetById(ctx context.Context, id uuid.UUID) (*user.UserResponse, error)
+	Update(ctx context.Context, req *user.UpdateUserRequest) (*user.UserResponse, error)
 }
