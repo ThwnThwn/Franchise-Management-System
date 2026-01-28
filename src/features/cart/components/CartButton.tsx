@@ -16,7 +16,6 @@ export const CartButton: React.FC<CartButtonProps> = ({ onPress }) => {
     return (
         <Badge content={itemCount} color="primary" isInvisible={itemCount === 0} shape="circle">
             <ButtonIconStyled
-                variant="flat"
                 color="primary"
                 onPress={onPress}
                 className="relative"

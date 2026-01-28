@@ -4,13 +4,19 @@ import React from "react"
 import { DropdownTrigger, DropdownMenu, DropdownItem } from "@heroui/react"
 import { DropdownStyled, ButtonIconStyled, ButtonStyled } from "@/components"
 import { ShoppingCart, X } from "lucide-react"
-import { CART_TEXT, useCart, useCreateOrder } from "@/features/cart"
+import { CART_TEXT, useCartStore } from "@/features/cart"
 import { formatCurrencyWithSymbol } from "@/utils/helpers/currency"
+import { useCreateOrder } from "@/features"
 
 const TAX_RATE = 0.1 // 10% VAT
 
 export function CartPopover() {
-    const { items, total, itemCount, removeItem } = useCart()
+    // const { items, total, itemCount, removeItem } = useCart()
+    const items = useCartStore((state) => state.items)
+    const total = useCartStore((state) => state.total)
+    const itemCount = useCartStore((state) => state.count)
+    const removeItem = useCartStore((state) => state.removeItem)
+
     const createOrderMutation = useCreateOrder()
     const isEmpty = items.length === 0
 
