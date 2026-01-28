@@ -1,5 +1,6 @@
 ﻿using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
+using IdentityService.Application.Dtos.Auth.Request;
 using IdentityService.Application.Features.Auth.Commands.ConfirmNewPassword;
 using IdentityService.Application.Features.Auth.Commands.ConfirmOtp;
 using IdentityService.Application.Features.Auth.Commands.ForgetPassword;
@@ -7,6 +8,7 @@ using IdentityService.Application.Features.Auth.Commands.Login;
 using IdentityService.Application.Features.Auth.Commands.Logout;
 using IdentityService.Application.Features.Auth.Commands.NewPassword;
 using IdentityService.Application.Features.Auth.Commands.Register;
+using IdentityService.Application.Features.Auth.Commands.ReSendOtp;
 using IdentityService.Application.Features.Auth.Commands.TokenRefresh;
 using IdentityService.Grpc.Protos.Auth;
 using IdentityService.Grpc.Protos.User;
@@ -182,7 +184,21 @@ public class AuthGrpcService : AuthGrpc.AuthGrpcBase
         };
     }
 
-
+    public override async Task<ReSendOtpResponse> ReSendOtp(ReSendOtpRequest request, ServerCallContext context)
+    {
+        var command = new ReSendOtpCommand(
+            new ReSendOtpReq
+            {
+                Email = request.Email,
+                Purpose = request.Type
+            }
+        );
+        await _mediator.Send(command);
+        return new ReSendOtpResponse
+        {
+            Message = "OTP has been resent successfully"
+        };
+    }
     private static UserResponse MapUser(Application.Dtos.User.Respone.UserRep user)
     {
         return new UserResponse

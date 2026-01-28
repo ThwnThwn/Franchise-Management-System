@@ -17,6 +17,8 @@ service AuthGrpc {
   rpc ForgetPassword(ForgetPasswordRequest) returns (RegisterResponse);
   rpc ConfirmForgetPasswordOtp(ConfirmOtpRequest) returns (ConfirmOtpForgetPasswordOtpResponse);
   rpc NewPassword(NewPasswordRequest) returns (ConfirmOtpResponse);
+
+  rpc ReSendOtp(ReSendOtpRequest) returns (ReSendOtpResponse);
 }
 
 message LoginRequest {
@@ -84,4 +86,13 @@ message ConfirmOtpForgetPasswordOtpResponse {
 
 message NewPasswordRequest{
   string newPassword = 2;
+}
+
+message ReSendOtpRequest{
+  string email = 1;
+  string type = 2;
+}
+
+message ReSendOtpResponse{
+  string message = 1;
 }

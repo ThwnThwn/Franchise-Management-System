@@ -1,5 +1,6 @@
 ﻿using Application.Persistences.Caches;
 using IdentityService.Application.AppExceptions;
+using IdentityService.Application.Constants;
 using IdentityService.Application.Dtos.Auth.Request;
 using IdentityService.Application.ExternalServices;
 using IdentityService.Application.Persistences.Repositories;
