@@ -1,0 +1,37 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace FranchiseService.Domain.Enums
+{
+    public enum StoreType
+    {
+        CompanyOwned = 0, // Của công ty mẹ
+        Franchise = 1     // Nhượng quyền
+    }
+
+    public enum StoreStatus
+    {
+        ComingSoon = 0,
+        Open = 1,
+        Closed = 2,
+        Renovating = 3 // Đang sửa chữa
+    }
+
+    public enum ScheduleStatus
+    {
+        Draft = 0,      // Nháp
+        Published = 1,  // Đã chốt
+        Cancelled = 2   // Đã hủy
+    }
+
+    public enum TimeLogStatus
+    {
+        Processing = 0, // Đang làm
+        Valid = 1,      // Hợp lệ
+        Invalid = 2,    // Lỗi/Quên checkout
+        Approved = 3    // Đã duyệt
+    }
+}
