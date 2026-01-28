@@ -19,19 +19,14 @@ func NewProductHandler(productUC abstractions.IProductUseCase) *ProductHandler {
 }
 
 func (h *ProductHandler) GetProducts(c *gin.Context) {
-	categoryId := c.Query("categoryId")
-	if categoryId != "" {
-		_, err := uuid.Parse(categoryId)
-		if err != nil {
-			c.Error(errorcode.ErrInvalidId)
-			return
-		}
+	var req product.GetProductsRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		c.Error(err)
+		return
 	}
 
 	ctx := c.Request.Context()
-	res, err := h.productUC.GetProducts(ctx, &product.GetProductsRequest{
-		CategoryId: categoryId,
-	})
+	res, err := h.productUC.GetProducts(ctx, &req)
 	if err != nil {
 		c.Error(err)
 		return

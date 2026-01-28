@@ -23,6 +23,7 @@ func (a *OrderRouter) NewOrderRouter(cfg *config.Config,
 	privateApi := orderApi.Group("/")
 	privateApi.Use(middleware.ValidateToken([]byte(accessTokenSecret)))
 	{
+		privateApi.GET("/me", orderHandler.GetMyOrders)
 		privateApi.POST("/", orderHandler.CreateOrder)
 	}
 }
