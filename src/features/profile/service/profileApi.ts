@@ -11,7 +11,7 @@ export const profileApi = {
     getMe: () =>
         requestWrapper<UserProfileViewRes>(async () => {
             try {
-                const res = await axiosInstance.get("/me")
+                const res = await axiosInstance.get("/users/me")
                 return res.data
             } catch (error: unknown) {
                 if (axios.isAxiosError(error)) {
@@ -33,6 +33,6 @@ export const profileApi = {
 
     updateMe: (req: UserUpdateReq) =>
         requestWrapper<void>(async () => {
-            await axiosInstance.patch("/me", req)
+            await axiosInstance.patch("/users/me", req)
         })
 }

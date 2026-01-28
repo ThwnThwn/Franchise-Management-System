@@ -46,7 +46,7 @@ export default function MenuPage() {
                 </div>
             )} */}
 
-            <div className="mt-10">
+            <div className="mt-10 flex justify-center">
                 <AnimatePresence mode="wait">
                     {isEmpty ? (
                         <motion.div
@@ -75,7 +75,7 @@ export default function MenuPage() {
                                     }
                                 }
                             }}
-                            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
+                            className="w-fit grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
                         >
                             {products.products.map((product) => (
                                 <motion.div

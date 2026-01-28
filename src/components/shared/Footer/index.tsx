@@ -32,7 +32,7 @@ const Footer = () => {
     }
 
     return (
-        <footer className="bg-[#0f0d0c] w-full text-stone-400 pt-24 pb-12 px-8 border-t border-stone-900">
+        <footer className="bg-[#0f0d0c] w-full text-stone-400 mt-20 pt-24 pb-12 px-8 border-t border-stone-900">
             <motion.div
                 max-w-7xl
                 mx-auto

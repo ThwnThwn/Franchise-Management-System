@@ -2,12 +2,7 @@
 import React, { useState, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useDisclosure } from "@heroui/react"
-import {
-    CardProductStyled,
-    MENU_ERRORS,
-    ProductVariantsModal,
-    useGetAllProducts
-} from "@/features/menu"
+import { MENU_ERRORS, ProductCard, ProductVariantsModal, useGetAllProducts } from "@/features/menu"
 import { GetProductListItemDto } from "@/features/menu/models/schema/respone"
 import { useLoginDiscloresureSingleton, useTokenStore } from "@/hooks"
 import { SpinnerStyled } from "@/components"
@@ -105,26 +100,22 @@ const CoffeeHome = () => {
                                     transition: { staggerChildren: 0.1 }
                                 }
                             }}
-                            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
+                            className="max-w-fit grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
                         >
-                            {products.slice(0, 6).map(
-                                (
-                                    product // Chỉ lấy 6 món nổi bật cho trang Home
-                                ) => (
-                                    <motion.div
-                                        key={product.id}
-                                        variants={{
-                                            hidden: { opacity: 0, y: 20 },
-                                            visible: { opacity: 1, y: 0 }
-                                        }}
-                                        whileHover={{ y: -8, transition: { duration: 0.3 } }}
-                                        onClick={() => handleOpenProduct(product)}
-                                        className="cursor-pointer"
-                                    >
-                                        <CardProductStyled getProductListItemDto={product} />
-                                    </motion.div>
-                                )
-                            )}
+                            {products.map((product) => (
+                                <motion.div
+                                    key={product.id}
+                                    variants={{
+                                        hidden: { opacity: 0, y: 20 },
+                                        visible: { opacity: 1, y: 0 }
+                                    }}
+                                    whileHover={{ y: -8, transition: { duration: 0.3 } }}
+                                    onClick={() => handleOpenProduct(product)}
+                                    className="cursor-pointer"
+                                >
+                                    <ProductCard getProductListItemDto={product} />
+                                </motion.div>
+                            ))}
                         </motion.div>
                     )}
                 </AnimatePresence>
