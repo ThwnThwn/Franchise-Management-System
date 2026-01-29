@@ -43,7 +43,7 @@ service FranchiseGrpcService {
 
 // Request lấy danh sách
 message GetStoresRequest {
-  int32 page_index = 1;
+  int32 page = 1;
   int32 page_size = 2;
   string keyword = 3; // Tìm theo tên
 }
