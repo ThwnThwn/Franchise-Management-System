@@ -17,4 +17,10 @@ namespace SalesService.Application.Dtos.Inventory
         public Guid VariantId { get; set; }
         public int Amount { get; set; }
     }
+
+    public class CheckEnoughStockReq
+    {
+        public Guid StoreId { get; set; }
+        public IEnumerable<AmountVariant> CheckItems { get; set; } = new List<AmountVariant>();
+    }
 }

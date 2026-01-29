@@ -18,7 +18,7 @@ namespace InventoryService.Application.Features.StoreIngredient.Commands.CheckEn
         public async Task<CheckEnoughStockRes> Handle(CheckEnoughStockCommand command, CancellationToken cancellationToken)
         {
             var response = new CheckEnoughStockRes { IsEnough = true };
-            var shortageItems = new List<ShortageItem>();
+            var shortageItems = new List<AmountVariant>();
             var request = command.Request;
             // 1. Lấy danh sách VariantIds từ request
             var variantIds = request.CheckItem.Select(x => x.VariantId).ToList();
@@ -58,10 +58,10 @@ namespace InventoryService.Application.Features.StoreIngredient.Commands.CheckEn
                 if (maxPossible < item.Amount)
                 {
                     response.IsEnough = false;
-                    shortageItems.Add(new ShortageItem
+                    shortageItems.Add(new AmountVariant
                     {
                         VariantId = item.VariantId,
-                        MaxFeasibleQuantity = (int)maxPossible // Trả về số lượng tối đa có thể pha (ví dụ: 3)
+                        Amount = (int)maxPossible // Trả về số lượng tối đa có thể pha (ví dụ: 3)
                     });
                 }
 

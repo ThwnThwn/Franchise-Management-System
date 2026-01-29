@@ -31,8 +31,5 @@
     <ProjectReference Include="..\InventoryService.Infrastructure\InventoryService.Infrastructure.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Protobuf Include="Protos\inventory.proto" GrpcServices="Client" />
-  </ItemGroup>
 
 </Project>
