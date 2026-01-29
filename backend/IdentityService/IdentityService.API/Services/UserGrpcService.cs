@@ -87,15 +87,14 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
     }
     public override async Task<GetAllUserOrWithRoleResponse> GetAll(GetAllUserOrWithRoleRequest request, ServerCallContext context)
     {
-        var pagedResult = await _mediator.Send(
-            new GetAllUsersQuery()
-            {
-                RoleSlug = request.RoleSlug,
-                Keyword = request.Keyword,
-                Page = request.Page,
-                PageSize = request.PageSize
-            }
-        );
+        var query = new GetAllUsersQuery()
+        {
+            RoleSlug = request.RoleSlug,
+            Keyword = request.Keyword,
+            Page = request.Page,
+            PageSize = request.PageSize
+        };
+        var pagedResult = await _mediator.Send(query);
 
         var res = new GetAllUserOrWithRoleResponse
         {
