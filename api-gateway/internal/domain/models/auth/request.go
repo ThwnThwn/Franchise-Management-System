@@ -31,3 +31,12 @@ type LogoutRequest struct {
 	AccessToken  string `json:"accessToken" binding:"required"`
 	RefreshToken string `json:"refreshToken" binding:"required"`
 }
+
+type SendOtpRequest struct {
+	Email string `json:"email" binding:"required"`
+}
+
+type NewPasswordRequest struct {
+	NewPassword     string `json:"newPassword" binding:"required"`
+	ConfirmPassword string `json:"confirmPassword" binding:"required,eqfield=NewPassword"`
+}
