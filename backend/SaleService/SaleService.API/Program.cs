@@ -18,6 +18,9 @@ using SalesService.Infrastructure.Extensions;
 using SalesService.Infrastructure.Interceptor;
 using SalesService.Infrastructure.Models;
 using SalesService.Infrastructure.Repositories.Orders;
+using SalesService.Application.Interfaces.CartItems;
+using SalesService.Infrastructure.Repositories.CartItems;
+using SalesService.API.Services.CartItems;
 
 namespace SalesService.API;
 
@@ -102,6 +105,7 @@ public class Program
         // Register repositories
         builder.Services.AddScoped<IOrderRepository, OrderRepository>();
         builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+        builder.Services.AddScoped<ICartItemRepository, CartItemRepository>();
 
         // Register ProductService gRPC client
         builder.Services.AddSingleton<IProductServiceClient, ProductServiceClient>();
@@ -146,6 +150,7 @@ public class Program
         app.MapControllers();
         app.MapGrpcService<OrderGrpcService>();
         app.MapGrpcService<PaymentGrpcService>();
+        app.MapGrpcService<CartItemGrpcService>();
         app.MapGrpcReflectionService(); // Enable gRPC Server Reflection endpoint
         app.MapGet("/", () => "Sale Service API is running. Visit /swagger for API documentation.");
 

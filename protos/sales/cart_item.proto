@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+package sales.cart;
+
+service CartItemGrpc {
+    rpc AddToCart(AddToCartRequest) returns (CartItemReply);
+    rpc UpdateCartItem(UpdateCartItemRequest) returns (CartItemReply);
+    rpc DeleteListCartItem(DeleteListCartItemRequest) returns (BoolReply);
+    rpc GetCartItems(google.protobuf.Empty) returns (CartItemListReply);
+
+    rpc ClearCart(google.protobuf.Empty) returns (BoolReply);
+}
+
+message AddToCartRequest {
+  string sku = 1;
+  int32 quantity = 2;
+  double basePrice = 3;
+}
+
+message UpdateCartItemRequest {
+  string sku = 1;
+  int32 quantity = 2;
+}
+
+message DeleteListCartItemRequest {
+  repeated string skus = 1;
+}
+
+message CartItemReply {
+  string id = 1;
+  string sku = 2;
+  string customerId = 3;
+  int32 quantity = 4;
+  double basePrice = 5;
+}
+
+message CartItemListReply {
+  repeated CartItemReply items = 1;
+}
+
+message BoolReply {
+  bool success = 1;
+}

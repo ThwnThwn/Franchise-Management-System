@@ -1,13 +1,26 @@
 ﻿CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+-- 0. Cart Items
+CREATE TABLE IF NOT EXISTS cart_items (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    sku VARCHAR(100) NOT NULL,
+    quantity INT NOT NULL CHECK (quantity > 0),
+    base_price DECIMAL(12,3) NOT NULL,
 
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+
+    customer_id UUID
+);
+CREATE UNIQUE INDEX idx_cart_items_customer_sku ON cart_items(customer_id, sku) WHERE customer_id IS NOT NULL;
+CREATE INDEX idx_cart_items_customer_created ON cart_items (customer_id ASC, created_at DESC) WHERE customer_id IS NOT NULL;
 -- 1. Orders
 CREATE TABLE IF NOT EXISTS orders (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     code VARCHAR(50) NOT NULL, 
-    subtotal DECIMAL(12,2) NOT NULL,
-    tax DECIMAL(12,2) NOT NULL DEFAULT 0,
-    total_amount DECIMAL(12,2) NOT NULL,
-    paid_amount DECIMAL(12,2),
+    subtotal DECIMAL(12,3) NOT NULL,
+    tax DECIMAL(12,3) NOT NULL DEFAULT 0,
+    total_amount DECIMAL(12,3) NOT NULL,
+    paid_amount DECIMAL(12,3),
     
     payment_method INT, -- 0: Cash, 1: VNPay
     status INT NOT NULL DEFAULT 0, -- Pending, Paid, Cancelled
@@ -29,7 +42,7 @@ CREATE TABLE IF NOT EXISTS order_items (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     
     quantity INT NOT NULL CHECK (quantity > 0),
-    unit_price DECIMAL(12,2) NOT NULL,
+    unit_price DECIMAL(12,3) NOT NULL,
 
     product_name VARCHAR(255) NOT NULL,
     sku VARCHAR(100) NOT NULL,
@@ -52,7 +65,7 @@ CREATE TABLE IF NOT EXISTS payments (
     order_id UUID NOT NULL,
     CONSTRAINT fk_payments_order FOREIGN KEY (order_id) REFERENCES orders(id),
     code VARCHAR(50) NOT NULL, 
-    amount DECIMAL(12,2) NOT NULL,
+    amount DECIMAL(12,3) NOT NULL,
     currency VARCHAR(10) NOT NULL DEFAULT 'VND',
     -- 0: Cash, 1: VNPay
     method INT NOT NULL,
@@ -80,3 +93,4 @@ CREATE TABLE IF NOT EXISTS payment_events (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX idx_payment_events_payment_id ON payment_events(payment_id);
+
