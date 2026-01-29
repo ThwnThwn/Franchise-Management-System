@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SaleService.Domain\SalesService.Domain.csproj" />
+    <ProjectReference Include="..\..\SharedKernel\SharedKernel.csproj" />
   </ItemGroup>
 
   <ItemGroup>

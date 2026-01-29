@@ -2,8 +2,11 @@ using Ardalis.Result;
 using MediatR;
 using SalesService.Application.Interfaces.Orders;
 using SalesService.Application.Interfaces.Products;
+using SalesService.Application.Interfaces.Identity;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
+using SharedKernel.Events;
+using SaleService.Application.ExternalServices;
 
 namespace SalesService.Application.Features.Orders.Commands.Create;
 
@@ -12,13 +15,19 @@ public sealed class CreateOrderHandler
 {
     private readonly IOrderRepository _orderRepository;
     private readonly IProductServiceClient _productServiceClient;
+    private readonly IKafkaProducer _kafkaProducer;
+    private readonly IIdentityServiceClient _identityServiceClient;
 
     public CreateOrderHandler(
         IOrderRepository orderRepository,
-        IProductServiceClient productServiceClient)
+        IProductServiceClient productServiceClient,
+        IKafkaProducer kafkaProducer,
+        IIdentityServiceClient identityServiceClient)
     {
         _orderRepository = orderRepository;
         _productServiceClient = productServiceClient;
+        _kafkaProducer = kafkaProducer;
+        _identityServiceClient = identityServiceClient;
     }
 
     public async Task<Result<CreateOrderResponseDto>> Handle(
@@ -107,6 +116,27 @@ public sealed class CreateOrderHandler
         }
 
         var createdOrder = await _orderRepository.CreateAsync(order, cancellationToken);
+
+        // Fetch customer email from IdentityService
+        string? customerEmail = null;
+        if (createdOrder.CustomerId.HasValue)
+        {
+            var user = await _identityServiceClient.GetUserByIdAsync(createdOrder.CustomerId.Value);
+            customerEmail = user?.Email;
+        }
+
+        // Only publish event if we have customer email
+        if (!string.IsNullOrEmpty(customerEmail))
+        {
+            await _kafkaProducer.PublishAsync("order-notifications", new OrderCreatedEvent
+            {
+                OrderId = createdOrder.Id,
+                CustomerEmail = customerEmail,
+                OrderSummary = $"Order {createdOrder.Code} created with {createdOrder.OrderItems.Count} items",
+                TotalAmount = createdOrder.TotalAmount,
+                CreatedAt = DateTimeOffset.UtcNow
+            });
+        }
 
         return Result.Success(new CreateOrderResponseDto
         {

@@ -9,7 +9,6 @@ using IdentityService.Infrastructure.Persistences.Cache;
 using IdentityService.Infrastructure.Persistences.Repositories;
 using Infrastructure.Persistences.Caches;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace IdentityService.Infrastructure.DependencyInjection;
@@ -29,6 +28,8 @@ public static class DependencyInjection
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<IOtpStore, OtpStore>();
         services.AddScoped<IEmailService, EmailService>();
+
+        services.AddSingleton<IKafkaProducer, KafkaProducer>();
 
         return services;
     }

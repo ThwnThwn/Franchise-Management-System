@@ -10,6 +10,7 @@ using SalesService.Application.Interfaces.Orders;
 using SalesService.Application.Interfaces.Products;
 using SalesService.Infrastructure.Extensions;
 using SalesService.Application.Mapping.Orders;
+using SalesService.Application.Interfaces.Identity;
 using SalesService.Application.Interfaces.Payments;
 using SalesService.Infrastructure.Repositories.Orders;
 using SalesService.Infrastructure.Repositories.Payments;
@@ -18,6 +19,9 @@ using SalesService.Infrastructure.Extensions;
 using SalesService.Infrastructure.Interceptor;
 using SalesService.Infrastructure.Models;
 using SalesService.Infrastructure.Repositories.Orders;
+using SaleService.Application.ExternalServices;
+using SaleService.Infrastructure.ExternalServices;
+using SalesService.API.Services.Identity;
 
 namespace SalesService.API;
 
@@ -84,6 +88,14 @@ public class Program
         // Expose DbContext via abstraction used by repositories
         builder.Services.AddScoped<ISalesDbContext>(sp => sp.GetRequiredService<SalesDbContext>());
 
+        // KAFKA - Override for local development
+        var kafkaBootstrap = Environment.GetEnvironmentVariable("KAFKA_BOOTSTRAP_SERVERS") ?? "localhost:9092";
+        if (kafkaBootstrap.Contains("kafka:"))
+        {
+            kafkaBootstrap = "localhost:9092";  // Use localhost when running outside Docker
+        }
+        builder.Configuration["KAFKA_BOOTSTRAP_SERVERS"] = kafkaBootstrap;
+
         // Configure AutoMapper
         var applicationAssembly = typeof(OrderMappingProfile).Assembly;
 
@@ -105,6 +117,12 @@ public class Program
 
         // Register ProductService gRPC client
         builder.Services.AddSingleton<IProductServiceClient, ProductServiceClient>();
+
+        // Register IdentityService gRPC client
+        builder.Services.AddSingleton<IIdentityServiceClient, IdentityServiceClient>();
+
+        // Register Kafka Producer
+        builder.Services.AddSingleton<IKafkaProducer, KafkaProducer>();
 
         // Register GlobalExceptionHandlerMiddleware
         builder.Services.AddSingleton<GlobalExceptionHandlerMiddleware>();
