@@ -7,8 +7,8 @@ using Ardalis.Result;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using SalesService.Application.Helpers;
-using SalesService.Application.Interfaces.Orders;
 using SalesService.Application.Interfaces.Payments;
+using SalesService.Application.Persisitences.Orders;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
 
