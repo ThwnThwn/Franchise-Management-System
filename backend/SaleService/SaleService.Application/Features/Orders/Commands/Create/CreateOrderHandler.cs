@@ -41,6 +41,12 @@ public sealed class CreateOrderHandler
             }
         }
 
+        // check storeId
+        if (!request.Request.StoreId.HasValue || request.Request.StoreId == Guid.Empty)
+        {
+            return Result.Error("StoreId is required. Please select a store before placing an order.");
+        }
+
         var orderCode = $"ORD-{DateTime.UtcNow:yyyyMMdd-HHmmss}";
 
         // Gọi ProductService để lấy thông tin sản phẩm từ SKU
@@ -68,7 +74,7 @@ public sealed class CreateOrderHandler
             orderItems.Add(new OrderItem
             {
                 Id = Guid.NewGuid(),
-                OrderId = Guid.NewGuid(), // Sẽ set sau khi tạo Order
+                OrderId = Guid.NewGuid(),
                 ProductId = productVariant.ProductId,
                 VariantId = productVariant.VariantId,
                 Quantity = item.Quantity,
@@ -92,10 +98,8 @@ public sealed class CreateOrderHandler
             Subtotal = subtotal,
             Tax = tax,
             TotalAmount = totalAmount,
-            StoreId = request.Request.StoreId, // chưa xét null thì auto select
-            PaymentMethod = request.Request.PaymentMethod.HasValue
-                ? (PaymentMethod?)request.Request.PaymentMethod.Value
-                : null,
+            StoreId = request.Request.StoreId, // đã validate khác null ở trên
+            PaymentMethod = null,
             Status = OrderStatus.Pending,
             Notes = request.Request.Notes,
             CustomerId = request.Request.CustomerId,

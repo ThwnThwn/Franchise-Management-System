@@ -1,7 +1,6 @@
 syntax = "proto3";
 
 option csharp_namespace = "SalesService.API";
-option go_package = "api-gateway/pkg/pb/sales";
 
 package order;
 
@@ -18,9 +17,8 @@ service OrderGrpc {
 
 message CreateOrderRequest {
   repeated CartItem items = 1;
-  optional double tax = 2;
-  optional int32 payment_method = 3;
-  string notes = 4;
+  string notes = 2;
+  string storeId = 3;
 }
 
 message CartItem {
@@ -59,6 +57,7 @@ message Order {
   string customer_id = 13;
   repeated OrderItem items = 14;
 }
+
 
 message OrderItem {
   string id = 1;
