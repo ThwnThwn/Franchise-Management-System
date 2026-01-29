@@ -12,7 +12,6 @@ namespace IdentityService.Application.Dtos.User.Request
         [MaxLength(100)]
         public string? Username { get; set; }
 
-        [EmailAddress]
         [MaxLength(100)]
         public string? Email { get; set; }
 

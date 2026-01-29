@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Application.Persistences.Caches;
+namespace IdentityService.Application.Persistences.Caches;
 
 public interface IOtpStore
 {

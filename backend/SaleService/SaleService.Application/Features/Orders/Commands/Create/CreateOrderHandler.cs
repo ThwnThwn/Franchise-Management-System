@@ -3,6 +3,9 @@ using MediatR;
 using SalesService.Application.Interfaces.Orders;
 using SalesService.Application.Interfaces.Products;
 using SalesService.Application.Interfaces.Identity;
+using SalesService.Application.ClientInterface.Inventory;
+using SalesService.Application.ClientInterface.Products;
+using SalesService.Application.Persisitences.Orders;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
 using SharedKernel.Events;
@@ -17,6 +20,7 @@ public sealed class CreateOrderHandler
     private readonly IProductServiceClient _productServiceClient;
     private readonly IKafkaProducer _kafkaProducer;
     private readonly IIdentityServiceClient _identityServiceClient;
+    private readonly IInventoryServiceClient _inventoryServiceClient;
 
     public CreateOrderHandler(
         IOrderRepository orderRepository,
@@ -48,6 +52,12 @@ public sealed class CreateOrderHandler
             }
         }
 
+        // check storeId
+        if (!request.Request.StoreId.HasValue || request.Request.StoreId == Guid.Empty)
+        {
+            return Result.Error("StoreId is required. Please select a store before placing an order.");
+        }
+
         var orderCode = $"ORD-{DateTime.UtcNow:yyyyMMdd-HHmmss}";
 
         // Gọi ProductService để lấy thông tin sản phẩm từ SKU
@@ -75,7 +85,7 @@ public sealed class CreateOrderHandler
             orderItems.Add(new OrderItem
             {
                 Id = Guid.NewGuid(),
-                OrderId = Guid.NewGuid(), // Sẽ set sau khi tạo Order
+                OrderId = Guid.NewGuid(),
                 ProductId = productVariant.ProductId,
                 VariantId = productVariant.VariantId,
                 Quantity = item.Quantity,
@@ -99,9 +109,8 @@ public sealed class CreateOrderHandler
             Subtotal = subtotal,
             Tax = tax,
             TotalAmount = totalAmount,
-            PaymentMethod = request.Request.PaymentMethod.HasValue
-                ? (PaymentMethod?)request.Request.PaymentMethod.Value
-                : null,
+            StoreId = request.Request.StoreId, // đã validate khác null ở trên
+            PaymentMethod = null,
             Status = OrderStatus.Pending,
             Notes = request.Request.Notes,
             CustomerId = request.Request.CustomerId,

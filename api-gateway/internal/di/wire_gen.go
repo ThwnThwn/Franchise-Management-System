@@ -12,7 +12,9 @@ import (
 	"api-gateway/internal/api/routes"
 	"api-gateway/internal/application/usecases"
 	"api-gateway/internal/bootstrap"
+	"api-gateway/internal/infrastructure/grpc_clients/franchise"
 	"api-gateway/internal/infrastructure/grpc_clients/identity"
+	"api-gateway/internal/infrastructure/grpc_clients/inventory"
 	"api-gateway/internal/infrastructure/grpc_clients/product"
 	"api-gateway/internal/infrastructure/grpc_clients/sales"
 )
@@ -21,6 +23,17 @@ import (
 
 // InitializeApp nằm ở package 'di', trả về 'bootstrap.App'
 func InitializeApp(cfg *config.Config) (*bootstrap.App, error) {
+	franchiseServiceUrl := cfg.FranchiseServiceUrl
+	clientFactory, err := franchise.NewFranchiseClientFactory(franchiseServiceUrl)
+	if err != nil {
+		return nil, err
+	}
+	iStoreService := franchise.ProvideStoreClient(clientFactory)
+	iStoreUseCase := usecases.NewStoreUseCase(iStoreService)
+	storeHandler := handlers.NewStoreHandler(iStoreUseCase)
+	iShiftService := franchise.ProvideShiftClient(clientFactory)
+	iShiftUseCase := usecases.NewShiftUseCasee(iShiftService)
+	shiftHandler := handlers.NewShiftHandler(iShiftUseCase)
 	identityServiceUrl := cfg.IdentityServiceUrl
 	identityClientFactory, err := identity.NewIdentityClientFactory(identityServiceUrl)
 	if err != nil {
@@ -28,18 +41,21 @@ func InitializeApp(cfg *config.Config) (*bootstrap.App, error) {
 	}
 	iAuthService := identity.ProvideAuthClient(identityClientFactory)
 	iAuthUseCase := usecases.NewAuthUseCase(iAuthService)
-	authHandler := handlers.NewAuthHandler(iAuthUseCase)
 	iUserService := identity.ProvideUserClient(identityClientFactory)
 	iUserUseCase := usecases.NewUserUseCase(iUserService)
+	authHandler := handlers.NewAuthHandler(iAuthUseCase, iUserUseCase)
 	userHandler := handlers.NewUserHandler(iUserUseCase)
 	productServiceUrl := cfg.ProductServiceUrl
-	clientFactory, err := product.NewProductClientFactory(productServiceUrl)
+	productClientFactory, err := product.NewProductClientFactory(productServiceUrl)
 	if err != nil {
 		return nil, err
 	}
-	iProductService := product.ProvideProductClient(clientFactory)
+	iProductService := product.ProvideProductClient(productClientFactory)
 	iProductUseCase := usecases.NewProductUseCase(iProductService)
 	productHandler := handlers.NewProductHandler(iProductUseCase)
+	iCategoryService := product.ProvideCategoryClient(productClientFactory)
+	iCategoryUseCase := usecases.NewCategoryUseCase(iCategoryService)
+	categoryHandler := handlers.NewCategoryHandler(iCategoryUseCase)
 	salesServiceUrl := cfg.SalesServiceUrl
 	salesClientFactory, err := sales.NewSalesClientFactory(salesServiceUrl)
 	if err != nil {
@@ -48,11 +64,27 @@ func InitializeApp(cfg *config.Config) (*bootstrap.App, error) {
 	iOrderService := sales.ProvideOrderClient(salesClientFactory)
 	iOrderUseCase := usecases.NewOrderUseCase(iOrderService)
 	orderHandler := handlers.NewOrderHandler(iOrderUseCase)
+	iCartService := sales.ProvideCartClient(salesClientFactory)
+	iCartUseCase := usecases.NewCartUseCase(iCartService)
+	cartHandler := handlers.NewCartHandler(iCartUseCase)
+	inventoryServiceUrl := cfg.InventoryServiceUrl
+	inventoryClientFactory, err := inventory.NewInventoryClientFactory(inventoryServiceUrl)
+	if err != nil {
+		return nil, err
+	}
+	iInventoryService := inventory.ProvideInventoryClient(inventoryClientFactory)
+	iInventoryUseCase := usecases.NewInventoryUseCase(iInventoryService)
+	inventoryHandler := handlers.NewInventoryHandler(iInventoryUseCase)
 	appHandlers := &handlers.AppHandlers{
-		AuthHandler:    authHandler,
-		UserHandler:    userHandler,
-		ProductHandler: productHandler,
-		OrderHandler:   orderHandler,
+		StoreHandler:     storeHandler,
+		ShiftHandler:     shiftHandler,
+		AuthHandler:      authHandler,
+		UserHandler:      userHandler,
+		ProductHandler:   productHandler,
+		CategoryHandler:  categoryHandler,
+		OrderHandler:     orderHandler,
+		CartHandler:      cartHandler,
+		InventoryHandler: inventoryHandler,
 	}
 	engine := routes.NewRouter(cfg, appHandlers)
 	app := bootstrap.NewApp(cfg, engine)

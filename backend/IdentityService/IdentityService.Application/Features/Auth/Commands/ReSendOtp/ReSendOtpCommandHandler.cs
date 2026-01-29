@@ -1,6 +1,7 @@
-﻿using Application.Persistences.Caches;
+﻿
 using IdentityService.Application.AppExceptions;
 using IdentityService.Application.ExternalServices;
+using IdentityService.Application.Persistences.Caches;
 using MediatR;
 using System.Security.Cryptography;
 

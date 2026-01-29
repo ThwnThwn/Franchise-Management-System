@@ -36,6 +36,12 @@ func (u *UserRouter) NewUserRouter(cfg *config.Config,
 	adminApi := privateApi.Group("")
 	adminApi.Use(middleware.RequireRoles(string(roleslug.Admin)))
 	{
+		// Admin lấy danh sách user
+		adminApi.GET("", userHander.GetAll)
+		// Admin lấy thông tin 1 user
+		adminApi.GET("/:id", userHander.GetById)
+		// Admin tạo 1 user
+		adminApi.POST("", userHander.Create)
 		// Admin update role cho 1 user
 		adminApi.PATCH("/:id/role", userHander.UpdateRole)
 	}

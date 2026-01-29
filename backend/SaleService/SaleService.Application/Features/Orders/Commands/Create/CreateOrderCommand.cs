@@ -1,5 +1,6 @@
 using Ardalis.Result;
 using MediatR;
+using SalesService.Application.Dtos.Inventory;
 
 namespace SalesService.Application.Features.Orders.Commands.Create;
 
@@ -9,10 +10,9 @@ public sealed record CreateOrderCommand(CreateOrderRequestDto Request)
 public sealed class CreateOrderRequestDto
 {
     public List<CartItemDto> Items { get; set; } = new();
-    public decimal? Tax { get; set; }
-    public int? PaymentMethod { get; set; }
     public string? Notes { get; set; }
     public Guid? CustomerId { get; set; }
+    public Guid? StoreId { get; set; }
 }
 
 public sealed class CartItemDto
@@ -26,4 +26,9 @@ public sealed class CreateOrderResponseDto
     public Guid OrderId { get; set; }
     public string OrderCode { get; set; } = default!;
     public decimal TotalAmount { get; set; }
+    public CheckEnoughStockRes CheckEnoughStockRes { get; set; } = new();
 }
+
+
+
+

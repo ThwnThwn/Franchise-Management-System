@@ -2,8 +2,10 @@ using AutoMapper;
 using DotNetEnv;
 using Microsoft.EntityFrameworkCore;
 using SalesService.API.Middleware;
+using SalesService.Infrastructure.Repositories.Orders;
+using SalesService.Infrastructure.Extensions;
+using SalesService.API.Services.CartItems;
 using SalesService.API.Services.Orders;
-using SalesService.API.Services.Products;
 using SalesService.API.Services.Payments;
 using SalesService.API.Middleware;
 using SalesService.Application.Interfaces.Orders;
@@ -11,17 +13,22 @@ using SalesService.Application.Interfaces.Products;
 using SalesService.Infrastructure.Extensions;
 using SalesService.Application.Mapping.Orders;
 using SalesService.Application.Interfaces.Identity;
+using SalesService.API.Services.Products;
+//using SalesService.Infrastructure.Models;
+using SalesService.Application.Interfaces.CartItems;
 using SalesService.Application.Interfaces.Payments;
-using SalesService.Infrastructure.Repositories.Orders;
-using SalesService.Infrastructure.Repositories.Payments;
+using SalesService.Application.Mapping.Orders;
 using SalesService.Infrastructure.ApplicationDbContext;
-using SalesService.Infrastructure.Extensions;
 using SalesService.Infrastructure.Interceptor;
 using SalesService.Infrastructure.Models;
 using SalesService.Infrastructure.Repositories.Orders;
 using SaleService.Application.ExternalServices;
 using SaleService.Infrastructure.ExternalServices;
 using SalesService.API.Services.Identity;
+using SalesService.Application.ClientInterface.Products;
+using SalesService.Application.Persisitences.Orders;
+using SalesService.Infrastructure.Repositories.CartItems;
+using SalesService.Infrastructure.Repositories.Payments;
 
 namespace SalesService.API;
 
@@ -114,6 +121,7 @@ public class Program
         // Register repositories
         builder.Services.AddScoped<IOrderRepository, OrderRepository>();
         builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+        builder.Services.AddScoped<ICartItemRepository, CartItemRepository>();
 
         // Register ProductService gRPC client
         builder.Services.AddSingleton<IProductServiceClient, ProductServiceClient>();
@@ -164,6 +172,7 @@ public class Program
         app.MapControllers();
         app.MapGrpcService<OrderGrpcService>();
         app.MapGrpcService<PaymentGrpcService>();
+        app.MapGrpcService<CartItemGrpcService>();
         app.MapGrpcReflectionService(); // Enable gRPC Server Reflection endpoint
         app.MapGet("/", () => "Sale Service API is running. Visit /swagger for API documentation.");
 

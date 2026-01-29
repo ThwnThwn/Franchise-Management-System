@@ -24,40 +24,46 @@ public class GrpcExceptionInterceptor : Interceptor
         {
             return await continuation(request, context);
         }
-        catch (ValidationException ex) // FluentValidation
-        {
-            var msg = string.Join(" | ", ex.Errors.Select(x => x.ErrorMessage));
-            throw new RpcException(new Status(StatusCode.InvalidArgument, msg));
-        }
-        catch (BusinessException ex) 
-        {
-            throw new RpcException(new Status(StatusCode.InvalidArgument, ex.Message));
-        }
-        catch (ForbidenException ex)
-        {
-            throw new RpcException(new Status(StatusCode.PermissionDenied, ex.Message));
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            throw new RpcException(new Status(StatusCode.Unauthenticated, ex.Message));
-        }
-        catch (ConflictDuplicateException ex)
-        {
-            throw new RpcException(new Status(StatusCode.AlreadyExists, ex.Message));
-        }
-        catch (Application.AppExceptions.DbUpdateException ex)
-        {
-            _logger.LogError(ex, "Database update error");
-            throw new RpcException(new Status(StatusCode.Aborted, "Database update error"));
-        }
-        catch (RpcException)
-        {
-            throw;
-        }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unhandled exception");
-            throw new RpcException(new Status(StatusCode.Internal, "Internal Server Error"));
+            // Bắt tất cả Exception và xử lý tại một hàm duy nhất
+            throw MapToRpcException(ex);
         }
+    }
+
+    private RpcException MapToRpcException(Exception exception)
+    {
+        return exception switch
+        {
+            // 1. Validation (FluentValidation)
+            ValidationException ex => new RpcException(new Status(StatusCode.InvalidArgument,
+                string.Join(" | ", ex.Errors.Select(x => x.ErrorMessage)))),
+
+            // 2. Logic Business / Not Found
+            KeyNotFoundException ex => new RpcException(new Status(StatusCode.NotFound, ex.Message)),
+            DirectoryNotFoundException ex => new RpcException(new Status(StatusCode.NotFound, ex.Message)),
+            BusinessException ex => new RpcException(new Status(StatusCode.InvalidArgument, ex.Message)),
+            ConflictDuplicateException ex => new RpcException(new Status(StatusCode.AlreadyExists, ex.Message)),
+
+            // 3. Security / Auth
+            ForbidenException ex => new RpcException(new Status(StatusCode.PermissionDenied, ex.Message)),
+            UnauthorizedAccessException ex => new RpcException(new Status(StatusCode.Unauthenticated, ex.Message)),
+
+            // 4. Database Error (Có log)
+            Application.AppExceptions.DbUpdateException ex => LogAndReturn(ex, StatusCode.Aborted, "Database update error"),
+
+            // 5. Nếu đã là RpcException thì ném tiếp (pass-through)
+            RpcException ex => ex,
+
+            // 6. Default / Unhandled (Có log)
+            _ => LogAndReturn(exception, StatusCode.Internal, "Internal Server Error")
+        };
+    }
+
+    // Helper function để vừa Log vừa trả về Exception trong switch expression
+    private RpcException LogAndReturn(Exception ex, StatusCode statusCode, string message)
+    {
+        _logger.LogError(ex, message);
+        return new RpcException(new Status(statusCode, message));
     }
 }

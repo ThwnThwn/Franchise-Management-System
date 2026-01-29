@@ -40,22 +40,22 @@ create_db_safe "product_db"
 create_db_safe "sales_db"
 create_db_safe "payment_db"
 create_db_safe "notification_db"
-
+create_db_safe "inventory_db"
 create_db_safe "franchise_db"
-
+create_db_safe "payment_db"
 
 run_sql_script "identity_db" "/docker-entrypoint-initdb.d/schemas/02-identity.sql"
 run_sql_script "product_db" "/docker-entrypoint-initdb.d/schemas/03-product.sql"
 run_sql_script "sales_db" "/docker-entrypoint-initdb.d/schemas/04-sales.sql"
 run_sql_script "notification_db" "/docker-entrypoint-initdb.d/schemas/05-notification.sql"
+run_sql_script "inventory_db" "/docker-entrypoint-initdb.d/schemas/05-inventory.sql"
+run_sql_script "franchise_db" "/docker-entrypoint-initdb.d/schemas/06-franchise.sql"
 run_sql_script "payment_db" "/docker-entrypoint-initdb.d/schemas/07-payment.sql"
 
-run_sql_script "franchise_db" "/docker-entrypoint-initdb.d/schemas/06-franchise.sql"
-
-# Seed Role + User
+# Seed data
 run_sql_script "identity_db" "/docker-entrypoint-initdb.d/seeding/01-init-seeding-identity.sql"
 run_sql_script "product_db" "/docker-entrypoint-initdb.d/seeding/02-seeding-product.sql"
-
+run_sql_script "inventory_db" "/docker-entrypoint-initdb.d/seeding/05-seeding-inventory.sql"
 run_sql_script "franchise_db" "/docker-entrypoint-initdb.d/seeding/06-seeding-franchise.sql"
 
 echo "Database initialization process finished!"

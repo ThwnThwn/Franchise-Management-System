@@ -14,7 +14,7 @@ func (a *CategoryRouter) NewCategoryRouter(cfg *config.Config,
 	r *gin.RouterGroup,
 	categoryHander *handlers.CategoryHandler,
 ) {
-	categoryApi := r.Group("/category")
+	categoryApi := r.Group("/categories")
 	{
 		categoryApi.GET("", categoryHander.GetCategories)
 	}

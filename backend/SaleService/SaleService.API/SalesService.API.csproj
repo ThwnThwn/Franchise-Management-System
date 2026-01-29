@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -10,11 +10,16 @@
     <Protobuf Include="Protos\products.proto" GrpcServices="Client" />
     <Protobuf Include="Protos\orders.proto" GrpcServices="Server" />
   </ItemGroup> -->
-  <ItemGroup>
+  <!-- <ItemGroup>
 		<Protobuf Include="..\..\..\protos\product\*.proto" GrpcServices="Client" ProtoRoot="..\..\..\protos" />
     <Protobuf Include="..\..\..\protos\identity\*.proto" GrpcServices="Client" ProtoRoot="..\..\..\protos" />
     <Protobuf Include="..\..\..\protos\sales\*.proto" GrpcServices="Server" ProtoRoot="..\..\..\protos" />
-	</ItemGroup>
+	</ItemGroup> -->
+  <ItemGroup>
+    <None Remove="Protos\inventory.proto" />
+	    <Protobuf Include="..\..\..\protos\product\*.proto" GrpcServices="Client" ProtoRoot="..\..\..\protos" />
+	    <Protobuf Include="..\..\..\protos\sales\*.proto" GrpcServices="Server" ProtoRoot="..\..\..\protos" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Ardalis.Result" Version="10.1.0" />
@@ -44,5 +49,9 @@
     <ProjectReference Include="..\SaleService.Application\SalesService.Application.csproj" />
     <ProjectReference Include="..\SaleService.Infrastructure\SalesService.Infrastructure.csproj" />
   </ItemGroup>
+	<ItemGroup>
+		<Protobuf Include="Protos\inventory.proto" GrpcServices="Client" />
+	</ItemGroup>
+
 
 </Project>

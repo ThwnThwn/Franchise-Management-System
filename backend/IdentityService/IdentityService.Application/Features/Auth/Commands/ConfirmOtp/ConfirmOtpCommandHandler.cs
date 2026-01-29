@@ -1,5 +1,4 @@
-﻿using Application.Persistences.Caches;
-using AutoMapper;
+﻿using AutoMapper;
 using IdentityService.Application.AppExceptions;
 using IdentityService.Application.Persistences.Caches;
 using IdentityService.Application.Persistences.Repositories;

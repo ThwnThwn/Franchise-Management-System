@@ -5,10 +5,9 @@ using Microsoft.EntityFrameworkCore;
 using SalesService.Domain.Commons;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
-using SalesService.Infrastructure.ApplicationDbContext;
 using SalesService.Infrastructure.Interceptor;
 
-namespace SalesService.Infrastructure.Models;
+namespace SalesService.Infrastructure.ApplicationDbContext;
 
 public partial class SalesDbContext : DbContext, ISalesDbContext
 {
@@ -32,7 +31,7 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
 
     public virtual DbSet<PaymentEvent> PaymentEvents { get; set; }
 
-
+    public virtual DbSet<CartItem> CartItems { get; set; }
     public DbSet<T> Set<T>() where T : class, IEntity => base.Set<T>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -43,6 +42,47 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasPostgresExtension("uuid-ossp");
+
+        modelBuilder.Entity<CartItem>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("cart_items_pkey");
+
+            entity.ToTable("cart_items");
+
+            entity.HasIndex(e => new { e.CustomerId, e.Sku }, "idx_cart_items_customer_sku")
+                .IsUnique()
+                .HasFilter("(customer_id IS NOT NULL)");
+            
+            entity.HasIndex(e => new { e.CustomerId, e.CreatedAt }, "idx_cart_items_customer_created")
+                .IsDescending(false, true)
+                .HasFilter("(customer_id IS NOT NULL)");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasColumnName("id");
+
+            entity.Property(e => e.BasePrice)
+                .HasPrecision(12, 3)
+                .HasColumnName("base_price");
+
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_at");
+
+            entity.Property(e => e.CustomerId)
+                .HasColumnName("customer_id");
+
+            entity.Property(e => e.Quantity)
+                .HasColumnName("quantity");
+
+            entity.Property(e => e.Sku)
+                .HasMaxLength(100)
+                .HasColumnName("sku");
+
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("updated_at");
+        });
 
         modelBuilder.Entity<Order>(entity =>
         {
@@ -66,6 +106,7 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("created_at");
             entity.Property(e => e.CustomerId).HasColumnName("customer_id");
+            entity.Property(e => e.StoreId).HasColumnName("store_id");
             entity.Property(e => e.IsDeleted)
                 .HasDefaultValue(false)
                 .HasColumnName("is_deleted");
@@ -73,7 +114,7 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
                 .HasMaxLength(255)
                 .HasColumnName("notes");
             entity.Property(e => e.PaidAmount)
-                .HasPrecision(12, 2)
+                .HasPrecision(12, 3)
                 .HasColumnName("paid_amount");
             entity.Property(e => e.PaidAt).HasColumnName("paid_at");
             entity.Property(e => e.PaymentMethod).HasColumnName("payment_method");
@@ -81,13 +122,13 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
                 .HasDefaultValue(OrderStatus.Pending)
                 .HasColumnName("status");
             entity.Property(e => e.Subtotal)
-                .HasPrecision(12, 2)
+                .HasPrecision(12, 3)
                 .HasColumnName("subtotal");
             entity.Property(e => e.Tax)
-                .HasPrecision(12, 2)
+                .HasPrecision(12, 3)
                 .HasColumnName("tax");
             entity.Property(e => e.TotalAmount)
-                .HasPrecision(12, 2)
+                .HasPrecision(12, 3)
                 .HasColumnName("total_amount");
             entity.Property(e => e.UpdatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
@@ -124,7 +165,7 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
                 .HasMaxLength(100)
                 .HasColumnName("sku");
             entity.Property(e => e.UnitPrice)
-                .HasPrecision(12, 2)
+                .HasPrecision(12, 3)
                 .HasColumnName("unit_price");
             entity.Property(e => e.UpdatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
@@ -153,7 +194,7 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
                 .HasDefaultValueSql("uuid_generate_v4()")
                 .HasColumnName("id");
             entity.Property(e => e.Amount)
-                .HasPrecision(12, 2)
+                .HasPrecision(12, 3)
                 .HasColumnName("amount");
             entity.Property(e => e.Code)
                 .HasMaxLength(50)

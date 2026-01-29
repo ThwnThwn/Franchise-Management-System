@@ -1,5 +1,4 @@
-﻿using Application.Persistences.Caches;
-using IdentityService.Application.ExternalServices;
+﻿using IdentityService.Application.ExternalServices;
 using IdentityService.Application.Persistences.Caches;
 using IdentityService.Application.Persistences.Repositories;
 using IdentityService.Infrastructure.ApplicationDbContext;
@@ -7,7 +6,6 @@ using IdentityService.Infrastructure.ExternalServices;
 using IdentityService.Infrastructure.Interceptor;
 using IdentityService.Infrastructure.Persistences.Cache;
 using IdentityService.Infrastructure.Persistences.Repositories;
-using Infrastructure.Persistences.Caches;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
