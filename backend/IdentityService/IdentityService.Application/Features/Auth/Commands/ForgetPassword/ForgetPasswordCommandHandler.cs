@@ -4,6 +4,7 @@ using IdentityService.Application.ExternalServices;
 using IdentityService.Application.Persistences.Caches;
 using IdentityService.Application.Persistences.Repositories;
 using MediatR;
+using Microsoft.Win32;
 using System.Security.Cryptography;
 using System.Text.Json;
 
@@ -60,6 +61,7 @@ public class ForgetPasswordCommandHandler
         await _otpStore.SaveOTPAsyns(request.Email, otp, forgetPassword);
         await _otpStore.SaveLastOtpRequestTimeAsync(request.Email, DateTimeOffset.UtcNow, forgetPassword);
         await _otpStore.ResetOtpAttemptAsync(request.Email, forgetPassword);
+        await _otpStore.RemoveLastOtpRequestTimeAsync(request.Email, forgetPassword);
         await _emailService.SendOtpEmailAsync(request.Email, otp);
 
         return Unit.Value;

@@ -88,6 +88,7 @@ namespace IdentityService.Application.Features.Auth.Commands.ConfirmOtp
             await _otpStore.RemoveOTPAsync(request.Email, register);
             await _otpStore.RemoveRegistrationDataAsync(request.Email);
             await _otpStore.ResetOtpAttemptAsync(request.Email, register);
+            await _otpStore.RemoveLastOtpRequestTimeAsync(request.Email, register);
 
             return Unit.Value;
         }

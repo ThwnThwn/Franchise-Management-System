@@ -69,7 +69,7 @@ public class ConfirmNewPasswordCommandHandler
         await _otpStore.RemoveOTPAsync(request.Email, forgetPassword);
         await _otpStore.RemoveForgetPasswordDataAsync(request.Email);
         await _otpStore.ResetOtpAttemptAsync(request.Email, forgetPassword);
-
+        await _otpStore.RemoveLastOtpRequestTimeAsync(request.Email, forgetPassword);
         return new ConfirmOtpForgetPasswordOtpRep
         {
             AccessForgetPasswordToken = accessToken,
