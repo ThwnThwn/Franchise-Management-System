@@ -25,5 +25,6 @@ func (a *OrderRouter) NewOrderRouter(cfg *config.Config,
 	{
 		privateApi.GET("/me", orderHandler.GetMyOrders)
 		privateApi.POST("", orderHandler.CreateOrder)
+		privateApi.POST("/:id/payment", orderHandler.CreatePaymentUrl)
 	}
 }

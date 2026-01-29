@@ -12,12 +12,16 @@ import (
 )
 
 type OrderGrpcClient struct {
-	client salesPb.OrderGrpcClient
+	client        salesPb.OrderGrpcClient
+	paymentClient salesPb.PaymentGrpcClient
 }
 
 // ProvideOrderClient trích xuất Order Client từ Factory
 func ProvideOrderClient(f *salesClientFactory) salesGW.IOrderService {
-	return &OrderGrpcClient{client: salesPb.NewOrderGrpcClient(f.conn)}
+	return &OrderGrpcClient{
+		client:        salesPb.NewOrderGrpcClient(f.conn),
+		paymentClient: salesPb.NewPaymentGrpcClient(f.conn),
+	}
 }
 
 // CreateOrder implements sales.IOrderService.
@@ -123,4 +127,16 @@ func (o *OrderGrpcClient) GetMyOrders(ctx context.Context, req *order.GetMyOrder
 	}
 
 	return orders, nil
+}
+
+// CreatePaymentUrl implements sales.IOrderService.
+func (o *OrderGrpcClient) CreatePaymentUrl(ctx context.Context, id uuid.UUID) (string, error) {
+	res, err := o.paymentClient.CreateVnPayPaymentUrl(ctx, &salesPb.CreateVnPayPaymentUrlRequest{
+		OrderId: id.String(),
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return res.PaymentUrl, nil
 }
