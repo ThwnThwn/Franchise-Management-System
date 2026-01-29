@@ -34,9 +34,11 @@ namespace ProductService.Application.Features.Categories.Command.UpdateCategory;
 
             
             var categoryUpdate = _mapper.Map(request.Request, categoryToUpdate);
-        await _categoryRepository.UpdateAsync(categoryToUpdate);
-
-            
+            if(string.IsNullOrEmpty(request.Request.Name))
+            {
+                categoryUpdate.Name = categoryToUpdate.Name;
+            }
+            await _categoryRepository.UpdateAsync(categoryToUpdate);
 
             return Result.Success(_mapper.Map<UpdateCategoryCommandResponse>(categoryUpdate));
         }

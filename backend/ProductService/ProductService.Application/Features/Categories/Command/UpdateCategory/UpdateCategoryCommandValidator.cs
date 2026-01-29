@@ -11,8 +11,6 @@ namespace ProductService.Application.Features.Categories.Command.UpdateCategory
                 .WithMessage("Category ID is required");
 
             RuleFor(x => x.Request.Name)
-                .NotEmpty()
-                .WithMessage("Category name is required")
                 .MaximumLength(255)
                 .WithMessage("Category name must not exceed 255 characters");
 

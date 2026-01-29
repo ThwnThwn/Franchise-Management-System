@@ -23,9 +23,6 @@ public class ProductGrpcService : ProductGrpc.ProductGrpcBase
         _mapper = mapper;
     }
 
-    // -------------------------
-    // GET LIST (by category)
-    // -------------------------
     public override async Task<GetProductsReply> GetProducts(
         GetProductsRequest request,
         ServerCallContext context)
@@ -59,9 +56,6 @@ public class ProductGrpcService : ProductGrpc.ProductGrpcBase
         return reply;
     }
 
-    // -------------------------
-    // GET BY ID
-    // -------------------------
     public override async Task<GetProductByIdReply> GetProductById(
         GetProductByIdRequest request,
         ServerCallContext context)
@@ -118,11 +112,11 @@ public class ProductGrpcService : ProductGrpc.ProductGrpcBase
 
         var reply = new GetProductsReply
         {
-            TotalCount = result.Value.TotalCount
+            TotalCount = result.Value.Count
         };
 
         reply.Products.AddRange(
-            _mapper.Map<List<Product>>(result.Value.Products));
+            _mapper.Map<List<Product>>(result.Value));
 
         return reply;
     }
@@ -186,9 +180,6 @@ public class ProductGrpcService : ProductGrpc.ProductGrpcBase
         };
     }
 
-    // -------------------------
-    // UPDATE
-    // -------------------------
     public override async Task<UpdateProductReply> UpdateProduct(
         UpdateProductRequest request,
         ServerCallContext context)
@@ -258,10 +249,6 @@ public class ProductGrpcService : ProductGrpc.ProductGrpcBase
             UpdatedAt = result.Value.UpdatedAt.ToString("O")
         };
     }
-
-    // -------------------------
-    // DELETE
-    // -------------------------
     public override async Task<DeleteProductReply> DeleteProduct(
         DeleteProductRequest request,
         ServerCallContext context)

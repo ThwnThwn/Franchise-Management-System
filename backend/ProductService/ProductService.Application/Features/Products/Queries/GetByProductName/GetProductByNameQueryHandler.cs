@@ -6,7 +6,7 @@ using ProductService.Application.Repositories;
 namespace ProductService.Application.Features.Products.Queries.GetByProductName;
 
 public sealed class GetProductByNameQueryHandler
-    : IRequestHandler<GetProductByNameQuery, Result<GetProductsByNameResult>>
+    : IRequestHandler<GetProductByNameQuery, Result<List<GetProductByNameQueryResponse>>>
 {
     private readonly IProductRepository _productRepository;
     private readonly IMapper _mapper;
@@ -17,10 +17,16 @@ public sealed class GetProductByNameQueryHandler
         _mapper = mapper;
     }
 
-    public async Task<Result<GetProductsByNameResult>> Handle(
+    public async Task<Result<List<GetProductByNameQueryResponse>>> Handle(
     GetProductByNameQuery request,
     CancellationToken cancellationToken)
     {
+        if(request.productName == null)
+        {
+            return Result.Invalid(
+                    new ValidationError("Product name cannot be empty."));
+        }
+
         var products = await _productRepository
             .GetProductByNameContainingAsync(request.productName);
 
@@ -30,34 +36,10 @@ public sealed class GetProductByNameQueryHandler
                 $"No product found with name '{request.productName}'");
         }
 
-        var resultProducts = products.Select(p => new GetProductByNameQueryResponse
-        {
-            ProductId = p.Id,
-            Name = p.Name,
-            Description = p.Description ?? string.Empty,
-            ImageUrl = p.ImageUrl ?? string.Empty,
-            ImagePublicId = p.ImagePublicId ?? string.Empty,
-            IsActive = (bool)p.IsActive,
-            CategoryId = p.CategoryId,
-            CreatedAt = p.CreatedAt,
-            UpdatedAt = p.UpdatedAt,
-            Variants = p.ProductVariants?.Select(v => new ProductVariantDto
-            {
-                Id = v.Id,
-                Sku = v.Sku,
-                Name = v.Name,
-                Attributes = v.Attributes,
-                BasePrice = v.BasePrice,
-                Cost = v.Cost,
-                IsActive = v.IsActive
-            }).ToList() ?? new()
-        }).ToList();
+        var items = _mapper.Map<List<GetProductByNameQueryResponse>>(products);
 
-        return Result.Success(new GetProductsByNameResult
-        {
-            Products = resultProducts,
-            TotalCount = resultProducts.Count
-        });
+        return Result.Success(items);
+
     }
 
 }

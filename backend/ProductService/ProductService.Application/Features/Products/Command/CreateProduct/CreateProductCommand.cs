@@ -19,9 +19,9 @@ namespace ProductService.Application.Features.Products.Command.CreateProduct
 
         public sealed class CreateProductVariantRequest
         {
-            public string? Sku { get; set; } = default!;
+            public string? Sku { get; set; } = default!; // add '{}' to test success
             public string? Name { get; set; }
-            public string? Attributes { get; set; }
+            public string? Attributes { get; set; } // add '{}' to test success
             public decimal? BasePrice { get; set; }
             public decimal? Cost { get; set; }
             public bool? IsActive { get; set; } = true;

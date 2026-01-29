@@ -32,7 +32,11 @@ namespace ProductService.Application.Features.Products.Command.UpdateProduct
             {
                 return Result.Conflict($"Product with name '{request.Request.Name}' already exists");
             }
-
+            var checkCategory = await _productRepository.GetByIdAsync(request.Request.CategoryId);
+            if (checkCategory is null)
+            {
+                return Result.NotFound($"Category with id '{request.Request.CategoryId}' not found");
+            }
             product.Name = request.Request.Name;
             product.Description = request.Request.Description;
             product.ImageUrl = request.Request.ImageUrl;
@@ -42,17 +46,7 @@ namespace ProductService.Application.Features.Products.Command.UpdateProduct
             product.CreatedAt = product.CreatedAt;
             product.UpdatedAt = DateTimeOffset.UtcNow;
             await _productRepository.UpdateAsync(product);
-            return Result.Success(new UpdateProductCommandResponse
-            {
-                ProductId = product.Id,
-                Name = product.Name,
-                Description = product.Description,
-                ImageUrl = product.ImageUrl,
-                ImagePublicId = product.ImagePublicId,
-                IsActive = (bool)product.IsActive,
-                CategoryId = product.CategoryId,
-                UpdatedAt = product.UpdatedAt
-            });
+            return Result.Success(_mapper.Map<UpdateProductCommandResponse>(product));
         }
     }
 }

@@ -25,8 +25,12 @@ message GetProductsRequest {
   string category_id = 1;
 }
 
-message GetProductsByNameRequest {
-  string name = 1;
+message GetProductsByName {
+  repeated Product products = 1;
+  int32 total_count = 2;
+}
+message GetProductsByNameRequest{
+    string name = 1;
 }
 
 message GetProductsReply {

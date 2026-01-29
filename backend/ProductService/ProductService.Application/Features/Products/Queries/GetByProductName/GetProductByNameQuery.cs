@@ -5,7 +5,7 @@ using static ProductService.Application.Features.Products.Queries.GetByProductNa
 namespace ProductService.Application.Features.Products.Queries.GetByProductName
 {
     public sealed record GetProductByNameQuery(string productName)
-    : IRequest<Result<GetProductsByNameResult>>;
+    : IRequest<Result<List<GetProductByNameQueryResponse>>>;
     public sealed record GetProductsByNameResult
     {
         public List<GetProductByNameQueryResponse> Products { get; init; } = new();

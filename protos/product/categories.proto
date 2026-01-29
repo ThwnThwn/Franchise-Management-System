@@ -43,7 +43,7 @@ message GetCategoryByNameRequest {
 }
 
 message GetCategoryByNameReply {
-  Category category = 1;
+   Category category = 1;
 }
 
 message CreateCategoryRequest {

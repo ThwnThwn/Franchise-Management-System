@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using ProductService.Application.Features.Categories.Command.UpdateCategory;
+using ProductService.Application.Features.Categories.Queries.GetByCategoryName;
 using ProductService.Application.Features.Categories.Queries.GetList;
 using static ProductService.Application.Features.Categories.Command.CreateCategory.CreateCategoryCommand;
 using static ProductService.Application.Features.Categories.Command.DeleteCategory.DeleteCategoryCommand;
