@@ -1,4 +1,7 @@
-﻿using IdentityService.Application.AppExceptions;
+using System.Security.Cryptography;
+using System.Text.Json;
+using Application.Persistences.Caches;
+using IdentityService.Application.AppExceptions;
 using IdentityService.Application.Constants;
 using IdentityService.Application.Dtos.Auth.Response;
 using IdentityService.Application.ExternalServices;
@@ -6,8 +9,7 @@ using IdentityService.Application.Persistences.Caches;
 using IdentityService.Application.Persistences.Repositories;
 using IdentityService.Domain.Entities;
 using MediatR;
-using System.Security.Cryptography;
-using System.Text.Json;
+using SharedKernel.Events;
 
 namespace IdentityService.Application.Features.Auth.Commands.Register;
 
@@ -17,13 +19,15 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, RegisterR
     private readonly IRoleRepository _roleRepository;
     private readonly IOtpStore _otpStore;
     private readonly IEmailService _emailService;
+    private readonly IKafkaProducer _kafkaProducer;
 
-    public RegisterCommandHandler(IUserRepository userRepository, IRoleRepository roleRepository, IOtpStore otpStore, IEmailService emailService)
+    public RegisterCommandHandler(IUserRepository userRepository, IRoleRepository roleRepository, IOtpStore otpStore, IEmailService emailService, IKafkaProducer kafkaProducer)
     {
         _userRepository = userRepository;
         _roleRepository = roleRepository;
         _otpStore = otpStore;
         _emailService = emailService;
+        _kafkaProducer = kafkaProducer;
     }
 
     public async Task<RegisterRep> Handle(RegisterCommand command, CancellationToken cancellationToken)
@@ -36,7 +40,7 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, RegisterR
         {
             var timeSinceLastRequest = DateTimeOffset.UtcNow - lastOtpTime.Value;
             var waitTime = TimeSpan.FromMinutes(5) - timeSinceLastRequest;
-            
+
             if (waitTime > TimeSpan.Zero)
             {
                 throw new BusinessException(
@@ -84,7 +88,7 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, RegisterR
 
         await _otpStore.SaveRegistrationDataAsync(request.Email, registrationDataJson);
 
-        await _otpStore.SaveOTPAsyns(request.Email,otp, register);
+        await _otpStore.SaveOTPAsyns(request.Email, otp, register);
 
         // Save the time when OTP was sent for rate limiting
         await _otpStore.SaveLastOtpRequestTimeAsync(request.Email, DateTimeOffset.UtcNow, register);
@@ -92,7 +96,13 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, RegisterR
         // Reset attempt count when new OTP is sent
         await _otpStore.ResetOtpAttemptAsync(request.Email, register);
 
-        await _emailService.SendOtpEmailAsync(request.Email, otp);
+        // Publish OTP event to Kafka instead of sending email directly
+        await _kafkaProducer.PublishAsync("otp-notifications", new OtpRequestedEvent
+        {
+            Email = request.Email,
+            OtpCode = otp,
+            RequestedAt = DateTimeOffset.UtcNow
+        });
 
         return new RegisterRep();
     }

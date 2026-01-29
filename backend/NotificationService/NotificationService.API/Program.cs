@@ -1,0 +1,61 @@
+using DotNetEnv;
+using Microsoft.EntityFrameworkCore;
+using NotificationService.Application.Abstractions;
+using NotificationService.Application.Handlers;
+using NotificationService.Infrastructure.Configurations;
+using NotificationService.Infrastructure.Data;
+using NotificationService.Infrastructure.Messaging;
+using NotificationService.Infrastructure.Repositories;
+using NotificationService.Infrastructure.Services;
+// Load environment variables
+Env.Load("../../../.env");
+var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddEnvironmentVariables();
+// DATABASE
+var dbConn = builder.Configuration["NOTIFICATION_DB_CONN"]
+    ?? "Host=localhost;Port=5432;Database=notification_db;Username=admin;Password=12345";
+builder.Services.AddDbContext<NotificationDbContext>(options =>
+    options.UseNpgsql(dbConn));
+
+// KAFKA - Override for local development
+var kafkaBootstrap = Environment.GetEnvironmentVariable("KAFKA_BOOTSTRAP_SERVERS") ?? "localhost:9092";
+if (kafkaBootstrap.Contains("kafka:"))
+{
+    kafkaBootstrap = "localhost:9092";  // Use localhost when running outside Docker
+}
+builder.Configuration["KAFKA_BOOTSTRAP_SERVERS"] = kafkaBootstrap;
+
+// SMTP SETTINGS
+builder.Services.Configure<SmtpSettings>(opt =>
+{
+    opt.Host = Environment.GetEnvironmentVariable("SMTP_HOST") ?? "smtp.gmail.com";
+    opt.Port = int.Parse(Environment.GetEnvironmentVariable("SMTP_PORT") ?? "587");
+    opt.Username = Environment.GetEnvironmentVariable("SMTP_USERNAME") ?? "";
+    opt.Password = Environment.GetEnvironmentVariable("SMTP_PASSWORD") ?? "";
+    opt.EnableSsl = bool.Parse(Environment.GetEnvironmentVariable("SMTP_ENABLE_SSL") ?? "true");
+    opt.FromEmail = Environment.GetEnvironmentVariable("SMTP_FROM_EMAIL") ?? "";
+    opt.FromName = Environment.GetEnvironmentVariable("SMTP_FROM_NAME") ?? "CFMS Notification";
+});
+// DEPENDENCY INJECTION
+builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
+builder.Services.AddScoped<OtpNotificationHandler>();
+builder.Services.AddScoped<OrderNotificationHandler>();
+// KAFKA CONSUMER (Background Service)
+builder.Services.AddHostedService<KafkaConsumerService>();
+// LOGGING
+builder.Services.AddLogging(config =>
+{
+    config.AddConsole();
+    config.SetMinimumLevel(LogLevel.Information);
+});
+var app = builder.Build();
+// AUTO MIGRATION
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<NotificationDbContext>();
+    db.Database.Migrate();
+}
+app.MapGet("/", () => "NotificationService is running!");
+app.MapGet("/health", () => Results.Ok(new { status = "healthy", service = "NotificationService" }));
+app.Run();
