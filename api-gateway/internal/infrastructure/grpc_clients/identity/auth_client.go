@@ -2,6 +2,7 @@ package identity
 
 import (
 	idenGW "api-gateway/internal/application/gateways/identity"
+	"api-gateway/internal/domain/constants/jwttype"
 	"api-gateway/internal/domain/models/auth"
 	"api-gateway/internal/domain/models/role"
 	"api-gateway/internal/domain/models/user"
@@ -94,9 +95,9 @@ func (a *AuthGrpcClient) Register(ctx context.Context, req *auth.RegisterRequest
 	return res.Message, nil
 }
 
-// ConfirmOtp implements identity.IAuthService.
-func (a *AuthGrpcClient) ConfirmOtp(ctx context.Context, req *auth.ConfirmOtpRequest) (bool, string, error) {
-	res, err := a.client.ConfirmOtp(ctx, &idenPb.ConfirmOtpRequest{
+// ConfirmRegisterOtp implements identity.IAuthService.
+func (a *AuthGrpcClient) ConfirmRegisterOtp(ctx context.Context, req *auth.ConfirmOtpRequest) (bool, string, error) {
+	res, err := a.client.ConfirmRegisterOtp(ctx, &idenPb.ConfirmOtpRequest{
 		Email: req.Email,
 		Otp:   req.Otp,
 	})
@@ -104,4 +105,46 @@ func (a *AuthGrpcClient) ConfirmOtp(ctx context.Context, req *auth.ConfirmOtpReq
 		return false, "", err
 	}
 	return res.Success, res.Message, nil
+}
+
+// ConfirmForgotPasswordOtp implements identity.IAuthService.
+func (a *AuthGrpcClient) ConfirmForgotPasswordOtp(ctx context.Context, req *auth.ConfirmOtpRequest) (string, error) {
+	res, err := a.client.ConfirmForgetPasswordOtp(ctx, &idenPb.ConfirmOtpRequest{
+		Email: req.Email,
+		Otp:   req.Otp,
+	})
+	if err != nil {
+		return "", err
+	}
+	return res.AccessForgetPasswordToken, nil
+}
+
+// ForgotPassword implements identity.IAuthService.
+func (a *AuthGrpcClient) ForgotPassword(ctx context.Context, email string) (string, error) {
+	res, err := a.client.ForgetPassword(ctx, &idenPb.ForgetPasswordRequest{Email: email})
+	if err != nil {
+		return "", err
+	}
+	return res.Message, nil
+}
+
+// NewPassword implements identity.IAuthService.
+func (a *AuthGrpcClient) NewPassword(ctx context.Context, newPassword string) (bool, string, error) {
+	res, err := a.client.NewPassword(ctx, &idenPb.NewPasswordRequest{NewPassword: newPassword})
+	if err != nil {
+		return false, "", err
+	}
+	return res.Success, res.Message, nil
+}
+
+// ReSendOtp implements identity.IAuthService.
+func (a *AuthGrpcClient) ReSendOtp(ctx context.Context, email string, jwtType jwttype.JwtType) (string, error) {
+	res, err := a.client.ReSendOtp(ctx, &idenPb.ReSendOtpRequest{
+		Email: email,
+		Type:  string(jwtType),
+	})
+	if err != nil {
+		return "", err
+	}
+	return res.Message, nil
 }

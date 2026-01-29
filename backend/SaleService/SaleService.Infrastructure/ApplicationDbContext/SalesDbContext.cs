@@ -27,6 +27,11 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
 
     public virtual DbSet<OrderItem> OrderItems { get; set; }
 
+    public virtual DbSet<Payment> Payments { get; set; }
+
+    public virtual DbSet<PaymentEvent> PaymentEvents { get; set; }
+
+
     public DbSet<T> Set<T>() where T : class, IEntity => base.Set<T>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -131,6 +136,90 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
                 .HasConstraintName("fk_order_items_order");
         });
 
+        modelBuilder.Entity<Payment>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("payments_pkey");
+
+            entity.ToTable("payments");
+
+            entity.HasIndex(e => e.Code, "idx_payments_code").IsUnique();
+
+            entity.HasIndex(e => e.OrderId, "idx_payments_order_id");
+
+            entity.HasIndex(e => e.Status, "idx_payments_status");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasColumnName("id");
+            entity.Property(e => e.Amount)
+                .HasPrecision(12, 2)
+                .HasColumnName("amount");
+            entity.Property(e => e.Code)
+                .HasMaxLength(50)
+                .HasColumnName("code");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_at");
+            entity.Property(e => e.Currency)
+                .HasMaxLength(10)
+                .HasDefaultValueSql("'VND'::character varying")
+                .HasColumnName("currency");
+            entity.Property(e => e.IsDeleted)
+                .HasDefaultValue(false)
+                .HasColumnName("is_deleted");
+            entity.Property(e => e.Method).HasColumnName("method");
+            entity.Property(e => e.OrderId).HasColumnName("order_id");
+            entity.Property(e => e.PaidAt).HasColumnName("paid_at");
+            entity.Property(e => e.Provider)
+                .HasMaxLength(50)
+                .HasColumnName("provider");
+            entity.Property(e => e.ProviderPayload)
+                .HasColumnType("jsonb")
+                .HasColumnName("provider_payload");
+            entity.Property(e => e.ProviderTxnId)
+                .HasMaxLength(100)
+                .HasColumnName("provider_txn_id");
+            entity.Property(e => e.Status)
+                .HasDefaultValue(0)
+                .HasColumnName("status");
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("updated_at");
+
+            entity.HasOne(d => d.Order).WithMany(p => p.Payments)
+                .HasForeignKey(d => d.OrderId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_payments_order");
+        });
+
+        modelBuilder.Entity<PaymentEvent>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("payment_events_pkey");
+
+            entity.ToTable("payment_events");
+
+            entity.HasIndex(e => e.PaymentId, "idx_payment_events_payment_id");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasColumnName("id");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_at");
+            entity.Property(e => e.EventType)
+                .HasMaxLength(50)
+                .HasColumnName("event_type");
+            entity.Property(e => e.Payload)
+                .HasColumnType("jsonb")
+                .HasColumnName("payload");
+            entity.Property(e => e.PaymentId).HasColumnName("payment_id");
+
+            entity.HasOne(d => d.Payment).WithMany(p => p.PaymentEvents)
+                .HasForeignKey(d => d.PaymentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_payment_events_payment");
+        });
+
         foreach (var entity in modelBuilder.Model.GetEntityTypes())
         {
             if (typeof(SoftDeletedEntity).IsAssignableFrom(entity.ClrType))
@@ -143,7 +232,6 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
 
         OnModelCreatingPartial(modelBuilder);
     }
-
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 
     private static LambdaExpression GenerateIsDeletedExpression(Type type)

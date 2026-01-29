@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"api-gateway/internal/application/constants/errorcode"
+	"api-gateway/internal/domain/constants/jwttype"
 	"api-gateway/pkg/utils/jwtutils"
 	"strings"
 
@@ -25,7 +26,7 @@ func ValidateToken(secret []byte) gin.HandlerFunc {
 		}
 
 		token := strings.TrimPrefix(authHeader, "Bearer ")
-		claims, err := jwtutils.ValidateToken(secret, token)
+		claims, err := jwtutils.ValidateToken(secret, token, jwttype.AccessToken)
 		if err != nil {
 			c.Error(errorcode.ErrInvalidAccessToken)
 			c.Abort()
@@ -34,14 +35,14 @@ func ValidateToken(secret []byte) gin.HandlerFunc {
 
 		userID, err := uuid.Parse(claims.Subject)
 		if err != nil {
-			c.Error(errorcode.ErrUnexpectedSigningToken)
+			c.Error(errorcode.ErrInvalidAccessToken)
 			c.Abort()
 			return
 		}
 
 		c.Set("userID", userID)
 		c.Set("accessToken", token)
-		// c.Set("roleSlug", claims.RoleSlug)
+		c.Set("roleSlug", claims.RoleSlug)
 		c.Next()
 	}
 }

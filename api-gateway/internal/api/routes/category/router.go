@@ -16,11 +16,11 @@ func (a *CategoryRouter) NewCategoryRouter(cfg *config.Config,
 ) {
 	categoryApi := r.Group("/category")
 	{
-		categoryApi.GET("/", categoryHander.GetCategories)
+		categoryApi.GET("", categoryHander.GetCategories)
 	}
 
 	accessTokenSecret := cfg.JwtSecret
-	privateApi := categoryApi.Group("/")
+	privateApi := categoryApi.Group("")
 	privateApi.Use(middleware.ValidateToken([]byte(accessTokenSecret)))
 	{
 	}

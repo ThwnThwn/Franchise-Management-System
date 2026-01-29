@@ -2,16 +2,18 @@ package jwtutils
 
 import (
 	"api-gateway/internal/application/constants/errorcode"
+	"api-gateway/internal/domain/constants/jwttype"
 
 	"github.com/golang-jwt/jwt/v4"
 )
 
 type CustomClaims struct {
-	// RoleSlug string `json:"role_slug"`
+	RoleSlug string `json:"role_slug"`
+	Type     string `json:"type"`
 	jwt.RegisteredClaims
 }
 
-func ValidateToken(secret []byte, tokenString string) (*CustomClaims, error) {
+func ValidateToken(secret []byte, tokenString string, jwtType jwttype.JwtType) (*CustomClaims, error) {
 	claims := &CustomClaims{}
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(t *jwt.Token) (any, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -24,6 +26,10 @@ func ValidateToken(secret []byte, tokenString string) (*CustomClaims, error) {
 	}
 
 	if !token.Valid {
+		return nil, errorcode.ErrInvalidToken
+	}
+
+	if claims.Type != string(jwtType) {
 		return nil, errorcode.ErrInvalidToken
 	}
 

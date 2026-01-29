@@ -26,10 +26,11 @@ public class ForgetPasswordCommandHandler
         _emailService = emailService;
     }
 
-    public async Task<Unit> Handle(ForgetPasswordCommand command,CancellationToken cancellationToken)
+    public async Task<Unit> Handle(ForgetPasswordCommand command, CancellationToken cancellationToken)
     {
+        var forgetPassword = "forget-password";
         var request = command.Request;
-        var lastOtpTime = await _otpStore.GetLastOtpRequestTimeAsync(request.Email, "forgetpassword");
+        var lastOtpTime = await _otpStore.GetLastOtpRequestTimeAsync(request.Email, forgetPassword);
         if (lastOtpTime.HasValue)
         {
             var timeSinceLastRequest = DateTimeOffset.UtcNow - lastOtpTime.Value;
@@ -56,9 +57,9 @@ public class ForgetPasswordCommandHandler
         var forgetPasswordJson = JsonSerializer.Serialize(forgetPasswordData);
         await _otpStore.SaveForgetPasswordDataAsync(request.Email, forgetPasswordJson);
 
-        await _otpStore.SaveOTPAsyns(request.Email, otp, "forgetpassword");
-        await _otpStore.SaveLastOtpRequestTimeAsync(request.Email, DateTimeOffset.UtcNow, "forgetpassword");
-        await _otpStore.ResetOtpAttemptAsync(request.Email, "forgetpassword");
+        await _otpStore.SaveOTPAsyns(request.Email, otp, forgetPassword);
+        await _otpStore.SaveLastOtpRequestTimeAsync(request.Email, DateTimeOffset.UtcNow, forgetPassword);
+        await _otpStore.ResetOtpAttemptAsync(request.Email, forgetPassword);
         await _emailService.SendOtpEmailAsync(request.Email, otp);
 
         return Unit.Value;

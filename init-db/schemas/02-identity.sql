@@ -28,6 +28,9 @@ CREATE TABLE IF NOT EXISTS users (
     date_of_birth TIMESTAMP NOT NULL,
     is_blocked BOOLEAN DEFAULT FALSE,
 
+    -- Định danh nhân viên này thuộc biên chế cửa hàng nào
+    home_store_id UUID,
+
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     is_deleted BOOLEAN DEFAULT FALSE,
@@ -35,6 +38,7 @@ CREATE TABLE IF NOT EXISTS users (
     role_id UUID,
     CONSTRAINT fk_users_role FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE SET NULL
 );
+CREATE INDEX idx_users_home_store ON users(home_store_id) WHERE is_deleted = FALSE;
 
 -- TABLE TOKEN
 CREATE TABLE IF NOT EXISTS refresh_tokens (

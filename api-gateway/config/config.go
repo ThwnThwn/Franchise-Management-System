@@ -11,20 +11,23 @@ import (
 type Config struct {
 	FrontEndOrigin string
 
-	Port               string
-	CalcServiceUrl     CalcServiceUrl
-	IdentityServiceUrl IdentityServiceUrl
-	ProductServiceUrl  ProductServiceUrl
-	SalesServiceUrl    SalesServiceUrl
+	Port                string
+	CalcServiceUrl      CalcServiceUrl
+	IdentityServiceUrl  IdentityServiceUrl
+	ProductServiceUrl   ProductServiceUrl
+	SalesServiceUrl     SalesServiceUrl
+	FranchiseServiceUrl FranchiseServiceUrl
 
-	JwtRefreshTokenExpDays int
-	JwtSecret              string
+	JwtRefreshTokenExpDays          int
+	JwtSecret                       string
+	JwtAccessTokenExpirationMinutes int
 }
 
 type CalcServiceUrl string
 type IdentityServiceUrl string
 type ProductServiceUrl string
 type SalesServiceUrl string
+type FranchiseServiceUrl string
 
 func LoadConfig() *Config {
 	err := godotenv.Load(".env")
@@ -41,13 +44,15 @@ func LoadConfig() *Config {
 		Port:           getEnv("GATEWAY_PORT", "8080"),
 		FrontEndOrigin: getEnv("FRONTEND_ORIGIN", "http://localhost:3000"),
 
-		CalcServiceUrl:     CalcServiceUrl(getEnv("CALC_SERVICE_URL", "localhost:5099")),
-		IdentityServiceUrl: IdentityServiceUrl(getEnv("IDENTITY_SERVICE_URL", "localhost:5001")),
-		ProductServiceUrl:  ProductServiceUrl(getEnv("PRODUCT_SERVICE_URL", "localhost:5002")),
-		SalesServiceUrl:    SalesServiceUrl(getEnv("SALES_SERVICE_URL", "localhost:5003")),
+		CalcServiceUrl:      CalcServiceUrl(getEnv("CALC_SERVICE_URL", "localhost:5099")),
+		IdentityServiceUrl:  IdentityServiceUrl(getEnv("IDENTITY_SERVICE_URL", "localhost:5001")),
+		ProductServiceUrl:   ProductServiceUrl(getEnv("PRODUCT_SERVICE_URL", "localhost:5002")),
+		SalesServiceUrl:     SalesServiceUrl(getEnv("SALES_SERVICE_URL", "localhost:5003")),
+		FranchiseServiceUrl: FranchiseServiceUrl(getEnv("FRANCHISE_SERVICE_URL", "localhost:5006")),
 
-		JwtRefreshTokenExpDays: getEnvInt("JWT_REFRESH_TOKEN_EXPIRATION_DAYS", 7),
-		JwtSecret:              getEnv("JWT_SECRET", ""),
+		JwtRefreshTokenExpDays:          getEnvInt("JWT_REFRESH_TOKEN_EXPIRATION_DAYS", 7),
+		JwtSecret:                       getEnv("JWT_SECRET", ""),
+		JwtAccessTokenExpirationMinutes: getEnvInt("JWT_ACCESS_TOKEN_EXPIRATION_MINUTES", 15),
 	}
 }
 
