@@ -80,3 +80,23 @@ func (h *OrderHandler) GetMyOrders(c *gin.Context) {
 
 	c.JSON(http.StatusOK, res)
 }
+
+func (h *OrderHandler) CreatePaymentUrl(c *gin.Context) {
+	id := c.Param("id")
+	orderId, err := uuid.Parse(id)
+	if err != nil {
+		c.Error(errorcode.ErrInvalidId)
+		return
+	}
+
+	ctx := c.Request.Context()
+	res, err := h.orderUC.CreatePaymentUrl(ctx, orderId)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"paymentUrl": res,
+	})
+}

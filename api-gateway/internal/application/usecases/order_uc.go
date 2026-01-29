@@ -30,3 +30,7 @@ func (o *OrderUseCase) GetOrderById(ctx context.Context, id uuid.UUID) (*order.O
 func (o *OrderUseCase) GetMyOrders(ctx context.Context, req *order.GetMyOrdersRequest) ([]*order.OrderSummary, error) {
 	return o.service.GetMyOrders(ctx, req)
 }
+
+func (o *OrderUseCase) CreatePaymentUrl(ctx context.Context, id uuid.UUID) (string, error) {
+	return o.service.CreatePaymentUrl(ctx, id)
+}
