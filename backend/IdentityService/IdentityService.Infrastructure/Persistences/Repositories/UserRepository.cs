@@ -84,5 +84,17 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
                .FirstOrDefaultAsync(u => u.Id == id && !u.IsDeleted);
             return user;
         }
+
+        public async Task<User?> GetManagerByStoreIdAsync(Guid? storeId)
+        {
+            return await _dbContext.Users
+                .Include(u => u.Role)
+                .Where(u =>
+                    u.HomeStoreId == storeId &&
+                    u.Role.Slug == "manager" &&
+                    !u.IsDeleted
+                )
+                .FirstOrDefaultAsync();
+        }
     }
 }
