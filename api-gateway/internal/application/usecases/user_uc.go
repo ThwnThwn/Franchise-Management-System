@@ -21,3 +21,7 @@ func NewUserUseCase(service idenGW.IUserService) abstractions.IUserUseCase {
 func (u *UserUseCase) GetById(ctx context.Context, id uuid.UUID) (*user.UserResponse, error) {
 	return u.servive.GetById(ctx, id)
 }
+
+func (u *UserUseCase) Update(ctx context.Context, id uuid.UUID, req *user.UpdateUserRequest) (*user.UserResponse, error) {
+	return u.servive.Update(ctx, id, req)
+}

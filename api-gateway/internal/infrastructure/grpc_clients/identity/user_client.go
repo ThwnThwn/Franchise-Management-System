@@ -27,9 +27,9 @@ func (u *UserGrpcClient) GetById(ctx context.Context, id uuid.UUID) (*user.UserR
 }
 
 // Update implements identity.IUserService.
-func (u *UserGrpcClient) Update(ctx context.Context, req *user.UpdateUserRequest) (*user.UserResponse, error) {
+func (u *UserGrpcClient) Update(ctx context.Context, id uuid.UUID, req *user.UpdateUserRequest) (*user.UserResponse, error) {
 	res, err := u.client.Update(ctx, &idenPb.UpdateUserRequest{
-		Id:          req.Id,
+		Id:          id.String(),
 		Username:    req.Username,
 		Phone:       req.Phone,
 		Address:     req.Address,

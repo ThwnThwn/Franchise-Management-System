@@ -48,7 +48,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 func (h *AuthHandler) Logout(c *gin.Context) {
 	accessToken, exists := c.Get("accessToken")
 	if !exists {
-		c.Error(errorcode.ErrInvalidToken)
+		c.Error(errorcode.ErrInvalidAccessToken)
 		return
 	}
 	refreshToken, err := c.Cookie("refresh_token")
