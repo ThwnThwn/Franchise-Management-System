@@ -3,7 +3,7 @@ syntax = "proto3";
 option csharp_namespace = "InventoryService.Grpc.Protos.Inventory";
 option go_package = "api-gateway/pkg/pb/inventory";
 
-package inventory.inventory;
+package inventory;
 
 service InventoryGrpc {
   rpc IncreaseStock(IncreaseStockRequest) returns (IncreaseStockResponse);

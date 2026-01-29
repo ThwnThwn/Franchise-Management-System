@@ -12,19 +12,19 @@
         public decimal Quantity { get; set; }
     }
 
-    public class DescreaseStockByOrderReq
+    public class DecreaseStockByOrderReq
     {
         public Guid StoreId { get; set; }
-        public Guid VariantId { get; set; }
+        public IEnumerable<AmountVariant> Items { get; set; } = [];
     }
 
     public class CheckEnoughStockReq
     {
         public Guid StoreId { get; set; }
-        public IEnumerable<CheckItem> CheckItem { get; set; } = new List<CheckItem>();
+        public IEnumerable<AmountVariant> CheckItem { get; set; } = new List<AmountVariant>();
     }
 
-    public class CheckItem
+    public class AmountVariant
     {
         public Guid VariantId { get; set; }
         public int Amount { get; set; }

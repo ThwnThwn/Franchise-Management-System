@@ -2,6 +2,7 @@
 using AutoMapper;
 using DotNetEnv;
 using InventoryService.API.Middleware;
+using InventoryService.API.Services;
 using InventoryService.Application.DependencyInjection;
 using InventoryService.Application.Persistences.Repositories;
 using InventoryService.Infrastructure.ApplicationDbContext;
@@ -25,10 +26,10 @@ namespace InventoryService.API
             builder.Configuration.AddEnvironmentVariables();
 
             // Configure Kestrel for gRPC (HTTPS + HTTP/2)
-            var saleServicePort = int.Parse(builder.Configuration["SALES_PORT"] ?? "5003");
+            var inventoryServicePort = int.Parse(builder.Configuration["INVENTORY_PORT"] ?? "5005");
             builder.WebHost.ConfigureKestrel(options =>
             {
-                options.ListenLocalhost(saleServicePort, listenOptions =>
+                options.ListenLocalhost(inventoryServicePort, listenOptions =>
                 {
                     listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2;
                     listenOptions.UseHttps(); // Development certificate
@@ -59,7 +60,7 @@ namespace InventoryService.API
             builder.Services.AddScoped<UpdateTimestampInterceptor>();
 
             // Connect Db
-            var connectionString = builder.Configuration["SALES_DB_CONNECTION"];
+            var connectionString = builder.Configuration["INVENTORY_DB_CONNECTION"];
 
             // EF Core interceptors used by SalesDbContext
             builder.Services.AddScoped<UpdateTimestampInterceptor>();
@@ -109,7 +110,7 @@ namespace InventoryService.API
 
             //add repo
             builder.Services.AddScoped<IStoreIngredientRepository, StoreIngredientRepository>();
-            builder.Services.AddScoped<IIngredientRepository, IIngredientRepository>();
+            builder.Services.AddScoped<IIngredientRepository, IngredientRepository>();
             builder.Services.AddScoped<IRecipeRepository, RecipeRepository>();
 
             var app = builder.Build();
@@ -132,7 +133,8 @@ namespace InventoryService.API
             app.UseAuthorization();
 
             app.MapControllers();
-            //app.MapGrpcService<OrderGrpcService>();
+            app.MapGrpcService<InventoryGrpcService>();
+            app.MapGrpcService<InventoryInternalService>();
             app.MapGrpcReflectionService(); // Enable gRPC Server Reflection endpoint
             app.MapGet("/", () => "Sale Service API is running. Visit /swagger for API documentation.");
 

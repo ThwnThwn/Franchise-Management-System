@@ -30,8 +30,7 @@ namespace InventoryService.Application.Features.StoreIngredient.Commands.CheckEn
             // 3. Lấy tồn kho của cửa hàng cho các nguyên liệu trong công thức đó
             var ingredientIds = recipes.Select(r => r.IngredientId).Distinct().ToList();
             var stockInStore = await _storeIngredientRepo.GetStockByStoreIdAndIngredientIdsAsync(request.StoreId, ingredientIds, cancellationToken);
-            var stockInStoreDict = stockInStore.ToDictionary(s => s.IngredientId, s => s.Quantity);
-
+            var workingStockDict = stockInStore.ToDictionary(s => s.IngredientId, s => s.Quantity);
 
             // 4. Kiểm tra từng Item trong yêu cầu
             foreach (var item in request.CheckItem)
@@ -43,7 +42,7 @@ namespace InventoryService.Application.Features.StoreIngredient.Commands.CheckEn
 
                 foreach (var recipe in itemRecipes)
                 {
-                    stockInStoreDict.TryGetValue(recipe.IngredientId, out decimal? currentStock);
+                    workingStockDict.TryGetValue(recipe.IngredientId, out decimal? currentStock);
 
                     // Tính số lượng ly tối đa dựa trên nguyên liệu này: Tồn kho / Định lượng 1 ly
                     // Dùng Math.Floor vì không thể pha lẻ ly nếu thiếu nguyên liệu
@@ -64,6 +63,15 @@ namespace InventoryService.Application.Features.StoreIngredient.Commands.CheckEn
                         VariantId = item.VariantId,
                         MaxFeasibleQuantity = (int)maxPossible // Trả về số lượng tối đa có thể pha (ví dụ: 3)
                     });
+                }
+
+                //giả định trừ kho để các sản phẩm không bị ảo nguyên liệu nếu pha chế
+                foreach (var recipe in itemRecipes)
+                {
+                    if (workingStockDict.ContainsKey(recipe.IngredientId))
+                    {
+                        workingStockDict[recipe.IngredientId] -= (maxPossible * recipe.Quantity);
+                    }
                 }
             }
 

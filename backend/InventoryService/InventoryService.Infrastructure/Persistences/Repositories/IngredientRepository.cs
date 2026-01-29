@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace InventoryService.Infrastructure.Persistences.Repositories
 {
-    internal class IngredientRepository : GenericRepository<Ingredient>, IIngredientRepository
+    public class IngredientRepository : GenericRepository<Ingredient>, IIngredientRepository
     {
         public IngredientRepository(IInventoryDbContext dbContext) : base(dbContext)
         {

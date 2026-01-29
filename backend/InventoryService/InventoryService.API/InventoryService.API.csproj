@@ -9,10 +9,13 @@
 	<ItemGroup>
 		<Protobuf Include="..\..\..\protos\inventory\*.proto" GrpcServices="Server" ProtoRoot="..\..\..\protos" />
 	</ItemGroup>
-
 	<ItemGroup>
-	  <None Remove="Protos\inventory.proto" />
+		<Protobuf Include="Protos\inventory.proto" GrpcServices="Server" />
 	</ItemGroup>
+
+	<!-- <ItemGroup>
+	  <None Remove="Protos\inventory.proto" />
+	</ItemGroup> -->
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="16.0.0" />
@@ -29,7 +32,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="Protos\inventory.proto" GrpcServices="Server" />
+    <!-- <Protobuf Include="Protos\inventory.proto" GrpcServices="Server" /> -->
   </ItemGroup>
 
 </Project>

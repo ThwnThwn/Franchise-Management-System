@@ -1,6 +1,7 @@
 ﻿using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using InventoryService.Application.Features.StoreIngredient.Commands;
+using InventoryService.Application.Features.StoreIngredient.Commands.IncreaseStock;
 using InventoryService.Grpc.Protos.Inventory;
 using MediatR;
 
@@ -15,13 +16,11 @@ namespace InventoryService.API.Services
 
         public override async Task<IncreaseStockResponse> IncreaseStock(IncreaseStockRequest request, ServerCallContext context)
         {
-            //ktra phải manager của kho không
-
-
+            //ktra phải manager của kho 
+            var managerIdEntry = context.RequestHeaders.FirstOrDefault(h =>
+            h.Key.Equals("x-user-id", StringComparison.OrdinalIgnoreCase));
             //===============================
-            try
-            {
-                var rep = await _mediator.Send(new IncreaseStockCommand(new()
+            var rep = await _mediator.Send(new IncreaseStockCommand(new()
                 {
                     StoreId = Guid.Parse(request.StoreId),
                     Items = request.Items.Select(x => new Application.Dtos.StoreIngredient.IngredientStockItem
@@ -31,11 +30,7 @@ namespace InventoryService.API.Services
                     }).ToList()
                 }));
                 return new IncreaseStockResponse();
-            }
-            catch (Exception ex)
-            {
-                throw new RpcException(new Status(StatusCode.Unauthenticated, ex.Message));
-            }
         }
+
     }
 }
