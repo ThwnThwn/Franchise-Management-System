@@ -1,0 +1,40 @@
+﻿using System;
+using System.Collections.Generic;
+using FranchiseService.Domain.Commons;
+
+namespace FranchiseService.Domain.Entities;
+
+public partial class TimeLog : SoftDeletedEntity, IEntity
+{
+    public Guid Id { get; set; }
+
+    public Guid ScheduleId { get; set; }
+
+    public DateTime? CheckInAt { get; set; }
+
+    public string? CheckInImageUrl { get; set; }
+
+    public decimal? CheckInLat { get; set; }
+
+    public decimal? CheckInLong { get; set; }
+
+    public DateTime? CheckOutAt { get; set; }
+
+    public string? CheckOutImageUrl { get; set; }
+
+    public decimal? CheckOutLat { get; set; }
+
+    public decimal? CheckOutLong { get; set; }
+
+    public int? TotalWorkMinutes { get; set; }
+
+    public int? Status { get; set; }
+
+    public string? AdminNote { get; set; }
+
+    public DateTimeOffset CreatedAt { get; set; }
+
+    public DateTimeOffset UpdatedAt { get; set; }
+
+    public virtual Schedule Schedule { get; set; } = null!;
+}

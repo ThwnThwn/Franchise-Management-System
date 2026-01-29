@@ -24,6 +24,8 @@ func InitializeApp(cfg *config.Config) (*bootstrap.App, error) {
 		wire.FieldsOf(new(*config.Config), "IdentityServiceUrl"),
 		wire.FieldsOf(new(*config.Config), "ProductServiceUrl"),
 		wire.FieldsOf(new(*config.Config), "SalesServiceUrl"),
+		wire.FieldsOf(new(*config.Config), "InventoryServiceUrl"),
+		wire.FieldsOf(new(*config.Config), "FranchiseServiceUrl"),
 
 		// 3. Sub sets
 		grpc_clients.ClientSet,

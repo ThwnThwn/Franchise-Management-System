@@ -13,6 +13,8 @@ namespace IdentityService.Application.Constants
             public const string AllRoles = "AllRoles";
             public const string AllPermissions = "AllPermissions";
             public const string AllRolePermissions = "AllRolePermissions";
+            public const string RegisterOTP = "register";
+            public const string ForgetPasswordOTP = "forget-password";
         }
     }
 }

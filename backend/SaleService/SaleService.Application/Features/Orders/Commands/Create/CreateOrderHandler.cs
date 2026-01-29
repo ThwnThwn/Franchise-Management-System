@@ -92,6 +92,7 @@ public sealed class CreateOrderHandler
             Subtotal = subtotal,
             Tax = tax,
             TotalAmount = totalAmount,
+            StoreId = request.Request.StoreId, // chưa xét null thì auto select
             PaymentMethod = request.Request.PaymentMethod.HasValue
                 ? (PaymentMethod?)request.Request.PaymentMethod.Value
                 : null,

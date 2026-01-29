@@ -10,12 +10,14 @@
     <Protobuf Include="Protos\products.proto" GrpcServices="Client" />
     <Protobuf Include="Protos\orders.proto" GrpcServices="Server" />
   </ItemGroup> -->
-  <ItemGroup>
+  <!-- <ItemGroup>
 		<Protobuf Include="..\..\..\protos\product\*.proto" GrpcServices="Client" ProtoRoot="..\..\..\protos" />
     <Protobuf Include="..\..\..\protos\sales\*.proto" GrpcServices="Server" ProtoRoot="..\..\..\protos" />
-	</ItemGroup>
+	</ItemGroup> -->
   <ItemGroup>
     <None Remove="Protos\inventory.proto" />
+	    <Protobuf Include="..\..\..\protos\product\*.proto" GrpcServices="Client" ProtoRoot="..\..\..\protos" />
+	    <Protobuf Include="..\..\..\protos\sales\*.proto" GrpcServices="Server" ProtoRoot="..\..\..\protos" />
   </ItemGroup>
 
   <ItemGroup>
