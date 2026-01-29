@@ -81,8 +81,19 @@ func (h *UserHandler) UpdateMe(c *gin.Context) {
 
 // Admin
 func (h *UserHandler) GetAll(c *gin.Context) {
-	ctx := c.Request.Context()
-	res, err := h.userUC.GetAll(ctx)
+	var req user.GetAllUsersRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		c.Error(err)
+		return
+	}
+
+	ctx, err := grpcutils.BuildAuthContext(c)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	res, err := h.userUC.GetAll(ctx, &req)
 	if err != nil {
 		c.Error(err)
 		return

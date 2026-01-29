@@ -1,5 +1,7 @@
 package user
 
+import "api-gateway/internal/domain/models/common"
+
 type CreateUserRequest struct {
 	Username    string `json:"username" binding:"required"`
 	Email       string `json:"email" binding:"required,email"`
@@ -43,4 +45,10 @@ type ChangePasswordRequest struct {
 	OldPassword        string `json:"oldPassword" binding:"required,min=6,max=30"`
 	NewPassword        string `json:"newPassword" binding:"required,min=6,max=30"`
 	ConfirmNewPassword string `json:"confirmNewPassword" binding:"required,eqfield=NewPassword"`
+}
+
+type GetAllUsersRequest struct {
+	common.PaginationQuery
+	RoleSlug string `form:"roleSlug"`
+	Keyword  string `form:"keyword"`
 }

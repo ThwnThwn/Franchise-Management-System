@@ -2,13 +2,13 @@ package identity
 
 import (
 	idenGW "api-gateway/internal/application/gateways/identity"
+	"api-gateway/internal/domain/models/common"
 	"api-gateway/internal/domain/models/user"
 	"api-gateway/pkg/mapper"
 	idenPb "api-gateway/pkg/pb/identity"
 	"context"
 
 	"github.com/google/uuid"
-	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type UserGrpcClient struct {
@@ -20,10 +20,17 @@ func ProvideUserClient(f *identityClientFactory) idenGW.IUserService {
 }
 
 // GetAll implements identity.IUserService.
-func (u *UserGrpcClient) GetAll(ctx context.Context) ([]*user.UserResponse, error) {
-	res, err := u.client.GetAll(ctx, &emptypb.Empty{})
+func (u *UserGrpcClient) GetAll(ctx context.Context, req *user.GetAllUsersRequest) (
+	common.PaginationResult[*user.UserResponse], error,
+) {
+	res, err := u.client.GetAll(ctx, &idenPb.GetAllUserOrWithRoleRequest{
+		RoleSlug: req.RoleSlug,
+		Page:     req.Page,
+		PageSize: req.PageSize,
+		Keyword:  req.Keyword,
+	})
 	if err != nil {
-		return nil, err
+		return common.PaginationResult[*user.UserResponse]{}, err
 	}
 
 	users := make([]*user.UserResponse, 0, len(res.Users))
@@ -31,7 +38,11 @@ func (u *UserGrpcClient) GetAll(ctx context.Context) ([]*user.UserResponse, erro
 		users = append(users, mapper.MapUserPbToUserModel(user))
 	}
 
-	return users, nil
+	return common.PaginationResult[*user.UserResponse]{
+		Items:      users,
+		TotalCount: res.TotalCount,
+		TotalPages: res.TotalPages,
+	}, nil
 }
 
 func (u *UserGrpcClient) GetById(ctx context.Context, id uuid.UUID) (*user.UserResponse, error) {

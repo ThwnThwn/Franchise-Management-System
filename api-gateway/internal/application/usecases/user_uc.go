@@ -3,6 +3,7 @@ package usecases
 import (
 	"api-gateway/internal/application/abstractions"
 	idenGW "api-gateway/internal/application/gateways/identity"
+	"api-gateway/internal/domain/models/common"
 	"api-gateway/internal/domain/models/user"
 	"context"
 
@@ -37,6 +38,8 @@ func (u *UserUseCase) Create(ctx context.Context, req *user.CreateUserRequest) (
 }
 
 // GetAll implements abstractions.IUserUseCase.
-func (u *UserUseCase) GetAll(ctx context.Context) ([]*user.UserResponse, error) {
-	return u.servive.GetAll(ctx)
+func (u *UserUseCase) GetAll(ctx context.Context, req *user.GetAllUsersRequest) (
+	common.PaginationResult[*user.UserResponse], error,
+) {
+	return u.servive.GetAll(ctx, req)
 }
