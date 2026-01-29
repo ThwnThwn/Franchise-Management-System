@@ -17,7 +17,6 @@ service CartItemGrpc {
 message AddToCartRequest {
   string sku = 1;
   int32 quantity = 2;
-  double basePrice = 3;
 }
 
 message UpdateCartItemRequest {

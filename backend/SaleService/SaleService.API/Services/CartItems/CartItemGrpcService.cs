@@ -2,6 +2,7 @@
 using Grpc.Core;
 using MediatR;
 using Sales.Cart;
+using SalesService.Application.ClientInterface.Products;
 using SalesService.Application.Dtos.CartItem.Request;
 using SalesService.Application.Features.CartItems.Commands.Create;
 using SalesService.Application.Features.CartItems.Commands.Delete;
@@ -15,10 +16,13 @@ namespace SalesService.API.Services.CartItems
     public class CartItemGrpcService : CartItemGrpc.CartItemGrpcBase
     {
         private readonly IMediator _mediator;
+        private readonly IProductServiceClient _productServiceClient;
 
-        public CartItemGrpcService(IMediator mediator)
+
+        public CartItemGrpcService(IMediator mediator, IProductServiceClient productServiceClient)
         {
             _mediator = mediator;
+            _productServiceClient = productServiceClient;
         }
 
         //Add Cart Item
@@ -32,12 +36,22 @@ namespace SalesService.API.Services.CartItems
                 throw new RpcException(new Status(StatusCode.Unauthenticated, "Missing x-user-id in request headers"));
             }
             var customerId = Guid.Parse(userIdEntry.Value);
+            var productVariant = await _productServiceClient.GetProductVariantBySkuAsync(request.Sku);
+            if (productVariant == null)
+            {
+                throw new RpcException(new Status(StatusCode.NotFound, $"Product variant with SKU '{request.Sku}' not found or inactive."));
+            }
+
+            if (!productVariant.BasePrice.HasValue || productVariant.BasePrice <= 0)
+            {
+                throw new RpcException(new Status(StatusCode.Internal,$"Product variant with SKU '{request.Sku}' has invalid price."));
+            }
             var command = new CreateCartItemCommand(new CreateCartItemReq
             {
                 CustomerId = customerId,
                 Sku = request.Sku,
                 Quantity = request.Quantity,
-                BasePrice = (decimal)request.BasePrice
+                BasePrice = (decimal)productVariant.BasePrice,
             });
 
             var result = await _mediator.Send(command);
