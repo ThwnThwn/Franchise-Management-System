@@ -106,6 +106,7 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("created_at");
             entity.Property(e => e.CustomerId).HasColumnName("customer_id");
+            entity.Property(e => e.StoreId).HasColumnName("store_id");
             entity.Property(e => e.IsDeleted)
                 .HasDefaultValue(false)
                 .HasColumnName("is_deleted");
