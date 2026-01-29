@@ -36,15 +36,14 @@ func (o *OrderGrpcClient) CreateOrder(ctx context.Context, req *order.CreateOrde
 	}
 
 	res, err := o.client.CreateOrder(ctx, &salesPb.CreateOrderRequest{
-		Items:         pbItems,
-		Tax:           req.Tax,
-		PaymentMethod: req.PaymentMethod,
-		Notes:         req.Notes,
+		Items:   pbItems,
+		Notes:   req.Notes,
+		StoreId: req.StoreId,
 	})
-
 	if err != nil {
 		return nil, err
 	}
+
 	return &order.CreateOrderReply{
 		OrderId:     res.OrderId,
 		OrderCode:   res.OrderCode,

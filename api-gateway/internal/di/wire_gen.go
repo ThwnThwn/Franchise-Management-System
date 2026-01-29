@@ -41,9 +41,9 @@ func InitializeApp(cfg *config.Config) (*bootstrap.App, error) {
 	}
 	iAuthService := identity.ProvideAuthClient(identityClientFactory)
 	iAuthUseCase := usecases.NewAuthUseCase(iAuthService)
-	authHandler := handlers.NewAuthHandler(iAuthUseCase)
 	iUserService := identity.ProvideUserClient(identityClientFactory)
 	iUserUseCase := usecases.NewUserUseCase(iUserService)
+	authHandler := handlers.NewAuthHandler(iAuthUseCase, iUserUseCase)
 	userHandler := handlers.NewUserHandler(iUserUseCase)
 	productServiceUrl := cfg.ProductServiceUrl
 	productClientFactory, err := product.NewProductClientFactory(productServiceUrl)
@@ -64,6 +64,9 @@ func InitializeApp(cfg *config.Config) (*bootstrap.App, error) {
 	iOrderService := sales.ProvideOrderClient(salesClientFactory)
 	iOrderUseCase := usecases.NewOrderUseCase(iOrderService)
 	orderHandler := handlers.NewOrderHandler(iOrderUseCase)
+	iCartService := sales.ProvideCartClient(salesClientFactory)
+	iCartUseCase := usecases.NewCartUseCase(iCartService)
+	cartHandler := handlers.NewCartHandler(iCartUseCase)
 	inventoryServiceUrl := cfg.InventoryServiceUrl
 	inventoryClientFactory, err := inventory.NewInventoryClientFactory(inventoryServiceUrl)
 	if err != nil {
@@ -80,6 +83,7 @@ func InitializeApp(cfg *config.Config) (*bootstrap.App, error) {
 		ProductHandler:   productHandler,
 		CategoryHandler:  categoryHandler,
 		OrderHandler:     orderHandler,
+		CartHandler:      cartHandler,
 		InventoryHandler: inventoryHandler,
 	}
 	engine := routes.NewRouter(cfg, appHandlers)

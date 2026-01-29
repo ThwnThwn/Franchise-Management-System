@@ -3,11 +3,9 @@ package order
 import "api-gateway/internal/domain/models/common"
 
 type CreateOrderRequest struct {
-	Items         []*CartItem `json:"items" binding:"required"`
-	Tax           *float64    `json:"tax"`
-	PaymentMethod *int32      `json:"paymentMethod"`
-	Notes         string      `json:"notes"`
-	StoreId       string      `json:"storeId" binding:"required"`
+	Items   []*CartItem `json:"items" binding:"required"`
+	Notes   string      `json:"notes"`
+	StoreId string      `json:"storeId" binding:"required"`
 }
 
 type CartItem struct {

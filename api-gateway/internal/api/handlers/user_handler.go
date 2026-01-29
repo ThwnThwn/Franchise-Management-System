@@ -79,6 +79,37 @@ func (h *UserHandler) UpdateMe(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
+// Admin
+func (h *UserHandler) GetAll(c *gin.Context) {
+	ctx := c.Request.Context()
+	res, err := h.userUC.GetAll(ctx)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, res)
+}
+
+func (h *UserHandler) GetById(c *gin.Context) {
+	id := c.Param("id")
+	userId, err := uuid.Parse(id)
+	if err != nil {
+		c.Error(errorcode.ErrInvalidId)
+		return
+	}
+
+	ctx := c.Request.Context()
+	res, err := h.userUC.GetById(ctx, userId)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, res)
+
+}
+
 func (h *UserHandler) Create(c *gin.Context) {
 	var req user.CreateUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

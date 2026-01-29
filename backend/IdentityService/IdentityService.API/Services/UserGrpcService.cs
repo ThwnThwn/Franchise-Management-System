@@ -1,4 +1,5 @@
-﻿using Google.Protobuf.WellKnownTypes;
+﻿using System.Globalization;
+using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using IdentityService.Application.Dtos.User.Respone;
 using IdentityService.Application.Features.Users.Commands.AdminCreateUser;
@@ -12,7 +13,7 @@ using IdentityService.Grpc.Protos.User;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore.Storage.Json;
-using System.Globalization;
+using Sprache;
 
 namespace IdentityService.API.Services;
 
@@ -92,17 +93,6 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
 
     public override async Task<UserResponse> Update(UpdateUserRequest request, ServerCallContext context)
     {
-        // Lấy UserId từ Metadata header
-        var userIdEntry = context.RequestHeaders.FirstOrDefault(h =>
-            h.Key.Equals("x-user-id", StringComparison.OrdinalIgnoreCase));
-
-        if (userIdEntry == null)
-        {
-            throw new RpcException(new Status(StatusCode.Unauthenticated, "Missing x-user-id in request headers"));
-        }
-
-        var customerId = Guid.Parse(userIdEntry.Value);
-
         string[] formats = {
             "yyyy-MM-dd",
             "yyyy-MM-dd'T'HH:mm:ss.fff'Z'",
@@ -116,6 +106,7 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
             DateTimeStyles.RoundtripKind
         );
 
+        _ = Guid.TryParse(request.Id, out var customerId);
         var rep = await _mediator.Send(new UpdateUserCommand(
             Id: customerId,
             Request: new()

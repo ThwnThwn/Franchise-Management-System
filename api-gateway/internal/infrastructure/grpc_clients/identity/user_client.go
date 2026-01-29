@@ -72,7 +72,6 @@ func (u *UserGrpcClient) Update(ctx context.Context, id uuid.UUID, req *user.Upd
 		Gender:      &req.Gender,
 		DateOfBirth: req.DateOfBirth,
 		IsBlocked:   &req.IsBlocked,
-		Email:       req.Email,
 		FirstName:   req.FirstName,
 		LastName:    req.LastName,
 		RoleSlug:    req.RoleSlug,

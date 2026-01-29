@@ -29,6 +29,7 @@ var ClientSet = wire.NewSet(
 	// Sales Service
 	sales.NewSalesClientFactory,
 	sales.ProvideOrderClient,
+	sales.ProvideCartClient,
 
 	// Inventory Service
 	inventory.NewInventoryClientFactory,

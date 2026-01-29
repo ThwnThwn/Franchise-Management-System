@@ -40,5 +40,6 @@ func (a *AuthRouter) NewAuthRouter(cfg *config.Config,
 	privateApi.Use(middleware.ValidateToken([]byte(accessTokenSecret)))
 	{
 		privateApi.POST("/logout", authHander.Logout)
+		privateApi.POST("/change-password", authHander.ChangePassword)
 	}
 }

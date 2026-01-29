@@ -6,20 +6,29 @@ import (
 	"api-gateway/internal/application/constants/errorcode"
 	"api-gateway/internal/domain/constants/jwttype"
 	"api-gateway/internal/domain/models/auth"
+	"api-gateway/internal/domain/models/user"
 	"api-gateway/pkg/utils/jwtutils"
 	"api-gateway/pkg/utils/validation"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"google.golang.org/grpc/metadata"
 )
 
 type AuthHandler struct {
 	authUC abstractions.IAuthUseCase
+	userUC abstractions.IUserUseCase
 }
 
-func NewAuthHandler(authUC abstractions.IAuthUseCase) *AuthHandler {
-	return &AuthHandler{authUC: authUC}
+func NewAuthHandler(
+	authUC abstractions.IAuthUseCase,
+	userUC abstractions.IUserUseCase,
+) *AuthHandler {
+	return &AuthHandler{
+		authUC: authUC,
+		userUC: userUC,
+	}
 }
 
 func (h *AuthHandler) Login(c *gin.Context) {
@@ -97,6 +106,7 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	})
 }
 
+// Register
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req auth.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -152,6 +162,26 @@ func (h *AuthHandler) ConfirmRegisterOtp(c *gin.Context) {
 	})
 }
 
+func (h *AuthHandler) ReSendRegisterOtp(c *gin.Context) {
+	var req auth.SendOtpRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.Error(validation.TranslateValidationError(err))
+		return
+	}
+
+	ctx := c.Request.Context()
+	msg, err := h.authUC.ReSendOtp(ctx, req.Email, jwttype.Register)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": msg,
+	})
+}
+
+// Forgot password
 func (h *AuthHandler) ForgotPassword(c *gin.Context) {
 	var req auth.SendOtpRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -233,25 +263,6 @@ func (h *AuthHandler) NewPassword(c *gin.Context) {
 	})
 }
 
-func (h *AuthHandler) ReSendRegisterOtp(c *gin.Context) {
-	var req auth.SendOtpRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(validation.TranslateValidationError(err))
-		return
-	}
-
-	ctx := c.Request.Context()
-	msg, err := h.authUC.ReSendOtp(ctx, req.Email, jwttype.Register)
-	if err != nil {
-		c.Error(err)
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"message": msg,
-	})
-}
-
 func (h *AuthHandler) ReSendForgotPasswordOtp(c *gin.Context) {
 	var req auth.SendOtpRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -269,4 +280,27 @@ func (h *AuthHandler) ReSendForgotPasswordOtp(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": msg,
 	})
+}
+
+// Change password
+func (h *AuthHandler) ChangePassword(c *gin.Context) {
+	var req user.ChangePasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.Error(validation.TranslateValidationError(err))
+		return
+	}
+
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.Error(errorcode.ErrMissingTokenInfo)
+		return
+	}
+	ctx := c.Request.Context()
+	res, err := h.userUC.ChangePassword(ctx, userID.(uuid.UUID), &req)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, res)
 }

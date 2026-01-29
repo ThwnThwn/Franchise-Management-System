@@ -39,6 +39,7 @@ func NewRouter(cfg *config.Config, h *handlers.AppHandlers) *gin.Engine {
 
 		// Sales
 		orderGroup.NewOrderRouter(cfg, MainGroup, h.OrderHandler)
+		cartGroup.NewCartRouter(cfg, MainGroup, h.CartHandler)
 
 		// Inventory
 		inventoryGroup.NewInventoryRouter(cfg, MainGroup, h.InventoryHandler)

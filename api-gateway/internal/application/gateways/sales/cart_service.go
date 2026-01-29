@@ -6,9 +6,9 @@ import (
 )
 
 type ICartService interface {
-	AddToCart(ctx context.Context, in *cart.UpsertCartItemRequest) (*cart.CartItemReply, error)
-	UpdateCartItem(ctx context.Context, in *cart.UpsertCartItemRequest) (*cart.CartItemReply, error)
-	DeleteListCartItem(ctx context.Context, in *cart.DeleteCartItemsRequest) (bool, error)
+	AddToCart(ctx context.Context, req *cart.UpsertCartItemRequest) (*cart.CartItemReply, error)
+	UpdateCartItem(ctx context.Context, req *cart.UpsertCartItemRequest) (*cart.CartItemReply, error)
+	DeleteListCartItem(ctx context.Context, req *cart.DeleteCartItemsRequest) (bool, error)
 	GetCartItems(ctx context.Context) ([]*cart.CartItemReply, error)
 	ClearCart(ctx context.Context) (bool, error)
 }

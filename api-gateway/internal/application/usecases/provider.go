@@ -17,6 +17,7 @@ var UseCaseSets = wire.NewSet(
 
 	// Sales
 	NewOrderUseCase,
+	NewCartUseCase,
 
 	// Inventory
 	NewInventoryUseCase,
