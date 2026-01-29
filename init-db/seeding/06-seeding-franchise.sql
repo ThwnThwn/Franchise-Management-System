@@ -1,127 +1,91 @@
--- 1. Extension
+-- ================================================================
+-- FILE 1: SEED DATA CHO FRANCHISE SERVICE (UPDATED SCHEMA)
+-- ================================================================
+
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- 2. Dọn dẹp dữ liệu cũ (nếu muốn reset sạch sẽ thì bỏ comment dòng dưới)
--- TRUNCATE TABLE time_logs, schedules, shift_templates, store_hours, stores, franchisees CASCADE;
+-- Dọn dẹp dữ liệu cũ
+TRUNCATE TABLE time_logs, schedules, shift_templates, store_hours, stores, franchisees CASCADE;
 
--- 3. Bắt đầu Seeding
 DO $$
 DECLARE
-    -- ID Franchisee
-    f_hq UUID;
-    f_partner UUID;
+    -- === 1. KHAI BÁO UUID CỐ ĐỊNH (MASTER DATA) ===
+    
+    -- Franchisees
+    f_hq UUID := '11111111-1111-1111-1111-111111111111';
+    f_partner UUID := '22222222-2222-2222-2222-222222222222';
 
-    -- ID Stores
-    s_q1 UUID;
-    s_q3 UUID;
-    s_td UUID;
+    -- Stores (Dùng để map sang Identity.home_store_id)
+    s_q1 UUID := 'b7ac8328-2ca3-470d-80ca-15444eeab2dd'; -- Store Quận 1
+    s_q3 UUID := 'e1488c32-1e33-498f-9130-9e13f841c8ea'; -- Store Quận 3
+    s_td UUID := 'da4aa30d-be1e-4e1e-874a-feaec06c6169'; -- Store Thủ Đức
 
-    -- ID Templates
-    tpl_morning UUID;
-    tpl_evening UUID;
+    -- Shift Templates
+    tpl_morning UUID := 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+    tpl_evening UUID := 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
 
-    -- Biến chạy
+    -- Users (Staff) có lịch làm việc (Dùng để map sang Identity.Users.id)
+    u_staff_q1 UUID := '99999999-9999-9999-9999-999999999999'; -- Staff Q1 (Ca Sáng)
+    u_staff_q3 UUID := '88888888-8888-8888-8888-888888888888'; -- Staff Q3 (Ca Sáng)
+    u_staff_td UUID := '77777777-7777-7777-7777-777777777777'; -- Staff Thủ Đức (Ca Chiều)
+
+    -- Biến phụ trợ
     i INT;
     cur_date DATE := CURRENT_DATE;
 BEGIN
-    -- =================================================
-    -- 1. SEED FRANCHISEES (Đối tác)
-    -- =================================================
-    
-    -- Cty Mẹ (Sở hữu chuỗi)
-    INSERT INTO franchisees (name, tax_code, representative_name, phone, email, commission_rate)
-    VALUES ('Coffee Chain HQ', '0101234567', 'Nguyen Van CEO', '02839999999', 'contact@hq.com', 0)
-    RETURNING id INTO f_hq;
+    -- === 2. SEED FRANCHISEES ===
+    INSERT INTO franchisees (id, name, tax_code, representative_name, phone, email, commission_rate)
+    VALUES (f_hq, 'Coffee Chain HQ', '0101234567', 'Nguyen Van CEO', '02839999999', 'contact@hq.com', 0);
 
-    -- Đối tác nhượng quyền (Mr. A)
-    INSERT INTO franchisees (name, tax_code, representative_name, phone, email, commission_rate)
-    VALUES ('Nguyen Van A Partners', '0307654321', 'Nguyen Van A', '0909123456', 'partner.a@gmail.com', 5.0)
-    RETURNING id INTO f_partner;
+    INSERT INTO franchisees (id, name, tax_code, representative_name, phone, email, commission_rate)
+    VALUES (f_partner, 'Nguyen Van A Partners', '0307654321', 'Nguyen Van A', '0909123456', 'partner.a@gmail.com', 5.0);
 
-    -- =================================================
-    -- 2. SEED STORES (Cửa hàng)
-    -- Lưu ý: Latitude/Longitude là toạ độ thật ở TP.HCM để test tính năng "Tìm quanh đây"
-    -- =================================================
+    -- === 3. SEED STORES ===
+    INSERT INTO stores (id, code, name, address, phone, email, image_url, latitude, longitude, type, status, franchisee_id)
+    VALUES (s_q1, 'STR-Q1-001', 'Coffee Central Q1', '1 Cong Xa Paris, Dist 1, HCM', '02811112222', 'store.q1@hq.com', 'https://img.com/store1.jpg', 10.779785, 106.699018, 0, 1, f_hq);
 
-    -- Store 1: Quận 1 (Notre Dame Cathedral area) - Của Cty Mẹ
-    INSERT INTO stores (code, name, address, phone, email, image_url, latitude, longitude, type, status, franchisee_id)
-    VALUES ('STR-Q1-001', 'Coffee Central Q1', '1 Cong Xa Paris, Dist 1, HCM', '02811112222', 'store.q1@hq.com', 'https://img.com/store1.jpg', 10.779785, 106.699018, 0, 1, f_hq)
-    RETURNING id INTO s_q1;
+    INSERT INTO stores (id, code, name, address, phone, email, image_url, latitude, longitude, type, status, franchisee_id)
+    VALUES (s_q3, 'STR-Q3-002', 'Coffee Lake Q3', '45 Pham Ngoc Thach, Dist 3, HCM', '02833334444', 'store.q3@hq.com', 'https://img.com/store2.jpg', 10.782877, 106.695847, 0, 1, f_hq);
 
-    -- Store 2: Quận 3 (Turtle Lake area) - Của Cty Mẹ
-    INSERT INTO stores (code, name, address, phone, email, image_url, latitude, longitude, type, status, franchisee_id)
-    VALUES ('STR-Q3-002', 'Coffee Lake Q3', '45 Pham Ngoc Thach, Dist 3, HCM', '02833334444', 'store.q3@hq.com', 'https://img.com/store2.jpg', 10.782877, 106.695847, 0, 1, f_hq)
-    RETURNING id INTO s_q3;
+    INSERT INTO stores (id, code, name, address, phone, email, image_url, latitude, longitude, type, status, franchisee_id)
+    VALUES (s_td, 'STR-TD-003', 'Coffee Giga TD', '242 Pham Van Dong, Thu Duc, HCM', '02855556666', 'store.td@partner.com', 'https://img.com/store3.jpg', 10.827641, 106.721458, 1, 1, f_partner);
 
-    -- Store 3: Thủ Đức (Gigamall area) - Nhượng quyền
-    INSERT INTO stores (code, name, address, phone, email, image_url, latitude, longitude, type, status, franchisee_id)
-    VALUES ('STR-TD-003', 'Coffee Giga TD', '242 Pham Van Dong, Thu Duc, HCM', '02855556666', 'store.td@partner.com', 'https://img.com/store3.jpg', 10.827641, 106.721458, 1, 1, f_partner)
-    RETURNING id INTO s_td;
-
-    -- =================================================
-    -- 3. SEED STORE HOURS (Giờ hoạt động)
-    -- Cấu hình: Mở cửa 07:00 - 22:00 tất cả các ngày
-    -- =================================================
+    -- === 4. SEED STORE HOURS ===
     FOR i IN 0..6 LOOP
-        -- Store Q1
         INSERT INTO store_hours (store_id, day_of_week, open_time, close_time) VALUES (s_q1, i, '07:00', '22:00');
-        -- Store Q3
         INSERT INTO store_hours (store_id, day_of_week, open_time, close_time) VALUES (s_q3, i, '07:00', '22:00');
-        -- Store TD
-        INSERT INTO store_hours (store_id, day_of_week, open_time, close_time) VALUES (s_td, i, '07:30', '22:30'); -- Mở trễ hơn xíu
+        INSERT INTO store_hours (store_id, day_of_week, open_time, close_time) VALUES (s_td, i, '07:30', '22:30');
     END LOOP;
 
-    -- =================================================
-    -- 4. SEED SHIFT TEMPLATES (Ca mẫu)
-    -- =================================================
+    -- === 5. SEED SHIFT TEMPLATES ===
+    INSERT INTO shift_templates (id, store_id, code, name, start_time, end_time, break_duration_minutes)
+    VALUES (tpl_morning, NULL, 'MORNING', 'Ca Sáng Tiêu Chuẩn', '07:00', '15:00', 30); -- NULL store_id = áp dụng toàn hệ thống
+
+    INSERT INTO shift_templates (id, store_id, code, name, start_time, end_time, break_duration_minutes)
+    VALUES (tpl_evening, NULL, 'EVENING', 'Ca Chiều Tiêu Chuẩn', '14:00', '22:00', 30);
+
+    -- === 6. SEED SCHEDULES (Gắn lịch cho 3 staff cụ thể) ===
     
-    -- Ca Sáng (chung toàn hệ thống - store_id NULL)
-    INSERT INTO shift_templates (code, name, start_time, end_time, break_duration_minutes)
-    VALUES ('MORNING', 'Ca Sáng Tiêu Chuẩn', '07:00', '15:00', 30)
-    RETURNING id INTO tpl_morning;
-
-    -- Ca Chiều
-    INSERT INTO shift_templates (code, name, start_time, end_time, break_duration_minutes)
-    VALUES ('EVENING', 'Ca Chiều Tiêu Chuẩn', '14:00', '22:00', 30)
-    RETURNING id INTO tpl_evening;
-
-    -- =================================================
-    -- 5. SEED SCHEDULES (Lịch làm việc mẫu cho hôm nay)
-    -- Giả lập: Mỗi quán có 1 nhân viên làm ca sáng hôm nay
-    -- Lưu ý: user_id ở đây là UUID ngẫu nhiên vì DB này không thấy bảng users bên Identity.
-    -- Khi chạy thật, bạn phải lấy UUID user thật từ Identity DB bỏ vào.
-    -- =================================================
-
-    -- Nhân viên tại Q1 (Ca Sáng hôm nay)
+    -- Staff Q1: Ca Sáng
     INSERT INTO schedules (user_id, store_id, shift_template_id, shift_date, start_time, end_time, status, hourly_wage)
-    VALUES (
-        uuid_generate_v4(), -- Fake User ID
-        s_q1, 
-        tpl_morning, 
-        cur_date, 
+    VALUES (u_staff_q1, s_q1, tpl_morning, cur_date, 
         (cur_date || ' 07:00:00')::timestamp AT TIME ZONE 'Asia/Ho_Chi_Minh',
         (cur_date || ' 15:00:00')::timestamp AT TIME ZONE 'Asia/Ho_Chi_Minh',
-        1, -- Published
-        25000
-    );
+        1, 25000);
 
-    -- Nhân viên tại Q3 (Ca Chiều hôm nay)
+    -- Staff Q3: Ca Sáng
     INSERT INTO schedules (user_id, store_id, shift_template_id, shift_date, start_time, end_time, status, hourly_wage)
-    VALUES (
-        uuid_generate_v4(), -- Fake User ID
-        s_q3, 
-        tpl_evening, 
-        cur_date, 
+    VALUES (u_staff_q3, s_q3, tpl_morning, cur_date, 
+        (cur_date || ' 07:00:00')::timestamp AT TIME ZONE 'Asia/Ho_Chi_Minh',
+        (cur_date || ' 15:00:00')::timestamp AT TIME ZONE 'Asia/Ho_Chi_Minh',
+        1, 25000);
+
+    -- Staff Thủ Đức: Ca Chiều
+    INSERT INTO schedules (user_id, store_id, shift_template_id, shift_date, start_time, end_time, status, hourly_wage)
+    VALUES (u_staff_td, s_td, tpl_evening, cur_date, 
         (cur_date || ' 14:00:00')::timestamp AT TIME ZONE 'Asia/Ho_Chi_Minh',
         (cur_date || ' 22:00:00')::timestamp AT TIME ZONE 'Asia/Ho_Chi_Minh',
-        1, -- Published
-        25000
-    );
+        1, 28000);
 
-    -- In ra ID của các Store để bạn copy về update cho Identity DB nếu cần
-    RAISE NOTICE 'Seed Completed!';
-    RAISE NOTICE 'Store Q1 ID: %', s_q1;
-    RAISE NOTICE 'Store Q3 ID: %', s_q3;
-    RAISE NOTICE 'Store TD ID: %', s_td;
-
+    RAISE NOTICE 'Franchise DB Seeded Successfully!';
 END $$;
