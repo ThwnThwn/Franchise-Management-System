@@ -1,6 +1,6 @@
 ﻿using Ardalis.Result;
 using MediatR;
-using SalesService.Application.Interfaces.Orders;
+using SalesService.Application.Persisitences.Orders;
 using SalesService.Domain.Entities;
 
 namespace SalesService.Application.Features.Orders.GetById;

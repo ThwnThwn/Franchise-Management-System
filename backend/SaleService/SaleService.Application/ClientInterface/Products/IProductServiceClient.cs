@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace SalesService.Application.Interfaces.Products;
+namespace SalesService.Application.ClientInterface.Products;
 
 public interface IProductServiceClient
 {
