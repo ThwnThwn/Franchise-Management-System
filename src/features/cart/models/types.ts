@@ -10,4 +10,5 @@ export interface CartItem {
     basePrice: number
     quantity: number
     imageUrl?: string
+    storeId?: string
 }

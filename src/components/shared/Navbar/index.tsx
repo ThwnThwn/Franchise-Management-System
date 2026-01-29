@@ -57,7 +57,7 @@ export function Navbar() {
     const menus = useMemo(
         () => [
             { key: "home", label: STRINGS.NAVBAR.HOME },
-            { key: "menu", label: "Thực đơn" },
+            { key: "menu", label: "Menu" },
             { key: "stores", label: "Cửa hàng" }
         ] satisfies MenuItem[],
         []

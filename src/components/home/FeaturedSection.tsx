@@ -98,7 +98,7 @@ export default function FeaturedSection() {
                 <div className="text-center mt-12">
                     <Link href="/menu">
                         <button className="px-8 py-3 border-2 border-gray-900 text-gray-900 font-bold rounded-lg hover:bg-gray-900 hover:text-white transition-colors">
-                            Xem tất cả thực đơn
+                            Xem tất cả menu
                         </button>
                     </Link>
                 </div>

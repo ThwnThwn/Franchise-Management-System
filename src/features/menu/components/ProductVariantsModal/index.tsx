@@ -12,9 +12,10 @@ type ProductVariantsModalProps = {
     product: GetProductListItemDto | null
     isOpen: boolean
     onOpenChange: () => void
+    storeId?: string
 }
 
-export function ProductVariantsModal({ product, isOpen, onOpenChange }: ProductVariantsModalProps) {
+export function ProductVariantsModal({ product, isOpen, onOpenChange, storeId }: ProductVariantsModalProps) {
     const [selectedSize, setSelectedSize] = useState<ProductSizeListItemDto | null>(null)
     const [quantity, setQuantity] = useState<number>(1)
     const addItem = useCartStore((state) => state.addItem)
@@ -44,11 +45,12 @@ export function ProductVariantsModal({ product, isOpen, onOpenChange }: ProductV
             attributes: selectedSize.attributes,
             basePrice: selectedSize.basePrice,
             imageUrl: product.imageUrl,
-            quantity: safeQty
+            quantity: safeQty,
+            storeId: storeId
         })
 
         handleClose()
-    }, [product, selectedSize, quantity, addItem, handleClose])
+    }, [product, selectedSize, quantity, addItem, handleClose, storeId])
 
     if (!product) return null
 
@@ -88,10 +90,9 @@ export function ProductVariantsModal({ product, isOpen, onOpenChange }: ProductV
                                             key={size.id}
                                             variant="ghost"
                                             onPress={() => setSelectedSize(size)}
-                                            className={`flex flex-col gap-0 min-h-fit w-full items-start px-3 py-2 ${
-                                                selectedSize?.id === size.id &&
+                                            className={`flex flex-col gap-0 min-h-fit w-full items-start px-3 py-2 ${selectedSize?.id === size.id &&
                                                 "border-primary bg-primary/10 text-primary"
-                                            }`}
+                                                }`}
                                         >
                                             <div className="w-full flex justify-between">
                                                 <span className="font-medium">{size.sku}</span>

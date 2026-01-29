@@ -99,7 +99,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
             })),
             tax,
             paymentMethod: PaymentMethod.Cash,
-            notes: ""
+            notes: "",
+            storeId: selectedItems.length > 0 ? selectedItems[0].storeId : undefined
         })
     }
 
@@ -115,9 +116,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
 
             {/* Drawer */}
             <div
-                className={`fixed top-0 right-0 h-full w-full max-w-md bg-background shadow-xl z-99999 transform transition-transform duration-300 ${
-                    isOpen ? "translate-x-0" : "translate-x-full"
-                }`}
+                className={`fixed top-0 right-0 h-full w-full max-w-md bg-background shadow-xl z-99999 transform transition-transform duration-300 ${isOpen ? "translate-x-0" : "translate-x-full"
+                    }`}
             >
                 <div className="flex flex-col h-full">
                     {/* Header */}
@@ -150,22 +150,34 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                         ) : (
                             <div>
                                 {items.map((item, index) => (
-                                    <button
+                                    <div
                                         key={item.sku}
-                                        className="w-full flex items-center justify-center gap-2"
-                                        onClick={() => handleSelectItem(item.sku)}
+                                        className="w-full flex items-center justify-center gap-2 cursor-pointer"
+                                        onClick={(e) => {
+                                            // Prevent triggering select when clicking on interactive elements inside CartItem
+                                            // This is a simple check, ideally CartItem should handle its own clicks or we separate concerns
+                                            const target = e.target as HTMLElement
+                                            if (target.tagName === "BUTTON" || target.closest("button") || target.tagName === "INPUT") {
+                                                return
+                                            }
+                                            handleSelectItem(item.sku)
+                                        }}
                                     >
                                         <CheckboxStyled
                                             isSelected={selectedKeys.has(item.sku)}
-                                            // onValueChange={() => handleSelectItem(item.sku)}
+                                            onValueChange={() => handleSelectItem(item.sku)}
+                                            // Stop propagation to prevent double toggle if div click also fires
+                                            className="pointer-events-none sm:pointer-events-auto"
                                         />
-                                        <CartItem
-                                            key={index}
-                                            item={item}
-                                            onUpdateQuantity={updateQuantity}
-                                            onRemove={() => handleRemoveItem(item.sku)}
-                                        />
-                                    </button>
+                                        <div className="flex-1 pointer-events-none sm:pointer-events-auto">
+                                            <CartItem
+                                                key={index}
+                                                item={item}
+                                                onUpdateQuantity={updateQuantity}
+                                                onRemove={() => handleRemoveItem(item.sku)}
+                                            />
+                                        </div>
+                                    </div>
                                 ))}
                             </div>
                         )}

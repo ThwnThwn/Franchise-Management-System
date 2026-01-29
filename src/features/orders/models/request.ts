@@ -10,4 +10,5 @@ export interface CreateOrderRequest {
     tax: number
     paymentMethod: PaymentMethod
     notes: string
+    storeId?: string
 }

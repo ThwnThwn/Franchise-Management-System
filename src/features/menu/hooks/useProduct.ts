@@ -6,12 +6,12 @@ import { productApi } from "../services/productApi"
 export const useGetAllProducts = ({
     query
 }: // enabled = true
-{
-    query?: GetAllProductParams
-    // enabled?: boolean
-} = {}) => {
+    {
+        query?: GetAllProductParams
+        // enabled?: boolean
+    } = {}) => {
     return useQuery({
-        queryKey: QUERY_KEYS.PRODUCTS,
+        queryKey: [...QUERY_KEYS.PRODUCTS, query],
         queryFn: async () => {
             const data = await productApi.getAll(query)
             return data
