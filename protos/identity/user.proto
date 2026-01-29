@@ -14,7 +14,7 @@ service UserGrpc {
   rpc AdminCreate(AdminCreateUserRequest) returns (UserResponse);
 
   rpc GetById(GetUserByIdRequest) returns (UserResponse);
-  rpc GetAll(google.protobuf.Empty) returns (UserListResponse);
+  rpc GetAll(GetAllUserOrWithRoleRequest) returns (UserListResponse);
   rpc GetManager(GetManagerRequest) returns (UserResponse);
 
 
@@ -24,6 +24,9 @@ service UserGrpc {
   rpc Delete(DeleteUserRequest) returns (DeleteUserResponse);
 }
 
+message GetAllUserOrWithRoleRequest{
+  string roleSlug = 1;
+}
 
 message GetUserByIdRequest {
   string id = 1;

@@ -96,5 +96,22 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
                 )
                 .FirstOrDefaultAsync();
         }
+
+        public async Task<IEnumerable<User>> GetUsersByRoleSlugAsync(string? roleSlug)
+        {
+            var query = _dbContext.Users
+                .Include(u => u.Role)
+                .Where(u => !u.IsDeleted)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(roleSlug))
+            {
+                query = query.Where(u => u.Role.Slug == roleSlug);
+            }
+
+            return await query
+                .OrderByDescending(u => u.CreatedAt)
+                .ToListAsync();
+        }
     }
 }

@@ -16,9 +16,10 @@ public class GetAllUsersQueryHandler : IRequestHandler<GetAllUsersQuery, IEnumer
         _mapper = mapper;
     }
 
-    public async Task<IEnumerable<UserRep>> Handle(GetAllUsersQuery request, CancellationToken cancellationToken)
+    public async Task<IEnumerable<UserRep>> Handle(GetAllUsersQuery query, CancellationToken cancellationToken)
     {
-        var users = await _userRepository.GetAllWithRoleAsync();
+        
+        var users = await _userRepository.GetUsersByRoleSlugAsync(query.RoleSlug);
         return _mapper.Map<IEnumerable<UserRep>>(users);
     }
 }
