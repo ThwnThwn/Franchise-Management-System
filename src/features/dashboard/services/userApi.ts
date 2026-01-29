@@ -1,13 +1,19 @@
 import { User } from "@/models/user"
 import axiosInstance from "@/utils/axios"
-import { requestWrapper } from "@/utils/helpers/axiosHelper"
-import { CreateUserRequest } from "../models/user/request"
+import { buildQueryParams, requestWrapper } from "@/utils/helpers/axiosHelper"
+import { CreateUserRequest, UserFilterParams } from "../models/user/request"
 import { RoleSlug } from "@/constants/enums"
+import { PageResult } from "@/models/common/respone"
+import { PaginationParams } from "@/models/common/request"
 
 export const userApi = {
-    getAll: () =>
-        requestWrapper<User[]>(async () => {
-            const res = await axiosInstance.get("/users")
+    getAll: ({ query, pagination }: { query: UserFilterParams; pagination: PaginationParams }) =>
+        requestWrapper<PageResult<User>>(async () => {
+            const params = {
+                ...buildQueryParams(query),
+                ...buildQueryParams(pagination)
+            }
+            const res = await axiosInstance.get("/users", { params })
             return res.data
         }),
 

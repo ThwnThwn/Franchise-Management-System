@@ -3,7 +3,13 @@
 import React from "react"
 import { Skeleton, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@heroui/react"
 import { EyeIcon } from "lucide-react"
-import { TableStyled, ButtonIconStyled, AvatarStyled, EnumPicker } from "@/components" // Import EnumPicker
+import {
+    TableStyled,
+    ButtonIconStyled,
+    AvatarStyled,
+    EnumPicker,
+    SpinnerStyled
+} from "@/components" // Import EnumPicker
 import { useUserHelper } from "@/hooks" // Import hook mutation
 import { DEFAULT_AVATAR_URL } from "@/constants/constants"
 import { User } from "@/models/user"
@@ -47,7 +53,6 @@ type UserUserManagementProps = {
     emptyMessage?: string
     onEditUser?: (user: User) => void
     isRefetching?: boolean
-    refetchingMessage?: string
 }
 
 export function UserTable({
@@ -55,8 +60,7 @@ export function UserTable({
     isLoading = false,
     emptyMessage,
     onEditUser,
-    isRefetching = false,
-    refetchingMessage
+    isRefetching = false
 }: UserUserManagementProps) {
     const { toFullName } = useUserHelper()
 
@@ -166,11 +170,7 @@ export function UserTable({
                 </TableHeader>
                 <TableBody>{renderBody()}</TableBody>
             </TableStyled>
-            {isRefetching ? (
-                <div className="border-t border-slate-100 text-center text-xs text-slate-400">
-                    {refetchingMessage ?? "Đang tải lại"}
-                </div>
-            ) : null}
+            {isRefetching ? <SpinnerStyled /> : null}
         </>
     )
 }

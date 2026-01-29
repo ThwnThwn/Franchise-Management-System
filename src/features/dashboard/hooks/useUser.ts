@@ -3,15 +3,33 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { userApi } from "../services"
 import { addToast } from "@heroui/react"
 import { STRINGS } from "@/constants/strings"
-import { BackendError } from "@/models/common/respone"
+import { BackendError, PageResult } from "@/models/common/respone"
+import { UserFilterParams } from "../models/user/request"
+import { PaginationParams } from "@/models/common/request"
+import { User } from "@/models/user"
 
-export const useGetAllUsers = () => {
+export const useGetAllUsers = ({
+    params,
+    pagination = {},
+    enabled = true
+}: {
+    params: UserFilterParams
+    pagination: PaginationParams
+    enabled?: boolean
+}) => {
+    const queryClient = useQueryClient()
+
     return useQuery({
-        queryKey: QUERY_KEYS.USERS,
-        queryFn: async () => {
-            const data = await userApi.getAll()
-            return data
-        }
+        queryKey: [...QUERY_KEYS.USERS, params, pagination],
+        queryFn: () => userApi.getAll({ query: params, pagination }),
+        initialData: () => {
+            return queryClient.getQueryData<PageResult<User>>([
+                ...QUERY_KEYS.USERS,
+                params,
+                pagination
+            ])
+        },
+        enabled
     })
 }
 

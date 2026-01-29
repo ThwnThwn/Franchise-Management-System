@@ -29,3 +29,8 @@ export interface UpdateUserRoleRequest {
     id: string
     roleSlug: RoleSlug
 }
+
+export type UserFilterParams = {
+    roleSlug?: RoleSlug
+    keyword?: string
+}
