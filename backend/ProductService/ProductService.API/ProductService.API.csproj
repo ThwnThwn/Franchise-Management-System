@@ -11,9 +11,7 @@
   </ItemGroup> -->
 
   <ItemGroup>
-		<Protobuf Include="..\..\..\protos\product\*.proto" 
-					GrpcServices="Server" 
-					ProtoRoot="..\..\..\protos" />
+		<Protobuf Include="..\..\..\protos\product\*.proto" GrpcServices="Server" ProtoRoot="..\..\..\protos" />
 	</ItemGroup>
 
   <ItemGroup>
@@ -30,6 +28,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.2" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
   </ItemGroup>
@@ -37,6 +36,10 @@
   <ItemGroup>
     <ProjectReference Include="..\ProductService.Application\ProductService.Application.csproj" />
     <ProjectReference Include="..\ProductService.Infrastructure\ProductService.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Protos\" />
   </ItemGroup>
 
 </Project>

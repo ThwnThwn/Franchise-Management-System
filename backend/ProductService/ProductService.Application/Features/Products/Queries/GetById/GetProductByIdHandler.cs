@@ -3,10 +3,9 @@ using System.Threading.Tasks;
 using Ardalis.Result;
 using AutoMapper;
 using MediatR;
-using ProductService.Application.Features.Products.GetById;
 using ProductService.Application.Repositories;
 
-namespace ProductService.Application.Features.Products.GetById;
+namespace ProductService.Application.Features.Products.Queries.GetById;
 
 public sealed class GetProductByIdHandler
     : IRequestHandler<GetProductByIdQuery, Result<GetProductDetailDto>>

@@ -8,7 +8,7 @@ using AutoMapper;
 using MediatR;
 using ProductService.Application.Repositories;
 
-namespace ProductService.Application.Features.Categories.GetList
+namespace ProductService.Application.Features.Categories.Queries.GetList
 {
     public class GetCategoriesHandler : IRequestHandler<GetCategoriesQuery, Result<GetCategoriesResultDto>>
     {
@@ -23,7 +23,7 @@ namespace ProductService.Application.Features.Categories.GetList
 
         public async Task<Result<GetCategoriesResultDto>> Handle(GetCategoriesQuery request, CancellationToken cancellationToken)
         {
-            var categories = await _categoryRepository.GetAllCategoriesAsync();
+            var categories = await _categoryRepository.GetAllAsync();
 
             var categoryDtos = _mapper.Map<List<GetCategoryListItemDto>>(categories);
 

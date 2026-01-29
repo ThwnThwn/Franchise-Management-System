@@ -9,18 +9,16 @@ using ProductService.Infrastructure.ApplicationDbContext;
 
 namespace ProductService.Infrastructure.Repositories;
 
-public class ProductRepository : IProductRepository
+public class ProductRepository : GenericRepository<Product> ,IProductRepository
 {
-    private readonly IProductDbContext _context;
 
-    public ProductRepository(IProductDbContext context)
+    public ProductRepository(IProductDbContext dbContext):base(dbContext)
     {
-        _context = context;
     }
 
     public async Task<List<Product>> GetAllProductsAsync(Guid? categoryId = null)
     {
-        var query = _context.Products
+        var query = _dbContext.Products
             .Include(p => p.Category)
             .Include(p => p.ProductVariants.Where(pv => pv.IsActive == true && pv.IsDeleted == false))
             .Where(p => p.IsActive == true && p.IsDeleted == false);
@@ -37,9 +35,36 @@ public class ProductRepository : IProductRepository
 
     public async Task<Product?> GetProductByIdAsync(Guid id)
     {
-        return await _context.Products
+        return await _dbContext.Products
             .Include(p => p.Category)
-            .Include(p => p.ProductVariants.Where(pv => pv.IsActive == true && pv.IsDeleted == false))
-            .FirstOrDefaultAsync(p => p.Id == id && p.IsActive == true && p.IsDeleted == false);
+            .Include(p => p.ProductVariants
+                .Where(pv => pv.IsActive == true && pv.IsDeleted == false))
+            .FirstOrDefaultAsync(p =>
+                p.Id == id &&
+                p.IsActive == true &&
+                p.IsDeleted == false);
+    }
+
+    public async Task<Product?> GetProductByNameAsync(string name)
+    {
+        return await _dbContext.Products
+            .Include(p => p.Category)
+            .FirstOrDefaultAsync(p =>
+                p.Name == name &&
+                p.IsActive == true &&
+                p.IsDeleted == false);
+    }
+
+    public async Task<List<Product>> GetProductByNameContainingAsync(string name)
+    {
+        return await _dbContext.Products
+            .Include(p => p.Category)
+            .Include(p => p.ProductVariants
+                .Where(pv => pv.IsActive == true && pv.IsDeleted == false))
+            .Where(p =>
+                EF.Functions.Like(p.Name, $"%{name}%") &&
+                p.IsActive == true &&
+                p.IsDeleted == false)
+            .ToListAsync();
     }
 }

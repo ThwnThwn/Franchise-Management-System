@@ -8,7 +8,12 @@ package category;
 service CategoryGrpc {
   // Get all active categories
   rpc GetCategories (GetCategoriesRequest) returns (GetCategoriesReply);
-}
+  rpc GetCategoryById (GetCategoryByIdRequest) returns (GetCategoryByIdReply);
+  rpc GetCategoryByName (GetCategoryByNameRequest) returns (GetCategoryByNameReply);
+  rpc CreateCategory (CreateCategoryRequest) returns (CreateCategoryReply);
+  rpc UpdateCategory (UpdateCategoryRequest) returns (UpdateCategoryReply);
+  rpc DeleteCategory (DeleteCategoryRequest) returns (DeleteCategoryReply);
+} 
 
 message GetCategoriesRequest {
   // Empty request - returns all active categories
@@ -24,4 +29,47 @@ message Category {
   string description = 3;
   string image_url = 4;
   bool is_active = 5;
+}
+message GetCategoryByIdRequest {
+  string id = 1;
+}
+
+message GetCategoryByIdReply {
+  Category category = 1;	
+}
+
+message GetCategoryByNameRequest {
+  string name = 1;
+}
+
+message GetCategoryByNameReply {
+  Category category = 1;
+}
+
+message CreateCategoryRequest {
+  string name = 1;
+  string description = 2;
+}
+
+message CreateCategoryReply {
+  string id = 1;
+}
+
+message UpdateCategoryRequest {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+}
+
+message UpdateCategoryReply {
+  string id = 1;
+}
+
+message DeleteCategoryRequest {
+  string id = 1;
+}
+
+message DeleteCategoryReply {
+  string id = 1;
+  bool is_deleted = 2;
 }

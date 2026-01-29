@@ -1,8 +1,12 @@
 using Ardalis.Result;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using ProductService.Application.Features.Products.GetById;
-using ProductService.Application.Features.Products.GetList;
+using ProductService.Application.Features.Products.Command.CreateProduct;
+using ProductService.Application.Features.Products.Command.DeleteProduct;
+using ProductService.Application.Features.Products.Command.UpdateProduct;
+using ProductService.Application.Features.Products.Queries.GetById;
+using ProductService.Application.Features.Products.Queries.GetByProductName;
+using ProductService.Application.Features.Products.Queries.GetList;
 
 namespace ProductService.API.Controllers;
 
@@ -18,33 +22,83 @@ public class ProductsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult> GetProducts(
+    public async Task<IActionResult> GetProducts(
         [FromQuery] Guid? categoryId,
         CancellationToken ct)
     {
-        var query = new GetProductsQuery(categoryId);
-        var result = await _mediator.Send(query, ct);
+        var result = await _mediator.Send(
+            new GetProductsQuery(categoryId), ct);
 
-        if (result.IsSuccess)
-            return Ok(result.Value);
-
-        return BadRequest(result.Errors);
+        return result.IsSuccess
+            ? Ok(result.Value)
+            : BadRequest(result.Errors);
     }
 
-    [HttpGet("{id}")]
-    public async Task<ActionResult> GetProductById(
-        [FromRoute] Guid id,
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetById(
+        Guid id,
         CancellationToken ct)
     {
-        var query = new GetProductByIdQuery(id);
-        var result = await _mediator.Send(query, ct);
+        var result = await _mediator.Send(
+            new GetProductByIdQuery(id), ct);
 
-        if (result.IsSuccess)
-            return Ok(result.Value);
+        return result.IsSuccess
+            ? Ok(result.Value)
+            : NotFound(result.Errors);
+    }
 
-        if (result.Status == ResultStatus.NotFound)
-            return NotFound(result.Errors);
+    [HttpGet("by-name/{name}")]
+    public async Task<IActionResult> GetByName(
+        string name,
+        CancellationToken ct)
+    {
+        var result = await _mediator.Send(
+            new GetProductByNameQuery(name), ct);
 
-        return BadRequest(result.Errors);
+        return result.IsSuccess
+            ? Ok(result.Value)
+            : NotFound(result.Errors);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Create(
+        CreateProductCommand.CreateProductCommandRequest request,
+        CancellationToken ct)
+    {
+        var result = await _mediator.Send(
+            new CreateProductCommand(request), ct);
+
+        return result.IsSuccess
+            ? CreatedAtAction(nameof(GetById),
+                new { id = result.Value.ProductId },
+                result.Value)
+            : BadRequest(result.Errors);
+    }
+
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> Update(
+        Guid id,
+        UpdateProductCommand.UpdateProductCommandRequest request,
+        CancellationToken ct)
+    {
+        var result = await _mediator.Send(
+            new UpdateProductCommand(id, request), ct);
+
+        return result.IsSuccess
+            ? Ok(result.Value)
+            : BadRequest(result.Errors);
+    }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Delete(
+        Guid id,
+        CancellationToken ct)
+    {
+        var result = await _mediator.Send(
+            new DeleteProductCommand(id), ct);
+
+        return result.IsSuccess
+            ? Ok(result.Value)
+            : NotFound(result.Errors);
     }
 }

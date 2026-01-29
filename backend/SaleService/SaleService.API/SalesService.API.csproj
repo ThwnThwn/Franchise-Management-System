@@ -11,13 +11,12 @@
     <Protobuf Include="Protos\orders.proto" GrpcServices="Server" />
   </ItemGroup> -->
   <ItemGroup>
-		<Protobuf Include="..\..\..\protos\product\*.proto" 
-					GrpcServices="Client" 
-					ProtoRoot="..\..\..\protos" />
-    <Protobuf Include="..\..\..\protos\sales\*.proto" 
-					GrpcServices="Server" 
-					ProtoRoot="..\..\..\protos" />
+		<Protobuf Include="..\..\..\protos\product\*.proto" GrpcServices="Client" ProtoRoot="..\..\..\protos" />
+    <Protobuf Include="..\..\..\protos\sales\*.proto" GrpcServices="Server" ProtoRoot="..\..\..\protos" />
 	</ItemGroup>
+  <ItemGroup>
+    <None Remove="Protos\orders.proto" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Ardalis.Result" Version="10.1.0" />
@@ -37,6 +36,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.2" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.0" />
     <PackageReference Include="FluentValidation" Version="11.9.0" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.9.0" />
@@ -47,5 +47,9 @@
     <ProjectReference Include="..\SaleService.Application\SalesService.Application.csproj" />
     <ProjectReference Include="..\SaleService.Infrastructure\SalesService.Infrastructure.csproj" />
   </ItemGroup>
+<!-- 
+  <ItemGroup>
+    <Protobuf Include="Protos\orders.proto" />
+  </ItemGroup> -->
 
 </Project>
