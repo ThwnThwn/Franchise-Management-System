@@ -6,6 +6,7 @@ using SalesService.Application.Features.Orders.GetById;
 using System;
 using SalesService.Application.Features.Orders.Commands.Create;
 using SalesService.Application.Features.Orders.Queries.GetMyOrders;
+using InventoryService.Grpc.Protos.Inventory.Internal;
 
 namespace SalesService.API.Services.Orders;
 
@@ -55,14 +56,34 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             throw new RpcException(new Status(StatusCode.Internal, errorMessage));
         }
 
-        return new CreateOrderReply
+        var reply = new CreateOrderReply
         {
             OrderId = result.Value.OrderId.ToString(),
-            OrderCode = result.Value.OrderCode,
+            OrderCode = result.Value.OrderCode ?? string.Empty, // Tránh lỗi null cũ
             TotalAmount = (double)result.Value.TotalAmount,
-            CustomerId = customerId.ToString()
-            
+            CustomerId = customerId.ToString(),
+            CheckStockRespone = new CheckEnoughStockResponse
+            {
+                IsEnough = result.Value.CheckEnoughStockRes.IsEnough
+            }
         };
+
+        // Sử dụng AddRange để đẩy dữ liệu vào list read-only
+        if (result.Value.CheckEnoughStockRes.ShortageItems != null)
+        {
+            // 1. Dùng AddRange vì ShortageItems là read-only (chỉ có get)
+            reply.CheckStockRespone.ShortageItems.AddRange(
+                result.Value.CheckEnoughStockRes.ShortageItems.Select(i => new ShortageItem
+                {
+                    // 2. Map đúng tên thuộc tính của ShortageItem trong Sales API
+                    // Ví dụ: có thể là Id, VariantId hoặc ProductId tùy vào file proto của Sales
+                    VariantId = i.VariantId.ToString(),
+                    MaxFeasibleQuantity = i.Amount
+                })
+            );
+        }
+
+        return reply;
     }
 
     public override async Task<GetOrderByIdReply> GetOrderById(

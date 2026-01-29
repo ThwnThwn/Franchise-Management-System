@@ -28,6 +28,11 @@ public class NotificationDbContext : DbContext
             entity.Property(e => e.Status)
                 .IsRequired()
                 .HasConversion<int>();
+            
+            // Configure Metadata column to use PostgreSQL JSONB type
+            entity.Property(e => e.Metadata)
+                .HasColumnType("jsonb");
+            
             entity.HasIndex(e => e.Recipient);
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.CreatedAt);

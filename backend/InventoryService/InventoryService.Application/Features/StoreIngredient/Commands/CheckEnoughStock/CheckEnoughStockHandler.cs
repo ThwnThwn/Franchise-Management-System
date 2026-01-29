@@ -24,8 +24,12 @@ namespace InventoryService.Application.Features.StoreIngredient.Commands.CheckEn
             var variantIds = request.CheckItem.Select(x => x.VariantId).ToList();
 
             // 2. Lấy tất cả công thức liên quan
-            var recipes =await _recipeRepository.GetRecipesByVariantIdsAsync(variantIds, cancellationToken)
-                ?? throw new BusinessException("Không tìm thấy công thức nào cho các VariantId đã cho.");
+            var recipes = await _recipeRepository.GetRecipesByVariantIdsAsync(variantIds, cancellationToken);
+            
+            if(recipes == null || !recipes.Any())
+            {
+                throw new DirectoryNotFoundException("Recipes not found for the provided variant IDs.");
+            }
 
             // 3. Lấy tồn kho của cửa hàng cho các nguyên liệu trong công thức đó
             var ingredientIds = recipes.Select(r => r.IngredientId).Distinct().ToList();

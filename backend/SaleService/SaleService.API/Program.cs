@@ -6,9 +6,11 @@ using SaleService.Infrastructure.ExternalServices;
 using SalesService.API.Middleware;
 using SalesService.API.Services.CartItems;
 using SalesService.API.Services.Identity;
+using SalesService.API.Services.Inventory;
 using SalesService.API.Services.Orders;
 using SalesService.API.Services.Payments;
 using SalesService.API.Services.Products;
+using SalesService.Application.ClientInterface.Inventory;
 using SalesService.Application.ClientInterface.Products;
 
 //using SalesService.Infrastructure.Models;
@@ -132,6 +134,8 @@ public class Program
         // Register gRPC Exception Interceptor
         builder.Services.AddSingleton<Interceptors.GrpcExceptionInterceptor>();
 
+        //Inventory Service Client
+        builder.Services.AddScoped<IInventoryServiceClient, InventoryServiceClient>();
         // Add CORS
         var frontEndOrigin = builder.Configuration["FRONTEND_ORIGIN"] ?? "http://localhost:3000";
         builder.Services.AddCors(options =>

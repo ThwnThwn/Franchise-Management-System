@@ -1,4 +1,5 @@
-﻿using IdentityService.Domain.Entities;
+﻿using BuildingBlocks.Core.Pagination;
+using IdentityService.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,5 +15,8 @@ namespace IdentityService.Application.Persistences.Repositories
         Task<User?> GetByEmailOrUserNameAsync(string? emailOrUserName);
         Task<IEnumerable<User?>> GetAllWithRoleAsync();
         Task<User?> AddWithRoleAsync(User? user);
+        Task<User?> GetManagerByStoreIdAsync(Guid? storeId);
+        Task<IEnumerable<User?>> GetUsersByRoleSlugAsync(string? roleSlug);
+        Task<PagedResult<User>> GetPagedUsersAsync(string? keyword, string? roleSlug, int pageIndex, int pageSize, CancellationToken cancellationToken);
     }
 }
