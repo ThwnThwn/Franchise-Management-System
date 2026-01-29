@@ -85,9 +85,9 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
         return MapUser(rep);
     }
 
-    public override async Task<UserListResponse> GetAll(Empty request, ServerCallContext context)
+    public override async Task<UserListResponse> GetAll(GetAllUserOrWithRoleRequest request, ServerCallContext context)
     {
-        var users = await _mediator.Send(new GetAllUsersQuery());
+        var users = await _mediator.Send(new GetAllUsersQuery(request.RoleSlug));
 
         var res = new UserListResponse();
         res.Users.AddRange(users.Select(MapUser));
