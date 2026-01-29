@@ -39,7 +39,7 @@ namespace SalesService.API.Services.Inventory
             _client = new InventoryInternalGrpc.InventoryInternalGrpcClient(channel);
         }
 
-        public async Task<CheckEnoughStockRes> CheckEnoughStock(CheckEnoughStockReq command)
+        public async Task<CheckEnoughStockRes> CheckEnoughStockAsync(CheckEnoughStockReq command)
         {
             var request = new CheckEnoughStockRequest
             {

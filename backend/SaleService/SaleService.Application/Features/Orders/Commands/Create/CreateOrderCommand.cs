@@ -23,9 +23,9 @@ public sealed class CartItemDto
 
 public sealed class CreateOrderResponseDto
 {
-    public Guid OrderId { get; set; }
-    public string OrderCode { get; set; } = default!;
-    public decimal TotalAmount { get; set; }
+    public Guid? OrderId { get; set; }
+    public string? OrderCode { get; set; } = default!;
+    public decimal? TotalAmount { get; set; }
     public CheckEnoughStockRes CheckEnoughStockRes { get; set; } = new();
 }
 

@@ -29,7 +29,7 @@ namespace InventoryService.API.Services
                         Quantity = Convert.ToDecimal(x.Quantity)
                     }).ToList()
                 }));
-                return new IncreaseStockResponse();
+                return new IncreaseStockResponse();   
         }
 
     }
