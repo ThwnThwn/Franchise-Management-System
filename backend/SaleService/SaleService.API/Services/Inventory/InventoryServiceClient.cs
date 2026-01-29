@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.Extensions.Configuration;
 using SalesService.Application.ClientInterface.Inventory;
 using SalesService.Application.Dtos.Inventory;
+using SalesService.Application.Features.Orders.Commands.Create;
 
 namespace SalesService.API.Services.Inventory
 {
@@ -36,6 +37,31 @@ namespace SalesService.API.Services.Inventory
             });
 
             _client = new InventoryInternalGrpc.InventoryInternalGrpcClient(channel);
+        }
+
+        public async Task<CheckEnoughStockRes> CheckEnoughStock(CheckEnoughStockReq command)
+        {
+            var request = new CheckEnoughStockRequest
+            {
+                StoreId = command.StoreId.ToString()
+            };
+            var checkItems = command.CheckItems.Select(x => new InventoryService.Grpc.Protos.Inventory.Internal.AmountVariant
+            {
+                VariantId = x.VariantId.ToString(), // Giả sử trong proto bạn để string
+                Amount = x.Amount
+            });
+
+            request.CheckItems.AddRange(checkItems);
+            var respone = await _client.CheckEnoughStockAsync(request);
+            return new CheckEnoughStockRes
+            {
+                IsEnough = respone.IsEnough,
+                ShortageItems = respone.ShortageItems.Select(x => new Application.Dtos.Inventory.AmountVariant
+                {
+                    VariantId = Guid.Parse(x.VariantId),
+                    Amount = x.Amount
+                }).ToList()
+            };
         }
 
         public async Task DecreaseStockByOrder(DecreaseStockByOrderReq command)

@@ -38,10 +38,10 @@ namespace InventoryService.API.Services
                 // 2. Chuyển đổi từ DTO sang class ShortageItem của gRPC và thêm vào danh sách
                 if (rep.ShortageItems != null)
                 {
-                    var grpcItems = rep.ShortageItems.Select(x => new ShortageItem
+                    var grpcItems = rep.ShortageItems.Select(x => new AmountVariant
                     {
                         VariantId = x.VariantId.ToString(),
-                        MaxFeasibleQuantity = x.MaxFeasibleQuantity
+                        Amount = x.Amount
                     });
 
                     response.ShortageItems.AddRange(grpcItems); // Dùng AddRange thay vì gán dấu "="

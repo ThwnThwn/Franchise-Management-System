@@ -61,6 +61,7 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             OrderCode = result.Value.OrderCode,
             TotalAmount = (double)result.Value.TotalAmount,
             CustomerId = customerId.ToString()
+            
         };
     }
 

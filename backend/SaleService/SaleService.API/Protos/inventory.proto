@@ -7,7 +7,7 @@ package inventory.internal;
 
 service InventoryInternalGrpc {
   rpc DecreaseStockByOrder(DecreaseStockByOrderRequest) returns (DecreaseStockByOrderResponse);
-  rpc CheckEnoughStock(CheckEnoughStockRequest) returns (CheckEnoughStockResponse);
+  rpc CheckEnoughStock(CheckEnoughStockRequest) returns (CheckEnoughStockReply);
 }
 
 message DecreaseStockByOrderRequest{
@@ -29,12 +29,7 @@ message AmountVariant{
   int32 amount = 2;
 }
 
-message CheckEnoughStockResponse {
+message CheckEnoughStockReply {
   bool is_enough = 1;
-  repeated ShortageItem shortage_items = 2;
-}
-
-message ShortageItem {
-  string variant_id = 1;
-  int32 max_feasible_quantity = 2;
+  repeated AmountVariant shortage_items = 2;
 }

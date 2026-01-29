@@ -1,5 +1,6 @@
 using Ardalis.Result;
 using MediatR;
+using SalesService.Application.Dtos.Inventory;
 
 namespace SalesService.Application.Features.Orders.Commands.Create;
 
@@ -25,4 +26,9 @@ public sealed class CreateOrderResponseDto
     public Guid OrderId { get; set; }
     public string OrderCode { get; set; } = default!;
     public decimal TotalAmount { get; set; }
+    public CheckEnoughStockRes CheckEnoughStockRes { get; set; } = new();
 }
+
+
+
+
