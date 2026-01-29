@@ -6,12 +6,12 @@ using SalesService.API.Services.Products;
 using SalesService.API.Middleware;
 using SalesService.Infrastructure.Repositories.Orders;
 using SalesService.Infrastructure.Extensions;
-using SalesService.Application.Interfaces.Orders;
-using SalesService.Application.Interfaces.Products;
 using SalesService.Application.Mapping.Orders;
 using SalesService.Infrastructure.ApplicationDbContext;
 using SalesService.Infrastructure.Interceptor;
 using SalesService.Infrastructure.Interceptor;
+using SalesService.Application.ClientInterface.Products;
+using SalesService.Application.Persisitences.Orders;
 
 namespace SalesService.API;
 

@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using SalesService.Application.Interfaces.Orders;
+using SalesService.Application.Persisitences.Orders;
 using SalesService.Domain.Entities;
 using SalesService.Infrastructure.ApplicationDbContext;
 using System.Threading;
