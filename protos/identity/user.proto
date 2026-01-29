@@ -14,7 +14,7 @@ service UserGrpc {
   rpc AdminCreate(AdminCreateUserRequest) returns (UserResponse);
 
   rpc GetById(GetUserByIdRequest) returns (UserResponse);
-  rpc GetAll(GetAllUserOrWithRoleRequest) returns (UserListResponse);
+  rpc GetAll(GetAllUserOrWithRoleRequest) returns (GetAllUserOrWithRoleResponse);
   rpc GetManager(GetManagerRequest) returns (UserResponse);
 
 
@@ -25,7 +25,15 @@ service UserGrpc {
 }
 
 message GetAllUserOrWithRoleRequest{
-  string roleSlug = 1;
+  string role_slug = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+  string keyword = 4;
+}
+message GetAllUserOrWithRoleResponse {
+  repeated UserResponse users = 1;
+  int32 total_count = 2;
+  int32 total_pages = 3;
 }
 
 message GetUserByIdRequest {

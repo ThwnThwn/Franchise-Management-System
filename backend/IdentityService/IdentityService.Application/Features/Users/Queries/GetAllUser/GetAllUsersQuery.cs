@@ -1,6 +1,10 @@
 ﻿using IdentityService.Application.Dtos.User.Respone;
 using MediatR;
-
+using BuildingBlocks.Core.Pagination;
 namespace IdentityService.Application.Features.Users.Queries.GetAllUser;
 
-public record GetAllUsersQuery(string RoleSlug) : IRequest<IEnumerable<UserRep>>;
+public class GetAllUsersQuery() : PaginationRequest, IRequest<PagedResult<UserRep>>
+{
+    public string? RoleSlug {  get; set; }
+    public string? Keyword { get; set; }
+}

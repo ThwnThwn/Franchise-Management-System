@@ -1,4 +1,6 @@
-﻿using IdentityService.Application.Persistences.Repositories;
+﻿using BuildingBlocks.Core.Extensions;
+using BuildingBlocks.Core.Pagination;
+using IdentityService.Application.Persistences.Repositories;
 using IdentityService.Domain.Entities;
 using IdentityService.Infrastructure.ApplicationDbContext;
 using IdentityService.Infrastructure.Persistences.Repositories;
@@ -112,6 +114,34 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
             return await query
                 .OrderByDescending(u => u.CreatedAt)
                 .ToListAsync();
+        }
+
+        public async Task<PagedResult<User>> GetPagedUsersAsync(string? keyword, string? roleSlug, int pageIndex, int pageSize, CancellationToken cancellationToken)
+        {
+            var query = _dbContext.Users
+                .Include(u => u.Role)
+                .AsNoTracking()
+                .Where(u => !u.IsDeleted);
+
+            if (!string.IsNullOrEmpty(keyword))
+            {
+                var lowerKeyword = keyword.ToLower();
+
+                query = query.Where(u =>
+                    (u.Email != null && u.Email.ToLower().Contains(lowerKeyword)) ||
+                    (u.Username != null && u.Username.ToLower().Contains(lowerKeyword)) ||
+                    (u.LastName != null && u.LastName.ToLower().Contains(lowerKeyword)) ||
+                    (u.FirstName != null && u.FirstName.ToLower().Contains(lowerKeyword))
+                );
+            }
+
+            if (!string.IsNullOrEmpty(roleSlug))
+            {
+                query = query.Where(u => u.Role.Slug == roleSlug);
+            }
+
+            query = query.OrderByDescending(u => u.CreatedAt);
+            return await query.ToPagedListAsync(pageIndex, pageSize, cancellationToken);
         }
     }
 }

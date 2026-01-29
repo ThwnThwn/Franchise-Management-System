@@ -10,6 +10,7 @@ using IdentityService.Application.Features.Users.Commands.UpdateUser;
 using IdentityService.Application.Features.Users.Queries.GetAllUser;
 using IdentityService.Application.Features.Users.Queries.GetManager;
 using IdentityService.Application.Features.Users.Queries.GetUserById;
+using IdentityService.Grpc.Protos.Role;
 using IdentityService.Grpc.Protos.User;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -84,13 +85,53 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
 
         return MapUser(rep);
     }
-
-    public override async Task<UserListResponse> GetAll(GetAllUserOrWithRoleRequest request, ServerCallContext context)
+    public override async Task<GetAllUserOrWithRoleResponse> GetAll(GetAllUserOrWithRoleRequest request, ServerCallContext context)
     {
-        var users = await _mediator.Send(new GetAllUsersQuery(request.RoleSlug));
+        var pagedResult = await _mediator.Send(
+            new GetAllUsersQuery()
+            {
+                RoleSlug = request.RoleSlug,
+                Keyword = request.Keyword,
+                Page = request.Page,
+                PageSize = request.PageSize
+            }
+        );
 
-        var res = new UserListResponse();
-        res.Users.AddRange(users.Select(MapUser));
+        var res = new GetAllUserOrWithRoleResponse
+        {
+            TotalCount = (int)pagedResult.TotalCount,
+            TotalPages = pagedResult.TotalPages
+        };
+
+        res.Users.AddRange(pagedResult.Items.Select(u => new UserResponse
+        {
+            Id = u.Id.ToString(),
+            Email = u.Email ?? "",
+            Username = u.Username ?? "",
+            Phone = u.Phone ?? "",
+            Address = u.Address ?? "",
+            IsBlocked = u.IsBlocked ?? false,
+
+            FirstName = u.FirstName ?? "",
+            LastName = u.LastName ?? "",
+            Gender = u.Gender,
+
+            DateOfBirth = u.DateOfBirth.HasValue
+        ? Timestamp.FromDateTime(u.DateOfBirth.Value.ToUniversalTime())
+        : null,
+
+            Role = u.Role == null
+            ? null
+            : new RoleUserResponse
+            {
+                Id = u.Role.Id.ToString(),
+                Slug = u.Role.Slug,
+                Name = u.Role.Name
+            },
+
+            CreatedAt = Timestamp.FromDateTime(u.CreatedAt.UtcDateTime),
+            UpdatedAt = Timestamp.FromDateTime(u.UpdatedAt.UtcDateTime),
+        }));
         return res;
     }
 
@@ -196,7 +237,8 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
                 : new Grpc.Protos.Role.RoleUserResponse
                 {
                     Id = user.Role.Id.ToString(),
-                    Name = user.Role.Name ?? ""
+                    Name = user.Role.Name ?? "",
+                    Slug = user.Role.Slug ?? ""
                 }
         };
     }
