@@ -9,6 +9,7 @@ import { useCartStore } from "@/features/cart/store"
 import { PaymentMethod, useCreateOrder } from "@/features/orders"
 import { useRouter } from "next/navigation"
 import { useTokenStore } from "@/hooks"
+import { useGetCart, useUpdateCartItem, useDeleteListCartItem, useClearCart } from "../hooks/useCartQuery"
 import { RoleSlug } from "@/constants/enums"
 import { formatCurrencyWithSymbol } from "@/utils/helpers/currency"
 
@@ -22,12 +23,41 @@ const TAX_RATE = 0.1
 export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
     const router = useRouter()
     const roleSlug = useTokenStore((s) => s.roleSlug)
+    const isLogined = useTokenStore((s) => !!s.accessToken)
     const isCustomer = roleSlug === RoleSlug.Customer
 
-    const items = useCartStore((s) => s.items)
-    // Không dùng total từ store nữa vì nó là tổng của tất cả
-    const updateQuantity = useCartStore((state) => state.updateQuantity)
-    const removeItem = useCartStore((state) => state.removeItem)
+    // API Hooks
+    const { data: apiCart } = useGetCart()
+    const updateCartItemMutation = useUpdateCartItem()
+    const deleteListCartItemMutation = useDeleteListCartItem()
+
+    // Local Store
+    const localItems = useCartStore((s) => s.items)
+    const localUpdateQuantity = useCartStore((state) => state.updateQuantity)
+    const localRemoveItem = useCartStore((state) => state.removeItem)
+
+    // Derived State
+    const items = isLogined ? (apiCart ?? []) : localItems
+
+    const handleUpdateQuantity = (sku: string, quantity: number) => {
+        if (isLogined) {
+            updateCartItemMutation.mutate({ sku, quantity })
+        } else {
+            localUpdateQuantity(sku, quantity)
+        }
+    }
+
+    const handleRemoveItem = (sku: string) => {
+        if (isLogined) {
+            deleteListCartItemMutation.mutate({ skus: [sku] })
+        } else {
+            localRemoveItem(sku)
+            // Update selected keys for local
+            const nextSelectedKeys = new Set(selectedKeys)
+            nextSelectedKeys.delete(sku)
+            setSelectedKeys(nextSelectedKeys)
+        }
+    }
 
     // 1. State quản lý các item được chọn (lưu SKU)
     const [selectedKeys, setSelectedKeys] = useState<Set<string>>(
@@ -70,24 +100,26 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
     }
 
     // Xử lý khi xóa item thì phải bỏ chọn nó khỏi state luôn
-    const handleRemoveItem = (sku: string) => {
-        removeItem(sku)
-        const nextSelectedKeys = new Set(selectedKeys)
-        nextSelectedKeys.delete(sku)
-        setSelectedKeys(nextSelectedKeys)
-    }
 
     const handleSuccess = useCallback(() => {
         const redirectPath = isCustomer ? "/orders" : "/"
         router.push(redirectPath)
         onClose()
-        // Sau khi đặt hàng thành công, cần xóa các item đã mua khỏi giỏ
-        // Note: Cần thêm logic xóa item đã chọn khỏi store ở đây nếu API không tự sync
-        selectedItems.forEach((i) => removeItem(i.sku))
+
+        if (isLogined) {
+            const skusToRemove = selectedItems.map(i => i.sku)
+            deleteListCartItemMutation.mutate({ skus: skusToRemove })
+        } else {
+            // For guest, remove locally
+            selectedItems.forEach((i) => localRemoveItem(i.sku))
+        }
+
         setSelectedKeys(new Set())
-    }, [isCustomer, onClose, router, removeItem, selectedItems])
+    }, [isCustomer, onClose, router, isLogined, selectedItems, deleteListCartItemMutation, localRemoveItem])
 
     const createOrderMutation = useCreateOrder({ onSuccess: handleSuccess })
+
+    const currentStoreId = useCartStore((s) => s.currentStoreId)
 
     const handleCheckout = async () => {
         if (selectedItems.length === 0) return
@@ -100,7 +132,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
             tax,
             paymentMethod: PaymentMethod.Cash,
             notes: "",
-            storeId: selectedItems.length > 0 ? selectedItems[0].storeId : undefined
+            storeId: currentStoreId || (selectedItems.length > 0 ? selectedItems[0].storeId : undefined)
         })
     }
 
@@ -173,7 +205,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                                             <CartItem
                                                 key={index}
                                                 item={item}
-                                                onUpdateQuantity={updateQuantity}
+                                                onUpdateQuantity={handleUpdateQuantity}
                                                 onRemove={() => handleRemoveItem(item.sku)}
                                             />
                                         </div>

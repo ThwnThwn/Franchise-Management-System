@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useCallback } from "react"
+import React, { useState, useCallback, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 
 import { ProductCard, ProductVariantsModal, StoreSelectionModal } from "../components"
@@ -12,8 +12,18 @@ import { useDisclosure, Input } from "@heroui/react"
 import { StoreDetailDto } from "@/features/stores/models/schema/response"
 import { MapPin, Search } from "lucide-react"
 
+import { useCartStore } from "@/features/cart/store"
+
 export default function MenuPage() {
     const [selectedStore, setSelectedStore] = useState<StoreDetailDto | null>(null)
+    const setStoreId = useCartStore((s) => s.setStoreId)
+
+    // Sync store selection to cart store
+    useEffect(() => {
+        if (selectedStore) {
+            setStoreId(selectedStore.id)
+        }
+    }, [selectedStore, setStoreId])
     const [searchQuery, setSearchQuery] = useState("")
     const [inputValue, setInputValue] = useState("")
 

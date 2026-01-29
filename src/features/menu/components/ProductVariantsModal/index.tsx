@@ -7,6 +7,8 @@ import { formatCurrencyWithSymbol } from "@/utils/helpers/currency"
 import { useCartStore } from "@/features/cart/store"
 import { GetProductListItemDto, ProductSizeListItemDto } from "../../models/schema/respone"
 import { parseAttributes } from "../../utils/utils"
+import { useTokenStore } from "@/hooks"
+import { useAddToCart } from "@/features/cart/hooks/useCartQuery"
 
 type ProductVariantsModalProps = {
     product: GetProductListItemDto | null
@@ -19,6 +21,9 @@ export function ProductVariantsModal({ product, isOpen, onOpenChange, storeId }:
     const [selectedSize, setSelectedSize] = useState<ProductSizeListItemDto | null>(null)
     const [quantity, setQuantity] = useState<number>(1)
     const addItem = useCartStore((state) => state.addItem)
+
+    const isLogined = useTokenStore((s) => !!s.accessToken)
+    const addToCartMutation = useAddToCart()
 
     const handleOpenChange = useCallback(() => {
         setSelectedSize(null)
@@ -35,22 +40,32 @@ export function ProductVariantsModal({ product, isOpen, onOpenChange, storeId }:
         if (!product || !selectedSize) return
         const safeQty = quantity > 0 ? quantity : 1
 
-        // Add to cart using new cart store
-        addItem({
-            sku: selectedSize.sku,
-            productId: product.id,
-            variantId: selectedSize.id,
-            productName: product.name,
-            sizeName: selectedSize.name,
-            attributes: selectedSize.attributes,
-            basePrice: selectedSize.basePrice,
-            imageUrl: product.imageUrl,
-            quantity: safeQty,
-            storeId: storeId
-        })
+        if (isLogined) {
+            addToCartMutation.mutate({
+                variantId: selectedSize.id,
+                quantity: safeQty,
+                storeId: storeId,
+                sku: selectedSize.sku
+            })
+        } else {
+            // Fallback for guest or if API fails (though mutation handles success/error)
+            // Add to cart using local cart store
+            addItem({
+                sku: selectedSize.sku,
+                productId: product.id,
+                variantId: selectedSize.id,
+                productName: product.name,
+                sizeName: selectedSize.name,
+                attributes: selectedSize.attributes,
+                basePrice: selectedSize.basePrice,
+                imageUrl: product.imageUrl,
+                quantity: safeQty,
+                storeId: storeId
+            })
+        }
 
         handleClose()
-    }, [product, selectedSize, quantity, addItem, handleClose, storeId])
+    }, [product, selectedSize, quantity, addItem, handleClose, storeId, isLogined, addToCartMutation])
 
     if (!product) return null
 
