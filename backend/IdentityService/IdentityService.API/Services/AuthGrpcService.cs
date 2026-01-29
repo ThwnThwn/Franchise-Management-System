@@ -222,7 +222,8 @@ public class AuthGrpcService : AuthGrpc.AuthGrpcBase
                 : new Grpc.Protos.Role.RoleUserResponse
                 {
                     Id = user.Role.Id.ToString(),
-                    Name = user.Role.Name ?? ""
+                    Name = user.Role.Name ?? "",
+                    Slug = user.Role.Slug ?? ""   
                 }
         };
     }

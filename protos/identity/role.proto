@@ -59,4 +59,5 @@ message RoleResponse {
 message RoleUserResponse {
   string id = 1;
   string name = 2;
+  string slug = 3;
 }
