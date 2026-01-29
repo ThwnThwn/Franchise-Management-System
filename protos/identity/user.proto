@@ -47,7 +47,7 @@ message CustomerCreateUserRequest {
 
   string firstName = 5;
   string lastName = 6;
-  int32 gender = 7;
+  optional int32 gender = 7;
   string dateOfBirth = 8;
   string roleSlug = 9;
 }
@@ -61,7 +61,7 @@ message AdminCreateUserRequest {
   
   string firstName = 6;
   string lastName = 7;
-  int32 gender = 8;
+  optional int32 gender = 8;
   string dateOfBirth =9;
 }
 
@@ -75,10 +75,10 @@ message UpdateUserRequest {
 
   string firstName = 6;
   string lastName = 7;
-  int32 gender = 8;
+  optional int32 gender = 8;
   string dateOfBirth = 9;
 
-  bool isBlocked = 10;
+  optional bool isBlocked = 10;
   string roleSlug = 11;
 }
 message ChangePasswordRequest{

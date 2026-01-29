@@ -34,7 +34,7 @@ message RegisterRequest {
   string password = 5;
   string phone = 6;
   string address = 7;
-  int32 gender = 8;       
+  optional int32 gender = 8;       
   string dateOfBirth = 9; // "2002-10-21"
 }
 

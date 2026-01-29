@@ -15,6 +15,7 @@ using Microsoft.EntityFrameworkCore.Storage.Json;
 using System.Globalization;
 
 namespace IdentityService.API.Services;
+
 public class UserGrpcService : UserGrpc.UserGrpcBase
 {
     private readonly IMediator _mediator;
@@ -91,13 +92,32 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
 
     public override async Task<UserResponse> Update(UpdateUserRequest request, ServerCallContext context)
     {
+        // Lấy UserId từ Metadata header
+        var userIdEntry = context.RequestHeaders.FirstOrDefault(h =>
+            h.Key.Equals("x-user-id", StringComparison.OrdinalIgnoreCase));
+
+        if (userIdEntry == null)
+        {
+            throw new RpcException(new Status(StatusCode.Unauthenticated, "Missing x-user-id in request headers"));
+        }
+
+        var customerId = Guid.Parse(userIdEntry.Value);
+
+        string[] formats = {
+            "yyyy-MM-dd",
+            "yyyy-MM-dd'T'HH:mm:ss.fff'Z'",
+            "yyyy-MM-dd'T'HH:mm:ss'Z'"
+        };
+
         var dob = DateTime.ParseExact(
-                request.DateOfBirth,
-                "yyyy-MM-dd",
-                CultureInfo.InvariantCulture
-            );
+            request.DateOfBirth,
+            formats,
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.RoundtripKind
+        );
+
         var rep = await _mediator.Send(new UpdateUserCommand(
-            Id: Guid.Parse(request.Id),
+            Id: customerId,
             Request: new()
             {
                 Username = string.IsNullOrWhiteSpace(request.Username) ? null : request.Username,
@@ -136,7 +156,6 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
         return MapUser(rep);
     }
 
-
     public override async Task<DeleteUserResponse> Delete(DeleteUserRequest request, ServerCallContext context)
     {
         var ok = await _mediator.Send(new DeleteUserCommand(Guid.Parse(request.Id)));
@@ -154,6 +173,12 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
             Phone = user.Phone ?? "",
             Address = user.Address ?? "",
             IsBlocked = user.IsBlocked ?? false,
+            Gender = user.Gender,
+            FirstName = user.FirstName ?? "",
+            LastName = user.LastName ?? "",
+            DateOfBirth = user.DateOfBirth.HasValue
+                ? Timestamp.FromDateTime(DateTime.SpecifyKind(user.DateOfBirth.Value, DateTimeKind.Utc))
+                : null,
             CreatedAt = Timestamp.FromDateTime(user.CreatedAt.UtcDateTime),
             UpdatedAt = Timestamp.FromDateTime(user.UpdatedAt.UtcDateTime),
             Role = user.Role == null

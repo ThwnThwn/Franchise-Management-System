@@ -28,17 +28,9 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, UserR
 
     public async Task<UserRep?> Handle(UpdateUserCommand command, CancellationToken cancellationToken)
     {
-        var currentUserId = _currentUser.UserId;
-        if (currentUserId == null)
-            throw new UnauthorizedAccessException("Unauthenticated");
-        var currentUser = await _userRepository.GetByIdAsync(currentUserId.Value);
+        var currentUser = await _userRepository.GetByIdAsync(command.Id);
         if (currentUser == null)
             throw new UnauthorizedAccessException("Unauthenticated");
-        var roleAdmin = await _roleRepository.GetByNameAsync("Admin");
-
-        //Only allow update own profile
-        if (currentUserId.Value != command.Id && currentUser.Role != roleAdmin)
-            throw new ForbidenException("You can only update your own profile");
 
         var request = command.Request;
 
@@ -54,9 +46,12 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, UserR
         var user = await _userRepository.GetByIdAsync(command.Id);
         if (user == null)
             return null;
-        var role = await _roleRepository.GetBySlugAsync(request.RoleSlug);
-        if (role == null)
-            throw new Exception("Slug" + request.RoleSlug + " not found");
+
+        if (!string.IsNullOrEmpty(request.RoleSlug))
+        {
+            _ = await _roleRepository.GetBySlugAsync(request.RoleSlug)
+                ?? throw new Exception("Slug" + request.RoleSlug + " not found");
+        }
 
         _mapper.Map(request, user);
         user.UpdatedAt = DateTimeOffset.UtcNow;
