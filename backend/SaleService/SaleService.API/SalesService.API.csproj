@@ -18,6 +18,7 @@
   <ItemGroup>
     <None Remove="Protos\inventory.proto" />
 	    <Protobuf Include="..\..\..\protos\product\*.proto" GrpcServices="Client" ProtoRoot="..\..\..\protos" />
+	    <Protobuf Include="..\..\..\protos\identity\*.proto" GrpcServices="Client" ProtoRoot="..\..\..\protos" />
 	    <Protobuf Include="..\..\..\protos\sales\*.proto" GrpcServices="Server" ProtoRoot="..\..\..\protos" />
   </ItemGroup>
 

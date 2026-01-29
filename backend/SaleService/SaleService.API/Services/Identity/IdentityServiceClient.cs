@@ -12,7 +12,7 @@ public class IdentityServiceClient : IIdentityServiceClient
     public IdentityServiceClient(IConfiguration configuration)
     {
         var rawUrl = configuration["IDENTITY_SERVICE_URL"] ?? "http://localhost:5001";
-        
+
         // Normalize to absolute URI
         _identityServiceUrl = rawUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
                               rawUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase)

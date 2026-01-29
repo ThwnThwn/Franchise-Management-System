@@ -1,6 +1,5 @@
 using System.Security.Cryptography;
 using System.Text.Json;
-using Application.Persistences.Caches;
 using IdentityService.Application.AppExceptions;
 using IdentityService.Application.Constants;
 using IdentityService.Application.Dtos.Auth.Response;
@@ -57,7 +56,6 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, RegisterR
         existingUser = await _userRepository.GetByUsernameAsync(request.Username);
         if (existingUser != null)
             throw new ConflictDuplicateException($"Username '{request.Username}' already exists");
-
 
         var hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
 

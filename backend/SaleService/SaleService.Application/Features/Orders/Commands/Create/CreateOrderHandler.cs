@@ -1,7 +1,5 @@
 using Ardalis.Result;
 using MediatR;
-using SalesService.Application.Interfaces.Orders;
-using SalesService.Application.Interfaces.Products;
 using SalesService.Application.Interfaces.Identity;
 using SalesService.Application.ClientInterface.Inventory;
 using SalesService.Application.ClientInterface.Products;
