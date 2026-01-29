@@ -20,6 +20,7 @@ message CreateOrderRequest {
   optional double tax = 2;
   optional int32 payment_method = 3;
   string notes = 4;
+  string storeId = 5;
 }
 
 message CartItem {
@@ -55,8 +56,10 @@ message Order {
   string notes = 10;
   string created_at = 11;
   string updated_at = 12;
-  repeated OrderItem items = 13;
+  string customer_id = 13;
+  repeated OrderItem items = 14;
 }
+
 
 message OrderItem {
   string id = 1;
@@ -94,4 +97,3 @@ message OrderSummary {
   string updated_at = 12;
   string customer_id = 13;
 }
-

@@ -9,8 +9,6 @@ public sealed record CreateOrderCommand(CreateOrderRequestDto Request)
 public sealed class CreateOrderRequestDto
 {
     public List<CartItemDto> Items { get; set; } = new();
-    public decimal? Tax { get; set; }
-    public int? PaymentMethod { get; set; }
     public string? Notes { get; set; }
     public Guid? CustomerId { get; set; }
     public Guid? StoreId { get; set; }
