@@ -3,6 +3,7 @@ using IdentityService.Domain.Entities;
 using IdentityService.Infrastructure.ApplicationDbContext;
 using IdentityService.Infrastructure.Persistences.Repositories;
 using Microsoft.EntityFrameworkCore;
+using System.Xml.Linq;
 
 namespace IdentityService.Infrastructure.Persistences.Repositories
 {
@@ -22,6 +23,14 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
         {
             var role = await _dbContext.Roles
                 .Where(r => r.Name.ToLower() == name.ToLower())
+                .FirstOrDefaultAsync();
+            return role;
+        }
+
+        public async Task<Role?> GetBySlugAsync(string slug)
+        {
+            var role = await _dbContext.Roles
+                .Where(r => r.Slug.ToLower() == slug.ToLower())
                 .FirstOrDefaultAsync();
             return role;
         }

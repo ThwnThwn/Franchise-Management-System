@@ -26,7 +26,11 @@ type AuthGrpcClient interface {
 	Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
 	RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*RefreshTokenResponse, error)
 	Logout(ctx context.Context, in *LogoutRequest, opts ...grpc.CallOption) (*LogoutResponse, error)
-	ConfirmOtp(ctx context.Context, in *ConfirmOtpRequest, opts ...grpc.CallOption) (*ConfirmOtpResponse, error)
+	ConfirmRegisterOtp(ctx context.Context, in *ConfirmOtpRequest, opts ...grpc.CallOption) (*ConfirmOtpResponse, error)
+	ForgetPassword(ctx context.Context, in *ForgetPasswordRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
+	ConfirmForgetPasswordOtp(ctx context.Context, in *ConfirmOtpRequest, opts ...grpc.CallOption) (*ConfirmOtpForgetPasswordOtpResponse, error)
+	NewPassword(ctx context.Context, in *NewPasswordRequest, opts ...grpc.CallOption) (*ConfirmOtpResponse, error)
+	ReSendOtp(ctx context.Context, in *ReSendOtpRequest, opts ...grpc.CallOption) (*ReSendOtpResponse, error)
 }
 
 type authGrpcClient struct {
@@ -73,9 +77,45 @@ func (c *authGrpcClient) Logout(ctx context.Context, in *LogoutRequest, opts ...
 	return out, nil
 }
 
-func (c *authGrpcClient) ConfirmOtp(ctx context.Context, in *ConfirmOtpRequest, opts ...grpc.CallOption) (*ConfirmOtpResponse, error) {
+func (c *authGrpcClient) ConfirmRegisterOtp(ctx context.Context, in *ConfirmOtpRequest, opts ...grpc.CallOption) (*ConfirmOtpResponse, error) {
 	out := new(ConfirmOtpResponse)
-	err := c.cc.Invoke(ctx, "/identity.auth.AuthGrpc/ConfirmOtp", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/identity.auth.AuthGrpc/ConfirmRegisterOtp", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authGrpcClient) ForgetPassword(ctx context.Context, in *ForgetPasswordRequest, opts ...grpc.CallOption) (*RegisterResponse, error) {
+	out := new(RegisterResponse)
+	err := c.cc.Invoke(ctx, "/identity.auth.AuthGrpc/ForgetPassword", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authGrpcClient) ConfirmForgetPasswordOtp(ctx context.Context, in *ConfirmOtpRequest, opts ...grpc.CallOption) (*ConfirmOtpForgetPasswordOtpResponse, error) {
+	out := new(ConfirmOtpForgetPasswordOtpResponse)
+	err := c.cc.Invoke(ctx, "/identity.auth.AuthGrpc/ConfirmForgetPasswordOtp", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authGrpcClient) NewPassword(ctx context.Context, in *NewPasswordRequest, opts ...grpc.CallOption) (*ConfirmOtpResponse, error) {
+	out := new(ConfirmOtpResponse)
+	err := c.cc.Invoke(ctx, "/identity.auth.AuthGrpc/NewPassword", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authGrpcClient) ReSendOtp(ctx context.Context, in *ReSendOtpRequest, opts ...grpc.CallOption) (*ReSendOtpResponse, error) {
+	out := new(ReSendOtpResponse)
+	err := c.cc.Invoke(ctx, "/identity.auth.AuthGrpc/ReSendOtp", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +130,11 @@ type AuthGrpcServer interface {
 	Register(context.Context, *RegisterRequest) (*RegisterResponse, error)
 	RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenResponse, error)
 	Logout(context.Context, *LogoutRequest) (*LogoutResponse, error)
-	ConfirmOtp(context.Context, *ConfirmOtpRequest) (*ConfirmOtpResponse, error)
+	ConfirmRegisterOtp(context.Context, *ConfirmOtpRequest) (*ConfirmOtpResponse, error)
+	ForgetPassword(context.Context, *ForgetPasswordRequest) (*RegisterResponse, error)
+	ConfirmForgetPasswordOtp(context.Context, *ConfirmOtpRequest) (*ConfirmOtpForgetPasswordOtpResponse, error)
+	NewPassword(context.Context, *NewPasswordRequest) (*ConfirmOtpResponse, error)
+	ReSendOtp(context.Context, *ReSendOtpRequest) (*ReSendOtpResponse, error)
 	mustEmbedUnimplementedAuthGrpcServer()
 }
 
@@ -110,8 +154,20 @@ func (UnimplementedAuthGrpcServer) RefreshToken(context.Context, *RefreshTokenRe
 func (UnimplementedAuthGrpcServer) Logout(context.Context, *LogoutRequest) (*LogoutResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Logout not implemented")
 }
-func (UnimplementedAuthGrpcServer) ConfirmOtp(context.Context, *ConfirmOtpRequest) (*ConfirmOtpResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ConfirmOtp not implemented")
+func (UnimplementedAuthGrpcServer) ConfirmRegisterOtp(context.Context, *ConfirmOtpRequest) (*ConfirmOtpResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ConfirmRegisterOtp not implemented")
+}
+func (UnimplementedAuthGrpcServer) ForgetPassword(context.Context, *ForgetPasswordRequest) (*RegisterResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ForgetPassword not implemented")
+}
+func (UnimplementedAuthGrpcServer) ConfirmForgetPasswordOtp(context.Context, *ConfirmOtpRequest) (*ConfirmOtpForgetPasswordOtpResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ConfirmForgetPasswordOtp not implemented")
+}
+func (UnimplementedAuthGrpcServer) NewPassword(context.Context, *NewPasswordRequest) (*ConfirmOtpResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method NewPassword not implemented")
+}
+func (UnimplementedAuthGrpcServer) ReSendOtp(context.Context, *ReSendOtpRequest) (*ReSendOtpResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReSendOtp not implemented")
 }
 func (UnimplementedAuthGrpcServer) mustEmbedUnimplementedAuthGrpcServer() {}
 
@@ -198,20 +254,92 @@ func _AuthGrpc_Logout_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AuthGrpc_ConfirmOtp_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _AuthGrpc_ConfirmRegisterOtp_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ConfirmOtpRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthGrpcServer).ConfirmOtp(ctx, in)
+		return srv.(AuthGrpcServer).ConfirmRegisterOtp(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/identity.auth.AuthGrpc/ConfirmOtp",
+		FullMethod: "/identity.auth.AuthGrpc/ConfirmRegisterOtp",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthGrpcServer).ConfirmOtp(ctx, req.(*ConfirmOtpRequest))
+		return srv.(AuthGrpcServer).ConfirmRegisterOtp(ctx, req.(*ConfirmOtpRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthGrpc_ForgetPassword_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ForgetPasswordRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthGrpcServer).ForgetPassword(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/identity.auth.AuthGrpc/ForgetPassword",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthGrpcServer).ForgetPassword(ctx, req.(*ForgetPasswordRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthGrpc_ConfirmForgetPasswordOtp_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ConfirmOtpRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthGrpcServer).ConfirmForgetPasswordOtp(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/identity.auth.AuthGrpc/ConfirmForgetPasswordOtp",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthGrpcServer).ConfirmForgetPasswordOtp(ctx, req.(*ConfirmOtpRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthGrpc_NewPassword_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(NewPasswordRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthGrpcServer).NewPassword(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/identity.auth.AuthGrpc/NewPassword",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthGrpcServer).NewPassword(ctx, req.(*NewPasswordRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthGrpc_ReSendOtp_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReSendOtpRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthGrpcServer).ReSendOtp(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/identity.auth.AuthGrpc/ReSendOtp",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthGrpcServer).ReSendOtp(ctx, req.(*ReSendOtpRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -240,8 +368,24 @@ var AuthGrpc_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AuthGrpc_Logout_Handler,
 		},
 		{
-			MethodName: "ConfirmOtp",
-			Handler:    _AuthGrpc_ConfirmOtp_Handler,
+			MethodName: "ConfirmRegisterOtp",
+			Handler:    _AuthGrpc_ConfirmRegisterOtp_Handler,
+		},
+		{
+			MethodName: "ForgetPassword",
+			Handler:    _AuthGrpc_ForgetPassword_Handler,
+		},
+		{
+			MethodName: "ConfirmForgetPasswordOtp",
+			Handler:    _AuthGrpc_ConfirmForgetPasswordOtp_Handler,
+		},
+		{
+			MethodName: "NewPassword",
+			Handler:    _AuthGrpc_NewPassword_Handler,
+		},
+		{
+			MethodName: "ReSendOtp",
+			Handler:    _AuthGrpc_ReSendOtp_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

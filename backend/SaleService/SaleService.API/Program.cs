@@ -4,9 +4,15 @@ using Microsoft.EntityFrameworkCore;
 using SalesService.API.Middleware;
 using SalesService.API.Services.Orders;
 using SalesService.API.Services.Products;
+using SalesService.API.Services.Payments;
+using SalesService.API.Middleware;
 using SalesService.Application.Interfaces.Orders;
 using SalesService.Application.Interfaces.Products;
+using SalesService.Infrastructure.Extensions;
 using SalesService.Application.Mapping.Orders;
+using SalesService.Application.Interfaces.Payments;
+using SalesService.Infrastructure.Repositories.Orders;
+using SalesService.Infrastructure.Repositories.Payments;
 using SalesService.Infrastructure.ApplicationDbContext;
 using SalesService.Infrastructure.Extensions;
 using SalesService.Infrastructure.Interceptor;
@@ -95,6 +101,7 @@ public class Program
 
         // Register repositories
         builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+        builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 
         // Register ProductService gRPC client
         builder.Services.AddSingleton<IProductServiceClient, ProductServiceClient>();
@@ -138,6 +145,7 @@ public class Program
 
         app.MapControllers();
         app.MapGrpcService<OrderGrpcService>();
+        app.MapGrpcService<PaymentGrpcService>();
         app.MapGrpcReflectionService(); // Enable gRPC Server Reflection endpoint
         app.MapGet("/", () => "Sale Service API is running. Visit /swagger for API documentation.");
 

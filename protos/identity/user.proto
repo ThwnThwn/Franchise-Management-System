@@ -41,29 +41,28 @@ message UserListResponse {
 
 message CustomerCreateUserRequest {
   string email = 1;
-  string password = 2;
-  string username = 3;
-  string phone = 4;
-  string address = 5;
+  string username = 2;
+  string phone = 3;
+  string address = 4;
 
-  string firstName = 6;
-  string lastName = 7;
-  int32 gender = 8;
-  google.protobuf.Timestamp dateOfBirth = 9;
+  string firstName = 5;
+  string lastName = 6;
+  int32 gender = 7;
+  string dateOfBirth = 8;
+  string roleSlug = 9;
 }
 
 message AdminCreateUserRequest {
   string email = 1;
-  string password = 2;
-  string username = 3;
-  string phone = 4;
-  string address = 5;
-  string roleId = 6; 
+  string username = 2;
+  string phone = 3;
+  string address = 4;
+  string roleSlug = 5; 
   
-  string firstName = 7;
-  string lastName = 8;
-  int32 gender = 9;
-  google.protobuf.Timestamp dateOfBirth = 10;
+  string firstName = 6;
+  string lastName = 7;
+  int32 gender = 8;
+  string dateOfBirth =9;
 }
 
 message UpdateUserRequest {
@@ -77,10 +76,10 @@ message UpdateUserRequest {
   string firstName = 6;
   string lastName = 7;
   int32 gender = 8;
-  google.protobuf.Timestamp dateOfBirth = 9;
+  string dateOfBirth = 9;
 
   bool isBlocked = 10;
-  string roleId = 11;
+  string roleSlug = 11;
 }
 message ChangePasswordRequest{
   string id = 1;

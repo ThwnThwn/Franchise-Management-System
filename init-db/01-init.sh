@@ -38,6 +38,7 @@ run_sql_script() {
 create_db_safe "identity_db"
 create_db_safe "product_db"
 create_db_safe "sales_db"
+create_db_safe "payment_db"
 
 create_db_safe "franchise_db"
 
@@ -45,6 +46,7 @@ create_db_safe "franchise_db"
 run_sql_script "identity_db" "/docker-entrypoint-initdb.d/schemas/02-identity.sql"
 run_sql_script "product_db" "/docker-entrypoint-initdb.d/schemas/03-product.sql"
 run_sql_script "sales_db" "/docker-entrypoint-initdb.d/schemas/04-sales.sql"
+run_sql_script "payment_db" "/docker-entrypoint-initdb.d/schemas/07-payment.sql"
 
 run_sql_script "franchise_db" "/docker-entrypoint-initdb.d/schemas/06-franchise.sql"
 

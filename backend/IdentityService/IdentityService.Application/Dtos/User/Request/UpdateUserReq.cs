@@ -37,6 +37,7 @@ namespace IdentityService.Application.Dtos.User.Request
 
         public bool? IsBlocked { get; set; }
 
-        public Guid? RoleId { get; set; }
+        [Required]
+        public string RoleSlug { get; set; } = null!;
     }
 }

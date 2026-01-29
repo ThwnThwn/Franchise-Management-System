@@ -20,10 +20,10 @@ func (a *OrderRouter) NewOrderRouter(cfg *config.Config,
 	}
 
 	accessTokenSecret := cfg.JwtSecret
-	privateApi := orderApi.Group("/")
+	privateApi := orderApi.Group("")
 	privateApi.Use(middleware.ValidateToken([]byte(accessTokenSecret)))
 	{
 		privateApi.GET("/me", orderHandler.GetMyOrders)
-		privateApi.POST("/", orderHandler.CreateOrder)
+		privateApi.POST("", orderHandler.CreateOrder)
 	}
 }

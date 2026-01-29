@@ -54,6 +54,9 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, UserR
         var user = await _userRepository.GetByIdAsync(command.Id);
         if (user == null)
             return null;
+        var role = await _roleRepository.GetBySlugAsync(request.RoleSlug);
+        if (role == null)
+            throw new Exception("Slug" + request.RoleSlug + " not found");
 
         _mapper.Map(request, user);
         user.UpdatedAt = DateTimeOffset.UtcNow;

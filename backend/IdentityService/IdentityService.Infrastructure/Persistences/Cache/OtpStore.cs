@@ -22,10 +22,10 @@ public class OtpStore : IOtpStore
         _otpCfg = otpCfg.Value;
     }
 
-    public async Task SaveOTPAsyns(string key, string otp)
+    public async Task SaveOTPAsyns(string key, string otp, string purpose)
     {
         await _cache.SetStringAsync(
-                $"otp:{key}",
+                $"otp:{purpose}:{key}",
                 otp,
                 new DistributedCacheEntryOptions
                 {
@@ -34,14 +34,14 @@ public class OtpStore : IOtpStore
             );
     }
 
-    public async Task<string?> GetOtpAsync(string key)
+    public async Task<string?> GetOtpAsync(string key, string purpose)
     {
-        return await _cache.GetStringAsync($"otp:{key}");
+        return await _cache.GetStringAsync($"otp:{purpose}:{key}");
     }
 
-    public async Task RemoveOTPAsync(string key)
+    public async Task RemoveOTPAsync(string key, string purpose)
     {
-        await _cache.RemoveAsync($"otp:{key}");
+        await _cache.RemoveAsync($"otp:{purpose}:{key}");
     }
 
     public async Task SaveRegistrationDataAsync(string key, string data)
@@ -56,6 +56,23 @@ public class OtpStore : IOtpStore
             );
     }
 
+    public async Task SaveForgetPasswordDataAsync(string key, string data)
+    {
+        await _cache.SetStringAsync(
+                $"forgetpassword:{key}",
+                data,
+                new DistributedCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(_otpCfg.OtpTtl)
+                }
+            );
+    }
+
+    public async Task<string?> GetForgetPasswordAsync(string key)
+    {
+        return await _cache.GetStringAsync($"forgetpassword:{key}");
+    }
+
     public async Task<string?> GetRegistrationDataAsync(string key)
     {
         return await _cache.GetStringAsync($"register:{key}");
@@ -66,9 +83,9 @@ public class OtpStore : IOtpStore
         await _cache.RemoveAsync($"register:{key}");
     }
 
-    public async Task<DateTimeOffset?> GetLastOtpRequestTimeAsync(string key)
+    public async Task<DateTimeOffset?> GetLastOtpRequestTimeAsync(string key, string purpose)
     {
-        var value = await _cache.GetStringAsync($"otp_request_time:{key}");
+        var value = await _cache.GetStringAsync($"otp_request_time:{purpose}:{key}");
         if (string.IsNullOrEmpty(value))
             return null;
 
@@ -78,10 +95,10 @@ public class OtpStore : IOtpStore
         return null;
     }
 
-    public async Task SaveLastOtpRequestTimeAsync(string key, DateTimeOffset time)
+    public async Task SaveLastOtpRequestTimeAsync(string key, DateTimeOffset time, string purpose)
     {
         await _cache.SetStringAsync(
-            $"otp_request_time:{key}",
+            $"otp_request_time:{purpose}:{key}",
             time.ToString("O"),
             new DistributedCacheEntryOptions
             {
@@ -90,9 +107,9 @@ public class OtpStore : IOtpStore
         );
     }
 
-    public async Task<int> GetOtpAttemptCountAsync(string key)
+    public async Task<int> GetOtpAttemptCountAsync(string key, string purpose)
     {
-        var value = await _cache.GetStringAsync($"otp_attempts:{key}");
+        var value = await _cache.GetStringAsync($"otp_attempts:{purpose}:{key}");
         if (string.IsNullOrEmpty(value))
             return 0;
 
@@ -102,9 +119,9 @@ public class OtpStore : IOtpStore
         return 0;
     }
 
-    public async Task IncrementOtpAttemptAsync(string key)
+    public async Task IncrementOtpAttemptAsync(string key, string purpose)
     {
-        var currentCount = await GetOtpAttemptCountAsync(key);
+        var currentCount = await GetOtpAttemptCountAsync(key, purpose);
         var newCount = currentCount + 1;
 
         await _cache.SetStringAsync(
@@ -117,8 +134,13 @@ public class OtpStore : IOtpStore
         );
     }
 
-    public async Task ResetOtpAttemptAsync(string key)
+    public async Task ResetOtpAttemptAsync(string key, string purpose)
     {
-        await _cache.RemoveAsync($"otp_attempts:{key}");
+        await _cache.RemoveAsync($"otp_attempts:{purpose}:{key}");
+    }
+
+    public async Task RemoveForgetPasswordDataAsync(string key)
+    {
+        await _cache.RemoveAsync($"forgetpassword:{key}");
     }
 }

@@ -28,24 +28,24 @@ namespace IdentityService.Application.Features.Auth.Commands.ConfirmOtp
         public async Task<Unit> Handle(ConfirmOtpCommand command, CancellationToken cancellationToken)
         {
             var request = command.Request;
-
+            var register = "register";
             // ATTEMPT LIMITING: Check if too many failed attempts
-            var attemptCount = await _otpStore.GetOtpAttemptCountAsync(request.Email);
+            var attemptCount = await _otpStore.GetOtpAttemptCountAsync(request.Email, register);
             if (attemptCount >= 5)
             {
                 // Invalidate OTP after too many attempts
-                await _otpStore.RemoveOTPAsync(request.Email);
+                await _otpStore.RemoveOTPAsync(request.Email, register);
                 await _otpStore.RemoveRegistrationDataAsync(request.Email);
-                await _otpStore.ResetOtpAttemptAsync(request.Email);
+                await _otpStore.ResetOtpAttemptAsync(request.Email, register);
                 throw new BusinessException("Too many failed attempts. Please request a new OTP.");
             }
 
             // Verify OTP
-            var storedOtp = await _otpStore.GetOtpAsync(request.Email);
+            var storedOtp = await _otpStore.GetOtpAsync(request.Email, register);
             if (storedOtp == null || storedOtp != request.Otp)
             {
                 // Increment attempt count on failure
-                await _otpStore.IncrementOtpAttemptAsync(request.Email);
+                await _otpStore.IncrementOtpAttemptAsync(request.Email, register);
                 var remainingAttempts = 5 - (attemptCount + 1);
                 throw new BusinessException(
                     $"Invalid or expired OTP. {remainingAttempts} attempt(s) remaining.");
@@ -86,9 +86,9 @@ namespace IdentityService.Application.Features.Auth.Commands.ConfirmOtp
             await _userRepository.AddWithRoleAsync(user);
 
             // Clean up OTP, registration data, and attempt count from Redis
-            await _otpStore.RemoveOTPAsync(request.Email);
+            await _otpStore.RemoveOTPAsync(request.Email, register);
             await _otpStore.RemoveRegistrationDataAsync(request.Email);
-            await _otpStore.ResetOtpAttemptAsync(request.Email);
+            await _otpStore.ResetOtpAttemptAsync(request.Email, register);
 
             return Unit.Value;
         }
