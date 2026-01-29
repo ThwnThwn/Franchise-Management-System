@@ -62,6 +62,14 @@ namespace IdentityService.API
             });
             builder.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(redisConn));
 
+            // KAFKA - Override for local development
+            var kafkaBootstrap = Environment.GetEnvironmentVariable("KAFKA_BOOTSTRAP_SERVERS") ?? "localhost:9092";
+            if (kafkaBootstrap.Contains("kafka:"))
+            {
+                kafkaBootstrap = "localhost:9092";  // Use localhost when running outside Docker
+            }
+            builder.Configuration["KAFKA_BOOTSTRAP_SERVERS"] = kafkaBootstrap;
+
             // --- APP SERVICES ---
             builder.Services.AddApplication();
             builder.Services.AddScoped<ITokenBlacklist, TokenBlacklist>();

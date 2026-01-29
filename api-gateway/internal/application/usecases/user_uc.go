@@ -19,5 +19,24 @@ func NewUserUseCase(service idenGW.IUserService) abstractions.IUserUseCase {
 
 // GetById implements abstractions.IUserUseCase.
 func (u *UserUseCase) GetById(ctx context.Context, id uuid.UUID) (*user.UserResponse, error) {
-	return u.servive.GetUserById(ctx, id)
+	return u.servive.GetById(ctx, id)
+}
+
+func (u *UserUseCase) Update(ctx context.Context, id uuid.UUID, req *user.UpdateUserRequest) (*user.UserResponse, error) {
+	return u.servive.Update(ctx, id, req)
+}
+
+// ChangePassword implements abstractions.IUserUseCase.
+func (u *UserUseCase) ChangePassword(ctx context.Context, id uuid.UUID, req *user.ChangePasswordRequest) (*user.UserResponse, error) {
+	return u.servive.ChangePassword(ctx, id, req)
+}
+
+// Create implements abstractions.IUserUseCase.
+func (u *UserUseCase) Create(ctx context.Context, req *user.CreateUserRequest) (*user.UserResponse, error) {
+	return u.servive.Create(ctx, req)
+}
+
+// GetAll implements abstractions.IUserUseCase.
+func (u *UserUseCase) GetAll(ctx context.Context) ([]*user.UserResponse, error) {
+	return u.servive.GetAll(ctx)
 }

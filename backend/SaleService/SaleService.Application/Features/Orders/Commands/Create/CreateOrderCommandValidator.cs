@@ -13,10 +13,7 @@ public class CreateOrderCommandValidator : AbstractValidator<CreateOrderCommand>
         RuleForEach(x => x.Request.Items)
             .SetValidator(new CartItemDtoValidator());
 
-        RuleFor(x => x.Request.Tax)
-            .GreaterThanOrEqualTo(0)
-            .When(x => x.Request.Tax.HasValue)
-            .WithMessage("Tax must be greater than or equal to 0");
+        // Tax is always calculated as 10% in handler
     }
 }
 

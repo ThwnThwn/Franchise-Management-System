@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+option csharp_namespace = "FranchiseService.API";
+option go_package = "api-gateway/pkg/pb/franchise";
+
+package franchise;
+
+service ShiftGrpcService {
+  // Lấy lịch làm việc hôm nay của nhân viên (Để App biết đang làm ở Store nào)
+  rpc GetUserCurrentShift (GetUserCurrentShiftRequest) returns (GetUserCurrentShiftResponse);
+}
+
+// ----------------------------------------------------
+// MESSAGES DEFINITION
+// ----------------------------------------------------
+
+// --- QUAN TRỌNG CHO APP NHÂN VIÊN/CHẤM CÔNG ---
+message GetUserCurrentShiftRequest {
+  string user_id = 1;
+}
+
+message GetUserCurrentShiftResponse {
+  bool has_shift_today = 1;
+  string store_id = 2;       // ID cửa hàng phải làm hôm nay
+  string store_name = 3;
+  string shift_start = 4;    // "07:00"
+  string shift_end = 5;      // "12:00"
+  double store_lat = 6;      // Để App so sánh GPS khi check-in
+  double store_long = 7;
+}

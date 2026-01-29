@@ -12,12 +12,16 @@ import (
 )
 
 type OrderGrpcClient struct {
-	client salesPb.OrderGrpcClient
+	client        salesPb.OrderGrpcClient
+	paymentClient salesPb.PaymentGrpcClient
 }
 
 // ProvideOrderClient trích xuất Order Client từ Factory
 func ProvideOrderClient(f *salesClientFactory) salesGW.IOrderService {
-	return &OrderGrpcClient{client: salesPb.NewOrderGrpcClient(f.conn)}
+	return &OrderGrpcClient{
+		client:        salesPb.NewOrderGrpcClient(f.conn),
+		paymentClient: salesPb.NewPaymentGrpcClient(f.conn),
+	}
 }
 
 // CreateOrder implements sales.IOrderService.
@@ -32,15 +36,14 @@ func (o *OrderGrpcClient) CreateOrder(ctx context.Context, req *order.CreateOrde
 	}
 
 	res, err := o.client.CreateOrder(ctx, &salesPb.CreateOrderRequest{
-		Items:         pbItems,
-		Tax:           req.Tax,
-		PaymentMethod: req.PaymentMethod,
-		Notes:         req.Notes,
+		Items:   pbItems,
+		Notes:   req.Notes,
+		StoreId: req.StoreId,
 	})
-
 	if err != nil {
 		return nil, err
 	}
+
 	return &order.CreateOrderReply{
 		OrderId:     res.OrderId,
 		OrderCode:   res.OrderCode,
@@ -82,6 +85,7 @@ func (o *OrderGrpcClient) GetOrderById(ctx context.Context, id uuid.UUID) (*orde
 			Notes:         res.Order.Notes,
 			CreatedAt:     timeutils.StringToTime(res.Order.CreatedAt),
 			UpdatedAt:     timeutils.StringToTime(res.Order.UpdatedAt),
+			CustomerId:    res.Order.CustomerId,
 		},
 		Items: items,
 	}
@@ -92,8 +96,8 @@ func (o *OrderGrpcClient) GetOrderById(ctx context.Context, id uuid.UUID) (*orde
 // GetMyOrders implements sales.IOrderService.
 func (o *OrderGrpcClient) GetMyOrders(ctx context.Context, req *order.GetMyOrdersRequest) ([]*order.OrderSummary, error) {
 	res, err := o.client.GetMyOrders(ctx, &salesPb.GetMyOrdersRequest{
-		Page:     req.Page,
-		PageSize: req.PageSize,
+		Page:     &req.Page,
+		PageSize: &req.PageSize,
 	})
 	if err != nil {
 		return nil, err
@@ -114,9 +118,24 @@ func (o *OrderGrpcClient) GetMyOrders(ctx context.Context, req *order.GetMyOrder
 				PaidAt:        timeutils.StringToTime(o.PaidAt),
 				Notes:         o.Notes,
 				CreatedAt:     timeutils.StringToTime(o.CreatedAt),
-				UpdatedAt:     timeutils.StringToTime(o.UpdatedAt)},
+				UpdatedAt:     timeutils.StringToTime(o.UpdatedAt),
+
+				CustomerId: o.CustomerId,
+			},
 		})
 	}
 
 	return orders, nil
+}
+
+// CreatePaymentUrl implements sales.IOrderService.
+func (o *OrderGrpcClient) CreatePaymentUrl(ctx context.Context, id uuid.UUID) (string, error) {
+	res, err := o.paymentClient.CreateVnPayPaymentUrl(ctx, &salesPb.CreateVnPayPaymentUrlRequest{
+		OrderId: id.String(),
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return res.PaymentUrl, nil
 }

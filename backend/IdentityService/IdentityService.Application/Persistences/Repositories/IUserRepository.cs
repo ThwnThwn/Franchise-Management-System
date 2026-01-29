@@ -14,5 +14,7 @@ namespace IdentityService.Application.Persistences.Repositories
         Task<User?> GetByEmailOrUserNameAsync(string? emailOrUserName);
         Task<IEnumerable<User?>> GetAllWithRoleAsync();
         Task<User?> AddWithRoleAsync(User? user);
+        Task<User?> GetManagerByStoreIdAsync(Guid? storeId);
+        Task<IEnumerable<User?>> GetUsersByRoleSlugAsync(string? roleSlug);
     }
 }

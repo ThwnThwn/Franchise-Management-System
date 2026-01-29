@@ -1,9 +1,14 @@
 using Ardalis.Result;
 using MediatR;
-using SalesService.Application.Interfaces.Orders;
-using SalesService.Application.Interfaces.Products;
+using Microsoft.Extensions.Logging;
+using SalesService.Application.Interfaces.Identity;
+using SalesService.Application.ClientInterface.Inventory;
+using SalesService.Application.ClientInterface.Products;
+using SalesService.Application.Persisitences.Orders;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
+using SharedKernel.Events;
+using SaleService.Application.ExternalServices;
 
 namespace SalesService.Application.Features.Orders.Commands.Create;
 
@@ -12,13 +17,23 @@ public sealed class CreateOrderHandler
 {
     private readonly IOrderRepository _orderRepository;
     private readonly IProductServiceClient _productServiceClient;
+    private readonly IKafkaProducer _kafkaProducer;
+    private readonly IIdentityServiceClient _identityServiceClient;
+    private readonly IInventoryServiceClient _inventoryServiceClient;
+    private readonly ILogger<CreateOrderHandler> _logger;
 
     public CreateOrderHandler(
         IOrderRepository orderRepository,
-        IProductServiceClient productServiceClient)
+        IProductServiceClient productServiceClient,
+        IKafkaProducer kafkaProducer,
+        IIdentityServiceClient identityServiceClient,
+        ILogger<CreateOrderHandler> logger)
     {
         _orderRepository = orderRepository;
         _productServiceClient = productServiceClient;
+        _kafkaProducer = kafkaProducer;
+        _identityServiceClient = identityServiceClient;
+        _logger = logger;
     }
 
     public async Task<Result<CreateOrderResponseDto>> Handle(
@@ -37,6 +52,12 @@ public sealed class CreateOrderHandler
             {
                 return Result.Error($"Item is missing SKU. Please provide SKU for each item.");
             }
+        }
+
+        // check storeId
+        if (!request.Request.StoreId.HasValue || request.Request.StoreId == Guid.Empty)
+        {
+            return Result.Error("StoreId is required. Please select a store before placing an order.");
         }
 
         var orderCode = $"ORD-{DateTime.UtcNow:yyyyMMdd-HHmmss}";
@@ -66,7 +87,7 @@ public sealed class CreateOrderHandler
             orderItems.Add(new OrderItem
             {
                 Id = Guid.NewGuid(),
-                OrderId = Guid.NewGuid(), // Sẽ set sau khi tạo Order
+                OrderId = Guid.NewGuid(),
                 ProductId = productVariant.ProductId,
                 VariantId = productVariant.VariantId,
                 Quantity = item.Quantity,
@@ -90,9 +111,8 @@ public sealed class CreateOrderHandler
             Subtotal = subtotal,
             Tax = tax,
             TotalAmount = totalAmount,
-            PaymentMethod = request.Request.PaymentMethod.HasValue
-                ? (PaymentMethod?)request.Request.PaymentMethod.Value
-                : null,
+            StoreId = request.Request.StoreId, // đã validate khác null ở trên
+            PaymentMethod = null,
             Status = OrderStatus.Pending,
             Notes = request.Request.Notes,
             CustomerId = request.Request.CustomerId,
@@ -107,6 +127,53 @@ public sealed class CreateOrderHandler
         }
 
         var createdOrder = await _orderRepository.CreateAsync(order, cancellationToken);
+
+        // Fetch customer email from IdentityService
+        string? customerEmail = null;
+        if (createdOrder.CustomerId.HasValue)
+        {
+            _logger.LogInformation("Fetching customer email for CustomerId: {CustomerId}", createdOrder.CustomerId.Value);
+            try
+            {
+                var user = await _identityServiceClient.GetUserByIdAsync(createdOrder.CustomerId.Value);
+                customerEmail = user?.Email;
+                _logger.LogInformation("Customer email fetched: {Email}", customerEmail ?? "NULL");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching customer email from IdentityService for CustomerId: {CustomerId}", createdOrder.CustomerId.Value);
+            }
+        }
+        else
+        {
+            _logger.LogWarning("Order {OrderId} created without CustomerId, skipping notification", createdOrder.Id);
+        }
+
+        // Only publish event if we have customer email
+        if (!string.IsNullOrEmpty(customerEmail))
+        {
+            _logger.LogInformation("Publishing OrderCreatedEvent to Kafka for Order {OrderCode}, Customer: {Email}", createdOrder.Code, customerEmail);
+            try
+            {
+                await _kafkaProducer.PublishAsync("order-notifications", new OrderCreatedEvent
+                {
+                    OrderId = createdOrder.Id,
+                    CustomerEmail = customerEmail,
+                    OrderSummary = $"Order {createdOrder.Code} created with {createdOrder.OrderItems.Count} items",
+                    TotalAmount = createdOrder.TotalAmount,
+                    CreatedAt = DateTimeOffset.UtcNow
+                });
+                _logger.LogInformation("OrderCreatedEvent published successfully for Order {OrderCode}", createdOrder.Code);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error publishing OrderCreatedEvent to Kafka for Order {OrderCode}", createdOrder.Code);
+            }
+        }
+        else
+        {
+            _logger.LogWarning("Customer email is empty for Order {OrderCode}, notification will not be sent", createdOrder.Code);
+        }
 
         return Result.Success(new CreateOrderResponseDto
         {

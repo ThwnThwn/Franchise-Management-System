@@ -1,9 +1,14 @@
 ﻿using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
+using IdentityService.Application.Dtos.Auth.Request;
+using IdentityService.Application.Features.Auth.Commands.ConfirmNewPassword;
 using IdentityService.Application.Features.Auth.Commands.ConfirmOtp;
+using IdentityService.Application.Features.Auth.Commands.ForgetPassword;
 using IdentityService.Application.Features.Auth.Commands.Login;
 using IdentityService.Application.Features.Auth.Commands.Logout;
+using IdentityService.Application.Features.Auth.Commands.NewPassword;
 using IdentityService.Application.Features.Auth.Commands.Register;
+using IdentityService.Application.Features.Auth.Commands.ReSendOtp;
 using IdentityService.Application.Features.Auth.Commands.TokenRefresh;
 using IdentityService.Grpc.Protos.Auth;
 using IdentityService.Grpc.Protos.User;
@@ -78,6 +83,20 @@ public class AuthGrpcService : AuthGrpc.AuthGrpcBase
         }
     }
 
+    public override async Task<ConfirmOtpResponse> ConfirmRegisterOtp(ConfirmOtpRequest request, ServerCallContext context)
+    {
+        await _mediator.Send(new ConfirmOtpCommand(new()
+        {
+            Email = request.Email,
+            Otp = request.Otp
+        }));
+
+        return new ConfirmOtpResponse
+        {
+            Success = true,
+            Message = "Confirm OTP successfully"
+        };
+    }
     public override async Task<RefreshTokenResponse> RefreshToken(RefreshTokenRequest request, ServerCallContext context)
     {
         try
@@ -113,23 +132,73 @@ public class AuthGrpcService : AuthGrpc.AuthGrpcBase
         }
     }
 
-    public override async Task<ConfirmOtpResponse> ConfirmOtp(
-            ConfirmOtpRequest request,
-            ServerCallContext context)
+    public override async Task<RegisterResponse> ForgetPassword(ForgetPasswordRequest request, ServerCallContext context)
     {
-        await _mediator.Send(new ConfirmOtpCommand(new()
+        await _mediator.Send(new ForgetPasswordCommand(new()
+        {
+            Email = request.Email
+        }));
+
+        return new RegisterResponse
+        {
+            Message = "OTP has been sent to your email"
+        };
+    }
+
+    public override async Task<ConfirmOtpForgetPasswordOtpResponse> ConfirmForgetPasswordOtp(ConfirmOtpRequest request,ServerCallContext context)
+    {
+        var rep = await _mediator.Send(new ConfirmNewPasswordCommand(new()
         {
             Email = request.Email,
             Otp = request.Otp
         }));
 
-        return new ConfirmOtpResponse
+        return new ConfirmOtpForgetPasswordOtpResponse
         {
-            Success = true,
-            Message = "Confirm OTP successfully"
+            AccessForgetPasswordToken = rep.AccessForgetPasswordToken
         };
     }
 
+    public override async Task<ConfirmOtpResponse> NewPassword(NewPasswordRequest request,ServerCallContext context)
+    {
+        var userEmailEntry = context.RequestHeaders.FirstOrDefault(h =>
+            h.Key.Equals("x-email", StringComparison.OrdinalIgnoreCase));
+
+        if (userEmailEntry == null)
+        {
+            throw new RpcException(new Status(StatusCode.Unauthenticated, "Missing x-email in request headers"));
+        }
+
+        await _mediator.Send(new NewPasswordCommand(
+            Email: userEmailEntry.Value,
+            Request: new()
+            {
+                NewPassword = request.NewPassword
+            }
+        ));
+
+        return new ConfirmOtpResponse
+        {
+            Success = true,
+            Message = "Password updated successfully"
+        };
+    }
+
+    public override async Task<ReSendOtpResponse> ReSendOtp(ReSendOtpRequest request, ServerCallContext context)
+    {
+        var command = new ReSendOtpCommand(
+            new ReSendOtpReq
+            {
+                Email = request.Email,
+                Purpose = request.Type
+            }
+        );
+        await _mediator.Send(command);
+        return new ReSendOtpResponse
+        {
+            Message = "OTP has been resent successfully"
+        };
+    }
     private static UserResponse MapUser(Application.Dtos.User.Respone.UserRep user)
     {
         return new UserResponse

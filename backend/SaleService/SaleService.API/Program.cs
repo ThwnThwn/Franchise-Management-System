@@ -1,18 +1,28 @@
 using AutoMapper;
 using DotNetEnv;
 using Microsoft.EntityFrameworkCore;
-using SalesService.API.Services.Orders;
-using SalesService.API.Services.Products;
+using SaleService.Application.ExternalServices;
+using SaleService.Infrastructure.ExternalServices;
 using SalesService.API.Middleware;
-using SalesService.Infrastructure.Repositories.Orders;
-using SalesService.Infrastructure.Extensions;
-using SalesService.Application.Interfaces.Orders;
-using SalesService.Application.Interfaces.Products;
+using SalesService.API.Services.CartItems;
+using SalesService.API.Services.Identity;
+using SalesService.API.Services.Orders;
+using SalesService.API.Services.Payments;
+using SalesService.API.Services.Products;
+using SalesService.Application.ClientInterface.Products;
+
+//using SalesService.Infrastructure.Models;
+using SalesService.Application.Interfaces.CartItems;
+using SalesService.Application.Interfaces.Identity;
+using SalesService.Application.Interfaces.Payments;
 using SalesService.Application.Mapping.Orders;
+using SalesService.Application.Persisitences.Orders;
 using SalesService.Infrastructure.ApplicationDbContext;
+using SalesService.Infrastructure.Extensions;
 using SalesService.Infrastructure.Interceptor;
-using SalesService.Infrastructure.Models;
-using SalesService.Infrastructure.Interceptor;
+using SalesService.Infrastructure.Repositories.CartItems;
+using SalesService.Infrastructure.Repositories.Orders;
+using SalesService.Infrastructure.Repositories.Payments;
 
 namespace SalesService.API;
 
@@ -64,10 +74,10 @@ public class Program
 
         // Connect Db
         var connectionString = builder.Configuration["SALES_DB_CONNECTION"];
-        
+
         // EF Core interceptors used by SalesDbContext
         builder.Services.AddScoped<UpdateTimestampInterceptor>();
-        
+
         // DbContext + wire interceptor via DI
         builder.Services.AddDbContext<SalesDbContext>(
             (sp, opt) =>
@@ -75,9 +85,17 @@ public class Program
                 opt.UseNpgsql(connectionString);
                 opt.AddInterceptors(sp.GetRequiredService<UpdateTimestampInterceptor>());
             });
-        
+
         // Expose DbContext via abstraction used by repositories
         builder.Services.AddScoped<ISalesDbContext>(sp => sp.GetRequiredService<SalesDbContext>());
+
+        // KAFKA - Override for local development
+        var kafkaBootstrap = Environment.GetEnvironmentVariable("KAFKA_BOOTSTRAP_SERVERS") ?? "localhost:9092";
+        if (kafkaBootstrap.Contains("kafka:"))
+        {
+            kafkaBootstrap = "localhost:9092";  // Use localhost when running outside Docker
+        }
+        builder.Configuration["KAFKA_BOOTSTRAP_SERVERS"] = kafkaBootstrap;
 
         // Configure AutoMapper
         var applicationAssembly = typeof(OrderMappingProfile).Assembly;
@@ -96,9 +114,17 @@ public class Program
 
         // Register repositories
         builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+        builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+        builder.Services.AddScoped<ICartItemRepository, CartItemRepository>();
 
         // Register ProductService gRPC client
         builder.Services.AddSingleton<IProductServiceClient, ProductServiceClient>();
+
+        // Register IdentityService gRPC client
+        builder.Services.AddSingleton<IIdentityServiceClient, IdentityServiceClient>();
+
+        // Register Kafka Producer
+        builder.Services.AddSingleton<IKafkaProducer, KafkaProducer>();
 
         // Register GlobalExceptionHandlerMiddleware
         builder.Services.AddSingleton<GlobalExceptionHandlerMiddleware>();
@@ -139,6 +165,8 @@ public class Program
 
         app.MapControllers();
         app.MapGrpcService<OrderGrpcService>();
+        app.MapGrpcService<PaymentGrpcService>();
+        app.MapGrpcService<CartItemGrpcService>();
         app.MapGrpcReflectionService(); // Enable gRPC Server Reflection endpoint
         app.MapGet("/", () => "Sale Service API is running. Visit /swagger for API documentation.");
 

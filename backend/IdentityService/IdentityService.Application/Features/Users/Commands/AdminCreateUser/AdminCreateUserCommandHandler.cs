@@ -12,12 +12,14 @@ public class AdminCreateUserCommandHandler
     : IRequestHandler<AdminCreateUserCommand, UserRep>
 {
     private readonly IUserRepository _userRepository;
+    private readonly IRoleRepository _roleRepository;
     private readonly IMapper _mapper;
 
-    public AdminCreateUserCommandHandler(IUserRepository userRepository, IMapper mapper)
+    public AdminCreateUserCommandHandler(IUserRepository userRepository, IMapper mapper, IRoleRepository roleRepository)
     {
         _userRepository = userRepository;
         _mapper = mapper;
+        _roleRepository = roleRepository;
     }
 
     public async Task<UserRep> Handle(AdminCreateUserCommand command, CancellationToken cancellationToken)
@@ -29,8 +31,14 @@ public class AdminCreateUserCommandHandler
             throw new ConflictDuplicateException(Message.UserMessage.ExistingUser);
 
         var user = _mapper.Map<User>(request);
-        user.Password = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
+        var role = await _roleRepository.GetBySlugAsync(request.RoleSlug);
+        if (role == null)
+            throw new Exception("Slug" + request.RoleSlug + " not found");
+        var hashedPassword = BCrypt.Net.BCrypt.HashPassword("1");
+
+        user.Password = hashedPassword;
+        user.RoleId ??= role.Id;
         user.CreatedAt = DateTimeOffset.UtcNow;
         user.UpdatedAt = DateTimeOffset.UtcNow;
         user.IsBlocked ??= false;

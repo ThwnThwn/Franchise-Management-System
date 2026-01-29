@@ -1,13 +1,14 @@
-﻿using Application.Persistences.Caches;
+using System.Security.Cryptography;
+using System.Text.Json;
 using IdentityService.Application.AppExceptions;
 using IdentityService.Application.Constants;
 using IdentityService.Application.Dtos.Auth.Response;
 using IdentityService.Application.ExternalServices;
+using IdentityService.Application.Persistences.Caches;
 using IdentityService.Application.Persistences.Repositories;
 using IdentityService.Domain.Entities;
 using MediatR;
-using System.Security.Cryptography;
-using System.Text.Json;
+using SharedKernel.Events;
 
 namespace IdentityService.Application.Features.Auth.Commands.Register;
 
@@ -17,26 +18,28 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, RegisterR
     private readonly IRoleRepository _roleRepository;
     private readonly IOtpStore _otpStore;
     private readonly IEmailService _emailService;
+    private readonly IKafkaProducer _kafkaProducer;
 
-    public RegisterCommandHandler(IUserRepository userRepository, IRoleRepository roleRepository, IOtpStore otpStore, IEmailService emailService)
+    public RegisterCommandHandler(IUserRepository userRepository, IRoleRepository roleRepository, IOtpStore otpStore, IEmailService emailService, IKafkaProducer kafkaProducer)
     {
         _userRepository = userRepository;
         _roleRepository = roleRepository;
         _otpStore = otpStore;
         _emailService = emailService;
+        _kafkaProducer = kafkaProducer;
     }
 
     public async Task<RegisterRep> Handle(RegisterCommand command, CancellationToken cancellationToken)
     {
         var request = command.Request;
-
+        var register = "register";
         // RATE LIMITING: Check if OTP was sent recently (within 5 minutes)
-        var lastOtpTime = await _otpStore.GetLastOtpRequestTimeAsync(request.Email);
+        var lastOtpTime = await _otpStore.GetLastOtpRequestTimeAsync(request.Email, register);
         if (lastOtpTime.HasValue)
         {
             var timeSinceLastRequest = DateTimeOffset.UtcNow - lastOtpTime.Value;
             var waitTime = TimeSpan.FromMinutes(5) - timeSinceLastRequest;
-            
+
             if (waitTime > TimeSpan.Zero)
             {
                 throw new BusinessException(
@@ -53,7 +56,6 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, RegisterR
         existingUser = await _userRepository.GetByUsernameAsync(request.Username);
         if (existingUser != null)
             throw new ConflictDuplicateException($"Username '{request.Username}' already exists");
-
 
         var hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
@@ -84,15 +86,21 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, RegisterR
 
         await _otpStore.SaveRegistrationDataAsync(request.Email, registrationDataJson);
 
-        await _otpStore.SaveOTPAsyns(request.Email, otp);
+        await _otpStore.SaveOTPAsyns(request.Email, otp, register);
 
         // Save the time when OTP was sent for rate limiting
-        await _otpStore.SaveLastOtpRequestTimeAsync(request.Email, DateTimeOffset.UtcNow);
+        await _otpStore.SaveLastOtpRequestTimeAsync(request.Email, DateTimeOffset.UtcNow, register);
 
         // Reset attempt count when new OTP is sent
-        await _otpStore.ResetOtpAttemptAsync(request.Email);
+        await _otpStore.ResetOtpAttemptAsync(request.Email, register);
 
-        await _emailService.SendOtpEmailAsync(request.Email, otp);
+        // Publish OTP event to Kafka instead of sending email directly
+        await _kafkaProducer.PublishAsync("otp-notifications", new OtpRequestedEvent
+        {
+            Email = request.Email,
+            OtpCode = otp,
+            RequestedAt = DateTimeOffset.UtcNow
+        });
 
         return new RegisterRep();
     }

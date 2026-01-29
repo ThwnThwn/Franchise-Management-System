@@ -5,6 +5,7 @@ using IdentityService.Application.Constants;
 using IdentityService.Application.Dtos.User.Respone;
 using IdentityService.Application.Helpers;
 using IdentityService.Application.Persistences.Repositories;
+using IdentityService.Domain.Entities;
 using MediatR;
 using System;
 using System.Security.Principal;
@@ -28,18 +29,6 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, UserR
 
     public async Task<UserRep?> Handle(UpdateUserCommand command, CancellationToken cancellationToken)
     {
-        var currentUserId = _currentUser.UserId;
-        if (currentUserId == null)
-            throw new UnauthorizedAccessException("Unauthenticated");
-        var currentUser = await _userRepository.GetByIdAsync(currentUserId.Value);
-        if (currentUser == null)
-            throw new UnauthorizedAccessException("Unauthenticated");
-        var roleAdmin = await _roleRepository.GetByNameAsync("Admin");
-
-        //Only allow update own profile
-        if (currentUserId.Value != command.Id && currentUser.Role != roleAdmin)
-            throw new ForbidenException("You can only update your own profile");
-
         var request = command.Request;
 
         //Fix duplicate email check (allow same email for same user)
@@ -51,12 +40,15 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, UserR
         if (existingUser != null)
             throw new ConflictDuplicateException(Message.UserMessage.ExistingUser);
 
-        var user = await _userRepository.GetByIdAsync(command.Id);
-        if (user == null)
-            return null;
+        if (!string.IsNullOrEmpty(request.RoleSlug))
+        {
+            _ = await _roleRepository.GetBySlugAsync(request.RoleSlug)
+                ?? throw new Exception("Slug" + request.RoleSlug + " not found");
+        }
 
+        var user = await _userRepository.GetByIdAsync(command.Id)
+            ?? throw new KeyNotFoundException(Message.UserMessage.NotFound);
         _mapper.Map(request, user);
-        user.UpdatedAt = DateTimeOffset.UtcNow;
 
         await _userRepository.UpdateAsync(user);
 

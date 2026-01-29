@@ -12,7 +12,6 @@ namespace IdentityService.Application.Dtos.User.Request
         [MaxLength(100)]
         public string? Username { get; set; }
 
-        [EmailAddress]
         [MaxLength(100)]
         public string? Email { get; set; }
 
@@ -37,6 +36,7 @@ namespace IdentityService.Application.Dtos.User.Request
 
         public bool? IsBlocked { get; set; }
 
-        public Guid? RoleId { get; set; }
+        [Required]
+        public string RoleSlug { get; set; } = null!;
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
+using IdentityService.Application.Dtos.User.Request;
 using IdentityService.Application.Dtos.User.Respone;
 using IdentityService.Application.Features.Users.Commands.AdminCreateUser;
 using IdentityService.Application.Features.Users.Commands.ChangePassword;
@@ -7,13 +8,18 @@ using IdentityService.Application.Features.Users.Commands.CustomerCreateUser;
 using IdentityService.Application.Features.Users.Commands.DeleteUser;
 using IdentityService.Application.Features.Users.Commands.UpdateUser;
 using IdentityService.Application.Features.Users.Queries.GetAllUser;
+using IdentityService.Application.Features.Users.Queries.GetManager;
 using IdentityService.Application.Features.Users.Queries.GetUserById;
 using IdentityService.Grpc.Protos.User;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore.Storage.Json;
+using Org.BouncyCastle.Ocsp;
+using Sprache;
+using System.Globalization;
 
 namespace IdentityService.API.Services;
+
 public class UserGrpcService : UserGrpc.UserGrpcBase
 {
     private readonly IMediator _mediator;
@@ -25,17 +31,22 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
 
     public override async Task<UserResponse> CustomerCreate(CustomerCreateUserRequest request, ServerCallContext context)
     {
+        var dob = DateTime.ParseExact(
+                request.DateOfBirth,
+                "yyyy-MM-dd",
+                CultureInfo.InvariantCulture
+            );
         var rep = await _mediator.Send(new CustomerCreateUserCommand(new()
         {
             Email = request.Email,
-            Password = request.Password,
             Username = string.IsNullOrWhiteSpace(request.Username) ? null : request.Username,
             FirstName = request.FirstName,
             LastName = string.IsNullOrWhiteSpace(request.LastName) ? null : request.LastName,
             Gender = request.Gender,
-            DateOfBirth = request.DateOfBirth.ToDateTime(),
+            DateOfBirth = dob,
             Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone,
-            Address = string.IsNullOrWhiteSpace(request.Address) ? null : request.Address
+            Address = string.IsNullOrWhiteSpace(request.Address) ? null : request.Address,
+            RoleSlug = request.RoleSlug
         }));
 
         return MapUser(rep);
@@ -43,18 +54,22 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
 
     public override async Task<UserResponse> AdminCreate(AdminCreateUserRequest request, ServerCallContext context)
     {
+        var dob = DateTime.ParseExact(
+                request.DateOfBirth,
+                "yyyy-MM-dd",
+                CultureInfo.InvariantCulture
+            );
         var rep = await _mediator.Send(new AdminCreateUserCommand(new()
         {
             Email = request.Email,
-            Password = request.Password,
             Username = string.IsNullOrWhiteSpace(request.Username) ? null : request.Username,
             FirstName = request.FirstName,
             LastName = string.IsNullOrWhiteSpace(request.LastName) ? null : request.LastName,
             Gender = request.Gender,
-            DateOfBirth = request.DateOfBirth.ToDateTime(),
+            DateOfBirth = dob,
             Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone,
             Address = string.IsNullOrWhiteSpace(request.Address) ? null : request.Address,
-            RoleId = string.IsNullOrWhiteSpace(request.RoleId) ? null : Guid.Parse(request.RoleId)
+            RoleSlug = request.RoleSlug
         }));
 
         return MapUser(rep);
@@ -70,19 +85,49 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
         return MapUser(rep);
     }
 
-    public override async Task<UserListResponse> GetAll(Empty request, ServerCallContext context)
+    public override async Task<UserListResponse> GetAll(GetAllUserOrWithRoleRequest request, ServerCallContext context)
     {
-        var users = await _mediator.Send(new GetAllUsersQuery());
+        var users = await _mediator.Send(new GetAllUsersQuery(request.RoleSlug));
 
         var res = new UserListResponse();
         res.Users.AddRange(users.Select(MapUser));
         return res;
     }
 
+    public override async Task<UserResponse> GetManager(GetManagerRequest request,ServerCallContext context)
+    {
+        var manager = await _mediator.Send(
+            new GetManagerQuery(
+                new GetManagerReq
+                {
+                    StoreId = Guid.Parse(request.Id)
+                }
+            )
+        );
+        if (manager == null)
+            throw new RpcException(new Status(StatusCode.NotFound, "Manager not found"));
+
+        return MapUser(manager);
+    }
+
     public override async Task<UserResponse> Update(UpdateUserRequest request, ServerCallContext context)
     {
+        string[] formats = {
+            "yyyy-MM-dd",
+            "yyyy-MM-dd'T'HH:mm:ss.fff'Z'",
+            "yyyy-MM-dd'T'HH:mm:ss'Z'"
+        };
+
+        var dob = DateTime.ParseExact(
+            request.DateOfBirth,
+            formats,
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.RoundtripKind
+        );
+
+        _ = Guid.TryParse(request.Id, out var customerId);
         var rep = await _mediator.Send(new UpdateUserCommand(
-            Id: Guid.Parse(request.Id),
+            Id: customerId,
             Request: new()
             {
                 Username = string.IsNullOrWhiteSpace(request.Username) ? null : request.Username,
@@ -90,11 +135,11 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
                 FirstName = request.FirstName,
                 LastName = string.IsNullOrWhiteSpace(request.LastName) ? null : request.LastName,
                 Gender = request.Gender,
-                DateOfBirth = request.DateOfBirth.ToDateTime(),
+                DateOfBirth = dob,
                 Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone,
                 Address = string.IsNullOrWhiteSpace(request.Address) ? null : request.Address,
                 IsBlocked = request.IsBlocked,
-                RoleId = string.IsNullOrWhiteSpace(request.RoleId) ? null : Guid.Parse(request.RoleId)
+                RoleSlug = request.RoleSlug
             }
         ));
 
@@ -121,7 +166,6 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
         return MapUser(rep);
     }
 
-
     public override async Task<DeleteUserResponse> Delete(DeleteUserRequest request, ServerCallContext context)
     {
         var ok = await _mediator.Send(new DeleteUserCommand(Guid.Parse(request.Id)));
@@ -139,6 +183,12 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
             Phone = user.Phone ?? "",
             Address = user.Address ?? "",
             IsBlocked = user.IsBlocked ?? false,
+            Gender = user.Gender,
+            FirstName = user.FirstName ?? "",
+            LastName = user.LastName ?? "",
+            DateOfBirth = user.DateOfBirth.HasValue
+                ? Timestamp.FromDateTime(DateTime.SpecifyKind(user.DateOfBirth.Value, DateTimeKind.Utc))
+                : null,
             CreatedAt = Timestamp.FromDateTime(user.CreatedAt.UtcDateTime),
             UpdatedAt = Timestamp.FromDateTime(user.UpdatedAt.UtcDateTime),
             Role = user.Role == null

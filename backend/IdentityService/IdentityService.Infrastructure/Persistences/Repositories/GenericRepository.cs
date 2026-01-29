@@ -107,7 +107,7 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
             var entityFromDb = await GetByIdAsync(entity.Id);
             if (entityFromDb == null)
             {
-                throw new DirectoryNotFoundException($"{typeof(T).Name} is not found");
+                throw new KeyNotFoundException($"{typeof(T).Name} is not found");
             }
             _dbContext.Entry(entityFromDb).CurrentValues.SetValues(entity);
             return await _dbContext.SaveChangesAsync();

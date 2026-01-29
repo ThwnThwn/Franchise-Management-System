@@ -4,19 +4,31 @@ import (
 	"api-gateway/global"
 	"api-gateway/internal/application/abstractions"
 	"api-gateway/internal/application/constants/errorcode"
+	"api-gateway/internal/domain/constants/jwttype"
 	"api-gateway/internal/domain/models/auth"
+	"api-gateway/internal/domain/models/user"
+	"api-gateway/pkg/utils/jwtutils"
 	"api-gateway/pkg/utils/validation"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+	"google.golang.org/grpc/metadata"
 )
 
 type AuthHandler struct {
 	authUC abstractions.IAuthUseCase
+	userUC abstractions.IUserUseCase
 }
 
-func NewAuthHandler(authUC abstractions.IAuthUseCase) *AuthHandler {
-	return &AuthHandler{authUC: authUC}
+func NewAuthHandler(
+	authUC abstractions.IAuthUseCase,
+	userUC abstractions.IUserUseCase,
+) *AuthHandler {
+	return &AuthHandler{
+		authUC: authUC,
+		userUC: userUC,
+	}
 }
 
 func (h *AuthHandler) Login(c *gin.Context) {
@@ -45,7 +57,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 func (h *AuthHandler) Logout(c *gin.Context) {
 	accessToken, exists := c.Get("accessToken")
 	if !exists {
-		c.Error(errorcode.ErrInvalidToken)
+		c.Error(errorcode.ErrInvalidAccessToken)
 		return
 	}
 	refreshToken, err := c.Cookie("refresh_token")
@@ -94,6 +106,7 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	})
 }
 
+// Register
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req auth.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -125,7 +138,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	})
 }
 
-func (h *AuthHandler) ConfirmOtp(c *gin.Context) {
+func (h *AuthHandler) ConfirmRegisterOtp(c *gin.Context) {
 	var req auth.ConfirmOtpRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.Error(validation.TranslateValidationError(err))
@@ -133,7 +146,7 @@ func (h *AuthHandler) ConfirmOtp(c *gin.Context) {
 	}
 
 	ctx := c.Request.Context()
-	success, msg, err := h.authUC.ConfirmOtp(ctx, &auth.ConfirmOtpRequest{
+	success, msg, err := h.authUC.ConfirmRegisterOtp(ctx, &auth.ConfirmOtpRequest{
 		Email: req.Email,
 		Otp:   req.Otp,
 	})
@@ -147,4 +160,147 @@ func (h *AuthHandler) ConfirmOtp(c *gin.Context) {
 		"success": success,
 		"message": msg,
 	})
+}
+
+func (h *AuthHandler) ReSendRegisterOtp(c *gin.Context) {
+	var req auth.SendOtpRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.Error(validation.TranslateValidationError(err))
+		return
+	}
+
+	ctx := c.Request.Context()
+	msg, err := h.authUC.ReSendOtp(ctx, req.Email, jwttype.Register)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": msg,
+	})
+}
+
+// Forgot password
+func (h *AuthHandler) ForgotPassword(c *gin.Context) {
+	var req auth.SendOtpRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.Error(validation.TranslateValidationError(err))
+		return
+	}
+
+	ctx := c.Request.Context()
+	msg, err := h.authUC.ForgotPassword(ctx, req.Email)
+
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": msg,
+	})
+}
+
+func (h *AuthHandler) ConfirmForgotPasswordOtp(c *gin.Context) {
+	var req auth.ConfirmOtpRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.Error(validation.TranslateValidationError(err))
+		return
+	}
+
+	ctx := c.Request.Context()
+	token, err := h.authUC.ConfirmForgotPasswordOtp(ctx, &auth.ConfirmOtpRequest{
+		Email: req.Email,
+		Otp:   req.Otp,
+	})
+
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.SetCookie("forgot_password_token", token,
+		60*global.Config.JwtAccessTokenExpirationMinutes, "/", "", false, true)
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Xác thực OTP thành công",
+	})
+}
+
+func (h *AuthHandler) NewPassword(c *gin.Context) {
+	var req auth.NewPasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.Error(validation.TranslateValidationError(err))
+		return
+	}
+
+	token, err := c.Cookie("forgot_password_token")
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	claims, err := jwtutils.ValidateToken([]byte(global.Config.JwtSecret), token, jwttype.ForgotPassword)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	md := metadata.Pairs(
+		"x-email", claims.Subject,
+	)
+	ctx := metadata.NewOutgoingContext(c.Request.Context(), md)
+	success, msg, err := h.authUC.NewPassword(ctx, req.NewPassword)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": success,
+		"message": msg,
+	})
+}
+
+func (h *AuthHandler) ReSendForgotPasswordOtp(c *gin.Context) {
+	var req auth.SendOtpRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.Error(validation.TranslateValidationError(err))
+		return
+	}
+
+	ctx := c.Request.Context()
+	msg, err := h.authUC.ReSendOtp(ctx, req.Email, jwttype.ForgotPassword)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": msg,
+	})
+}
+
+// Change password
+func (h *AuthHandler) ChangePassword(c *gin.Context) {
+	var req user.ChangePasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.Error(validation.TranslateValidationError(err))
+		return
+	}
+
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.Error(errorcode.ErrMissingTokenInfo)
+		return
+	}
+	ctx := c.Request.Context()
+	res, err := h.userUC.ChangePassword(ctx, userID.(uuid.UUID), &req)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, res)
 }

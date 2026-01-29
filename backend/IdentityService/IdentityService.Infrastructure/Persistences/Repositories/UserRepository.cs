@@ -84,5 +84,34 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
                .FirstOrDefaultAsync(u => u.Id == id && !u.IsDeleted);
             return user;
         }
+
+        public async Task<User?> GetManagerByStoreIdAsync(Guid? storeId)
+        {
+            return await _dbContext.Users
+                .Include(u => u.Role)
+                .Where(u =>
+                    u.HomeStoreId == storeId &&
+                    u.Role.Slug == "manager" &&
+                    !u.IsDeleted
+                )
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<IEnumerable<User>> GetUsersByRoleSlugAsync(string? roleSlug)
+        {
+            var query = _dbContext.Users
+                .Include(u => u.Role)
+                .Where(u => !u.IsDeleted)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(roleSlug))
+            {
+                query = query.Where(u => u.Role.Slug == roleSlug);
+            }
+
+            return await query
+                .OrderByDescending(u => u.CreatedAt)
+                .ToListAsync();
+        }
     }
 }

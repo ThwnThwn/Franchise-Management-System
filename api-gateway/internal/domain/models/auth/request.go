@@ -9,8 +9,8 @@ type RegisterRequest struct {
 	Email           string `json:"email" binding:"required"`
 	Username        string `json:"username" binding:"required"`
 	FirstName       string `json:"firstName" binding:"required"`
-	LastName        string `json:"lastName" binding:"required"`
-	Password        string `json:"password" binding:"required,min=8,max=30"`
+	LastName        string `json:"lastName"`
+	Password        string `json:"password" binding:"required,min=6,max=30"`
 	ConfirmPassword string `json:"confirmPassword" binding:"required,eqfield=Password"`
 	Phone           string `json:"phone" binding:"required"`
 	Address         string `json:"address" binding:"required"`
@@ -30,4 +30,13 @@ type RefreshTokenRequest struct {
 type LogoutRequest struct {
 	AccessToken  string `json:"accessToken" binding:"required"`
 	RefreshToken string `json:"refreshToken" binding:"required"`
+}
+
+type SendOtpRequest struct {
+	Email string `json:"email" binding:"required"`
+}
+
+type NewPasswordRequest struct {
+	NewPassword     string `json:"newPassword" binding:"required"`
+	ConfirmPassword string `json:"confirmPassword" binding:"required,eqfield=NewPassword"`
 }

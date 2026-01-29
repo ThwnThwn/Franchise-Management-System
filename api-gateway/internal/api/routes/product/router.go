@@ -15,7 +15,7 @@ func (a *ProductRouter) NewProductRouter(cfg *config.Config,
 ) {
 	productApi := r.Group("/products")
 	{
-		productApi.GET("/", productHandler.GetProducts)
+		productApi.GET("", productHandler.GetProducts)
 		productApi.GET("/:id", productHandler.GetProductById)
 	}
 

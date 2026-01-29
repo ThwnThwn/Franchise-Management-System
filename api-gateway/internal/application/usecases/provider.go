@@ -3,6 +3,10 @@ package usecases
 import "github.com/google/wire"
 
 var UseCaseSets = wire.NewSet(
+	// Franchise
+	NewStoreUseCase,
+	NewShiftUseCasee,
+
 	// Identity
 	NewAuthUseCase,
 	NewUserUseCase,
@@ -13,4 +17,8 @@ var UseCaseSets = wire.NewSet(
 
 	// Sales
 	NewOrderUseCase,
+	NewCartUseCase,
+
+	// Inventory
+	NewInventoryUseCase,
 )

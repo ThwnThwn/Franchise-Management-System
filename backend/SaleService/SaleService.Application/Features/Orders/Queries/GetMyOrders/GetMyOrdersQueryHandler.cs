@@ -1,5 +1,5 @@
 ﻿using MediatR;
-using SalesService.Application.Interfaces.Orders;
+using SalesService.Application.Persisitences.Orders;
 
 namespace SalesService.Application.Features.Orders.Queries.GetMyOrders
 {

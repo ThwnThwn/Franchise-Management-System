@@ -5,10 +5,9 @@ using Microsoft.EntityFrameworkCore;
 using SalesService.Domain.Commons;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
-using SalesService.Infrastructure.ApplicationDbContext;
 using SalesService.Infrastructure.Interceptor;
 
-namespace SalesService.Infrastructure.Models;
+namespace SalesService.Infrastructure.ApplicationDbContext;
 
 public partial class SalesDbContext : DbContext, ISalesDbContext
 {
@@ -28,6 +27,11 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
 
     public virtual DbSet<OrderItem> OrderItems { get; set; }
 
+    public virtual DbSet<Payment> Payments { get; set; }
+
+    public virtual DbSet<PaymentEvent> PaymentEvents { get; set; }
+
+    public virtual DbSet<CartItem> CartItems { get; set; }
     public DbSet<T> Set<T>() where T : class, IEntity => base.Set<T>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -38,6 +42,47 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasPostgresExtension("uuid-ossp");
+
+        modelBuilder.Entity<CartItem>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("cart_items_pkey");
+
+            entity.ToTable("cart_items");
+
+            entity.HasIndex(e => new { e.CustomerId, e.Sku }, "idx_cart_items_customer_sku")
+                .IsUnique()
+                .HasFilter("(customer_id IS NOT NULL)");
+            
+            entity.HasIndex(e => new { e.CustomerId, e.CreatedAt }, "idx_cart_items_customer_created")
+                .IsDescending(false, true)
+                .HasFilter("(customer_id IS NOT NULL)");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasColumnName("id");
+
+            entity.Property(e => e.BasePrice)
+                .HasPrecision(12, 3)
+                .HasColumnName("base_price");
+
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_at");
+
+            entity.Property(e => e.CustomerId)
+                .HasColumnName("customer_id");
+
+            entity.Property(e => e.Quantity)
+                .HasColumnName("quantity");
+
+            entity.Property(e => e.Sku)
+                .HasMaxLength(100)
+                .HasColumnName("sku");
+
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("updated_at");
+        });
 
         modelBuilder.Entity<Order>(entity =>
         {
@@ -61,6 +106,7 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("created_at");
             entity.Property(e => e.CustomerId).HasColumnName("customer_id");
+            entity.Property(e => e.StoreId).HasColumnName("store_id");
             entity.Property(e => e.IsDeleted)
                 .HasDefaultValue(false)
                 .HasColumnName("is_deleted");
@@ -68,7 +114,7 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
                 .HasMaxLength(255)
                 .HasColumnName("notes");
             entity.Property(e => e.PaidAmount)
-                .HasPrecision(12, 2)
+                .HasPrecision(12, 3)
                 .HasColumnName("paid_amount");
             entity.Property(e => e.PaidAt).HasColumnName("paid_at");
             entity.Property(e => e.PaymentMethod).HasColumnName("payment_method");
@@ -76,13 +122,13 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
                 .HasDefaultValue(OrderStatus.Pending)
                 .HasColumnName("status");
             entity.Property(e => e.Subtotal)
-                .HasPrecision(12, 2)
+                .HasPrecision(12, 3)
                 .HasColumnName("subtotal");
             entity.Property(e => e.Tax)
-                .HasPrecision(12, 2)
+                .HasPrecision(12, 3)
                 .HasColumnName("tax");
             entity.Property(e => e.TotalAmount)
-                .HasPrecision(12, 2)
+                .HasPrecision(12, 3)
                 .HasColumnName("total_amount");
             entity.Property(e => e.UpdatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
@@ -119,7 +165,7 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
                 .HasMaxLength(100)
                 .HasColumnName("sku");
             entity.Property(e => e.UnitPrice)
-                .HasPrecision(12, 2)
+                .HasPrecision(12, 3)
                 .HasColumnName("unit_price");
             entity.Property(e => e.UpdatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
@@ -130,6 +176,90 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
                 .HasForeignKey(d => d.OrderId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_order_items_order");
+        });
+
+        modelBuilder.Entity<Payment>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("payments_pkey");
+
+            entity.ToTable("payments");
+
+            entity.HasIndex(e => e.Code, "idx_payments_code").IsUnique();
+
+            entity.HasIndex(e => e.OrderId, "idx_payments_order_id");
+
+            entity.HasIndex(e => e.Status, "idx_payments_status");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasColumnName("id");
+            entity.Property(e => e.Amount)
+                .HasPrecision(12, 3)
+                .HasColumnName("amount");
+            entity.Property(e => e.Code)
+                .HasMaxLength(50)
+                .HasColumnName("code");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_at");
+            entity.Property(e => e.Currency)
+                .HasMaxLength(10)
+                .HasDefaultValueSql("'VND'::character varying")
+                .HasColumnName("currency");
+            entity.Property(e => e.IsDeleted)
+                .HasDefaultValue(false)
+                .HasColumnName("is_deleted");
+            entity.Property(e => e.Method).HasColumnName("method");
+            entity.Property(e => e.OrderId).HasColumnName("order_id");
+            entity.Property(e => e.PaidAt).HasColumnName("paid_at");
+            entity.Property(e => e.Provider)
+                .HasMaxLength(50)
+                .HasColumnName("provider");
+            entity.Property(e => e.ProviderPayload)
+                .HasColumnType("jsonb")
+                .HasColumnName("provider_payload");
+            entity.Property(e => e.ProviderTxnId)
+                .HasMaxLength(100)
+                .HasColumnName("provider_txn_id");
+            entity.Property(e => e.Status)
+                .HasDefaultValue(0)
+                .HasColumnName("status");
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("updated_at");
+
+            entity.HasOne(d => d.Order).WithMany(p => p.Payments)
+                .HasForeignKey(d => d.OrderId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_payments_order");
+        });
+
+        modelBuilder.Entity<PaymentEvent>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("payment_events_pkey");
+
+            entity.ToTable("payment_events");
+
+            entity.HasIndex(e => e.PaymentId, "idx_payment_events_payment_id");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasColumnName("id");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_at");
+            entity.Property(e => e.EventType)
+                .HasMaxLength(50)
+                .HasColumnName("event_type");
+            entity.Property(e => e.Payload)
+                .HasColumnType("jsonb")
+                .HasColumnName("payload");
+            entity.Property(e => e.PaymentId).HasColumnName("payment_id");
+
+            entity.HasOne(d => d.Payment).WithMany(p => p.PaymentEvents)
+                .HasForeignKey(d => d.PaymentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_payment_events_payment");
         });
 
         foreach (var entity in modelBuilder.Model.GetEntityTypes())
@@ -144,7 +274,6 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
 
         OnModelCreatingPartial(modelBuilder);
     }
-
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 
     private static LambdaExpression GenerateIsDeletedExpression(Type type)
