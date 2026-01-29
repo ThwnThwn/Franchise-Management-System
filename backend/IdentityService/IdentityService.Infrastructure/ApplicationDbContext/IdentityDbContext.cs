@@ -107,6 +107,8 @@ public partial class IdentityDbContext : DbContext, IIdentityDbContext
 
             entity.ToTable("users");
 
+            entity.HasIndex(e => e.HomeStoreId, "idx_users_home_store").HasFilter("(is_deleted = false)");
+
             entity.HasIndex(e => e.Email, "users_email_key").IsUnique();
 
             entity.Property(e => e.Id)
@@ -128,6 +130,7 @@ public partial class IdentityDbContext : DbContext, IIdentityDbContext
             entity.Property(e => e.Gender)
                 .HasDefaultValue(0)
                 .HasColumnName("gender");
+            entity.Property(e => e.HomeStoreId).HasColumnName("home_store_id");
             entity.Property(e => e.IsBlocked)
                 .HasDefaultValue(false)
                 .HasColumnName("is_blocked");

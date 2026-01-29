@@ -1,9 +1,10 @@
 using AutoMapper;
 using DotNetEnv;
 using Microsoft.EntityFrameworkCore;
+using SalesService.API.Middleware;
+using SalesService.API.Services.Orders;
 using SalesService.API.Services.Products;
 using SalesService.API.Services.Payments;
-using SalesService.API.Services.Orders;
 using SalesService.API.Middleware;
 using SalesService.Application.Interfaces.Orders;
 using SalesService.Application.Interfaces.Products;
@@ -13,9 +14,10 @@ using SalesService.Application.Interfaces.Payments;
 using SalesService.Infrastructure.Repositories.Orders;
 using SalesService.Infrastructure.Repositories.Payments;
 using SalesService.Infrastructure.ApplicationDbContext;
+using SalesService.Infrastructure.Extensions;
 using SalesService.Infrastructure.Interceptor;
 using SalesService.Infrastructure.Models;
-using SalesService.Infrastructure.Interceptor;
+using SalesService.Infrastructure.Repositories.Orders;
 
 namespace SalesService.API;
 
