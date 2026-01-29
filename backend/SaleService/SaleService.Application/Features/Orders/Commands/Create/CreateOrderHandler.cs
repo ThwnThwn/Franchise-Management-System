@@ -8,6 +8,7 @@ using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
 using SharedKernel.Events;
 using SaleService.Application.ExternalServices;
+using SalesService.Application.Dtos.Inventory;
 
 namespace SalesService.Application.Features.Orders.Commands.Create;
 
@@ -24,12 +25,14 @@ public sealed class CreateOrderHandler
         IOrderRepository orderRepository,
         IProductServiceClient productServiceClient,
         IKafkaProducer kafkaProducer,
-        IIdentityServiceClient identityServiceClient)
+        IIdentityServiceClient identityServiceClient,
+        IInventoryServiceClient inventoryServiceClient)
     {
         _orderRepository = orderRepository;
         _productServiceClient = productServiceClient;
         _kafkaProducer = kafkaProducer;
         _identityServiceClient = identityServiceClient;
+        _inventoryServiceClient = inventoryServiceClient;
     }
 
     public async Task<Result<CreateOrderResponseDto>> Handle(
@@ -54,6 +57,44 @@ public sealed class CreateOrderHandler
         if (!request.Request.StoreId.HasValue || request.Request.StoreId == Guid.Empty)
         {
             return Result.Error("StoreId is required. Please select a store before placing an order.");
+        }
+        
+        //kiểm tra xem còn đủ hàng trong kho không
+        var skus = request.Request.Items.Select(i => i.Sku).ToList();
+
+        var variantInfo = await _productServiceClient.GetListProductVariantsBySkusAsync(skus);
+
+        IEnumerable<AmountVariant> listItemCheck = variantInfo.Select(v => new AmountVariant
+        {
+            VariantId = v.VariantId,
+            Amount = request.Request.Items.First(i => i.Sku == v.Sku).Quantity
+        });
+
+        // IEnumerable<AmountVariant> listItemCheck = new List<AmountVariant>
+        //{
+        //    new AmountVariant
+        //    {
+        //        VariantId = Guid.Parse("F0000008-0000-0000-0000-0000000000F2"),
+        //        Amount = 2
+        //    }
+        //};
+
+        var checkStockReq = new CheckEnoughStockReq
+        {
+            StoreId = request.Request.StoreId.Value,
+            CheckItems = listItemCheck
+        };
+        var checkRespone = await _inventoryServiceClient.CheckEnoughStockAsync(checkStockReq);
+        if(!checkRespone.IsEnough)
+        {
+            var responeErrorObject = new CreateOrderResponseDto
+            {
+                OrderId = Guid.Empty,
+                OrderCode = "failed",
+                TotalAmount = 0,
+                CheckEnoughStockRes = checkRespone
+            };
+            return Result.Success(responeErrorObject);
         }
 
         var orderCode = $"ORD-{DateTime.UtcNow:yyyyMMdd-HHmmss}";
@@ -125,31 +166,32 @@ public sealed class CreateOrderHandler
         var createdOrder = await _orderRepository.CreateAsync(order, cancellationToken);
 
         // Fetch customer email from IdentityService
-        string? customerEmail = null;
-        if (createdOrder.CustomerId.HasValue)
-        {
-            var user = await _identityServiceClient.GetUserByIdAsync(createdOrder.CustomerId.Value);
-            customerEmail = user?.Email;
-        }
+        //string? customerEmail = null;
+        //if (createdOrder.CustomerId.HasValue)
+        //{
+        //    var user = await _identityServiceClient.GetUserByIdAsync(createdOrder.CustomerId.Value);
+        //    customerEmail = user?.Email;
+        //}
 
-        // Only publish event if we have customer email
-        if (!string.IsNullOrEmpty(customerEmail))
-        {
-            await _kafkaProducer.PublishAsync("order-notifications", new OrderCreatedEvent
-            {
-                OrderId = createdOrder.Id,
-                CustomerEmail = customerEmail,
-                OrderSummary = $"Order {createdOrder.Code} created with {createdOrder.OrderItems.Count} items",
-                TotalAmount = createdOrder.TotalAmount,
-                CreatedAt = DateTimeOffset.UtcNow
-            });
-        }
+        //// Only publish event if we have customer email
+        //if (!string.IsNullOrEmpty(customerEmail))
+        //{
+        //    await _kafkaProducer.PublishAsync("order-notifications", new OrderCreatedEvent
+        //    {
+        //        OrderId = createdOrder.Id,
+        //        CustomerEmail = customerEmail,
+        //        OrderSummary = $"Order {createdOrder.Code} created with {createdOrder.OrderItems.Count} items",
+        //        TotalAmount = createdOrder.TotalAmount,
+        //        CreatedAt = DateTimeOffset.UtcNow
+        //    });
+        //}
 
         return Result.Success(new CreateOrderResponseDto
         {
             OrderId = createdOrder.Id,
             OrderCode = createdOrder.Code,
-            TotalAmount = createdOrder.TotalAmount
+            TotalAmount = createdOrder.TotalAmount,
+            CheckEnoughStockRes = {IsEnough = true, ShortageItems = {}}
         });
     }
 }

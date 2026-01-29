@@ -10,7 +10,7 @@ namespace SalesService.Application.ClientInterface.Inventory
     public interface IInventoryServiceClient
     {
         Task DecreaseStockByOrder(DecreaseStockByOrderReq request);
-        Task<CheckEnoughStockRes> CheckEnoughStock(CheckEnoughStockReq request);
+        Task<CheckEnoughStockRes> CheckEnoughStockAsync(CheckEnoughStockReq request);
     }
 
     
