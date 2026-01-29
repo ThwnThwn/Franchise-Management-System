@@ -51,11 +51,19 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
 
     public override async Task<UserResponse> AdminCreate(AdminCreateUserRequest request, ServerCallContext context)
     {
+        string[] formats = {
+            "yyyy-MM-dd",
+            "yyyy-MM-dd'T'HH:mm:ss.fff'Z'",
+            "yyyy-MM-dd'T'HH:mm:ss'Z'"
+        };
+
         var dob = DateTime.ParseExact(
-                request.DateOfBirth,
-                "yyyy-MM-dd",
-                CultureInfo.InvariantCulture
-            );
+            request.DateOfBirth,
+            formats,
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.RoundtripKind
+        );
+
         var rep = await _mediator.Send(new AdminCreateUserCommand(new()
         {
             Email = request.Email,
@@ -99,12 +107,16 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
             "yyyy-MM-dd'T'HH:mm:ss'Z'"
         };
 
-        var dob = DateTime.ParseExact(
-            request.DateOfBirth,
-            formats,
-            CultureInfo.InvariantCulture,
-            DateTimeStyles.RoundtripKind
-        );
+        DateTime? dob = null;
+        if (!string.IsNullOrEmpty(request.DateOfBirth))
+        {
+            dob = DateTime.ParseExact(
+                request.DateOfBirth,
+                formats,
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.RoundtripKind
+            );
+        }
 
         _ = Guid.TryParse(request.Id, out var customerId);
         var rep = await _mediator.Send(new UpdateUserCommand(
