@@ -14,7 +14,7 @@ import { createPortal } from "react-dom"
 import { STRINGS } from "@/constants/strings"
 import { CHB, CHB_SHORT } from "@/constants/constants"
 
-type MenuKey = "home" | "vehicle-rental" | "about" | "contact" | undefined
+type MenuKey = "home" | "stores" | "menu" | "about" | "contact" | undefined
 type MenuItem = { key: Exclude<MenuKey, undefined>; label: string }
 
 export function Navbar() {
@@ -38,6 +38,10 @@ export function Navbar() {
                 case "":
                 case undefined:
                     return "home"
+                case "stores":
+                    return "stores"
+                case "menu":
+                    return "menu"
                 default:
                     return undefined
             }
@@ -51,7 +55,11 @@ export function Navbar() {
 
     const [activeMenuKey, setActiveMenuKey] = useState<MenuKey>(menuKey)
     const menus = useMemo(
-        () => [{ key: "home", label: STRINGS.NAVBAR.HOME }] satisfies MenuItem[],
+        () => [
+            { key: "home", label: STRINGS.NAVBAR.HOME },
+            { key: "menu", label: "Thực đơn" },
+            { key: "stores", label: "Cửa hàng" }
+        ] satisfies MenuItem[],
         []
     )
     useEffect(() => {
@@ -136,6 +144,7 @@ export function Navbar() {
 
     return (
         <NavbarStyled
+            id="main-navbar"
             data-visible={!isHiddenNavbar}
             classNames={{
                 base: [baseClasses],
@@ -204,11 +213,10 @@ export function Navbar() {
                             return (
                                 <button
                                     key={menu.key}
-                                    className={`text-lg block w-full py-2 text-center font-medium ${
-                                        isActive
-                                            ? "text-white font-semibold bg-primary"
-                                            : "text-black hover:text-white hover:bg-primary"
-                                    }`}
+                                    className={`text-lg block w-full py-2 text-center font-medium ${isActive
+                                        ? "text-white font-semibold bg-primary"
+                                        : "text-black hover:text-white hover:bg-primary"
+                                        }`}
                                 >
                                     <Link
                                         href={menu.key === "home" ? "/" : "/" + menu.key}

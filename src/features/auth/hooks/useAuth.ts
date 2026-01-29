@@ -100,3 +100,87 @@ export const useRegisterVerify = ({ onSuccess }: { onSuccess?: () => void }) => 
         }
     })
 }
+
+export const useForgotPassword = ({ onSuccess }: { onSuccess?: () => void }) => {
+    return useMutation({
+        mutationFn: authApi.forgetPassword,
+        onSuccess: () => {
+            onSuccess?.()
+            addToast({
+                title: STRINGS.NOTIFICATION.SUCCESS,
+                description: "Mã OTP đã được gửi đến email của bạn",
+                color: "success"
+            })
+        },
+        onError: (error: BackendError) => {
+            addToast({
+                title: error.title || STRINGS.NOTIFICATION.ERROR,
+                description: error.detail,
+                color: "danger"
+            })
+        }
+    })
+}
+
+export const useForgotPasswordVerify = ({ onSuccess }: { onSuccess?: () => void }) => {
+    return useMutation({
+        mutationFn: authApi.forgotPasswordVerify,
+        onSuccess: () => {
+            onSuccess?.()
+            addToast({
+                title: STRINGS.NOTIFICATION.SUCCESS,
+                description: "Xác thực OTP thành công",
+                color: "success"
+            })
+        },
+        onError: (error: BackendError) => {
+            addToast({
+                title: error.title || STRINGS.NOTIFICATION.ERROR,
+                description: error.detail,
+                color: "danger"
+            })
+        }
+    })
+}
+
+export const useResetPassword = ({ onSuccess }: { onSuccess?: () => void }) => {
+    return useMutation({
+        mutationFn: authApi.resetPassword,
+        onSuccess: () => {
+            onSuccess?.()
+            addToast({
+                title: STRINGS.NOTIFICATION.SUCCESS,
+                description: "Đặt lại mật khẩu thành công",
+                color: "success"
+            })
+        },
+        onError: (error: BackendError) => {
+            addToast({
+                title: error.title || STRINGS.NOTIFICATION.ERROR,
+                description: error.detail,
+                color: "danger"
+            })
+        }
+    })
+}
+
+export const useResendForgotPasswordOtp = ({ onSuccess }: { onSuccess?: () => void }) => {
+    return useMutation({
+        mutationFn: authApi.resendForgotPasswordOtp,
+        onSuccess: () => {
+            onSuccess?.()
+            addToast({
+                title: STRINGS.NOTIFICATION.SUCCESS,
+                description: "Đã gửi lại mã OTP",
+                color: "success"
+            })
+        },
+        onError: (error: BackendError) => {
+            addToast({
+                title: error.title || STRINGS.NOTIFICATION.ERROR,
+                description: error.detail,
+                color: "danger"
+            })
+        }
+    })
+}

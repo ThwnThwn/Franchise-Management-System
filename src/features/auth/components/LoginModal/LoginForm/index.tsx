@@ -7,7 +7,7 @@ import { Checkbox, Divider, Link } from "@heroui/react"
 import { useFormik } from "formik"
 import React, { useCallback, useState } from "react"
 import * as Yup from "yup"
-import { useLoginDiscloresureSingleton } from "@/hooks"
+import { useLoginDiscloresureSingleton, useForgotPasswordDiscloresureSingleton } from "@/hooks"
 import { useRouter } from "next/navigation"
 
 export function LoginForm({ onSuccess }: { onSuccess?: () => void }) {
@@ -15,6 +15,7 @@ export function LoginForm({ onSuccess }: { onSuccess?: () => void }) {
     const [rememberMe, setRememberMe] = useState(true)
     const loginMutation = useLogin({ rememberMe, onSuccess })
     const { onClose: onCloseLogin } = useLoginDiscloresureSingleton()
+    const { onOpen: onOpenForgotPassword } = useForgotPasswordDiscloresureSingleton()
     // const { onOpen: onOpenRegister } = useRegisterDiscloresureSingleton()
     const router = useRouter()
 
@@ -121,13 +122,17 @@ export function LoginForm({ onSuccess }: { onSuccess?: () => void }) {
                             </Checkbox>
                         </div>
                         <div>
-                            {/* <Link
+                            <Link
                                 className="text-default-500 cursor-pointer"
                                 size="sm"
-                                onPress={handleOpenForgot}
+                                onPress={() => {
+                                    onCloseLogin()
+                                    // router.push("/auth/forgot-password")
+                                    onOpenForgotPassword()
+                                }}
                             >
-                                {t("login.forgot")}
-                            </Link> */}
+                                Quên mật khẩu?
+                            </Link>
                         </div>
                     </div>
 

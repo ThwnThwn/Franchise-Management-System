@@ -8,6 +8,16 @@ const nextConfig: NextConfig = {
                 protocol: "https",
                 hostname: "example.com",
                 pathname: "/**"
+            },
+            {
+                protocol: "https",
+                hostname: "images.unsplash.com",
+                pathname: "/**"
+            },
+            {
+                protocol: "https",
+                hostname: "img.com",
+                pathname: "/**"
             }
         ]
     }

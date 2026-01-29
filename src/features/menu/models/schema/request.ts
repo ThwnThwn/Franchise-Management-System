@@ -1,4 +1,6 @@
 export type GetAllProductParams = {
-    // name?: string
+    page?: number
+    pageSize?: number
+    name?: string
     // segmentId?: string
 }

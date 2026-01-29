@@ -1,6 +1,6 @@
 "use client"
 
-import { LoginModal } from "@/features"
+import { LoginModal, ForgotPasswordModal } from "@/features"
 import { RegisterModal } from "@/features/auth/components/RegisterModal"
 import React from "react"
 
@@ -10,9 +10,7 @@ export * from "./AlertModal"
 export const Modals = () => {
     return (
         <div>
-            {/* <ForgotPasswordModal />
-            <LoginModal />
-            <RegisterModal /> */}
+            <ForgotPasswordModal />
             <LoginModal />
             <RegisterModal />
         </div>
