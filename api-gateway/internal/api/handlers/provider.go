@@ -20,6 +20,9 @@ var HandlerSet = wire.NewSet(
 
 	// Sales
 	NewOrderHandler,
+
+	// Inventory
+	NewInventoryHandler,
 )
 
 type AppHandlers struct {
@@ -37,4 +40,7 @@ type AppHandlers struct {
 
 	// Sales
 	*OrderHandler
+
+	// Inventory
+	*InventoryHandler
 }

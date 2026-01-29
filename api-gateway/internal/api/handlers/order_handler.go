@@ -5,6 +5,7 @@ import (
 	"api-gateway/internal/application/constants/errorcode"
 	"api-gateway/internal/domain/models/order"
 	"api-gateway/pkg/utils/grpcutils"
+	"api-gateway/pkg/utils/validation"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -22,7 +23,7 @@ func NewOrderHandler(orderUC abstractions.IOrderUseCase) *OrderHandler {
 func (h *OrderHandler) CreateOrder(c *gin.Context) {
 	var req order.CreateOrderRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(err)
+		c.Error(validation.TranslateValidationError(err))
 		return
 	}
 

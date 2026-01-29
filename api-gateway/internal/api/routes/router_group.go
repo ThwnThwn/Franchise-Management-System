@@ -3,6 +3,7 @@ package routes
 import (
 	"api-gateway/internal/api/routes/auth"
 	"api-gateway/internal/api/routes/category"
+	"api-gateway/internal/api/routes/inventory"
 	"api-gateway/internal/api/routes/order"
 	"api-gateway/internal/api/routes/product"
 	"api-gateway/internal/api/routes/shift"
@@ -25,6 +26,9 @@ type RouterGroup struct {
 
 	// Sales
 	Order order.RouterGroup
+
+	// Inventory
+	Inventory inventory.RouterGroup
 }
 
 var (
@@ -42,4 +46,7 @@ var (
 
 	// Sales
 	orderGroup = RouterGroupApp.Order
+
+	// Inventory
+	inventoryGroup = RouterGroupApp.Inventory
 )

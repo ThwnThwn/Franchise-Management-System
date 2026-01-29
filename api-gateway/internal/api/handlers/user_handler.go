@@ -5,6 +5,7 @@ import (
 	"api-gateway/internal/application/constants/errorcode"
 	"api-gateway/internal/domain/models/user"
 	"api-gateway/pkg/utils/grpcutils"
+	"api-gateway/pkg/utils/validation"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -44,7 +45,7 @@ func (h *UserHandler) GetMe(c *gin.Context) {
 func (h *UserHandler) UpdateMe(c *gin.Context) {
 	var req user.UpdateMeRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(err)
+		c.Error(validation.TranslateValidationError(err))
 		return
 	}
 
@@ -75,7 +76,7 @@ func (h *UserHandler) UpdateMe(c *gin.Context) {
 func (h *UserHandler) UpdateRole(c *gin.Context) {
 	var req user.UpdateUserRoleRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(err)
+		c.Error(validation.TranslateValidationError(err))
 		return
 	}
 

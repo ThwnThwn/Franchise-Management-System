@@ -17,6 +17,7 @@ type Config struct {
 	ProductServiceUrl   ProductServiceUrl
 	SalesServiceUrl     SalesServiceUrl
 	FranchiseServiceUrl FranchiseServiceUrl
+	InventoryServiceUrl InventoryServiceUrl
 
 	JwtRefreshTokenExpDays          int
 	JwtSecret                       string
@@ -28,6 +29,7 @@ type IdentityServiceUrl string
 type ProductServiceUrl string
 type SalesServiceUrl string
 type FranchiseServiceUrl string
+type InventoryServiceUrl string
 
 func LoadConfig() *Config {
 	err := godotenv.Load(".env")
@@ -48,6 +50,7 @@ func LoadConfig() *Config {
 		IdentityServiceUrl:  IdentityServiceUrl(getEnv("IDENTITY_SERVICE_URL", "localhost:5001")),
 		ProductServiceUrl:   ProductServiceUrl(getEnv("PRODUCT_SERVICE_URL", "localhost:5002")),
 		SalesServiceUrl:     SalesServiceUrl(getEnv("SALES_SERVICE_URL", "localhost:5003")),
+		InventoryServiceUrl: InventoryServiceUrl(getEnv("INVENTORY_SERVICE_URL", "localhost:5005")),
 		FranchiseServiceUrl: FranchiseServiceUrl(getEnv("FRANCHISE_SERVICE_URL", "localhost:5006")),
 
 		JwtRefreshTokenExpDays:          getEnvInt("JWT_REFRESH_TOKEN_EXPIRATION_DAYS", 7),
