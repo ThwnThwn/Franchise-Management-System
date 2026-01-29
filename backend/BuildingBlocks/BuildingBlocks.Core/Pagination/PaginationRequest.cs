@@ -10,12 +10,12 @@ namespace BuildingBlocks.Core.Pagination
     {
         private const int MaxPageSize = 50;
         private int _pageSize = 10;
-        private int _pageIndex = 1;
+        private int _page = 1;
 
-        public int PageIndex
+        public int Page
         {
-            get => _pageIndex;
-            set => _pageIndex = value < 1 ? 1 : value;
+            get => _page;
+            set => _page = value < 1 ? 1 : value;
         }
 
         public int PageSize

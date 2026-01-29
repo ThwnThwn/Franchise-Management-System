@@ -97,8 +97,8 @@ func (o *OrderGrpcClient) GetOrderById(ctx context.Context, id uuid.UUID) (*orde
 // GetMyOrders implements sales.IOrderService.
 func (o *OrderGrpcClient) GetMyOrders(ctx context.Context, req *order.GetMyOrdersRequest) ([]*order.OrderSummary, error) {
 	res, err := o.client.GetMyOrders(ctx, &salesPb.GetMyOrdersRequest{
-		Page:     req.Page,
-		PageSize: req.PageSize,
+		Page:     &req.Page,
+		PageSize: &req.PageSize,
 	})
 	if err != nil {
 		return nil, err

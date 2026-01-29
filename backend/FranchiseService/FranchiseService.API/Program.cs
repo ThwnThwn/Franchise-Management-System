@@ -2,7 +2,7 @@
 using FluentValidation;
 using FranchiseService.API.Interceptors;
 using FranchiseService.Application.Behaviors;
-using FranchiseService.Application.Features.Queries.CheckStoreAvailability;
+using FranchiseService.Application.Features.Stores.Queries.CheckStoreAvailability;
 using FranchiseService.Infrastructure.Extentions;
 using MediatR;
 
@@ -89,7 +89,8 @@ namespace FranchiseService.API
             app.MapControllers();
 
             // Map gRPC Services
-            app.MapGrpcService<Services.FranchiseGrpcService>(); // Class đã bỏ static
+            app.MapGrpcService<Services.StoreGrpcService>();
+            app.MapGrpcService<Services.ShiftGrpcService>();
             app.MapGrpcReflectionService();
 
             // Root Endpoint (Health check nhẹ)
