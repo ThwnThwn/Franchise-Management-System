@@ -6,11 +6,13 @@ export interface CartState {
     items: CartItem[]
     total: number
     count: number
+    currentStoreId: string | null
 
     addItem: (item: Omit<CartItem, "quantity"> & { quantity?: number }) => void
     removeItem: (sku: string) => void
     updateQuantity: (sku: string, quantity: number) => void
     clearCart: () => void
+    setStoreId: (id: string | null) => void
 }
 
 const calculateSummary = (items: CartItem[]) => {
@@ -25,21 +27,36 @@ export const useCartStore = create<CartState>()(
             items: [],
             total: 0,
             count: 0,
+            currentStoreId: null,
+
+            setStoreId: (id) => set({ currentStoreId: id }),
 
             addItem: (item) => {
                 const currentItems = get().items
-                const existingItemIndex = currentItems.findIndex((i) => i.sku === item.sku)
+                // Check if adding item from different store
+                if (currentItems.length > 0 && item.storeId && currentItems[0].storeId && item.storeId !== currentItems[0].storeId) {
+                    set({ items: [], total: 0, count: 0 })
+                }
+
+                // Update currentStoreId if item has it
+                if (item.storeId) {
+                    set({ currentStoreId: item.storeId })
+                }
+
+                const updatedCurrentItems = get().items.length === 0 ? [] : get().items // Get fresh state if cleared
+
+                const existingItemIndex = updatedCurrentItems.findIndex((i) => i.sku === item.sku)
 
                 let newItems: CartItem[]
 
                 if (existingItemIndex > -1) {
-                    newItems = currentItems.map((i, index) =>
+                    newItems = updatedCurrentItems.map((i, index) =>
                         index === existingItemIndex
                             ? { ...i, quantity: i.quantity + (item.quantity || 1) }
                             : i
                     )
                 } else {
-                    newItems = [...currentItems, { ...item, quantity: item.quantity || 1 }]
+                    newItems = [...updatedCurrentItems, { ...item, quantity: item.quantity || 1 }]
                 }
 
                 set({

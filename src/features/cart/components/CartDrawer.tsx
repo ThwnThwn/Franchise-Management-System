@@ -9,6 +9,7 @@ import { useCartStore } from "@/features/cart/store"
 import { PaymentMethod, useCreateOrder } from "@/features/orders"
 import { useRouter } from "next/navigation"
 import { useTokenStore } from "@/hooks"
+import { useGetCart, useUpdateCartItem, useDeleteListCartItem, useClearCart } from "../hooks/useCartQuery"
 import { RoleSlug } from "@/constants/enums"
 import { formatCurrencyWithSymbol } from "@/utils/helpers/currency"
 
@@ -22,12 +23,41 @@ const TAX_RATE = 0.1
 export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
     const router = useRouter()
     const roleSlug = useTokenStore((s) => s.roleSlug)
+    const isLogined = useTokenStore((s) => !!s.accessToken)
     const isCustomer = roleSlug === RoleSlug.Customer
 
-    const items = useCartStore((s) => s.items)
-    // Không dùng total từ store nữa vì nó là tổng của tất cả
-    const updateQuantity = useCartStore((state) => state.updateQuantity)
-    const removeItem = useCartStore((state) => state.removeItem)
+    // API Hooks
+    const { data: apiCart } = useGetCart()
+    const updateCartItemMutation = useUpdateCartItem()
+    const deleteListCartItemMutation = useDeleteListCartItem()
+
+    // Local Store
+    const localItems = useCartStore((s) => s.items)
+    const localUpdateQuantity = useCartStore((state) => state.updateQuantity)
+    const localRemoveItem = useCartStore((state) => state.removeItem)
+
+    // Derived State
+    const items = isLogined ? (apiCart ?? []) : localItems
+
+    const handleUpdateQuantity = (sku: string, quantity: number) => {
+        if (isLogined) {
+            updateCartItemMutation.mutate({ sku, quantity })
+        } else {
+            localUpdateQuantity(sku, quantity)
+        }
+    }
+
+    const handleRemoveItem = (sku: string) => {
+        if (isLogined) {
+            deleteListCartItemMutation.mutate({ skus: [sku] })
+        } else {
+            localRemoveItem(sku)
+            // Update selected keys for local
+            const nextSelectedKeys = new Set(selectedKeys)
+            nextSelectedKeys.delete(sku)
+            setSelectedKeys(nextSelectedKeys)
+        }
+    }
 
     // 1. State quản lý các item được chọn (lưu SKU)
     const [selectedKeys, setSelectedKeys] = useState<Set<string>>(
@@ -70,24 +100,26 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
     }
 
     // Xử lý khi xóa item thì phải bỏ chọn nó khỏi state luôn
-    const handleRemoveItem = (sku: string) => {
-        removeItem(sku)
-        const nextSelectedKeys = new Set(selectedKeys)
-        nextSelectedKeys.delete(sku)
-        setSelectedKeys(nextSelectedKeys)
-    }
 
     const handleSuccess = useCallback(() => {
         const redirectPath = isCustomer ? "/orders" : "/"
         router.push(redirectPath)
         onClose()
-        // Sau khi đặt hàng thành công, cần xóa các item đã mua khỏi giỏ
-        // Note: Cần thêm logic xóa item đã chọn khỏi store ở đây nếu API không tự sync
-        selectedItems.forEach((i) => removeItem(i.sku))
+
+        if (isLogined) {
+            const skusToRemove = selectedItems.map(i => i.sku)
+            deleteListCartItemMutation.mutate({ skus: skusToRemove })
+        } else {
+            // For guest, remove locally
+            selectedItems.forEach((i) => localRemoveItem(i.sku))
+        }
+
         setSelectedKeys(new Set())
-    }, [isCustomer, onClose, router, removeItem, selectedItems])
+    }, [isCustomer, onClose, router, isLogined, selectedItems, deleteListCartItemMutation, localRemoveItem])
 
     const createOrderMutation = useCreateOrder({ onSuccess: handleSuccess })
+
+    const currentStoreId = useCartStore((s) => s.currentStoreId)
 
     const handleCheckout = async () => {
         if (selectedItems.length === 0) return
@@ -99,7 +131,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
             })),
             tax,
             paymentMethod: PaymentMethod.Cash,
-            notes: ""
+            notes: "",
+            storeId: currentStoreId || (selectedItems.length > 0 ? selectedItems[0].storeId : undefined)
         })
     }
 
@@ -115,9 +148,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
 
             {/* Drawer */}
             <div
-                className={`fixed top-0 right-0 h-full w-full max-w-md bg-background shadow-xl z-99999 transform transition-transform duration-300 ${
-                    isOpen ? "translate-x-0" : "translate-x-full"
-                }`}
+                className={`fixed top-0 right-0 h-full w-full max-w-md bg-background shadow-xl z-99999 transform transition-transform duration-300 ${isOpen ? "translate-x-0" : "translate-x-full"
+                    }`}
             >
                 <div className="flex flex-col h-full">
                     {/* Header */}
@@ -150,22 +182,34 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                         ) : (
                             <div>
                                 {items.map((item, index) => (
-                                    <button
+                                    <div
                                         key={item.sku}
-                                        className="w-full flex items-center justify-center gap-2"
-                                        onClick={() => handleSelectItem(item.sku)}
+                                        className="w-full flex items-center justify-center gap-2 cursor-pointer"
+                                        onClick={(e) => {
+                                            // Prevent triggering select when clicking on interactive elements inside CartItem
+                                            // This is a simple check, ideally CartItem should handle its own clicks or we separate concerns
+                                            const target = e.target as HTMLElement
+                                            if (target.tagName === "BUTTON" || target.closest("button") || target.tagName === "INPUT") {
+                                                return
+                                            }
+                                            handleSelectItem(item.sku)
+                                        }}
                                     >
                                         <CheckboxStyled
                                             isSelected={selectedKeys.has(item.sku)}
-                                            // onValueChange={() => handleSelectItem(item.sku)}
+                                            onValueChange={() => handleSelectItem(item.sku)}
+                                            // Stop propagation to prevent double toggle if div click also fires
+                                            className="pointer-events-none sm:pointer-events-auto"
                                         />
-                                        <CartItem
-                                            key={index}
-                                            item={item}
-                                            onUpdateQuantity={updateQuantity}
-                                            onRemove={() => handleRemoveItem(item.sku)}
-                                        />
-                                    </button>
+                                        <div className="flex-1 pointer-events-none sm:pointer-events-auto">
+                                            <CartItem
+                                                key={index}
+                                                item={item}
+                                                onUpdateQuantity={handleUpdateQuantity}
+                                                onRemove={() => handleRemoveItem(item.sku)}
+                                            />
+                                        </div>
+                                    </div>
                                 ))}
                             </div>
                         )}

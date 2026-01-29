@@ -3,4 +3,6 @@ export type GetAllProductParams = {
     pageSize?: number
     name?: string
     // segmentId?: string
+    storeId?: string
+    keyword?: string
 }

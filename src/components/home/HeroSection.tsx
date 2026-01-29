@@ -39,7 +39,7 @@ export default function HeroSection() {
                         <div className="flex flex-wrap gap-4">
                             <Link href="/menu">
                                 <button className="px-8 py-4 bg-yellow-500 hover:bg-yellow-400 text-black font-bold rounded-full transition-all transform hover:scale-105 shadow-lg">
-                                    Thực Đơn
+                                    Menu
                                 </button>
                             </Link>
                             <Link href="/stores">

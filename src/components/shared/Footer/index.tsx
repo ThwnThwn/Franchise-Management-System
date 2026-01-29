@@ -73,7 +73,7 @@ const Footer = () => {
                     <ul className="space-y-4 text-sm">
                         {[
                             "Câu chuyện của chúng tôi",
-                            "Thực đơn đặc sắc",
+                            "Menu đặc sắc",
                             "Hợp tác nhượng quyền",
                             "Hệ thống cửa hàng"
                         ].map((link) => (

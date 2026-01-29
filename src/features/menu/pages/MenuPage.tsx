@@ -1,20 +1,67 @@
 "use client"
-import React, { useState, useCallback } from "react"
+import React, { useState, useCallback, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 
-import { ProductCard, ProductVariantsModal } from "../components"
+import { ProductCard, ProductVariantsModal, StoreSelectionModal } from "../components"
 import { MENU_ERRORS } from "../constants"
 import { GetProductListItemDto } from "../models/schema/respone"
 import { useGetAllProducts } from "../hooks"
 import { SpinnerStyled } from "@/components"
 import { useLoginDiscloresureSingleton, useTokenStore } from "@/hooks"
-import { useDisclosure } from "@heroui/react"
+import { useDisclosure, Input } from "@heroui/react"
+import { StoreDetailDto } from "@/features/stores/models/schema/response"
+import { MapPin, Search } from "lucide-react"
+
+import { useCartStore } from "@/features/cart/store"
 
 export default function MenuPage() {
-    const { data: products, isLoading } = useGetAllProducts({})
+    const [selectedStore, setSelectedStore] = useState<StoreDetailDto | null>(null)
+    const setStoreId = useCartStore((s) => s.setStoreId)
+
+    // Sync store selection to cart store
+    useEffect(() => {
+        if (selectedStore) {
+            setStoreId(selectedStore.id)
+        }
+    }, [selectedStore, setStoreId])
+    const [searchQuery, setSearchQuery] = useState("")
+    const [inputValue, setInputValue] = useState("")
+
+    const { data: productsData, isLoading } = useGetAllProducts({
+        query: {
+            storeId: selectedStore?.id,
+            page: 1,
+            pageSize: 1000
+        }
+    })
+
+    const products = React.useMemo(() => {
+        if (!productsData) return { products: [], totalCount: 0 }
+        if (!searchQuery) return productsData
+
+        const normalize = (str: string) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+        const lowerQuery = normalize(searchQuery)
+
+        const filtered = productsData.products.filter(p =>
+            normalize(p.name).includes(lowerQuery)
+        )
+        return {
+            ...productsData,
+            products: filtered
+        }
+    }, [productsData, searchQuery])
     const [selectedProduct, setSelectedProduct] = useState<GetProductListItemDto | null>(null)
 
+    const handleSearch = () => {
+        setSearchQuery(inputValue)
+    }
+
     const { isOpen, onOpen, onOpenChange } = useDisclosure()
+    const {
+        isOpen: isStoreModalOpen,
+        onOpen: onOpenStoreModal,
+        onOpenChange: onStoreModalOpenChange
+    } = useDisclosure({ defaultOpen: false })
     const { onOpen: onOpenLogin } = useLoginDiscloresureSingleton()
     const isLogined = useTokenStore((s) => !!s.accessToken)
 
@@ -39,6 +86,56 @@ export default function MenuPage() {
 
     return (
         <div className="min-h-[80vh] max-w-7xl">
+            {/* Header with Store Info */}
+            {/* Header with Store Info */}
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4 mt-6 px-4">
+                <div className="flex items-center gap-4">
+                    <h2 className="text-2xl font-bold">Menu</h2>
+                    {selectedStore ? (
+                        <div
+                            className="flex items-center gap-2 cursor-pointer hover:text-primary transition-colors bg-default-100 px-3 py-1.5 rounded-full"
+                            onClick={onOpenStoreModal}
+                        >
+                            <MapPin size={16} />
+                            <div className="flex flex-col">
+                                <span className="font-semibold text-sm leading-none">{selectedStore.name}</span>
+                            </div>
+                        </div>
+                    ) : (
+                        <button
+                            onClick={onOpenStoreModal}
+                            className="flex items-center gap-1 text-sm bg-primary text-white px-3 py-1.5 rounded-full hover:bg-primary/90 transition-colors"
+                        >
+                            <MapPin size={16} />
+                            Chọn cửa hàng
+                        </button>
+                    )}
+                </div>
+
+                <div className="w-full md:w-1/3">
+                    <Input
+                        value={inputValue}
+                        placeholder="Tìm kiếm món ăn..."
+                        endContent={
+                            <div
+                                role="button"
+                                tabIndex={0}
+                                onClick={handleSearch}
+                                className="text-primary hover:opacity-80 transition-opacity focus:outline-none cursor-pointer"
+                            >
+                                <Search size={20} />
+                            </div>
+                        }
+                        onValueChange={setInputValue}
+                        onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                        isClearable
+                        onClear={() => {
+                            setInputValue("")
+                            setSearchQuery("")
+                        }}
+                    />
+                </div>
+            </div>
             {/* Cart Button - Fixed Position */}
             {/* {isLogined && (
                 <div className="fixed bottom-6 right-6 z-30">
@@ -57,7 +154,7 @@ export default function MenuPage() {
                             transition={{ duration: 0.4 }}
                             className="text-gray-500 mt-10 text-base"
                         >
-                            {MENU_ERRORS.NOT_HAVE_PRODUCT}
+                            {!selectedStore ? "Vui lòng chọn cửa hàng để xem menu" : MENU_ERRORS.NOT_HAVE_PRODUCT}
                         </motion.div>
                     ) : (
                         <motion.div
@@ -111,6 +208,16 @@ export default function MenuPage() {
                 product={selectedProduct}
                 isOpen={isOpen}
                 onOpenChange={onOpenChange}
+                storeId={selectedStore?.id}
+            />
+
+            <StoreSelectionModal
+                isOpen={isStoreModalOpen} // Only open when explicitly requested
+                onOpenChange={onStoreModalOpenChange}
+                onStoreSelect={(store) => {
+                    setSelectedStore(store)
+                    // Modal will be closed by the component or we can control it here if needed
+                }}
             />
 
             {/* Cart Drawer */}
