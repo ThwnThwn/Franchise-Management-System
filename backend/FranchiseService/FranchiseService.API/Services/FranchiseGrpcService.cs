@@ -98,7 +98,7 @@ namespace FranchiseService.API.Services
             var query = new GetStoresQuery
             {
                 // PaginationRequest sẽ xử lý logic < 1 hoặc > MaxSize
-                PageIndex = request.PageIndex,
+                PageIndex = request.Page,
                 PageSize = request.PageSize,
                 Keyword = request.Keyword
             };

@@ -26,7 +26,7 @@ namespace FranchiseService.Application.Features.Queries.CheckStoreAvailability
                 ?? throw new KeyNotFoundException("Không tìm thấy cửa hàng");
 
             if (store.Status != (int)StoreStatus.Open)
-                return new AvailabilityResult { IsAvailable = false, Message =  };
+                return new AvailabilityResult { IsAvailable = false, Message = "Cửa hàng không mở" };
 
             // 3. Logic check giờ
             var vnTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));

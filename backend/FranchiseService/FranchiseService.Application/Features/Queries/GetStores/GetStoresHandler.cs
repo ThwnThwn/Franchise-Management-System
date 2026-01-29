@@ -35,7 +35,7 @@ namespace FranchiseService.Application.Features.Queries.GetStores
                 IsOpenNow = s.Status == (int)StoreStatus.Open
             }).ToList();
 
-            return new PagedResult<StoreDto>(dtos, pagedData.TotalCount, pagedData.PageIndex, pagedData.PageSize);
+            return new PagedResult<StoreDto>(dtos, pagedData.TotalCount, pagedData.Page, pagedData.PageSize);
         }
     }
 }
