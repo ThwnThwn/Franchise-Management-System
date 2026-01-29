@@ -35,7 +35,7 @@ namespace NotificationService.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Metadata")
-                        .HasColumnType("text");
+                        .HasColumnType("jsonb");
 
                     b.Property<string>("Recipient")
                         .IsRequired()
