@@ -46,6 +46,8 @@ public interface IOtpStore
     /// <param name="time">Thời điểm khi OTP được request.</param>
     Task SaveLastOtpRequestTimeAsync(string key, DateTimeOffset time, string purpose);
 
+    Task RemoveLastOtpRequestTimeAsync(string key, string purpose);
+
     /// <summary>
     /// Lấy số lần thử xác thực OTP sai hiện tại.
     /// Dùng để ngăn chặn tấn công brute force bằng cách giới hạn số lần nhập OTP sai.

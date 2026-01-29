@@ -106,6 +106,11 @@ public class OtpStore : IOtpStore
         );
     }
 
+    public async Task RemoveLastOtpRequestTimeAsync(string key, string purpose)
+    {
+        await _cache.RemoveAsync($"otp_request_time:{purpose}:{key}");
+    }
+
     public async Task<int> GetOtpAttemptCountAsync(string key, string purpose)
     {
         var value = await _cache.GetStringAsync($"otp_attempts:{purpose}:{key}");
