@@ -50,7 +50,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="Protos\inventory.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\inventory.proto" GrpcServices="Client" />
   </ItemGroup>
 
 </Project>

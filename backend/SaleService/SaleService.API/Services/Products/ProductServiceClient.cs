@@ -1,6 +1,6 @@
 using Grpc.Net.Client;
 using ProductService.API;
-using SalesService.Application.Interfaces.Products;
+using SalesService.Application.ClientInterface.Products;
 
 namespace SalesService.API.Services.Products;
 

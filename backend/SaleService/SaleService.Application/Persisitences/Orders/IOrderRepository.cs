@@ -1,6 +1,6 @@
 using SalesService.Domain.Entities;
 
-namespace SalesService.Application.Interfaces.Orders;
+namespace SalesService.Application.Persisitences.Orders;
 
 public interface IOrderRepository
 {

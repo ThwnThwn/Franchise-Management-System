@@ -1,7 +1,8 @@
 using Ardalis.Result;
 using MediatR;
-using SalesService.Application.Interfaces.Orders;
-using SalesService.Application.Interfaces.Products;
+using SalesService.Application.ClientInterface.Inventory;
+using SalesService.Application.ClientInterface.Products;
+using SalesService.Application.Persisitences.Orders;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
 
@@ -12,6 +13,7 @@ public sealed class CreateOrderHandler
 {
     private readonly IOrderRepository _orderRepository;
     private readonly IProductServiceClient _productServiceClient;
+    private readonly IInventoryServiceClient _inventoryServiceClient;
 
     public CreateOrderHandler(
         IOrderRepository orderRepository,
