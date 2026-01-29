@@ -82,7 +82,13 @@ export function ProfileDropdown({ onOpen = undefined }: { onOpen?: () => void })
         }
     ]
 
-    const adminItems: DropdownLinkItem[] = []
+    const adminItems: DropdownLinkItem[] = [
+        {
+            key: "dashboard",
+            href: "/dashboard",
+            label: STRINGS.NAVBAR.DASHBOARD.DASHBOARD
+        }
+    ]
 
     const managerItems: DropdownLinkItem[] = []
 

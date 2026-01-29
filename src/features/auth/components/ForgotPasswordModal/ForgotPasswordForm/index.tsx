@@ -1,7 +1,7 @@
 "use client"
 
 import { ButtonStyled, InputStyled, LogoStyled, ButtonToggleVisibility } from "@/components"
-import { AUTH_TEXT, AUTH_ERRORS } from "@/features/auth/constants"
+import { AUTH_ERRORS } from "@/features/auth/constants"
 import {
     useForgotPassword,
     useForgotPasswordVerify,
@@ -9,10 +9,10 @@ import {
     useResendForgotPasswordOtp
 } from "@/features/auth/hooks"
 import { useFormik } from "formik"
-import React, { useCallback, useState } from "react"
+import React, { useState } from "react"
 import * as Yup from "yup"
 import { useLoginDiscloresureSingleton } from "@/hooks"
-import { Link } from "@heroui/react"
+import { InputOtp, Link } from "@heroui/react"
 
 export function ForgotPasswordForm({ onSuccess }: { onSuccess?: () => void }) {
     const [step, setStep] = useState(0) // 0: Email, 1: OTP, 2: New Password
@@ -41,7 +41,7 @@ export function ForgotPasswordForm({ onSuccess }: { onSuccess?: () => void }) {
 
     const resetPasswordMutation = useResetPassword({
         onSuccess: () => {
-            if (onSuccess) onSuccess()
+            onSuccess?.()
             onOpenLogin()
         }
     })
@@ -51,7 +51,9 @@ export function ForgotPasswordForm({ onSuccess }: { onSuccess?: () => void }) {
     const emailFormik = useFormik({
         initialValues: { email: "" },
         validationSchema: Yup.object().shape({
-            email: Yup.string().required(AUTH_ERRORS.AUTH.EMAIL_REQUIRED).email(AUTH_ERRORS.AUTH.INVALID_EMAIL)
+            email: Yup.string()
+                .required(AUTH_ERRORS.AUTH.EMAIL_REQUIRED)
+                .email(AUTH_ERRORS.AUTH.INVALID_EMAIL)
         }),
         onSubmit: async (values) => {
             setSavedEmail(values.email)
@@ -72,7 +74,9 @@ export function ForgotPasswordForm({ onSuccess }: { onSuccess?: () => void }) {
     const passwordFormik = useFormik({
         initialValues: { password: "", confirmPassword: "" },
         validationSchema: Yup.object().shape({
-            password: Yup.string().required(AUTH_ERRORS.AUTH.PASSWORD_REQUIRED).min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
+            password: Yup.string()
+                .required(AUTH_ERRORS.AUTH.PASSWORD_REQUIRED)
+                .min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
             confirmPassword: Yup.string()
                 .oneOf([Yup.ref("password")], "Mật khẩu không khớp")
                 .required("Vui lòng xác nhận mật khẩu")
@@ -96,7 +100,10 @@ export function ForgotPasswordForm({ onSuccess }: { onSuccess?: () => void }) {
         switch (step) {
             case 0:
                 return (
-                    <form onSubmit={emailFormik.handleSubmit} className="w-full flex flex-col gap-4">
+                    <form
+                        onSubmit={emailFormik.handleSubmit}
+                        className="w-full flex flex-col gap-4"
+                    >
                         <InputStyled
                             variant="bordered"
                             label="Email"
@@ -112,7 +119,7 @@ export function ForgotPasswordForm({ onSuccess }: { onSuccess?: () => void }) {
                             isLoading={forgotPasswordMutation.isPending}
                             color="primary"
                             isDisabled={!emailFormik.isValid}
-                            onPress={() => emailFormik.submitForm()}
+                            // onPress={() => emailFormik.submitForm()}
                         >
                             Gửi yêu cầu
                         </ButtonStyled>
@@ -122,10 +129,12 @@ export function ForgotPasswordForm({ onSuccess }: { onSuccess?: () => void }) {
                 return (
                     <form onSubmit={otpFormik.handleSubmit} className="w-full flex flex-col gap-4">
                         <div className="text-center text-sm mb-2">
-                            <p>Mã OTP đã được gửi đến <strong>{savedEmail}</strong>.</p>
+                            <p>
+                                Mã OTP đã được gửi đến <strong>{savedEmail}</strong>.
+                            </p>
                             <p>Vui lòng kiểm tra email của bạn.</p>
                         </div>
-                        <InputStyled
+                        {/* <InputStyled
                             variant="bordered"
                             label="Mã OTP"
                             value={otpFormik.values.otp}
@@ -133,6 +142,17 @@ export function ForgotPasswordForm({ onSuccess }: { onSuccess?: () => void }) {
                             isInvalid={!!(otpFormik.touched.otp && otpFormik.errors.otp)}
                             errorMessage={otpFormik.errors.otp}
                             onBlur={() => otpFormik.setFieldTouched("otp")}
+                        /> */}
+                        <InputOtp
+                            size="lg"
+                            length={6}
+                            label="Mã OTP"
+                            value={otpFormik.values.otp}
+                            onValueChange={(value) => otpFormik.setFieldValue("otp", value)}
+                            isInvalid={!!(otpFormik.touched.otp && otpFormik.errors.otp)}
+                            errorMessage={otpFormik.errors.otp}
+                            onBlur={() => otpFormik.setFieldTouched("otp")}
+                            className="mx-auto"
                         />
                         <ButtonStyled
                             className="w-full mt-4"
@@ -140,7 +160,7 @@ export function ForgotPasswordForm({ onSuccess }: { onSuccess?: () => void }) {
                             isLoading={verifyOtpMutation.isPending}
                             color="primary"
                             isDisabled={!otpFormik.isValid}
-                            onPress={() => otpFormik.submitForm()}
+                            // onPress={() => otpFormik.submitForm()}
                         >
                             Xác thực OTP
                         </ButtonStyled>
@@ -167,14 +187,24 @@ export function ForgotPasswordForm({ onSuccess }: { onSuccess?: () => void }) {
                 )
             case 2:
                 return (
-                    <form onSubmit={passwordFormik.handleSubmit} className="w-full flex flex-col gap-4">
+                    <form
+                        onSubmit={passwordFormik.handleSubmit}
+                        className="w-full flex flex-col gap-4"
+                    >
                         <InputStyled
                             variant="bordered"
                             label="Mật khẩu mới"
                             type={isVisible ? "text" : "password"}
                             value={passwordFormik.values.password}
-                            onValueChange={(value) => passwordFormik.setFieldValue("password", value)}
-                            isInvalid={!!(passwordFormik.touched.password && passwordFormik.errors.password)}
+                            onValueChange={(value) =>
+                                passwordFormik.setFieldValue("password", value)
+                            }
+                            isInvalid={
+                                !!(
+                                    passwordFormik.touched.password &&
+                                    passwordFormik.errors.password
+                                )
+                            }
                             errorMessage={passwordFormik.errors.password}
                             onBlur={() => passwordFormik.setFieldTouched("password")}
                             endContent={
@@ -189,8 +219,15 @@ export function ForgotPasswordForm({ onSuccess }: { onSuccess?: () => void }) {
                             label="Xác nhận mật khẩu"
                             type={isConfirmVisible ? "text" : "password"}
                             value={passwordFormik.values.confirmPassword}
-                            onValueChange={(value) => passwordFormik.setFieldValue("confirmPassword", value)}
-                            isInvalid={!!(passwordFormik.touched.confirmPassword && passwordFormik.errors.confirmPassword)}
+                            onValueChange={(value) =>
+                                passwordFormik.setFieldValue("confirmPassword", value)
+                            }
+                            isInvalid={
+                                !!(
+                                    passwordFormik.touched.confirmPassword &&
+                                    passwordFormik.errors.confirmPassword
+                                )
+                            }
                             errorMessage={passwordFormik.errors.confirmPassword}
                             onBlur={() => passwordFormik.setFieldTouched("confirmPassword")}
                             endContent={
@@ -206,7 +243,7 @@ export function ForgotPasswordForm({ onSuccess }: { onSuccess?: () => void }) {
                             isLoading={resetPasswordMutation.isPending}
                             color="primary"
                             isDisabled={!passwordFormik.isValid}
-                            onPress={() => passwordFormik.submitForm()}
+                            // onPress={() => passwordFormik.submitForm()}
                         >
                             Đổi mật khẩu
                         </ButtonStyled>
@@ -221,7 +258,11 @@ export function ForgotPasswordForm({ onSuccess }: { onSuccess?: () => void }) {
                 <div className="flex flex-col items-center pb-6">
                     <LogoStyled className="mb-3" />
                     <p className="text-xl font-medium">
-                        {step === 0 ? "Quên mật khẩu?" : step === 1 ? "Xác thực OTP" : "Đặt lại mật khẩu"}
+                        {step === 0
+                            ? "Quên mật khẩu?"
+                            : step === 1
+                              ? "Xác thực OTP"
+                              : "Đặt lại mật khẩu"}
                     </p>
                     {step === 0 && (
                         <p className="text-small text-default-500 text-center">

@@ -1,0 +1,80 @@
+"use client"
+
+import React from "react"
+import { useDisclosure } from "@heroui/react"
+import { Plus, Users } from "lucide-react"
+import { useCreateUser, useGetAllUsers } from "../../hooks"
+import { ButtonIconStyled, InputStyled, SpinnerStyled } from "@/components"
+import { UserTable } from "../../components"
+import { CreateUserModal } from "../../components/user/CreateUserModal"
+import { RoleSlug } from "@/constants/enums"
+
+export default function UserView() {
+    // --- Data Fetching ---
+    // Assuming useGetAllUsers has 'params' and 'pagination' in its dependency array
+    const { data, isLoading } = useGetAllUsers()
+
+    // --- Mutations ---
+    const {
+        isOpen: isCreateOpen,
+        onOpen: onCreateOpen,
+        onOpenChange: onCreateOpenChange,
+        onClose: onCreateClose
+    } = useDisclosure()
+
+    const createMutation = useCreateUser({
+        onSuccess: onCreateClose
+    })
+
+    if (isLoading) {
+        return <SpinnerStyled />
+    }
+
+    return (
+        <div>
+            <div className="min-h-screen p-4 md:p-6 lg:p-8">
+                <div className="max-w-7xl mx-auto">
+                    {/* Page Header */}
+                    <div className="mb-8">
+                        <div className="flex items-center gap-3 mb-2">
+                            <div className="w-12 h-12 rounded-xl bg-linear-to-br from-primary to-secondary flex items-center justify-center">
+                                <Users className="w-6 h-6 text-white" />
+                            </div>
+                            <div>
+                                <h1 className="text-3xl lg:text-4xl font-bold text-foreground">
+                                    Quản lý người dùng
+                                </h1>
+                                <p className="text-foreground/60 mt-1">
+                                    Quản lý thông tin nhân viên và ca làm việc
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* --- Filter Section --- */}
+                    <div className="flex items-center gap-3 mb-4">
+                        <InputStyled label="Tìm kiếm" />
+                        <ButtonIconStyled
+                            isLoading={isLoading}
+                            className="btn-gradient rounded-lg"
+                            onPress={onCreateOpen}
+                        >
+                            <Plus />
+                        </ButtonIconStyled>
+
+                        {/* Create Modal */}
+                        <CreateUserModal
+                            isOpen={isCreateOpen}
+                            onOpenChange={onCreateOpenChange}
+                            createMutation={createMutation}
+                            isCreateCustomer={false}
+                            createRoleSlug={RoleSlug.Staff}
+                        />
+                    </div>
+
+                    <UserTable users={data || []} />
+                </div>
+            </div>
+        </div>
+    )
+}

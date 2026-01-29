@@ -1,11 +1,11 @@
-// export const RoleNameLabels: Record<RoleName, string> = {
-//     [RoleName.SuperAdmin]: i18n.t("enum.super_admin"),
-//     [RoleName.Admin]: i18n.t("enum.admin"),
-//     [RoleName.Staff]: i18n.t("enum.staff"),
-//     [RoleName.Customer]: i18n.t("enum.customer")
-// }
+import { Gender, RoleSlug } from "./enums"
 
-import { Gender } from "./enums"
+export const RoleSlugLabels: Record<RoleSlug, string> = {
+    [RoleSlug.Admin]: "Quản trị viên",
+    [RoleSlug.Manager]: "Quản lí",
+    [RoleSlug.Staff]: "Nhân viên",
+    [RoleSlug.Customer]: "Khách hàng"
+}
 
 export const GenderLabels: Record<Gender, string> = {
     [Gender.Male]: "Nam",

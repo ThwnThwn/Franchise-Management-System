@@ -6,12 +6,14 @@ export interface User {
     username: string
     phone: string
     address: string
-    isBlocked: boolean
     firstName: string
     lastName: string
     gender: number
     dateOfBirth: string | undefined
-    role: RoleUserResponse | undefined
+    homeStoreId: string | undefined
+    storeName: string | undefined
+    isBlocked: boolean
     createdAt: string | undefined
     updatedAt: string | undefined
+    role: RoleUserResponse | undefined
 }

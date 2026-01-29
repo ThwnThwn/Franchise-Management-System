@@ -14,7 +14,10 @@ export const STRINGS = {
         LOGIN: "Đăng nhập",
         LOGOUT: "Đăng xuất",
         PROFILE: "Hồ sơ",
-        ORDER_HISTORY: "Lịch sử mua hàng"
+        ORDER_HISTORY: "Lịch sử mua hàng",
+        DASHBOARD: {
+            DASHBOARD: "Dashboard"
+        }
     },
     AUTH: {
         LOGIN_TITLE: "Đăng nhập hệ thống",
