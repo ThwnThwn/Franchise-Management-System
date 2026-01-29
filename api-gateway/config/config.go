@@ -46,7 +46,8 @@ func LoadConfig() *Config {
 		Port:           getEnv("GATEWAY_PORT", "8080"),
 		FrontEndOrigin: getEnv("FRONTEND_ORIGIN", "http://localhost:3000"),
 
-		CalcServiceUrl:      CalcServiceUrl(getEnv("CALC_SERVICE_URL", "localhost:5099")),
+		CalcServiceUrl: CalcServiceUrl(getEnv("CALC_SERVICE_URL", "localhost:5099")),
+
 		IdentityServiceUrl:  IdentityServiceUrl(getEnv("IDENTITY_SERVICE_URL", "localhost:5001")),
 		ProductServiceUrl:   ProductServiceUrl(getEnv("PRODUCT_SERVICE_URL", "localhost:5002")),
 		SalesServiceUrl:     SalesServiceUrl(getEnv("SALES_SERVICE_URL", "localhost:5003")),
