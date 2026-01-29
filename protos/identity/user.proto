@@ -14,7 +14,9 @@ service UserGrpc {
   rpc AdminCreate(AdminCreateUserRequest) returns (UserResponse);
 
   rpc GetById(GetUserByIdRequest) returns (UserResponse);
-  rpc GetAll(google.protobuf.Empty) returns (UserListResponse);
+  rpc GetAll(GetAllUserOrWithRoleRequest) returns (GetAllUserOrWithRoleResponse);
+  rpc GetManager(GetManagerRequest) returns (UserResponse);
+
 
   rpc Update(UpdateUserRequest) returns (UserResponse);
   rpc ChangePassword(ChangePasswordRequest) returns (UserResponse);
@@ -22,6 +24,17 @@ service UserGrpc {
   rpc Delete(DeleteUserRequest) returns (DeleteUserResponse);
 }
 
+message GetAllUserOrWithRoleRequest{
+  string role_slug = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+  string keyword = 4;
+}
+message GetAllUserOrWithRoleResponse {
+  repeated UserResponse users = 1;
+  int32 total_count = 2;
+  int32 total_pages = 3;
+}
 
 message GetUserByIdRequest {
   string id = 1;
@@ -104,4 +117,8 @@ message UserResponse {
   identity.role.RoleUserResponse role = 11;
   google.protobuf.Timestamp createdAt = 12;
   google.protobuf.Timestamp updatedAt = 13;
+}
+
+message GetManagerRequest{
+  string id = 1;
 }

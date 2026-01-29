@@ -1,5 +1,6 @@
 using Ardalis.Result;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using SalesService.Application.Interfaces.Identity;
 using SalesService.Application.ClientInterface.Inventory;
 using SalesService.Application.ClientInterface.Products;
@@ -20,19 +21,22 @@ public sealed class CreateOrderHandler
     private readonly IKafkaProducer _kafkaProducer;
     private readonly IIdentityServiceClient _identityServiceClient;
     private readonly IInventoryServiceClient _inventoryServiceClient;
+    private readonly ILogger<CreateOrderHandler> _logger;
 
     public CreateOrderHandler(
         IOrderRepository orderRepository,
         IProductServiceClient productServiceClient,
         IKafkaProducer kafkaProducer,
         IIdentityServiceClient identityServiceClient,
-        IInventoryServiceClient inventoryServiceClient)
+        IInventoryServiceClient inventoryServiceClient,
+        ILogger<CreateOrderHandler> logger)
     {
         _orderRepository = orderRepository;
         _productServiceClient = productServiceClient;
         _kafkaProducer = kafkaProducer;
         _identityServiceClient = identityServiceClient;
         _inventoryServiceClient = inventoryServiceClient;
+        _logger = logger;
     }
 
     public async Task<Result<CreateOrderResponseDto>> Handle(
@@ -185,6 +189,51 @@ public sealed class CreateOrderHandler
         //        CreatedAt = DateTimeOffset.UtcNow
         //    });
         //}
+        string? customerEmail = null;
+        if (createdOrder.CustomerId.HasValue)
+        {
+            _logger.LogInformation("Fetching customer email for CustomerId: {CustomerId}", createdOrder.CustomerId.Value);
+            try
+            {
+                var user = await _identityServiceClient.GetUserByIdAsync(createdOrder.CustomerId.Value);
+                customerEmail = user?.Email;
+                _logger.LogInformation("Customer email fetched: {Email}", customerEmail ?? "NULL");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching customer email from IdentityService for CustomerId: {CustomerId}", createdOrder.CustomerId.Value);
+            }
+        }
+        else
+        {
+            _logger.LogWarning("Order {OrderId} created without CustomerId, skipping notification", createdOrder.Id);
+        }
+
+        // Only publish event if we have customer email
+        if (!string.IsNullOrEmpty(customerEmail))
+        {
+            _logger.LogInformation("Publishing OrderCreatedEvent to Kafka for Order {OrderCode}, Customer: {Email}", createdOrder.Code, customerEmail);
+            try
+            {
+                await _kafkaProducer.PublishAsync("order-notifications", new OrderCreatedEvent
+                {
+                    OrderId = createdOrder.Id,
+                    CustomerEmail = customerEmail,
+                    OrderSummary = $"Order {createdOrder.Code} created with {createdOrder.OrderItems.Count} items",
+                    TotalAmount = createdOrder.TotalAmount,
+                    CreatedAt = DateTimeOffset.UtcNow
+                });
+                _logger.LogInformation("OrderCreatedEvent published successfully for Order {OrderCode}", createdOrder.Code);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error publishing OrderCreatedEvent to Kafka for Order {OrderCode}", createdOrder.Code);
+            }
+        }
+        else
+        {
+            _logger.LogWarning("Customer email is empty for Order {OrderCode}, notification will not be sent", createdOrder.Code);
+        }
 
         return Result.Success(new CreateOrderResponseDto
         {
