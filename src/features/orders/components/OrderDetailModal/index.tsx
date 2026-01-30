@@ -14,12 +14,13 @@ import {
 import { getOrderStatusColor, getOrderStatusLabel } from "@/features/orders/utils"
 import { ModalStyled } from "@/components"
 import { OrderDetail } from "./OrderDetail"
-import { ORDER_TEXT } from "@/features/orders/constants"
+import { ORDER_TEXT, OrderStatus } from "@/features/orders/constants"
 import { useDay } from "@/hooks"
 import { DEFAULT_DATE_FORMAT } from "@/constants/constants"
 import { useGetOrderById, usePayment } from "@/features/orders/hooks"
 import { STRINGS } from "@/constants/strings"
 import { BackendError } from "@/models/common/respone"
+import { useRouter } from "next/navigation"
 
 interface OrderDetailModalProps {
     isOpen: boolean
@@ -28,6 +29,7 @@ interface OrderDetailModalProps {
 }
 
 export const OrderDetailModal = ({ isOpen, onOpenChange, orderId }: OrderDetailModalProps) => {
+    const router = useRouter()
     const { data: order, isLoading, error } = useGetOrderById({ id: orderId })
     const { formatDateTime } = useDay({ defaultFormat: DEFAULT_DATE_FORMAT })
 
@@ -37,7 +39,7 @@ export const OrderDetailModal = ({ isOpen, onOpenChange, orderId }: OrderDetailM
         payment(orderId, {
             onSuccess: (data: { paymentUrl: string }) => {
                 if (data.paymentUrl) {
-                    window.location.href = data.paymentUrl
+                    router.push(data.paymentUrl)
                 } else {
                     addToast({
                         title: STRINGS.COMMON.ERROR,
@@ -91,13 +93,15 @@ export const OrderDetailModal = ({ isOpen, onOpenChange, orderId }: OrderDetailM
                                 {ORDER_TEXT.labels.CLOSE}
                             </Button>
 
-                            <Button
-                                color="primary"
-                                onPress={handlePayment}
-                                isLoading={isPaymentPending}
-                            >
-                                {ORDER_TEXT.labels.PRINT_INVOICE}
-                            </Button>
+                            {order.status === OrderStatus.Pending && (
+                                <Button
+                                    color="primary"
+                                    onPress={handlePayment}
+                                    isLoading={isPaymentPending}
+                                >
+                                    {ORDER_TEXT.labels.PRINT_INVOICE}
+                                </Button>
+                            )}
                         </ModalFooter>
                     </>
                 )}

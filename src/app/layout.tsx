@@ -5,6 +5,7 @@ import React from "react"
 import { AppProviders } from "@/providers"
 import { ClientHydration, Navbar, Modals } from "@/components"
 import Footer from "@/components/shared/Footer"
+import CartDrawer from "@/features/cart/components/CartDrawer"
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -37,6 +38,7 @@ export default function RootLayout({
                         <div className="min-h-screen flex flex-col items-center pt-25">
                             <Navbar />
                             {children}
+                            <CartDrawer />
                             <Footer />
                             <Modals />
                         </div>

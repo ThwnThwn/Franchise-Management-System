@@ -21,7 +21,7 @@ export const CartButton: React.FC<CartButtonProps> = ({ onPress }) => {
                 className="relative"
                 aria-label="Giỏ hàng"
             >
-                <ShoppingCart size={30} />
+                <ShoppingCart size={15} />
             </ButtonIconStyled>
         </Badge>
     )

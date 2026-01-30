@@ -4,7 +4,11 @@ import "./index.css"
 import { NavbarBrand, NavbarContent, NavbarItem } from "@heroui/react"
 import Link from "next/link"
 import { ButtonStyled, NavbarStyled, LogoStyled, ButtonIconStyled } from "@/components/"
-import { useLoginDiscloresureSingleton, useTokenStore } from "@/hooks"
+import {
+    useCartDrawerDiscloresureSingleton,
+    useLoginDiscloresureSingleton,
+    useTokenStore
+} from "@/hooks"
 import { ProfileDropdown } from "./ProfileDropdown"
 import { usePathname } from "next/navigation"
 import clsx from "clsx"
@@ -13,6 +17,8 @@ import { motion } from "framer-motion"
 import { createPortal } from "react-dom"
 import { STRINGS } from "@/constants/strings"
 import { CHB, CHB_SHORT } from "@/constants/constants"
+import { CartButton } from "@/features/cart"
+import { RoleSlug } from "@/constants/enums"
 
 type MenuKey = "home" | "stores" | "menu" | "about" | "contact" | undefined
 type MenuItem = { key: Exclude<MenuKey, undefined>; label: string }
@@ -21,7 +27,9 @@ export function Navbar() {
     const pathname = usePathname()
     // handle when login
     const isLoggedIn = useTokenStore((s) => !!s.accessToken)
+    const isCustomer = useTokenStore((s) => s.roleSlug === RoleSlug.Customer)
     const { onOpen: onOpenLogin } = useLoginDiscloresureSingleton()
+    const { onOpen: onCartDrawerOpen } = useCartDrawerDiscloresureSingleton()
 
     // handle navbar
     type NavbarState = "default" | "top" | "middle"
@@ -55,11 +63,12 @@ export function Navbar() {
 
     const [activeMenuKey, setActiveMenuKey] = useState<MenuKey>(menuKey)
     const menus = useMemo(
-        () => [
-            { key: "home", label: STRINGS.NAVBAR.HOME },
-            { key: "menu", label: "Menu" },
-            { key: "stores", label: "Cửa hàng" }
-        ] satisfies MenuItem[],
+        () =>
+            [
+                { key: "home", label: STRINGS.NAVBAR.HOME },
+                { key: "menu", label: "Menu" },
+                { key: "stores", label: "Cửa hàng" }
+            ] satisfies MenuItem[],
         []
     )
     useEffect(() => {
@@ -213,10 +222,11 @@ export function Navbar() {
                             return (
                                 <button
                                     key={menu.key}
-                                    className={`text-lg block w-full py-2 text-center font-medium ${isActive
-                                        ? "text-white font-semibold bg-primary"
-                                        : "text-black hover:text-white hover:bg-primary"
-                                        }`}
+                                    className={`text-lg block w-full py-2 text-center font-medium ${
+                                        isActive
+                                            ? "text-white font-semibold bg-primary"
+                                            : "text-black hover:text-white hover:bg-primary"
+                                    }`}
                                 >
                                     <Link
                                         href={menu.key === "home" ? "/" : "/" + menu.key}
@@ -234,6 +244,11 @@ export function Navbar() {
                 {/* <NavbarItem className="flex items-center z-9999">
                     <CartPopover />
                 </NavbarItem> */}
+                {isCustomer && (
+                    <div className="items-center">
+                        <CartButton onPress={onCartDrawerOpen} />
+                    </div>
+                )}
 
                 <NavbarItem className="flex items-center z-9999">
                     {isLoggedIn ? (
