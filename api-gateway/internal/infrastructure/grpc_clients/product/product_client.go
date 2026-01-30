@@ -34,6 +34,7 @@ func (c *ProductGrpcClient) GetProducts(ctx context.Context, req *product.GetPro
 				Name:       s.Name,
 				Attributes: s.Attributes,
 				BasePrice:  s.BasePrice,
+				Cost:       s.Cost,
 				IsActive:   s.IsActive,
 			})
 		}
@@ -69,6 +70,7 @@ func (c *ProductGrpcClient) GetProductById(ctx context.Context, id uuid.UUID) (*
 			Name:       s.Name,
 			Attributes: s.Attributes,
 			BasePrice:  s.BasePrice,
+			Cost:       s.Cost,
 			IsActive:   s.IsActive,
 		})
 	}

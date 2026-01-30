@@ -22,14 +22,14 @@ func (a *ProductRouter) NewProductRouter(cfg *config.Config,
 	}
 
 	accessTokenSecret := cfg.JwtSecret
-	privateApi := productApi.Group("/")
+	privateApi := productApi.Group("")
 	privateApi.Use(middleware.ValidateToken([]byte(accessTokenSecret)))
 
 	adminApi := privateApi.Group("")
 	adminApi.Use(middleware.RequireRoles(string(roleslug.Admin)))
 	{
 		adminApi.POST("", productHandler.CreateProduct)
-		adminApi.PUT("/:id", productHandler.UpdateProduct)
+		adminApi.PATCH("/:id", productHandler.UpdateProduct)
 		adminApi.DELETE("/:id", productHandler.DeleteProduct)
 	}
 }

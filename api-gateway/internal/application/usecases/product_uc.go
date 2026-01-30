@@ -30,15 +30,15 @@ func (p *ProductUseCase) GetProducts(ctx context.Context, req *product.GetProduc
 
 // CreateProduct implements abstractions.IProductUseCase.
 func (p *ProductUseCase) CreateProduct(ctx context.Context, req *product.CreateProductRequest) error {
-	return p.CreateProduct(ctx, req)
+	return p.service.CreateProduct(ctx, req)
 }
 
 // UpdateProduct implements abstractions.IProductUseCase.
 func (p *ProductUseCase) UpdateProduct(ctx context.Context, id uuid.UUID, req *product.UpdateProductRequest) error {
-	return p.UpdateProduct(ctx, id, req)
+	return p.service.UpdateProduct(ctx, id, req)
 }
 
 // DeleteProduct implements abstractions.IProductUseCase.
 func (p *ProductUseCase) DeleteProduct(ctx context.Context, id uuid.UUID) error {
-	return p.DeleteProduct(ctx, id)
+	return p.service.DeleteProduct(ctx, id)
 }

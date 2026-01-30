@@ -18,7 +18,7 @@ func (a *ShiftRouter) NewShiftRouter(cfg *config.Config,
 	// }
 
 	// accessTokenSecret := cfg.JwtSecret
-	// privateApi := shiftApi.Group("/")
+	// privateApi := shiftApi.Group("")
 	// privateApi.Use(middleware.ValidateToken([]byte(accessTokenSecret)))
 	// {
 	// }

@@ -5,10 +5,13 @@ using ProductService.Domain.Entities;
 
 namespace ProductService.Application.Repositories;
 
-public interface IProductRepository:IGenericRepository<Product> 
+public interface IProductRepository : IGenericRepository<Product>
 {
     Task<List<Product>> GetAllProductsAsync(Guid? categoryId = null);
+
     Task<Product?> GetProductByIdAsync(Guid id);
-    Task<Product?> GetProductByNameAsync(string name);
+
+    Task<Product?> GetProductByNameAsync(string name, Guid? exId);
+
     Task<List<Product?>> GetProductByNameContainingAsync(string name);
 }
