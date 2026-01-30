@@ -5,7 +5,7 @@ using InventoryService.Application.Features.StoreIngredient.Commands.IncreaseSto
 using InventoryService.Grpc.Protos.Inventory;
 using MediatR;
 
-namespace InventoryService.API.Services
+namespace InventoryService.API.Services.Inventory
 {
     public class InventoryGrpcService : InventoryGrpc.InventoryGrpcBase
     {

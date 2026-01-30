@@ -5,7 +5,7 @@ using InventoryService.Application.Features.StoreIngredient.Commands.IncreaseSto
 using InventoryService.Grpc.Protos.Inventory.Internal;
 using MediatR;
 
-namespace InventoryService.API.Services
+namespace InventoryService.API.Services.Inventory
 {
     // Giả sử package trong proto của bạn là: inventory.internal
     public class InventoryInternalService : InventoryInternalGrpc.InventoryInternalGrpcBase
