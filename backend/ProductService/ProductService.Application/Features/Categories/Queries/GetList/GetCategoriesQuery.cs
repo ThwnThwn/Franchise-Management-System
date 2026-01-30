@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Ardalis.Result;
 using MediatR;
 
-namespace ProductService.Application.Features.Categories.GetList
+namespace ProductService.Application.Features.Categories.Queries.GetList
 {
     public class GetCategoriesQuery : IRequest<Result<GetCategoriesResultDto>>
     {

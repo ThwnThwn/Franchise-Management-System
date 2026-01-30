@@ -11,10 +11,15 @@
   </ItemGroup> -->
 
   <ItemGroup>
-		<Protobuf Include="..\..\..\protos\product\*.proto" 
-					GrpcServices="Server" 
-					ProtoRoot="..\..\..\protos" />
+		<Protobuf Include="..\..\..\protos\product\*.proto" GrpcServices="Server" ProtoRoot="..\..\..\protos" />
 	</ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Protos\**" />
+    <Content Remove="Protos\**" />
+    <EmbeddedResource Remove="Protos\**" />
+    <None Remove="Protos\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Ardalis.Result" Version="10.1.0" />
@@ -30,6 +35,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.2" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
   </ItemGroup>

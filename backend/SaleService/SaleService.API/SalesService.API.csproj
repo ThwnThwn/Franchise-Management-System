@@ -16,10 +16,18 @@
     <Protobuf Include="..\..\..\protos\sales\*.proto" GrpcServices="Server" ProtoRoot="..\..\..\protos" />
 	</ItemGroup> -->
   <ItemGroup>
+<<<<<<< HEAD
+		<Protobuf Include="..\..\..\protos\product\*.proto" GrpcServices="Client" ProtoRoot="..\..\..\protos" />
+    <Protobuf Include="..\..\..\protos\sales\*.proto" GrpcServices="Server" ProtoRoot="..\..\..\protos" />
+	</ItemGroup>
+  <ItemGroup>
+    <None Remove="Protos\orders.proto" />
+=======
     <None Remove="Protos\inventory.proto" />
 	    <Protobuf Include="..\..\..\protos\product\*.proto" GrpcServices="Client" ProtoRoot="..\..\..\protos" />
 	    <Protobuf Include="..\..\..\protos\identity\*.proto" GrpcServices="Client" ProtoRoot="..\..\..\protos" />
 	    <Protobuf Include="..\..\..\protos\sales\*.proto" GrpcServices="Server" ProtoRoot="..\..\..\protos" />
+>>>>>>> 4b0a4412e83f23ba68c6a90b6ed2dfa3efe95f02
   </ItemGroup>
 
   <ItemGroup>
@@ -40,6 +48,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.2" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.0" />
     <PackageReference Include="FluentValidation" Version="11.9.0" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.9.0" />
@@ -50,9 +59,16 @@
     <ProjectReference Include="..\SaleService.Application\SalesService.Application.csproj" />
     <ProjectReference Include="..\SaleService.Infrastructure\SalesService.Infrastructure.csproj" />
   </ItemGroup>
+<<<<<<< HEAD
+<!-- 
+  <ItemGroup>
+    <Protobuf Include="Protos\orders.proto" />
+  </ItemGroup> -->
+=======
 	<ItemGroup>
 		<Protobuf Include="Protos\inventory.proto" GrpcServices="Client" />
 	</ItemGroup>
 
+>>>>>>> 4b0a4412e83f23ba68c6a90b6ed2dfa3efe95f02
 
 </Project>
