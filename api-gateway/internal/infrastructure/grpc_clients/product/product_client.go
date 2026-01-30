@@ -5,7 +5,6 @@ import (
 
 	"api-gateway/internal/domain/models/product"
 	productPb "api-gateway/pkg/pb/product"
-	"api-gateway/pkg/utils/numberutils"
 	"context"
 
 	"github.com/google/uuid"
@@ -51,7 +50,7 @@ func (c *ProductGrpcClient) GetProducts(ctx context.Context, req *product.GetPro
 	}
 	return &product.GetProductsReply{
 		Products:   products,
-		TotalCount: numberutils.GetInt32(res.TotalCount),
+		TotalCount: res.TotalCount,
 	}, nil
 }
 
@@ -83,4 +82,65 @@ func (c *ProductGrpcClient) GetProductById(ctx context.Context, id uuid.UUID) (*
 		CategoryName: productRes.CategoryName,
 		Sizes:        sizes,
 	}, nil
+}
+
+// CreateProduct implements product.IProductService.
+func (c *ProductGrpcClient) CreateProduct(ctx context.Context, req *product.CreateProductRequest) error {
+	variants := make([]*productPb.CreateProductVariant, 0, len(req.Variants))
+	for _, v := range req.Variants {
+		variants = append(variants, &productPb.CreateProductVariant{
+			Sku:        v.Sku,
+			Name:       v.Name,
+			Attributes: v.Attributes,
+			BasePrice:  v.BasePrice,
+			Cost:       v.Cost,
+			IsActive:   v.IsActive,
+		})
+	}
+
+	_, err := c.client.CreateProduct(ctx, &productPb.CreateProductRequest{
+		Name:        req.Name,
+		Description: req.Description,
+		// ImageUrl: req.ImageUrl,
+		CategoryId: req.CategoryId,
+		Variants:   variants,
+	})
+	return err
+}
+
+// UpdateProduct implements product.IProductService.
+func (c *ProductGrpcClient) UpdateProduct(ctx context.Context, id uuid.UUID, req *product.UpdateProductRequest) error {
+	variants := make([]*productPb.UpdateProductVariant, 0, len(req.Variants))
+	for _, v := range req.Variants {
+		variants = append(variants, &productPb.UpdateProductVariant{
+			Sku:        v.Sku,
+			Name:       v.Name,
+			Attributes: v.Attributes,
+			BasePrice:  v.BasePrice,
+			Cost:       v.Cost,
+			IsActive:   v.IsActive,
+		})
+	}
+
+	_, err := c.client.UpdateProduct(ctx, &productPb.UpdateProductRequest{
+		ProductId:   id.String(),
+		Name:        req.Name,
+		Description: req.Description,
+		IsActive:    req.IsActive,
+		CategoryId:  req.CategoryId,
+		Variants:    variants,
+	})
+	return err
+}
+
+// DeleteProduct implements product.IProductService.
+func (c *ProductGrpcClient) DeleteProduct(ctx context.Context, id uuid.UUID) error {
+	res, err := c.client.DeleteProduct(ctx, &productPb.DeleteProductRequest{Id: id.String()})
+	if err != nil {
+		return err
+	}
+	if !res.Success {
+		return err
+	}
+	return nil
 }
