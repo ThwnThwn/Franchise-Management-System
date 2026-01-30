@@ -74,6 +74,27 @@ public class SmtpEmailSender : IEmailSender
         message.Body = bodyBuilder.ToMessageBody();
         await SendEmailInternalAsync(message);
     }
+    public async Task SendLowStockEmailAsync(string toEmail, LowStockEvent lowStockEvent)
+    {
+        var message = new MimeMessage();
+        message.From.Add(new MailboxAddress(_settings.FromName, _settings.FromEmail));
+        message.To.Add(new MailboxAddress("", toEmail));
+        message.Subject = "Low Stock Alert";
+        var bodyBuilder = new BodyBuilder
+        {
+            HtmlBody = $@"
+            <div style='font-family: Arial, sans-serif; padding: 20px;'>
+                <h2 style='color: #E53935;'>Low Stock Alert</h2>
+                <p>The stock for the following ingredient is low:</p>
+                <p><strong>Ingredient:</strong> {lowStockEvent.IngredientName}</p>
+                <p><strong>Current Stock:</strong> {lowStockEvent.CurrentStock}</p>
+                <p><strong>Minimum Threshold:</strong> {lowStockEvent.MinThreshold}</p>
+                <p>Please restock as soon as possible.</p>
+            </div>"
+        };
+        message.Body = bodyBuilder.ToMessageBody();
+        await SendEmailInternalAsync(message);
+    }
     private async Task SendEmailInternalAsync(MimeMessage message)
     {
         using var client = new SmtpClient();

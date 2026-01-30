@@ -103,6 +103,14 @@ public class KafkaConsumerService : BackgroundService
                         _logger.LogInformation("Password reset event received for {Email}", resetEvent.Email);
                     }
                     break;
+                case "low-stock-notifications":
+                    var lowStockEvent = JsonSerializer.Deserialize<LowStockEvent>(message);
+                    if (lowStockEvent != null)
+                    {
+                        var lowStockHandler = scope.ServiceProvider.GetRequiredService<LowStockNotificationHandler>();
+                        await lowStockHandler.HandleAsync(lowStockEvent);
+                    }
+                    break;
                 
                 
                 default:

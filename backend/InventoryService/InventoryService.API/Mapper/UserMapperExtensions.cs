@@ -1,5 +1,5 @@
 ﻿using Google.Protobuf.WellKnownTypes;
-using IdentityService.Grpc.Protos.User.Internal;
+using IdentityService.Grpc.Protos.User;
 using InventoryService.Application.Dtos.User;
 
 namespace InventoryService.API.Mapper

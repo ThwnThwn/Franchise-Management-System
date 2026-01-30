@@ -1,10 +1,12 @@
 syntax = "proto3";
 
-option csharp_namespace = "IdentityService.Grpc.Protos.User.Internal";
+option csharp_namespace = "IdentityService.Grpc.Protos.User";
 option go_package = "api-gateway/pkg/pb/identity";
 import "google/protobuf/timestamp.proto";
 
-service UserGrpcInternal {
+package identity.user;
+
+service UserGrpc {
 	rpc GetManager(GetManagerRequest) returns (UserResponse);
 }
 
