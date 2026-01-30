@@ -6,5 +6,6 @@ namespace IdentityService.Application.Features.Users.Queries.GetAllUser;
 public class GetAllUsersQuery() : PaginationRequest, IRequest<PagedResult<UserRep>>
 {
     public string? RoleSlug {  get; set; }
+    public Guid? Id { get; set; }
     public string? Keyword { get; set; }
 }

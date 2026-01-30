@@ -68,6 +68,11 @@ public sealed class CreateOrderHandler
 
         var variantInfo = await _productServiceClient.GetListProductVariantsBySkusAsync(skus);
 
+        if(variantInfo.Count != skus.Count)
+        {
+            return Result.Error("One or more product variants not found or inactive.");
+        }
+
         IEnumerable<AmountVariant> listItemCheck = variantInfo.Select(v => new AmountVariant
         {
             VariantId = v.VariantId,
@@ -169,27 +174,27 @@ public sealed class CreateOrderHandler
 
         var createdOrder = await _orderRepository.CreateAsync(order, cancellationToken);
 
-        // Fetch customer email from IdentityService
-        //string? customerEmail = null;
-        //if (createdOrder.CustomerId.HasValue)
-        //{
-        //    var user = await _identityServiceClient.GetUserByIdAsync(createdOrder.CustomerId.Value);
-        //    customerEmail = user?.Email;
-        //}
-
-        //// Only publish event if we have customer email
-        //if (!string.IsNullOrEmpty(customerEmail))
-        //{
-        //    await _kafkaProducer.PublishAsync("order-notifications", new OrderCreatedEvent
-        //    {
-        //        OrderId = createdOrder.Id,
-        //        CustomerEmail = customerEmail,
-        //        OrderSummary = $"Order {createdOrder.Code} created with {createdOrder.OrderItems.Count} items",
-        //        TotalAmount = createdOrder.TotalAmount,
-        //        CreatedAt = DateTimeOffset.UtcNow
-        //    });
-        //}
+        //Fetch customer email from IdentityService
         string? customerEmail = null;
+        if (createdOrder.CustomerId.HasValue)
+        {
+            var user = await _identityServiceClient.GetUserByIdAsync(createdOrder.CustomerId.Value);
+            customerEmail = user?.Email;
+        }
+
+        // Only publish event if we have customer email
+        if (!string.IsNullOrEmpty(customerEmail))
+        {
+            await _kafkaProducer.PublishAsync("order-notifications", new OrderCreatedEvent
+            {
+                OrderId = createdOrder.Id,
+                CustomerEmail = customerEmail,
+                OrderSummary = $"Order {createdOrder.Code} created with {createdOrder.OrderItems.Count} items",
+                TotalAmount = createdOrder.TotalAmount,
+                CreatedAt = DateTimeOffset.UtcNow
+            });
+        }
+        //string? customerEmail = null;
         if (createdOrder.CustomerId.HasValue)
         {
             _logger.LogInformation("Fetching customer email for CustomerId: {CustomerId}", createdOrder.CustomerId.Value);

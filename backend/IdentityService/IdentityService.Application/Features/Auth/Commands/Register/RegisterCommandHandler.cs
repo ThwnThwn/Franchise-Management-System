@@ -93,6 +93,7 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, RegisterR
 
         // Reset attempt count when new OTP is sent
         await _otpStore.ResetOtpAttemptAsync(request.Email, register);
+        await _otpStore.RemoveLastOtpRequestTimeAsync(request.Email, register);
 
         // Publish OTP event to Kafka instead of sending email directly
         await _kafkaProducer.PublishAsync("otp-notifications", new OtpRequestedEvent

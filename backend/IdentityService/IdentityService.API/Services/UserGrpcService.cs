@@ -95,9 +95,17 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
     }
     public override async Task<GetAllUserOrWithRoleResponse> GetAll(GetAllUserOrWithRoleRequest request, ServerCallContext context)
     {
+        var userEntry = context.RequestHeaders.FirstOrDefault(h =>
+           h.Key.Equals("x-user-id", StringComparison.OrdinalIgnoreCase));
+        if (userEntry == null)
+        {
+            throw new RpcException(new Status(StatusCode.Unauthenticated, "Missing x-user-id in request headers"));
+        }
+
         var query = new GetAllUsersQuery()
         {
             RoleSlug = request.RoleSlug,
+            Id = Guid.Parse(userEntry.Value),
             Keyword = request.Keyword,
             Page = request.Page,
             PageSize = request.PageSize

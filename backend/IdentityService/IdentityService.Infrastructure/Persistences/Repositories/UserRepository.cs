@@ -116,12 +116,12 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
                 .ToListAsync();
         }
 
-        public async Task<PagedResult<User>> GetPagedUsersAsync(string? keyword, string? roleSlug, int pageIndex, int pageSize, CancellationToken cancellationToken)
+        public async Task<PagedResult<User>> GetPagedUsersAsync(string? keyword,Guid? id, string? roleSlug, int pageIndex, int pageSize, CancellationToken cancellationToken)
         {
             var query = _dbContext.Users
                 .Include(u => u.Role)
                 .AsNoTracking()
-                .Where(u => !u.IsDeleted);
+                .Where(u => !u.IsDeleted && u.Id != id);
 
             if (!string.IsNullOrEmpty(keyword))
             {

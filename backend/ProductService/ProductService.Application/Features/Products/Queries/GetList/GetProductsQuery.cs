@@ -1,15 +1,21 @@
 using System;
+using System.Collections.Generic;
 using Ardalis.Result;
 using MediatR;
 
-namespace ProductService.Application.Features.Products.GetById;
+namespace ProductService.Application.Features.Products.Queries.GetList;
 
-// Query
-public sealed record GetProductByIdQuery(Guid ProductId)
-    : IRequest<Result<GetProductDetailDto>>;
+// Query lấy danh sách sản phẩm (menu)
+public sealed record GetProductsQuery(Guid? CategoryId)
+    : IRequest<Result<GetProductsResultDto>>;
 
-// DTO chi tiết sản phẩm
-public sealed class GetProductDetailDto
+public sealed class GetProductsResultDto
+{
+    public List<GetProductListItemDto> Products { get; set; } = new();
+    public int TotalCount { get; set; }
+}
+
+public sealed class GetProductListItemDto
 {
     public Guid Id { get; set; }
     public string Name { get; set; } = default!;
@@ -20,10 +26,10 @@ public sealed class GetProductDetailDto
     public Guid CategoryId { get; set; }
     public string CategoryName { get; set; } = default!;
 
-    public List<ProductSizeDto> Sizes { get; set; } = new();
+    public List<ProductSizeListItemDto> Sizes { get; set; } = new();
 }
 
-public sealed class ProductSizeDto
+public sealed class ProductSizeListItemDto
 {
     public Guid Id { get; set; }
     public string Sku { get; set; } = default!;

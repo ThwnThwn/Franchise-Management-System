@@ -24,6 +24,7 @@ public class GetAllUsersQueryHandler : IRequestHandler<GetAllUsersQuery, PagedRe
     {
         var pagedUsers = await _userRepository.GetPagedUsersAsync(
             query.Keyword ?? "",
+            query.Id,
             query.RoleSlug,
             query.Page,
             query.PageSize,
