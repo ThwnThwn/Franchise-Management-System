@@ -23,7 +23,8 @@ export const useStores = (params: GetStoresParams) => {
         }
 
         fetchStores()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [params.page, params.pageSize, params.keyword])
 
-    return { data, loading, error, refetch: () => { } }
+    return { data, loading, error, refetch: () => {} }
 }

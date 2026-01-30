@@ -71,12 +71,14 @@ export default function MenuPage() {
         (product: Product) => {
             if (!isLogined) {
                 onOpenLogin()
+            } else if (!selectedStore) {
+                onOpenStoreModal()
             } else {
                 setSelectedProduct(product)
                 onOpen()
             }
         },
-        [isLogined, onOpen, onOpenLogin]
+        [isLogined, onOpen, onOpenLogin, onOpenStoreModal, selectedStore]
     )
 
     // const handleModalOpenChange = useCallback(() => {

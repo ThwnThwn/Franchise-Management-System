@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import React, { useState, useEffect, useMemo } from "react"
 import { useStores, useUserLocation } from "@/features/stores/hooks"
 import StoreList from "@/features/stores/components/StoreList"
 import StoreDetailModal from "@/features/stores/components/StoreDetailModal"
@@ -40,9 +40,9 @@ export default function StoresPage() {
                 const a =
                     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
                     Math.cos((latitude * Math.PI) / 180) *
-                    Math.cos((store.latitude * Math.PI) / 180) *
-                    Math.sin(dLon / 2) *
-                    Math.sin(dLon / 2)
+                        Math.cos((store.latitude * Math.PI) / 180) *
+                        Math.sin(dLon / 2) *
+                        Math.sin(dLon / 2)
                 const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
                 const distance = R * c
 
@@ -82,9 +82,7 @@ export default function StoresPage() {
         <div className="min-h-screen w-200">
             <div className="bg-white shadow-sm rounded-3xl">
                 <div className="max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-6">
-                        Danh sách Cửa hàng
-                    </h1>
+                    <h1 className="text-3xl font-bold text-gray-900 mb-6">Danh sách Cửa hàng</h1>
 
                     <div className="flex flex-col sm:flex-row gap-4">
                         <div className="flex-1">
@@ -116,7 +114,6 @@ export default function StoresPage() {
                         <button
                             onClick={handleSearch}
                             className="px-6 py-3 bg-[#5D4037] text-white rounded-lg hover:bg-[#4E342E] transition-colors font-semibold shadow-md"
-
                         >
                             Tìm kiếm
                         </button>
@@ -126,9 +123,7 @@ export default function StoresPage() {
                         <p className="text-sm text-gray-500 mt-2">Đang lấy vị trí GPS...</p>
                     )}
                     {latitude && longitude && !locationLoading && (
-                        <p className="text-sm text-green-600 mt-2">
-                            Những cửa hàng gần bạn
-                        </p>
+                        <p className="text-sm text-green-600 mt-2">Những cửa hàng gần bạn</p>
                     )}
                     {!latitude && !locationLoading && (
                         <p className="text-sm text-gray-500 mt-2">
@@ -149,9 +144,7 @@ export default function StoresPage() {
                     stores={sortedStores}
                     loading={loading}
                     onStoreClick={handleStoreClick}
-                    userLocation={
-                        latitude && longitude ? { latitude, longitude } : null
-                    }
+                    userLocation={latitude && longitude ? { latitude, longitude } : null}
                 />
 
                 {data && (

@@ -1,5 +1,7 @@
+import React from "react"
 import { StoreDetailDto } from "../../models/schema/response"
 import StoreCard from "../StoreCard"
+import { calculateDistance } from "@/utils/helpers/locationHelper"
 
 type StoreListProps = {
     stores: StoreDetailDto[]
@@ -8,40 +10,12 @@ type StoreListProps = {
     userLocation?: { latitude: number; longitude: number } | null
 }
 
-// Haversine formula to calculate distance between two GPS coordinates
-function calculateDistance(
-    lat1: number,
-    lon1: number,
-    lat2: number,
-    lon2: number
-): number {
-    const R = 6371 // Earth radius in km
-    const dLat = ((lat2 - lat1) * Math.PI) / 180
-    const dLon = ((lon2 - lon1) * Math.PI) / 180
-    const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos((lat1 * Math.PI) / 180) *
-        Math.cos((lat2 * Math.PI) / 180) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2)
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-    return R * c
-}
-
-export default function StoreList({
-    stores,
-    loading,
-    onStoreClick,
-    userLocation
-}: StoreListProps) {
+export default function StoreList({ stores, loading, onStoreClick, userLocation }: StoreListProps) {
     if (loading) {
         return (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[...Array(6)].map((_, index) => (
-                    <div
-                        key={index}
-                        className="bg-gray-200 rounded-lg h-80 animate-pulse"
-                    />
+                    <div key={index} className="bg-gray-200 rounded-lg h-80 animate-pulse" />
                 ))}
             </div>
         )
@@ -74,11 +48,11 @@ export default function StoreList({
                 const distance =
                     userLocation && store.latitude && store.longitude
                         ? calculateDistance(
-                            userLocation.latitude,
-                            userLocation.longitude,
-                            store.latitude,
-                            store.longitude
-                        )
+                              userLocation.latitude,
+                              userLocation.longitude,
+                              store.latitude,
+                              store.longitude
+                          )
                         : null
 
                 return (

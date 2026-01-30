@@ -1,5 +1,6 @@
+import { ImageStyled } from "@/components"
 import { StoreDetailDto } from "../../models/schema/response"
-import Image from "next/image"
+import React from "react"
 
 type StoreCardProps = {
     store: StoreDetailDto
@@ -13,12 +14,11 @@ export default function StoreCard({ store, distance, onClick }: StoreCardProps) 
             onClick={onClick}
             className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer overflow-hidden"
         >
-            <div className="relative h-48 w-full">
-                <Image
-                    src={store.imageUrl || "/placeholder-store.jpg"}
+            <div className="relative h-40 w-full">
+                <ImageStyled
+                    src={store.imageUrl}
                     alt={store.name}
-                    fill
-                    className="object-cover"
+                    className="h-40 w-80 rounded-none"
                 />
                 {store.isOpenNow && (
                     <div className="absolute top-2 right-2 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
