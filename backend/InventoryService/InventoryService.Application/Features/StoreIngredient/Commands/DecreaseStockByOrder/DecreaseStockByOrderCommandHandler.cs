@@ -1,4 +1,5 @@
 ﻿using InventoryService.Application.AppExceptions;
+using InventoryService.Application.ClientInterface.Indentity;
 using InventoryService.Application.Constants;
 using InventoryService.Application.Features.StoreIngredient.Commands.IncreaseStock;
 using InventoryService.Application.Persistences.Repositories;
@@ -16,12 +17,12 @@ namespace InventoryService.Application.Features.StoreIngredient.Commands.Decreas
     {
         private readonly IStoreIngredientRepository _storeIngredientRepo;
         private readonly IRecipeRepository _recipeRepository;
-        private readonly IIngredientRepository _ingredientRepository;
-        public DecreaseStockByOrderCommandHandler(IStoreIngredientRepository storeIngredientRepo, IRecipeRepository recipeRepository, IIngredientRepository ingredientRepository)
+        private readonly IIdentityServiceClient _identityServiceClient;
+        public DecreaseStockByOrderCommandHandler(IStoreIngredientRepository storeIngredientRepo, IRecipeRepository recipeRepository, IIdentityServiceClient identityServiceClient)
         {
             _storeIngredientRepo = storeIngredientRepo;
             _recipeRepository = recipeRepository;
-            _ingredientRepository = ingredientRepository;
+            _identityServiceClient = identityServiceClient;
         }
 
         public async Task<Unit> Handle(DecreaseStockByOrderCommand common, CancellationToken cancellationToken)
@@ -82,6 +83,13 @@ namespace InventoryService.Application.Features.StoreIngredient.Commands.Decreas
                 // Trừ kho
                 stock.Quantity -= required.Value;
                 stock.UpdatedAt = DateTime.UtcNow;
+
+                if(stock.Quantity < stock.MinThreshold)
+                {
+                    var manager = await _identityServiceClient.GetManager(new Dtos.User.GetManagerReq{ StoreId = stock.StoreId});
+                    //gòi gửi mail ii
+
+                }
             }
 
             // 6. Lưu thay đổi xuống Database 1 lần duy nhất

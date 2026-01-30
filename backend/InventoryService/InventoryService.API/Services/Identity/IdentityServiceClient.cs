@@ -1,8 +1,11 @@
-﻿using Grpc.Net.Client;
+﻿using Grpc.Core;
+using Grpc.Net.Client;
 using IdentityService.Grpc.Protos.User.Internal;
+using InventoryService.API.Mapper;
 using InventoryService.Application.ClientInterface.Indentity;
 using InventoryService.Application.Dtos.User;
 using MediatR;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace InventoryService.API.Services.Identity
 {
@@ -35,9 +38,18 @@ namespace InventoryService.API.Services.Identity
 
             _client = new UserGrpcInternal.UserGrpcInternalClient(channel);
         }
-        public Task<UserRep> GetManager(GetManagerReq request)
+        public async Task<UserRep> GetManager(GetManagerReq command)
         {
-            throw new NotImplementedException();
+            var request = new GetManagerRequest
+            {
+                Id = command.StoreId.ToString()
+            };
+            var respone = await _client.GetManagerAsync(request);
+
+            if (respone == null) throw new RpcException(new Status(StatusCode.NotFound, "User not found"));
+
+            return respone.ToEntity();
+
         }
     }
 }
