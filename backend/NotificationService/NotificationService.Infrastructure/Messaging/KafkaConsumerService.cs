@@ -21,7 +21,9 @@ public class KafkaConsumerService : BackgroundService
         {
             BootstrapServers = configuration["KAFKA_BOOTSTRAP_SERVERS"] ?? "localhost:9092",
             GroupId = configuration["KAFKA_CONSUMER_GROUP_ID"] ?? "notification-service-group",
-            AutoOffsetReset = AutoOffsetReset.Earliest
+            AutoOffsetReset = AutoOffsetReset.Earliest,
+            EnableAutoCommit = false,             // Use manual commit for better control
+            EnableAutoOffsetStore = true          // Auto store offset after Consume()
         };
         _consumer = new ConsumerBuilder<string, string>(config).Build();
         _serviceProvider = serviceProvider;
@@ -32,7 +34,8 @@ public class KafkaConsumerService : BackgroundService
         _consumer.Subscribe(new[] {
             "otp-notifications",
             "order-notifications",
-            "password-reset-notifications"
+            "password-reset-notifications",
+            "low-stock-notifications"  // ✅ Subscribe to low stock events
         });
         _logger.LogInformation("Kafka consumer started, listening to topics...");
         while (!stoppingToken.IsCancellationRequested)
@@ -45,7 +48,17 @@ public class KafkaConsumerService : BackgroundService
                     "Received message from topic {Topic}: {Message}",
                     result.Topic,
                     result.Message.Value);
+                
                 await ProcessMessageAsync(result.Topic, result.Message.Value);
+                
+                // ✅ Commit offset immediately after successful processing
+                // This ensures message won't be reprocessed even if service restarts
+                _consumer.Commit(result);
+                
+                _logger.LogInformation(
+                    "Successfully processed and committed message from topic {Topic}, Offset: {Offset}",
+                    result.Topic,
+                    result.Offset.Value);
             }
             catch (ConsumeException ex)
             {
@@ -54,6 +67,7 @@ public class KafkaConsumerService : BackgroundService
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unexpected error in Kafka consumer");
+                // ⚠️ Don't commit on error - message will be reprocessed
             }
         }
         _consumer.Close();
@@ -89,6 +103,8 @@ public class KafkaConsumerService : BackgroundService
                         _logger.LogInformation("Password reset event received for {Email}", resetEvent.Email);
                     }
                     break;
+                
+                
                 default:
                     _logger.LogWarning("Unknown topic: {Topic}", topic);
                     break;
