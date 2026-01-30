@@ -27,3 +27,18 @@ func (p *ProductUseCase) GetProductById(ctx context.Context, id uuid.UUID) (*pro
 func (p *ProductUseCase) GetProducts(ctx context.Context, req *product.GetProductsRequest) (*product.GetProductsReply, error) {
 	return p.service.GetProducts(ctx, req)
 }
+
+// CreateProduct implements abstractions.IProductUseCase.
+func (p *ProductUseCase) CreateProduct(ctx context.Context, req *product.CreateProductRequest) error {
+	return p.CreateProduct(ctx, req)
+}
+
+// UpdateProduct implements abstractions.IProductUseCase.
+func (p *ProductUseCase) UpdateProduct(ctx context.Context, id uuid.UUID, req *product.UpdateProductRequest) error {
+	return p.UpdateProduct(ctx, id, req)
+}
+
+// DeleteProduct implements abstractions.IProductUseCase.
+func (p *ProductUseCase) DeleteProduct(ctx context.Context, id uuid.UUID) error {
+	return p.DeleteProduct(ctx, id)
+}
