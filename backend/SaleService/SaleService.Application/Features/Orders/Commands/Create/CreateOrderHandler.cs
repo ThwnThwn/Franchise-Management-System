@@ -174,27 +174,25 @@ public sealed class CreateOrderHandler
 
         var createdOrder = await _orderRepository.CreateAsync(order, cancellationToken);
 
-        //Fetch customer email from IdentityService
-        string? customerEmail = null;
-        if (createdOrder.CustomerId.HasValue)
+        // ✅ Trừ kho sau khi tạo đơn hàng thành công
+        try 
         {
-            var user = await _identityServiceClient.GetUserByIdAsync(createdOrder.CustomerId.Value);
-            customerEmail = user?.Email;
+            var decreaseStockReq = new DecreaseStockByOrderReq
+            {
+                StoreId = request.Request.StoreId.Value,
+                Items = listItemCheck.ToList()
+            };
+            await _inventoryServiceClient.DecreaseStockByOrder(decreaseStockReq);
+            _logger.LogInformation("Stock decreased successfully for Order {OrderCode}", createdOrder.Code);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to decrease stock for Order {OrderCode}", createdOrder.Code);
+            // TODO: Cần cơ chế compensate transaction (Saga) hoặc retry
         }
 
-        // Only publish event if we have customer email
-        if (!string.IsNullOrEmpty(customerEmail))
-        {
-            await _kafkaProducer.PublishAsync("order-notifications", new OrderCreatedEvent
-            {
-                OrderId = createdOrder.Id,
-                CustomerEmail = customerEmail,
-                OrderSummary = $"Order {createdOrder.Code} created with {createdOrder.OrderItems.Count} items",
-                TotalAmount = createdOrder.TotalAmount,
-                CreatedAt = DateTimeOffset.UtcNow
-            });
-        }
-        //string? customerEmail = null;
+        // Fetch customer email from IdentityService
+        string? customerEmail = null;
         if (createdOrder.CustomerId.HasValue)
         {
             _logger.LogInformation("Fetching customer email for CustomerId: {CustomerId}", createdOrder.CustomerId.Value);
