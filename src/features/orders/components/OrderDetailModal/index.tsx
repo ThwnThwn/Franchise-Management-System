@@ -17,7 +17,7 @@ import { OrderDetail } from "./OrderDetail"
 import { ORDER_TEXT } from "@/features/orders/constants"
 import { useDay } from "@/hooks"
 import { DEFAULT_DATE_FORMAT } from "@/constants/constants"
-import { useGetOrderById } from "@/features/orders/hooks"
+import { useGetOrderById, usePayment } from "@/features/orders/hooks"
 import { STRINGS } from "@/constants/strings"
 import { BackendError } from "@/models/common/respone"
 
@@ -31,10 +31,21 @@ export const OrderDetailModal = ({ isOpen, onOpenChange, orderId }: OrderDetailM
     const { data: order, isLoading, error } = useGetOrderById({ id: orderId })
     const { formatDateTime } = useDay({ defaultFormat: DEFAULT_DATE_FORMAT })
 
-    const handlePrintInvoice = () => {
-        addToast({
-            title: STRINGS.COMMON.NOTIFICATION,
-            description: ORDER_TEXT.labels.INVOICE_FEATURE_ALERT
+    const { mutate: payment, isPending: isPaymentPending } = usePayment()
+
+    const handlePayment = () => {
+        payment(orderId, {
+            onSuccess: (data: { paymentUrl: string }) => {
+                if (data.paymentUrl) {
+                    window.location.href = data.paymentUrl
+                } else {
+                    addToast({
+                        title: STRINGS.COMMON.ERROR,
+                        description: "Không tìm thấy link thanh toán",
+                        color: "danger"
+                    })
+                }
+            }
         })
     }
 
@@ -80,7 +91,11 @@ export const OrderDetailModal = ({ isOpen, onOpenChange, orderId }: OrderDetailM
                                 {ORDER_TEXT.labels.CLOSE}
                             </Button>
 
-                            <Button color="primary" onPress={handlePrintInvoice}>
+                            <Button
+                                color="primary"
+                                onPress={handlePayment}
+                                isLoading={isPaymentPending}
+                            >
                                 {ORDER_TEXT.labels.PRINT_INVOICE}
                             </Button>
                         </ModalFooter>
