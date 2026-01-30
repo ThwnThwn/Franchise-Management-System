@@ -42,7 +42,7 @@ export const CartItem: React.FC<CartItemProps> = ({ item, onUpdateQuantity, onRe
                         <div className="flex-1 min-w-0 gap-1">
                             {/* Product Image */}
 
-                            <h4 className="font-semibold text-sm truncate">{item.productName}</h4>
+                            <h4 className="font-semibold text-sm truncate">{item.sku}</h4>
                             {/* {item.sizeName && (
                                 <p className="text-xs text-gray-500">Size: {item.sizeName}</p>
                             )} */}
