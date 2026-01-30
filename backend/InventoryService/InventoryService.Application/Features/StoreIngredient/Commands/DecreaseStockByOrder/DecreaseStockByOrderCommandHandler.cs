@@ -10,6 +10,9 @@ using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading.Tasks;
+using InventoryService.Application.ExternalServices;
+using SharedKernel.Events;
+using Microsoft.Extensions.Logging;
 
 namespace InventoryService.Application.Features.StoreIngredient.Commands.DecreaseStockByOrder
 {
@@ -18,11 +21,20 @@ namespace InventoryService.Application.Features.StoreIngredient.Commands.Decreas
         private readonly IStoreIngredientRepository _storeIngredientRepo;
         private readonly IRecipeRepository _recipeRepository;
         private readonly IIdentityServiceClient _identityServiceClient;
-        public DecreaseStockByOrderCommandHandler(IStoreIngredientRepository storeIngredientRepo, IRecipeRepository recipeRepository, IIdentityServiceClient identityServiceClient)
+        private readonly IKafkaProducer _kafkaProducer;
+        private readonly ILogger<DecreaseStockByOrderCommandHandler> _logger;
+        public DecreaseStockByOrderCommandHandler(
+            IStoreIngredientRepository storeIngredientRepo, 
+            IRecipeRepository recipeRepository, 
+            IIdentityServiceClient identityServiceClient, 
+            IKafkaProducer kafkaProducer,
+            ILogger<DecreaseStockByOrderCommandHandler> logger)
         {
             _storeIngredientRepo = storeIngredientRepo;
             _recipeRepository = recipeRepository;
             _identityServiceClient = identityServiceClient;
+            _kafkaProducer = kafkaProducer;
+            _logger = logger;
         }
 
         public async Task<Unit> Handle(DecreaseStockByOrderCommand common, CancellationToken cancellationToken)
@@ -84,11 +96,42 @@ namespace InventoryService.Application.Features.StoreIngredient.Commands.Decreas
                 stock.Quantity -= required.Value;
                 stock.UpdatedAt = DateTime.UtcNow;
 
-                if(stock.Quantity < stock.MinThreshold)
-                {
-                    var manager = await _identityServiceClient.GetManager(new Dtos.User.GetManagerReq{ StoreId = stock.StoreId});
-                    //gòi gửi mail ii
+                _logger.LogInformation("Updated stock for Ingredient {IngredientId}. New Quantity: {Quantity}, Threshold: {Threshold}", 
+                    stock.IngredientId, stock.Quantity, stock.MinThreshold);
 
+                if ((stock.Quantity ?? 0) < (stock.MinThreshold ?? 0))
+                {
+                    _logger.LogInformation("Low stock detected for Ingredient {IngredientId}. Fetching Manager...", stock.IngredientId);
+                    
+                    Dtos.User.UserRep? manager = null;
+                    try
+                    {
+                        manager = await _identityServiceClient.GetManager(new Dtos.User.GetManagerReq { StoreId = stock.StoreId });
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning("Failed to fetch manager for Store {StoreId}: {Message}", stock.StoreId, ex.Message);
+                    }
+                   
+                    if (manager != null)
+                    {
+                        var lowStockEvent = new LowStockEvent
+                        {
+                            StoreId = stock.StoreId,
+                            IngredientId = stock.IngredientId,
+                            IngredientName = stock.Ingredient.Name,
+                            CurrentStock = stock.Quantity ?? 0,
+                            MinThreshold = stock.MinThreshold ?? 0,
+                            ManagerEmail = manager.Email 
+                        };
+                        
+                        _logger.LogInformation("Publishing LowStockEvent to Kafka for Manager {Email}", manager.Email);
+                        await _kafkaProducer.PublishAsync("low-stock-notifications", lowStockEvent);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Low stock detected but NO Manager found for Store {StoreId}", stock.StoreId);
+                    }
                 }
             }
 

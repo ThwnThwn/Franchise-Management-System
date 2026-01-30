@@ -3,5 +3,6 @@ public enum NotificationType
 {
     Otp = 1,
     PasswordReset = 2,
-    OrderCreated = 3
+    OrderCreated = 3,
+    LowStock = 4
 }

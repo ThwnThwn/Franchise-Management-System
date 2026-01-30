@@ -41,6 +41,7 @@ builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 builder.Services.AddScoped<OtpNotificationHandler>();
 builder.Services.AddScoped<OrderNotificationHandler>();
+builder.Services.AddScoped<LowStockNotificationHandler>();
 // KAFKA CONSUMER (Background Service)
 builder.Services.AddHostedService<KafkaConsumerService>();
 // LOGGING
