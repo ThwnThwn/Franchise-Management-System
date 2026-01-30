@@ -5,20 +5,25 @@ import { ModalBody, ModalContent, ModalHeader } from "@heroui/react"
 import { ModalStyled, ImageStyled, ButtonStyled, NumberInputStyled } from "@/components"
 import { formatCurrencyWithSymbol } from "@/utils/helpers/currency"
 import { useCartStore } from "@/features/cart/store"
-import { GetProductListItemDto, ProductSizeListItemDto } from "../../models/schema/respone"
 import { parseAttributes } from "../../utils/utils"
 import { useTokenStore } from "@/hooks"
 import { useAddToCart } from "@/features/cart/hooks/useCartQuery"
+import { Product, ProductSize } from "../../models/products/respone"
 
 type ProductVariantsModalProps = {
-    product: GetProductListItemDto | null
+    product: Product | null
     isOpen: boolean
     onOpenChange: () => void
     storeId?: string
 }
 
-export function ProductVariantsModal({ product, isOpen, onOpenChange, storeId }: ProductVariantsModalProps) {
-    const [selectedSize, setSelectedSize] = useState<ProductSizeListItemDto | null>(null)
+export function ProductVariantsModal({
+    product,
+    isOpen,
+    onOpenChange,
+    storeId
+}: ProductVariantsModalProps) {
+    const [selectedSize, setSelectedSize] = useState<ProductSize | null>(null)
     const [quantity, setQuantity] = useState<number>(1)
     const addItem = useCartStore((state) => state.addItem)
 
@@ -65,7 +70,16 @@ export function ProductVariantsModal({ product, isOpen, onOpenChange, storeId }:
         }
 
         handleClose()
-    }, [product, selectedSize, quantity, addItem, handleClose, storeId, isLogined, addToCartMutation])
+    }, [
+        product,
+        selectedSize,
+        quantity,
+        addItem,
+        handleClose,
+        storeId,
+        isLogined,
+        addToCartMutation
+    ])
 
     if (!product) return null
 
@@ -105,9 +119,10 @@ export function ProductVariantsModal({ product, isOpen, onOpenChange, storeId }:
                                             key={size.id}
                                             variant="ghost"
                                             onPress={() => setSelectedSize(size)}
-                                            className={`flex flex-col gap-0 min-h-fit w-full items-start px-3 py-2 ${selectedSize?.id === size.id &&
+                                            className={`flex flex-col gap-0 min-h-fit w-full items-start px-3 py-2 ${
+                                                selectedSize?.id === size.id &&
                                                 "border-primary bg-primary/10 text-primary"
-                                                }`}
+                                            }`}
                                         >
                                             <div className="w-full flex justify-between">
                                                 <span className="font-medium">{size.sku}</span>

@@ -25,7 +25,7 @@ export * from "./FilterTypeStyle"
 export * from "./FormStyled"
 
 /* ========================= G ========================= */
-export * from "./GrateStyled"
+// export * from "./GrateStyled"
 
 /* ========================= I ========================= */
 export * from "./ImageStyled"

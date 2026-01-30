@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useCallback, useMemo, useState } from "react"
+import React, { useMemo, useState } from "react"
 import { Divider } from "@heroui/react"
 import { X, ShoppingBag } from "lucide-react"
 import { CartItem } from "./CartItem"
@@ -9,7 +9,7 @@ import { useCartStore } from "@/features/cart/store"
 import { PaymentMethod, useCreateOrder } from "@/features/orders"
 import { useRouter } from "next/navigation"
 import { useTokenStore } from "@/hooks"
-import { useGetCart, useUpdateCartItem, useDeleteListCartItem, useClearCart } from "../hooks/useCartQuery"
+import { useGetCart, useUpdateCartItem, useDeleteListCartItem } from "../hooks/useCartQuery"
 import { RoleSlug } from "@/constants/enums"
 import { formatCurrencyWithSymbol } from "@/utils/helpers/currency"
 
@@ -27,7 +27,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
     const isCustomer = roleSlug === RoleSlug.Customer
 
     // API Hooks
-    const { data: apiCart } = useGetCart()
+    const { data: apiCart } = useGetCart({ enabled: isCustomer })
     const updateCartItemMutation = useUpdateCartItem()
     const deleteListCartItemMutation = useDeleteListCartItem()
 
@@ -37,7 +37,9 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
     const localRemoveItem = useCartStore((state) => state.removeItem)
 
     // Derived State
-    const items = isLogined ? (apiCart ?? []) : localItems
+    const items = useMemo(() => {
+        return isLogined ? (apiCart ?? []) : localItems
+    }, [apiCart, isLogined, localItems])
 
     const handleUpdateQuantity = (sku: string, quantity: number) => {
         if (isLogined) {
@@ -65,14 +67,11 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
     )
 
     // 2. Logic tính toán dựa trên item được chọn
-    const selectedItems = useMemo(() => {
-        return items.filter((item) => selectedKeys.has(item.sku))
-    }, [items, selectedKeys])
-
-    const selectedTotal = useMemo(() => {
-        return selectedItems.reduce((acc, item) => acc + item.basePrice * item.quantity, 0)
-    }, [selectedItems])
-
+    const selectedItems = items.filter((item) => selectedKeys.has(item.sku))
+    const selectedTotal = selectedItems.reduce(
+        (acc, item) => acc + item.basePrice * item.quantity,
+        0
+    )
     const tax = selectedTotal * TAX_RATE
     const finalTotal = selectedTotal + tax
 
@@ -100,14 +99,13 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
     }
 
     // Xử lý khi xóa item thì phải bỏ chọn nó khỏi state luôn
-
-    const handleSuccess = useCallback(() => {
+    const handleSuccess = () => {
         const redirectPath = isCustomer ? "/orders" : "/"
         router.push(redirectPath)
         onClose()
 
         if (isLogined) {
-            const skusToRemove = selectedItems.map(i => i.sku)
+            const skusToRemove = selectedItems.map((i) => i.sku)
             deleteListCartItemMutation.mutate({ skus: skusToRemove })
         } else {
             // For guest, remove locally
@@ -115,7 +113,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
         }
 
         setSelectedKeys(new Set())
-    }, [isCustomer, onClose, router, isLogined, selectedItems, deleteListCartItemMutation, localRemoveItem])
+    }
 
     const createOrderMutation = useCreateOrder({ onSuccess: handleSuccess })
 
@@ -132,7 +130,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
             tax,
             paymentMethod: PaymentMethod.Cash,
             notes: "",
-            storeId: currentStoreId || (selectedItems.length > 0 ? selectedItems[0].storeId : undefined)
+            storeId:
+                currentStoreId || (selectedItems.length > 0 ? selectedItems[0].storeId : undefined)
         })
     }
 
@@ -148,8 +147,9 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
 
             {/* Drawer */}
             <div
-                className={`fixed top-0 right-0 h-full w-full max-w-md bg-background shadow-xl z-99999 transform transition-transform duration-300 ${isOpen ? "translate-x-0" : "translate-x-full"
-                    }`}
+                className={`fixed top-0 right-0 h-full w-full max-w-md bg-background shadow-xl z-99999 transform transition-transform duration-300 ${
+                    isOpen ? "translate-x-0" : "translate-x-full"
+                }`}
             >
                 <div className="flex flex-col h-full">
                     {/* Header */}
@@ -189,7 +189,11 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                                             // Prevent triggering select when clicking on interactive elements inside CartItem
                                             // This is a simple check, ideally CartItem should handle its own clicks or we separate concerns
                                             const target = e.target as HTMLElement
-                                            if (target.tagName === "BUTTON" || target.closest("button") || target.tagName === "INPUT") {
+                                            if (
+                                                target.tagName === "BUTTON" ||
+                                                target.closest("button") ||
+                                                target.tagName === "INPUT"
+                                            ) {
                                                 return
                                             }
                                             handleSelectItem(item.sku)

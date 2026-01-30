@@ -1,11 +1,11 @@
 "use client"
 
-import React from "react"
+// import React from "react"
 // import MenuPage from "@/features/menu/pages/MenuPage"
-import ProfilePage from "../(private)/profile/page"
-import MenuPage from "@/features/menu/pages/MenuPage"
-import OrdersPage from "@/features/orders/pages/OrdersView"
-import CoffeeHome from "@/features/home/pages/HomeView"
+// import ProfilePage from "../(private)/profile/page"
+// import MenuPage from "@/features/menu/pages/MenuPage"
+// import OrdersPage from "@/features/orders/pages/OrdersView"
+// import CoffeeHome from "@/features/home/pages/HomeView"
 
 export default function Home() {
     // handle when log
@@ -64,8 +64,6 @@ export default function Home() {
         //         </NavbarContent>
         //     </NavbarStyled>
         // </div>
-        <>
-            <CoffeeHome />
-        </>
+        null
     )
 }

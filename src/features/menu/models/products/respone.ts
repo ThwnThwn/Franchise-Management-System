@@ -1,6 +1,6 @@
 import { UUID } from "crypto"
 
-export type GetProductListItemDto = {
+export type Product = {
     id: UUID
     name: string
     description?: string
@@ -8,21 +8,22 @@ export type GetProductListItemDto = {
     isActive: boolean
     categoryId: UUID
     categoryName: string
-    sizes: ProductSizeListItemDto[]
+    sizes: ProductSize[]
 }
 
-export type GetProductsResultDto = {
-    products: GetProductListItemDto[]
-    totalCount: number
-}
-
-export type ProductSizeListItemDto = {
+export type ProductSize = {
     id: UUID
     sku: string
     name?: string
     attributes?: string
     basePrice: number
+    cost: number
     isActive: boolean
+}
+
+export type GetProductsResultDto = {
+    products: Product[]
+    totalCount: number
 }
 
 export interface ProductAttribute {

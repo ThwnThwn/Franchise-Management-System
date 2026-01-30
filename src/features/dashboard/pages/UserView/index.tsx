@@ -2,7 +2,7 @@
 
 import React, { Suspense, useCallback, useMemo, useState } from "react"
 import { Spinner, useDisclosure } from "@heroui/react"
-import { Plus, Users } from "lucide-react"
+import { Plus, Search, Users } from "lucide-react"
 import { useCreateUser, useGetAllUsers } from "../../hooks"
 import {
     ButtonIconStyled,
@@ -83,9 +83,12 @@ export default function UserView() {
                     </div>
 
                     {/* --- Filter Section --- */}
-                    <div className="flex items-center gap-3 mb-4">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
                         <InputStyled
-                            label="Tìm kiếm"
+                            placeholder="Tìm kiếm sản phẩm..."
+                            startContent={<Search size={18} className="text-slate-400" />}
+                            variant="bordered"
+                            className="w-full"
                             onChange={async (e) => {
                                 await debouncedSearch({
                                     ...filter,
@@ -94,7 +97,7 @@ export default function UserView() {
                             }}
                         />
                         <EnumPicker
-                            label="Chọn vai trò"
+                            placeholder="Chọn vai trò"
                             labels={RoleSlugLabels}
                             value={filter.roleSlug}
                             onChange={(e) => {
@@ -106,7 +109,7 @@ export default function UserView() {
                         />
 
                         <ButtonIconStyled
-                            isLoading={isLoading}
+                            variant="bordered"
                             className="btn-gradient rounded-lg"
                             onPress={onCreateOpen}
                         >
@@ -124,16 +127,22 @@ export default function UserView() {
                     </div>
 
                     {isTyping ? (
-                        <div className="text-center mt-20">
+                        <div className="text-center my-20">
                             <Spinner className="mx-auto" />
                         </div>
                     ) : (
                         <Suspense fallback={<SpinnerStyled />}>
-                            <UserTable users={data?.items || []} />
+                            <div className="bg-white rounded-xl overflow-hidden">
+                                <UserTable
+                                    users={data?.items || []}
+                                    isLoading={isLoading}
+                                    emptyMessage="Không tìm thấy nhân viên nào"
+                                />
+                            </div>
                         </Suspense>
                     )}
 
-                    {(data?.items || []).length > 0 && (
+                    {(data?.items || []).length > 0 && !isLoading && !isTyping && (
                         <div className="mt-6 flex justify-center">
                             <PaginationStyled
                                 page={pagination.page ?? 1}

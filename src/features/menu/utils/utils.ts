@@ -1,4 +1,4 @@
-import { ProductAttribute } from "@/features/menu/models/schema/respone"
+import { ProductAttribute } from "../models/products/respone"
 
 export const parseAttributes = (jsonString?: string | null): ProductAttribute[] => {
     if (!jsonString) return []

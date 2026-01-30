@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion"
 
 import { ProductCard, ProductVariantsModal, StoreSelectionModal } from "../components"
 import { MENU_ERRORS } from "../constants"
-import { GetProductListItemDto } from "../models/schema/respone"
+import { Product } from "../models/products/respone"
 import { useGetAllProducts } from "../hooks"
 import { SpinnerStyled } from "@/components"
 import { useLoginDiscloresureSingleton, useTokenStore } from "@/hooks"
@@ -39,18 +39,20 @@ export default function MenuPage() {
         if (!productsData) return { products: [], totalCount: 0 }
         if (!searchQuery) return productsData
 
-        const normalize = (str: string) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+        const normalize = (str: string) =>
+            str
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .toLowerCase()
         const lowerQuery = normalize(searchQuery)
 
-        const filtered = productsData.products.filter(p =>
-            normalize(p.name).includes(lowerQuery)
-        )
+        const filtered = productsData.products.filter((p) => normalize(p.name).includes(lowerQuery))
         return {
             ...productsData,
             products: filtered
         }
     }, [productsData, searchQuery])
-    const [selectedProduct, setSelectedProduct] = useState<GetProductListItemDto | null>(null)
+    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
 
     const handleSearch = () => {
         setSearchQuery(inputValue)
@@ -66,7 +68,7 @@ export default function MenuPage() {
     const isLogined = useTokenStore((s) => !!s.accessToken)
 
     const handleOpenProduct = useCallback(
-        (product: GetProductListItemDto) => {
+        (product: Product) => {
             if (!isLogined) {
                 onOpenLogin()
             } else {
@@ -98,7 +100,9 @@ export default function MenuPage() {
                         >
                             <MapPin size={16} />
                             <div className="flex flex-col">
-                                <span className="font-semibold text-sm leading-none">{selectedStore.name}</span>
+                                <span className="font-semibold text-sm leading-none">
+                                    {selectedStore.name}
+                                </span>
                             </div>
                         </div>
                     ) : (
@@ -154,7 +158,9 @@ export default function MenuPage() {
                             transition={{ duration: 0.4 }}
                             className="text-gray-500 mt-10 text-base"
                         >
-                            {!selectedStore ? "Vui lòng chọn cửa hàng để xem menu" : MENU_ERRORS.NOT_HAVE_PRODUCT}
+                            {!selectedStore
+                                ? "Vui lòng chọn cửa hàng để xem menu"
+                                : MENU_ERRORS.NOT_HAVE_PRODUCT}
                         </motion.div>
                     ) : (
                         <motion.div

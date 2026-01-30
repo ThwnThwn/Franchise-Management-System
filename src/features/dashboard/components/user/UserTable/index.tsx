@@ -76,7 +76,7 @@ export function UserTable({
             ))
         }
 
-        if (users.length === 0) {
+        if (users.length === 0 && !isLoading) {
             return (
                 <TableRow>
                     <TableCell

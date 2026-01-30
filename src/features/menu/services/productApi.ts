@@ -1,7 +1,11 @@
 import { buildQueryParams, requestWrapper } from "@/utils/helpers/axiosHelper"
-import { GetAllProductParams } from "@/features/menu/models/schema/request"
+import {
+    CreateProductRequest,
+    GetAllProductParams,
+    UpdateProductRequest
+} from "@/features/menu/models/products/request"
 import axiosInstance from "@/utils/axios"
-import { GetProductsResultDto } from "../models/schema/respone"
+import { GetProductsResultDto, Product } from "../models/products/respone"
 
 export const productApi = {
     getAll: (query?: GetAllProductParams) =>
@@ -9,5 +13,28 @@ export const productApi = {
             const params = buildQueryParams(query ?? {})
             const res = await axiosInstance.get("/products", { params })
             return res.data
+        }),
+
+    getById: ({ id }: { id: string }) =>
+        requestWrapper<Product>(async () => {
+            const res = await axiosInstance.get(`/products/${id}`)
+            return res.data
+        }),
+
+    create: (req: CreateProductRequest) =>
+        requestWrapper<void>(async () => {
+            // const res = await axiosInstance.post("/products", req)
+            // return res.data
+            await axiosInstance.post("/products", req)
+        }),
+
+    update: ({ id, req }: { id: string; req: UpdateProductRequest }) =>
+        requestWrapper<void>(async () => {
+            await axiosInstance.patch(`/products/${id}`, req)
+        }),
+
+    delete: ({ id }: { id: string }) =>
+        requestWrapper<void>(async () => {
+            await axiosInstance.delete(`/products/${id}`)
         })
 }

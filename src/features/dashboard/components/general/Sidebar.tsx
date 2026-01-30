@@ -26,8 +26,8 @@ const menuItems: MenuItem[] = [
     },
     {
         icon: <Coffee className="w-5 h-5" />,
-        label: "Quản lý cà phê",
-        href: "/dashboard/coffee"
+        label: "Quản lý sản phẩm",
+        href: "/dashboard/products"
     },
     {
         icon: <Users className="w-5 h-5" />,

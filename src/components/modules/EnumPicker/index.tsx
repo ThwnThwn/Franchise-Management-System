@@ -10,6 +10,7 @@ type EnumPickerProps<T extends number> = {
     onKeyDown?: () => void
     labels: Record<T, string> // map enum → label (ví dụ OrderStatusLabels)
     label?: string // nhãn hiển thị cho Autocomplete
+    placeholder?: string
     className?: string
     isReadOnly?: boolean
     isClearable?: boolean
@@ -22,6 +23,7 @@ export function EnumPicker<T extends number>({
     onKeyDown = undefined,
     labels,
     label,
+    placeholder,
     className,
     isReadOnly = false,
     isClearable = true,
@@ -36,6 +38,7 @@ export function EnumPicker<T extends number>({
     return (
         <AutocompleteStyled
             label={label}
+            placeholder={placeholder}
             isReadOnly={isReadOnly}
             isClearable={isClearable}
             variant="bordered"

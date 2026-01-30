@@ -4,13 +4,9 @@ import { CardBody, CardFooter } from "@heroui/react"
 import React from "react"
 import { formatCurrencyWithSymbol } from "@/utils/helpers/currency"
 import { MENU_TYPE } from "../../constants"
-import { GetProductListItemDto, ProductSizeListItemDto } from "../../models/schema/respone"
+import { Product, ProductSize } from "../../models/products/respone"
 
-export function ProductCard({
-    getProductListItemDto
-}: {
-    getProductListItemDto: GetProductListItemDto
-}) {
+export function ProductCard({ getProductListItemDto }: { getProductListItemDto: Product }) {
     return (
         <CardStyled className="hover:shadow-xl interactive-scale w-xs" shadow="sm">
             <CardBody className="overflow-visible ">
@@ -36,7 +32,7 @@ export function ProductCard({
                     <span className="text-xl font-bold text-primary whitespace-nowrap">
                         {formatCurrencyWithSymbol(
                             getProductListItemDto.sizes.find(
-                                (s: ProductSizeListItemDto) => s.name === MENU_TYPE.MIN_SIZE
+                                (s: ProductSize) => s.name === MENU_TYPE.MIN_SIZE
                             )?.basePrice ?? 0
                         )}
                     </span>

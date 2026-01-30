@@ -5,10 +5,10 @@ import Image from "next/image"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { productApi } from "@/features/menu/services/productApi"
-import { GetProductListItemDto } from "@/features/menu/models/schema/respone"
+import { Product } from "@/features/menu/models/products/respone"
 
 export default function FeaturedSection() {
-    const [featuredItems, setFeaturedItems] = useState<GetProductListItemDto[]>([])
+    const [featuredItems, setFeaturedItems] = useState<Product[]>([])
     const [isLoading, setIsLoading] = useState(true)
 
     useEffect(() => {
@@ -67,7 +67,10 @@ export default function FeaturedSection() {
                         >
                             <div className="relative h-64 w-full overflow-hidden">
                                 <Image
-                                    src={item.imageUrl || "https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=1000&auto=format&fit=crop"}
+                                    src={
+                                        item.imageUrl ||
+                                        "https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=1000&auto=format&fit=crop"
+                                    }
                                     alt={item.name}
                                     fill
                                     className="object-cover transform group-hover:scale-110 transition-transform duration-500"

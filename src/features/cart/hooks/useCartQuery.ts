@@ -1,18 +1,20 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { cartApi } from "../services/cartApi"
-import { AddToCartRequest, DeleteListCartItemRequest, UpdateCartItemRequest } from "../models/schema/request"
+import {
+    AddToCartRequest,
+    DeleteListCartItemRequest,
+    UpdateCartItemRequest
+} from "../models/schema/request"
 import { addToast } from "@heroui/react"
-import { useTokenStore } from "@/hooks"
 import { BackendError } from "@/models/common/respone"
 
 const CART_QUERY_KEY = ["cart"]
 
-export const useGetCart = () => {
-    const isLoggedIn = useTokenStore((s) => !!s.accessToken)
+export const useGetCart = ({ enabled }: { enabled: boolean }) => {
     return useQuery({
         queryKey: CART_QUERY_KEY,
         queryFn: cartApi.getCart,
-        enabled: isLoggedIn
+        enabled: enabled
     })
 }
 
