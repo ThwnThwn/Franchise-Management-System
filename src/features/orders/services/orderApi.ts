@@ -20,5 +20,11 @@ export const ordersApi = {
         requestWrapper<CreateOrderReply>(async () => {
             const res = await axiosInstance.post("/orders", req)
             return res.data
+        }),
+
+    payment: (id: string) =>
+        requestWrapper<{ paymentUrl: string }>(async () => {
+            const res = await axiosInstance.post(`/orders/${id}/payment`)
+            return res.data
         })
 }

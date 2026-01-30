@@ -54,3 +54,16 @@ export const useCreateOrder = ({ onSuccess }: { onSuccess?: () => void } = {}) =
         }
     })
 }
+
+export const usePayment = () => {
+    return useMutation({
+        mutationFn: ordersApi.payment,
+        onError: (error: BackendError) => {
+            addToast({
+                title: error.title || STRINGS.COMMON.ERROR,
+                description: error.detail,
+                color: "danger"
+            })
+        }
+    })
+}
