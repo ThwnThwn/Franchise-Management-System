@@ -2,7 +2,9 @@
 using AutoMapper;
 using DotNetEnv;
 using InventoryService.API.Middleware;
+using InventoryService.API.Services.Identity;
 using InventoryService.API.Services.Inventory;
+using InventoryService.Application.ClientInterface.Indentity;
 using InventoryService.Application.DependencyInjection;
 using InventoryService.Application.Persistences.Repositories;
 using InventoryService.Infrastructure.ApplicationDbContext;
@@ -113,6 +115,8 @@ namespace InventoryService.API
             builder.Services.AddScoped<IIngredientRepository, IngredientRepository>();
             builder.Services.AddScoped<IRecipeRepository, RecipeRepository>();
 
+            //add client
+            builder.Services.AddScoped<IIdentityServiceClient, IdentityServiceClient>();
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
