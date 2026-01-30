@@ -22,7 +22,6 @@ public class GetAllUsersQueryHandler : IRequestHandler<GetAllUsersQuery, PagedRe
 
     public async Task<PagedResult<UserRep>> Handle(GetAllUsersQuery query, CancellationToken cancellationToken)
     {
-
         var pagedUsers = await _userRepository.GetPagedUsersAsync(
             query.Keyword ?? "",
             query.RoleSlug,
@@ -30,7 +29,7 @@ public class GetAllUsersQueryHandler : IRequestHandler<GetAllUsersQuery, PagedRe
             query.PageSize,
             cancellationToken
         );
-        var role = await  _roleRepository.GetBySlugAsync( query.RoleSlug );
+        var role = await _roleRepository.GetBySlugAsync(query.RoleSlug);
         var roleResponse = _mapper.Map<RoleUserRep>(role);
 
         var dtos = pagedUsers.Items.Select(u => new UserRep
@@ -38,11 +37,20 @@ public class GetAllUsersQueryHandler : IRequestHandler<GetAllUsersQuery, PagedRe
             Id = u.Id,
             Email = u.Email,
             Username = u.Username,
+            Address = u.Address,
+            FirstName = u.FirstName,
+            LastName = u.LastName,
+            Phone = u.Phone,
+            Gender = u.Gender,
+            CreatedAt = u.CreatedAt,
+            UpdatedAt = u.UpdatedAt,
+            DateOfBirth = u.DateOfBirth,
+            IsBlocked = u.IsBlocked,
             Role = u.Role == null
-            ? null
-            : _mapper.Map<RoleUserRep>(u.Role)
+                ? null
+                : _mapper.Map<RoleUserRep>(u.Role)
         }).ToList();
 
-        return new PagedResult<UserRep>(dtos,pagedUsers.TotalCount,pagedUsers.Page, pagedUsers.PageSize);
+        return new PagedResult<UserRep>(dtos, pagedUsers.TotalCount, pagedUsers.Page, pagedUsers.PageSize);
     }
 }
