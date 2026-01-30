@@ -12,6 +12,9 @@
 	<ItemGroup>
 		<Protobuf Include="Protos\inventory.proto" GrpcServices="Server" />
 	</ItemGroup>
+	<ItemGroup>
+		<Protobuf Include="Protos\user.proto" GrpcServices="Client" />
+	</ItemGroup>
 
 	<!-- <ItemGroup>
 	  <None Remove="Protos\inventory.proto" />

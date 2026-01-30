@@ -2,7 +2,7 @@
 using AutoMapper;
 using DotNetEnv;
 using InventoryService.API.Middleware;
-using InventoryService.API.Services;
+using InventoryService.API.Services.Inventory;
 using InventoryService.Application.DependencyInjection;
 using InventoryService.Application.Persistences.Repositories;
 using InventoryService.Infrastructure.ApplicationDbContext;
