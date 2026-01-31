@@ -15,8 +15,13 @@ CREATE TABLE IF NOT EXISTS "NotificationLogs" (
     "ErrorMessage" text NULL,
     "RetryCount" integer NOT NULL DEFAULT 0,
     "CreatedAt" timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "ReferenceId" text NULL,
     CONSTRAINT "PK_NotificationLogs" PRIMARY KEY ("Id")
 );
+
+-- Create index on ReferenceId
+CREATE INDEX IF NOT EXISTS "IX_NotificationLogs_ReferenceId" 
+    ON "NotificationLogs" ("ReferenceId");
 
 -- Create index on Type
 CREATE INDEX IF NOT EXISTS "IX_NotificationLogs_Type" 

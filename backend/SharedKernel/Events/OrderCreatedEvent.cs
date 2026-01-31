@@ -10,6 +10,7 @@ public class OrderCreatedEvent
     /// ID của đơn hàng
     /// </summary>
     public Guid OrderId { get; set; }
+    public Guid? CustomerId { get; set; }
     /// <summary>
     /// Email khách hàng (để gửi xác nhận)
     /// </summary>
