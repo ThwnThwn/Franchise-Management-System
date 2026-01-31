@@ -41,13 +41,21 @@ public class Program
         builder.Configuration.AddEnvironmentVariables();
 
         // Configure Kestrel for gRPC (HTTPS + HTTP/2)
-        var saleServicePort = int.Parse(builder.Configuration["SALES_PORT"] ?? "5003");
+        //var saleServicePort = int.Parse(builder.Configuration["SALES_PORT"] ?? "5003");
+        //builder.WebHost.ConfigureKestrel(options =>
+        //{
+        //    options.ListenLocalhost(saleServicePort, listenOptions =>
+        //    {
+        //        listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2;
+        //        listenOptions.UseHttps(); // Development certificate
+        //    });
+        //});
         builder.WebHost.ConfigureKestrel(options =>
         {
-            options.ListenLocalhost(saleServicePort, listenOptions =>
+            options.ConfigureEndpointDefaults(listenOptions =>
             {
-                listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2;
-                listenOptions.UseHttps(); // Development certificate
+                // gRPC thường cần HTTP/2
+                listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2;
             });
         });
 

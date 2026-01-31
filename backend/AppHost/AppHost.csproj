@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsAspireHost>true</IsAspireHost>
+    <UserSecretsId>385cbe25-fd6b-4ebd-8998-b87f0caf345e</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.AppHost" Version="8.2.2" />
+    <PackageReference Include="DotNetEnv" Version="3.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FranchiseService\FranchiseService.API\FranchiseService.API.csproj" />
+    <ProjectReference Include="..\IdentityService\IdentityService.API\IdentityService.API.csproj" />
+    <ProjectReference Include="..\InventoryService\InventoryService.API\InventoryService.API.csproj" />
+    <ProjectReference Include="..\NotificationService\NotificationService.API\NotificationService.API.csproj" />
+    <ProjectReference Include="..\ProductService\ProductService.API\ProductService.API.csproj" />
+    <ProjectReference Include="..\SaleService\SaleService.API\SalesService.API.csproj" />
+  </ItemGroup>
+
+</Project>

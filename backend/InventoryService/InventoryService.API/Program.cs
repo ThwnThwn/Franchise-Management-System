@@ -1,5 +1,4 @@
-﻿
-using AutoMapper;
+﻿using AutoMapper;
 using DotNetEnv;
 using InventoryService.API.Middleware;
 using InventoryService.API.Services.Identity;
@@ -39,13 +38,21 @@ namespace InventoryService.API
             builder.Configuration["KAFKA_BOOTSTRAP_SERVERS"] = kafkaBootstrap;
 
             // Configure Kestrel for gRPC (HTTPS + HTTP/2)
-            var inventoryServicePort = int.Parse(builder.Configuration["INVENTORY_PORT"] ?? "5005");
+            //var inventoryServicePort = int.Parse(builder.Configuration["INVENTORY_PORT"] ?? "5005");
+            //builder.WebHost.ConfigureKestrel(options =>
+            //{
+            //    options.ListenLocalhost(inventoryServicePort, listenOptions =>
+            //    {
+            //        listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2;
+            //        listenOptions.UseHttps(); // Development certificate
+            //    });
+            //});
             builder.WebHost.ConfigureKestrel(options =>
             {
-                options.ListenLocalhost(inventoryServicePort, listenOptions =>
+                options.ConfigureEndpointDefaults(listenOptions =>
                 {
-                    listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2;
-                    listenOptions.UseHttps(); // Development certificate
+                    // gRPC thường cần HTTP/2
+                    listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2;
                 });
             });
 
