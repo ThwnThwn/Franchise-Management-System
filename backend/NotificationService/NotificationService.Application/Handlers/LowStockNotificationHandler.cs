@@ -7,6 +7,10 @@ using System.Text.Json;
 
 namespace NotificationService.Application.Handlers;
 
+/// <summary>
+/// Xử lý sự kiện "Sắp hết hàng" (LowStockEvent).
+/// Nhiệm vụ: Gửi email cảnh báo cho quản lý kho.
+/// </summary>
 public class LowStockNotificationHandler
 {
     private readonly IEmailSender _emailSender;
@@ -23,6 +27,9 @@ public class LowStockNotificationHandler
         _logger = logger;
     }
 
+    /// <summary>
+    /// Log lại sự kiện và gửi email cảnh báo ngay lập tức.
+    /// </summary>
     public async Task HandleAsync(LowStockEvent @event)
     {
         var log = new NotificationLog

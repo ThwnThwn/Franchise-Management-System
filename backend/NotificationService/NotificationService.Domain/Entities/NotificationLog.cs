@@ -11,5 +11,6 @@ public class NotificationLog
     public string? ErrorMessage { get; set; }
     public string? Metadata { get; set; }
     public DateTime? SentAt { get; set; }
+    public string? ReferenceId { get; set; } // Dùng để Idempotency (VD: OrderId)
     public DateTime CreatedAt { get; set; }
 }
