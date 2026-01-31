@@ -4,10 +4,8 @@ import (
 	idenGW "api-gateway/internal/application/gateways/identity"
 	"api-gateway/internal/domain/constants/jwttype"
 	"api-gateway/internal/domain/models/auth"
-	"api-gateway/internal/domain/models/role"
-	"api-gateway/internal/domain/models/user"
+	"api-gateway/pkg/mapper"
 	idenPb "api-gateway/pkg/pb/identity"
-	"api-gateway/pkg/utils/timeutils"
 	"context"
 )
 
@@ -35,20 +33,7 @@ func (a *AuthGrpcClient) Login(ctx context.Context, req *auth.LoginRequest) (*au
 			AccessToken:  res.AccessToken,
 			RefreshToken: res.RefreshToken,
 		},
-		User: &user.UserResponse{
-			Id:        userRes.Id,
-			Email:     userRes.Email,
-			Username:  userRes.Username,
-			Phone:     userRes.Phone,
-			Address:   userRes.Address,
-			IsBlocked: userRes.IsBlocked,
-			Role: &role.RoleUserResponse{
-				Id:   userRes.Role.Id,
-				Name: userRes.Role.Name,
-			},
-			CreatedAt: timeutils.ProtoToTimePtr(userRes.CreatedAt),
-			UpdatedAt: timeutils.ProtoToTimePtr(userRes.UpdatedAt),
-		},
+		User: mapper.MapUserPbToUserModel(userRes),
 	}, nil
 }
 

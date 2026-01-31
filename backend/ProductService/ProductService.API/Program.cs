@@ -26,13 +26,21 @@ namespace ProductService.API
             builder.Configuration.AddEnvironmentVariables();
 
             // Configure Kestrel for gRPC (HTTPS + HTTP/2)
-            var productServicePort = int.Parse(builder.Configuration["PRODUCTS_PORT"] ?? "5002");
+            //var productServicePort = int.Parse(builder.Configuration["PRODUCTS_PORT"] ?? "5002");
+            //builder.WebHost.ConfigureKestrel(options =>
+            //{
+            //    options.ListenLocalhost(productServicePort, listenOptions =>
+            //    {
+            //        listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2;
+            //        listenOptions.UseHttps(); // Development certificate
+            //    });
+            //});
             builder.WebHost.ConfigureKestrel(options =>
             {
-                options.ListenLocalhost(productServicePort, listenOptions =>
+                options.ConfigureEndpointDefaults(listenOptions =>
                 {
-                    listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2;
-                    listenOptions.UseHttps(); // Development certificate
+                    // gRPC thường cần HTTP/2
+                    listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2;
                 });
             });
 
@@ -57,10 +65,10 @@ namespace ProductService.API
             builder.Services.AddScoped<UpdateTimestampInterceptor>();
             // Connect Db
             var connectionString = builder.Configuration["PRODUCT_DB_CONNECTION"];
-            
+
             // EF Core interceptors used by ProductDbContext
             builder.Services.AddScoped<UpdateTimestampInterceptor>();
-            
+
             // DbContext + wire interceptor via DI
             builder.Services.AddDbContext<ProductDbContext>(
                 (sp, opt) =>
@@ -68,7 +76,7 @@ namespace ProductService.API
                     opt.UseNpgsql(connectionString);
                     opt.AddInterceptors(sp.GetRequiredService<UpdateTimestampInterceptor>());
                 });
-            
+
             // Expose DbContext via abstraction used by repositories
             builder.Services.AddScoped<IProductDbContext>(sp => sp.GetRequiredService<ProductDbContext>());
 

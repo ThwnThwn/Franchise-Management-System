@@ -1,4 +1,4 @@
-using DotNetEnv;
+﻿using DotNetEnv;
 using IdentityService.API.Extensions;
 using IdentityService.API.Interceptors;
 using IdentityService.API.Services;
@@ -76,9 +76,17 @@ namespace IdentityService.API
             builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
             // --- SERVER CONFIG ---
-            var servicePort = int.Parse(builder.Configuration["IDENTITY_PORT"] ?? "5001");
-            builder.WebHost.ConfigureKestrel(opt =>
-                opt.ListenAnyIP(servicePort, l => l.Protocols = HttpProtocols.Http2));
+            //var servicePort = int.Parse(builder.Configuration["IDENTITY_PORT"] ?? "5001");
+            //builder.WebHost.ConfigureKestrel(opt =>
+            //    opt.ListenAnyIP(servicePort, l => l.Protocols = HttpProtocols.Http2));
+            builder.WebHost.ConfigureKestrel(options =>
+            {
+                options.ConfigureEndpointDefaults(listenOptions =>
+                {
+                    // gRPC thường cần HTTP/2
+                    listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2;
+                });
+            });
 
             var app = builder.Build();
 
