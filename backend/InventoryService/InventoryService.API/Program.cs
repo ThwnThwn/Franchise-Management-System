@@ -5,6 +5,7 @@ using InventoryService.API.Middleware;
 using InventoryService.API.Services.Identity;
 using InventoryService.API.Services.Inventory;
 using InventoryService.Application.ClientInterface.Indentity;
+using InventoryService.Application.Constants;
 using InventoryService.Application.DependencyInjection;
 using InventoryService.Application.Persistences.Repositories;
 using InventoryService.Infrastructure.ApplicationDbContext;
@@ -28,7 +29,7 @@ namespace InventoryService.API
             builder.Configuration.AddEnvironmentVariables();
 
             // Configure Kestrel for gRPC (HTTPS + HTTP/2)
-            var inventoryServicePort = int.Parse(builder.Configuration["INVENTORY_PORT"] ?? "5005");
+            var inventoryServicePort = int.Parse(builder.Configuration[Common.INVENTORY_PORT] ?? "5005");
             builder.WebHost.ConfigureKestrel(options =>
             {
                 options.ListenLocalhost(inventoryServicePort, listenOptions =>
@@ -62,7 +63,7 @@ namespace InventoryService.API
             builder.Services.AddScoped<UpdateTimestampInterceptor>();
 
             // Connect Db
-            var connectionString = builder.Configuration["INVENTORY_DB_CONNECTION"];
+            var connectionString = builder.Configuration[Common.INVENTORY_DB_CONNECTION];
 
             // EF Core interceptors used by SalesDbContext
             builder.Services.AddScoped<UpdateTimestampInterceptor>();
@@ -99,7 +100,7 @@ namespace InventoryService.API
             builder.Services.AddSingleton<Interceptors.GrpcExceptionInterceptor>();
 
             // Add CORS
-            var frontEndOrigin = builder.Configuration["FRONTEND_ORIGIN"] ?? "http://localhost:3000";
+            var frontEndOrigin = builder.Configuration[Common.FRONTEND_ORIGIN] ?? "http://localhost:3000";
             builder.Services.AddCors(options =>
             {
                 options.AddDefaultPolicy(policy =>

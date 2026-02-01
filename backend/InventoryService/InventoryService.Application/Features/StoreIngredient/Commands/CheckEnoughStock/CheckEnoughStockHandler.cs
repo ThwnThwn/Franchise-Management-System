@@ -1,4 +1,5 @@
 ﻿using InventoryService.Application.AppExceptions;
+using InventoryService.Application.Constants;
 using InventoryService.Application.Dtos.StoreIngredient;
 using InventoryService.Application.Persistences.Repositories;
 using MediatR;
@@ -28,7 +29,7 @@ namespace InventoryService.Application.Features.StoreIngredient.Commands.CheckEn
             
             if(recipes == null || !recipes.Any())
             {
-                throw new DirectoryNotFoundException("Recipes not found for the provided variant IDs.");
+                throw new DirectoryNotFoundException(Message.Recipe.NotFound);
             }
 
             // 3. Lấy tồn kho của cửa hàng cho các nguyên liệu trong công thức đó

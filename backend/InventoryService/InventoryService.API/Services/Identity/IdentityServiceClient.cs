@@ -3,6 +3,7 @@ using Grpc.Net.Client;
 using IdentityService.Grpc.Protos.User.Internal;
 using InventoryService.API.Mapper;
 using InventoryService.Application.ClientInterface.Indentity;
+using InventoryService.Application.Constants;
 using InventoryService.Application.Dtos.User;
 using MediatR;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
@@ -18,7 +19,7 @@ namespace InventoryService.API.Services.Identity
         {
             _configuration = configuration;
 
-            var rawUrl = configuration["IDENTITY_SERVICE_URL"] ?? "https://localhost:5001";
+            var rawUrl = configuration[Common.IDENTITY_SERVICE_URL] ?? "https://localhost:5001";
             // Allow env var values like "localhost:5002" by normalizing to an absolute URI.
             _identityServiceUrl = rawUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
                                  rawUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
@@ -46,7 +47,7 @@ namespace InventoryService.API.Services.Identity
             };
             var respone = await _client.GetManagerAsync(request);
 
-            if (respone == null) throw new RpcException(new Status(StatusCode.NotFound, "User not found"));
+            if (respone == null) throw new RpcException(new Status(StatusCode.NotFound, Message.User.NotFound));
 
             return respone.ToEntity();
 

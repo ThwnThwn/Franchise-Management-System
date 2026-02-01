@@ -4,8 +4,10 @@ using InventoryService.Grpc.Protos.Inventory.Internal;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using SalesService.Application.ClientInterface.Inventory;
+using SalesService.Application.Constants;
 using SalesService.Application.Dtos.Inventory;
 using SalesService.Application.Features.Orders.Commands.Create;
+using System.Security.AccessControl;
 
 namespace SalesService.API.Services.Inventory
 {
@@ -18,7 +20,7 @@ namespace SalesService.API.Services.Inventory
         {
             _configuration = configuration;
 
-            var rawUrl = configuration["INVENTORY_SERVICE_URL"] ?? "https://localhost:5005";
+            var rawUrl = configuration[Common.INVENTORY_SERVICE_URL] ?? "https://localhost:5005";
             // Allow env var values like "localhost:5002" by normalizing to an absolute URI.
             _inventoryServiceUrl = rawUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
                                  rawUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase)

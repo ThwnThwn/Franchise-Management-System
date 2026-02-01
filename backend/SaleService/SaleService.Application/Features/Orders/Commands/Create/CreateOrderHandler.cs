@@ -173,7 +173,6 @@ public sealed class CreateOrderHandler
         }
 
         var createdOrder = await _orderRepository.CreateAsync(order, cancellationToken);
-
         //Fetch customer email from IdentityService
         string? customerEmail = null;
         if (createdOrder.CustomerId.HasValue)

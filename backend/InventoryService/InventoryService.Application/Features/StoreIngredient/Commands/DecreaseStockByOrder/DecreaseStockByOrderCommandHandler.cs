@@ -37,7 +37,7 @@ namespace InventoryService.Application.Features.StoreIngredient.Commands.Decreas
             var allRecipes = await _recipeRepository.GetRecipesByVariantIdsAsync(variantIds, cancellationToken);
             if (allRecipes == null || !allRecipes.Any())
             {
-                throw new BusinessException(Message.Inventory.NotFound);
+                throw new BusinessException(Message.Recipe.NotFound);
             }
 
             // 3. Tính toán tổng lượng nguyên liệu cần thiết cho cả đơn hàng
@@ -72,12 +72,12 @@ namespace InventoryService.Application.Features.StoreIngredient.Commands.Decreas
 
                 if (stock == null)
                 {
-                    throw new BusinessException($"Cửa hàng không có nguyên liệu ID: {required.Key} trong kho.");
+                    throw new BusinessException(Message.StoreIngredient.NotFoundIngredient);
                 }
 
                 if (stock.Quantity < required.Value)
                 {
-                    throw new BusinessException($"Không đủ nguyên liệu trong kho. Nguyên liệu ID: {required.Key}, Cần: {required.Value}, Hiện có: {stock.Quantity}");
+                    throw new BusinessException(Message.StoreIngredient.NotEnoughStock);
                 }
 
                 // Trừ kho

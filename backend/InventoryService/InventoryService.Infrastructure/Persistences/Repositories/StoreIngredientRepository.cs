@@ -1,4 +1,5 @@
-﻿using InventoryService.Application.Dtos.StoreIngredient;
+﻿using InventoryService.Application.AppExceptions;
+using InventoryService.Application.Dtos.StoreIngredient;
 using InventoryService.Application.Persistences.Repositories;
 using InventoryService.Domain.Entities;
 using InventoryService.Infrastructure.ApplicationDbContext;
@@ -28,40 +29,48 @@ namespace InventoryService.Infrastructure.Persistences.Repositories
 
         public async Task IncreaseStockAsync(Guid storeId, IEnumerable<IngredientStockItem> items)
         {
-            var ids = items.Select(s => s.IngredientId).ToList();
-            var ingredientInStore = await _dbContext.StoreIngredients.AsQueryable().Where(e => e.StoreId == storeId 
-                                                                                    && ids.Contains(e.IngredientId) 
-                                                                                    && e.IsDeleted == false).ToArrayAsync();
-            var existingIngredientIds = ingredientInStore.Select(e => e.IngredientId).ToHashSet();
-            var itemShouldAdd = items.Where(it => !existingIngredientIds.Contains(it.IngredientId)).ToList();
+            try
+            {
+                var ids = items.Select(s => s.IngredientId).ToList();
+                var ingredientInStore = await _dbContext.StoreIngredients.AsQueryable().Where(e => e.StoreId == storeId
+                                                                                        && ids.Contains(e.IngredientId)
+                                                                                        && e.IsDeleted == false).ToArrayAsync();
+                var existingIngredientIds = ingredientInStore.Select(e => e.IngredientId).ToHashSet();
+                var itemShouldAdd = items.Where(it => !existingIngredientIds.Contains(it.IngredientId)).ToList();
 
-            //increase
-            foreach(var increaseItem in items)
-            {
-                var dbItem = ingredientInStore.FirstOrDefault(s => s.IngredientId == increaseItem.IngredientId);
-                if (dbItem != null) {
-                    dbItem.Quantity += increaseItem.Quantity;
-                }
-            }
-            
-            //add
-            if(itemShouldAdd != null)
-            {
-                var addList = new List<StoreIngredient>();
-                foreach (var item in itemShouldAdd) {
-                    addList.Add(new StoreIngredient
+                //increase
+                foreach (var increaseItem in items)
+                {
+                    var dbItem = ingredientInStore.FirstOrDefault(s => s.IngredientId == increaseItem.IngredientId);
+                    if (dbItem != null)
                     {
-                         Id = new Guid(),
-                         IngredientId = item.IngredientId,
-                         Quantity = item.Quantity,
-                         MinThreshold = 0,
-                         StoreId = storeId
-                    });
+                        dbItem.Quantity += increaseItem.Quantity;
+                    }
                 }
-                await _dbContext.StoreIngredients.AddRangeAsync(addList);
+
+                //add
+                if (itemShouldAdd != null)
+                {
+                    var addList = new List<StoreIngredient>();
+                    foreach (var item in itemShouldAdd)
+                    {
+                        addList.Add(new StoreIngredient
+                        {
+                            Id = new Guid(),
+                            IngredientId = item.IngredientId,
+                            Quantity = item.Quantity,
+                            MinThreshold = 0,
+                            StoreId = storeId
+                        });
+                    }
+                    await _dbContext.StoreIngredients.AddRangeAsync(addList);
+                }
+                await _dbContext.SaveChangesAsync();
             }
-            await _dbContext.SaveChangesAsync();
-            
+            catch(Exception ex)
+            {
+                throw new Application.AppExceptions.DbUpdateException("Lỗi update db");
+            }
         }
     }
 }
