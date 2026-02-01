@@ -36,6 +36,7 @@ public sealed class ProductSizeListItemDto
     public string? Name { get; set; }
     public string? Attributes { get; set; }
     public decimal BasePrice { get; set; }
+    public decimal Cost { get; set; }
     public bool IsActive { get; set; }
 }
 

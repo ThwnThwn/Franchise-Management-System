@@ -16,7 +16,7 @@ type CreateProductRequest struct {
 type CreateProductVariant struct {
 	Sku        *string `json:"sku"`
 	Name       *string `json:"name"`
-	Attributes *string `json:"atttributes"`
+	Attributes *string `json:"attributes"`
 	BasePrice  float64 `json:"basePrice"`
 	Cost       float64 `json:"cost"`
 	IsActive   *bool   `json:"isActive"`

@@ -19,12 +19,16 @@ using SalesService.Application.Interfaces.Identity;
 using SalesService.Application.Interfaces.Payments;
 using SalesService.Application.Mapping.Orders;
 using SalesService.Application.Persisitences.Orders;
+using SalesService.Application.Persisitences.Outbox;
 using SalesService.Infrastructure.ApplicationDbContext;
 using SalesService.Infrastructure.Extensions;
 using SalesService.Infrastructure.Interceptor;
 using SalesService.Infrastructure.Repositories.CartItems;
 using SalesService.Infrastructure.Repositories.Orders;
+using SalesService.Infrastructure.Repositories.Outbox;
 using SalesService.Infrastructure.Repositories.Payments;
+using SalesService.Application.Signals;
+using SalesService.Infrastructure.Signals;
 
 namespace SalesService.API;
 
@@ -41,13 +45,21 @@ public class Program
         builder.Configuration.AddEnvironmentVariables();
 
         // Configure Kestrel for gRPC (HTTPS + HTTP/2)
-        var saleServicePort = int.Parse(builder.Configuration["SALES_PORT"] ?? "5003");
+        //var saleServicePort = int.Parse(builder.Configuration["SALES_PORT"] ?? "5003");
+        //builder.WebHost.ConfigureKestrel(options =>
+        //{
+        //    options.ListenLocalhost(saleServicePort, listenOptions =>
+        //    {
+        //        listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2;
+        //        listenOptions.UseHttps(); // Development certificate
+        //    });
+        //});
         builder.WebHost.ConfigureKestrel(options =>
         {
-            options.ListenLocalhost(saleServicePort, listenOptions =>
+            options.ConfigureEndpointDefaults(listenOptions =>
             {
-                listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2;
-                listenOptions.UseHttps(); // Development certificate
+                // gRPC thường cần HTTP/2
+                listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2;
             });
         });
 
@@ -116,6 +128,7 @@ public class Program
 
         // Register repositories
         builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+        builder.Services.AddScoped<IOutboxRepository, OutboxRepository>();
         builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
         builder.Services.AddScoped<ICartItemRepository, CartItemRepository>();
 
@@ -136,6 +149,13 @@ public class Program
 
         //Inventory Service Client
         builder.Services.AddScoped<IInventoryServiceClient, InventoryServiceClient>();
+
+        // Signal for Outbox
+        builder.Services.AddSingleton<IOutboxSignal, OutboxSignal>();
+
+        // Register Background Jobs
+        builder.Services.AddHostedService<SalesService.API.BackgroundJobs.OutboxWorker>();
+
         // Add CORS
         var frontEndOrigin = builder.Configuration["FRONTEND_ORIGIN"] ?? "http://localhost:3000";
         builder.Services.AddCors(options =>

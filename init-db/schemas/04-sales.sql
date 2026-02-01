@@ -94,3 +94,16 @@ CREATE TABLE IF NOT EXISTS payment_events (
 );
 CREATE INDEX idx_payment_events_payment_id ON payment_events(payment_id);
 
+
+-- 5. Outbox Messages
+CREATE TABLE IF NOT EXISTS outbox_messages (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    type VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL,
+    occurred_on TIMESTAMP WITH TIME ZONE NOT NULL,
+    processed_on TIMESTAMP WITH TIME ZONE,
+    error TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_outbox_messages_processed_on ON outbox_messages(processed_on) WHERE processed_on IS NULL;

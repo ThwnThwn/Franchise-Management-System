@@ -1,4 +1,3 @@
-﻿
 using AutoMapper;
 using DotNetEnv;
 using InventoryService.API.Middleware;
@@ -7,10 +6,17 @@ using InventoryService.API.Services.Inventory;
 using InventoryService.Application.ClientInterface.Indentity;
 using InventoryService.Application.Constants;
 using InventoryService.Application.DependencyInjection;
-using InventoryService.Application.Persistences.Repositories;
 using InventoryService.Infrastructure.ApplicationDbContext;
 using InventoryService.Infrastructure.Interceptor;
+using InventoryService.Application.Persistences.Repositories;
 using InventoryService.Infrastructure.Persistences.Repositories;
+
+using InventoryService.Application.ExternalServices;
+using InventoryService.Infrastructure.ExternalServices;
+using InventoryService.Application.Signals; 
+using InventoryService.Infrastructure.Signals;
+
+using InventoryService.API.BackgroundJobs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics.Internal;
 
@@ -28,14 +34,31 @@ namespace InventoryService.API
             // Add environment variables to configuration
             builder.Configuration.AddEnvironmentVariables();
 
+            // KAFKA - Override for local development
+            var kafkaBootstrap = builder.Configuration["KAFKA_BOOTSTRAP_SERVERS"] ?? "localhost:9092";
+            if (kafkaBootstrap.Contains("kafka:"))
+            {
+                kafkaBootstrap = "localhost:9092";  // Use localhost when running outside Docker
+            }
+            builder.Configuration["KAFKA_BOOTSTRAP_SERVERS"] = kafkaBootstrap;
+
             // Configure Kestrel for gRPC (HTTPS + HTTP/2)
             var inventoryServicePort = int.Parse(builder.Configuration[Common.INVENTORY_PORT] ?? "5005");
+            //var inventoryServicePort = int.Parse(builder.Configuration["INVENTORY_PORT"] ?? "5005");
+            //builder.WebHost.ConfigureKestrel(options =>
+            //{
+            //    options.ListenLocalhost(inventoryServicePort, listenOptions =>
+            //    {
+            //        listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2;
+            //        listenOptions.UseHttps(); // Development certificate
+            //    });
+            //});
             builder.WebHost.ConfigureKestrel(options =>
             {
-                options.ListenLocalhost(inventoryServicePort, listenOptions =>
+                options.ConfigureEndpointDefaults(listenOptions =>
                 {
-                    listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2;
-                    listenOptions.UseHttps(); // Development certificate
+                    // gRPC thường cần HTTP/2
+                    listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2;
                 });
             });
 
@@ -118,6 +141,14 @@ namespace InventoryService.API
 
             //add client
             builder.Services.AddScoped<IIdentityServiceClient, IdentityServiceClient>();
+            // Kafka Producer
+            builder.Services.AddSingleton<IKafkaProducer, KafkaProducer>();
+
+            // Outbox Pattern
+            builder.Services.AddScoped<IOutboxRepository, OutboxRepository>();
+            builder.Services.AddSingleton<IOutboxSignal, OutboxSignal>();
+            builder.Services.AddHostedService<API.BackgroundJobs.InventoryOutboxWorker>();
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

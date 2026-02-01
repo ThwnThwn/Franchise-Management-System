@@ -104,12 +104,16 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
 
         public virtual async Task<int> UpdateAsync(T entity)
         {
-            var entityFromDb = await GetByIdAsync(entity.Id);
-            if (entityFromDb == null)
-            {
-                throw new KeyNotFoundException($"{typeof(T).Name} is not found");
-            }
+            var entityFromDb = await GetByIdAsync(entity.Id)
+                ?? throw new KeyNotFoundException($"Không tìm thấy {typeof(T).Name}");
+
             _dbContext.Entry(entityFromDb).CurrentValues.SetValues(entity);
+
+            if (_dbContext.Entry(entityFromDb).Metadata.FindProperty("CreatedAt") != null)
+            {
+                _dbContext.Entry(entityFromDb).Property("CreatedAt").IsModified = false;
+            }
+
             return await _dbContext.SaveChangesAsync();
         }
 

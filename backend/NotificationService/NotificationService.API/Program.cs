@@ -2,6 +2,7 @@ using DotNetEnv;
 using Microsoft.EntityFrameworkCore;
 using NotificationService.Application.Abstractions;
 using NotificationService.Application.Handlers;
+using NotificationService.Application.ExternalServices;
 using NotificationService.Infrastructure.Configurations;
 using NotificationService.Infrastructure.Data;
 using NotificationService.Infrastructure.Messaging;
@@ -39,8 +40,12 @@ builder.Services.Configure<SmtpSettings>(opt =>
 // DEPENDENCY INJECTION
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
+builder.Services.AddScoped<IIdentityServiceClient, NotificationService.Infrastructure.ExternalServices.IdentityServiceClient>();
+
+// Register Handlers
 builder.Services.AddScoped<OtpNotificationHandler>();
 builder.Services.AddScoped<OrderNotificationHandler>();
+builder.Services.AddScoped<LowStockNotificationHandler>();
 // KAFKA CONSUMER (Background Service)
 builder.Services.AddHostedService<KafkaConsumerService>();
 // LOGGING

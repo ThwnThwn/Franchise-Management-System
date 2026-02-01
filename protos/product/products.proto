@@ -134,5 +134,6 @@ message ProductSize {
   string name = 3;
   string attributes = 4;
   double base_price = 5;
-  bool is_active = 6;
+  double cost = 6;
+  bool is_active = 7;
 }

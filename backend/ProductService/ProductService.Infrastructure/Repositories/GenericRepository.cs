@@ -35,7 +35,7 @@ namespace ProductService.Infrastructure.Repositories
         {
             var entityFromDb = await GetByIdAsync(id)
                 ?? throw new DirectoryNotFoundException($"{typeof(T).Name} is not found");
-            if(entityFromDb is SoftDeletedEntity softEntity && softEntity.IsDeleted == false)
+            if (entityFromDb is SoftDeletedEntity softEntity && softEntity.IsDeleted == false)
             {
                 softEntity.IsDeleted = true;
             }
@@ -49,9 +49,9 @@ namespace ProductService.Infrastructure.Repositories
         public virtual async Task DeleteRangeAsync(IEnumerable<Guid> ids)
         {
             var entities = await GetByIdsAsync(ids.ToArray());
-            foreach(var entity in entities)
+            foreach (var entity in entities)
             {
-                if(entity is SoftDeletedEntity softEntity && softEntity.IsDeleted == false)
+                if (entity is SoftDeletedEntity softEntity && softEntity.IsDeleted == false)
                 {
                     softEntity.IsDeleted = true;
                 }
@@ -88,13 +88,12 @@ namespace ProductService.Infrastructure.Repositories
             }
 
             return await query.OrderByDescending(x => x.CreatedAt).ToListAsync();
-
         }
 
         public virtual async Task<T?> GetByIdAsync(Guid id)
         {
             var entity = await _dbSet.FindAsync(id);
-            if(entity is SoftDeletedEntity softEntity && softEntity.IsDeleted == false)
+            if (entity is SoftDeletedEntity softEntity && softEntity.IsDeleted == false)
             {
                 return entity;
             }
@@ -122,12 +121,16 @@ namespace ProductService.Infrastructure.Repositories
 
         public virtual async Task<int> UpdateAsync(T entity)
         {
-            var entityFromDb = await GetByIdAsync(entity.Id);
-            if(entityFromDb == null)
-            {
-                throw new DirectoryNotFoundException($"{typeof(T).Name} is not found");
-            }
+            var entityFromDb = await GetByIdAsync(entity.Id)
+                ?? throw new KeyNotFoundException($"Không tìm thấy {typeof(T).Name}");
+
             _dbContext.Entry(entityFromDb).CurrentValues.SetValues(entity);
+
+            if (_dbContext.Entry(entityFromDb).Metadata.FindProperty("CreatedAt") != null)
+            {
+                _dbContext.Entry(entityFromDb).Property("CreatedAt").IsModified = false;
+            }
+
             return await _dbContext.SaveChangesAsync();
         }
     }

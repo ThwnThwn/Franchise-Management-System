@@ -41,14 +41,14 @@ BEGIN
     VALUES (f_partner, 'Nguyen Van A Partners', '0307654321', 'Nguyen Van A', '0909123456', 'partner.a@gmail.com', 5.0);
 
     -- === 3. SEED STORES ===
-    INSERT INTO stores (id, code, name, address, phone, email, image_url, latitude, longitude, type, status, franchisee_id)
-    VALUES (s_q1, 'STR-Q1-001', 'Coffee Central Q1', '1 Cong Xa Paris, Dist 1, HCM', '02811112222', 'store.q1@hq.com', 'https://img.com/store1.jpg', 10.779785, 106.699018, 0, 1, f_hq);
+    INSERT INTO stores (id, code, name, address, phone, email, latitude, longitude, type, status, franchisee_id)
+    VALUES (s_q1, 'STR-Q1-001', 'Coffee Central Q1', '1 Cong Xa Paris, Dist 1, HCM', '02811112222', 'store.q1@hq.com', 10.779785, 106.699018, 0, 1, f_hq);
 
-    INSERT INTO stores (id, code, name, address, phone, email, image_url, latitude, longitude, type, status, franchisee_id)
-    VALUES (s_q3, 'STR-Q3-002', 'Coffee Lake Q3', '45 Pham Ngoc Thach, Dist 3, HCM', '02833334444', 'store.q3@hq.com', 'https://img.com/store2.jpg', 10.782877, 106.695847, 0, 1, f_hq);
+    INSERT INTO stores (id, code, name, address, phone, email, latitude, longitude, type, status, franchisee_id)
+    VALUES (s_q3, 'STR-Q3-002', 'Coffee Lake Q3', '45 Pham Ngoc Thach, Dist 3, HCM', '02833334444', 'store.q3@hq.com', 10.782877, 106.695847, 0, 1, f_hq);
 
-    INSERT INTO stores (id, code, name, address, phone, email, image_url, latitude, longitude, type, status, franchisee_id)
-    VALUES (s_td, 'STR-TD-003', 'Coffee Giga TD', '242 Pham Van Dong, Thu Duc, HCM', '02855556666', 'store.td@partner.com', 'https://img.com/store3.jpg', 10.827641, 106.721458, 1, 1, f_partner);
+    INSERT INTO stores (id, code, name, address, phone, email, latitude, longitude, type, status, franchisee_id)
+    VALUES (s_td, 'STR-TD-003', 'Coffee Giga TD', '242 Pham Van Dong, Thu Duc, HCM', '02855556666', 'store.td@partner.com', 10.827641, 106.721458, 1, 1, f_partner);
 
     -- === 4. SEED STORE HOURS ===
     FOR i IN 0..6 LOOP

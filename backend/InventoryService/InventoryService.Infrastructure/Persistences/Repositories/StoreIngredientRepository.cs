@@ -21,6 +21,7 @@ namespace InventoryService.Infrastructure.Persistences.Repositories
         public async Task<IEnumerable<StoreIngredient>> GetStockByStoreIdAndIngredientIdsAsync(Guid storeId, IEnumerable<Guid> ingredientIds, CancellationToken cancellationToken)
         {
             return await _dbContext.StoreIngredients.AsQueryable()
+                        .Include(e => e.Ingredient)
                         .Where(e => e.StoreId == storeId 
                                 && ingredientIds.Contains(e.IngredientId) 
                                 && e.IsDeleted == false)

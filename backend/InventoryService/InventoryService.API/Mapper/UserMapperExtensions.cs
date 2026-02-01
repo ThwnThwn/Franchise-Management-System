@@ -1,12 +1,12 @@
 ﻿using Google.Protobuf.WellKnownTypes;
-using IdentityService.Grpc.Protos.User.Internal;
+using IdentityService.Grpc.Protos.User;
 using InventoryService.Application.Dtos.User;
 
 namespace InventoryService.API.Mapper
 {
     public static class UserMapperExtensions
     {
-        public static UserResponse ToProto(this UserRep entity)
+        public static UserResponse? ToProto(this UserRep entity)
         {
             if (entity == null) return null;
 
@@ -41,7 +41,7 @@ namespace InventoryService.API.Mapper
             return response;
         }
 
-        public static RoleUserResponse ToProto(this RoleUserRep entity)
+        public static RoleUserResponse? ToProto(this RoleUserRep entity)
         {
             if (entity == null) return null;
 
@@ -53,7 +53,7 @@ namespace InventoryService.API.Mapper
             };
         }
 
-        public static UserRep ToEntity(this UserResponse proto)
+        public static UserRep? ToEntity(this UserResponse proto)
         {
             if (proto == null) return null;
 
@@ -84,7 +84,7 @@ namespace InventoryService.API.Mapper
             };
         }
 
-        public static RoleUserRep ToEntity(this RoleUserResponse proto)
+        public static RoleUserRep? ToEntity(this RoleUserResponse proto)
         {
             if (proto == null) return null;
 

@@ -7,6 +7,10 @@ using NotificationService.Application.Handlers;
 using SharedKernel.Events;
 using System.Text.Json;
 namespace NotificationService.Infrastructure.Messaging;
+/// <summary>
+/// Service chạy nền (Background Service) để lắng nghe các sự kiện từ Kafka.
+/// Chịu trách nhiệm nhận tin nhắn từ các topic và điều phối đến các Handler tương ứng (Email, OTP...).
+/// </summary>
 public class KafkaConsumerService : BackgroundService
 {
     private readonly IConsumer<string, string> _consumer;
@@ -21,7 +25,10 @@ public class KafkaConsumerService : BackgroundService
         {
             BootstrapServers = configuration["KAFKA_BOOTSTRAP_SERVERS"] ?? "localhost:9092",
             GroupId = configuration["KAFKA_CONSUMER_GROUP_ID"] ?? "notification-service-group",
-            AutoOffsetReset = AutoOffsetReset.Earliest
+            AutoOffsetReset = AutoOffsetReset.Earliest,
+            EnableAutoCommit = false,             // Tắt tự động commit để kiểm soát việc xử lý lỗi tốt hơn (At-least-once)
+            EnableAutoOffsetStore = true,         // Tự động lưu offset vào bộ nhớ sau khi Consume
+            TopicMetadataRefreshIntervalMs = 3000 // Quan Trọng: Force refresh metadata mỗi 3s để tìm topic mới nhanh hơn (fix lỗi delay 5 phút)
         };
         _consumer = new ConsumerBuilder<string, string>(config).Build();
         _serviceProvider = serviceProvider;
@@ -32,7 +39,8 @@ public class KafkaConsumerService : BackgroundService
         _consumer.Subscribe(new[] {
             "otp-notifications",
             "order-notifications",
-            "password-reset-notifications"
+            "password-reset-notifications",
+            "low-stock-notifications"  // ✅ Đăng ký nhận sự kiện cảnh báo hết hàng
         });
         _logger.LogInformation("Kafka consumer started, listening to topics...");
         while (!stoppingToken.IsCancellationRequested)
@@ -45,7 +53,18 @@ public class KafkaConsumerService : BackgroundService
                     "Received message from topic {Topic}: {Message}",
                     result.Topic,
                     result.Message.Value);
+                
+                // Xử lý logic nghiệp vụ
                 await ProcessMessageAsync(result.Topic, result.Message.Value);
+                
+                // ✅ Commit offset ngay sau khi xử lý thành công
+                // Đảm bảo tin nhắn không bị xử lý lại nếu service restart, nhưng sẽ xử lý lại nếu ProcessMessageAsync lỗi (do chưa commit)
+                _consumer.Commit(result);
+                
+                _logger.LogInformation(
+                    "Successfully processed and committed message from topic {Topic}, Offset: {Offset}",
+                    result.Topic,
+                    result.Offset.Value);
             }
             catch (ConsumeException ex)
             {
@@ -54,10 +73,15 @@ public class KafkaConsumerService : BackgroundService
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unexpected error in Kafka consumer");
+                // ⚠️ Don't commit on error - message will be reprocessed
             }
         }
         _consumer.Close();
     }
+    /// <summary>
+    /// Hàm điều phối xử lý tin nhắn dựa trên Topic.
+    /// Mỗi topic sẽ được xử lý bởi một Handler riêng biệt.
+    /// </summary>
     private async Task ProcessMessageAsync(string topic, string message)
     {
         using var scope = _serviceProvider.CreateScope();
@@ -89,6 +113,16 @@ public class KafkaConsumerService : BackgroundService
                         _logger.LogInformation("Password reset event received for {Email}", resetEvent.Email);
                     }
                     break;
+                case "low-stock-notifications":
+                    var lowStockEvent = JsonSerializer.Deserialize<LowStockEvent>(message);
+                    if (lowStockEvent != null)
+                    {
+                        var lowStockHandler = scope.ServiceProvider.GetRequiredService<LowStockNotificationHandler>();
+                        await lowStockHandler.HandleAsync(lowStockEvent);
+                    }
+                    break;
+                
+                
                 default:
                     _logger.LogWarning("Unknown topic: {Topic}", topic);
                     break;

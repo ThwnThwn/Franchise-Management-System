@@ -1,6 +1,6 @@
 ﻿using Grpc.Core;
 using Grpc.Net.Client;
-using IdentityService.Grpc.Protos.User.Internal;
+using IdentityService.Grpc.Protos.User;
 using InventoryService.API.Mapper;
 using InventoryService.Application.ClientInterface.Indentity;
 using InventoryService.Application.Constants;
@@ -14,7 +14,7 @@ namespace InventoryService.API.Services.Identity
     {
         private readonly IConfiguration _configuration;
         private readonly string _identityServiceUrl;
-        private readonly UserGrpcInternal.UserGrpcInternalClient _client;
+        private readonly UserGrpc.UserGrpcClient _client;
         public IdentityServiceClient(IMediator mediator, IConfiguration configuration)
         {
             _configuration = configuration;
@@ -37,7 +37,7 @@ namespace InventoryService.API.Services.Identity
                 HttpHandler = httpHandler
             });
 
-            _client = new UserGrpcInternal.UserGrpcInternalClient(channel);
+            _client = new UserGrpc.UserGrpcClient(channel);
         }
         public async Task<UserRep> GetManager(GetManagerReq command)
         {

@@ -1,15 +1,16 @@
 using Ardalis.Result;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using SalesService.Application.Interfaces.Identity;
 using SalesService.Application.ClientInterface.Inventory;
 using SalesService.Application.ClientInterface.Products;
 using SalesService.Application.Persisitences.Orders;
+using SalesService.Application.Persisitences.Outbox;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
 using SharedKernel.Events;
 using SaleService.Application.ExternalServices;
 using SalesService.Application.Dtos.Inventory;
+using SalesService.Application.Signals;
 
 namespace SalesService.Application.Features.Orders.Commands.Create;
 
@@ -18,24 +19,24 @@ public sealed class CreateOrderHandler
 {
     private readonly IOrderRepository _orderRepository;
     private readonly IProductServiceClient _productServiceClient;
-    private readonly IKafkaProducer _kafkaProducer;
-    private readonly IIdentityServiceClient _identityServiceClient;
     private readonly IInventoryServiceClient _inventoryServiceClient;
+    private readonly IOutboxRepository _outboxRepository;
+    private readonly IOutboxSignal _outboxSignal;
     private readonly ILogger<CreateOrderHandler> _logger;
 
     public CreateOrderHandler(
         IOrderRepository orderRepository,
         IProductServiceClient productServiceClient,
-        IKafkaProducer kafkaProducer,
-        IIdentityServiceClient identityServiceClient,
         IInventoryServiceClient inventoryServiceClient,
+        IOutboxRepository outboxRepository,
+        IOutboxSignal outboxSignal,
         ILogger<CreateOrderHandler> logger)
     {
         _orderRepository = orderRepository;
         _productServiceClient = productServiceClient;
-        _kafkaProducer = kafkaProducer;
-        _identityServiceClient = identityServiceClient;
         _inventoryServiceClient = inventoryServiceClient;
+        _outboxRepository = outboxRepository;
+        _outboxSignal = outboxSignal;
         _logger = logger;
     }
 
@@ -78,15 +79,6 @@ public sealed class CreateOrderHandler
             VariantId = v.VariantId,
             Amount = request.Request.Items.First(i => i.Sku == v.Sku).Quantity
         });
-
-        // IEnumerable<AmountVariant> listItemCheck = new List<AmountVariant>
-        //{
-        //    new AmountVariant
-        //    {
-        //        VariantId = Guid.Parse("F0000008-0000-0000-0000-0000000000F2"),
-        //        Amount = 2
-        //    }
-        //};
 
         var checkStockReq = new CheckEnoughStockReq
         {
@@ -172,71 +164,66 @@ public sealed class CreateOrderHandler
             order.OrderItems.Add(orderItem);
         }
 
+        // 1. Prepare Outbox Message (BEFORE saving order)
+        if (order.CustomerId.HasValue)
+        {
+             // Create OrderCreatedEvent
+             var orderEvent = new OrderCreatedEvent
+             {
+                 OrderId = order.Id,
+                 CustomerId = order.CustomerId,
+                 CustomerEmail = string.Empty, // Will be fetched by Consumer
+                 OrderSummary = $"Order {order.Code} created with {order.OrderItems.Count} items",
+                 TotalAmount = order.TotalAmount,
+                 CreatedAt = DateTimeOffset.UtcNow
+             };
+
+             // Serialize to JSON
+             var eventJson = System.Text.Json.JsonSerializer.Serialize(orderEvent);
+
+             var outboxMessage = new OutboxMessage
+             {
+                 Id = Guid.NewGuid(),
+                 Type = "OrderCreatedEvent",
+                 Content = eventJson,
+                 OccurredOn = DateTimeOffset.UtcNow,
+                 ProcessedOn = null,
+                 Error = null
+             };
+
+             // Add to Outbox Repository
+             _outboxRepository.Add(outboxMessage);
+             _logger.LogInformation("Added OrderCreatedEvent to Outbox for Order {OrderCode}", order.Code);
+        }
+
+        // 2. Save Order (and OutboxMessage) in one transaction (implicitly handled by CreateAsync -> SaveChanges)
         var createdOrder = await _orderRepository.CreateAsync(order, cancellationToken);
         //Fetch customer email from IdentityService
-        string? customerEmail = null;
-        if (createdOrder.CustomerId.HasValue)
+        // string? customerEmail = null;
+        // if (createdOrder.CustomerId.HasValue)
+        
+        // Optimize: Pulse Signal
+        if (order.CustomerId.HasValue)
         {
-            var user = await _identityServiceClient.GetUserByIdAsync(createdOrder.CustomerId.Value);
-            customerEmail = user?.Email;
+            _outboxSignal.Pulse();
         }
 
-        // Only publish event if we have customer email
-        if (!string.IsNullOrEmpty(customerEmail))
-        {
-            await _kafkaProducer.PublishAsync("order-notifications", new OrderCreatedEvent
-            {
-                OrderId = createdOrder.Id,
-                CustomerEmail = customerEmail,
-                OrderSummary = $"Order {createdOrder.Code} created with {createdOrder.OrderItems.Count} items",
-                TotalAmount = createdOrder.TotalAmount,
-                CreatedAt = DateTimeOffset.UtcNow
-            });
-        }
-        //string? customerEmail = null;
-        if (createdOrder.CustomerId.HasValue)
-        {
-            _logger.LogInformation("Fetching customer email for CustomerId: {CustomerId}", createdOrder.CustomerId.Value);
-            try
-            {
-                var user = await _identityServiceClient.GetUserByIdAsync(createdOrder.CustomerId.Value);
-                customerEmail = user?.Email;
-                _logger.LogInformation("Customer email fetched: {Email}", customerEmail ?? "NULL");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error fetching customer email from IdentityService for CustomerId: {CustomerId}", createdOrder.CustomerId.Value);
-            }
-        }
-        else
-        {
-            _logger.LogWarning("Order {OrderId} created without CustomerId, skipping notification", createdOrder.Id);
-        }
 
-        // Only publish event if we have customer email
-        if (!string.IsNullOrEmpty(customerEmail))
+        // ✅ Trừ kho sau khi tạo đơn hàng thành công
+        try 
         {
-            _logger.LogInformation("Publishing OrderCreatedEvent to Kafka for Order {OrderCode}, Customer: {Email}", createdOrder.Code, customerEmail);
-            try
+            var decreaseStockReq = new DecreaseStockByOrderReq
             {
-                await _kafkaProducer.PublishAsync("order-notifications", new OrderCreatedEvent
-                {
-                    OrderId = createdOrder.Id,
-                    CustomerEmail = customerEmail,
-                    OrderSummary = $"Order {createdOrder.Code} created with {createdOrder.OrderItems.Count} items",
-                    TotalAmount = createdOrder.TotalAmount,
-                    CreatedAt = DateTimeOffset.UtcNow
-                });
-                _logger.LogInformation("OrderCreatedEvent published successfully for Order {OrderCode}", createdOrder.Code);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error publishing OrderCreatedEvent to Kafka for Order {OrderCode}", createdOrder.Code);
-            }
+                StoreId = request.Request.StoreId.Value,
+                Items = listItemCheck.ToList()
+            };
+            await _inventoryServiceClient.DecreaseStockByOrder(decreaseStockReq);
+            _logger.LogInformation("Stock decreased successfully for Order {OrderCode}", createdOrder.Code);
         }
-        else
+        catch (Exception ex)
         {
-            _logger.LogWarning("Customer email is empty for Order {OrderCode}, notification will not be sent", createdOrder.Code);
+            _logger.LogError(ex, "Failed to decrease stock for Order {OrderCode}", createdOrder.Code);
+            // TODO: Cần cơ chế compensate transaction (Saga) hoặc retry
         }
 
         return Result.Success(new CreateOrderResponseDto

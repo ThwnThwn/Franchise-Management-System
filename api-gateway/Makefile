@@ -1,36 +1,38 @@
+# ==============================================================================
+# CONFIG & VARIABLES
+# ==============================================================================
 include ../.env
 export
 
-BINARY_NAME=main
+PROTO_SOURCE_DIR = ../protos
+
 WIRE_PATH=./internal/di
 
-PROTO_SOURCE_DIR = ../protos
 GO_PB_DIR = pkg/pb
+
+GO_MAIN_REL_PATH = cmd/server/main.go
+GO_BIN_OUT = bin/main.exe
 
 PROTOBUF_REGEX = `protobuf:.*?"\s+json:".*?"`
 
-.PHONY: build
-build:
-	@go build -o ./bin/$(BINARY_NAME).exe cmd/server/main.go
- 
-.PHONY: run
-run: build
-	@./bin/$(BINARY_NAME).exe
+# ==============================================================================
+# COMMANDS
+# ==============================================================================
 
-.PHONY: test
-test:
-	@go test -v ./...
+.PHONY: gen clean help build run dev test wire
 
-.PHONY: wire
-wire:
-	@wire $(if $(filter-out $@,$(MAKECMDGOALS)),$(WIRE_PATH)/$(filter-out $@,$(MAKECMDGOALS)),$(WIRE_PATH)/...)
-
-.PHONY: gen clean help
 help:
 	@echo "PROJECT COMMANDS:"
-	@echo "  make gen    : Generate all code gRPC for Go"
-	@echo "  make clean  : Delele all old PB file in Go"
+	@echo "  make gen    : Generate gRPC code for Go from .proto files"
+	@echo "  make build  : Build the Go API Gateway executable"
+	@echo "  make run    : Build and Run the Go Gateway locally"
+	@echo "  make dev    : Full flow: Generate Proto -> Build -> Run"
+	@echo "  make wire   : Generate Dependency Injection code (Google Wire)"
+	@echo "  make clean  : Clean generated PB files and binaries"
 
+# ------------------------------------------------------------------------------
+# 1. PROTOCOL BUFFERS GENERATION
+# ------------------------------------------------------------------------------
 gen:
 	@echo "Generating code from $(PROTO_SOURCE_DIR) to $(GO_PB_DIR)..."
 	@mkdir -p $(GO_PB_DIR)
@@ -39,9 +41,45 @@ gen:
 		--go_out=$(GO_PB_DIR) --go_opt=paths=source_relative \
 		--go-grpc_out=$(GO_PB_DIR) --go-grpc_opt=paths=source_relative \
 		$(shell find $(PROTO_SOURCE_DIR) -name "*.proto")
-	@echo "Done! Check your code in $(GO_PB_DIR)"
+	@echo "Proto generation done! Check: $(GO_PB_DIR)"
 
+# ------------------------------------------------------------------------------
+# 2. GO BUILD
+# ------------------------------------------------------------------------------
+build:
+	@echo "Building Go API Gateway..."
+# 	@go mod tidy
+	@go build -o $(GO_BIN_OUT) ./$(GO_MAIN_REL_PATH)
+	@echo "Build success! Binary located at: $(GO_BIN_OUT)"
+
+# ------------------------------------------------------------------------------
+# 3. RUN APPLICATION
+# ------------------------------------------------------------------------------
+run: build
+	@echo "🚀 Starting API Gateway..."
+	@# Chạy file .exe vừa build (Đã sửa từ $(BINARY_NAME) thành $(GO_BIN_OUT))
+	@./$(GO_BIN_OUT)
+
+# ------------------------------------------------------------------------------
+# 4. DEVELOPMENT (FULL FLOW)
+# ------------------------------------------------------------------------------
+dev: gen run
+
+# ------------------------------------------------------------------------------
+# 5. TESTING & TOOLS
+# ------------------------------------------------------------------------------
+test:
+	@go test -v ./...
+
+wire:
+	@echo "Running Google Wire..."
+	@wire $(if $(filter-out $@,$(MAKECMDGOALS)),$(WIRE_PATH)/$(filter-out $@,$(MAKECMDGOALS)),$(WIRE_PATH)/...)
+
+# ------------------------------------------------------------------------------
+# CLEANUP
+# ------------------------------------------------------------------------------
 clean:
-	@echo "Cleaning all the old .pb.go ..."
+	@echo "Cleaning up..."
 	@rm -f $(GO_PB_DIR)/*/*.pb.go
-	@echo "Done!"
+	@rm -f $(GO_BIN_OUT)
+	@echo "Clean done!"

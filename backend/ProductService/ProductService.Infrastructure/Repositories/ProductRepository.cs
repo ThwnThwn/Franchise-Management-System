@@ -9,10 +9,9 @@ using ProductService.Infrastructure.ApplicationDbContext;
 
 namespace ProductService.Infrastructure.Repositories;
 
-public class ProductRepository : GenericRepository<Product> ,IProductRepository
+public class ProductRepository : GenericRepository<Product>, IProductRepository
 {
-
-    public ProductRepository(IProductDbContext dbContext):base(dbContext)
+    public ProductRepository(IProductDbContext dbContext) : base(dbContext)
     {
     }
 
@@ -29,7 +28,7 @@ public class ProductRepository : GenericRepository<Product> ,IProductRepository
         }
 
         return await query
-            .OrderBy(p => p.Name)
+            .OrderByDescending(p => p.CreatedAt)
             .ToListAsync();
     }
 
@@ -45,14 +44,21 @@ public class ProductRepository : GenericRepository<Product> ,IProductRepository
                 p.IsDeleted == false);
     }
 
-    public async Task<Product?> GetProductByNameAsync(string name)
+    public async Task<Product?> GetProductByNameAsync(string name, Guid? exId)
     {
-        return await _dbContext.Products
+        var query = _dbContext.Products
             .Include(p => p.Category)
-            .FirstOrDefaultAsync(p =>
+            .Where(p =>
                 p.Name == name &&
                 p.IsActive == true &&
                 p.IsDeleted == false);
+
+        if (exId.HasValue)
+        {
+            query = query.Where(p => p.Id != exId.Value);
+        }
+
+        return await query.FirstOrDefaultAsync();
     }
 
     public async Task<List<Product>> GetProductByNameContainingAsync(string name)
@@ -65,6 +71,7 @@ public class ProductRepository : GenericRepository<Product> ,IProductRepository
                 EF.Functions.Like(p.Name, $"%{name}%") &&
                 p.IsActive == true &&
                 p.IsDeleted == false)
+            .OrderByDescending(p => p.CreatedAt)
             .ToListAsync();
     }
 }
