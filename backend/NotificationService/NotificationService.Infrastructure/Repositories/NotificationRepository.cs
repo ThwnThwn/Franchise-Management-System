@@ -32,4 +32,10 @@ public class NotificationRepository : INotificationRepository
             .OrderByDescending(n => n.CreatedAt)
             .ToListAsync();
     }
+
+    public async Task<bool> HasProcessedAsync(string referenceId)
+    {
+        return await _context.NotificationLogs
+            .AnyAsync(n => n.ReferenceId == referenceId && n.Status == Domain.Enums.NotificationStatus.Sent);
+    }
 }

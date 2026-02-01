@@ -31,6 +31,8 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
 
     public virtual DbSet<PaymentEvent> PaymentEvents { get; set; }
 
+    public virtual DbSet<OutboxMessage> OutboxMessages { get; set; }
+
     public virtual DbSet<CartItem> CartItems { get; set; }
     public DbSet<T> Set<T>() where T : class, IEntity => base.Set<T>();
 
@@ -260,6 +262,37 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
                 .HasForeignKey(d => d.PaymentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_payment_events_payment");
+        });
+
+        modelBuilder.Entity<OutboxMessage>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("outbox_messages_pkey");
+
+            entity.ToTable("outbox_messages");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasColumnName("id");
+            entity.Property(e => e.Type)
+                .HasMaxLength(255)
+                .HasColumnName("type");
+            entity.Property(e => e.Content)
+                .HasColumnName("content");
+            entity.Property(e => e.OccurredOn)
+                .HasColumnName("occurred_on");
+            entity.Property(e => e.ProcessedOn)
+                .HasColumnName("processed_on");
+            entity.Property(e => e.Error)
+                .HasColumnName("error");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("updated_at");
+
+            entity.HasIndex(e => e.ProcessedOn, "idx_outbox_messages_processed_on")
+                .HasFilter("(processed_on IS NULL)");
         });
 
         foreach (var entity in modelBuilder.Model.GetEntityTypes())
