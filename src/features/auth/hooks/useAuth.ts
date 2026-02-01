@@ -52,14 +52,14 @@ export const useLogout = ({ onSuccess }: { onSuccess?: () => void }) => {
                 description: AUTH_TEXT.STRINGS.SUCCESS_LOGOUT,
                 color: "success"
             })
-        },
-        onError: (error: BackendError) => {
-            addToast({
-                title: error.title || AUTH_TEXT.RESPONE_TEXT.ERROR,
-                description: error.detail,
-                color: "danger"
-            })
         }
+        // onError: (error: BackendError) => {
+        //     addToast({
+        //         title: error.title || AUTH_TEXT.RESPONE_TEXT.ERROR,
+        //         description: error.detail,
+        //         color: "danger"
+        //     })
+        // }
     })
 }
 
