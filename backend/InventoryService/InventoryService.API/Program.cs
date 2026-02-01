@@ -1,17 +1,21 @@
-﻿using AutoMapper;
+using AutoMapper;
 using DotNetEnv;
 using InventoryService.API.Middleware;
 using InventoryService.API.Services.Identity;
 using InventoryService.API.Services.Inventory;
 using InventoryService.Application.ClientInterface.Indentity;
 using InventoryService.Application.DependencyInjection;
-using InventoryService.Application.Persistences.Repositories;
 using InventoryService.Infrastructure.ApplicationDbContext;
 using InventoryService.Infrastructure.Interceptor;
+using InventoryService.Application.Persistences.Repositories;
 using InventoryService.Infrastructure.Persistences.Repositories;
 
 using InventoryService.Application.ExternalServices;
 using InventoryService.Infrastructure.ExternalServices;
+using InventoryService.Application.Signals; 
+using InventoryService.Infrastructure.Signals;
+
+using InventoryService.API.BackgroundJobs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics.Internal;
 
@@ -137,6 +141,12 @@ namespace InventoryService.API
             builder.Services.AddScoped<IIdentityServiceClient, IdentityServiceClient>();
             // Kafka Producer
             builder.Services.AddSingleton<IKafkaProducer, KafkaProducer>();
+
+            // Outbox Pattern
+            builder.Services.AddScoped<IOutboxRepository, OutboxRepository>();
+            builder.Services.AddSingleton<IOutboxSignal, OutboxSignal>();
+            builder.Services.AddHostedService<API.BackgroundJobs.InventoryOutboxWorker>();
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

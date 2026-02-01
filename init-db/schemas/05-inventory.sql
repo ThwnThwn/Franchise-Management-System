@@ -46,3 +46,16 @@ ALTER TABLE "recipes"
 ALTER TABLE "store_ingredients" 
   ADD CONSTRAINT "fk_store_ingredients_ingredient" 
   FOREIGN KEY ("ingredient_id") REFERENCES "ingredients" ("id") ON DELETE CASCADE;
+
+-- 4. Create Outbox Messages Table
+CREATE TABLE "OutboxMessages" (
+    "Id" uuid NOT NULL,
+    "Type" text NOT NULL,
+    "Content" text NOT NULL,
+    "OccurredOn" timestamp with time zone NOT NULL,
+    "ProcessedOn" timestamp with time zone NULL,
+    "Error" text NULL,
+    "CreatedAt" timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    "UpdatedAt" timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "PK_OutboxMessages" PRIMARY KEY ("Id")
+);

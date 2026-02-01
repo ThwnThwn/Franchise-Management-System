@@ -17,6 +17,7 @@ namespace InventoryService.Infrastructure.ApplicationDbContext
         DbSet<Recipe> Recipes { get; set; }
 
         DbSet<StoreIngredient> StoreIngredients { get; set; }
+        DbSet<OutboxMessage> OutboxMessages { get; set; }
 
         public DbSet<T> Set<T>() where T : class, IEntity;
 

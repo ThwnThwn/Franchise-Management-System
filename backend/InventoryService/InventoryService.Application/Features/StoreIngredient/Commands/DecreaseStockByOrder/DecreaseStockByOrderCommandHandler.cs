@@ -14,26 +14,31 @@ using InventoryService.Application.ExternalServices;
 using SharedKernel.Events;
 using Microsoft.Extensions.Logging;
 
+using InventoryService.Application.Signals;
+using InventoryService.Domain.Entities;
+using System.Text.Json;
+
 namespace InventoryService.Application.Features.StoreIngredient.Commands.DecreaseStockByOrder
 {
     public class DecreaseStockByOrderCommandHandler : IRequestHandler<DecreaseStockByOrderCommand, Unit>
     {
         private readonly IStoreIngredientRepository _storeIngredientRepo;
         private readonly IRecipeRepository _recipeRepository;
-        private readonly IIdentityServiceClient _identityServiceClient;
-        private readonly IKafkaProducer _kafkaProducer;
+        private readonly IOutboxRepository _outboxRepository;
+        private readonly IOutboxSignal _outboxSignal;
         private readonly ILogger<DecreaseStockByOrderCommandHandler> _logger;
+
         public DecreaseStockByOrderCommandHandler(
-            IStoreIngredientRepository storeIngredientRepo, 
-            IRecipeRepository recipeRepository, 
-            IIdentityServiceClient identityServiceClient, 
-            IKafkaProducer kafkaProducer,
+            IStoreIngredientRepository storeIngredientRepo,
+            IRecipeRepository recipeRepository,
+            IOutboxRepository outboxRepository,
+            IOutboxSignal outboxSignal,
             ILogger<DecreaseStockByOrderCommandHandler> logger)
         {
             _storeIngredientRepo = storeIngredientRepo;
             _recipeRepository = recipeRepository;
-            _identityServiceClient = identityServiceClient;
-            _kafkaProducer = kafkaProducer;
+            _outboxRepository = outboxRepository;
+            _outboxSignal = outboxSignal;
             _logger = logger;
         }
 
@@ -45,17 +50,15 @@ namespace InventoryService.Application.Features.StoreIngredient.Commands.Decreas
             // 1. Lấy danh sách tất cả VariantId từ request
             var variantIds = req.Items.Select(x => x.VariantId).Distinct().ToList();
 
-            // 2. Lấy toàn bộ công thức liên quan (Nên dùng hàm GetByListVariantIds)
+            // 2. Lấy toàn bộ công thức liên quan
             var allRecipes = await _recipeRepository.GetRecipesByVariantIdsAsync(variantIds, cancellationToken);
             if (allRecipes == null || !allRecipes.Any())
             {
                 throw new BusinessException(Message.Inventory.NotFound);
             }
 
-            // 3. Tính toán tổng lượng nguyên liệu cần thiết cho cả đơn hàng
-            // Dùng Dictionary để cộng dồn: Key là IngredientId, Value là tổng số lượng cần trừ
+            // 3. Tính toán tổng lượng nguyên liệu cần thiết
             var totalRequiredIngredients = new Dictionary<Guid, decimal>();
-
             foreach (var item in req.Items)
             {
                 var recipesForItem = allRecipes.Where(r => r.VariantId == item.VariantId);
@@ -73,70 +76,61 @@ namespace InventoryService.Application.Features.StoreIngredient.Commands.Decreas
                 }
             }
 
-            // 4. Lấy tồn kho thực tế của các nguyên liệu này tại Store
+            // 4. Lấy tồn kho thực tế
             var ingredientIds = totalRequiredIngredients.Keys.ToList();
             var storeStocks = await _storeIngredientRepo.GetStockByStoreIdAndIngredientIdsAsync(req.StoreId, ingredientIds, cancellationToken);
 
-            // 5. Kiểm tra và thực hiện trừ trên đối tượng (In-memory)
+            // 5. Kiểm tra và thực hiện trừ kho
             foreach (var required in totalRequiredIngredients)
             {
                 var stock = storeStocks.FirstOrDefault(s => s.IngredientId == required.Key);
 
                 if (stock == null)
-                {
                     throw new BusinessException($"Cửa hàng không có nguyên liệu ID: {required.Key} trong kho.");
-                }
 
                 if (stock.Quantity < required.Value)
-                {
-                    throw new BusinessException($"Không đủ nguyên liệu trong kho. Nguyên liệu ID: {required.Key}, Cần: {required.Value}, Hiện có: {stock.Quantity}");
-                }
+                    throw new BusinessException($"Không đủ nguyên liệu trong kho. ID: {required.Key}. Cần: {required.Value}, Có: {stock.Quantity}");
 
                 // Trừ kho
                 stock.Quantity -= required.Value;
                 stock.UpdatedAt = DateTime.UtcNow;
 
-                _logger.LogInformation("Updated stock for Ingredient {IngredientId}. New Quantity: {Quantity}, Threshold: {Threshold}", 
+                _logger.LogInformation("Updated stock for Ingredient {IngredientId}. New Quantity: {Quantity}, Threshold: {Threshold}",
                     stock.IngredientId, stock.Quantity, stock.MinThreshold);
 
+                // 6. Kiểm tra Low Stock -> Lưu vào Outbox
+                // Thay vì gọi gRPC và bắn Kafka trực tiếp (gây chậm), ta lưu event vào Outbox để worker xử lý sau.
                 if ((stock.Quantity ?? 0) < (stock.MinThreshold ?? 0))
                 {
-                    _logger.LogInformation("Low stock detected for Ingredient {IngredientId}. Fetching Manager...", stock.IngredientId);
-                    
-                    Dtos.User.UserRep? manager = null;
-                    try
+                    _logger.LogInformation("Low stock detected for Ingredient {IngredientId}. Adding to Outbox...", stock.IngredientId);
+
+                    // Chỉ lưu thông tin cần thiết, Worker sẽ lo phần còn lại (Lấy Email Manager -> Bắn Kafka)
+                    var lowStockPayload = new 
                     {
-                        manager = await _identityServiceClient.GetManager(new Dtos.User.GetManagerReq { StoreId = stock.StoreId });
-                    }
-                    catch (Exception ex)
+                        StoreId = stock.StoreId,
+                        IngredientId = stock.IngredientId,
+                        IngredientName = stock.Ingredient.Name,
+                        CurrentStock = stock.Quantity ?? 0,
+                        MinThreshold = stock.MinThreshold ?? 0
+                    };
+
+                    var outboxMessage = new OutboxMessage
                     {
-                        _logger.LogWarning("Failed to fetch manager for Store {StoreId}: {Message}", stock.StoreId, ex.Message);
-                    }
-                   
-                    if (manager != null)
-                    {
-                        var lowStockEvent = new LowStockEvent
-                        {
-                            StoreId = stock.StoreId,
-                            IngredientId = stock.IngredientId,
-                            IngredientName = stock.Ingredient.Name,
-                            CurrentStock = stock.Quantity ?? 0,
-                            MinThreshold = stock.MinThreshold ?? 0,
-                            ManagerEmail = manager.Email 
-                        };
-                        
-                        _logger.LogInformation("Publishing LowStockEvent to Kafka for Manager {Email}", manager.Email);
-                        await _kafkaProducer.PublishAsync("low-stock-notifications", lowStockEvent);
-                    }
-                    else
-                    {
-                        _logger.LogWarning("Low stock detected but NO Manager found for Store {StoreId}", stock.StoreId);
-                    }
+                        Id = Guid.NewGuid(),
+                        Type = "LowStockDetected", // Internal Event Type
+                        Content = JsonSerializer.Serialize(lowStockPayload),
+                        OccurredOn = DateTime.UtcNow
+                    };
+
+                    _outboxRepository.Add(outboxMessage);
                 }
             }
 
-            // 6. Lưu thay đổi xuống Database 1 lần duy nhất
+            // 7. Lưu thay đổi (Cả Stock & OutboxMessage) trong 1 Transaction (Implicit EF Core)
             await _storeIngredientRepo.UpdateRangeAsync(storeStocks);
+
+            // 8. Bấm chuông báo Worker (Fire & Forget)
+            _outboxSignal.Pulse();
 
             return Unit.Value;
         }
