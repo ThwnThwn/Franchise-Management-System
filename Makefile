@@ -44,7 +44,7 @@ gen:
 # ------------------------------------------------------------------------------
 build:
 	@echo "Building Go API Gateway..."
-	@cd $(GO_MODULE_DIR) && go mod tidy
+# 	@cd $(GO_MODULE_DIR) && go mod tidy
 	@cd $(GO_MODULE_DIR) && go build -o bin/main.exe ./$(GO_MAIN_REL_PATH)
 	@echo "Build success! Binary located at: $(GO_BIN_OUT)"
 
