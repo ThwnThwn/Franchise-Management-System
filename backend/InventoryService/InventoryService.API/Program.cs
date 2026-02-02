@@ -12,8 +12,7 @@ using InventoryService.Infrastructure.Interceptor;
 using InventoryService.Application.Persistences.Repositories;
 using InventoryService.Infrastructure.Persistences.Repositories;
 
-using InventoryService.Application.ExternalServices;
-using InventoryService.Infrastructure.ExternalServices;
+using SharedKernel.Infrastructure.Kafka;
 using InventoryService.Application.Signals; 
 using InventoryService.Infrastructure.Signals;
 

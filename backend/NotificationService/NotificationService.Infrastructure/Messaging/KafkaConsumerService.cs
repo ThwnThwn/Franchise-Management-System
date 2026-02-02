@@ -5,8 +5,11 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NotificationService.Application.Handlers;
 using SharedKernel.Events;
+using SharedKernel.Constants;
 using System.Text.Json;
+
 namespace NotificationService.Infrastructure.Messaging;
+
 /// <summary>
 /// Service chạy nền (Background Service) để lắng nghe các sự kiện từ Kafka.
 /// Chịu trách nhiệm nhận tin nhắn từ các topic và điều phối đến các Handler tương ứng (Email, OTP...).
@@ -16,6 +19,7 @@ public class KafkaConsumerService : BackgroundService
     private readonly IConsumer<string, string> _consumer;
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<KafkaConsumerService> _logger;
+
     public KafkaConsumerService(
         IConfiguration configuration,
         IServiceProvider serviceProvider,
@@ -34,16 +38,18 @@ public class KafkaConsumerService : BackgroundService
         _serviceProvider = serviceProvider;
         _logger = logger;
     }
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _consumer.Subscribe(new[] {
-            "otp-notifications",
-            "otp-forgetPassword",
-            "order-notifications",
-            "password-reset-notifications",
-            "low-stock-notifications"  // ✅ Đăng ký nhận sự kiện cảnh báo hết hàng
+            KafkaTopics.OtpNotifications,
+            KafkaTopics.OrderNotifications,
+            KafkaTopics.PasswordResetNotifications,
+            KafkaTopics.LowStockNotifications
         });
+
         _logger.LogInformation("Kafka consumer started, listening to topics...");
+
         while (!stoppingToken.IsCancellationRequested)
         {
             try
@@ -77,8 +83,10 @@ public class KafkaConsumerService : BackgroundService
                 // ⚠️ Don't commit on error - message will be reprocessed
             }
         }
+
         _consumer.Close();
     }
+
     /// <summary>
     /// Hàm điều phối xử lý tin nhắn dựa trên Topic.
     /// Mỗi topic sẽ được xử lý bởi một Handler riêng biệt.
@@ -86,11 +94,12 @@ public class KafkaConsumerService : BackgroundService
     private async Task ProcessMessageAsync(string topic, string message)
     {
         using var scope = _serviceProvider.CreateScope();
+
         try
         {
             switch (topic)
             {
-                case "otp-notifications":
+                case var _ when topic == KafkaTopics.OtpNotifications:
                     var otpEvent = JsonSerializer.Deserialize<OtpRequestedEvent>(message);
                     if (otpEvent != null)
                     {
@@ -98,7 +107,8 @@ public class KafkaConsumerService : BackgroundService
                         await otpHandler.HandleAsync(otpEvent);
                     }
                     break;
-                case "order-notifications":
+
+                case var _ when topic == KafkaTopics.OrderNotifications:
                     var orderEvent = JsonSerializer.Deserialize<OrderCreatedEvent>(message);
                     if (orderEvent != null)
                     {
@@ -106,7 +116,8 @@ public class KafkaConsumerService : BackgroundService
                         await orderHandler.HandleAsync(orderEvent);
                     }
                     break;
-                case "password-reset-notifications":
+
+                case var _ when topic == KafkaTopics.PasswordResetNotifications:
                     var resetEvent = JsonSerializer.Deserialize<PasswordResetRequestedEvent>(message);
                     if (resetEvent != null)
                     {
@@ -114,7 +125,8 @@ public class KafkaConsumerService : BackgroundService
                         _logger.LogInformation("Password reset event received for {Email}", resetEvent.Email);
                     }
                     break;
-                case "low-stock-notifications":
+
+                case var _ when topic == KafkaTopics.LowStockNotifications:
                     var lowStockEvent = JsonSerializer.Deserialize<LowStockEvent>(message);
                     if (lowStockEvent != null)
                     {
@@ -122,8 +134,7 @@ public class KafkaConsumerService : BackgroundService
                         await lowStockHandler.HandleAsync(lowStockEvent);
                     }
                     break;
-                
-                
+
                 default:
                     _logger.LogWarning("Unknown topic: {Topic}", topic);
                     break;
