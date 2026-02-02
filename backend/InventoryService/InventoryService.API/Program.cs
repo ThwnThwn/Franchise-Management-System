@@ -138,7 +138,7 @@ namespace InventoryService.API
             builder.Services.AddScoped<IStoreIngredientRepository, StoreIngredientRepository>();
             builder.Services.AddScoped<IIngredientRepository, IngredientRepository>();
             builder.Services.AddScoped<IRecipeRepository, RecipeRepository>();
-
+            builder.Services.AddScoped<IIngredientCategoryRepository, IngredientCategoryRepository>();
             //add client
             builder.Services.AddScoped<IIdentityServiceClient, IdentityServiceClient>();
             // Kafka Producer
@@ -148,6 +148,8 @@ namespace InventoryService.API
             builder.Services.AddScoped<IOutboxRepository, OutboxRepository>();
             builder.Services.AddSingleton<IOutboxSignal, OutboxSignal>();
             builder.Services.AddHostedService<API.BackgroundJobs.InventoryOutboxWorker>();
+
+            builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
             var app = builder.Build();
 

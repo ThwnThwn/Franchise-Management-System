@@ -1,4 +1,6 @@
-﻿using InventoryService.Application.Dtos.StoreIngredient;
+﻿using BuildingBlocks.Core.Pagination;
+using InventoryService.Application.Constants;
+using InventoryService.Application.Dtos.StoreIngredient;
 using InventoryService.Domain.Entities;
 using MediatR;
 using System;
@@ -13,5 +15,7 @@ namespace InventoryService.Application.Persistences.Repositories
     {
         Task IncreaseStockAsync(Guid storeId, IEnumerable<IngredientStockItem> items);
         Task<IEnumerable<StoreIngredient>> GetStockByStoreIdAndIngredientIdsAsync(Guid storeId, IEnumerable<Guid> ingredientIds, CancellationToken cancellationToken);
+
+        Task<PagedResult<Ingredient>> GetPagedStockAsync(IEnumerable<Guid>? storeIds, IEnumerable<Guid>? categoryIds, StockStatus? stockStatus, IEnumerable<Guid>? ingredientIds, int pageIndex, int pageSize, CancellationToken cancellationToken);
     }
 }

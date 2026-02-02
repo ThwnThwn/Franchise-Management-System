@@ -1,4 +1,6 @@
-﻿using InventoryService.Application.AppExceptions;
+﻿using BuildingBlocks.Core.Pagination;
+using InventoryService.Application.AppExceptions;
+using InventoryService.Application.Constants;
 using InventoryService.Application.Dtos.StoreIngredient;
 using InventoryService.Application.Persistences.Repositories;
 using InventoryService.Domain.Entities;
@@ -16,6 +18,11 @@ namespace InventoryService.Infrastructure.Persistences.Repositories
     {
         public StoreIngredientRepository(IInventoryDbContext dbContext) : base(dbContext)
         {
+        }
+
+        public Task<PagedResult<Ingredient>> GetPagedStockAsync(IEnumerable<Guid>? storeIds, IEnumerable<Guid> categoryIds, StockStatus stockStatus, IEnumerable<Guid> ingredientIds, int pageIndex, int pageSize, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
         }
 
         public async Task<IEnumerable<StoreIngredient>> GetStockByStoreIdAndIngredientIdsAsync(Guid storeId, IEnumerable<Guid> ingredientIds, CancellationToken cancellationToken)

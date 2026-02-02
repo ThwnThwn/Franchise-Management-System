@@ -24,13 +24,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Dtos\Ingredient\" />
-    <Folder Include="Features\Ingrdient\Commands\" />
     <Folder Include="Features\StoreIngredient\Commands\GetAllStock\" />
     <Folder Include="Features\Ingrdient\Commands\GetAllIngredient\" />
-    <Folder Include="Features\Ingrdient\Commands\CreateIngredient\" />
-    <Folder Include="Features\Ingrdient\Commands\DeleteIngredient\" />
-    <Folder Include="Features\Ingrdient\Commands\UpdateIngredient\" />
   </ItemGroup>
 
 </Project>

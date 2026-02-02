@@ -48,24 +48,39 @@ public partial class InventoryDbContext : DbContext, IInventoryDbContext
             entity.Property(e => e.Id)
                 .HasDefaultValueSql("uuid_generate_v4()")
                 .HasColumnName("id");
+
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(255)
+                .HasColumnName("name");
+
             entity.Property(e => e.BaseUnit)
+                .IsRequired()
                 .HasMaxLength(50)
                 .HasColumnName("base_unit");
-            entity.Property(e => e.Category)
-                .HasMaxLength(100)
-                .HasColumnName("category");
+
+            // Thay thế cột Category (string) cũ bằng CategoryId (Guid)
+            entity.Property(e => e.CategoryId)
+                .HasColumnName("category_id");
+
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("created_at");
-            entity.Property(e => e.IsDeleted)
-                .HasDefaultValue(false)
-                .HasColumnName("is_deleted");
-            entity.Property(e => e.Name)
-                .HasMaxLength(255)
-                .HasColumnName("name");
+
             entity.Property(e => e.UpdatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("updated_at");
+
+            entity.Property(e => e.IsDeleted)
+                .HasDefaultValue(false)
+                .HasColumnName("is_deleted");
+
+            // 1. Cấu hình mối quan hệ với bảng IngredientCategory
+            entity.HasOne(d => d.IngredientCategory) // Tên property trong class Ingredient
+                .WithMany(p => p.Ingredients)       // Tên collection trong class IngredientCategory
+                .HasForeignKey(d => d.CategoryId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("fk_ingredients_category");
         });
 
         modelBuilder.Entity<Recipe>(entity =>
@@ -133,6 +148,36 @@ public partial class InventoryDbContext : DbContext, IInventoryDbContext
             entity.HasOne(d => d.Ingredient).WithMany(p => p.StoreIngredients)
                 .HasForeignKey(d => d.IngredientId)
                 .HasConstraintName("fk_store_ingredients_ingredient");
+        });
+
+        modelBuilder.Entity<IngredientCategory>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("ingredient_categories_pkey");
+
+            entity.ToTable("ingredient_categories");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasColumnName("id");
+
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(255)
+                .HasColumnName("name");
+
+            entity.Property(e => e.Description).HasColumnName("description");
+
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_at");
+
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("updated_at");
+
+            entity.Property(e => e.IsDeleted)
+                .HasDefaultValue(false)
+                .HasColumnName("is_deleted");
         });
 
         OnModelCreatingPartial(modelBuilder);
