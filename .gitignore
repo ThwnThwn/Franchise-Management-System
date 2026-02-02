@@ -39,6 +39,9 @@ appsettings.Production.json
 # Editor/IDE
 # .idea/
 .vscode/
+# Chores
+global.json
+
 
 # ignore local config
 /config/local.yaml
