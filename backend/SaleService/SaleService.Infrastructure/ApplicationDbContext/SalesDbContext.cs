@@ -119,7 +119,9 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
                 .HasPrecision(12, 3)
                 .HasColumnName("paid_amount");
             entity.Property(e => e.PaidAt).HasColumnName("paid_at");
-            entity.Property(e => e.PaymentMethod).HasColumnName("payment_method");
+            entity.Property(e => e.PaymentMethod)
+                .HasDefaultValue(PaymentMethod.Cash)
+                .HasColumnName("payment_method");
             entity.Property(e => e.Status)
                 .HasDefaultValue(OrderStatus.Pending)
                 .HasColumnName("status");
