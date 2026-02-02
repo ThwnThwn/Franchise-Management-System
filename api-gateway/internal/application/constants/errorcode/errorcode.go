@@ -17,6 +17,9 @@ var (
 	// 403
 	ErrForbidden = errors.New("Không có quyền truy cập")
 
+	// 404
+	ErrTokenNotFound = errors.New("không tìm thấy token")
+
 	// 429
 	ErrOTPRateLimit       = errors.New("Quá số lần gửi OTP")
 	ErrOTPTooManyAttempts = errors.New("Quá số lần nhập OTP")
@@ -55,6 +58,13 @@ var InternalErrorMap = map[error]struct {
 		Status: http.StatusForbidden,
 		Title:  "Không có quyền truy cập",
 		Detail: ErrForbidden.Error(),
+	},
+
+	// 404
+	ErrTokenNotFound: {
+		Status: http.StatusNotFound,
+		Title:  "Không tìm thấy",
+		Detail: ErrTokenNotFound.Error(),
 	},
 
 	// 429

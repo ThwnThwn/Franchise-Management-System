@@ -1,0 +1,27 @@
+package cache
+
+import (
+	"api-gateway/config"
+	"api-gateway/pkg/logger"
+	"context"
+	"fmt"
+
+	"github.com/redis/go-redis/v9"
+	"go.uber.org/zap"
+)
+
+func NewRedis(rCfg *config.Redis, logger logger.Interface) *redis.Client {
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     fmt.Sprintf("%s:%v", rCfg.Host, rCfg.Port),
+		Password: rCfg.Password,
+	})
+
+	ctx := context.Background()
+
+	_, err := rdb.Ping(ctx).Result()
+	if err != nil {
+		logger.Fatal("Redis initialization error", zap.Error(err))
+	}
+
+	return rdb
+}
