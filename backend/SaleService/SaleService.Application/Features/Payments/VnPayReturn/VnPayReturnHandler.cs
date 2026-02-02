@@ -122,6 +122,7 @@ public sealed class VnPayReturnHandler
                 payment.Order.Status = OrderStatus.Paid;
                 payment.Order.PaidAt = DateTimeOffset.UtcNow;
                 payment.Order.PaidAmount = payment.Amount;
+                payment.Order.PaymentMethod = PaymentMethod.VNPay;
             }
 
             await AddPaymentEvent(payment.Id, "VNPAY_CALLBACK_SUCCESS", query, cancellationToken);
