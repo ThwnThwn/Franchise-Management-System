@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using IdentityService.Application.AppExceptions;
 using IdentityService.Application.Dtos.Role.Respone;
 using IdentityService.Application.Persistences.Repositories;
 using MediatR;
@@ -22,7 +23,7 @@ public class UpdateRoleCommandHandler : IRequestHandler<UpdateRoleCommand, RoleR
 
         var existingRole = await _roleRepository.GetByNameAsync(request.Name);
         if (existingRole != null)
-            throw new Exception($"Role '{request.Name}' already exists");
+            throw new DbUpdateException($"Role '{request.Name}' already exists");
 
         var role = await _roleRepository.GetByIdAsync(command.Id);
         if (role == null) return null;

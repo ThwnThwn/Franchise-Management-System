@@ -31,9 +31,12 @@ message DeleteListCartItemRequest {
 message CartItemReply {
   string id = 1;
   string sku = 2;
-  string customerId = 3;
-  int32 quantity = 4;
-  double basePrice = 5;
+  string productName = 3;
+  string customerId = 4;
+  int32 quantity = 5;
+  double basePrice = 6;
+  string created_at = 7;
+  string updated_at = 8;
 }
 
 message CartItemListReply {

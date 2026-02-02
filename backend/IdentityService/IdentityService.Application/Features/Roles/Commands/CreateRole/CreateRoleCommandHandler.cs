@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using IdentityService.Application.AppExceptions;
 using IdentityService.Application.Dtos.Role.Respone;
 using IdentityService.Application.Persistences.Repositories;
 using IdentityService.Domain.Entities;
@@ -23,7 +24,7 @@ public class CreateRoleCommandHandler : IRequestHandler<CreateRoleCommand, RoleR
 
         var existingRole = await _roleRepository.GetByNameAsync(request.Name);
         if (existingRole != null)
-            throw new Exception($"Role '{request.Name}' already exists");
+            throw new DbUpdateException($"Role '{request.Name}' already exists");
 
         var role = _mapper.Map<Role>(request);
         role.CreatedAt = DateTimeOffset.UtcNow;

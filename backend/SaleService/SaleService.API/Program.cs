@@ -58,8 +58,8 @@ public class Program
         {
             options.ConfigureEndpointDefaults(listenOptions =>
             {
-                // gRPC thường cần HTTP/2
-                listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2;
+                // Allow both HTTP/1.1 (REST) and HTTP/2 (gRPC)
+                listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2;
             });
         });
 

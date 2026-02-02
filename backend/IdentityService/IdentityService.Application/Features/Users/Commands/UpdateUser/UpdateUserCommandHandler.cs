@@ -47,7 +47,7 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, UserR
         }
 
         var user = await _userRepository.GetByIdAsync(command.Id)
-            ?? throw new KeyNotFoundException(Message.UserMessage.NotFound);
+            ?? throw new BusinessException(Message.UserMessage.NotFound);
         _mapper.Map(request, user);
 
         await _userRepository.UpdateAsync(user);

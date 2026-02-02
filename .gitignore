@@ -35,9 +35,13 @@ appsettings.Production.json
 .env
 .envrc
 
+
 # Editor/IDE
 # .idea/
 .vscode/
+# Chores
+global.json
+
 
 # ignore local config
 /config/local.yaml

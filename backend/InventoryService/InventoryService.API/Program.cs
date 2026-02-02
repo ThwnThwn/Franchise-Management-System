@@ -6,7 +6,8 @@ using InventoryService.API.Services.Inventory;
 using InventoryService.Application.ClientInterface.Indentity;
 using InventoryService.Application.Constants;
 using InventoryService.Application.DependencyInjection;
-using InventoryService.Infrastructure.ApplicationDbContext;
+using InventoryService.Application.Abstractions;
+using InventoryService.Infrastructure.ApplicationDbContext; // Added back for concrete class
 using InventoryService.Infrastructure.Interceptor;
 using InventoryService.Application.Persistences.Repositories;
 using InventoryService.Infrastructure.Persistences.Repositories;
@@ -57,8 +58,8 @@ namespace InventoryService.API
             {
                 options.ConfigureEndpointDefaults(listenOptions =>
                 {
-                    // gRPC thường cần HTTP/2
-                    listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2;
+                    // Allow both HTTP/1.1 (REST) and HTTP/2 (gRPC)
+                    listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2;
                 });
             });
 
