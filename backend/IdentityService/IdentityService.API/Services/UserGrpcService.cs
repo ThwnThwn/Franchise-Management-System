@@ -211,8 +211,15 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
 
     public override async Task<UserResponse> ChangePassword(ChangePasswordRequest request, ServerCallContext context)
     {
+        var userEntry = context.RequestHeaders.FirstOrDefault(h =>
+           h.Key.Equals("x-user-id", StringComparison.OrdinalIgnoreCase));
+        if (userEntry == null)
+        {
+            throw new RpcException(new Status(StatusCode.Unauthenticated, "Missing x-user-id in request headers"));
+        }
+
         var rep = await _mediator.Send(new ChangePasswordComand(
-            Id: Guid.Parse(request.Id),
+            Id: Guid.Parse(userEntry.Value),
             Request: new()
             {
                 OldPassword = request.OldPassword,

@@ -4,8 +4,9 @@ using IdentityService.Application.ExternalServices;
 using IdentityService.Application.Persistences.Caches;
 using IdentityService.Application.Persistences.Repositories;
 using MediatR;
-using Microsoft.Win32;
+using SharedKernel.Constants;
 using SharedKernel.Events;
+using SharedKernel.Infrastructure.Kafka;
 using System.Security.Cryptography;
 using System.Text.Json;
 
@@ -69,7 +70,7 @@ public class ForgetPasswordCommandHandler
         await _otpStore.RemoveLastOtpRequestTimeAsync(request.Email, forgetPassword);
 
         // Publish OTP event to Kafka instead of sending email directly
-        await _kafkaProducer.PublishAsync("otp-forgetPassword", new OtpRequestedEvent
+        await _kafkaProducer.PublishAsync(KafkaTopics.OtpForgetPassword, new OtpRequestedEvent
         {
             Email = request.Email,
             OtpCode = otp,

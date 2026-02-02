@@ -4,7 +4,9 @@ using IdentityService.Application.ExternalServices;
 using IdentityService.Application.Persistences.Caches;
 using MediatR;
 using SharedKernel.Events;
+using SharedKernel.Constants;
 using System.Security.Cryptography;
+using SharedKernel.Infrastructure.Kafka;
 
 namespace IdentityService.Application.Features.Auth.Commands.ReSendOtp
 {
@@ -51,7 +53,7 @@ namespace IdentityService.Application.Features.Auth.Commands.ReSendOtp
             // Reset attempt count when new OTP is sent
             await _otpStore.ResetOtpAttemptAsync(request.Email, request.Purpose);
 
-            await _kafkaProducer.PublishAsync("otp-forgetPassword", new OtpRequestedEvent
+            await _kafkaProducer.PublishAsync(KafkaTopics.OtpNotifications, new OtpRequestedEvent
             {
                 Email = request.Email,
                 OtpCode = otp,
