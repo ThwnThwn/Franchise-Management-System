@@ -5,23 +5,23 @@ using InventoryService.API.Services.Identity;
 using InventoryService.Application.ClientInterface.Indentity;
 using InventoryService.Application.Constants;
 using InventoryService.Application.DependencyInjection;
-using InventoryService.Application.Abstractions;
 using InventoryService.Infrastructure.ApplicationDbContext; // Added back for concrete class
 using InventoryService.Infrastructure.Interceptor;
 using InventoryService.Application.Persistences.Repositories;
 using InventoryService.Infrastructure.Persistences.Repositories;
 
-using InventoryService.Application.ExternalServices;
-using InventoryService.Infrastructure.ExternalServices;
+//using InventoryService.Application.ExternalServices;
+//using InventoryService.Infrastructure.ExternalServices;
 using InventoryService.Application.Signals;
 using SharedKernel.Infrastructure.Kafka;
-using InventoryService.Application.Signals; 
+using InventoryService.Application.Signals;
 using InventoryService.Infrastructure.Signals;
 
 using InventoryService.API.BackgroundJobs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics.Internal;
 using InventoryService.API.Services.Inventory;
+using InventoryService.Application.Abstractions;
 
 namespace InventoryService.API
 {

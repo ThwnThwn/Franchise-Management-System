@@ -5,7 +5,6 @@ using InventoryService.Application.Constants;
 using InventoryService.Application.Dtos.StoreIngredient;
 using InventoryService.Application.Persistences.Repositories;
 using InventoryService.Domain.Entities;
-using InventoryService.Application.Abstractions; // Updated
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using System;
@@ -13,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using InventoryService.Application.Abstractions;
 
 namespace InventoryService.Infrastructure.Persistences.Repositories
 {

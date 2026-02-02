@@ -1,10 +1,9 @@
 ﻿using BuildingBlocks.Core.Extensions;
 using BuildingBlocks.Core.Pagination;
+using InventoryService.Application.Abstractions;
 using InventoryService.Application.Persistences.Repositories;
 using InventoryService.Domain.Entities;
-using InventoryService.Infrastructure.ApplicationDbContext;
 using Microsoft.EntityFrameworkCore;
-using InventoryService.Application.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Linq;

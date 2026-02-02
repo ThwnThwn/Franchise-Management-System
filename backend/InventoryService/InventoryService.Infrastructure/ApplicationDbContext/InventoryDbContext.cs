@@ -29,6 +29,8 @@ public partial class InventoryDbContext : DbContext, IInventoryDbContext
 
     public virtual DbSet<OutboxMessage> OutboxMessages { get; set; }
 
+    public virtual DbSet<IngredientCategory> IngredientCategories { get; set; }
+
     public DbSet<T> Set<T>() where T : class, IEntity => base.Set<T>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
