@@ -38,6 +38,7 @@ namespace SalesService.Infrastructure.Repositories.CartItems
         {
             return await _context.CartItems
                     .Include(o => o.Id)
+                    .OrderBy(x => x.CreatedAt)
                     .FirstOrDefaultAsync(
                         o => o.Id == id,
                         cancellationToken);
@@ -48,6 +49,7 @@ namespace SalesService.Infrastructure.Repositories.CartItems
         {
             return await _context.CartItems
                 .Where(x => x.CustomerId == customerId)
+                .OrderBy(x => x.CreatedAt)
                 .ToListAsync(cancellationToken);
         }
 

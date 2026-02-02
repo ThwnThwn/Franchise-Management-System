@@ -4,5 +4,5 @@ using SalesService.Application.Dtos.CartItem.Response;
 
 namespace SalesService.Application.Features.CartItems.Commands.Update
 {
-    public record UpdateCartItemCommand(UpdateCartItemReq Request): IRequest<CartItemResponse>;
+    public record UpdateCartItemCommand(UpdateCartItemReq Request): IRequest<CartItemRep>;
 }

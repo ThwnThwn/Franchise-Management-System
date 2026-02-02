@@ -91,6 +91,7 @@ namespace SalesService.API.Services.CartItems
                 Id = result.Id.ToString(),
                 CustomerId = result.CustomerId.ToString(),
                 Sku = result.Sku,
+                ProductName = (await _productServiceClient.GetProductVariantBySkuAsync(result.Sku)).ProductName,
                 Quantity = result.Quantity,
                 BasePrice = (double)result.BasePrice
             };
@@ -131,6 +132,7 @@ namespace SalesService.API.Services.CartItems
             {
                 throw new RpcException(new Status(StatusCode.Unauthenticated, "Missing x-user-id in request headers"));
             }
+
             var customerId = Guid.Parse(userIdEntry.Value);
             var query = new GetCartItemsByCustomerIdQuery(
                 customerId
@@ -145,6 +147,7 @@ namespace SalesService.API.Services.CartItems
                 Id = x.Id.ToString(),
                 CustomerId = customerId.ToString(),
                 Sku = x.Sku,
+                ProductName = x.ProductName,
                 Quantity = x.Quantity,
                 BasePrice =(double) x.BasePrice
             }));

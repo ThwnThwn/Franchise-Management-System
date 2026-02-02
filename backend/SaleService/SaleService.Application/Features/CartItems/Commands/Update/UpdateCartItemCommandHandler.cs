@@ -5,7 +5,7 @@ using SalesService.Application.Interfaces.CartItems;
 namespace SalesService.Application.Features.CartItems.Commands.Update
 {
     public class UpdateCartItemCommandHandler
-        : IRequestHandler<UpdateCartItemCommand, CartItemResponse>
+        : IRequestHandler<UpdateCartItemCommand, CartItemRep>
     {
         private readonly ICartItemRepository _cartItemRepository;
 
@@ -14,7 +14,7 @@ namespace SalesService.Application.Features.CartItems.Commands.Update
             _cartItemRepository = cartItemRepository;
         }
 
-        public async Task<CartItemResponse> Handle(UpdateCartItemCommand request, CancellationToken cancellationToken)
+        public async Task<CartItemRep> Handle(UpdateCartItemCommand request, CancellationToken cancellationToken)
         {
             var req = request.Request;
 
@@ -34,7 +34,7 @@ namespace SalesService.Application.Features.CartItems.Commands.Update
             await _cartItemRepository.UpdateAsync(cartItem, cancellationToken);
 
             // 4. Return response
-            return new CartItemResponse
+            return new CartItemRep
             {
                 Id = cartItem.Id,
                 CustomerId = cartItem.CustomerId,
