@@ -77,7 +77,15 @@ public sealed class CreateVnPayUrlHandler
         var tmnCode = vnpSection["TmnCode"] ?? throw new InvalidOperationException("VNPay:TmnCode is not configured");
         var hashSecret = vnpSection["HashSecret"] ?? throw new InvalidOperationException("VNPay:HashSecret is not configured");
         var paymentUrl = vnpSection["PaymentUrl"] ?? throw new InvalidOperationException("VNPay:PaymentUrl is not configured");
-        var returnUrl = vnpSection["ReturnUrl"] ?? throw new InvalidOperationException("VNPay:ReturnUrl is not configured");
+        var configReturnUrl = vnpSection["ReturnUrl"] ?? throw new InvalidOperationException("VNPay:ReturnUrl is not configured");
+        
+        // Encode custom returnUrl from request into callback URL if provided
+        var callbackUrl = configReturnUrl;
+        if (!string.IsNullOrEmpty(request.ReturnUrl))
+        {
+            var encodedReturnUrl = Uri.EscapeDataString(request.ReturnUrl);
+            callbackUrl = $"{configReturnUrl}?redirectTo={encodedReturnUrl}";
+        }
 
         var amountVnd = (long)(order.TotalAmount * 100); // VNPay dùng đơn vị x100
 
@@ -93,7 +101,7 @@ public sealed class CreateVnPayUrlHandler
             ["vnp_Locale"] = vnpSection["Locale"] ?? "vn",
             ["vnp_OrderInfo"] = $"Thanh toan don hang {order.Code}",
             ["vnp_OrderType"] = "other",
-            ["vnp_ReturnUrl"] = returnUrl,
+            ["vnp_ReturnUrl"] = callbackUrl,  // Use callbackUrl with encoded returnUrl
             ["vnp_TxnRef"] = payment.Id.ToString()
         };
 
