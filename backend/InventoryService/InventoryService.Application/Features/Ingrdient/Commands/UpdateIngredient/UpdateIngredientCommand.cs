@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace InventoryService.Application.Features.Ingrdient.Commands.UpdateIngredient
 {
-    public record class UpdateIngredientCommand(Guid Id, UpdateIngredientReq Request) : IRequest<Unit>
+    public record class UpdateIngredientCommand(UpdateIngredientReq Request) : IRequest<Unit>
     {
     }
 }

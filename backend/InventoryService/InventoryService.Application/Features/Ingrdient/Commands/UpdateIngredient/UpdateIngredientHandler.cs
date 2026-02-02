@@ -21,7 +21,7 @@ namespace InventoryService.Application.Features.Ingrdient.Commands.UpdateIngredi
         }
         public async Task<Unit> Handle(UpdateIngredientCommand command, CancellationToken cancellationToken)
         {
-            if ((await _ingredientRepository.GetByIdAsync(command.Id)) == null)
+            if ((await _ingredientRepository.GetByIdAsync(command.Request.Id)) == null)
                 throw new DirectoryNotFoundException(Message.Ingredient.NotFound);
 
             await _ingredientRepository.UpdateAsync(_mapper.Map<Domain.Entities.Ingredient>(command.Request));

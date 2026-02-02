@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace InventoryService.Application.Validators
+namespace InventoryService.Application.Validators.Ingredient
 {
     public class CreateIngredientCommandValidator : AbstractValidator<CreateIngredientCommand>
     {

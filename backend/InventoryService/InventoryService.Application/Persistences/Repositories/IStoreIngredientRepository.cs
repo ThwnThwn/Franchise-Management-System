@@ -16,6 +16,6 @@ namespace InventoryService.Application.Persistences.Repositories
         Task IncreaseStockAsync(Guid storeId, IEnumerable<IngredientStockItem> items);
         Task<IEnumerable<StoreIngredient>> GetStockByStoreIdAndIngredientIdsAsync(Guid storeId, IEnumerable<Guid> ingredientIds, CancellationToken cancellationToken);
 
-        Task<PagedResult<Ingredient>> GetPagedStockAsync(IEnumerable<Guid>? storeIds, IEnumerable<Guid>? categoryIds, StockStatus? stockStatus, IEnumerable<Guid>? ingredientIds, int pageIndex, int pageSize, CancellationToken cancellationToken);
+        Task<PagedResult<StoreIngredient>> GetPagedStockAsync(IEnumerable<Guid>? storeIds, IEnumerable<Guid>? categoryIds, StockStatus? stockStatus, IEnumerable<Guid>? ingredientIds, int pageIndex, int pageSize, CancellationToken cancellationToken);
     }
 }

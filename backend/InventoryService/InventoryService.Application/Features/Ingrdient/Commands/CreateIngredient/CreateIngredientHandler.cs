@@ -24,9 +24,12 @@ namespace InventoryService.Application.Features.Ingrdient.Commands.CreateIngredi
         public async Task<Unit> Handle(CreateIngredientCommand command, CancellationToken cancellationToken)
         {
             var request = command.Request;
-
-            if ((await _ingredientCategoryRepository.GetByIdAsync(request.CategoryId)) == null)
-                throw new DirectoryNotFoundException(Message.Category.NotFound);
+            
+            if(request.CategoryId != null)
+            {
+                if ((await _ingredientCategoryRepository.GetByIdAsync((Guid)request.CategoryId)) == null)
+                    throw new DirectoryNotFoundException(Message.Category.NotFound);
+            }
 
             var newIngredient = new Ingredient
             {

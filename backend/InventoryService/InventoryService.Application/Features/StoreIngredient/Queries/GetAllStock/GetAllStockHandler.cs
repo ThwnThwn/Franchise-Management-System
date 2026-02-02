@@ -1,4 +1,5 @@
-﻿using BuildingBlocks.Core.Pagination;
+﻿using AutoMapper;
+using BuildingBlocks.Core.Pagination;
 using InventoryService.Application.Constants;
 using InventoryService.Application.Dtos.Ingredient;
 using InventoryService.Application.Dtos.StoreIngredient;
@@ -13,16 +14,18 @@ using System.Threading.Tasks;
 
 namespace InventoryService.Application.Features.StoreIngredient.Queries.GetAllStock
 {
-    public class GetAllStockHandler : IRequestHandler<GetAllStockQuery, PagedResult<GetAllStockViewRes>>
+    public class GetAllStockHandler : IRequestHandler<GetAllStockQuery, PagedResult<StockViewRes>>
     {
         private readonly IStoreIngredientRepository _storeIngredientRepository;
-        public GetAllStockHandler(IStoreIngredientRepository storeIngredientRepository)
+        private readonly IMapper _mapper;
+        public GetAllStockHandler(IStoreIngredientRepository storeIngredientRepository, IMapper mapper)
         {
             _storeIngredientRepository = storeIngredientRepository;
+            _mapper = mapper;
         }
-        public async Task<PagedResult<GetAllStockViewRes>> Handle(GetAllStockQuery request, CancellationToken cancellationToken)
+        public async Task<PagedResult<StockViewRes>> Handle(GetAllStockQuery request, CancellationToken cancellationToken)
         {
-            var pagedIngredients = await _storeIngredientRepository.GetPagedStockAsync(
+            var pagedStock = await _storeIngredientRepository.GetPagedStockAsync(
                 request.StoreIds,
                 request.CategoryIds,
                 request.StockStatus,
@@ -31,8 +34,8 @@ namespace InventoryService.Application.Features.StoreIngredient.Queries.GetAllSt
                 request.PageSize,
                 cancellationToken
             );
-            var result = pagedIngredients.Items.Select(i => _mapper.Map<IngredientViewRes>(i)).ToList();
-            return PagedResult<GetAllStockViewRes>.Create(result, pagedIngredients.TotalCount, request.Page, request.PageSize);
+            var result = pagedStock.Items.Select(i => _mapper.Map<StockViewRes>(i)).ToList();
+            return PagedResult<StockViewRes>.Create(result, pagedStock.TotalCount, request.Page, request.PageSize);
         }
     }
 }

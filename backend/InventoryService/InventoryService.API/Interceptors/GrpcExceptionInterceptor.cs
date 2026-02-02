@@ -3,7 +3,8 @@ using Grpc.Core;
 using Grpc.Core.Interceptors;
 using InventoryService.Application.AppExceptions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting; // Thêm namespace này để check môi trường
+using Microsoft.Extensions.Hosting;
+using Sprache; // Thêm namespace này để check môi trường
 
 namespace InventoryService.API.Interceptors;
 
@@ -67,6 +68,10 @@ public class GrpcExceptionInterceptor : Interceptor
         catch (OperationCanceledException)
         {
             throw new RpcException(new Status(StatusCode.DeadlineExceeded, "Request was cancelled or timed out"));
+        }
+        catch (ParseException ex)
+        {
+            throw new RpcException(new Status(StatusCode.InvalidArgument, $"Parsing error: {ex.Message}"));
         }
         catch (RpcException)
         {

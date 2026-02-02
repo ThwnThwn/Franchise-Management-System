@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace InventoryService.Application.Features.Ingrdient.Commands.DeleteIngredient
 {
-    public record class DeleteIngredientCommnad(Guid Request) : IRequest<Unit>
+    public record class DeleteIngredientCommand(Guid Request) : IRequest<Unit>
     {
     }
 }

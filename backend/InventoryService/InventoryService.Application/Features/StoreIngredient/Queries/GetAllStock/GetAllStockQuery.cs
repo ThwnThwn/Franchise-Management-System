@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace InventoryService.Application.Features.StoreIngredient.Queries.GetAllStock
 {
-    public class GetAllStockQuery : PaginationRequest, IRequest<PagedResult<GetAllStockViewRes>>
+    public class GetAllStockQuery : PaginationRequest, IRequest<PagedResult<StockViewRes>>
     {
         public IEnumerable<Guid>? StoreIds { get; set; }
         public IEnumerable<Guid>? CategoryIds { get; set; }

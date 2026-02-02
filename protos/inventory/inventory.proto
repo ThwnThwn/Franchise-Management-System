@@ -7,6 +7,7 @@ package inventory;
 
 service InventoryGrpc {
   rpc IncreaseStock(IncreaseStockRequest) returns (IncreaseStockResponse);
+  rpc GetAllStock(GetAllStockReq) returns (GetAllStockRep);
 }
 
 message IncreaseStockRequest {
@@ -21,4 +22,32 @@ message IngredientStockItem {
 
 message IncreaseStockResponse {
  // Không trả ra gì (thường dùng để xác nhận rpc thành công)
+}
+
+message GetAllStockReq{
+    repeated string store_ids = 1;
+    repeated string category_ids = 2;
+    optional int32 stock_status = 3;
+    repeated string ingredient_ids = 4;
+}
+
+message StockViewRes {
+    string store_id = 1;
+    IngredientViewRes ingredient_view_res = 2;
+    string quantity = 3;
+    string min_threshold = 4;
+    int32 stock_status = 5;
+}
+
+message GetAllStockRep{
+    repeated StockViewRes stock_res = 1;
+    int32 total_count = 2;
+    int32 total_pages = 3;
+}
+
+message IngredientViewRes {
+    string id = 1;
+    string name = 2;
+    string base_unit = 3;
+    string category_id = 4;
 }
