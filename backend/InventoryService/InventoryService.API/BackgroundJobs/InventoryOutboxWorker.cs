@@ -1,5 +1,6 @@
 using InventoryService.Application.ClientInterface.Indentity;
-using InventoryService.Application.ExternalServices;
+using SharedKernel.Infrastructure.Kafka;
+using SharedKernel.Constants;
 using InventoryService.Application.Signals;
 using InventoryService.Application.Abstractions;
 using Microsoft.EntityFrameworkCore;
@@ -57,7 +58,6 @@ public class InventoryOutboxWorker : BackgroundService
         using var scope = _serviceProvider.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<IInventoryDbContext>();
         var kafkaProducer = scope.ServiceProvider.GetRequiredService<IKafkaProducer>();
-        var identityClient = scope.ServiceProvider.GetRequiredService<IIdentityServiceClient>();
 
         var messages = await dbContext.OutboxMessages
             .Where(m => m.ProcessedOn == null)
@@ -78,40 +78,20 @@ public class InventoryOutboxWorker : BackgroundService
                     
                     if (payload != null)
                     {
-                        // 2. Gọi gRPC lấy Email Manager (Có thể retry nếu lỗi mạng)
-                        string managerEmail = string.Empty;
-                        try
+                        // 2. Tạo Event Kafka chính thức (Consumer sẽ tự fetch Email)
+                        var lowStockEvent = new LowStockEvent
                         {
-                             var manager = await identityClient.GetManager(new GetManagerReq { StoreId = payload.StoreId });
-                             managerEmail = manager?.Email ?? string.Empty;
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogWarning("Failed to fetch manager email for Store {StoreId}: {Message}", payload.StoreId, ex.Message);
-                            // Tùy logic: Có thể skip hoặc retry sau. Ở đây tạm thời log warning và vẫn bắn event (ko có email)
-                        }
+                            StoreId = payload.StoreId,
+                            IngredientId = payload.IngredientId,
+                            IngredientName = payload.IngredientName,
+                            CurrentStock = payload.CurrentStock,
+                            MinThreshold = payload.MinThreshold,
+                            ManagerEmail = string.Empty // Để trống, Consumer sẽ Enrich sau
+                        };
 
-                        if (!string.IsNullOrEmpty(managerEmail))
-                        {
-                            // 3. Tạo Event Kafka chính thức
-                            var lowStockEvent = new LowStockEvent
-                            {
-                                StoreId = payload.StoreId,
-                                IngredientId = payload.IngredientId,
-                                IngredientName = payload.IngredientName,
-                                CurrentStock = payload.CurrentStock,
-                                MinThreshold = payload.MinThreshold,
-                                ManagerEmail = managerEmail
-                            };
-
-                            // 4. Bắn Kafka
-                            await kafkaProducer.PublishAsync("low-stock-notifications", lowStockEvent);
-                            _logger.LogInformation("Published LowStockEvent for Ingredient {Id} to Manager {Email}", payload.IngredientId, managerEmail);
-                        }
-                        else
-                        {
-                             _logger.LogWarning("Skipping Kafka publish because Manager Email not found for Store {StoreId}", payload.StoreId);
-                        }
+                        // 3. Bắn Kafka
+                        await kafkaProducer.PublishAsync(KafkaTopics.LowStockNotifications, lowStockEvent);
+                        _logger.LogInformation("Published LowStockEvent for Ingredient {Id} (Manager Email lookup deferred to Consumer)", payload.IngredientId);
                     }
                 }
 
