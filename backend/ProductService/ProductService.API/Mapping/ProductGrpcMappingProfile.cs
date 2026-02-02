@@ -10,7 +10,7 @@ public class ProductGrpcMappingProfile : Profile
 {
     public ProductGrpcMappingProfile()
     {
-        CreateMap<ProductSizeListItemDto, ProductSize>()
+        CreateMap<ProductSizeListItemDto, ProductSizeDto>()
             .ForMember(d => d.Id, opt => opt.MapFrom(s => s.Id.ToString()))
             .ForMember(d => d.Sku, opt => opt.MapFrom(s => s.Sku ?? string.Empty))
             .ForMember(d => d.Name, opt => opt.MapFrom(s => s.Name ?? string.Empty))
@@ -29,7 +29,7 @@ public class ProductGrpcMappingProfile : Profile
             .ForMember(d => d.CategoryName, opt => opt.MapFrom(s => s.CategoryName ?? string.Empty))
             .ForMember(d => d.Sizes, opt => opt.MapFrom(s => s.Sizes));
 
-        CreateMap<ProductSizeDto, ProductSize>()
+        CreateMap<ProductSizeDto, ProductSizeDto>()
             .ForMember(d => d.Id, opt => opt.MapFrom(s => s.Id.ToString()))
             .ForMember(d => d.Sku, opt => opt.MapFrom(s => s.Sku ?? string.Empty))
             .ForMember(d => d.Name, opt => opt.MapFrom(s => s.Name ?? string.Empty))

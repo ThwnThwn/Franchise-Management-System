@@ -716,3 +716,4 @@ fabric.properties
 # Ignore all local history of files
 .history
 .ionide
+backend/global.json
