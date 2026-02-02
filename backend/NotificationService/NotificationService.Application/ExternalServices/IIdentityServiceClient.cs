@@ -15,4 +15,10 @@ public interface IIdentityServiceClient
     /// <param name="userId">ID của người dùng.</param>
     /// <returns>Email của người dùng hoặc null nếu không tìm thấy.</returns>
     Task<string> GetUserEmailByIdAsync(string userId);
+
+    /// <summary>
+    /// Lấy Email của Manager quản lý cửa hàng.
+    /// </summary>
+    /// <param name="storeId">ID cửa hàng.</param>
+    Task<string> GetManagerEmailByStoreIdAsync(Guid storeId);
 }

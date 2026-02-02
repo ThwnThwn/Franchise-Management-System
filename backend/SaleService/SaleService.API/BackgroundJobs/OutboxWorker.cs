@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using SaleService.Application.ExternalServices;
+using SharedKernel.Infrastructure.Kafka;
+using SharedKernel.Constants;
 using SalesService.Infrastructure.ApplicationDbContext;
 using SharedKernel.Events;
 using System.Text.Json;
@@ -62,7 +63,7 @@ public class OutboxWorker : BackgroundService
             {
                 string topic = message.Type switch
                 {
-                    "OrderCreatedEvent" => "order-notifications",
+                    "OrderCreatedEvent" => KafkaTopics.OrderNotifications,
                     _ => "default-topic"
                 };
 

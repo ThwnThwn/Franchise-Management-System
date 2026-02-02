@@ -3,14 +3,13 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using SalesService.Application.ClientInterface.Inventory;
 using SalesService.Application.ClientInterface.Products;
+using SalesService.Application.Dtos.Inventory;
 using SalesService.Application.Persisitences.Orders;
 using SalesService.Application.Persisitences.Outbox;
+using SalesService.Application.Signals;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
 using SharedKernel.Events;
-using SaleService.Application.ExternalServices;
-using SalesService.Application.Dtos.Inventory;
-using SalesService.Application.Signals;
 
 namespace SalesService.Application.Features.Orders.Commands.Create;
 
@@ -63,13 +62,13 @@ public sealed class CreateOrderHandler
         {
             return Result.Error("StoreId is required. Please select a store before placing an order.");
         }
-        
+
         //kiểm tra xem còn đủ hàng trong kho không
         var skus = request.Request.Items.Select(i => i.Sku).ToList();
 
         var variantInfo = await _productServiceClient.GetListProductVariantsBySkusAsync(skus);
 
-        if(variantInfo.Count != skus.Count)
+        if (variantInfo.Count != skus.Count)
         {
             return Result.Error("One or more product variants not found or inactive.");
         }
@@ -86,7 +85,7 @@ public sealed class CreateOrderHandler
             CheckItems = listItemCheck
         };
         var checkRespone = await _inventoryServiceClient.CheckEnoughStockAsync(checkStockReq);
-        if(!checkRespone.IsEnough)
+        if (!checkRespone.IsEnough)
         {
             var responeErrorObject = new CreateOrderResponseDto
             {
@@ -167,33 +166,33 @@ public sealed class CreateOrderHandler
         // 1. Prepare Outbox Message (BEFORE saving order)
         if (order.CustomerId.HasValue)
         {
-             // Create OrderCreatedEvent
-             var orderEvent = new OrderCreatedEvent
-             {
-                 OrderId = order.Id,
-                 CustomerId = order.CustomerId,
-                 CustomerEmail = string.Empty, // Will be fetched by Consumer
-                 OrderSummary = $"Order {order.Code} created with {order.OrderItems.Count} items",
-                 TotalAmount = order.TotalAmount,
-                 CreatedAt = DateTimeOffset.UtcNow
-             };
+            // Create OrderCreatedEvent
+            var orderEvent = new OrderCreatedEvent
+            {
+                OrderId = order.Id,
+                CustomerId = order.CustomerId,
+                CustomerEmail = string.Empty, // Will be fetched by Consumer
+                OrderSummary = $"Order {order.Code} created with {order.OrderItems.Count} items",
+                TotalAmount = order.TotalAmount,
+                CreatedAt = DateTimeOffset.UtcNow
+            };
 
-             // Serialize to JSON
-             var eventJson = System.Text.Json.JsonSerializer.Serialize(orderEvent);
+            // Serialize to JSON
+            var eventJson = System.Text.Json.JsonSerializer.Serialize(orderEvent);
 
-             var outboxMessage = new OutboxMessage
-             {
-                 Id = Guid.NewGuid(),
-                 Type = "OrderCreatedEvent",
-                 Content = eventJson,
-                 OccurredOn = DateTimeOffset.UtcNow,
-                 ProcessedOn = null,
-                 Error = null
-             };
+            var outboxMessage = new OutboxMessage
+            {
+                Id = Guid.NewGuid(),
+                Type = "OrderCreatedEvent",
+                Content = eventJson,
+                OccurredOn = DateTimeOffset.UtcNow,
+                ProcessedOn = null,
+                Error = null
+            };
 
-             // Add to Outbox Repository
-             _outboxRepository.Add(outboxMessage);
-             _logger.LogInformation("Added OrderCreatedEvent to Outbox for Order {OrderCode}", order.Code);
+            // Add to Outbox Repository
+            _outboxRepository.Add(outboxMessage);
+            _logger.LogInformation("Added OrderCreatedEvent to Outbox for Order {OrderCode}", order.Code);
         }
 
         // 2. Save Order (and OutboxMessage) in one transaction (implicitly handled by CreateAsync -> SaveChanges)
@@ -201,7 +200,7 @@ public sealed class CreateOrderHandler
         //Fetch customer email from IdentityService
         // string? customerEmail = null;
         // if (createdOrder.CustomerId.HasValue)
-        
+
         // Optimize: Pulse Signal
         if (order.CustomerId.HasValue)
         {
@@ -210,7 +209,7 @@ public sealed class CreateOrderHandler
 
 
         // ✅ Trừ kho sau khi tạo đơn hàng thành công
-        try 
+        try
         {
             var decreaseStockReq = new DecreaseStockByOrderReq
             {
@@ -231,7 +230,7 @@ public sealed class CreateOrderHandler
             OrderId = createdOrder.Id,
             OrderCode = createdOrder.Code,
             TotalAmount = createdOrder.TotalAmount,
-            CheckEnoughStockRes = {IsEnough = true, ShortageItems = {}}
+            CheckEnoughStockRes = { IsEnough = true, ShortageItems = { } }
         });
     }
 }
