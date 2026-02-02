@@ -1,6 +1,6 @@
 ﻿using InventoryService.Application.Persistences.Repositories;
 using InventoryService.Domain.Entities;
-using InventoryService.Infrastructure.ApplicationDbContext;
+using InventoryService.Application.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -27,8 +27,7 @@ namespace InventoryService.Infrastructure.Persistences.Repositories
         {
             return await _dbContext.Recipes.AsQueryable()
                 .Where(r => variantIds.Contains(r.VariantId) && r.IsDeleted == false)
-                .ToListAsync(cancellationToken)
-                .ContinueWith(t => (IEnumerable<Recipe>)t.Result, cancellationToken);
+                .ToListAsync(cancellationToken);
         }
     }
 }

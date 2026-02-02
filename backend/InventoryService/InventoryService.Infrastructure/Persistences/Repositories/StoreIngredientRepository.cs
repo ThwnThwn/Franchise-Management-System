@@ -2,8 +2,9 @@
 using InventoryService.Application.Dtos.StoreIngredient;
 using InventoryService.Application.Persistences.Repositories;
 using InventoryService.Domain.Entities;
-using InventoryService.Infrastructure.ApplicationDbContext;
+using InventoryService.Application.Abstractions; // Updated
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -72,6 +73,76 @@ namespace InventoryService.Infrastructure.Persistences.Repositories
             {
                 throw new Application.AppExceptions.DbUpdateException("Lỗi update db");
             }
+        }
+        /// <summary>
+        /// Trừ tồn kho một cách nguyên tử (Atomic) để đảm bảo an toàn đồng thời (concurrency).
+        /// Sử dụng câu lệnh SQL trực tiếp với điều kiện `quantity >= amount` để chặn race condition ở cấp database.
+        /// </summary>
+        /// <param name="storeId">ID cửa hàng</param>
+        /// <param name="ingredientId">ID nguyên liệu</param>
+        /// <param name="amount">Số lượng cần trừ</param>
+        /// <returns>
+        /// Trả về <see cref="DecreaseStockResult"/> chứa số lượng tồn mới và ngưỡng cảnh báo nếu trừ thành công.
+        /// Trả về <c>null</c> nếu không đủ tồn kho (cập nhật thất bại do điều kiện WHERE không thỏa mãn).
+        /// </returns>
+        public async Task<DecreaseStockResult?> DecreaseStockAtomicallyAsync(Guid storeId, Guid ingredientId, decimal amount)
+        {
+            // Sử dụng ADO.NET command bên dưới để lấy kết quả trả về từ mệnh đề RETURNING
+            // Lưu ý: FromSqlRaw của EF Core yêu cầu phải định nghĩa một keyless Entity trong DbSet, 
+            // điều mà ta muốn tránh đối với một DTO đơn giản như kết quả này.
+            
+            var connection = _dbContext.Database.GetDbConnection();
+            if (connection.State != System.Data.ConnectionState.Open)
+                await connection.OpenAsync();
+
+            using var command = connection.CreateCommand();
+            
+            // Thiết lập tham số rõ ràng (Parameterized Query) để tránh lỗi SQL injection.
+            // Dùng @parameter thay vì cộng chuỗi trực tiếp.
+
+            command.CommandText = @"
+                UPDATE ""store_ingredients""
+                SET ""quantity"" = ""quantity"" - @amount,
+                    ""updated_at"" = NOW()
+                WHERE ""store_id"" = @storeId
+                  AND ""ingredient_id"" = @ingredientId
+                  AND ""quantity"" >= @amount
+                RETURNING ""quantity"", ""min_threshold"";
+            ";
+
+            var pAmount = command.CreateParameter();
+            pAmount.ParameterName = "@amount";
+            pAmount.Value = amount;
+            command.Parameters.Add(pAmount);
+
+            var pStoreId = command.CreateParameter();
+            pStoreId.ParameterName = "@storeId";
+            pStoreId.Value = storeId;
+            command.Parameters.Add(pStoreId);
+
+            var pIngId = command.CreateParameter();
+            pIngId.ParameterName = "@ingredientId";
+            pIngId.Value = ingredientId;
+            command.Parameters.Add(pIngId);
+
+            // Quan trọng: Nếu đang có EF Core Transaction bao quanh, 
+            // ta phải gán transaction đó cho command này để nó chạy cùng một nhịp (Atomic).
+            if (_dbContext.Database.CurrentTransaction != null)
+            {
+                command.Transaction = _dbContext.Database.CurrentTransaction.GetDbTransaction();
+            }
+
+            using var reader = await command.ExecuteReaderAsync();
+            if (await reader.ReadAsync())
+            {
+                return new DecreaseStockResult
+                {
+                    Quantity = reader.GetDecimal(0),
+                    MinThreshold = reader.IsDBNull(1) ? null : reader.GetDecimal(1)
+                };
+            }
+
+            return null; // Update thất bại (điều kiện WHERE không thỏa -> không đủ tồn kho)
         }
     }
 }

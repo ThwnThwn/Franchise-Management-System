@@ -11,4 +11,10 @@ namespace InventoryService.Application.Dtos.StoreIngredient
         public bool IsEnough { get; set; }
         public IEnumerable<AmountVariant>? ShortageItems { get; set; }
     }
+
+    public class DecreaseStockResult
+    {
+        public decimal Quantity { get; set; }
+        public decimal? MinThreshold { get; set; }
+    }
 }

@@ -1,25 +1,18 @@
-﻿using InventoryService.Application.AppExceptions;
-using InventoryService.Application.ClientInterface.Indentity;
+﻿using System.Text.Json;
+using InventoryService.Application.Abstractions;
+using InventoryService.Application.AppExceptions;
 using InventoryService.Application.Constants;
-using InventoryService.Application.Features.StoreIngredient.Commands.IncreaseStock;
 using InventoryService.Application.Persistences.Repositories;
-using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.WebSockets;
-using System.Text;
-using System.Threading.Tasks;
-using InventoryService.Application.ExternalServices;
-using SharedKernel.Events;
-using Microsoft.Extensions.Logging;
-
 using InventoryService.Application.Signals;
 using InventoryService.Domain.Entities;
-using System.Text.Json;
+using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace InventoryService.Application.Features.StoreIngredient.Commands.DecreaseStockByOrder
 {
+    /// <summary>
+    /// Xử lý yêu cầu trừ tồn kho khi có đơn hàng mới (Atomic Transaction).
+    /// </summary>
     public class DecreaseStockByOrderCommandHandler : IRequestHandler<DecreaseStockByOrderCommand, Unit>
     {
         private readonly IStoreIngredientRepository _storeIngredientRepo;
@@ -28,36 +21,40 @@ namespace InventoryService.Application.Features.StoreIngredient.Commands.Decreas
         private readonly IOutboxSignal _outboxSignal;
         private readonly ILogger<DecreaseStockByOrderCommandHandler> _logger;
 
+        private readonly IInventoryDbContext _dbContext;
+
         public DecreaseStockByOrderCommandHandler(
             IStoreIngredientRepository storeIngredientRepo,
             IRecipeRepository recipeRepository,
             IOutboxRepository outboxRepository,
             IOutboxSignal outboxSignal,
-            ILogger<DecreaseStockByOrderCommandHandler> logger)
+            ILogger<DecreaseStockByOrderCommandHandler> logger,
+            IInventoryDbContext dbContext)
         {
             _storeIngredientRepo = storeIngredientRepo;
             _recipeRepository = recipeRepository;
             _outboxRepository = outboxRepository;
             _outboxSignal = outboxSignal;
             _logger = logger;
+            _dbContext = dbContext;
         }
 
+        /// <summary>
+        /// Thực hiện trừ kho: Tính toán nguyên liệu -> Transaction -> Trừ Atomic -> Kiểm tra Low Stock -> Lưu Outbox.
+        /// </summary>
         public async Task<Unit> Handle(DecreaseStockByOrderCommand common, CancellationToken cancellationToken)
         {
             var req = common.Request;
             if (req.Items == null || !req.Items.Any()) return Unit.Value;
 
-            // 1. Lấy danh sách tất cả VariantId từ request
+            // 1. Tính toán lượng nguyên liệu cần thiết dựa trên công thức
             var variantIds = req.Items.Select(x => x.VariantId).Distinct().ToList();
-
-            // 2. Lấy toàn bộ công thức liên quan
             var allRecipes = await _recipeRepository.GetRecipesByVariantIdsAsync(variantIds, cancellationToken);
             if (allRecipes == null || !allRecipes.Any())
             {
                 throw new BusinessException(Message.Recipe.NotFound);
             }
 
-            // 3. Tính toán tổng lượng nguyên liệu cần thiết
             var totalRequiredIngredients = new Dictionary<Guid, decimal>();
             foreach (var item in req.Items)
             {
@@ -66,74 +63,82 @@ namespace InventoryService.Application.Features.StoreIngredient.Commands.Decreas
                 {
                     var totalNeeded = recipe.Quantity * item.Amount;
                     if (totalRequiredIngredients.ContainsKey(recipe.IngredientId))
-                    {
                         totalRequiredIngredients[recipe.IngredientId] += totalNeeded;
-                    }
                     else
-                    {
                         totalRequiredIngredients[recipe.IngredientId] = totalNeeded;
-                    }
                 }
             }
 
-            // 4. Lấy tồn kho thực tế
+            // 2. Tải thông tin tồn kho (để kiểm tra tên và validate sơ bộ, KHÔNG dùng để check concurrency)
             var ingredientIds = totalRequiredIngredients.Keys.ToList();
             var storeStocks = await _storeIngredientRepo.GetStockByStoreIdAndIngredientIdsAsync(req.StoreId, ingredientIds, cancellationToken);
 
-            // 5. Kiểm tra và thực hiện trừ kho
-            foreach (var required in totalRequiredIngredients)
+            // Validate: Đảm bảo cửa hàng có đủ các mã nguyên liệu
+            if (storeStocks.Count() != ingredientIds.Count)
             {
-                var stock = storeStocks.FirstOrDefault(s => s.IngredientId == required.Key);
-
-                if (stock == null)
-                {
-                    throw new BusinessException(Message.StoreIngredient.NotFoundIngredient);
-                }
-
-                if (stock.Quantity < required.Value)
-                {
-                    throw new BusinessException(Message.StoreIngredient.NotEnoughStock);
-                }
-
-                // Trừ kho
-                stock.Quantity -= required.Value;
-                stock.UpdatedAt = DateTime.UtcNow;
-
-                _logger.LogInformation("Updated stock for Ingredient {IngredientId}. New Quantity: {Quantity}, Threshold: {Threshold}",
-                    stock.IngredientId, stock.Quantity, stock.MinThreshold);
-
-                // 6. Kiểm tra Low Stock -> Lưu vào Outbox
-                // Thay vì gọi gRPC và bắn Kafka trực tiếp (gây chậm), ta lưu event vào Outbox để worker xử lý sau.
-                if ((stock.Quantity ?? 0) < (stock.MinThreshold ?? 0))
-                {
-                    _logger.LogInformation("Low stock detected for Ingredient {IngredientId}. Adding to Outbox...", stock.IngredientId);
-
-                    // Chỉ lưu thông tin cần thiết, Worker sẽ lo phần còn lại (Lấy Email Manager -> Bắn Kafka)
-                    var lowStockPayload = new 
-                    {
-                        StoreId = stock.StoreId,
-                        IngredientId = stock.IngredientId,
-                        IngredientName = stock.Ingredient.Name,
-                        CurrentStock = stock.Quantity ?? 0,
-                        MinThreshold = stock.MinThreshold ?? 0
-                    };
-
-                    var outboxMessage = new OutboxMessage
-                    {
-                        Id = Guid.NewGuid(),
-                        Type = "LowStockDetected", // Internal Event Type
-                        Content = JsonSerializer.Serialize(lowStockPayload),
-                        OccurredOn = DateTime.UtcNow
-                    };
-
-                    _outboxRepository.Add(outboxMessage);
-                }
+                var missing = ingredientIds.Except(storeStocks.Select(s => s.IngredientId));
+                throw new BusinessException($"Cửa hàng không có các nguyên liệu: {string.Join(", ", missing)}");
             }
 
-            // 7. Lưu thay đổi (Cả Stock & OutboxMessage) trong 1 Transaction (Implicit EF Core)
-            await _storeIngredientRepo.UpdateRangeAsync(storeStocks);
+            // 3. TRANSACTION CẬP NHẬT NGUYÊN TỬ (ATOMIC)
+            // Sử dụng Transaction tường minh để đảm bảo trừ hết hoặc không trừ cái nào (All-or-Nothing).
+            using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+            try
+            {
+                foreach (var required in totalRequiredIngredients)
+                {
+                    var ingredientId = required.Key;
+                    var amount = required.Value;
+                    var stockInfo = storeStocks.FirstOrDefault(s => s.IngredientId == ingredientId); // Để lấy tên hiển thị
 
-            // 8. Bấm chuông báo Worker (Fire & Forget)
+                    // Cập nhật Atomic trực tiếp xuống DB (tránh Race Condition)
+                    var result = await _storeIngredientRepo.DecreaseStockAtomicallyAsync(req.StoreId, ingredientId, amount);
+
+                    if (result == null)
+                    {
+                        // Cập nhật thất bại -> Không đủ tồn kho
+                        throw new BusinessException($"Không đủ tồn kho cho nguyên liệu {stockInfo?.Ingredient?.Name ?? ingredientId.ToString()}. Cần: {amount}");
+                    }
+
+                    _logger.LogInformation("Updated stock for Ingredient {IngredientId}. New Quantity: {Quantity}", ingredientId, result.Quantity);
+
+                    // 4. Kiểm tra mức tồn kho thấp (Low Stock) dựa trên kết quả mới nhất từ DB
+                    if (result.Quantity < (result.MinThreshold ?? 0))
+                    {
+                        _logger.LogInformation("Low stock detected for Ingredient {IngredientId}. Adding to Outbox...", ingredientId);
+
+                        var lowStockPayload = new
+                        {
+                            StoreId = req.StoreId,
+                            IngredientId = ingredientId,
+                            IngredientName = stockInfo?.Ingredient?.Name ?? "Unknown",
+                            CurrentStock = result.Quantity,
+                            MinThreshold = result.MinThreshold ?? 0
+                        };
+
+                        var outboxMessage = new OutboxMessage
+                        {
+                            Id = Guid.NewGuid(),
+                            Type = "LowStockDetected",
+                            Content = JsonSerializer.Serialize(lowStockPayload),
+                            OccurredOn = DateTime.UtcNow
+                        };
+
+                        _outboxRepository.Add(outboxMessage);
+                    }
+                }
+
+                // 5. Lưu thay đổi (cho OutboxMessages) và Commit Transaction
+                await _dbContext.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                throw; // Ném lỗi ra ngoài để Controller xử lý
+            }
+
+            // 6. Bắn tín hiệu cho Worker xử lý ngay
             _outboxSignal.Pulse();
 
             return Unit.Value;

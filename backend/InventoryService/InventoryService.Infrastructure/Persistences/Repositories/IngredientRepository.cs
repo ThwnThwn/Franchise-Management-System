@@ -1,6 +1,6 @@
 ﻿using InventoryService.Application.Persistences.Repositories;
 using InventoryService.Domain.Entities;
-using InventoryService.Infrastructure.ApplicationDbContext;
+using InventoryService.Application.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Linq;

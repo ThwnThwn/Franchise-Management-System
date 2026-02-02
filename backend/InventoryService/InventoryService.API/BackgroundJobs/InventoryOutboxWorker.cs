@@ -1,7 +1,7 @@
 using InventoryService.Application.ClientInterface.Indentity;
 using InventoryService.Application.ExternalServices;
 using InventoryService.Application.Signals;
-using InventoryService.Infrastructure.ApplicationDbContext;
+using InventoryService.Application.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
