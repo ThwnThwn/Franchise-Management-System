@@ -1,6 +1,6 @@
 ﻿using InventoryService.Application.Persistences.Repositories;
 using InventoryService.Domain.Commons;
-using InventoryService.Infrastructure.ApplicationDbContext;
+using InventoryService.Application.Abstractions; // Updated
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;

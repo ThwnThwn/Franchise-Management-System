@@ -25,4 +25,9 @@ namespace InventoryService.Application.Dtos.StoreIngredient
     }
 
 
+    public class DecreaseStockResult
+    {
+        public decimal Quantity { get; set; }
+        public decimal? MinThreshold { get; set; }
+    }
 }

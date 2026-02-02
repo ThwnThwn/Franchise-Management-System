@@ -15,23 +15,46 @@ public class LowStockNotificationHandler
 {
     private readonly IEmailSender _emailSender;
     private readonly INotificationRepository _repository;
+    private readonly Application.ExternalServices.IIdentityServiceClient _identityServiceClient;
     private readonly ILogger<LowStockNotificationHandler> _logger;
 
     public LowStockNotificationHandler(
         IEmailSender emailSender,
         INotificationRepository repository,
+        Application.ExternalServices.IIdentityServiceClient identityServiceClient,
         ILogger<LowStockNotificationHandler> logger)
     {
         _emailSender = emailSender;
         _repository = repository;
+        _identityServiceClient = identityServiceClient;
         _logger = logger;
     }
 
     /// <summary>
     /// Log lại sự kiện và gửi email cảnh báo ngay lập tức.
     /// </summary>
+    public async Task<string?> GetManagerEmail(Guid storeId)
+    {
+        var email = await _identityServiceClient.GetManagerEmailByStoreIdAsync(storeId);
+        if (string.IsNullOrEmpty(email))
+        {
+            _logger.LogWarning("Manager email not found for StoreId: {StoreId}", storeId);
+        }
+        return email;
+    }
+
     public async Task HandleAsync(LowStockEvent @event)
     {
+        // 1. Enrich: Fetch Manager Email
+        if (string.IsNullOrEmpty(@event.ManagerEmail))
+        {
+             var email = await GetManagerEmail(@event.StoreId);
+             if (!string.IsNullOrEmpty(email))
+             {
+                 @event.ManagerEmail = email;
+             }
+        }
+
         var log = new NotificationLog
         {
             Id = Guid.NewGuid(),

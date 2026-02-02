@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using InventoryService.Application.Abstractions;
 using InventoryService.Domain.Commons;
 using InventoryService.Domain.Entities;
 using InventoryService.Infrastructure.Interceptor;

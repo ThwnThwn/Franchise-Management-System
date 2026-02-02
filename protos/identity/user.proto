@@ -95,10 +95,11 @@ message UpdateUserRequest {
   string roleSlug = 11;
 }
 message ChangePasswordRequest{
-  string id = 1;
-  string oldPassword = 2;
-  string newPassword = 3;
-  string confirmNewPassword = 4;
+  string oldPassword = 1;
+  string newPassword = 2;
+  string confirmNewPassword = 3;
+  string accessToken = 4;
+  bool forgetAll = 5;
 }
 
 message UserResponse {
