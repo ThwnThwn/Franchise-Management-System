@@ -6,7 +6,7 @@ using SalesService.Domain.Entities;
 namespace SalesService.Application.Features.CartItems.Commands.Create
 {
     public class CreateCartItemCommandHandler
-        : IRequestHandler<CreateCartItemCommand, CartItemResponse>
+        : IRequestHandler<CreateCartItemCommand, CartItemRep>
     {
         private readonly ICartItemRepository _cartItemRepository;
 
@@ -15,7 +15,7 @@ namespace SalesService.Application.Features.CartItems.Commands.Create
             _cartItemRepository = cartItemRepository;
         }
 
-        public async Task<CartItemResponse> Handle(
+        public async Task<CartItemRep> Handle(
             CreateCartItemCommand request,
             CancellationToken cancellationToken)
         {
@@ -35,7 +35,7 @@ namespace SalesService.Application.Features.CartItems.Commands.Create
 
                 await _cartItemRepository.UpdateAsync(existingItem, cancellationToken);
 
-                return new CartItemResponse
+                return new CartItemRep
                 {
                     Id = existingItem.Id,
                     CustomerId = existingItem.CustomerId,
@@ -62,7 +62,7 @@ namespace SalesService.Application.Features.CartItems.Commands.Create
             await _cartItemRepository.CreateAsync(cartItem, cancellationToken);
 
             // 3. Return response
-            return new CartItemResponse
+            return new CartItemRep
             {
                 Id = cartItem.Id,
                 CustomerId = cartItem.CustomerId,

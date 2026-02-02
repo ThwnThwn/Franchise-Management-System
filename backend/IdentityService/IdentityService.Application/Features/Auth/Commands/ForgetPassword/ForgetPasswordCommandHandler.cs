@@ -46,7 +46,7 @@ public class ForgetPasswordCommandHandler
 
         var user = await _userRepository.GetByEmailAsync(request.Email);
         if (user == null)
-            throw new ForbidenException($"Email '{request.Email}' does not exist");
+            throw new BusinessException($"Email '{request.Email}' does not exist");
 
         var otp = RandomNumberGenerator.GetInt32(0, 1_000_000).ToString("D6");
 
