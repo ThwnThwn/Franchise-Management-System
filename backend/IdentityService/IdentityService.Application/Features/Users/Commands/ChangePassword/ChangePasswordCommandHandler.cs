@@ -37,18 +37,11 @@ namespace IdentityService.Application.Features.Users.Commands.ChangePassword
 
         public async Task<UserRep?> Handle(ChangePasswordComand command, CancellationToken cancellationToken)
         {
-            var currentUserId = _currentUser.UserId;
-            if (currentUserId == null)
-                throw new UnauthorizedAccessException("Unauthenticated");
-            var currentUser = await _userRepository.GetByIdAsync(currentUserId.Value);
+            var currentUser = await _userRepository.GetByIdAsync(command.Id);
             if (currentUser == null)
                 throw new UnauthorizedAccessException("Unauthenticated");
             var roleAdmin = await _roleRepository.GetByNameAsync("Admin");
             var request = command.Request;
-
-            //Only allow update own profile
-            if (currentUserId.Value != command.Id && currentUser.Role != roleAdmin)
-                throw new ForbidenException("You can only update your own profile");
 
             //Check old password
             if (!BCrypt.Net.BCrypt.Verify(request.OldPassword, currentUser.Password))

@@ -43,6 +43,7 @@ public class KafkaConsumerService : BackgroundService
     {
         _consumer.Subscribe(new[] {
             KafkaTopics.OtpNotifications,
+            KafkaTopics.OtpForgetPassword,
             KafkaTopics.OrderNotifications,
             KafkaTopics.PasswordResetNotifications,
             KafkaTopics.LowStockNotifications
