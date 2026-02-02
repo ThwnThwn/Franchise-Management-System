@@ -1,14 +1,15 @@
-﻿using InventoryService.Domain.Commons;
+using InventoryService.Domain.Commons;
 using InventoryService.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Infrastructure; // Added for DatabaseFacade
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace InventoryService.Infrastructure.ApplicationDbContext
+namespace InventoryService.Application.Abstractions
 {
      public interface IInventoryDbContext : IDisposable
     { 
@@ -19,6 +20,8 @@ namespace InventoryService.Infrastructure.ApplicationDbContext
         DbSet<StoreIngredient> StoreIngredients { get; set; }
         DbSet<OutboxMessage> OutboxMessages { get; set; }
 
+        DatabaseFacade Database { get; }
+
         public DbSet<T> Set<T>() where T : class, IEntity;
 
         public EntityEntry<T> Entry<T>(T entity) where T : class;
@@ -26,5 +29,5 @@ namespace InventoryService.Infrastructure.ApplicationDbContext
         public int SaveChanges();
 
         public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
-        }
+    }
 }
