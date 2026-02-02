@@ -25,7 +25,10 @@ public class PaymentGrpcService : PaymentGrpc.PaymentGrpcBase
                 new Status(StatusCode.InvalidArgument, "Invalid order id"));
         }
 
-        var command = new CreateVnPayUrlCommand(orderId);
+        // Get returnUrl from request (optional, can be empty)
+        var returnUrl = string.IsNullOrWhiteSpace(request.ReturnUrl) ? null : request.ReturnUrl;
+
+        var command = new CreateVnPayUrlCommand(orderId, returnUrl);
         var result = await _mediator.Send(command, context.CancellationToken);
 
         if (result.Status == Ardalis.Result.ResultStatus.NotFound)
