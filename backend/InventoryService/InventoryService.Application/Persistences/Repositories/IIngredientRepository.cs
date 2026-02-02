@@ -1,4 +1,5 @@
-﻿using InventoryService.Domain.Entities;
+﻿using BuildingBlocks.Core.Pagination;
+using InventoryService.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,5 +10,6 @@ namespace InventoryService.Application.Persistences.Repositories
 {
     public interface IIngredientRepository : IGenericRepository<Ingredient>
     {
+        Task<PagedResult<Ingredient>> GetPagedIngredientsAsync(Guid? categoryId, int pageIndex, int pageSize, CancellationToken cancellationToken);
     }
 }

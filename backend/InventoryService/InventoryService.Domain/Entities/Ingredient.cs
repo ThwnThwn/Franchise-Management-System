@@ -12,11 +12,13 @@ public partial class Ingredient : SoftDeletedEntity, IEntity
 
     public string BaseUnit { get; set; } = null!;
 
-    public string? Category { get; set; }
+    public Guid? CategoryId { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; }
 
     public DateTimeOffset UpdatedAt { get; set; }
+
+    public virtual IngredientCategory? IngredientCategory { get; set; }
 
     public virtual ICollection<Recipe> Recipes { get; set; } = new List<Recipe>();
 

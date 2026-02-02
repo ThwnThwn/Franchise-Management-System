@@ -1,8 +1,10 @@
-﻿using InventoryService.Application.AppExceptions;
+﻿using BuildingBlocks.Core.Extensions;
+using BuildingBlocks.Core.Pagination;
+using InventoryService.Application.AppExceptions;
+using InventoryService.Application.Constants;
 using InventoryService.Application.Dtos.StoreIngredient;
 using InventoryService.Application.Persistences.Repositories;
 using InventoryService.Domain.Entities;
-using InventoryService.Application.Abstractions; // Updated
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using System;
@@ -10,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using InventoryService.Application.Abstractions;
 
 namespace InventoryService.Infrastructure.Persistences.Repositories
 {
@@ -17,6 +20,45 @@ namespace InventoryService.Infrastructure.Persistences.Repositories
     {
         public StoreIngredientRepository(IInventoryDbContext dbContext) : base(dbContext)
         {
+        }
+
+        public async Task<PagedResult<StoreIngredient>> GetPagedStockAsync(IEnumerable<Guid>? storeIds, IEnumerable<Guid>? categoryIds, StockStatus? stockStatus, IEnumerable<Guid>? ingredientIds, int pageIndex, int pageSize, CancellationToken cancellationToken)
+        {
+            var query = _dbContext.StoreIngredients.AsQueryable()
+                        .Include(e => e.Ingredient)
+                        .ThenInclude(e => e.IngredientCategory)
+                        .Where(e => e.IsDeleted == false)
+                        .AsNoTracking();
+            if(storeIds != null && storeIds.Any())
+            {
+                query = query.Where(e => storeIds.Contains(e.StoreId));
+            }
+            if (categoryIds != null && categoryIds.Any()) { 
+                query = query.Where(e => e.Ingredient.CategoryId != null && categoryIds.Contains((Guid)e.Ingredient.CategoryId));
+            }
+            if (ingredientIds != null && ingredientIds.Any())
+            {
+                query = query.Where(e => ingredientIds.Contains(e.IngredientId));
+            }
+            if (stockStatus != null)
+            {
+                switch (stockStatus)
+                {
+                    case StockStatus.Sufficient:
+                        query = query.Where(e => e.Quantity > e.MinThreshold);
+                        break;
+                    case StockStatus.LowStock:
+                        query = query.Where(e => e.Quantity <= e.MinThreshold && e.Quantity > 0);
+                        break;
+                    case StockStatus.OutOfStock:
+                        query = query.Where(e => e.Quantity == 0);
+                        break;
+                    default:
+                        break;
+                }
+            }
+            return await query.ToPagedListAsync(pageIndex, pageSize, cancellationToken);
+
         }
 
         public async Task<IEnumerable<StoreIngredient>> GetStockByStoreIdAndIngredientIdsAsync(Guid storeId, IEnumerable<Guid> ingredientIds, CancellationToken cancellationToken)
