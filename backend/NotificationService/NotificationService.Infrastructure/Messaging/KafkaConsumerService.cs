@@ -38,6 +38,7 @@ public class KafkaConsumerService : BackgroundService
     {
         _consumer.Subscribe(new[] {
             "otp-notifications",
+            "otp-forgetPassword",
             "order-notifications",
             "password-reset-notifications",
             "low-stock-notifications"  // ✅ Đăng ký nhận sự kiện cảnh báo hết hàng

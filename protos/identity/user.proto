@@ -99,6 +99,8 @@ message ChangePasswordRequest{
   string oldPassword = 2;
   string newPassword = 3;
   string confirmNewPassword = 4;
+  string accessToken = 5;
+  bool forgetAll = 6;
 }
 
 message UserResponse {
