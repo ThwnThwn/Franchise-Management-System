@@ -35,6 +35,7 @@ appsettings.Production.json
 .env
 .envrc
 
+
 # Editor/IDE
 # .idea/
 .vscode/
@@ -96,6 +97,7 @@ dlldata.c
 # DNX
 project.lock.json
 project.fragment.lock.json
+global.json
 artifacts/
 
 *_i.c
