@@ -4,6 +4,8 @@ using IdentityService.Application.AppExceptions;
 using IdentityService.Application.Constants;
 using IdentityService.Application.Dtos.User.Respone;
 using IdentityService.Application.Features.Users.Commands.UpdateUser;
+using IdentityService.Application.Helpers;
+using IdentityService.Application.Persistences.Caches;
 using IdentityService.Application.Persistences.Repositories;
 using MediatR;
 
@@ -14,14 +16,23 @@ namespace IdentityService.Application.Features.Users.Commands.ChangePassword
         private readonly IUserRepository _userRepository;
         private readonly IRoleRepository _roleRepository;
         private readonly ICurrentUserService _currentUser;
+        private readonly IRefreshTokenRepository _refreshTokenRepository;
+        private readonly ITokenBlacklist _tokenBlacklist;
+        private readonly JwtHelper _jwtHelper;
         private readonly IMapper _mapper;
 
-        public ChangePasswordCommandHandler(IUserRepository userRepository, IMapper mapper, ICurrentUserService currentUser, IRoleRepository roleRepository)
+        public ChangePasswordCommandHandler(IUserRepository userRepository, IMapper mapper, ICurrentUserService currentUser, IRoleRepository roleRepository,
+            IRefreshTokenRepository refreshTokenRepository,
+            ITokenBlacklist tokenBlacklist,
+            JwtHelper jwtHelper)
         {
             _userRepository = userRepository;
             _mapper = mapper;
             _currentUser = currentUser;
             _roleRepository = roleRepository;
+            _refreshTokenRepository = refreshTokenRepository;
+            _tokenBlacklist = tokenBlacklist;
+            _jwtHelper = jwtHelper;
         }
 
         public async Task<UserRep?> Handle(ChangePasswordComand command, CancellationToken cancellationToken)
@@ -50,11 +61,24 @@ namespace IdentityService.Application.Features.Users.Commands.ChangePassword
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.ConfirmNewPassword);
             currentUser.Password = hashedPassword;
 
-            _mapper.Map(request, currentUser);
+            //Update new password
             currentUser.UpdatedAt = DateTimeOffset.UtcNow;
-
             await _userRepository.UpdateAsync(currentUser);
 
+            if (request.ForgetAll == true)
+            {
+                await _refreshTokenRepository.RevokeAllUserTokensAsync(currentUser.Id);
+                var expiry = _jwtHelper.GetTokenExpiry(request.AccessToken);
+                if (expiry != null)
+                {
+                    await _tokenBlacklist.AddToBlacklistAsync(
+                        request.AccessToken,
+                        expiry.Value
+                    );
+                }
+            }
+
+            _mapper.Map(request, currentUser);
             return _mapper.Map<UserRep>(currentUser);
         }
     }

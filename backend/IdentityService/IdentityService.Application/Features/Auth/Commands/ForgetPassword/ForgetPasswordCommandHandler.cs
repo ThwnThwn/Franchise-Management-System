@@ -5,6 +5,7 @@ using IdentityService.Application.Persistences.Caches;
 using IdentityService.Application.Persistences.Repositories;
 using MediatR;
 using Microsoft.Win32;
+using SharedKernel.Events;
 using System.Security.Cryptography;
 using System.Text.Json;
 
@@ -16,15 +17,19 @@ public class ForgetPasswordCommandHandler
     private readonly IUserRepository _userRepository;
     private readonly IOtpStore _otpStore;
     private readonly IEmailService _emailService;
+    private readonly IKafkaProducer _kafkaProducer;
+
 
     public ForgetPasswordCommandHandler(
         IUserRepository userRepository,
         IOtpStore otpStore,
-        IEmailService emailService)
+        IEmailService emailService,
+        IKafkaProducer kafkaProducer)
     {
         _userRepository = userRepository;
         _otpStore = otpStore;
         _emailService = emailService;
+        _kafkaProducer = kafkaProducer;
     }
 
     public async Task<Unit> Handle(ForgetPasswordCommand command, CancellationToken cancellationToken)
@@ -62,8 +67,14 @@ public class ForgetPasswordCommandHandler
         await _otpStore.SaveLastOtpRequestTimeAsync(request.Email, DateTimeOffset.UtcNow, forgetPassword);
         await _otpStore.ResetOtpAttemptAsync(request.Email, forgetPassword);
         await _otpStore.RemoveLastOtpRequestTimeAsync(request.Email, forgetPassword);
-        await _emailService.SendOtpEmailAsync(request.Email, otp);
 
+        // Publish OTP event to Kafka instead of sending email directly
+        await _kafkaProducer.PublishAsync("otp-forgetPassword", new OtpRequestedEvent
+        {
+            Email = request.Email,
+            OtpCode = otp,
+            RequestedAt = DateTimeOffset.UtcNow
+        });
         return Unit.Value;
     }
 }

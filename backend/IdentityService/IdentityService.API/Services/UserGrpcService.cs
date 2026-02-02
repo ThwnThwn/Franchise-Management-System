@@ -218,6 +218,8 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
                 OldPassword = request.OldPassword,
                 NewPassword = request.NewPassword,
                 ConfirmNewPassword = request.ConfirmNewPassword,
+                AccessToken = request.AccessToken,
+                ForgetAll = request.ForgetAll
             }
             ));
         if (rep == null)

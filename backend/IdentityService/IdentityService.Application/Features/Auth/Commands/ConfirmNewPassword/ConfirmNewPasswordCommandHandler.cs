@@ -62,7 +62,7 @@ public class ConfirmNewPasswordCommandHandler
             JsonSerializer.Deserialize<ForgetPasswordReq>(forgetPasswordJson);
 
         if (forgetPasswordData == null)
-            throw new BusinessException("Invalid forget password da");
+            throw new BusinessException("Invalid forget password ");
 
         var accessToken = _jwtHelper.GenerateForgetPasswordToken(request.Email);
 

@@ -16,5 +16,11 @@ namespace IdentityService.Application.Dtos.User.Request
         [Required]
         [MinLength(5)]
         public string ConfirmNewPassword { get; set; } = null!;
+
+        [Required]
+        public string AccessToken { get; set; } = null!;
+
+        [Required]
+        public bool ForgetAll { get; set; } = false;
     }
 }
