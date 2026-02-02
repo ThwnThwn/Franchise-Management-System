@@ -1,8 +1,7 @@
 using AutoMapper;
 using DotNetEnv;
 using Microsoft.EntityFrameworkCore;
-using SaleService.Application.ExternalServices;
-using SaleService.Infrastructure.ExternalServices;
+using SharedKernel.Infrastructure.Kafka;
 using SalesService.API.Middleware;
 using SalesService.API.Services.CartItems;
 using SalesService.API.Services.Identity;

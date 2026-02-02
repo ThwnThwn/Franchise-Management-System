@@ -4,11 +4,14 @@ using IdentityService.Application.AppExceptions;
 using IdentityService.Application.Constants;
 using IdentityService.Application.Dtos.Auth.Response;
 using IdentityService.Application.ExternalServices;
+using SharedKernel.Infrastructure.Kafka;
+using SharedKernel.Constants;
 using IdentityService.Application.Persistences.Caches;
 using IdentityService.Application.Persistences.Repositories;
 using IdentityService.Domain.Entities;
 using MediatR;
 using SharedKernel.Events;
+using SharedKernel.Constants;
 
 namespace IdentityService.Application.Features.Auth.Commands.Register;
 
@@ -96,7 +99,7 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, RegisterR
         await _otpStore.RemoveLastOtpRequestTimeAsync(request.Email, register);
 
         // Publish OTP event to Kafka instead of sending email directly
-        await _kafkaProducer.PublishAsync("otp-notifications", new OtpRequestedEvent
+        await _kafkaProducer.PublishAsync(KafkaTopics.OtpNotifications, new OtpRequestedEvent
         {
             Email = request.Email,
             OtpCode = otp,

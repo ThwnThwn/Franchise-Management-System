@@ -3,7 +3,10 @@ using IdentityService.Application.AppExceptions;
 using IdentityService.Application.ExternalServices;
 using IdentityService.Application.Persistences.Caches;
 using MediatR;
+using SharedKernel.Events;
+using SharedKernel.Constants;
 using System.Security.Cryptography;
+using SharedKernel.Infrastructure.Kafka;
 
 namespace IdentityService.Application.Features.Auth.Commands.ReSendOtp
 {
@@ -11,11 +14,14 @@ namespace IdentityService.Application.Features.Auth.Commands.ReSendOtp
     {
         private readonly IOtpStore _otpStore;
         private readonly IEmailService _emailService;
+        private readonly IKafkaProducer _kafkaProducer;
 
-        public ReSendOtpCommandHandler(IOtpStore otpStore, IEmailService emailService)
+
+        public ReSendOtpCommandHandler(IOtpStore otpStore, IEmailService emailService, IKafkaProducer kafkaProducer)
         {
             _otpStore = otpStore;
             _emailService = emailService;
+            _kafkaProducer = kafkaProducer;
         }
         public async Task<Unit> Handle(ReSendOtpCommand command, CancellationToken cancellationToken)
         {
@@ -46,7 +52,13 @@ namespace IdentityService.Application.Features.Auth.Commands.ReSendOtp
             await _otpStore.SaveLastOtpRequestTimeAsync(request.Email, DateTimeOffset.UtcNow, request.Purpose);
             // Reset attempt count when new OTP is sent
             await _otpStore.ResetOtpAttemptAsync(request.Email, request.Purpose);
-            await _emailService.SendOtpEmailAsync(request.Email, otp);
+
+            await _kafkaProducer.PublishAsync(KafkaTopics.OtpNotifications, new OtpRequestedEvent
+            {
+                Email = request.Email,
+                OtpCode = otp,
+                RequestedAt = DateTimeOffset.UtcNow
+            });
 
             return Unit.Value;
         }
