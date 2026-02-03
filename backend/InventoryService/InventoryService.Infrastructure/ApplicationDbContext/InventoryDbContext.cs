@@ -10,7 +10,7 @@ namespace InventoryService.Infrastructure.ApplicationDbContext;
 
 public partial class InventoryDbContext : DbContext, IInventoryDbContext
 {
-    private readonly UpdateTimestampInterceptor _updateTimestampInterceptor;
+    private readonly UpdateTimestampInterceptor? _updateTimestampInterceptor;
     public InventoryDbContext()
     {
     }
@@ -27,15 +27,20 @@ public partial class InventoryDbContext : DbContext, IInventoryDbContext
 
     public virtual DbSet<StoreIngredient> StoreIngredients { get; set; }
 
+    public virtual DbSet<IngredientQueue> IngredientQueues { get; set; }
+
     public virtual DbSet<OutboxMessage> OutboxMessages { get; set; }
 
     public virtual DbSet<IngredientCategory> IngredientCategories { get; set; }
 
-    public DbSet<T> Set<T>() where T : class, IEntity => base.Set<T>();
+    public new DbSet<T> Set<T>() where T : class, IEntity => base.Set<T>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.AddInterceptors(_updateTimestampInterceptor);
+        if (_updateTimestampInterceptor != null)
+        {
+            optionsBuilder.AddInterceptors(_updateTimestampInterceptor);
+        }
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -79,8 +84,8 @@ public partial class InventoryDbContext : DbContext, IInventoryDbContext
                 .HasColumnName("is_deleted");
 
             // 1. Cấu hình mối quan hệ với bảng IngredientCategory
-            entity.HasOne(d => d.IngredientCategory) // Tên property trong class Ingredient
-                .WithMany(p => p.Ingredients)       // Tên collection trong class IngredientCategory
+            entity.HasOne(d => d.IngredientCategory)
+                .WithMany(p => p.Ingredients)
                 .HasForeignKey(d => d.CategoryId)
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("fk_ingredients_category");
@@ -153,6 +158,37 @@ public partial class InventoryDbContext : DbContext, IInventoryDbContext
                 .HasConstraintName("fk_store_ingredients_ingredient");
         });
 
+        modelBuilder.Entity<IngredientQueue>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("ingredient_queues_pkey");
+
+            entity.ToTable("ingredient_queues");
+
+            entity.HasIndex(e => e.OrderId, "idx_ingredient_queues_order_id");
+            entity.HasIndex(e => new { e.StoreId, e.IngredientId }, "idx_ingredient_queues_store_ingredient");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasColumnName("id");
+            entity.Property(e => e.StoreId).HasColumnName("store_id");
+            entity.Property(e => e.IngredientId).HasColumnName("ingredient_id");
+            entity.Property(e => e.OrderId).HasColumnName("order_id");
+            entity.Property(e => e.Amount)
+                .HasPrecision(12, 3)
+                .HasColumnName("amount");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("updated_at");
+            entity.Property(e => e.ExpiresAt)
+                .HasColumnName("expires_at");
+            entity.Property(e => e.IsDeleted)
+                .HasDefaultValue(false)
+                .HasColumnName("is_deleted");
+        });
+
         modelBuilder.Entity<OutboxMessage>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("outbox_messages_pkey");
@@ -184,7 +220,6 @@ public partial class InventoryDbContext : DbContext, IInventoryDbContext
             entity.Property(e => e.Id)
                 .HasDefaultValueSql("uuid_generate_v4()")
                 .HasColumnName("id");
-
             entity.Property(e => e.Name)
                 .IsRequired()
                 .HasMaxLength(255)

@@ -8,6 +8,7 @@ using SalesService.Application.Constants;
 using SalesService.Application.Dtos.Inventory;
 using SalesService.Application.Features.Orders.Commands.Create;
 using System.Security.AccessControl;
+using InventoryService.Grpc.Protos.Inventory.Internal;
 
 namespace SalesService.API.Services.Inventory
 {
@@ -83,6 +84,31 @@ namespace SalesService.API.Services.Inventory
 
             request.DecreaseItems.AddRange(decreaseItems);
             await _client.DecreaseStockByOrderAsync(request);
+        }
+
+        public async Task<ReserveStockResponseDto> ReserveStockAsync(ReserveStockReq command)
+        {
+            var request = new ReserveStockRequest
+            {
+                StoreId = command.StoreId.ToString(),
+                OrderId = command.OrderId.ToString()
+            };
+
+            var items = command.Items.Select(x => new InventoryService.Grpc.Protos.Inventory.Internal.AmountVariant
+            {
+                VariantId = x.VariantId.ToString(),
+                Amount = x.Amount
+            });
+
+            request.Items.AddRange(items);
+
+            var response = await _client.ReserveStockAsync(request);
+
+            return new ReserveStockResponseDto
+            {
+                Success = response.Success,
+                Message = response.Message
+            };
         }
     }
 }

@@ -19,4 +19,10 @@ public static class KafkaTopics
     
     /// <summary>Thông báo reset mật khẩu từ IdentityService</summary>
     public const string PasswordResetNotifications = "password-reset-notifications";
+
+    /// <summary>Sự kiện đơn hàng đã thanh toán (Inventory listen)</summary>
+    public const string OrderPaid = "order-paid";
+
+    /// <summary>Sự kiện đơn hàng đã hủy (Inventory listen)</summary>
+    public const string OrderCancelled = "order-cancelled";
 }
