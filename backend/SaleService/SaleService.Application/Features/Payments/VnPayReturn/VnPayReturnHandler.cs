@@ -134,7 +134,7 @@ public sealed class VnPayReturnHandler
 
             if (payment.Order != null)
             {
-                payment.Order.Status = OrderStatus.Paid;
+                payment.Order.Status = OrderStatus.Preparing;
                 payment.Order.PaidAt = DateTimeOffset.UtcNow;
                 payment.Order.PaidAmount = payment.Amount;
                 payment.Order.PaymentMethod = PaymentMethod.VNPay;

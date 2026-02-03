@@ -1,27 +1,19 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Ardalis.Result;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using SalesService.Application.Helpers;
 using SalesService.Application.Interfaces.Payments;
 using SalesService.Application.Persisitences.Orders;
-using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
+namespace SalesService.Application.Features.Payments.CreatePayment;
 
-namespace SalesService.Application.Features.Payments.CreateVnPayUrl;
-
-public sealed class CreateVnPayUrlHandler
-    : IRequestHandler<CreateVnPayUrlCommand, Result<CreateVnPayUrlResponse>>
+public sealed class CreatePaymentHandler : IRequestHandler<CreatePaymentCommand, Result<CreatePaymentRes>>
 {
     private readonly IOrderRepository _orderRepository;
     private readonly IPaymentRepository _paymentRepository;
     private readonly IConfiguration _config;
 
-    public CreateVnPayUrlHandler(
+    public CreatePaymentHandler(
         IOrderRepository orderRepository,
         IPaymentRepository paymentRepository,
         IConfiguration config)
@@ -31,10 +23,12 @@ public sealed class CreateVnPayUrlHandler
         _config = config;
     }
 
-    public async Task<Result<CreateVnPayUrlResponse>> Handle(
-        CreateVnPayUrlCommand request,
+    public async Task<Result<CreatePaymentRes>> Handle(
+        CreatePaymentCommand command,
         CancellationToken cancellationToken)
     {
+        var request = command.Requets;
+
         if (request.OrderId == Guid.Empty)
         {
             return Result.Invalid(new ValidationError
@@ -50,8 +44,8 @@ public sealed class CreateVnPayUrlHandler
             return Result.NotFound($"Order with id '{request.OrderId}' not found.");
         }
 
-        // Nếu order đã được đánh dấu Paid thì không cho tạo payment mới
-        if (order.Status == OrderStatus.Paid) // 1 = Paid
+        // Nếu order đã được đánh dấu Completed thì không cho tạo payment mới
+        if (order.Status == OrderStatus.Completed) // 4 = Completed
         {
             return Result.Error("Order already paid.");
         }
@@ -64,21 +58,38 @@ public sealed class CreateVnPayUrlHandler
             Code = $"PAY-{DateTime.UtcNow:yyyyMMddHHmmss}",
             Amount = order.TotalAmount,
             Currency = "VND",
-            Method = 1,      // 1 = VNPay
-            Status = 0,      // 0 = Pending
+            Method = (int)request.PaymentMethod,// 0 = Cash | 1 = VNPay
+            Status = request.PaymentMethod == PaymentMethod.Cash
+                        ? (int)PaymentStatus.Paid
+                        : (int)PaymentStatus.Pending,      // 0 = Pending | 1 = Paid
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             IsDeleted = false
         };
 
         await _paymentRepository.CreateAsync(payment, cancellationToken);
+        if (payment.Method == 0)
+        {
+            //Mark Order as Paid
+            order.PaidAmount = order.TotalAmount;
+            order.PaidAt = DateTime.UtcNow;
+            order.PaymentMethod = (int)PaymentMethod.Cash;
+            order.Status = OrderStatus.Completed;
+            order.UpdatedAt = DateTime.UtcNow;
 
+            await _orderRepository.UpdateAsync(order, cancellationToken);
+
+            return Result.Success(new CreatePaymentRes
+            {
+                Message = "Cash payment created successfully."
+            });
+        }
         var vnpSection = _config.GetSection("VNPay");
         var tmnCode = vnpSection["TmnCode"] ?? throw new InvalidOperationException("VNPay:TmnCode is not configured");
         var hashSecret = vnpSection["HashSecret"] ?? throw new InvalidOperationException("VNPay:HashSecret is not configured");
         var paymentUrl = vnpSection["PaymentUrl"] ?? throw new InvalidOperationException("VNPay:PaymentUrl is not configured");
         var configReturnUrl = vnpSection["ReturnUrl"] ?? throw new InvalidOperationException("VNPay:ReturnUrl is not configured");
-        
+
         // Encode custom returnUrl from request into callback URL if provided
         var callbackUrl = configReturnUrl;
         if (!string.IsNullOrEmpty(request.ReturnUrl))
@@ -107,9 +118,9 @@ public sealed class CreateVnPayUrlHandler
 
         var url = VNPayHelper.BuildPaymentUrl(paymentUrl, hashSecret, parameters);
 
-        return Result.Success(new CreateVnPayUrlResponse
+        return Result.Success(new CreatePaymentRes
         {
-            PaymentUrl = url
+            Message = url
         });
     }
 }

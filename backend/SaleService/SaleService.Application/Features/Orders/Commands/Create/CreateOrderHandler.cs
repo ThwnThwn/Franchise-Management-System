@@ -149,7 +149,7 @@ public sealed class CreateOrderHandler
             TotalAmount = totalAmount,
             StoreId = request.Request.StoreId, // đã validate khác null ở trên
             PaymentMethod = null,
-            Status = OrderStatus.Pending,
+            Status = OrderStatus.Ordered, // 0 = Ordered
             Notes = request.Request.Notes,
             CustomerId = request.Request.CustomerId,
             IsDeleted = false

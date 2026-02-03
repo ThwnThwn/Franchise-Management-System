@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using MediatR;
 using SalesService.Application.Features.Payments.VnPayReturn;
-using SalesService.Application.Features.Payments.CreateVnPayUrl;
+using SalesService.Application.Features.Payments.CreatePayment;
 
 namespace SalesService.API.Controllers;
 
@@ -24,11 +24,18 @@ public class VnPayController : ControllerBase
     /// <returns></returns>
 
     [HttpPost("{id:guid}/payments/vnpay-url")]
-    public async Task<ActionResult<CreateVnPayUrlResponse>> CreateVnPayUrl(
+    public async Task<ActionResult<PaymentResponse>> CreateVnPayUrl(
         Guid id,
         CancellationToken ct)
     {
-        var command = new CreateVnPayUrlCommand(id);
+        var command = new CreatePaymentCommand
+            (
+            new CreatePaymentReq
+            {
+                OrderId = id,
+                PaymentMethod = Domain.Enums.PaymentMethod.VNPay
+            }
+            );
         var result = await _mediator.Send(command, ct);
 
         if (result.IsSuccess)
