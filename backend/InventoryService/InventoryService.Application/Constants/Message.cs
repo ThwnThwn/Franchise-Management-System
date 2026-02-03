@@ -36,6 +36,8 @@ namespace InventoryService.Application.Constants
         public static class Category
         {
             public const string NotFound = "Không tìm thấy danh mục nguyên liệu.";
+            public const string NameRequired = "Tên danh mục không được để trống.";
+            public const string NameTooLong = "Tên danh mục không được vượt quá 100 ký tự.";
         }
     }
 }

@@ -22,6 +22,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics.Internal;
 using InventoryService.API.Services.Inventory;
 using InventoryService.Application.Abstractions;
+using InventoryService.API.Services.IngredientCategory;
 
 namespace InventoryService.API
 {
@@ -179,6 +180,7 @@ namespace InventoryService.API
             app.MapGrpcService<InventoryGrpcService>();
             app.MapGrpcService<InventoryInternalService>();
             app.MapGrpcService<IngredientGrpcService>();
+            app.MapGrpcService<CategoryGrpcService>();
             app.MapGrpcReflectionService(); // Enable gRPC Server Reflection endpoint
             app.MapGet("/", () => "Sale Service API is running. Visit /swagger for API documentation.");
 

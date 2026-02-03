@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using InventoryService.Application.Constants;
 using InventoryService.Application.Features.Ingrdient.Commands.CreateIngredient;
+using InventoryService.Application.Helper;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,15 +19,7 @@ namespace InventoryService.Application.Validators.Ingredient
                 .MaximumLength(100).WithMessage(Message.Ingredient.NameTooLong);
             RuleFor(x => x.Request.BaseUnit)
                 .NotEmpty().WithMessage(Message.Ingredient.BaseUnitRequired)
-                .Must(IsMassOrVolume).WithMessage(Message.Ingredient.InvalidBaseUnit);
-        }
-        private bool IsMassOrVolume(string baseUnit)
-        {
-            if (string.IsNullOrWhiteSpace(baseUnit)) return false;
-            var unit = baseUnit.ToLower().Trim();
-            // Kiểm tra các biến thể của gam và mililit
-            return unit == "g" || unit == "gam" || unit == "gram" ||
-                   unit == "ml" || unit == "mililit" || unit == "millilitre";
+                .Must(CheckValidBaseUnit.IsValid).WithMessage(Message.Ingredient.InvalidBaseUnit);
         }
     }
 }
