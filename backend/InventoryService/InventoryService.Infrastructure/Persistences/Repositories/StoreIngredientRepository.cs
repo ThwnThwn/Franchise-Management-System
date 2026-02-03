@@ -195,6 +195,17 @@ namespace InventoryService.Infrastructure.Persistences.Repositories
         }
 
         /// <summary>
+        /// Thêm nhiều yêu cầu giữ hàng vào hàng đợi cùng lúc (Batch Insert).
+        /// Giúp tối ưu hiệu năng Database (chỉ mở kết nối 1 lần).
+        /// </summary>
+        /// <param name="queueItems">Danh sách các yêu cầu cần thêm.</param>
+        public async Task AddToQueueBatchAsync(IEnumerable<IngredientQueue> queueItems)
+        {
+            await _dbContext.IngredientQueues.AddRangeAsync(queueItems);
+            await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
         /// Xóa queue theo OrderId.
         /// </summary>
         public async Task RemoveQueueByOrderIdAsync(Guid orderId)

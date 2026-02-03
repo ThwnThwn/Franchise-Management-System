@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Confluent.Kafka;
 using InventoryService.Application.Persistences.Repositories;
+using MediatR;
 using SharedKernel.Constants;
 using SharedKernel.Events;
 
@@ -80,13 +81,9 @@ public class OrderEventConsumer : BackgroundService
     private async Task ProcessMessageAsync(string topic, string message)
     {
         using var scope = _serviceProvider.CreateScope();
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
         var storeIngredientRepo = scope.ServiceProvider.GetRequiredService<IStoreIngredientRepository>();
 
-        // Đối với OrderPaid, có thể cần IInventoryDbContext để dùng Transaction nếu muốn chuẩn ACID tuyệt đối.
-        // Nhưng Repository đã implement DecreaseStockAtomicallyAsync dùng SQL nên đã atomic cho từng item.
-
-
-        // xử lý từng line item một.
         try
         {
             if (topic == KafkaTopics.OrderPaid)
@@ -96,30 +93,13 @@ public class OrderEventConsumer : BackgroundService
                 {
                     _logger.LogInformation("Processing OrderPaidEvent for Order {OrderId}", paidEvent.OrderId);
 
-                    // 1. Xóa khỏi Hàng đợi (Giải phóng giữ chỗ)
-                    await storeIngredientRepo.RemoveQueueByOrderIdAsync(paidEvent.OrderId);
-
-                    // 2. Trừ tồn kho vật lý
-                    foreach (var item in paidEvent.Items)
-                    {
-                        // Để trừ kho vật lý, ta cần IngredientId.
-                        // Nhưng OrderPaidEvent (từ SaleService) thường chỉ có VariantId.
-                        // Do đó cần map: VariantId -> IngredientId(s).
-                        // Việc này cần IRecipeRepository.
-
-                        var recipeRepo = scope.ServiceProvider.GetRequiredService<IRecipeRepository>();
-                        // Đoạn này có thể tối ưu: Lấy hết recipe 1 lần thay vì gọi loop nhiều lần.
-                        var recipes = await recipeRepo.GetRecipesByVariantIdsAsync(new[] { item.VariantId }, CancellationToken.None);
-
-                        foreach (var recipe in recipes)
-                        {
-                            var amountToDeduct = recipe.Quantity * item.Quantity;
-                            await storeIngredientRepo.DecreaseStockAtomicallyAsync(
-                                paidEvent.StoreId,
-                                recipe.IngredientId,
-                                amountToDeduct);
-                        }
-                    }
+                    // Refactor: Chuyển logic sang Application Layer (ConfirmStockReservationHandler)
+                    var command = new Application.Features.StoreIngredient.Commands.ConfirmStockReservation.ConfirmStockReservationCommand(
+                        paidEvent.OrderId, 
+                        paidEvent.StoreId, 
+                        paidEvent.Items);
+                    
+                    await mediator.Send(command);
                 }
             }
             else if (topic == KafkaTopics.OrderCancelled)
