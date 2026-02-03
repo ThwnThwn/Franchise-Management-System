@@ -11,6 +11,7 @@ using IdentityService.Application.Persistences.Repositories;
 using IdentityService.Domain.Entities;
 using MediatR;
 using SharedKernel.Events;
+using SharedKernel.Constants;
 
 namespace IdentityService.Application.Features.Auth.Commands.Register;
 

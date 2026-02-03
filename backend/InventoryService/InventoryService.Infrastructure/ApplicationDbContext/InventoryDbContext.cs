@@ -31,6 +31,8 @@ public partial class InventoryDbContext : DbContext, IInventoryDbContext
 
     public virtual DbSet<OutboxMessage> OutboxMessages { get; set; }
 
+    public virtual DbSet<IngredientCategory> IngredientCategories { get; set; }
+
     public new DbSet<T> Set<T>() where T : class, IEntity => base.Set<T>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -54,24 +56,39 @@ public partial class InventoryDbContext : DbContext, IInventoryDbContext
             entity.Property(e => e.Id)
                 .HasDefaultValueSql("uuid_generate_v4()")
                 .HasColumnName("id");
+
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(255)
+                .HasColumnName("name");
+
             entity.Property(e => e.BaseUnit)
+                .IsRequired()
                 .HasMaxLength(50)
                 .HasColumnName("base_unit");
-            entity.Property(e => e.Category)
-                .HasMaxLength(100)
-                .HasColumnName("category");
+
+            // Thay thế cột Category (string) cũ bằng CategoryId (Guid)
+            entity.Property(e => e.CategoryId)
+                .HasColumnName("category_id");
+
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("created_at");
-            entity.Property(e => e.IsDeleted)
-                .HasDefaultValue(false)
-                .HasColumnName("is_deleted");
-            entity.Property(e => e.Name)
-                .HasMaxLength(255)
-                .HasColumnName("name");
+
             entity.Property(e => e.UpdatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("updated_at");
+
+            entity.Property(e => e.IsDeleted)
+                .HasDefaultValue(false)
+                .HasColumnName("is_deleted");
+
+            // 1. Cấu hình mối quan hệ với bảng IngredientCategory
+            entity.HasOne(d => d.IngredientCategory)
+                .WithMany(p => p.Ingredients)
+                .HasForeignKey(d => d.CategoryId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("fk_ingredients_category");
         });
 
         modelBuilder.Entity<Recipe>(entity =>
@@ -167,6 +184,57 @@ public partial class InventoryDbContext : DbContext, IInventoryDbContext
                 .HasColumnName("updated_at");
             entity.Property(e => e.ExpiresAt)
                 .HasColumnName("expires_at");
+            entity.Property(e => e.IsDeleted)
+                .HasDefaultValue(false)
+                .HasColumnName("is_deleted");
+        });
+
+        modelBuilder.Entity<OutboxMessage>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("outbox_messages_pkey");
+
+            entity.ToTable("outbox_messages");
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedNever()
+                .HasColumnName("id");
+            entity.Property(e => e.Content).HasColumnName("content");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_at");
+            entity.Property(e => e.Error).HasColumnName("error");
+            entity.Property(e => e.OccurredOn).HasColumnName("occurred_on");
+            entity.Property(e => e.ProcessedOn).HasColumnName("processed_on");
+            entity.Property(e => e.Type).HasColumnName("type");
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("updated_at");
+        });
+
+        modelBuilder.Entity<IngredientCategory>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("ingredient_categories_pkey");
+
+            entity.ToTable("ingredient_categories");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasColumnName("id");
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(255)
+                .HasColumnName("name");
+
+            entity.Property(e => e.Description).HasColumnName("description");
+
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_at");
+
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("updated_at");
+
             entity.Property(e => e.IsDeleted)
                 .HasDefaultValue(false)
                 .HasColumnName("is_deleted");

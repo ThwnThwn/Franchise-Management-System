@@ -11,7 +11,9 @@ public static class KafkaTopics
     
     /// <summary>Thông báo OTP từ IdentityService</summary>
     public const string OtpNotifications = "otp-notifications";
-    
+
+    public const string OtpForgetPassword = "otp-forgetPassword";
+
     /// <summary>Thông báo đơn hàng mới từ SaleService</summary>
     public const string OrderNotifications = "order-notifications";
     

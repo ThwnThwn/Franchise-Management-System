@@ -1,6 +1,6 @@
+using InventoryService.Application.Abstractions;
 using InventoryService.Application.Persistences.Repositories;
 using InventoryService.Domain.Entities;
-using InventoryService.Application.Abstractions;
 
 namespace InventoryService.Infrastructure.Persistences.Repositories;
 

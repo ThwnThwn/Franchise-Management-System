@@ -12,17 +12,19 @@ import (
 	"api-gateway/internal/api/routes"
 	"api-gateway/internal/application/usecases"
 	"api-gateway/internal/bootstrap"
+	"api-gateway/internal/infrastructure/cache"
 	"api-gateway/internal/infrastructure/grpc_clients/franchise"
 	"api-gateway/internal/infrastructure/grpc_clients/identity"
 	"api-gateway/internal/infrastructure/grpc_clients/inventory"
 	"api-gateway/internal/infrastructure/grpc_clients/product"
 	"api-gateway/internal/infrastructure/grpc_clients/sales"
+	"api-gateway/pkg/logger"
 )
 
 // Injectors from wire.go:
 
 // InitializeApp nằm ở package 'di', trả về 'bootstrap.App'
-func InitializeApp(cfg *config.Config) (*bootstrap.App, error) {
+func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, error) {
 	franchiseServiceUrl := cfg.FranchiseServiceUrl
 	clientFactory, err := franchise.NewFranchiseClientFactory(franchiseServiceUrl)
 	if err != nil {
@@ -32,7 +34,7 @@ func InitializeApp(cfg *config.Config) (*bootstrap.App, error) {
 	iStoreUseCase := usecases.NewStoreUseCase(iStoreService)
 	storeHandler := handlers.NewStoreHandler(iStoreUseCase)
 	iShiftService := franchise.ProvideShiftClient(clientFactory)
-	iShiftUseCase := usecases.NewShiftUseCasee(iShiftService)
+	iShiftUseCase := usecases.NewShiftUseCase(iShiftService)
 	shiftHandler := handlers.NewShiftHandler(iShiftUseCase)
 	identityServiceUrl := cfg.IdentityServiceUrl
 	identityClientFactory, err := identity.NewIdentityClientFactory(identityServiceUrl)
@@ -86,7 +88,11 @@ func InitializeApp(cfg *config.Config) (*bootstrap.App, error) {
 		CartHandler:      cartHandler,
 		InventoryHandler: inventoryHandler,
 	}
-	engine := routes.NewRouter(cfg, appHandlers)
+	redis := &cfg.Redis
+	client := cache.NewRedis(redis, l)
+	iBlacklistCache := cache.NewBlacklistCache(client)
+	iBlacklistUseCase := usecases.NewBlacklistUseCase(iBlacklistCache, l)
+	engine := routes.NewRouter(cfg, appHandlers, iBlacklistUseCase)
 	app := bootstrap.NewApp(cfg, engine)
 	return app, nil
 }

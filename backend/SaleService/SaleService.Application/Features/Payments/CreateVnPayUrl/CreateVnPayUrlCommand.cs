@@ -4,7 +4,7 @@ using MediatR;
 
 namespace SalesService.Application.Features.Payments.CreateVnPayUrl;
 
-public sealed record CreateVnPayUrlCommand(Guid OrderId)
+public sealed record CreateVnPayUrlCommand(Guid OrderId, string? ReturnUrl = null)
     : IRequest<Result<CreateVnPayUrlResponse>>;
 
 public sealed class CreateVnPayUrlResponse
