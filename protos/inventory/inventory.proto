@@ -29,6 +29,8 @@ message GetAllStockReq{
     repeated string category_ids = 2;
     optional int32 stock_status = 3;
     repeated string ingredient_ids = 4;
+    int32 page = 5;
+    int32 page_size = 6;
 }
 
 message StockViewRes {

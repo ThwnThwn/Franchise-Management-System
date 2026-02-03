@@ -153,6 +153,28 @@ public partial class InventoryDbContext : DbContext, IInventoryDbContext
                 .HasConstraintName("fk_store_ingredients_ingredient");
         });
 
+        modelBuilder.Entity<OutboxMessage>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("outbox_messages_pkey");
+
+            entity.ToTable("outbox_messages");
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedNever()
+                .HasColumnName("id");
+            entity.Property(e => e.Content).HasColumnName("content");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_at");
+            entity.Property(e => e.Error).HasColumnName("error");
+            entity.Property(e => e.OccurredOn).HasColumnName("occurred_on");
+            entity.Property(e => e.ProcessedOn).HasColumnName("processed_on");
+            entity.Property(e => e.Type).HasColumnName("type");
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("updated_at");
+        });
+
         modelBuilder.Entity<IngredientCategory>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("ingredient_categories_pkey");

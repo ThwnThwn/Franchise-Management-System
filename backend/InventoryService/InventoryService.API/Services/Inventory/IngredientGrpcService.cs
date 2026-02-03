@@ -1,4 +1,5 @@
 ﻿using Grpc.Core;
+using InventoryService.Application.Features.Ingrdient.Commands.CreateIngredient;
 using InventoryService.Application.Features.Ingrdient.Queries.GetAllIngredient;
 using InventoryService.Grpc.Protos.Ingredient;
 using MediatR;
@@ -43,14 +44,14 @@ namespace InventoryService.API.Services.Inventory
 
         public override async Task<NoneReply> CreateIngredient(CreateIngredientReq request, ServerCallContext context)
         {
-            var req = new Application.Features.Ingrdient.Commands.CreateIngredient.CreateIngredientCommand(new()
+            var req = new CreateIngredientCommand(new Application.Dtos.Ingredient.CreateIngredientReq()
             {
                 Name = request.Name,
                 BaseUnit = request.BaseUnit,
                 CategoryId = string.IsNullOrEmpty(request.CategoryId) ? null : Guid.Parse(request.CategoryId)
             });
 
-             await _mediator.Send(req);
+            await _mediator.Send(req);
             return new NoneReply();
         }
 

@@ -22,6 +22,7 @@ namespace InventoryService.Infrastructure.Persistences.Repositories
         {
             var query = _dbContext.Ingredients
                 .Include(i => i.IngredientCategory)
+                .Where(i => i.IsDeleted == false)
                 .AsNoTracking();
 
             if (categoryId.HasValue)

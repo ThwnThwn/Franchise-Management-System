@@ -14,17 +14,24 @@ namespace InventoryService.Application.Features.Ingrdient.Commands.UpdateIngredi
     {
         private readonly IIngredientRepository _ingredientRepository;
         private readonly IMapper _mapper;
-        public UpdateIngredientHandler(IIngredientRepository ingredientRepository, IMapper mapper)
+        private readonly IIngredientCategoryRepository _ingredientCategoryRepository;
+        public UpdateIngredientHandler(IIngredientRepository ingredientRepository, IMapper mapper, IIngredientCategoryRepository ingredientCategoryRepository)
         {
             _ingredientRepository = ingredientRepository;
             _mapper = mapper;
+            _ingredientCategoryRepository = ingredientCategoryRepository;
         }
         public async Task<Unit> Handle(UpdateIngredientCommand command, CancellationToken cancellationToken)
         {
-            if ((await _ingredientRepository.GetByIdAsync(command.Request.Id)) == null)
-                throw new DirectoryNotFoundException(Message.Ingredient.NotFound);
-
-            await _ingredientRepository.UpdateAsync(_mapper.Map<Domain.Entities.Ingredient>(command.Request));
+            if(command.Request.CategoryId != null &&(await _ingredientCategoryRepository.GetByIdAsync((Guid)command.Request.CategoryId) == null))
+                throw new DirectoryNotFoundException(Message.Category.NotFound);
+            var itemInDb = await _ingredientRepository.GetByIdAsync(command.Request.Id);
+            if (itemInDb == null) throw new DirectoryNotFoundException(Message.Ingredient.NotFound);
+            
+            if(command.Request.Name != null) itemInDb.Name = command.Request.Name;
+            if(command.Request.CategoryId != null) itemInDb.CategoryId = command.Request.CategoryId;
+            if(!String.IsNullOrEmpty(command.Request.BaseUnit)) itemInDb.BaseUnit = command.Request.BaseUnit;
+            await _ingredientRepository.UpdateAsync(itemInDb);
             return Unit.Value;
         }
     }

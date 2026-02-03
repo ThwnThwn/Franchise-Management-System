@@ -57,7 +57,9 @@ namespace InventoryService.API.Services.Inventory
                 StoreIds = storeIds,
                 CategoryIds = categoryIds,
                 StockStatus = (StockStatus)request.StockStatus,
-                IngredientIds = ingredientIds
+                IngredientIds = ingredientIds,
+                Page = request.Page,
+                PageSize = request.PageSize
             });
 
             var response = new GetAllStockRep()
