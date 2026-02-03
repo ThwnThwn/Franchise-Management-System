@@ -32,6 +32,7 @@ public sealed class PaymentRepository : IPaymentRepository
     {
         return await _db.Payments
             .Include(p => p.Order)
+                .ThenInclude(o => o.OrderItems)
             .FirstOrDefaultAsync(p => p.Id == paymentId, cancellationToken);
     }
 

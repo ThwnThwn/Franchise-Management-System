@@ -6,6 +6,10 @@ using SalesService.Application.Helpers;
 using SalesService.Application.Interfaces.Payments;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
+using SalesService.Application.Persisitences.Outbox;
+using SalesService.Application.Signals;
+using SharedKernel.Constants;
+using Microsoft.Extensions.Logging;
 
 namespace SalesService.Application.Features.Payments.VnPayReturn;
 
@@ -14,11 +18,22 @@ public sealed class VnPayReturnHandler
 {
     private readonly IPaymentRepository _paymentRepository;
     private readonly IConfiguration _config;
+    private readonly IOutboxRepository _outboxRepository;
+    private readonly IOutboxSignal _outboxSignal;
+    private readonly ILogger<VnPayReturnHandler> _logger;
 
-    public VnPayReturnHandler(IPaymentRepository paymentRepository, IConfiguration config)
+    public VnPayReturnHandler(
+        IPaymentRepository paymentRepository, 
+        IConfiguration config,
+        IOutboxRepository outboxRepository,
+        IOutboxSignal outboxSignal,
+        ILogger<VnPayReturnHandler> logger)
     {
         _paymentRepository = paymentRepository;
         _config = config;
+        _outboxRepository = outboxRepository;
+        _outboxSignal = outboxSignal;
+        _logger = logger;
     }
 
     public async Task<Result<VnPayReturnResponse>> Handle(
@@ -123,6 +138,32 @@ public sealed class VnPayReturnHandler
                 payment.Order.PaidAt = DateTimeOffset.UtcNow;
                 payment.Order.PaidAmount = payment.Amount;
                 payment.Order.PaymentMethod = PaymentMethod.VNPay;
+
+                // PUBLISH OrderPaidEvent
+                if (payment.Order.OrderItems != null && payment.Order.OrderItems.Any())
+                {
+                    var paidEvent = new SharedKernel.Events.OrderPaidEvent
+                    {
+                        OrderId = payment.Order.Id,
+                        StoreId = payment.Order.StoreId ?? Guid.Empty, // Ensure StoreId is available
+                        PaidAt = DateTimeOffset.UtcNow,
+                        Items = payment.Order.OrderItems.Select(oi => new SharedKernel.Events.OrderPaidItem
+                        {
+                            VariantId = oi.VariantId,
+                            Quantity = oi.Quantity
+                        }).ToList()
+                    };
+
+                    var outbox = new OutboxMessage
+                    {
+                        Id = Guid.NewGuid(),
+                        Type = KafkaTopics.OrderPaid,
+                        Content = JsonSerializer.Serialize(paidEvent),
+                        OccurredOn = DateTimeOffset.UtcNow
+                    };
+                    _outboxRepository.Add(outbox);
+                    _logger.LogInformation("Published OrderPaidEvent for Order {OrderId}", payment.Order.Id);
+                }
             }
 
             await AddPaymentEvent(payment.Id, "VNPAY_CALLBACK_SUCCESS", query, cancellationToken);
@@ -134,10 +175,33 @@ public sealed class VnPayReturnHandler
             payment.ProviderTxnId = transactionNo;
             payment.ProviderPayload = JsonSerializer.Serialize(query);
 
+            if (payment.Order != null)
+            {
+                 // PUBLISH OrderCancelledEvent (release reservation)
+                 var cancelledEvent = new SharedKernel.Events.OrderCancelledEvent
+                 {
+                     OrderId = payment.Order.Id,
+                     CancelledAt = DateTimeOffset.UtcNow,
+                     Reason = $"Payment Failed: {responseCode}"
+                 };
+
+                 var outbox = new OutboxMessage
+                 {
+                     Id = Guid.NewGuid(),
+                     Type = KafkaTopics.OrderCancelled,
+                     Content = JsonSerializer.Serialize(cancelledEvent),
+                     OccurredOn = DateTimeOffset.UtcNow
+                 };
+                 _outboxRepository.Add(outbox);
+            }
+
             await AddPaymentEvent(payment.Id, "VNPAY_CALLBACK_FAILED", query, cancellationToken);
         }
 
         await _paymentRepository.SaveChangesAsync(cancellationToken);
+        
+        // Pulse Outbox Worker
+        _outboxSignal.Pulse();
 
         return Result.Success(new VnPayReturnResponse
         {

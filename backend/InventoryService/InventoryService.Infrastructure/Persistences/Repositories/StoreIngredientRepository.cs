@@ -13,12 +13,23 @@ using System.Threading.Tasks;
 
 namespace InventoryService.Infrastructure.Persistences.Repositories
 {
+    /// <summary>
+    /// Repository quản lý kho nguyên liệu của cửa hàng.
+    /// Chứa các logic nhập kho, trừ kho, và quản lý hàng đợi giữ hàng (Reservation Queue).
+    /// </summary>
     public class StoreIngredientRepository : GenericRepository<StoreIngredient>, IStoreIngredientRepository
     {
         public StoreIngredientRepository(IInventoryDbContext dbContext) : base(dbContext)
         {
         }
 
+        /// <summary>
+        /// Lấy thông tin tồn kho cho danh sách nguyên liệu của một cửa hàng cụ thể.
+        /// </summary>
+        /// <param name="storeId">ID cửa hàng.</param>
+        /// <param name="ingredientIds">Danh sách ID nguyên liệu cần lấy.</param>
+        /// <param name="cancellationToken">Token hủy tác vụ.</param>
+        /// <returns>Danh sách các bản ghi tồn kho tương ứng.</returns>
         public async Task<IEnumerable<StoreIngredient>> GetStockByStoreIdAndIngredientIdsAsync(Guid storeId, IEnumerable<Guid> ingredientIds, CancellationToken cancellationToken)
         {
             return await _dbContext.StoreIngredients.AsQueryable()
@@ -29,6 +40,12 @@ namespace InventoryService.Infrastructure.Persistences.Repositories
                         .ToListAsync(cancellationToken);
         }
 
+        /// <summary>
+        /// Tăng số lượng tồn kho (Nhập kho).
+        /// Nếu nguyên liệu đã có thì cộng dồn, chưa có thì tạo mới.
+        /// </summary>
+        /// <param name="storeId">ID cửa hàng.</param>
+        /// <param name="items">Danh sách nguyên liệu và số lượng cần nhập.</param>
         public async Task IncreaseStockAsync(Guid storeId, IEnumerable<IngredientStockItem> items)
         {
             try
@@ -74,6 +91,7 @@ namespace InventoryService.Infrastructure.Persistences.Repositories
                 throw new Application.AppExceptions.DbUpdateException("Lỗi update db");
             }
         }
+
         /// <summary>
         /// Trừ tồn kho một cách nguyên tử (Atomic) để đảm bảo an toàn đồng thời (concurrency).
         /// Sử dụng câu lệnh SQL trực tiếp với điều kiện `quantity >= amount` để chặn race condition ở cấp database.
@@ -143,6 +161,52 @@ namespace InventoryService.Infrastructure.Persistences.Repositories
             }
 
             return null; // Update thất bại (điều kiện WHERE không thỏa -> không đủ tồn kho)
+        }
+
+        /// <summary>
+        /// Thêm yêu cầu giữ hàng vào hàng đợi (Queue).
+        /// Được sử dụng khi tạo đơn hàng nhưng chưa thanh toán.
+        /// </summary>
+        /// <param name="queueItem">Thông tin giữ hàng (Order, Ingredient, Amount...).</param>
+        public async Task AddToQueueAsync(IngredientQueue queueItem)
+        {
+            await _dbContext.IngredientQueues.AddAsync(queueItem);
+            await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Xóa các yêu cầu giữ hàng của một đơn hàng cụ thể.
+        /// Được gọi khi Đơn hàng đã Thanh toán (Trừ kho thật) hoặc Hủy bỏ (Nhả hàng lại về kho).
+        /// </summary>
+        /// <param name="orderId">ID đơn hàng cần xóa queue.</param>
+        public async Task RemoveQueueByOrderIdAsync(Guid orderId)
+        {
+            var items = await _dbContext.IngredientQueues
+                .Where(x => x.OrderId == orderId)
+                .ToListAsync();
+
+            if (items.Any())
+            {
+                _dbContext.IngredientQueues.RemoveRange(items);
+                await _dbContext.SaveChangesAsync();
+            }
+        }
+
+        /// <summary>
+        /// Tính tổng số lượng nguyên liệu đang bị giữ trong hàng đợi (nhưng chưa trừ kho thật).
+        /// Chỉ tính các yêu cầu chưa hết hạn (ExpiresAt > Now).
+        /// </summary>
+        /// <param name="storeId">ID cửa hàng.</param>
+        /// <param name="ingredientId">ID nguyên liệu.</param>
+        /// <returns>Tổng số lượng đang được giữ (Reserved).</returns>
+        public async Task<decimal> GetReservedQuantityAsync(Guid storeId, Guid ingredientId)
+        {
+            return await _dbContext.IngredientQueues
+                .Where(x => x.StoreId == storeId 
+                         && x.IngredientId == ingredientId 
+                         && x.ExpiresAt > DateTimeOffset.UtcNow 
+                         && x.IsDeleted == false)
+                .SumAsync(x => x.Amount);
         }
     }
 }

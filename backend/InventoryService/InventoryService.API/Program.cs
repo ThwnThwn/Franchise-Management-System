@@ -148,6 +148,8 @@ namespace InventoryService.API
             builder.Services.AddScoped<IOutboxRepository, OutboxRepository>();
             builder.Services.AddSingleton<IOutboxSignal, OutboxSignal>();
             builder.Services.AddHostedService<API.BackgroundJobs.InventoryOutboxWorker>();
+            // Kafka Consumer
+            builder.Services.AddHostedService<InventoryService.API.Consumers.OrderEventConsumer>();
 
             var app = builder.Build();
 

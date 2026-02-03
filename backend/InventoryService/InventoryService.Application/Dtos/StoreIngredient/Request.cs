@@ -3,7 +3,7 @@
     public class IncreaseStockReq
     {
         public Guid StoreId { get; set; }
-        public IEnumerable<IngredientStockItem> Items { get; set; }
+        public IEnumerable<IngredientStockItem> Items { get; set; } = [];
     }
 
     public class IngredientStockItem

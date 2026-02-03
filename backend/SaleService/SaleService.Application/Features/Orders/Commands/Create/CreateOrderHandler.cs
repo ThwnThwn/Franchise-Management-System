@@ -79,25 +79,24 @@ public sealed class CreateOrderHandler
             Amount = request.Request.Items.First(i => i.Sku == v.Sku).Quantity
         });
 
-        var checkStockReq = new CheckEnoughStockReq
+        // Generate OrderId and Code early
+        var orderId = Guid.NewGuid();
+        var orderCode = $"ORD-{DateTime.UtcNow:yyyyMMdd-HHmmss}";
+
+        // Reserve Stock
+        var reserveReq = new ReserveStockReq
         {
             StoreId = request.Request.StoreId.Value,
-            CheckItems = listItemCheck
+            OrderId = orderId,
+            Items = listItemCheck.ToList()
         };
-        var checkRespone = await _inventoryServiceClient.CheckEnoughStockAsync(checkStockReq);
-        if (!checkRespone.IsEnough)
+        var reserveRes = await _inventoryServiceClient.ReserveStockAsync(reserveReq);
+        if (!reserveRes.Success)
         {
-            var responeErrorObject = new CreateOrderResponseDto
-            {
-                OrderId = Guid.Empty,
-                OrderCode = "failed",
-                TotalAmount = 0,
-                CheckEnoughStockRes = checkRespone
-            };
-            return Result.Success(responeErrorObject);
+            return Result.Error($"Out of stock: {reserveRes.Message}");
         }
 
-        var orderCode = $"ORD-{DateTime.UtcNow:yyyyMMdd-HHmmss}";
+
 
         // Gọi ProductService để lấy thông tin sản phẩm từ SKU
         decimal subtotal = 0;
@@ -143,7 +142,7 @@ public sealed class CreateOrderHandler
 
         var order = new Order
         {
-            Id = Guid.NewGuid(),
+            Id = orderId,
             Code = orderCode,
             Subtotal = subtotal,
             Tax = tax,
@@ -197,34 +196,12 @@ public sealed class CreateOrderHandler
 
         // 2. Save Order (and OutboxMessage) in one transaction (implicitly handled by CreateAsync -> SaveChanges)
         var createdOrder = await _orderRepository.CreateAsync(order, cancellationToken);
-        //Fetch customer email from IdentityService
-        // string? customerEmail = null;
-        // if (createdOrder.CustomerId.HasValue)
 
         // Optimize: Pulse Signal
         if (order.CustomerId.HasValue)
         {
             _outboxSignal.Pulse();
         }
-
-
-        // ✅ Trừ kho sau khi tạo đơn hàng thành công
-        try
-        {
-            var decreaseStockReq = new DecreaseStockByOrderReq
-            {
-                StoreId = request.Request.StoreId.Value,
-                Items = listItemCheck.ToList()
-            };
-            await _inventoryServiceClient.DecreaseStockByOrder(decreaseStockReq);
-            _logger.LogInformation("Stock decreased successfully for Order {OrderCode}", createdOrder.Code);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to decrease stock for Order {OrderCode}", createdOrder.Code);
-            // TODO: Cần cơ chế compensate transaction (Saga) hoặc retry
-        }
-
         return Result.Success(new CreateOrderResponseDto
         {
             OrderId = createdOrder.Id,

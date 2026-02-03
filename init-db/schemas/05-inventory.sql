@@ -59,3 +59,20 @@ CREATE TABLE "OutboxMessages" (
     "UpdatedAt" timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "PK_OutboxMessages" PRIMARY KEY ("Id")
 );
+
+-- 5. Bảng hàng đợi giữ nguyên liệu (Ingredient Queue)
+CREATE TABLE "ingredient_queues" (
+  "id" UUID NOT NULL DEFAULT uuid_generate_v4() PRIMARY KEY,
+  "store_id" UUID NOT NULL,
+  "ingredient_id" UUID NOT NULL,
+  "order_id" UUID NOT NULL,
+  "amount" DECIMAL(12, 3) NOT NULL,
+  "created_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  "expires_at" TIMESTAMP WITH TIME ZONE NOT NULL,
+  "is_deleted" BOOLEAN DEFAULT FALSE
+);
+
+-- Index để tìm kiếm nhanh theo Order hoặc Store/Ingredient
+CREATE INDEX "idx_ingredient_queues_order_id" ON "ingredient_queues" ("order_id");
+CREATE INDEX "idx_ingredient_queues_store_ingredient" ON "ingredient_queues" ("store_id", "ingredient_id");
