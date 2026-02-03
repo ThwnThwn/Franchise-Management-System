@@ -34,8 +34,8 @@ namespace InventoryService.Application.Features.Ingrdient.Commands.CreateIngredi
                     throw new DirectoryNotFoundException(Message.Category.NotFound);
             }
 
-            if (!CheckValidBaseUnit.IsValid(request.BaseUnit)) 
-                throw new BusinessException(Message.Ingredient.InvalidBaseUnit);
+            //if (!CheckValidBaseUnit.IsValid(request.BaseUnit)) 
+            //    throw new BusinessException(Message.Ingredient.InvalidBaseUnit);
 
             var newIngredient = new Ingredient
             {

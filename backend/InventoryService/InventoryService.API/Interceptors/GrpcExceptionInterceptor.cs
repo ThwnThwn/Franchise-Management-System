@@ -29,19 +29,18 @@ public class GrpcExceptionInterceptor : Interceptor
         // Sử dụng tên đầy đủ để không bị nhầm với bất kỳ class nào khác
         catch (FluentValidation.ValidationException ex)
         {
-            _logger.LogWarning("Validation failed for request {RequestType}", typeof(TRequest).Name);
-
             var metadata = new Metadata();
             foreach (var error in ex.Errors)
             {
-                // gRPC metadata key không được có dấu cách, dùng lowercase và gạch ngang
+                // KHÔNG đưa Message tiếng Việt vào Key hoặc Value của Metadata nếu không dùng hậu tố -bin
+                // Cách tốt nhất: Chỉ đưa PropertyName vào Metadata để Client biết lỗi ở đâu
                 var key = $"error-{error.PropertyName.ToLower().Replace(".", "-")}";
-                metadata.Add(key, error.ErrorMessage);
+                metadata.Add(key, "validation_failed"); // Dùng code tiếng Anh đơn giản ở đây
             }
 
-            var detail = "Validation failed: " + string.Join(", ", ex.Errors.Select(x => x.ErrorMessage));
+            // Tiếng Việt có dấu chỉ nên để ở phần Status Message (gRPC hỗ trợ UTF-8 ở đây)
+            var detail = "Dữ liệu không hợp lệ: " + string.Join(", ", ex.Errors.Select(x => x.ErrorMessage));
 
-            // Trả về mã lỗi 3 (InvalidArgument) chuẩn gRPC
             throw new RpcException(new Status(StatusCode.InvalidArgument, detail), metadata);
         }
         catch (BusinessException ex)

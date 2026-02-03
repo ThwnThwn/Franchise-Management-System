@@ -16,30 +16,30 @@ public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TReques
     public async Task<TResponse> Handle(
         TRequest request,
         CancellationToken cancellationToken,
-        RequestHandlerDelegate<TResponse> next)
+        RequestHandlerDelegate<TResponse> next) // Đổi vị trí tham số cho đúng chuẩn MediatR m)
     {
-
         if (!_validators.Any())
             return await next();
 
-        //Validate
         var context = new ValidationContext<TRequest>(request);
 
-        var results = await Task.WhenAll(
+        // Chạy tất cả validator song song
+        var validationResults = await Task.WhenAll(
             _validators.Select(v => v.ValidateAsync(context, cancellationToken))
         );
 
-        //Collect failures
-        var failures = results
+        // Gom tất cả các lỗi lại
+        var failures = validationResults
             .SelectMany(r => r.Errors)
-            .Where(e => e != null)
+            .Where(f => f != null)
             .ToList();
 
-        //Throw if invalid
         if (failures.Count != 0)
-            throw new ValidationException(failures);
+        {
+            // SỬA TẠI ĐÂY: Chỉ định rõ FluentValidation để Interceptor bắt đúng
+            throw new FluentValidation.ValidationException(failures);
+        }
 
-        //Continue pipeline
         return await next();
     }
 }

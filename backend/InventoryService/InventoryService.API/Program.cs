@@ -120,7 +120,7 @@ namespace InventoryService.API
             //builder.Services.AddSingleton<IProductServiceClient, ProductServiceClient>();
 
             // Register GlobalExceptionHandlerMiddleware
-            builder.Services.AddSingleton<GlobalExceptionHandlerMiddleware>();
+            //builder.Services.AddSingleton<GlobalExceptionHandlerMiddleware>();
 
             // Register gRPC Exception Interceptor
             builder.Services.AddSingleton<Interceptors.GrpcExceptionInterceptor>();
@@ -171,7 +171,7 @@ namespace InventoryService.API
             app.UseCors();
 
             // Add global exception handler middleware
-            app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+            //app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
             app.UseAuthorization();
 
