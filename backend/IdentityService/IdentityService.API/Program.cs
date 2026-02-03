@@ -6,12 +6,8 @@ using IdentityService.Application.Abstrations;
 using IdentityService.Application.AppConfigurations;
 using IdentityService.Application.DependencyInjection;
 using IdentityService.Application.Persistences.Caches;
-using IdentityService.Infrastructure.ApplicationDbContext;
 using IdentityService.Infrastructure.DependencyInjection;
 using IdentityService.Infrastructure.Persistences.Cache;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
-using Microsoft.EntityFrameworkCore;
-using StackExchange.Redis;
 
 namespace IdentityService.API
 {

@@ -173,7 +173,6 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
                 }
             }
 
-            // 5. Commit 1 lần
             await _dbContext.SaveChangesAsync();
         }
 
