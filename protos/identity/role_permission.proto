@@ -1,0 +1,87 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+option csharp_namespace = "IdentityService.Grpc.Protos.RolePermission";
+option go_package = "api-gateway/pkg/pb/identity";
+
+package identity.role_permission;
+
+service RolePermissionGrpc {
+    // 1. Get PermissionsByRoleId
+    rpc GetPermissionsByRoleId (GetPermissionsByRoleIdRequest) returns (GetPermissionsByRoleIdResponse);
+
+    // 1.5. Get Cache (Lazy Loading)
+    rpc GetPermissionsBySlug (GetPermissionsBySlugRequest) returns (GetPermissionsBySlugResponse);
+
+    // 2. Update Info (Name, Description)
+    rpc UpdatePermissionInfo (UpdatePermissionInfoRequest) returns (google.protobuf.Empty);
+
+    // 3. Update Permissions for Role
+    rpc UpdateRolePermissions (UpdateRolePermissionsRequest) returns (google.protobuf.Empty);
+
+    // 4. Get All Grouped (Cho UI Matrix)
+    rpc GetAllPermissionsGrouped (google.protobuf.Empty) returns (GetAllPermissionsGroupedResponse);
+}
+
+//
+message GetPermissionsByRoleIdRequest {
+    string id = 1;
+}
+
+message GetPermissionsByRoleIdResponse {
+    repeated RolePermissionGroupRes groups = 1;
+}
+
+message RolePermissionGroupRes {
+    string resource = 1;
+    repeated RolePermissionRes permissions = 2;
+}
+
+message RolePermissionRes {
+    string id = 1;
+    string slug = 2;
+    string name = 3;
+    string description = 4;
+    bool is_actived = 5;
+}
+
+//
+message GetPermissionsBySlugRequest {
+    string role_slug = 1;
+}
+
+message GetPermissionsBySlugResponse {
+    repeated string permissions = 1;
+}
+
+// Update Info
+message UpdatePermissionInfoRequest {
+    string id = 1;             
+    optional string name = 2;       
+    optional string description = 3;
+}
+
+// Update Permissions
+message UpdateRolePermissionsRequest {
+    string id = 1;
+    repeated string permissions_to_grant = 2;  // Danh sách muốn CẤP (Bật ON)
+    repeated string permissions_to_revoke = 3; // Danh sách muốn THU HỒI (Tắt OFF)
+}
+
+// Get All Grouped (Structure mapping)
+message GetAllPermissionsGroupedResponse {
+    repeated PermissionGroup groups = 1;
+}
+
+message PermissionGroup {
+    string resource = 1; // Tên nhóm (User, Product...)
+    repeated PermissionDetail permissions = 2;
+}
+
+message PermissionDetail {
+    string id = 1;
+    string slug = 2;
+    string name = 3;
+    string description = 4;
+}

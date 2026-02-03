@@ -32,5 +32,6 @@ namespace IdentityService.Application.Persistences.Repositories
         void Remove(T entity);
 
         Task<T[]> GetByIdsAsync(Guid[] ids);
+        Task UpdateRangeAsync(IEnumerable<T> entities);
     }
 }

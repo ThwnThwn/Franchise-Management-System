@@ -131,6 +131,52 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
             await _dbContext.SaveChangesAsync();
         }
 
+        public async Task UpdateRangeAsync(IEnumerable<T> entities)
+        {
+            if (entities == null || !entities.Any()) return;
+
+            // 1. Lấy danh sách ID từ input
+            var entityIds = entities.Select(e => e.Id).ToList();
+
+            // 2. QUERY 1 LẦN DUY NHẤT: Lấy tất cả entity trong DB trùng ID
+            // Lưu ý: Cần DbSet<T> để query, giả sử _dbSet là DbSet<T>
+            var dbEntities = await _dbSet
+                .Where(e => entityIds.Contains(e.Id))
+                .ToListAsync();
+
+            // 3. Validate: Kiểm tra xem có thiếu thằng nào không
+            if (dbEntities.Count != entityIds.Count)
+            {
+                // Tìm những ID không tồn tại để báo lỗi chi tiết
+                var foundIds = dbEntities.Select(e => e.Id);
+                var missingIds = entityIds.Except(foundIds);
+                throw new KeyNotFoundException($"Không tìm thấy các Id: {string.Join(", ", missingIds)}");
+            }
+
+            // 4. Xử lý Mapping trên RAM (Nhanh siêu tốc)
+            // Chuyển dbEntities sang Dictionary để tìm kiếm O(1) thay vì quét list
+            var dbEntityDict = dbEntities.ToDictionary(e => e.Id);
+
+            foreach (var entity in entities)
+            {
+                if (dbEntityDict.TryGetValue(entity.Id, out var entityFromDb))
+                {
+                    // Copy giá trị
+                    _dbContext.Entry(entityFromDb).CurrentValues.SetValues(entity);
+
+                    // Bảo vệ CreatedAt
+                    var createdAtProp = _dbContext.Entry(entityFromDb).Metadata.FindProperty("CreatedAt");
+                    if (createdAtProp != null)
+                    {
+                        _dbContext.Entry(entityFromDb).Property("CreatedAt").IsModified = false;
+                    }
+                }
+            }
+
+            // 5. Commit 1 lần
+            await _dbContext.SaveChangesAsync();
+        }
+
         public async Task DeleteRangeAsync(IEnumerable<Guid> ids)
         {
             var entities = await GetByIdsAsync(ids.ToArray());

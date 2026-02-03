@@ -17,7 +17,7 @@ namespace IdentityService.API
 {
     public class Program
     {
-        private static void Main(string[] args)
+        private static async Task Main(string[] args)
         {
             // --- CONFIGURATION ---
             Env.Load("../../../.env");
@@ -51,16 +51,15 @@ namespace IdentityService.API
             // --- DATABASE & REDIS ---
             var dbConn = builder.Configuration["IDENTITY_DB_CONN"]
                 ?? "Host=localhost;Port=5432;Database=identity_db;Username=admin;Password=12345";
-            builder.Services.AddInfrastructure(dbConn);
-
             var redisConn = builder.Configuration["REDIS_CONFIGURATION"]
                 ?? "localhost:6379,abortConnect=false";
-            builder.Services.AddStackExchangeRedisCache(opt =>
-            {
-                opt.Configuration = redisConn;
-                opt.InstanceName = "chb_redis";
-            });
-            builder.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(redisConn));
+
+            builder.Services.AddInfrastructure(dbConn, redisConn);
+            //builder.Services.AddStackExchangeRedisCache(opt =>
+            //{
+            //    opt.Configuration = redisConn + ",defaultDatabase=1";
+            //    opt.InstanceName = "chb_redis";
+            //});
 
             // KAFKA - Override for local development
             var kafkaBootstrap = Environment.GetEnvironmentVariable("KAFKA_BOOTSTRAP_SERVERS") ?? "localhost:9092";
@@ -97,7 +96,27 @@ namespace IdentityService.API
             app.MapGrpcService<AuthGrpcService>();
             app.MapGrpcService<UserGrpcService>();
             app.MapGrpcService<RoleGrpcService>();
+            app.MapGrpcService<RolePermissionGrpcService>();
             app.MapGrpcReflectionService();
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+                try
+                {
+                    // Lấy service ra từ Container
+                    var syncService = services.GetRequiredService<IPermissionSyncService>();
+
+                    // Gọi hàm Sync
+                    Console.WriteLine("Start syncing permissions...");
+                    await syncService.SyncAllAsync();
+                    Console.WriteLine("Permissions synced successfully!");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("An error occurred while syncing permissions: " + ex.Message);
+                }
+            }
 
             app.Run();
         }
