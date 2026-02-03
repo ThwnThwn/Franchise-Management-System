@@ -21,6 +21,7 @@ namespace InventoryService.Application.Persistences.Repositories
         
         // Queue operations
         Task AddToQueueAsync(IngredientQueue queueItem);
+        Task AddToQueueBatchAsync(IEnumerable<IngredientQueue> queueItems);
         Task RemoveQueueByOrderIdAsync(Guid orderId);
         Task<decimal> GetReservedQuantityAsync(Guid storeId, Guid ingredientId);
     }

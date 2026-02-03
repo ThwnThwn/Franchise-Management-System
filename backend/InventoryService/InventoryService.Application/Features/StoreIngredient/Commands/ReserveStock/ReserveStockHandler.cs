@@ -104,6 +104,11 @@ public class ReserveStockHandler : IRequestHandler<ReserveStockCommand, ReserveS
         try 
         {
             // Tạo các item trong hàng đợi
+            // TỐI ƯU HÓA: Batch Insert (Đảm bảo Atomicity)
+            // Thay vì gọi AddToQueueAsync trong vòng lặp (gây ra nhiều lệnh Insert riêng lẻ),
+            // ta gom tất cả vào một List và Insert 1 lần duy nhất.
+            var queueItems = new List<IngredientQueue>();
+
             foreach (var req in totalRequiredIngredients)
             {
                 var queueItem = new IngredientQueue
@@ -117,10 +122,11 @@ public class ReserveStockHandler : IRequestHandler<ReserveStockCommand, ReserveS
                     CreatedAt = DateTimeOffset.UtcNow,
                     IsDeleted = false
                 };
-                await _storeIngredientRepo.AddToQueueAsync(queueItem);
+                queueItems.Add(queueItem);
             }
-            // Repo hiện tại lưu ngay lập tức (SaveChanges). 
-            // Nếu muốn tối ưu batch insert thì cần refactor repo sau.
+
+            // Gọi Repo 1 lần duy nhất -> 1 Transaction -> An toàn dữ liệu.
+            await _storeIngredientRepo.AddToQueueBatchAsync(queueItems);
         }
         catch (Exception ex)
         {
