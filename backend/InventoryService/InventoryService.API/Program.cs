@@ -176,6 +176,7 @@ namespace InventoryService.API
             app.MapControllers();
             app.MapGrpcService<InventoryGrpcService>();
             app.MapGrpcService<InventoryInternalService>();
+            app.MapGrpcService<IngredientGrpcService>();
             app.MapGrpcReflectionService(); // Enable gRPC Server Reflection endpoint
             app.MapGet("/", () => "Sale Service API is running. Visit /swagger for API documentation.");
 

@@ -13,24 +13,17 @@ namespace InventoryService.Application.Mappers
     {
         public IngredientProfile() {
             CreateMap<UpdateIngredientReq, Ingredient>()
-        // Bỏ qua Map Id vì Id của Entity thường không được thay đổi từ Req
-        .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForAllMembers(opts => opts.Condition((src, dest, srcMember) =>
+            {
+                if (srcMember == null) return false;
 
-        // Tự động cập nhật thời gian mỗi khi Map
-        .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTimeOffset.UtcNow))
+                if (srcMember is string s && string.IsNullOrWhiteSpace(s)) return false;
 
-        // Chỉ map nếu giá trị nguồn:
-        // 1. Khác null
-        // 2. Nếu là string thì phải khác "" (Empty)
-        .ForAllMembers(opts => opts.Condition((src, dest, srcMember) =>
-        {
-            if (srcMember == null) return false;
-
-            if (srcMember is string s && string.IsNullOrWhiteSpace(s)) return false;
-
-            return true;
-        }));
-
+                return true;
+            }));
+            CreateMap<Ingredient, IngredientViewRes>();
         }
+
+        
     }
 }

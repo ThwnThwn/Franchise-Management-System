@@ -19,8 +19,6 @@ namespace InventoryService.Application.Validators.Ingredient
             RuleFor(x => x.Request.BaseUnit)
                 .NotEmpty().WithMessage(Message.Ingredient.BaseUnitRequired)
                 .Must(IsMassOrVolume).WithMessage(Message.Ingredient.InvalidBaseUnit);
-            RuleFor(x => x.Request.CategoryId)
-                .NotEmpty().WithMessage(Message.Ingredient.CategoryRequired);
         }
         private bool IsMassOrVolume(string baseUnit)
         {
