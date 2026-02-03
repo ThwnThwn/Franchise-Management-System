@@ -54,14 +54,14 @@ public class ProductGrpcMappingProfile : Profile
 
 
         CreateMap<GetProductByNameQueryResponse, Product>()
-    .ForMember(d => d.Id, opt => opt.MapFrom(s => s.ProductId.ToString()))
-    .ForMember(d => d.Name, opt => opt.MapFrom(s => s.Name))
-    .ForMember(d => d.Description, opt => opt.MapFrom(s => s.Description))
-    .ForMember(d => d.ImageUrl, opt => opt.MapFrom(s => s.ImageUrl))
-    .ForMember(d => d.IsActive, opt => opt.MapFrom(s => s.IsActive))
-    .ForMember(d => d.CreatedAt, opt => opt.MapFrom(s => s.CreatedAt.ToUnixTimeSeconds()))
-    .ForMember(d => d.UpdatedAt, opt => opt.MapFrom(
-        s => s.UpdatedAt.HasValue ? s.UpdatedAt.Value.ToUnixTimeSeconds() : 0));
+            .ForMember(d => d.Id, opt => opt.MapFrom(s => s.ProductId.ToString()))
+            .ForMember(d => d.Name, opt => opt.MapFrom(s => s.Name))
+            .ForMember(d => d.Description, opt => opt.MapFrom(s => s.Description))
+            .ForMember(d => d.ImageUrl, opt => opt.MapFrom(s => s.ImageUrl))
+            .ForMember(d => d.IsActive, opt => opt.MapFrom(s => s.IsActive))
+            .ForMember(d => d.CreatedAt, opt => opt.MapFrom(s => s.CreatedAt.ToUnixTimeSeconds()))
+            .ForMember(d => d.UpdatedAt, opt => opt.MapFrom(
+                s => s.UpdatedAt.HasValue ? s.UpdatedAt.Value.ToUnixTimeSeconds() : 0));
 
     }
 }

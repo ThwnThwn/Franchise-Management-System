@@ -4,11 +4,10 @@ using Grpc.Core;
 using MediatR;
 using ProductService.Application.Features.Products.Command.CreateProduct;
 using ProductService.Application.Features.Products.Command.DeleteProduct;
-using ProductService.Application.Features.Products.Command.UpdateProduct;
 using ProductService.Application.Features.Products.Queries.GetById;
+using ProductService.Application.Features.Products.Queries.GetByKeyword;
 using ProductService.Application.Features.Products.Queries.GetByProductName;
 using ProductService.Application.Features.Products.Queries.GetList;
-using ProductService.Domain.Entities;
 
 namespace ProductService.API.Services;
 
@@ -277,4 +276,39 @@ public class ProductGrpcService : ProductGrpc.ProductGrpcBase
 
         return new DeleteProductReply { Success = true };
     }
+    public override async Task<GetProductsByKeywordReply>
+GetProductsByKeyword(
+    GetProductsByKeywordRequest request,
+    ServerCallContext context)
+    {
+        Guid? categoryId = null;
+
+        if (Guid.TryParse(request.CategoryId, out var parsed))
+            categoryId = parsed;
+
+        var query = new GetProductByKeywordQuery(
+            request.Keyword,
+            categoryId,
+            request.Page > 0 ? request.Page : 1,
+            request.PageSize > 0 ? request.PageSize : 10);
+
+        var result = await _mediator.Send(query, context.CancellationToken);
+
+        var reply = new GetProductsByKeywordReply
+        {
+            TotalCount = (int)result.TotalCount,
+            Page = result.Page,
+            PageSize = result.PageSize,
+            TotalPages = result.TotalPages,
+            HasNextPage = result.HasNextPage,
+            HasPreviousPage = result.HasPreviousPage
+        };
+
+        reply.Products.AddRange(
+            _mapper.Map<List<Product>>(result.Items));
+
+        return reply;
+    }
+
+
 }

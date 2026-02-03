@@ -1,13 +1,11 @@
-using Ardalis.Result;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using ProductService.Application.Features.Products.Command.CreateProduct;
 using ProductService.Application.Features.Products.Command.DeleteProduct;
-using ProductService.Application.Features.Products.Command.UpdateProduct;
 using ProductService.Application.Features.Products.Queries.GetById;
+using ProductService.Application.Features.Products.Queries.GetByKeyword;
 using ProductService.Application.Features.Products.Queries.GetByProductName;
 using ProductService.Application.Features.Products.Queries.GetList;
-
 namespace ProductService.API.Controllers;
 
 [ApiController]
@@ -101,4 +99,26 @@ public class ProductsController : ControllerBase
             ? Ok(result.Value)
             : NotFound(result.Errors);
     }
+
+    [HttpGet("by-keyword")]
+    public async Task<IActionResult> Search(
+        [FromQuery] string? keyword,
+        [FromQuery] Guid? categoryId,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10,
+        CancellationToken ct = default)
+    {
+        var query = new GetProductByKeywordQuery(
+            keyword,
+            categoryId,
+            page,
+            pageSize);
+
+        var result = await _mediator.Send(query, ct);
+
+        return Ok(result);
+    }
 }
+
+
+

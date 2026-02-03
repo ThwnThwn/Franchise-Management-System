@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using ProductService.Application.Helpers;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -47,17 +47,22 @@ namespace ProductService.Infrastructure.Repositories
         }
 
         public async Task<Category?> GetByCategoryNameAsync(
-            string categoryName,
-            CancellationToken cancellationToken = default)
+        string categoryName,
+        CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(categoryName))
                 return null;
 
-            return await _dbContext.Categories
+            var normalizedSearchName = VietnameseHelper.RemoveVietnameseSigns(categoryName.Trim()).ToLower();
+
+            var categories = await _dbContext.Categories
                 .AsNoTracking()
-                .FirstOrDefaultAsync(
-                    c => c.Name.ToLower() == categoryName.ToLower() && c.IsDeleted == false,
-                    cancellationToken);
+                .Where(c => c.IsDeleted == false)
+                .ToListAsync(cancellationToken);
+
+            return categories.FirstOrDefault(c =>
+                VietnameseHelper.RemoveVietnameseSigns(c.Name.Trim()).ToLower() == normalizedSearchName
+            );
         }
 
         public async Task<Category?> GetByCategoryNameContainingAsync(
@@ -67,11 +72,16 @@ namespace ProductService.Infrastructure.Repositories
             if (string.IsNullOrWhiteSpace(categoryName))
                 return null;
 
-            return await _dbContext.Categories
+            var normalizedSearchName = VietnameseHelper.RemoveVietnameseSigns(categoryName.Trim()).ToLower();
+
+            var categories = await _dbContext.Categories
                 .AsNoTracking()
-                .FirstOrDefaultAsync(
-                    c => c.Name.ToLower().Contains(categoryName.ToLower()) && c.IsDeleted == false,
-                    cancellationToken);
+                .Where(c => c.IsDeleted == false)
+                .ToListAsync(cancellationToken);
+
+            return categories.FirstOrDefault(c =>
+                VietnameseHelper.RemoveVietnameseSigns(c.Name).ToLower().Contains(normalizedSearchName)
+            );
         }
 
         public async Task<Category?> GetByIdWithProductsAsync(

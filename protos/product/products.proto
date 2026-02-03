@@ -19,6 +19,10 @@ service ProductGrpc {
   rpc UpdateProduct (UpdateProductRequest) returns (UpdateProductReply);
 
   rpc DeleteProduct (DeleteProductRequest) returns (DeleteProductReply);
+
+  rpc GetProductsByKeyword (GetProductsByKeywordRequest)
+    returns (GetProductsByKeywordReply);
+
 }
 
 message GetProductsRequest {
@@ -137,3 +141,22 @@ message ProductSize {
   double cost = 6;
   bool is_active = 7;
 }
+message GetProductsByKeywordRequest {
+  optional string keyword = 1;
+  optional string category_id = 2;
+
+  int32 page = 3;
+  int32 page_size = 4;
+}
+message GetProductsByKeywordReply {
+  repeated Product products = 1;
+
+  int32 total_count = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+  int32 total_pages = 5;
+
+  bool has_next_page = 6;
+  bool has_previous_page = 7;
+}
+
