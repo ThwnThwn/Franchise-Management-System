@@ -1,9 +1,7 @@
-﻿using FluentValidation;
+﻿
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 using InventoryService.Application.AppExceptions;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting;
 using Sprache; // Thêm namespace này để check môi trường
 
 namespace InventoryService.API.Interceptors;
@@ -28,17 +26,23 @@ public class GrpcExceptionInterceptor : Interceptor
         {
             return await continuation(request, context);
         }
-        catch (ValidationException ex)
+        // Sử dụng tên đầy đủ để không bị nhầm với bất kỳ class nào khác
+        catch (FluentValidation.ValidationException ex)
         {
-            // Trả về Metadata để Postman hiển thị ở tab Trailers/Metadata
+            _logger.LogWarning("Validation failed for request {RequestType}", typeof(TRequest).Name);
+
             var metadata = new Metadata();
             foreach (var error in ex.Errors)
             {
-                metadata.Add($"error-{error.PropertyName.ToLower()}", error.ErrorMessage);
+                // gRPC metadata key không được có dấu cách, dùng lowercase và gạch ngang
+                var key = $"error-{error.PropertyName.ToLower().Replace(".", "-")}";
+                metadata.Add(key, error.ErrorMessage);
             }
 
-            var msg = "Validation failed: " + string.Join(", ", ex.Errors.Select(x => x.ErrorMessage));
-            throw new RpcException(new Status(StatusCode.InvalidArgument, msg), metadata);
+            var detail = "Validation failed: " + string.Join(", ", ex.Errors.Select(x => x.ErrorMessage));
+
+            // Trả về mã lỗi 3 (InvalidArgument) chuẩn gRPC
+            throw new RpcException(new Status(StatusCode.InvalidArgument, detail), metadata);
         }
         catch (BusinessException ex)
         {
@@ -58,7 +62,7 @@ public class GrpcExceptionInterceptor : Interceptor
         {
             throw new RpcException(new Status(StatusCode.NotFound, ex.Message));
         }
-        catch (Application.AppExceptions.DbUpdateException ex)
+        catch (DbUpdateException ex)
         {
             _logger.LogError(ex, "Database error");
             // Trả về thông báo chi tiết hơn nếu là dev

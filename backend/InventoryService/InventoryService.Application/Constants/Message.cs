@@ -22,7 +22,7 @@ namespace InventoryService.Application.Constants
         {
             public const string NotFound = "Không tìm thấy nguyên liệu.";
             public const string Required = "Nguyên liệu Không được để trống.";
-            public const string InvalidBaseUnit = "Đơn vị cơ bản không hợp lệ. Vui lòng sử dụng đơn vị đo khối lượng (g, gam, gram) hoặc thể tích (ml, mililit, millilitre).";
+            public const string InvalidBaseUnit = "Đơn vị cơ bản không hợp lệ. Vui lòng sử dụng đơn vị đo khối lượng (g) hoặc thể tích (ml), hoặc tính cái (pcs)";
             public const string NameRequired = "Tên nguyên liệu không được để trống";
             public const string NameTooLong = "Tên nguyên liệu không được vượt quá 100 ký tự.";
             public const string BaseUnitRequired = "Đơn vị cơ bản không được để trống.";
