@@ -132,13 +132,15 @@ public class ProductGrpcService : ProductGrpc.ProductGrpcBase
         }
 
         var command = new CreateProductCommand(
-            new CreateProductCommand.CreateProductCommandRequest(
-                request.Name,
-                request.Description,
-                request.ImageUrl,
-                request.ImagePublicId,
-                categoryId,
-                request.Variants.Any()
+            new CreateProductCommand.CreateProductCommandRequest
+            {
+                Name = request.Name,
+                Description = request.Description,
+                ImageUrl = request.ImageUrl,
+                ImagePublicId = request.ImagePublicId,
+                ImageFile = null, // gRPC không hỗ trợ upload file trực tiếp
+                CategoryId = categoryId,
+                Variants = request.Variants.Any()
                     ? request.Variants.Select(v =>
                         new CreateProductCommand.CreateProductVariantRequest
                         {
@@ -150,7 +152,7 @@ public class ProductGrpcService : ProductGrpc.ProductGrpcBase
                             IsActive = v.IsActive
                         }).ToList()
                     : null
-            )
+            }
         );
 
         var result = await _mediator.Send(command, context.CancellationToken);

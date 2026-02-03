@@ -7,6 +7,7 @@ using ProductService.Application.Features.Products.Command.UpdateProduct;
 using ProductService.Application.Features.Products.Queries.GetById;
 using ProductService.Application.Features.Products.Queries.GetByProductName;
 using ProductService.Application.Features.Products.Queries.GetList;
+using ProductService.Application.Interfaces;
 
 namespace ProductService.API.Controllers;
 
@@ -15,10 +16,21 @@ namespace ProductService.API.Controllers;
 public class ProductsController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly ICloudinaryService _cloudinaryService;
 
-    public ProductsController(IMediator mediator)
+    public ProductsController(IMediator mediator, ICloudinaryService cloudinaryService)
     {
         _mediator = mediator;
+        _cloudinaryService = cloudinaryService;
+    }
+
+    [HttpPost("upload-image")]
+    public async Task<IActionResult> UploadImage(
+    [FromForm] IFormFile imageFile,
+    CancellationToken ct)
+    {
+        var result = await _cloudinaryService.UploadImageAsync(imageFile);
+        return Ok(result);
     }
 
     [HttpGet]
@@ -62,7 +74,7 @@ public class ProductsController : ControllerBase
 
     [HttpPost]
     public async Task<IActionResult> Create(
-        CreateProductCommand.CreateProductCommandRequest request,
+        [FromForm] CreateProductCommand.CreateProductCommandRequest request,
         CancellationToken ct)
     {
         var result = await _mediator.Send(

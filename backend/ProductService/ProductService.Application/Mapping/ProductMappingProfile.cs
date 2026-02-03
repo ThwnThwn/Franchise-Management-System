@@ -31,12 +31,16 @@ public class ProductMappingProfile : Profile
             .ForMember(d => d.Sizes, opt => opt.MapFrom(s => s.ProductVariants));
 
         CreateMap<CreateProductCommand.CreateProductCommandRequest, Product>()
+            .ForMember(d => d.ImageUrl, opt => opt.MapFrom(s => s.ImageUrl))
+            .ForMember(d => d.ImagePublicId, opt => opt.MapFrom(s => s.ImagePublicId))
             .ForMember(d => d.ProductVariants, opt => opt.MapFrom(s => s.Variants));
 
         CreateMap<CreateProductCommand.CreateProductVariantRequest, ProductVariant>();
 
         CreateMap<Product, CreateProductCommand.CreateProductCommandResponse>()
             .ForMember(d => d.ProductId, opt => opt.MapFrom(s => s.Id))
+            .ForMember(d => d.ImageUrl, opt => opt.MapFrom(s => s.ImageUrl))
+            .ForMember(d => d.ImagePublicId, opt => opt.MapFrom(s => s.ImagePublicId))
             .ForMember(d => d.VariantIds, opt => opt.MapFrom(s => s.ProductVariants.Select(v => v.Id)));
 
         CreateMap<UpdateProductCommand.UpdateProductCommandRequest, Product>()
