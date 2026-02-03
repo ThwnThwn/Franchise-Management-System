@@ -6,7 +6,10 @@ using System.Threading.Tasks;
 
 namespace InventoryService.Application.Dtos.Category
 {
-    internal class respone
+    public class CategoryViewRes
     {
+        public Guid Id { get; set; }
+        public string Name { get; set; } = null!;
+        public string? Description { get; set; } = null;
     }
 }
