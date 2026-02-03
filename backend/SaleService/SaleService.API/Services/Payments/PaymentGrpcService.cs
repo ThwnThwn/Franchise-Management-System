@@ -1,10 +1,11 @@
 ﻿using AutoMapper;
 using Grpc.Core;
 using MediatR;
-using SalesService.API;
-using SalesService.Application.Features.Payments.CreateVnPayUrl;
+using SalesService.Application.Features.Payments.CreatePayment;
+using SalesService.Domain.Enums;
 
 namespace SalesService.API.Services.Payments;
+
 public class PaymentGrpcService : PaymentGrpc.PaymentGrpcBase
 {
     private readonly IMediator _mediator;
@@ -16,8 +17,7 @@ public class PaymentGrpcService : PaymentGrpc.PaymentGrpcBase
         _mapper = mapper;
     }
 
-    public override async Task<CreateVnPayPaymentUrlReply> CreateVnPayPaymentUrl(
-                             CreateVnPayPaymentUrlRequest request, ServerCallContext context)
+    public override async Task<PaymentResponse> CreatePayment(CreatePaymentRequest request, ServerCallContext context)
     {
         if (!Guid.TryParse(request.OrderId, out var orderId))
         {
@@ -28,7 +28,15 @@ public class PaymentGrpcService : PaymentGrpc.PaymentGrpcBase
         // Get returnUrl from request (optional, can be empty)
         var returnUrl = string.IsNullOrWhiteSpace(request.ReturnUrl) ? null : request.ReturnUrl;
 
-        var command = new CreateVnPayUrlCommand(orderId, returnUrl);
+        var command = new CreatePaymentCommand
+            (
+                new CreatePaymentReq
+                {
+                    OrderId = orderId,
+                    ReturnUrl = returnUrl,
+                    PaymentMethod = (PaymentMethod)request.PaymentMethod,
+                }
+            );
         var result = await _mediator.Send(command, context.CancellationToken);
 
         if (result.Status == Ardalis.Result.ResultStatus.NotFound)
@@ -43,9 +51,9 @@ public class PaymentGrpcService : PaymentGrpc.PaymentGrpcBase
                 new Status(StatusCode.Internal, result.Errors.FirstOrDefault() ?? "Failed to create VNPay payment url"));
         }
 
-        return new CreateVnPayPaymentUrlReply
+        return new PaymentResponse
         {
-            PaymentUrl = result.Value.PaymentUrl
+            Message = result.Value.Message
         };
     }
 }

@@ -11,4 +11,5 @@ public interface IOrderRepository
     Task<List<Order>> GetOrdersByCustomerIdAsync(Guid customerId, int page, int pageSize, CancellationToken cancellationToken = default);
 
     Task<int> CountOrdersByCustomerIdAsync(Guid customerId, CancellationToken cancellationToken = default);
+    Task UpdateAsync(Order order, CancellationToken cancellationToken = default);
 }
