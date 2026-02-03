@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using InventoryService.Application.Constants;
+using InventoryService.Application.Helper;
 using InventoryService.Application.Persistences.Repositories;
 using MediatR;
 using System;
@@ -30,7 +31,7 @@ namespace InventoryService.Application.Features.Ingrdient.Commands.UpdateIngredi
             
             if(command.Request.Name != null) itemInDb.Name = command.Request.Name;
             if(command.Request.CategoryId != null) itemInDb.CategoryId = command.Request.CategoryId;
-            if(!String.IsNullOrEmpty(command.Request.BaseUnit)) itemInDb.BaseUnit = command.Request.BaseUnit;
+            if(!String.IsNullOrEmpty(command.Request.BaseUnit) && CheckValidBaseUnit.IsValid(command.Request.BaseUnit)) itemInDb.BaseUnit = command.Request.BaseUnit;
             await _ingredientRepository.UpdateAsync(itemInDb);
             return Unit.Value;
         }

@@ -1,9 +1,12 @@
-﻿using InventoryService.Application.Constants;
+﻿using InventoryService.Application.AppExceptions;
+using InventoryService.Application.Constants;
+using InventoryService.Application.Helper;
 using InventoryService.Application.Persistences.Repositories;
 using InventoryService.Domain.Entities;
 using MediatR;
 using System;
 using System.Collections.Generic;
+using System.IO.Pipelines;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
@@ -15,7 +18,7 @@ namespace InventoryService.Application.Features.Ingrdient.Commands.CreateIngredi
     {
         private readonly IIngredientRepository _ingredientRepository;
         private readonly IIngredientCategoryRepository _ingredientCategoryRepository;
-
+        
         public CreateIngredientHandler(IIngredientRepository ingredientRepository, IIngredientCategoryRepository ingredientCategoryRepository)
         {
             _ingredientRepository = ingredientRepository;
@@ -31,6 +34,9 @@ namespace InventoryService.Application.Features.Ingrdient.Commands.CreateIngredi
                     throw new DirectoryNotFoundException(Message.Category.NotFound);
             }
 
+            if (!CheckValidBaseUnit.IsValid(request.BaseUnit)) 
+                throw new BusinessException(Message.Ingredient.InvalidBaseUnit);
+
             var newIngredient = new Ingredient
             {
                 Name = request.Name,
@@ -43,15 +49,6 @@ namespace InventoryService.Application.Features.Ingrdient.Commands.CreateIngredi
             return Unit.Value;
         }
 
-        private bool IsMassOrVolume(string baseUnit)
-        {
-            if (string.IsNullOrWhiteSpace(baseUnit)) return false;
-
-            var unit = baseUnit.ToLower().Trim();
-
-            // Kiểm tra các biến thể của gam và mililit
-            return unit == "g" || unit == "gam" || unit == "gram" ||
-                   unit == "ml" || unit == "mililit" || unit == "millilitre";
-        }
+        
     }
 }
