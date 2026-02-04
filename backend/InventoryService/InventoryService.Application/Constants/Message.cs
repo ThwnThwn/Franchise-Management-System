@@ -11,6 +11,7 @@ namespace InventoryService.Application.Constants
         public static class Recipe
         {
             public const string NotFound = "Không tìm thấy công thức cho các sản phẩm đã chọn.";
+            public const string AlreadyExists = "Công thức cho sản phẩm này đã tồn tại.";
         }
 
         public static class StoreIngredient
