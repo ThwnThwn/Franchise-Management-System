@@ -7,7 +7,6 @@ import (
 	"api-gateway/internal/application/gateways/identity"
 	"api-gateway/internal/domain/constants/jwttype"
 	"api-gateway/pkg/utils/jwtutils"
-	"slices"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -39,35 +38,35 @@ func (a *AuthMiddleware) PermissionCheck(permSlug string) gin.HandlerFunc {
 			return
 		}
 
-		isLoaded, err := a.permCache.IsRoleLoaded(c, roleSlug)
-		if err != nil {
-			abortWithErr(c, err)
-			return
-		}
+		// isLoaded, err := a.permCache.IsRoleLoaded(c, roleSlug)
+		// if err != nil {
+		// 	abortWithErr(c, err)
+		// 	return
+		// }
 
-		if !isLoaded {
-			perms, err := a.rpService.GetPermissionsBySlug(c, roleSlug)
-			if err != nil {
-				abortWithErr(c, err)
-				return
-			}
+		// if !isLoaded {
+		// 	perms, err := a.rpService.GetPermissionsBySlug(c, roleSlug)
+		// 	if err != nil {
+		// 		abortWithErr(c, err)
+		// 		return
+		// 	}
 
-			if !slices.Contains(perms, permSlug) {
-				abortWithErr(c, errorcode.ErrForbidden)
-				return
-			}
-		} else {
-			hasPerm, err := a.permCache.HasPermission(c, roleSlug, permSlug)
-			if err != nil {
-				abortWithErr(c, err)
-				return
-			}
+		// 	if !slices.Contains(perms, permSlug) {
+		// 		abortWithErr(c, errorcode.ErrForbidden)
+		// 		return
+		// 	}
+		// } else {
+		// 	hasPerm, err := a.permCache.HasPermission(c, roleSlug, permSlug)
+		// 	if err != nil {
+		// 		abortWithErr(c, err)
+		// 		return
+		// 	}
 
-			if !hasPerm {
-				abortWithErr(c, errorcode.ErrForbidden)
-				return
-			}
-		}
+		// 	if !hasPerm {
+		// 		abortWithErr(c, errorcode.ErrForbidden)
+		// 		return
+		// 	}
+		// }
 
 		c.Next()
 	}
