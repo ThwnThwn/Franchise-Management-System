@@ -1,5 +1,6 @@
 syntax = "proto3";
 
+import "inventory/ingredient.proto";
 option csharp_namespace = "InventoryService.Grpc.Protos.Inventory";
 option go_package = "api-gateway/pkg/pb/inventory";
 
@@ -47,9 +48,3 @@ message GetAllStockRep{
     int32 total_pages = 3;
 }
 
-message IngredientViewRes {
-    string id = 1;
-    string name = 2;
-    string base_unit = 3;
-    string category_id = 4;
-}
