@@ -65,10 +65,10 @@ export default function StoreSelectionModal({
                             <div className="text-sm italic text-secondary font-normal">
                                 {showNearby
                                     ? `Dưới đây là ${totalCount || 0} cửa hàng gần nhất trong khu vực ${RADIUS_KM} km`
-                                    : `Danh sách hệ thống ${totalCount || 0} cửa hàng`}
+                                    : `Dưới đây là ${totalCount || 0} cửa hàng gần nhất`}
                             </div>
                         </ModalHeader>
-                        <ModalBody className="pb-6">
+                        <ModalBody className="pb-6 overflow-visible">
                             <StoreList
                                 stores={stores ?? []}
                                 loading={isLoading}
@@ -77,9 +77,8 @@ export default function StoreSelectionModal({
                                     onClose()
                                 }}
                                 userLocation={
-                                    showNearby && latitude && longitude
-                                        ? { latitude, longitude }
-                                        : null
+                                    // showNearby &&
+                                    latitude && longitude ? { latitude, longitude } : null
                                 }
                             />
                         </ModalBody>

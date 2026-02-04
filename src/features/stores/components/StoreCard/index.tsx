@@ -2,6 +2,7 @@ import { CardStyled, ImageStyled } from "@/components"
 import React from "react"
 import { StoreDetailDto } from "../../models/schema/response"
 import { motion } from "framer-motion"
+import { formatPhoneNumber } from "@/utils/helpers/stringHelper"
 import { CardBody, CardFooter } from "@heroui/react"
 import { MapPin, Phone } from "lucide-react"
 
@@ -26,21 +27,36 @@ export default function StoreCard({ store, distance, onClick }: StoreCardProps) 
             role="button"
             tabIndex={0}
             onClick={() => onClick?.()}
-            className="cursor-pointer"
+            className="cursor-pointer h-full relative overflow-visible"
         >
             <CardStyled
                 // onClick={onClick}
-                className="w-fit"
+                className="w-fit overflow-visible py-1 px-2 rounded-3xl"
                 // className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer overflow-hidden"
             >
-                <CardBody>
-                    <div className="relative h-40 w-60">
+                <CardBody className="overflow-visible mb-0 pb-0">
+                    <div className="h-40 w-50 overflow-visible">
                         <ImageStyled
                             src={store.imageUrl}
                             alt={store.name}
-                            className="h-40 w-60 rounded-none mx-auto"
+                            className="h-40 w-50 mx-auto rounded-4xl"
                         />
-                        {store.isOpenNow && (
+                        <div
+                            className={`absolute -top-4 right-2 px-3 py-1 rounded-full text-xs font-bold shadow-lg bg-white border ${
+                                store.isOpenNow
+                                    ? "border-success-400 text-success-300"
+                                    : "border-danger-400 text-danger-300"
+                            }`}
+                        >
+                            {store.isOpenNow ? "ĐANG MỞ CỬA" : "ĐÃ ĐÓNG CỬA"}
+                        </div>
+                        {distance !== null && distance !== undefined && (
+                            <div className="absolute -bottom-2 right-6 px-3 py-1 rounded-full text-xs font-bold bg-[#FFB74D] text-[#3E2723] shadow-lg flex items-center gap-1">
+                                <MapPin size={12} />
+                                {distance.toFixed(1)} km
+                            </div>
+                        )}
+                        {/* {store.isOpenNow && (
                             <div className="absolute top-2 right-2 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
                                 Đang mở cửa
                             </div>
@@ -49,58 +65,33 @@ export default function StoreCard({ store, distance, onClick }: StoreCardProps) 
                             <div className="absolute top-2 right-2 bg-gray-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
                                 Đã đóng cửa
                             </div>
-                        )}
-                    </div>
-
-                    <div className="max-w-full">
-                        <h3 className="text-lg font-bold text-gray-900 mb-2">{store.name}</h3>
-                        <p className="text-sm text-gray-600 mb-2 line-clamp-2">{store.address}</p>
-                        <p className="text-sm text-gray-500 mb-2">{store.phone}</p>
-
-                        {distance !== null && distance !== undefined && (
-                            <div className="flex items-center text-sm text-yellow-700 font-medium max-w-full">
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    className="h-4 w-4 mr-1"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                                    />
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                                    />
-                                </svg>
-                                <span>{distance.toFixed(1)} km</span>
-                            </div>
-                        )}
+                        )} */}
                     </div>
                 </CardBody>
-                <CardFooter className="flex flex-col items-start px-6 pb-6 pt-4 gap-3 z-20">
-                    <div className="w-full">
-                        <h3 className="text-xl font-bold text-white mb-1 line-clamp-1 group-hover:text-[#FFB74D] transition-colors">
-                            {store.name}
-                        </h3>
-                        <div className="w-12 h-1 bg-[#FFB74D] rounded-full mt-2 mb-3" />
-                    </div>
 
-                    <div className="space-y-2 w-full text-sm text-[#D7CCC8]">
-                        <div className="flex items-start gap-2">
-                            <MapPin size={16} className="text-[#FFB74D] mt-0.5 shrink-0" />
-                            <span className="line-clamp-2">{store.address}</span>
+                <CardFooter>
+                    <div className="w-50">
+                        <div className="w-full text-center">
+                            <h3 className="text-xl font-bold mb-1 line-clamp-1 group-hover:text-[#FFB74D] transition-colors">
+                                {store.name}
+                            </h3>
+                            <div className="mx-auto w-30 h-1 bg-[#FFB74D] rounded-full mt-2 mb-3" />
                         </div>
+                        <div className="space-y-2 w-full text-sm">
+                            <div className="flex items-start gap-2">
+                                <MapPin size={16} className="mt-0.5 shrink-0" />
+                                <span className="line-clamp-2">{store.address}</span>
+                            </div>
 
-                        <div className="flex items-center gap-2">
-                            <Phone size={16} className="text-[#FFB74D] shrink-0" />
-                            <span>{store.phone}</span>
+                            <div className="flex items-center gap-2">
+                                <Phone size={16} className="shrink-0" />
+                                <span>{formatPhoneNumber(store.phone)}</span>
+                            </div>
+                            {/* 
+                            <div className="flex items-center gap-2">
+                                <Clock size={16} className="text-[#FFB74D] shrink-0" />
+                                <span>Mở cửa 24/7</span>
+                            </div> */}
                         </div>
                     </div>
                 </CardFooter>

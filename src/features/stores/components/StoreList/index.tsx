@@ -1,8 +1,8 @@
 import React from "react"
 import { StoreDetailDto } from "../../models/schema/response"
-import StoreCard from "../StoreCard"
 import { calculateDistance } from "@/utils/helpers/locationHelper"
 import { SpinnerStyled } from "@/components"
+import StoreCard from "../StoreCard"
 
 type StoreListProps = {
     stores: StoreDetailDto[]
@@ -41,7 +41,7 @@ export default function StoreList({ stores, loading, onStoreClick, userLocation 
     }
 
     return (
-        <div className="flex flex-wrap gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {stores.map((store) => {
                 const distance =
                     userLocation && store.latitude && store.longitude

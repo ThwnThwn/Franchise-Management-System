@@ -18,7 +18,7 @@ export default function FeaturedSection() {
     // Modal & Product Logic
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
     const [selectedStore, setSelectedStore] = useState<StoreDetailDto | null>(null)
-    const setStoreId = useCartStore((s) => s.setStoreId)
+    const setStore = useCartStore((s) => s.setStore)
 
     const { isOpen, onOpen, onOpenChange } = useDisclosure()
     const {
@@ -32,17 +32,17 @@ export default function FeaturedSection() {
 
     useEffect(() => {
         if (selectedStore) {
-            setStoreId(selectedStore.id)
+            setStore(selectedStore)
         }
-    }, [selectedStore, setStoreId])
+    }, [selectedStore, setStore])
 
     const handleOpenProduct = (product: Product) => {
         if (!isLogined) {
             onOpenLogin()
         } else if (!selectedStore) {
-            // Need to check specific logic: typically we check if we have a storeId in cartStore? 
+            // Need to check specific logic: typically we check if we have a storeId in cartStore?
             // For now, follow MenuPage: force local selection if not set.
-            // But we don't have initial 'selectedStore' from cart store here. 
+            // But we don't have initial 'selectedStore' from cart store here.
             // Simplification: Ask user to select store if local state is null.
             onOpenStoreModal()
         } else {
@@ -98,7 +98,8 @@ export default function FeaturedSection() {
                         </h2>
                         <div className="w-24 h-1.5 bg-gradient-to-r from-amber-400 to-orange-500 mx-auto rounded-full mb-6" />
                         <p className="mt-4 text-gray-600 text-lg max-w-2xl mx-auto">
-                            Những thức uống được yêu thích nhất, được pha chế tỉ mỉ từ những hạt cà phê thượng hạng.
+                            Những thức uống được yêu thích nhất, được pha chế tỉ mỉ từ những hạt cà
+                            phê thượng hạng.
                         </p>
                     </motion.div>
                 </div>
@@ -118,8 +119,11 @@ export default function FeaturedSection() {
                             }}
                             whileHover={{ y: -10 }}
                         >
-                            <div onClick={() => handleOpenProduct(item)} className="cursor-pointer h-full">
-                                <ProductCard getProductListItemDto={item} />
+                            <div
+                                onClick={() => handleOpenProduct(item)}
+                                className="cursor-pointer h-full"
+                            >
+                                <ProductCard product={item} />
                             </div>
                         </motion.div>
                     ))}
@@ -137,8 +141,19 @@ export default function FeaturedSection() {
                             <div className="absolute inset-0 w-0 bg-[#3E2723] transition-all duration-[250ms] ease-out group-hover:w-full opacity-100" />
                             <span className="relative z-10 flex items-center gap-2">
                                 Xem tất cả menu
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 transform group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="h-5 w-5 transform group-hover:translate-x-1 transition-transform"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M17 8l4 4m0 0l-4 4m4-4H3"
+                                    />
                                 </svg>
                             </span>
                         </button>
