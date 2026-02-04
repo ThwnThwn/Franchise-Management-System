@@ -47,7 +47,7 @@ namespace ProductService.Infrastructure.Services
 
             if (!allowedExtensions.Contains(fileExtension))
             {
-               throw new InvalidOperationException($"Unsupported image extension: {fileExtension}");
+                throw new InvalidOperationException($"Unsupported image extension: {fileExtension}");
             }
 
             // Đọc file vào MemoryStream để đảm bảo stream không bị dispose sớm
@@ -60,6 +60,49 @@ namespace ProductService.Infrastructure.Services
             var uploadParams = new ImageUploadParams
             {
                 File = new FileDescription(file.FileName, memoryStream),
+                Folder = "products"
+            };
+
+            var uploadResult = await _cloudinary.UploadAsync(uploadParams);
+
+            // Kiểm tra xem upload có thành công không
+            if (uploadResult == null || uploadResult.StatusCode != System.Net.HttpStatusCode.OK)
+            {
+                var errorMsg = uploadResult?.Error?.Message ?? "Unknown error";
+                var status = uploadResult?.StatusCode.ToString() ?? "Unknown";
+                throw new Exception($"Cloudinary upload failed: {errorMsg} (Status: {status})");
+            }
+
+            return new CloudinaryUploadResult
+            {
+                Url = uploadResult.SecureUrl.ToString(),
+                PublicId = uploadResult.PublicId
+            };
+        }
+
+        public async Task<CloudinaryUploadResult> UploadImageFromBytesAsync(byte[] imageData, string fileName, string contentType)
+        {
+            // Kiểm tra dữ liệu có hợp lệ không
+            if (imageData == null || imageData.Length == 0)
+                throw new ArgumentException("Image data is invalid");
+
+            // Validate loại file (chỉ cho phép image)
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
+            var fileExtension = Path.GetExtension(fileName).ToLower();
+
+            if (!allowedExtensions.Contains(fileExtension))
+            {
+                throw new InvalidOperationException($"Unsupported image extension: {fileExtension}");
+            }
+
+            // Tạo MemoryStream từ byte array
+            using var memoryStream = new MemoryStream(imageData);
+            memoryStream.Position = 0;
+
+            // Upload ảnh vào folder products trong Cloudinary
+            var uploadParams = new ImageUploadParams
+            {
+                File = new FileDescription(fileName, memoryStream),
                 Folder = "products"
             };
 

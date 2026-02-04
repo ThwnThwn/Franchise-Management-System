@@ -24,15 +24,6 @@ public class ProductsController : ControllerBase
         _cloudinaryService = cloudinaryService;
     }
 
-    [HttpPost("upload-image")]
-    public async Task<IActionResult> UploadImage(
-    [FromForm] IFormFile imageFile,
-    CancellationToken ct)
-    {
-        var result = await _cloudinaryService.UploadImageAsync(imageFile);
-        return Ok(result);
-    }
-
     [HttpGet]
     public async Task<IActionResult> GetProducts(
         [FromQuery] Guid? categoryId,
@@ -112,5 +103,58 @@ public class ProductsController : ControllerBase
         return result.IsSuccess
             ? Ok(result.Value)
             : NotFound(result.Errors);
+    }
+
+    /// <summary>
+    /// Upload image to Cloudinary
+    /// </summary>
+    [HttpPost("upload-image")]
+    public async Task<IActionResult> UploadImage(
+        [FromForm] IFormFile imageFile,
+        CancellationToken ct)
+    {
+        try
+        {
+            if (imageFile == null || imageFile.Length == 0)
+            {
+                return BadRequest(new { error = "File is required" });
+            }
+
+            var result = await _cloudinaryService.UploadImageAsync(imageFile);
+            return Ok(new
+            {
+                url = result.Url,
+                publicId = result.PublicId
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = $"Upload failed: {ex.Message}" });
+        }
+    }
+
+    /// <summary>
+    /// Delete image from Cloudinary by public ID
+    /// Use catch-all route (**) to handle publicId with slashes (e.g., "products/xxx")
+    /// </summary>
+    [HttpDelete("images/{**publicId}")]
+    public async Task<IActionResult> DeleteImage(
+        string publicId,
+        CancellationToken ct)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(publicId))
+            {
+                return BadRequest(new { error = "Public ID is required" });
+            }
+
+            await _cloudinaryService.DeleteImageAsync(publicId);
+            return Ok(new { message = "Image deleted successfully" });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = $"Delete failed: {ex.Message}" });
+        }
     }
 }
