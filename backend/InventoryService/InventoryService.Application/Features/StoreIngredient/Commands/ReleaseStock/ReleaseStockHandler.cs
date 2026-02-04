@@ -41,7 +41,7 @@ public sealed class ReleaseStockHandler
         }).ToList();
 
         // 3. Restore stock back into StoreIngredients
-        await _storeIngredientRepo.IncreaseStockAsync(request.StoreId, restoreItems);
+        //await _storeIngredientRepo.IncreaseStockAsync(request.StoreId, restoreItems); // thằng ngu phát code cái này, tao sẽ để đây
 
         // 4. Remove queue records after releasing stock
         await _storeIngredientRepo.RemoveQueueByOrderIdAsync(request.OrderId);
