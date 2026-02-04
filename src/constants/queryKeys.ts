@@ -4,5 +4,7 @@ export const QUERY_KEYS = {
     PRODUCTS: ["products"] as const,
     ORDERS: ["orders"] as const,
     USERS: ["users"] as const,
-    STORES: ["stores"] as const
+    STORES: ["stores"] as const,
+    ROLES: ["roles"] as const,
+    PERMISSIONS: ["permissions"] as const
 }

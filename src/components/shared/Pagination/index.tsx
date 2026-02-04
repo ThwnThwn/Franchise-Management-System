@@ -1,14 +1,12 @@
+import React from "react"
+
 type PaginationProps = {
     currentPage: number
     totalPages: number
     onPageChange: (page: number) => void
 }
 
-export default function Pagination({
-    currentPage,
-    totalPages,
-    onPageChange
-}: PaginationProps) {
+export default function Pagination({ currentPage, totalPages, onPageChange }: PaginationProps) {
     const renderPageNumbers = () => {
         const pages = []
         const maxPagesToShow = 5
@@ -24,10 +22,11 @@ export default function Pagination({
                 <button
                     key={i}
                     onClick={() => onPageChange(i)}
-                    className={`px-4 py-2 mx-1 rounded-md ${i === currentPage
-                        ? "bg-amber-900 text-white font-semibold"
-                        : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
-                        }`}
+                    className={`px-4 py-2 mx-1 rounded-md ${
+                        i === currentPage
+                            ? "bg-amber-900 text-white font-semibold"
+                            : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
+                    }`}
                 >
                     {i}
                 </button>
@@ -44,10 +43,11 @@ export default function Pagination({
             <button
                 onClick={() => onPageChange(currentPage - 1)}
                 disabled={currentPage === 1}
-                className={`px-4 py-2 rounded-md ${currentPage === 1
-                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
-                    }`}
+                className={`px-4 py-2 rounded-md ${
+                    currentPage === 1
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
+                }`}
             >
                 Trước
             </button>
@@ -57,10 +57,11 @@ export default function Pagination({
             <button
                 onClick={() => onPageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className={`px-4 py-2 rounded-md ${currentPage === totalPages
-                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
-                    }`}
+                className={`px-4 py-2 rounded-md ${
+                    currentPage === totalPages
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
+                }`}
             >
                 Sau
             </button>

@@ -27,7 +27,7 @@ export const OrderCard = ({ order, onClick }: OrderCardProps) => {
                     <p className="text-small text-default-500 uppercase font-bold">
                         {ORDER_TEXT.labels.ORDER_CODE}
                     </p>
-                    <h4 className="text-black font-bold text-large">{order.code}</h4>
+                    <h4 className="text-start text-black font-bold text-large">{order.code}</h4>
                 </div>
                 <Chip color={getOrderStatusColor(order.status)} variant="flat" size="sm">
                     {getOrderStatusLabel(order.status)}

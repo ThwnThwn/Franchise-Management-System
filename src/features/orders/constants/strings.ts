@@ -11,7 +11,7 @@ export const ORDER_TEXT = {
         ORDER_DETAIL_TITLE: "Chi tiết đơn hàng",
         ORDER_DATE: "Ngày đặt:",
         CLOSE: "Đóng",
-        PRINT_INVOICE: "Thanh toán",
+        PRINT_INVOICE: "Thanh toán bằng VN Pay",
         INVOICE_FEATURE_ALERT: "Tính năng in hóa đơn đang phát triển",
 
         CUSTOMER: "Khách hàng",

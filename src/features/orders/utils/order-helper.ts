@@ -16,7 +16,7 @@ export const getOrderStatusColor = (status: OrderStatus) => {
 export const getOrderStatusLabel = (status: OrderStatus) => {
     switch (status) {
         case OrderStatus.Pending:
-            return "Chờ xử lý"
+            return "Chưa thanh toán"
         case OrderStatus.Paid:
             return "Đã thanh toán"
         case OrderStatus.Cancelled:

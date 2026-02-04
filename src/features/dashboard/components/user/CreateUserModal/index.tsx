@@ -18,7 +18,7 @@ export function CreateUserModal({
     createRoleSlug
 }: CreateUserModalProps) {
     return (
-        <ModalStyled isOpen={isOpen} onOpenChange={onOpenChange}>
+        <ModalStyled isOpen={isOpen} onOpenChange={onOpenChange} isDismissable>
             <ModalContentStyled className="max-w-150 w-full">
                 <ModalHeader className="flex flex-col items-center font-semibold text-3xl">
                     {"Tạo người dùng mới"}

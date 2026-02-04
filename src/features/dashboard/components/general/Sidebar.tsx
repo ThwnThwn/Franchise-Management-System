@@ -8,7 +8,16 @@
 import React, { useState } from "react"
 import { Card } from "@heroui/react"
 import { motion, AnimatePresence } from "framer-motion"
-import { LayoutDashboard, Coffee, Users, Package, Settings, Menu, X } from "lucide-react"
+import {
+    LayoutDashboard,
+    Coffee,
+    Users,
+    Package,
+    Settings,
+    Menu,
+    X,
+    ShieldUser
+} from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
@@ -33,6 +42,11 @@ const menuItems: MenuItem[] = [
         icon: <Users className="w-5 h-5" />,
         label: "Quản lý người dùng",
         href: "/dashboard/users"
+    },
+    {
+        icon: <ShieldUser className="w-5 h-5" />,
+        label: "Quản lý vai trò",
+        href: "/dashboard/roles"
     },
     {
         icon: <Package className="w-5 h-5" />,

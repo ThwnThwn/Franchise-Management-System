@@ -1,29 +1,22 @@
 "use client"
-import React, { useState, useCallback, useEffect } from "react"
+import React, { useState, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 
 import { ProductCard, ProductVariantsModal, StoreSelectionModal } from "../components"
 import { MENU_ERRORS } from "../constants"
 import { Product } from "../models/products/respone"
 import { useGetAllProducts } from "../hooks"
-import { SpinnerStyled } from "@/components"
+import { SpinnerStyled, StoreChip } from "@/components"
 import { useLoginDiscloresureSingleton, useTokenStore } from "@/hooks"
 import { useDisclosure, Input } from "@heroui/react"
-import { StoreDetailDto } from "@/features/stores/models/schema/response"
 import { MapPin, Search } from "lucide-react"
 
 import { useCartStore } from "@/features/cart/store"
 
 export default function MenuPage() {
-    const [selectedStore, setSelectedStore] = useState<StoreDetailDto | null>(null)
-    const setStoreId = useCartStore((s) => s.setStoreId)
+    const selectedStore = useCartStore((s) => s.currentStore)
+    const setStore = useCartStore((s) => s.setStore)
 
-    // Sync store selection to cart store
-    useEffect(() => {
-        if (selectedStore) {
-            setStoreId(selectedStore.id)
-        }
-    }, [selectedStore, setStoreId])
     const [searchQuery, setSearchQuery] = useState("")
     const [inputValue, setInputValue] = useState("")
 
@@ -96,17 +89,18 @@ export default function MenuPage() {
                 <div className="flex items-center gap-4">
                     <h2 className="text-2xl font-bold">Menu</h2>
                     {selectedStore ? (
-                        <div
-                            className="flex items-center gap-2 cursor-pointer hover:text-primary transition-colors bg-default-100 px-3 py-1.5 rounded-full"
-                            onClick={onOpenStoreModal}
-                        >
-                            <MapPin size={16} />
-                            <div className="flex flex-col">
-                                <span className="font-semibold text-sm leading-none">
-                                    {selectedStore.name}
-                                </span>
-                            </div>
-                        </div>
+                        // <div
+                        //     className="flex items-center gap-2 cursor-pointer hover:text-primary transition-colors bg-default-100 px-3 py-1.5 rounded-full"
+                        //     onClick={onOpenStoreModal}
+                        // >
+                        //     <MapPin size={16} />
+                        //     <div className="flex flex-col">
+                        //         <span className="font-semibold text-sm leading-none">
+                        //             {selectedStore.name}
+                        //         </span>
+                        //     </div>
+                        // </div>
+                        <StoreChip onClick={onOpenStoreModal} storeName={selectedStore.name} />
                     ) : (
                         <button
                             onClick={onOpenStoreModal}
@@ -183,29 +177,11 @@ export default function MenuPage() {
                             className="w-fit grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
                         >
                             {products.products.map((product) => (
-                                <motion.div
+                                <ProductCard
                                     key={product.id}
-                                    variants={{
-                                        hidden: { opacity: 0, y: 20 },
-                                        visible: { opacity: 1, y: 0 }
-                                    }}
-                                    whileHover={{
-                                        scale: 1.03,
-                                        transition: { duration: 0.2 }
-                                    }}
-                                    role="button"
-                                    tabIndex={0}
+                                    product={product}
                                     onClick={() => handleOpenProduct(product)}
-                                    // onKeyDown={(e) => {
-                                    //     if (e.key === "Enter" || e.key === " ") {
-                                    //         e.preventDefault()
-                                    //         handleOpenProduct(product)
-                                    //     }
-                                    // }}
-                                    className="cursor-pointer"
-                                >
-                                    <ProductCard getProductListItemDto={product} />
-                                </motion.div>
+                                />
                             ))}
                         </motion.div>
                     )}
@@ -223,7 +199,7 @@ export default function MenuPage() {
                 isOpen={isStoreModalOpen} // Only open when explicitly requested
                 onOpenChange={onStoreModalOpenChange}
                 onStoreSelect={(store) => {
-                    setSelectedStore(store)
+                    setStore(store)
                     // Modal will be closed by the component or we can control it here if needed
                 }}
             />

@@ -27,7 +27,7 @@ export default function CartDrawer() {
     const { data: apiCart } = useGetCart({ enabled: isCustomer })
     const updateCartItemMutation = useUpdateCartItem()
     const deleteListCartItemMutation = useDeleteListCartItem()
-    const currentStoreId = useCartStore((s) => s.currentStoreId)
+    const currentStore = useCartStore((s) => s.currentStore)
 
     // --- STATE & REF ---
     // 1. Items lấy từ API (mặc định rỗng)
@@ -174,7 +174,7 @@ export default function CartDrawer() {
             tax,
             paymentMethod: PaymentMethod.Cash,
             notes: "",
-            storeId: currentStoreId || selectedItems[0]?.storeId
+            storeId: currentStore?.id || selectedItems[0]?.store?.id
         })
     }
 

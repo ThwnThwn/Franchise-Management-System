@@ -81,7 +81,7 @@ export function CreateUserForm({
     })
 
     return (
-        <form onSubmit={formik.handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <form onSubmit={formik.handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {/* --- USERNAME --- */}
             <InputStyled
                 label="Tên đăng nhập"

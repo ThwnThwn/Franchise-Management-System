@@ -51,7 +51,7 @@ type UserUserManagementProps = {
     users: User[]
     isLoading?: boolean
     emptyMessage?: string
-    onEditUser?: (user: User) => void
+    onViewUser?: (userId: string) => void
     isRefetching?: boolean
 }
 
@@ -59,7 +59,7 @@ export function UserTable({
     users,
     isLoading = false,
     emptyMessage,
-    onEditUser,
+    onViewUser,
     isRefetching = false
 }: UserUserManagementProps) {
     const { toFullName } = useUserHelper()
@@ -137,7 +137,7 @@ export function UserTable({
                         <ButtonIconStyled
                             variant="ghost"
                             className="p-0"
-                            onPress={() => onEditUser?.(item)}
+                            onPress={() => onViewUser?.(item.id)}
                         >
                             <EyeIcon size={20} />
                         </ButtonIconStyled>
@@ -152,7 +152,7 @@ export function UserTable({
             <TableStyled className="min-w-full table-fixed text-sm" removeWrapper>
                 <TableHeader className="bg-slate-50">
                     <TableColumn className="text-center text-xs font-semibold uppercase tracking-wide text-slate-600 w-[30%]">
-                        Nhân viên
+                        Người dùng
                     </TableColumn>
                     {/* Thêm cột Vai trò */}
                     <TableColumn className="text-center text-xs font-semibold uppercase tracking-wide text-slate-600 w-[20%]">

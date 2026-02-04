@@ -1,18 +1,21 @@
 import { create } from "zustand"
-import { persist } from "zustand/middleware"
+import { persist, createJSONStorage } from "zustand/middleware"
 import { CartItem } from "@/features/cart/models/types"
+import { StoreDetailDto } from "@/features/stores"
 
 export interface CartState {
     items: CartItem[]
     total: number
     count: number
-    currentStoreId: string | null
+    // currentStoreId: string | null
+    currentStore: StoreDetailDto | null
 
     addItem: (item: Omit<CartItem, "quantity"> & { quantity?: number }) => void
     removeItem: (sku: string) => void
     updateQuantity: (sku: string, quantity: number) => void
     clearCart: () => void
-    setStoreId: (id: string | null) => void
+    // setStoreId: (id: string | null) => void
+    setStore: (store: StoreDetailDto | null) => void
 }
 
 const calculateSummary = (items: CartItem[]) => {
@@ -27,36 +30,55 @@ export const useCartStore = create<CartState>()(
             items: [],
             total: 0,
             count: 0,
-            currentStoreId: null,
+            // currentStoreId: null,
+            currentStore: null,
 
-            setStoreId: (id) => set({ currentStoreId: id }),
-
-            addItem: (item) => {
+            // setStoreId: (id) => set({ currentStoreId: id }),
+            setStore: (store) => {
+                const currentStore = get().currentStore
                 const currentItems = get().items
-                // Check if adding item from different store
-                if (currentItems.length > 0 && item.storeId && currentItems[0].storeId && item.storeId !== currentItems[0].storeId) {
+
+                if (
+                    store?.id &&
+                    currentStore?.id &&
+                    store.id !== currentStore.id &&
+                    currentItems.length > 0
+                ) {
                     set({ items: [], total: 0, count: 0 })
                 }
 
-                // Update currentStoreId if item has it
-                if (item.storeId) {
-                    set({ currentStoreId: item.storeId })
+                set({ currentStore: store })
+            },
+
+            addItem: (item) => {
+                const currentItems = get().items
+
+                if (
+                    currentItems.length > 0 &&
+                    item.store &&
+                    currentItems[0].store &&
+                    item.store !== currentItems[0].store
+                ) {
+                    set({ items: [], total: 0, count: 0 })
                 }
 
-                const updatedCurrentItems = get().items.length === 0 ? [] : get().items // Get fresh state if cleared
+                if (item.store) {
+                    set({ currentStore: item.store })
+                }
 
-                const existingItemIndex = updatedCurrentItems.findIndex((i) => i.sku === item.sku)
+                const freshItems = get().items
+                const existingItemIndex = freshItems.findIndex((i) => i.sku === item.sku)
 
                 let newItems: CartItem[]
 
                 if (existingItemIndex > -1) {
-                    newItems = updatedCurrentItems.map((i, index) =>
+                    newItems = freshItems.map((i, index) =>
                         index === existingItemIndex
                             ? { ...i, quantity: i.quantity + (item.quantity || 1) }
                             : i
                     )
                 } else {
-                    newItems = [...updatedCurrentItems, { ...item, quantity: item.quantity || 1 }]
+                    newItems = [...freshItems, { ...item, quantity: item.quantity || 1 }]
                 }
 
                 set({
@@ -67,6 +89,7 @@ export const useCartStore = create<CartState>()(
 
             removeItem: (sku) => {
                 const newItems = get().items.filter((item) => item.sku !== sku)
+
                 set({
                     items: newItems,
                     ...calculateSummary(newItems)
@@ -99,7 +122,15 @@ export const useCartStore = create<CartState>()(
             }
         }),
         {
-            name: "cart-storage"
+            name: "cart-storage",
+            storage: createJSONStorage(() => localStorage),
+
+            partialize: (state) => ({
+                items: state.items,
+                total: state.total,
+                count: state.count,
+                currentStore: state.currentStore
+            })
         }
     )
 )

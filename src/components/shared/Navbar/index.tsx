@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState } from "react"
 import "./index.css"
 import { NavbarBrand, NavbarContent, NavbarItem } from "@heroui/react"
 import Link from "next/link"
-import { ButtonStyled, NavbarStyled, LogoStyled, ButtonIconStyled } from "@/components/"
+import { ButtonStyled, NavbarStyled, LogoStyled, ButtonIconStyled, StoreChip } from "@/components/"
 import {
     useCartDrawerDiscloresureSingleton,
     useLoginDiscloresureSingleton,
@@ -17,7 +17,7 @@ import { motion } from "framer-motion"
 import { createPortal } from "react-dom"
 import { STRINGS } from "@/constants/strings"
 import { CHB, CHB_SHORT } from "@/constants/constants"
-import { CartButton } from "@/features/cart"
+import { CartButton, useCartStore } from "@/features/cart"
 import { RoleSlug } from "@/constants/enums"
 
 type MenuKey = "home" | "stores" | "menu" | "about" | "contact" | undefined
@@ -28,6 +28,7 @@ export function Navbar() {
     // handle when login
     const isLoggedIn = useTokenStore((s) => !!s.accessToken)
     const isCustomer = useTokenStore((s) => s.roleSlug === RoleSlug.Customer)
+    const store = useCartStore((s) => s.currentStore)
     const { onOpen: onOpenLogin } = useLoginDiscloresureSingleton()
     const { onOpen: onCartDrawerOpen } = useCartDrawerDiscloresureSingleton()
 
@@ -244,6 +245,8 @@ export function Navbar() {
                 {/* <NavbarItem className="flex items-center z-9999">
                     <CartPopover />
                 </NavbarItem> */}
+                {store && <StoreChip storeName={store.name} className="hover:cursor-auto" />}
+
                 {isCustomer && (
                     <div className="items-center">
                         <CartButton onPress={onCartDrawerOpen} />

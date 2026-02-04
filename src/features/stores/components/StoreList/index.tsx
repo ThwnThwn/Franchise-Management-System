@@ -2,6 +2,7 @@ import React from "react"
 import { StoreDetailDto } from "../../models/schema/response"
 import StoreCard from "../StoreCard"
 import { calculateDistance } from "@/utils/helpers/locationHelper"
+import { SpinnerStyled } from "@/components"
 
 type StoreListProps = {
     stores: StoreDetailDto[]
@@ -12,13 +13,7 @@ type StoreListProps = {
 
 export default function StoreList({ stores, loading, onStoreClick, userLocation }: StoreListProps) {
     if (loading) {
-        return (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[...Array(6)].map((_, index) => (
-                    <div key={index} className="bg-gray-200 rounded-lg h-80 animate-pulse" />
-                ))}
-            </div>
-        )
+        return <SpinnerStyled />
     }
 
     if (stores.length === 0) {
@@ -43,7 +38,7 @@ export default function StoreList({ stores, loading, onStoreClick, userLocation 
     }
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="flex flex-wrap gap-6">
             {stores.map((store) => {
                 const distance =
                     userLocation && store.latitude && store.longitude

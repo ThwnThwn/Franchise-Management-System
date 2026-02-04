@@ -34,7 +34,7 @@ export default function StoreSelectionModal({
             limit: LIMIT,
             radiusKm: RADIUS_KM
         },
-        enabled: enabled
+        enabled: isOpen
     })
 
     return (
@@ -51,14 +51,14 @@ export default function StoreSelectionModal({
                         <ModalHeader className="flex flex-col gap-1">
                             <h3>Chọn cửa hàng</h3>
                             <div className="text-sm italic text-secondary font-normal">
-                                Dưới đây là {data?.totalCount || 0} cửa hàng gần nhất trong khu vực{" "}
-                                {RADIUS_KM} km quanh bạn
+                                Dưới đây là {data?.totalCount || 0} cửa hàng đang hoạt động gần nhất
+                                trong khu vực {RADIUS_KM} km quanh bạn
                             </div>
                         </ModalHeader>
                         <ModalBody className="pb-6">
                             {enabled ? (
                                 <StoreList
-                                    stores={data?.items ?? []}
+                                    stores={data?.items.filter((s) => s.isOpenNow) ?? []}
                                     loading={isLoading}
                                     onStoreClick={(store) => {
                                         onStoreSelect(store)
@@ -78,7 +78,7 @@ export default function StoreSelectionModal({
                             </span>
                             <Link
                                 href="/stores"
-                                target="_blank"
+                                // target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-primary hover:underline text-sm font-medium"
                             >

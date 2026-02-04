@@ -1,3 +1,4 @@
+import { StoreDetailDto } from "@/features/stores"
 import { UUID } from "crypto"
 
 export interface CartItem {
@@ -10,5 +11,6 @@ export interface CartItem {
     basePrice: number
     quantity: number
     imageUrl?: string
-    storeId?: string
+    // storeId?: string
+    store?: StoreDetailDto
 }

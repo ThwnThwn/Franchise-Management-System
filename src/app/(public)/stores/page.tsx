@@ -1,71 +1,73 @@
 "use client"
 
-import React, { useState, useEffect, useMemo } from "react"
-import { useStores, useUserLocation } from "@/features/stores/hooks"
+import React, { useState, useMemo, useEffect } from "react"
+import { useGetStores, useUserLocation } from "@/features/stores/hooks"
 import StoreList from "@/features/stores/components/StoreList"
 import StoreDetailModal from "@/features/stores/components/StoreDetailModal"
-import Pagination from "@/components/shared/Pagination"
 import { StoreDetailDto } from "@/features/stores/models/schema/response"
+import { calculateDistance } from "@/utils/helpers/locationHelper"
+import { PaginationStyled } from "@/components"
+import { PaginationParams } from "@/models/common/request"
+import { BackendError } from "@/models/common/respone"
+import { addToast } from "@heroui/react"
+import { STRINGS } from "@/constants/strings"
 
 export default function StoresPage() {
-    const [currentPage, setCurrentPage] = useState(1)
     const [keyword, setKeyword] = useState("")
     const [searchInput, setSearchInput] = useState("")
     const [selectedStore, setSelectedStore] = useState<StoreDetailDto | null>(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
 
-    const pageSize = 9
+    const [pagination, setPagination] = useState<PaginationParams>({ page: 1, pageSize: 10 })
+
     const { latitude, longitude, loading: locationLoading } = useUserLocation()
 
-    const { data, loading, error } = useStores({
-        page: currentPage,
-        pageSize,
+    const { data, isLoading, error } = useGetStores({
+        page: pagination.page,
+        pageSize: pagination.pageSize,
         keyword
     })
 
     // Sort stores by distance if GPS is available, otherwise keep original order (backend sorted by newest)
     const sortedStores = useMemo(() => {
-        if (!data?.items) return []
+        // 1. Nếu không có data, trả về mảng rỗng
+        if (!data) return []
 
-        if (latitude && longitude) {
-            // Calculate distance and sort
-            const storesWithDistance = data.items.map((store) => {
+        // 2. Nếu không có GPS của user, trả về danh sách mặc định (Backend đã sort)
+        if (!latitude || !longitude) {
+            return data.items
+        }
+
+        // 3. Có GPS -> Tính toán và Sort
+        return data.items
+            .map((store) => {
+                // Nếu store thiếu tọa độ, đẩy xuống cuối cùng (Infinity)
                 if (!store.latitude || !store.longitude) {
                     return { store, distance: Infinity }
                 }
 
-                const R = 6371 // Earth radius in km
-                const dLat = ((store.latitude - latitude) * Math.PI) / 180
-                const dLon = ((store.longitude - longitude) * Math.PI) / 180
-                const a =
-                    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                    Math.cos((latitude * Math.PI) / 180) *
-                        Math.cos((store.latitude * Math.PI) / 180) *
-                        Math.sin(dLon / 2) *
-                        Math.sin(dLon / 2)
-                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-                const distance = R * c
+                // Gọi hàm Utils ở đây 👇
+                const distance = calculateDistance(
+                    latitude,
+                    longitude,
+                    store.latitude,
+                    store.longitude
+                )
 
                 return { store, distance }
             })
-
-            return storesWithDistance
-                .sort((a, b) => a.distance - b.distance)
-                .map((item) => item.store)
-        }
-
-        // No GPS, return as is (backend already sorted by newest)
-        return data.items
-    }, [data?.items, latitude, longitude])
+            .sort((a, b) => a.distance - b.distance) // Sort tăng dần theo khoảng cách
+            .map((item) => item.store) // Trả về lại object store nguyên bản
+    }, [data, latitude, longitude])
 
     const handleSearch = () => {
         setKeyword(searchInput)
-        setCurrentPage(1)
-    }
-
-    const handlePageChange = (page: number) => {
-        setCurrentPage(page)
-        window.scrollTo({ top: 0, behavior: "smooth" })
+        setPagination((prev) => {
+            return {
+                ...prev,
+                page: 1
+            }
+        })
     }
 
     const handleStoreClick = (store: StoreDetailDto) => {
@@ -78,8 +80,19 @@ export default function StoresPage() {
         setSelectedStore(null)
     }
 
+    useEffect(() => {
+        if (error) {
+            const backendErr = error as BackendError
+            addToast({
+                title: backendErr.title || STRINGS.COMMON.ERROR,
+                description: backendErr.detail,
+                color: "danger"
+            })
+        }
+    })
+
     return (
-        <div className="min-h-screen w-200">
+        <div className="min-h-screen">
             <div className="bg-white shadow-sm rounded-3xl">
                 <div className="max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
                     <h1 className="text-3xl font-bold text-gray-900 mb-6">Danh sách Cửa hàng</h1>
@@ -122,9 +135,9 @@ export default function StoresPage() {
                     {locationLoading && (
                         <p className="text-sm text-gray-500 mt-2">Đang lấy vị trí GPS...</p>
                     )}
-                    {latitude && longitude && !locationLoading && (
+                    {/* {latitude && longitude && !locationLoading && (
                         <p className="text-sm text-green-600 mt-2">Những cửa hàng gần bạn</p>
-                    )}
+                    )} */}
                     {!latitude && !locationLoading && (
                         <p className="text-sm text-gray-500 mt-2">
                             Sắp xếp theo mới nhất (cho phép GPS để xem cửa hàng gần nhất)
@@ -133,26 +146,29 @@ export default function StoresPage() {
                 </div>
             </div>
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {error && (
-                    <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6">
-                        Có lỗi xảy ra: {error}
-                    </div>
-                )}
-
+            <div className="max-w-7xl mx-auto py-8">
                 <StoreList
                     stores={sortedStores}
-                    loading={loading}
+                    loading={isLoading}
                     onStoreClick={handleStoreClick}
                     userLocation={latitude && longitude ? { latitude, longitude } : null}
                 />
 
-                {data && (
-                    <Pagination
-                        currentPage={currentPage}
-                        totalPages={data.totalPages}
-                        onPageChange={handlePageChange}
-                    />
+                {(data?.items || []).length > 0 && !isLoading && (
+                    <div className="mt-6 flex justify-center">
+                        <PaginationStyled
+                            page={pagination.page ?? 1}
+                            total={data?.totalPages ?? 10}
+                            onChange={(page: number) =>
+                                setPagination((prev) => {
+                                    return {
+                                        ...prev,
+                                        page: page
+                                    }
+                                })
+                            }
+                        />
+                    </div>
                 )}
             </div>
 

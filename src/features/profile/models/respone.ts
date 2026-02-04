@@ -1,4 +1,4 @@
-import { RoleViewRes } from "@/features/role/models/respone"
+import { RoleUserResponse } from "@/features/role-permissions/models/respone"
 
 export type UserProfileViewRes = {
     id: string
@@ -10,5 +10,5 @@ export type UserProfileViewRes = {
     gender?: number
     dateOfBirth?: string
     phone?: string
-    role?: RoleViewRes
+    role?: RoleUserResponse
 }

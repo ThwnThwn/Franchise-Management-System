@@ -64,8 +64,8 @@ export function ProductVariantsModal({
                 attributes: selectedSize.attributes,
                 basePrice: selectedSize.basePrice,
                 imageUrl: product.imageUrl,
-                quantity: safeQty,
-                storeId: storeId
+                quantity: safeQty
+                // storeId: storeId
             })
         }
 
