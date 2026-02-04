@@ -101,7 +101,7 @@ namespace ProductService.API
             // Register repositories
             builder.Services.AddScoped<IProductRepository, ProductRepository>();
             builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
-
+            builder.Services.AddScoped<IProductVariantRepository, ProductVariantRepository>();
             // Register GlobalExceptionHandlerMiddleware
             builder.Services.AddSingleton<GlobalExceptionHandlerMiddleware>();
 
