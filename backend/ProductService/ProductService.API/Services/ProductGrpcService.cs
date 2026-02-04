@@ -254,6 +254,7 @@ public class ProductGrpcService : ProductGrpc.ProductGrpcBase
             UpdatedAt = result.Value.UpdatedAt.ToString("O")
         };
     }
+
     public override async Task<DeleteProductReply> DeleteProduct(
         DeleteProductRequest request,
         ServerCallContext context)
@@ -282,6 +283,7 @@ public class ProductGrpcService : ProductGrpc.ProductGrpcBase
 
         return new DeleteProductReply { Success = true };
     }
+
     public override async Task<GetProductsByKeywordReply>
 GetProductsByKeyword(
     GetProductsByKeywordRequest request,
@@ -315,7 +317,6 @@ GetProductsByKeyword(
 
         return reply;
     }
-
 
     public override async Task<UploadImageReply> UploadImage(
         UploadImageRequest request,

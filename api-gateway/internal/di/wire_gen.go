@@ -82,7 +82,7 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, erro
 	}
 	redis := &cfg.Redis
 	iPermCache := cache.NewPermCache(redis, l)
-	iRolePermissionService := identity.NewRolePermClient(identityClientFactory)
+	iRolePermissionService := identity.ProvideRolePermClient(identityClientFactory)
 	iBlacklistCache := cache.NewBlacklistCache(redis, l)
 	iBlacklistUseCase := usecases.NewBlacklistUseCase(iBlacklistCache, l)
 	authMiddleware := middleware.NewAuthMiddleware(iPermCache, iRolePermissionService, iBlacklistUseCase)
