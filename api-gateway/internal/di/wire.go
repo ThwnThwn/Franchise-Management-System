@@ -6,6 +6,7 @@ package di
 import (
 	"api-gateway/config"
 	"api-gateway/internal/api/handlers"
+	"api-gateway/internal/api/middleware"
 	"api-gateway/internal/api/routes"
 	"api-gateway/internal/application/usecases"
 	"api-gateway/internal/bootstrap"
@@ -31,8 +32,9 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, erro
 		wire.FieldsOf(new(*config.Config), "FranchiseServiceUrl"),
 
 		// 3. Infrastructure
-		cache.NewRedis,
+		// cache.NewRedis,
 		cache.NewBlacklistCache,
+		cache.NewPermCache,
 
 		// 4. Sub sets
 		grpc_clients.ClientSet,
@@ -43,6 +45,7 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, erro
 		wire.Struct(new(handlers.AppHandlers), "*"),
 
 		// 5. Router
+		middleware.NewAuthMiddleware,
 		routes.NewRouter,
 	)
 	return &bootstrap.App{}, nil

@@ -49,8 +49,10 @@ namespace IdentityService.API
                 ?? "Host=localhost;Port=5432;Database=identity_db;Username=admin;Password=12345";
             var redisConn = builder.Configuration["REDIS_CONFIGURATION"]
                 ?? "localhost:6379,abortConnect=false";
+            var blackListDb = builder.Configuration["REDIS_BLACKLIST_DB"] ?? "0";
+            var permDb = builder.Configuration["REDIS_PERM_DB"] ?? "1";
 
-            builder.Services.AddInfrastructure(dbConn, redisConn);
+            builder.Services.AddInfrastructure(dbConn, redisConn, blackListDb, permDb);
             //builder.Services.AddStackExchangeRedisCache(opt =>
             //{
             //    opt.Configuration = redisConn + ",defaultDatabase=1";

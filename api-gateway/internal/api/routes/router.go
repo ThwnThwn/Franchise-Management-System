@@ -4,7 +4,6 @@ import (
 	"api-gateway/config"
 	"api-gateway/internal/api/handlers"
 	"api-gateway/internal/api/middleware"
-	"api-gateway/internal/application/abstractions"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,7 +13,7 @@ var RouterGroupApp = new(RouterGroup)
 func NewRouter(
 	cfg *config.Config,
 	h *handlers.AppHandlers,
-	blacklistUC abstractions.IBlacklistUseCase,
+	authMW *middleware.AuthMiddleware,
 ) *gin.Engine {
 	r := gin.Default()
 	r.Use(gin.Recovery())
@@ -35,19 +34,19 @@ func NewRouter(
 		shiftGroup.NewShiftRouter(cfg, MainGroup, h.ShiftHandler)
 
 		// Identity
-		authGroup.NewAuthRouter(cfg, MainGroup, h.AuthHandler, blacklistUC)
-		userGroup.NewUserRouter(cfg, MainGroup, h.UserHandler, h.ShiftHandler, blacklistUC)
+		authGroup.NewAuthRouter(cfg, MainGroup, h.AuthHandler, authMW)
+		userGroup.NewUserRouter(cfg, MainGroup, h.UserHandler, h.ShiftHandler, authMW)
 
 		// Product
-		productGroup.NewProductRouter(cfg, MainGroup, h.ProductHandler, blacklistUC)
-		categoryGroup.NewCategoryRouter(cfg, MainGroup, h.CategoryHandler, blacklistUC)
+		productGroup.NewProductRouter(cfg, MainGroup, h.ProductHandler, authMW)
+		categoryGroup.NewCategoryRouter(cfg, MainGroup, h.CategoryHandler, authMW)
 
 		// Sales
-		orderGroup.NewOrderRouter(cfg, MainGroup, h.OrderHandler, blacklistUC)
-		cartGroup.NewCartRouter(cfg, MainGroup, h.CartHandler, blacklistUC)
+		orderGroup.NewOrderRouter(cfg, MainGroup, h.OrderHandler, authMW)
+		cartGroup.NewCartRouter(cfg, MainGroup, h.CartHandler, authMW)
 
 		// Inventory
-		inventoryGroup.NewInventoryRouter(cfg, MainGroup, h.InventoryHandler, blacklistUC)
+		inventoryGroup.NewInventoryRouter(cfg, MainGroup, h.InventoryHandler, authMW)
 	}
 
 	return r

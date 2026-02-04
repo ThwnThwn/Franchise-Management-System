@@ -4,7 +4,6 @@ import (
 	"api-gateway/config"
 	"api-gateway/internal/api/handlers"
 	"api-gateway/internal/api/middleware"
-	"api-gateway/internal/application/abstractions"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,7 +13,7 @@ type OrderRouter struct{}
 func (a *OrderRouter) NewOrderRouter(cfg *config.Config,
 	r *gin.RouterGroup,
 	orderHandler *handlers.OrderHandler,
-	blackListUC abstractions.IBlacklistUseCase,
+	authMW *middleware.AuthMiddleware,
 ) {
 	orderApi := r.Group("/orders")
 	{
@@ -23,7 +22,7 @@ func (a *OrderRouter) NewOrderRouter(cfg *config.Config,
 
 	accessTokenSecret := cfg.JwtSecret
 	privateApi := orderApi.Group("")
-	privateApi.Use(middleware.ValidateToken(blackListUC, []byte(accessTokenSecret)))
+	privateApi.Use(authMW.ValidateToken([]byte(accessTokenSecret)))
 	{
 		privateApi.GET("/me", orderHandler.GetMyOrders)
 		privateApi.POST("", orderHandler.CreateOrder)

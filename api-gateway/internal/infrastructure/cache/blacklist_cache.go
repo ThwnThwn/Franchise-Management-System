@@ -1,8 +1,10 @@
 package cache
 
 import (
+	"api-gateway/config"
 	"api-gateway/internal/application/cache"
 	"api-gateway/internal/application/constants/errorcode"
+	"api-gateway/pkg/logger"
 	"context"
 	"fmt"
 
@@ -15,8 +17,8 @@ type blacklistCache struct {
 	rdb *redis.Client
 }
 
-func NewBlacklistCache(rdb *redis.Client) cache.IBlacklistCache {
-	return &blacklistCache{rdb: rdb}
+func NewBlacklistCache(rCfg *config.Redis, logger logger.Interface) cache.IBlacklistCache {
+	return &blacklistCache{rdb: NewRedis(rCfg, rCfg.BlaclistDb, logger)}
 }
 
 // GetByToken implements cache.IBlacklistCache.

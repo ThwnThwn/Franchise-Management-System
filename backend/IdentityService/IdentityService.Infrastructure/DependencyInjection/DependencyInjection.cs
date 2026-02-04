@@ -10,27 +10,35 @@ using IdentityService.Infrastructure.Persistences.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using StackExchange.Redis;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 
 namespace IdentityService.Infrastructure.DependencyInjection;
 
 public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(
-        this IServiceCollection services, string identityDbConn, string redisConnectionString)
+        this IServiceCollection services,
+        string identityDbConn,
+        string redisConnectionString, string blackListDb, string permDb)
     {
         services.AddScoped<UpdateTimestampInterceptor>();
 
         services.AddDbContext<IIdentityDbContext, IdentityDbContext>(opt => opt.UseNpgsql(identityDbConn));
+
+        if (!int.TryParse(blackListDb, out var blackListDbInt))
+        {
+            blackListDbInt = 0;
+        }
         services.AddSingleton<IConnectionMultiplexer>(sp =>
         {
             var configuration = ConfigurationOptions.Parse(redisConnectionString, true);
             configuration.AbortOnConnectFail = false;
-            configuration.DefaultDatabase = 0;
+            configuration.DefaultDatabase = blackListDbInt;
             return ConnectionMultiplexer.Connect(configuration);
         });
         services.AddStackExchangeRedisCache(opt =>
         {
-            opt.Configuration = redisConnectionString + ",defaultDatabase=1";
+            opt.Configuration = redisConnectionString + ",defaultDatabase=" + permDb;
             opt.InstanceName = "chb_redis";
         });
 

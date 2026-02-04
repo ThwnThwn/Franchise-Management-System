@@ -9,6 +9,7 @@ package di
 import (
 	"api-gateway/config"
 	"api-gateway/internal/api/handlers"
+	"api-gateway/internal/api/middleware"
 	"api-gateway/internal/api/routes"
 	"api-gateway/internal/application/usecases"
 	"api-gateway/internal/bootstrap"
@@ -89,10 +90,12 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, erro
 		InventoryHandler: inventoryHandler,
 	}
 	redis := &cfg.Redis
-	client := cache.NewRedis(redis, l)
-	iBlacklistCache := cache.NewBlacklistCache(client)
+	iPermCache := cache.NewPermCache(redis, l)
+	iRolePermissionService := identity.NewRolePermClient(identityClientFactory)
+	iBlacklistCache := cache.NewBlacklistCache(redis, l)
 	iBlacklistUseCase := usecases.NewBlacklistUseCase(iBlacklistCache, l)
-	engine := routes.NewRouter(cfg, appHandlers, iBlacklistUseCase)
+	authMiddleware := middleware.NewAuthMiddleware(iPermCache, iRolePermissionService, iBlacklistUseCase)
+	engine := routes.NewRouter(cfg, appHandlers, authMiddleware)
 	app := bootstrap.NewApp(cfg, engine)
 	return app, nil
 }

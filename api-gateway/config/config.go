@@ -39,9 +39,11 @@ type Logger struct {
 }
 
 type Redis struct {
-	Host     string
-	Port     int
-	Password string
+	Host       string
+	Port       int
+	Password   string
+	BlaclistDb int
+	PermDb     int
 }
 
 type CalcServiceUrl string
@@ -62,7 +64,7 @@ func LoadConfig() *Config {
 		}
 	}
 
-	return &Config{
+	cfg := &Config{
 		Logger: Logger{
 			LogLevel:    getEnv("LOGGER_LOG_LEVEL", "debug"),
 			FileLogName: getEnv("LOGGER_FILE_LOG_NAME", "./logs/dev.log"),
@@ -73,9 +75,11 @@ func LoadConfig() *Config {
 		},
 
 		Redis: Redis{
-			Host:     getEnv("REDIS_HOST", "127.0.0.1"),
-			Port:     getEnvInt("REDIS_PORT", 6379),
-			Password: getEnv("REDIS_PASSWORD", ""),
+			Host:       getEnv("REDIS_HOST", "127.0.0.1"),
+			Port:       getEnvInt("REDIS_PORT", 6379),
+			Password:   getEnv("REDIS_PASSWORD", ""),
+			BlaclistDb: getEnvInt("REDIS_BLACKLIST_DB", 0),
+			PermDb:     getEnvInt("REDIS_PERM_DB", 1),
 		},
 
 		Port:           getEnv("GATEWAY_PORT", "8080"),
@@ -93,6 +97,7 @@ func LoadConfig() *Config {
 		JwtSecret:                       getEnv("JWT_SECRET", ""),
 		JwtAccessTokenExpirationMinutes: getEnvInt("JWT_ACCESS_TOKEN_EXPIRATION_MINUTES", 15),
 	}
+	return cfg
 }
 
 func getEnv(key, fallback string) string {

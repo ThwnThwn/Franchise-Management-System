@@ -4,8 +4,6 @@ import (
 	"api-gateway/config"
 	"api-gateway/internal/api/handlers"
 	"api-gateway/internal/api/middleware"
-	"api-gateway/internal/application/abstractions"
-	"api-gateway/internal/domain/constants/roleslug"
 
 	"github.com/gin-gonic/gin"
 )
@@ -15,7 +13,7 @@ type ProductRouter struct{}
 func (a *ProductRouter) NewProductRouter(cfg *config.Config,
 	r *gin.RouterGroup,
 	productHandler *handlers.ProductHandler,
-	blackListUC abstractions.IBlacklistUseCase,
+	authMW *middleware.AuthMiddleware,
 ) {
 	productApi := r.Group("/products")
 	{
@@ -25,13 +23,13 @@ func (a *ProductRouter) NewProductRouter(cfg *config.Config,
 
 	accessTokenSecret := cfg.JwtSecret
 	privateApi := productApi.Group("")
-	privateApi.Use(middleware.ValidateToken(blackListUC, []byte(accessTokenSecret)))
+	privateApi.Use(authMW.ValidateToken([]byte(accessTokenSecret)))
 
-	adminApi := privateApi.Group("")
-	adminApi.Use(middleware.RequireRoles(string(roleslug.Admin)))
+	// adminApi := privateApi.Group("")
+	// adminApi.Use(middleware.RequireRoles(string(roleslug.Admin)))
 	{
-		adminApi.POST("", productHandler.CreateProduct)
-		adminApi.PATCH("/:id", productHandler.UpdateProduct)
-		adminApi.DELETE("/:id", productHandler.DeleteProduct)
+		privateApi.POST("", authMW.PermissionCheck("product.create"), productHandler.CreateProduct)
+		privateApi.PATCH("/:id", authMW.PermissionCheck("product.update"), productHandler.UpdateProduct)
+		privateApi.DELETE("/:id", authMW.PermissionCheck("product.delete"), productHandler.DeleteProduct)
 	}
 }
