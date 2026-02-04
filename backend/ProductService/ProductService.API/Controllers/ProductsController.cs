@@ -6,11 +6,8 @@ using ProductService.Application.Features.Products.Queries.GetById;
 using ProductService.Application.Features.Products.Queries.GetByKeyword;
 using ProductService.Application.Features.Products.Queries.GetByProductName;
 using ProductService.Application.Features.Products.Queries.GetList;
-<<<<<<< HEAD
-=======
 using ProductService.Application.Interfaces;
 
->>>>>>> be/upload-img
 namespace ProductService.API.Controllers;
 
 [ApiController]
@@ -177,7 +174,6 @@ public class ProductsController : ControllerBase
         {
             return StatusCode(500, new { error = $"Delete failed: {ex.Message}" });
         }
->>>>>>> be/upload-img
     }
 }
 
