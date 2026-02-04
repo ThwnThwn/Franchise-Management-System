@@ -3,26 +3,29 @@ using NotificationService.Application.Abstractions;
 using NotificationService.Domain.Entities;
 using NotificationService.Domain.Enums;
 using SharedKernel.Events;
+using SharedKernel.Infrastructure.Kafka;
 using System.Text.Json;
 
-namespace NotificationService.Application.Handlers;
+namespace NotificationService.Application.EventHandlers;
 
 /// <summary>
 /// Xử lý sự kiện "Sắp hết hàng" (LowStockEvent).
-/// Nhiệm vụ: Gửi email cảnh báo cho quản lý kho.
+/// Nhiệm vụ:
+/// - Tìm email Manager của cửa hàng (nếu thiếu).
+/// - Gửi email cảnh báo nhập hàng.
 /// </summary>
-public class LowStockNotificationHandler
+public class LowStockHandler : IIntegrationEventHandler<LowStockEvent>
 {
     private readonly IEmailSender _emailSender;
     private readonly INotificationRepository _repository;
     private readonly Application.ExternalServices.IIdentityServiceClient _identityServiceClient;
-    private readonly ILogger<LowStockNotificationHandler> _logger;
+    private readonly ILogger<LowStockHandler> _logger;
 
-    public LowStockNotificationHandler(
+    public LowStockHandler(
         IEmailSender emailSender,
         INotificationRepository repository,
         Application.ExternalServices.IIdentityServiceClient identityServiceClient,
-        ILogger<LowStockNotificationHandler> logger)
+        ILogger<LowStockHandler> logger)
     {
         _emailSender = emailSender;
         _repository = repository;
@@ -30,9 +33,6 @@ public class LowStockNotificationHandler
         _logger = logger;
     }
 
-    /// <summary>
-    /// Log lại sự kiện và gửi email cảnh báo ngay lập tức.
-    /// </summary>
     public async Task<string?> GetManagerEmail(Guid storeId)
     {
         var email = await _identityServiceClient.GetManagerEmailByStoreIdAsync(storeId);
@@ -43,7 +43,7 @@ public class LowStockNotificationHandler
         return email;
     }
 
-    public async Task HandleAsync(LowStockEvent @event)
+    public async Task Handle(LowStockEvent @event)
     {
         // 1. Enrich: Fetch Manager Email
         if (string.IsNullOrEmpty(@event.ManagerEmail))

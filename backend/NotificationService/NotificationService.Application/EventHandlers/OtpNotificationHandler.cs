@@ -3,13 +3,21 @@ using NotificationService.Application.Abstractions;
 using NotificationService.Domain.Entities;
 using NotificationService.Domain.Enums;
 using SharedKernel.Events;
+using SharedKernel.Infrastructure.Kafka;
 using System.Text.Json;
-namespace NotificationService.Application.Handlers;
-public class OtpNotificationHandler
+
+namespace NotificationService.Application.EventHandlers;
+
+/// <summary>
+/// Xử lý sự kiện gửi OTP (OtpRequestedEvent).
+/// Nhiệm vụ: Gửi email chứa mã OTP xác thực cho người dùng.
+/// </summary>
+public class OtpNotificationHandler : IIntegrationEventHandler<OtpRequestedEvent>
 {
     private readonly IEmailSender _emailSender;
     private readonly INotificationRepository _repository;
     private readonly ILogger<OtpNotificationHandler> _logger;
+
     public OtpNotificationHandler(
         IEmailSender emailSender,
         INotificationRepository repository,
@@ -19,7 +27,8 @@ public class OtpNotificationHandler
         _repository = repository;
         _logger = logger;
     }
-    public async Task HandleAsync(OtpRequestedEvent @event)
+
+    public async Task Handle(OtpRequestedEvent @event)
     {
         var log = new NotificationLog
         {

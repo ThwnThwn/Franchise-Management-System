@@ -1,13 +1,12 @@
 using DotNetEnv;
 using Microsoft.EntityFrameworkCore;
 using NotificationService.Application.Abstractions;
-using NotificationService.Application.Handlers;
 using NotificationService.Application.ExternalServices;
 using NotificationService.Infrastructure.Configurations;
 using NotificationService.Infrastructure.Data;
-using NotificationService.Infrastructure.Messaging;
 using NotificationService.Infrastructure.Repositories;
 using NotificationService.Infrastructure.Services;
+using SharedKernel.Infrastructure.Kafka;
 // Load environment variables
 Env.Load("../../../.env");
 var builder = WebApplication.CreateBuilder(args);
@@ -42,12 +41,14 @@ builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 builder.Services.AddScoped<IIdentityServiceClient, NotificationService.Infrastructure.ExternalServices.IdentityServiceClient>();
 
-// Register Handlers
-builder.Services.AddScoped<OtpNotificationHandler>();
-builder.Services.AddScoped<OrderNotificationHandler>();
-builder.Services.AddScoped<LowStockNotificationHandler>();
-// KAFKA CONSUMER (Background Service)
-builder.Services.AddHostedService<KafkaConsumerService>();
+// KAFKA CONSUMER (Generic)
+builder.Services.AddKafkaConsumer(config =>
+{
+    config.Register<SharedKernel.Events.OtpRequestedEvent>(SharedKernel.Constants.KafkaTopics.OtpNotifications, typeof(NotificationService.Application.EventHandlers.OtpNotificationHandler));
+    config.Register<SharedKernel.Events.OrderCreatedEvent>(SharedKernel.Constants.KafkaTopics.OrderNotifications, typeof(NotificationService.Application.EventHandlers.OrderCreatedHandler));
+    config.Register<SharedKernel.Events.LowStockEvent>(SharedKernel.Constants.KafkaTopics.LowStockNotifications, typeof(NotificationService.Application.EventHandlers.LowStockHandler));
+    config.Register<SharedKernel.Events.PasswordResetRequestedEvent>(SharedKernel.Constants.KafkaTopics.PasswordResetNotifications, typeof(NotificationService.Application.EventHandlers.PasswordResetHandler));
+});
 // LOGGING
 builder.Services.AddLogging(config =>
 {
