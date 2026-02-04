@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"api-gateway/internal/application/abstractions"
 	"api-gateway/internal/application/constants/errorcode"
+	"api-gateway/internal/application/gateways/identity"
 	"api-gateway/internal/domain/models/user"
 	"api-gateway/pkg/utils/grpcutils"
 	"api-gateway/pkg/utils/validation"
@@ -13,10 +13,10 @@ import (
 )
 
 type UserHandler struct {
-	userUC abstractions.IUserUseCase
+	userUC identity.IUserService
 }
 
-func NewUserHandler(userUC abstractions.IUserUseCase) *UserHandler {
+func NewUserHandler(userUC identity.IUserService) *UserHandler {
 	return &UserHandler{userUC: userUC}
 }
 

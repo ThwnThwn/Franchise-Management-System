@@ -1,8 +1,9 @@
 package handlers
 
 import (
-	"api-gateway/internal/application/abstractions"
+	"api-gateway/internal/application/gateways/inventory"
 	"api-gateway/internal/domain/models/ingredient"
+	"api-gateway/pkg/utils/grpcutils"
 	"api-gateway/pkg/utils/validation"
 	"net/http"
 
@@ -10,11 +11,11 @@ import (
 )
 
 type InventoryHandler struct {
-	invenUC abstractions.IInventoryUseCase
+	invenGW inventory.IInventoryService
 }
 
-func NewInventoryHandler(invenUC abstractions.IInventoryUseCase) *InventoryHandler {
-	return &InventoryHandler{invenUC: invenUC}
+func NewInventoryHandler(invenGW inventory.IInventoryService) *InventoryHandler {
+	return &InventoryHandler{invenGW: invenGW}
 }
 
 func (h *InventoryHandler) IncreaseStock(c *gin.Context) {
@@ -24,8 +25,13 @@ func (h *InventoryHandler) IncreaseStock(c *gin.Context) {
 		return
 	}
 
-	ctx := c.Request.Context()
-	err := h.invenUC.IncreaseStock(ctx, req)
+	ctx, err := grpcutils.BuildAuthContext(c)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	err = h.invenGW.IncreaseStock(ctx, req)
 	if err != nil {
 		c.Error(err)
 		return

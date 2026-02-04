@@ -45,6 +45,7 @@ type ChangePasswordRequest struct {
 	OldPassword        string `json:"oldPassword" binding:"required,min=6,max=30"`
 	NewPassword        string `json:"newPassword" binding:"required,min=6,max=30"`
 	ConfirmNewPassword string `json:"confirmNewPassword" binding:"required,eqfield=NewPassword"`
+	ForgetAll          bool   `json:"forgetAll"`
 }
 
 type GetAllUsersRequest struct {

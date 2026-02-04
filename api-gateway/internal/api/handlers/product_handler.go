@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"api-gateway/internal/application/abstractions"
 	"api-gateway/internal/application/constants/errorcode"
+	prodGW "api-gateway/internal/application/gateways/product"
 	"api-gateway/internal/domain/models/product"
 	"api-gateway/pkg/utils/validation"
 	"net/http"
@@ -12,11 +12,11 @@ import (
 )
 
 type ProductHandler struct {
-	productUC abstractions.IProductUseCase
+	productGW prodGW.IProductService
 }
 
-func NewProductHandler(productUC abstractions.IProductUseCase) *ProductHandler {
-	return &ProductHandler{productUC: productUC}
+func NewProductHandler(productGW prodGW.IProductService) *ProductHandler {
+	return &ProductHandler{productGW: productGW}
 }
 
 func (h *ProductHandler) GetProducts(c *gin.Context) {
@@ -27,7 +27,7 @@ func (h *ProductHandler) GetProducts(c *gin.Context) {
 	}
 
 	ctx := c.Request.Context()
-	res, err := h.productUC.GetProducts(ctx, &req)
+	res, err := h.productGW.GetProducts(ctx, &req)
 	if err != nil {
 		c.Error(err)
 		return
@@ -48,7 +48,7 @@ func (h *ProductHandler) GetProductById(c *gin.Context) {
 	}
 
 	ctx := c.Request.Context()
-	res, err := h.productUC.GetProductById(ctx, productId)
+	res, err := h.productGW.GetProductById(ctx, productId)
 	if err != nil {
 		c.Error(err)
 		return
@@ -65,7 +65,7 @@ func (h *ProductHandler) CreateProduct(c *gin.Context) {
 	}
 
 	ctx := c.Request.Context()
-	err := h.productUC.CreateProduct(ctx, &req)
+	err := h.productGW.CreateProduct(ctx, &req)
 	if err != nil {
 		c.Error(err)
 		return
@@ -89,7 +89,7 @@ func (h *ProductHandler) UpdateProduct(c *gin.Context) {
 	}
 
 	ctx := c.Request.Context()
-	err = h.productUC.UpdateProduct(ctx, productId, &req)
+	err = h.productGW.UpdateProduct(ctx, productId, &req)
 	if err != nil {
 		c.Error(err)
 		return
@@ -107,7 +107,7 @@ func (h *ProductHandler) DeleteProduct(c *gin.Context) {
 	}
 
 	ctx := c.Request.Context()
-	err = h.productUC.DeleteProduct(ctx, productId)
+	err = h.productGW.DeleteProduct(ctx, productId)
 	if err != nil {
 		c.Error(err)
 		return

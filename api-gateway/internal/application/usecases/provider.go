@@ -11,8 +11,6 @@ var UseCaseSets = wire.NewSet(
 	NewShiftUseCase,
 
 	// Identity
-	NewAuthUseCase,
-	NewUserUseCase,
 
 	// Product
 	NewProductUseCase,
