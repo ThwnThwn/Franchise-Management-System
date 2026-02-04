@@ -44,6 +44,10 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, erro
 	iUserService := identity.ProvideUserClient(identityClientFactory)
 	authHandler := handlers.NewAuthHandler(iAuthService, iUserService)
 	userHandler := handlers.NewUserHandler(iUserService)
+	iRoleService := identity.ProvideRoleClient(identityClientFactory)
+	iRolePermissionService := identity.ProvideRolePermClient(identityClientFactory)
+	roleHandler := handlers.NewRoleHandler(iRoleService, iRolePermissionService)
+	permHandler := handlers.NewPermHandler(iRolePermissionService)
 	productServiceUrl := cfg.ProductServiceUrl
 	productClientFactory, err := product.NewProductClientFactory(productServiceUrl)
 	if err != nil {
@@ -74,6 +78,8 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, erro
 		ShiftHandler:     shiftHandler,
 		AuthHandler:      authHandler,
 		UserHandler:      userHandler,
+		RoleHandler:      roleHandler,
+		PermHandler:      permHandler,
 		ProductHandler:   productHandler,
 		CategoryHandler:  categoryHandler,
 		OrderHandler:     orderHandler,
@@ -82,7 +88,6 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, erro
 	}
 	redis := &cfg.Redis
 	iPermCache := cache.NewPermCache(redis, l)
-	iRolePermissionService := identity.ProvideRolePermClient(identityClientFactory)
 	iBlacklistCache := cache.NewBlacklistCache(redis, l)
 	iBlacklistUseCase := usecases.NewBlacklistUseCase(iBlacklistCache, l)
 	authMiddleware := middleware.NewAuthMiddleware(iPermCache, iRolePermissionService, iBlacklistUseCase)

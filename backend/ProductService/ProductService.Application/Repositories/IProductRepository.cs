@@ -9,7 +9,7 @@ public interface IProductRepository : IGenericRepository<Product>
 
     Task<Product?> GetProductByIdAsync(Guid id);
 
-    Task<Product?> GetProductByNameAsync(string name);
+    Task<Product?> GetProductByNameAsync(string name, Guid? excludeId);
 
     Task<List<Product?>> GetProductByNameContainingAsync(string name);
 
