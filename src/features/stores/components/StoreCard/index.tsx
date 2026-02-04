@@ -42,8 +42,8 @@ export default function StoreCard({ store, distance, onClick }: StoreCardProps) 
 
                         {/* Status Badge */}
                         <div className={`absolute top-2 right-6 px-3 py-1 rounded-full text-xs font-bold shadow-lg backdrop-blur-md border ${store.isOpenNow
-                                ? "bg-green-500/20 border-green-400 text-green-300"
-                                : "bg-red-500/20 border-red-400 text-red-300"
+                            ? "bg-green-500/20 border-green-400 text-green-300"
+                            : "bg-red-500/20 border-red-400 text-red-300"
                             }`}>
                             {store.isOpenNow ? "ĐANG MỞ CỬA" : "ĐÃ ĐÓNG CỬA"}
                         </div>
@@ -83,12 +83,11 @@ export default function StoreCard({ store, distance, onClick }: StoreCardProps) 
                         </div>
                     </div>
 
-                    <Button
-                        className="w-full mt-2 bg-white/10 hover:bg-[#FFB74D] text-[#FFB74D] hover:text-[#3E2723] font-bold rounded-xl transition-all border border-[#FFB74D]/30"
-                        variant="flat"
+                    <div
+                        className="w-full mt-2 bg-white/10 group-hover:bg-[#FFB74D] text-[#FFB74D] group-hover:text-[#3E2723] font-bold rounded-xl transition-all border border-[#FFB74D]/30 py-2.5 px-4 text-center cursor-pointer"
                     >
                         Xem Chi Tiết
-                    </Button>
+                    </div>
                 </CardFooter>
             </Card>
         </motion.div>
