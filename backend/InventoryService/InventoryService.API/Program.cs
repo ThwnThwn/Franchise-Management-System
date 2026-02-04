@@ -144,6 +144,7 @@ namespace InventoryService.API
             builder.Services.AddScoped<IIngredientRepository, IngredientRepository>();
             builder.Services.AddScoped<IRecipeRepository, RecipeRepository>();
             builder.Services.AddScoped<IIngredientCategoryRepository, IngredientCategoryRepository>();
+            builder.Services.AddScoped<InventoryService.Domain.Services.IInventoryDomainService, InventoryService.Domain.Services.InventoryDomainService>();
             //add client
             builder.Services.AddScoped<IIdentityServiceClient, IdentityServiceClient>();
             // Kafka Producer Registry (for Outbox)

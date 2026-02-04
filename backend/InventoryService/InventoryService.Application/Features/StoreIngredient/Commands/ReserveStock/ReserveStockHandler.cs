@@ -2,6 +2,7 @@ using InventoryService.Application.Abstractions;
 using InventoryService.Application.Constants;
 using InventoryService.Application.Persistences.Repositories;
 using InventoryService.Domain.Entities;
+using InventoryService.Domain.Services;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -20,15 +21,18 @@ public class ReserveStockHandler : IRequestHandler<ReserveStockCommand, ReserveS
     private readonly IStoreIngredientRepository _storeIngredientRepo;
     private readonly IRecipeRepository _recipeRepository;
     private readonly IInventoryDbContext _dbContext;
+    private readonly IInventoryDomainService _domainService;
 
     public ReserveStockHandler(
         IStoreIngredientRepository storeIngredientRepo,
         IRecipeRepository recipeRepository,
-        IInventoryDbContext dbContext)
+        IInventoryDbContext dbContext,
+        IInventoryDomainService domainService)
     {
         _storeIngredientRepo = storeIngredientRepo;
         _recipeRepository = recipeRepository;
         _dbContext = dbContext;
+        _domainService = domainService;
     }
 
     /// <summary>
@@ -53,20 +57,10 @@ public class ReserveStockHandler : IRequestHandler<ReserveStockCommand, ReserveS
             return new ReserveStockResponseDto { Success = false, Message = Message.Recipe.NotFound };
         }
 
-        //Tính toán nguyên liệu cần thiết
-        var totalRequiredIngredients = new Dictionary<Guid, decimal>();
-        foreach (var item in request.Items)
-        {
-            var recipesForItem = allRecipes.Where(r => r.VariantId == item.VariantId);
-            foreach (var recipe in recipesForItem)
-            {
-                var totalNeeded = recipe.Quantity * item.Amount;
-                if (totalRequiredIngredients.ContainsKey(recipe.IngredientId))
-                    totalRequiredIngredients[recipe.IngredientId] += totalNeeded;
-                else
-                    totalRequiredIngredients[recipe.IngredientId] = totalNeeded;
-            }
-        }
+        // 1. Tính toán nguyên liệu dựa trên Domain Service
+        var totalRequiredIngredients = _domainService.CalculateRequiredIngredients(
+            request.Items.Select(x => (x.VariantId, x.Amount)), 
+            allRecipes);
 
         var ingredientIds = totalRequiredIngredients.Keys.ToList();
         
