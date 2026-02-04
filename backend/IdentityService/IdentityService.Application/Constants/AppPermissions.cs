@@ -23,6 +23,18 @@ namespace IdentityService.Application.Constants
             public const string Toggle = "role.toggle_permission";
         }
 
+        public static class Stock
+        {
+            public const string Adjustment = "stock.adjustment";
+            public const string Read = "stock.read";
+        }
+
+        public static class  Recipe
+        {
+            public const string Read = "recipe.read";
+
+        }
+
         // --- TỰ ĐỘNG QUÉT (REFLECTION) ---
         // Biến này sẽ được dùng cho SyncService
         public static readonly IReadOnlyList<Permission> AllPermissions = GetAllPermissions();
