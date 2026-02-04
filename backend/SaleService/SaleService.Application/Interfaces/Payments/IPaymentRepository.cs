@@ -1,3 +1,4 @@
+using BuildingBlocks.Core.Pagination;
 using SalesService.Domain.Entities;
 
 namespace SalesService.Application.Interfaces.Payments;
@@ -13,5 +14,10 @@ public interface IPaymentRepository
     Task AddEventAsync(PaymentEvent paymentEvent, CancellationToken cancellationToken = default);
 
     Task SaveChangesAsync(CancellationToken cancellationToken = default);
+
+    Task<PagedResult<Payment>> GetAllAsync(
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default);
 }
 
