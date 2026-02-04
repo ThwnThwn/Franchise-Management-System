@@ -4,6 +4,7 @@ using InventoryService.Grpc.Protos.Inventory.Internal;
 using MediatR;
 using SalesService.API;
 using SalesService.Application.Features.Orders.Commands.Create;
+using SalesService.Application.Features.Orders.Commands.Update;
 using SalesService.Application.Features.Orders.Commands.UpdateOrderStatus;
 using SalesService.Application.Features.Orders.GetById;
 using SalesService.Application.Features.Orders.Queries.GetMyOrders;
@@ -242,5 +243,45 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             Message = resultMessage
         };
     }
+    public override async Task<UpdateOrderReply> UpdateOrder(UpdateOrderRequest request,ServerCallContext context)
+    {
 
+        var command = new UpdateOrderCommand(new UpdateOrderReq
+        {
+            OrderId = Guid.Parse(request.OrderId),
+
+            Items = request.Items.Select(x => new Application.Features.Orders.Commands.Update.OrderItem
+            {
+                Sku = x.Sku,
+                Quantity = x.Quantity
+            }).ToList()
+        });
+        var result = await _mediator.Send(command);
+        var reply = new UpdateOrderReply
+        {
+            OrderId = result.OrderId.ToString(),
+            OrderCode = result.OrderCode ?? "",
+            TotalAmount = (double)(result.TotalAmount ?? 0),
+
+            StockCheck = new CheckEnoughStockResponse
+            {
+                IsEnough = result.CheckEnoughStockRes.IsEnough
+            }
+        };
+
+        // Add shortage items if any
+        if (result.CheckEnoughStockRes.ShortageItems != null)
+        {
+            reply.StockCheck.ShortageItems.AddRange(
+                result.CheckEnoughStockRes.ShortageItems.Select(x =>
+                    new ShortageItem
+                    {
+                        VariantId = x.VariantId.ToString(),
+                        MaxFeasibleQuantity = x.Amount
+                    })
+            );
+        }
+
+        return reply;
+    }
 }

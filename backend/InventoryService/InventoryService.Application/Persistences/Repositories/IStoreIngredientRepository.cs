@@ -19,10 +19,12 @@ namespace InventoryService.Application.Persistences.Repositories
         Task<PagedResult<StoreIngredient>> GetPagedStockAsync(IEnumerable<Guid>? storeIds, IEnumerable<Guid>? categoryIds, StockStatus? stockStatus, IEnumerable<Guid>? ingredientIds, int pageIndex, int pageSize, CancellationToken cancellationToken);
         Task<DecreaseStockResult?> DecreaseStockAtomicallyAsync(Guid storeId, Guid ingredientId, decimal amount);
         
+        
         // Queue operations
         Task AddToQueueAsync(IngredientQueue queueItem);
         Task AddToQueueBatchAsync(IEnumerable<IngredientQueue> queueItems);
         Task RemoveQueueByOrderIdAsync(Guid orderId);
         Task<decimal> GetReservedQuantityAsync(Guid storeId, Guid ingredientId);
+        Task<List<IngredientQueue>> GetQueueByOrderIdAsync( Guid orderId,CancellationToken cancellationToken);
     }
 }

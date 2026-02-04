@@ -35,11 +35,25 @@ namespace SalesService.Infrastructure.Interceptor
             var now = DateTimeOffset.UtcNow;
             var modifiedEntities = context.ChangeTracker
                 .Entries()
-                .Where(e => e.State == EntityState.Modified && e.Entity is IEntity);
+                .Where(e =>
+                    e.Entity is IEntity &&
+                    e.State != EntityState.Deleted);
+
 
             foreach (var entry in modifiedEntities)
             {
-                ((IEntity)entry.Entity).UpdatedAt = now;
+
+                var entity = (IEntity)entry.Entity;
+                if (entry.State == EntityState.Deleted)
+                    continue;
+                // Always update UpdatedAt for Modified + Added
+                entity.UpdatedAt = now;
+
+                // If newly added, also set CreatedAt
+                if (entry.State == EntityState.Added)
+                {
+                    entity.CreatedAt = now;
+                }
             }
         }
     }
