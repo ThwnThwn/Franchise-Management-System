@@ -3,24 +3,27 @@ using NotificationService.Application.Abstractions;
 using NotificationService.Domain.Entities;
 using NotificationService.Domain.Enums;
 using SharedKernel.Events;
+using SharedKernel.Infrastructure.Kafka;
 using System.Text.Json;
-namespace NotificationService.Application.Handlers;
+
+namespace NotificationService.Application.EventHandlers;
+
 /// <summary>
 /// Xử lý sự kiện "Đơn hàng mới" (OrderCreatedEvent).
 /// Nhiệm vụ chính: Lấy email khách hàng (nếu thiếu) và gửi email xác nhận.
 /// </summary>
-public class OrderNotificationHandler
+public class OrderCreatedHandler : IIntegrationEventHandler<OrderCreatedEvent>
 {
     private readonly IEmailSender _emailSender;
     private readonly INotificationRepository _repository;
     private readonly Application.ExternalServices.IIdentityServiceClient _identityServiceClient;
-    private readonly ILogger<OrderNotificationHandler> _logger;
+    private readonly ILogger<OrderCreatedHandler> _logger;
 
-    public OrderNotificationHandler(
+    public OrderCreatedHandler(
         IEmailSender emailSender,
         INotificationRepository repository,
         Application.ExternalServices.IIdentityServiceClient identityServiceClient,
-        ILogger<OrderNotificationHandler> logger)
+        ILogger<OrderCreatedHandler> logger)
     {
         _emailSender = emailSender;
         _repository = repository;
@@ -35,10 +38,9 @@ public class OrderNotificationHandler
     /// 3. Gửi Email.
     /// 4. Cập nhật trạng thái log.
     /// </summary>
-    public async Task HandleAsync(OrderCreatedEvent @event)
+    public async Task Handle(OrderCreatedEvent @event)
     {
         // 0. Idempotency Check (Chống trùng lặp)
-        // Nếu đã xử lý OrderId này rồi thì bỏ qua ngay lập tức.
         if (await _repository.HasProcessedAsync(@event.OrderId.ToString()))
         {
             _logger.LogWarning("Duplicate event detected for OrderId: {OrderId}. Skipping.", @event.OrderId);

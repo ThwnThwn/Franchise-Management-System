@@ -137,6 +137,15 @@ public class Program
         // Register IdentityService gRPC client
         builder.Services.AddSingleton<IIdentityServiceClient, IdentityServiceClient>();
 
+        // Register Kafka Producer Registry
+        builder.Services.AddSingleton<KafkaProducerRegistry>(sp => {
+            var registry = new KafkaProducerRegistry();
+            registry.Register<SharedKernel.Events.OrderCreatedEvent>(SharedKernel.Constants.KafkaTopics.OrderNotifications, "OrderCreatedEvent");
+            registry.Register<SharedKernel.Events.OrderPaidEvent>(SharedKernel.Constants.KafkaTopics.OrderPaid, SharedKernel.Constants.KafkaTopics.OrderPaid);
+            registry.Register<SharedKernel.Events.OrderCancelledEvent>(SharedKernel.Constants.KafkaTopics.OrderCancelled, SharedKernel.Constants.KafkaTopics.OrderCancelled);
+            return registry;
+        });
+
         // Register Kafka Producer
         builder.Services.AddSingleton<IKafkaProducer, KafkaProducer>();
 

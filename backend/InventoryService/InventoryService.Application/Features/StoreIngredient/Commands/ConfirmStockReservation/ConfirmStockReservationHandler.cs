@@ -1,10 +1,10 @@
+using System.Text.Json;
+using InventoryService.Application.Abstractions;
 using InventoryService.Application.Persistences.Repositories;
+using InventoryService.Application.Signals;
+using InventoryService.Domain.Entities;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace InventoryService.Application.Features.StoreIngredient.Commands.ConfirmStockReservation
 {
@@ -15,15 +15,24 @@ namespace InventoryService.Application.Features.StoreIngredient.Commands.Confirm
     {
         private readonly IStoreIngredientRepository _storeIngredientRepo;
         private readonly IRecipeRepository _recipeRepo;
+        private readonly IOutboxRepository _outboxRepository;
+        private readonly IOutboxSignal _outboxSignal;
+        private readonly IInventoryDbContext _dbContext;
         private readonly ILogger<ConfirmStockReservationHandler> _logger;
 
         public ConfirmStockReservationHandler(
             IStoreIngredientRepository storeIngredientRepo,
             IRecipeRepository recipeRepo,
+            IOutboxRepository outboxRepository,
+            IOutboxSignal outboxSignal,
+            IInventoryDbContext dbContext,
             ILogger<ConfirmStockReservationHandler> logger)
         {
             _storeIngredientRepo = storeIngredientRepo;
             _recipeRepo = recipeRepo;
+            _outboxRepository = outboxRepository;
+            _outboxSignal = outboxSignal;
+            _dbContext = dbContext;
             _logger = logger;
         }
 
@@ -45,6 +54,8 @@ namespace InventoryService.Application.Features.StoreIngredient.Commands.Confirm
                     .ToDictionary(g => g.Key, g => g.ToList())
                     ?? new Dictionary<Guid, List<Domain.Entities.Recipe>>();
 
+                bool lowStockDetected = false;
+
                 foreach (var item in request.Items)
                 {
                     if (recipeLookup.TryGetValue(item.VariantId, out var recipes))
@@ -52,16 +63,52 @@ namespace InventoryService.Application.Features.StoreIngredient.Commands.Confirm
                         foreach (var recipe in recipes)
                         {
                             var amountToDeduct = recipe.Quantity * item.Quantity;
-                            await _storeIngredientRepo.DecreaseStockAtomicallyAsync(
+                            var result = await _storeIngredientRepo.DecreaseStockAtomicallyAsync(
                                 request.StoreId,
                                 recipe.IngredientId,
                                 amountToDeduct);
+
+                            if (result != null)
+                            {
+                                // Check Low Stock
+                                if (result.Quantity < (result.MinThreshold ?? 0))
+                                {
+                                    _logger.LogInformation("Low stock detected for Ingredient {IngredientId}. Adding to Outbox...", recipe.IngredientId);
+
+                                    var lowStockPayload = new
+                                    {
+                                        StoreId = request.StoreId,
+                                        IngredientId = recipe.IngredientId,
+                                        //IngredientName = result.Ingredient?.Name ?? "Unknown",
+                                        CurrentStock = result.Quantity,
+                                        MinThreshold = result.MinThreshold ?? 0,
+                                    };
+
+                                    var outboxMessage = new OutboxMessage
+                                    {
+                                        Id = Guid.NewGuid(),
+                                        Type = "LowStockDetected",
+                                        Content = JsonSerializer.Serialize(lowStockPayload),
+                                        OccurredOn = DateTime.UtcNow
+                                    };
+
+                                    _outboxRepository.Add(outboxMessage);
+                                    lowStockDetected = true;
+                                }
+                            }
                         }
                     }
                     else
                     {
                         _logger.LogWarning("Không tìm thấy công thức cho VariantId {VariantId}", item.VariantId);
                     }
+                }
+
+                // 3. Save Outbox Messages
+                if (lowStockDetected)
+                {
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                    _outboxSignal.Pulse();
                 }
 
                 _logger.LogInformation("Hoàn tất Confirm Stock Reservation cho Order {OrderId}", request.OrderId);
