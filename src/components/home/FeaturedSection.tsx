@@ -1,15 +1,55 @@
 "use client"
 
 import React, { useEffect, useState } from "react"
-import Image from "next/image"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { productApi } from "@/features/menu/services/productApi"
 import { Product } from "@/features/menu/models/products/respone"
+import { ProductCard, ProductVariantsModal, StoreSelectionModal } from "@/features/menu/components"
+import { useDisclosure } from "@heroui/react"
+import { useLoginDiscloresureSingleton, useTokenStore } from "@/hooks"
+import { StoreDetailDto } from "@/features/stores/models/schema/response"
+import { useCartStore } from "@/features/cart/store"
 
 export default function FeaturedSection() {
     const [featuredItems, setFeaturedItems] = useState<Product[]>([])
     const [isLoading, setIsLoading] = useState(true)
+
+    // Modal & Product Logic
+    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+    const [selectedStore, setSelectedStore] = useState<StoreDetailDto | null>(null)
+    const setStoreId = useCartStore((s) => s.setStoreId)
+
+    const { isOpen, onOpen, onOpenChange } = useDisclosure()
+    const {
+        isOpen: isStoreModalOpen,
+        onOpen: onOpenStoreModal,
+        onOpenChange: onStoreModalOpenChange
+    } = useDisclosure({ defaultOpen: false })
+
+    const { onOpen: onOpenLogin } = useLoginDiscloresureSingleton()
+    const isLogined = useTokenStore((s) => !!s.accessToken)
+
+    useEffect(() => {
+        if (selectedStore) {
+            setStoreId(selectedStore.id)
+        }
+    }, [selectedStore, setStoreId])
+
+    const handleOpenProduct = (product: Product) => {
+        if (!isLogined) {
+            onOpenLogin()
+        } else if (!selectedStore) {
+            // Need to check specific logic: typically we check if we have a storeId in cartStore? 
+            // For now, follow MenuPage: force local selection if not set.
+            // But we don't have initial 'selectedStore' from cart store here. 
+            // Simplification: Ask user to select store if local state is null.
+            onOpenStoreModal()
+        } else {
+            setSelectedProduct(product)
+            onOpen()
+        }
+    }
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -63,36 +103,9 @@ export default function FeaturedSection() {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ delay: index * 0.1 }}
-                            className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden"
                         >
-                            <div className="relative h-64 w-full overflow-hidden">
-                                <Image
-                                    src={
-                                        item.imageUrl ||
-                                        "https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=1000&auto=format&fit=crop"
-                                    }
-                                    alt={item.name}
-                                    fill
-                                    className="object-cover transform group-hover:scale-110 transition-transform duration-500"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-6">
-                                    <Link href="/menu">
-                                        <span className="px-6 py-2 bg-yellow-500 text-black font-semibold rounded-full hover:bg-yellow-400 transition-colors">
-                                            Đặt ngay
-                                        </span>
-                                    </Link>
-                                </div>
-                            </div>
-                            <div className="p-6 text-center">
-                                <h3 className="text-xl font-bold text-gray-900 mb-2 truncate">
-                                    {item.name}
-                                </h3>
-                                <p className="text-gray-500 text-sm line-clamp-2 mb-4">
-                                    {item.description}
-                                </p>
-                                <div className="text-yellow-600 font-bold text-lg">
-                                    {item.sizes?.[0]?.basePrice?.toLocaleString() ?? "N/A"}đ
-                                </div>
+                            <div onClick={() => handleOpenProduct(item)} className="cursor-pointer">
+                                <ProductCard getProductListItemDto={item} />
                             </div>
                         </motion.div>
                     ))}
@@ -105,6 +118,22 @@ export default function FeaturedSection() {
                         </button>
                     </Link>
                 </div>
+
+                {/* Modals */}
+                <ProductVariantsModal
+                    product={selectedProduct}
+                    isOpen={isOpen}
+                    onOpenChange={onOpenChange}
+                    storeId={selectedStore?.id}
+                />
+
+                <StoreSelectionModal
+                    isOpen={isStoreModalOpen}
+                    onOpenChange={onStoreModalOpenChange}
+                    onStoreSelect={(store) => {
+                        setSelectedStore(store)
+                    }}
+                />
             </div>
         </section>
     )

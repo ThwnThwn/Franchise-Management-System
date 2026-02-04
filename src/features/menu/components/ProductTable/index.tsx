@@ -35,6 +35,7 @@ export function ProductTable({
     onDelete,
     isRefetching = false
 }: ProductTableProps) {
+
     // --- HELPERS ---
     // 1. Tính khoảng giá: Tìm giá thấp nhất và cao nhất trong danh sách sizes
     const getPriceDisplay = (sizes: ProductSize[]) => {
