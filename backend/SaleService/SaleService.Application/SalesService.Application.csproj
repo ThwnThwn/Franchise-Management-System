@@ -24,6 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Features\WalletTransactions\" />
     <Folder Include="Mapping\CartItem\" />
   </ItemGroup>
 

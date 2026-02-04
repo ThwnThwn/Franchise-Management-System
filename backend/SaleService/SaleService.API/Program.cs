@@ -28,6 +28,8 @@ using SalesService.Infrastructure.Repositories.Orders;
 using SalesService.Infrastructure.Repositories.Outbox;
 using SalesService.Infrastructure.Repositories.Payments;
 using SalesService.Infrastructure.Signals;
+using SalesService.Application.Persisitences.Wallets;
+using SalesService.Infrastructure.Repositories;
 using SharedKernel.Infrastructure.Kafka;
 
 namespace SalesService.API;
@@ -133,6 +135,7 @@ public class Program
         builder.Services.AddScoped<IOutboxRepository, OutboxRepository>();
         builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
         builder.Services.AddScoped<ICartItemRepository, CartItemRepository>();
+        builder.Services.AddScoped<IWalletRepository, WalletRepository>();
 
         // Register ProductService gRPC client
         builder.Services.AddSingleton<IProductServiceClient, ProductServiceClient>();
