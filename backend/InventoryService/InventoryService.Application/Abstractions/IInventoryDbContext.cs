@@ -18,6 +18,7 @@ namespace InventoryService.Application.Abstractions
         DbSet<Recipe> Recipes { get; set; }
 
         DbSet<StoreIngredient> StoreIngredients { get; set; }
+        DbSet<IngredientQueue> IngredientQueues { get; set; }
         DbSet<OutboxMessage> OutboxMessages { get; set; }
 
         DatabaseFacade Database { get; }

@@ -1,12 +1,14 @@
 using AutoMapper;
 using Grpc.Core;
+using InventoryService.Grpc.Protos.Inventory.Internal;
 using MediatR;
 using SalesService.API;
-using SalesService.Application.Features.Orders.GetById;
-using System;
 using SalesService.Application.Features.Orders.Commands.Create;
+using SalesService.Application.Features.Orders.Commands.UpdateOrderStatus;
+using SalesService.Application.Features.Orders.GetById;
 using SalesService.Application.Features.Orders.Queries.GetMyOrders;
-using InventoryService.Grpc.Protos.Inventory.Internal;
+using SalesService.Domain.Enums;
+using System;
 
 namespace SalesService.API.Services.Orders;
 
@@ -210,5 +212,35 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
         return reply;
     }
 
+    public override async Task<UpdateOrderStatusReply> UpdateOrderStatus(UpdateOrderStatusRequest request,ServerCallContext context)
+    {
+        //Validate orderId
+        if (!Guid.TryParse(request.OrderId, out var orderId))
+        {
+            throw new RpcException(new Status(StatusCode.InvalidArgument,"Invalid OrderId"));
+        }
+
+        //Validate status string → enum
+        if (!Enum.TryParse<OrderStatus>(request.Status, true, out var newStatus))
+        {
+            throw new RpcException(new Status(StatusCode.InvalidArgument,"Invalid status value"));
+        }
+
+        //Send MediatR command
+        var command = new UpdateOrderStatusCommand(
+            new UpdateOrderStatusReq
+            {
+                OrderId = orderId,
+                Status = newStatus
+            }
+        );
+
+        var resultMessage = await _mediator.Send(command, context.CancellationToken);
+
+        return new UpdateOrderStatusReply
+        {
+            Message = resultMessage
+        };
+    }
 
 }

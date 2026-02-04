@@ -11,7 +11,9 @@ service PaymentGrpc {
 
 message CreateVnPayPaymentUrlRequest {
   string order_id = 1;
+  string return_url = 2;  // Optional: custom return URL after payment
 }
+
 
 message CreateVnPayPaymentUrlReply {
   string payment_url = 1;

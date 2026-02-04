@@ -36,4 +36,19 @@ public class IdentityServiceClient : IIdentityServiceClient
             return string.Empty;
         }
     }
+
+    public async Task<string> GetManagerEmailByStoreIdAsync(Guid storeId)
+    {
+        try
+        {
+            var request = new GetManagerRequest { Id = storeId.ToString() };
+            var response = await _client.GetManagerAsync(request);
+            return response.Email;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get manager email for Store {StoreId} from IdentityService", storeId);
+            return string.Empty;
+        }
+    }
 }

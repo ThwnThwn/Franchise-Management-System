@@ -4,6 +4,7 @@ import (
 	"api-gateway/config"
 	"api-gateway/internal/api/handlers"
 	"api-gateway/internal/api/middleware"
+	"api-gateway/internal/application/abstractions"
 	"api-gateway/internal/domain/constants/roleslug"
 
 	"github.com/gin-gonic/gin"
@@ -15,12 +16,13 @@ func (u *UserRouter) NewUserRouter(cfg *config.Config,
 	r *gin.RouterGroup,
 	userHander *handlers.UserHandler,
 	shiftHandler *handlers.ShiftHandler,
+	blackListUC abstractions.IBlacklistUseCase,
 ) {
 	userApi := r.Group("/users")
 
 	accessTokenSecret := cfg.JwtSecret
 	privateApi := userApi.Group("")
-	privateApi.Use(middleware.ValidateToken([]byte(accessTokenSecret)))
+	privateApi.Use(middleware.ValidateToken(blackListUC, []byte(accessTokenSecret)))
 	{
 		privateApi.GET("/me", userHander.GetMe)
 		privateApi.PATCH("/me", userHander.UpdateMe)

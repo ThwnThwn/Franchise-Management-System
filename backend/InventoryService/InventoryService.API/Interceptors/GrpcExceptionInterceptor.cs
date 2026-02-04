@@ -1,9 +1,8 @@
-﻿using FluentValidation;
+﻿
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 using InventoryService.Application.AppExceptions;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting; // Thêm namespace này để check môi trường
+using Sprache; // Thêm namespace này để check môi trường
 
 namespace InventoryService.API.Interceptors;
 
@@ -27,17 +26,22 @@ public class GrpcExceptionInterceptor : Interceptor
         {
             return await continuation(request, context);
         }
-        catch (ValidationException ex)
+        // Sử dụng tên đầy đủ để không bị nhầm với bất kỳ class nào khác
+        catch (FluentValidation.ValidationException ex)
         {
-            // Trả về Metadata để Postman hiển thị ở tab Trailers/Metadata
             var metadata = new Metadata();
             foreach (var error in ex.Errors)
             {
-                metadata.Add($"error-{error.PropertyName.ToLower()}", error.ErrorMessage);
+                // KHÔNG đưa Message tiếng Việt vào Key hoặc Value của Metadata nếu không dùng hậu tố -bin
+                // Cách tốt nhất: Chỉ đưa PropertyName vào Metadata để Client biết lỗi ở đâu
+                var key = $"error-{error.PropertyName.ToLower().Replace(".", "-")}";
+                metadata.Add(key, "validation_failed"); // Dùng code tiếng Anh đơn giản ở đây
             }
 
-            var msg = "Validation failed: " + string.Join(", ", ex.Errors.Select(x => x.ErrorMessage));
-            throw new RpcException(new Status(StatusCode.InvalidArgument, msg), metadata);
+            // Tiếng Việt có dấu chỉ nên để ở phần Status Message (gRPC hỗ trợ UTF-8 ở đây)
+            var detail = "Dữ liệu không hợp lệ: " + string.Join(", ", ex.Errors.Select(x => x.ErrorMessage));
+
+            throw new RpcException(new Status(StatusCode.InvalidArgument, detail), metadata);
         }
         catch (BusinessException ex)
         {
@@ -57,7 +61,7 @@ public class GrpcExceptionInterceptor : Interceptor
         {
             throw new RpcException(new Status(StatusCode.NotFound, ex.Message));
         }
-        catch (Application.AppExceptions.DbUpdateException ex)
+        catch (DbUpdateException ex)
         {
             _logger.LogError(ex, "Database error");
             // Trả về thông báo chi tiết hơn nếu là dev
@@ -67,6 +71,10 @@ public class GrpcExceptionInterceptor : Interceptor
         catch (OperationCanceledException)
         {
             throw new RpcException(new Status(StatusCode.DeadlineExceeded, "Request was cancelled or timed out"));
+        }
+        catch (ParseException ex)
+        {
+            throw new RpcException(new Status(StatusCode.InvalidArgument, $"Parsing error: {ex.Message}"));
         }
         catch (RpcException)
         {

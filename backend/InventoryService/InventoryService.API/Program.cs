@@ -2,24 +2,27 @@ using AutoMapper;
 using DotNetEnv;
 using InventoryService.API.Middleware;
 using InventoryService.API.Services.Identity;
-using InventoryService.API.Services.Inventory;
 using InventoryService.Application.ClientInterface.Indentity;
 using InventoryService.Application.Constants;
 using InventoryService.Application.DependencyInjection;
-using InventoryService.Application.Abstractions;
 using InventoryService.Infrastructure.ApplicationDbContext; // Added back for concrete class
 using InventoryService.Infrastructure.Interceptor;
 using InventoryService.Application.Persistences.Repositories;
 using InventoryService.Infrastructure.Persistences.Repositories;
 
-using InventoryService.Application.ExternalServices;
-using InventoryService.Infrastructure.ExternalServices;
-using InventoryService.Application.Signals; 
+//using InventoryService.Application.ExternalServices;
+//using InventoryService.Infrastructure.ExternalServices;
+using InventoryService.Application.Signals;
+using SharedKernel.Infrastructure.Kafka;
+using InventoryService.Application.Signals;
 using InventoryService.Infrastructure.Signals;
 
 using InventoryService.API.BackgroundJobs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics.Internal;
+using InventoryService.API.Services.Inventory;
+using InventoryService.Application.Abstractions;
+using InventoryService.API.Services.IngredientCategory;
 
 namespace InventoryService.API
 {
@@ -118,7 +121,7 @@ namespace InventoryService.API
             //builder.Services.AddSingleton<IProductServiceClient, ProductServiceClient>();
 
             // Register GlobalExceptionHandlerMiddleware
-            builder.Services.AddSingleton<GlobalExceptionHandlerMiddleware>();
+            //builder.Services.AddSingleton<GlobalExceptionHandlerMiddleware>();
 
             // Register gRPC Exception Interceptor
             builder.Services.AddSingleton<Interceptors.GrpcExceptionInterceptor>();
@@ -139,7 +142,7 @@ namespace InventoryService.API
             builder.Services.AddScoped<IStoreIngredientRepository, StoreIngredientRepository>();
             builder.Services.AddScoped<IIngredientRepository, IngredientRepository>();
             builder.Services.AddScoped<IRecipeRepository, RecipeRepository>();
-
+            builder.Services.AddScoped<IIngredientCategoryRepository, IngredientCategoryRepository>();
             //add client
             builder.Services.AddScoped<IIdentityServiceClient, IdentityServiceClient>();
             // Kafka Producer
@@ -149,6 +152,10 @@ namespace InventoryService.API
             builder.Services.AddScoped<IOutboxRepository, OutboxRepository>();
             builder.Services.AddSingleton<IOutboxSignal, OutboxSignal>();
             builder.Services.AddHostedService<API.BackgroundJobs.InventoryOutboxWorker>();
+            // Kafka Consumer
+            builder.Services.AddHostedService<InventoryService.API.Consumers.OrderEventConsumer>();
+
+            builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
             var app = builder.Build();
 
@@ -165,13 +172,15 @@ namespace InventoryService.API
             app.UseCors();
 
             // Add global exception handler middleware
-            app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+            //app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
             app.UseAuthorization();
 
             app.MapControllers();
             app.MapGrpcService<InventoryGrpcService>();
             app.MapGrpcService<InventoryInternalService>();
+            app.MapGrpcService<IngredientGrpcService>();
+            app.MapGrpcService<CategoryGrpcService>();
             app.MapGrpcReflectionService(); // Enable gRPC Server Reflection endpoint
             app.MapGet("/", () => "Sale Service API is running. Visit /swagger for API documentation.");
 

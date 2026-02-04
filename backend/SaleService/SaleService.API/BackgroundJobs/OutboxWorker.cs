@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using SaleService.Application.ExternalServices;
+using SharedKernel.Infrastructure.Kafka;
+using SharedKernel.Constants;
 using SalesService.Infrastructure.ApplicationDbContext;
 using SharedKernel.Events;
 using System.Text.Json;
@@ -62,7 +63,9 @@ public class OutboxWorker : BackgroundService
             {
                 string topic = message.Type switch
                 {
-                    "OrderCreatedEvent" => "order-notifications",
+                    "OrderCreatedEvent" => KafkaTopics.OrderNotifications,
+                    KafkaTopics.OrderPaid => KafkaTopics.OrderPaid,
+                    KafkaTopics.OrderCancelled => KafkaTopics.OrderCancelled,
                     _ => "default-topic"
                 };
 
@@ -74,6 +77,24 @@ public class OutboxWorker : BackgroundService
                          await kafkaProducer.PublishAsync(topic, payload);
                          _logger.LogInformation("OutboxWorker published message {MessageId} to {Topic}", message.Id, topic);
                      }
+                }
+                else if (message.Type == KafkaTopics.OrderPaid)
+                {
+                    var payload = JsonSerializer.Deserialize<OrderPaidEvent>(message.Content);
+                    if (payload != null)
+                    {
+                        await kafkaProducer.PublishAsync(topic, payload);
+                        _logger.LogInformation("OutboxWorker published OrderPaidEvent {MessageId} to {Topic}", message.Id, topic);
+                    }
+                }
+                else if (message.Type == KafkaTopics.OrderCancelled)
+                {
+                    var payload = JsonSerializer.Deserialize<OrderCancelledEvent>(message.Content);
+                    if (payload != null)
+                    {
+                        await kafkaProducer.PublishAsync(topic, payload);
+                        _logger.LogInformation("OutboxWorker published OrderCancelledEvent {MessageId} to {Topic}", message.Id, topic);
+                    }
                 }
                 else 
                 {

@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using MediatR;
 using SalesService.Application.Features.Payments.VnPayReturn;
-using SalesService.Application.Features.Payments.CreateVnPayUrl;
+using SalesService.Application.Features.Payments.CreatePayment;
 
 namespace SalesService.API.Controllers;
 
@@ -24,11 +24,18 @@ public class VnPayController : ControllerBase
     /// <returns></returns>
 
     [HttpPost("{id:guid}/payments/vnpay-url")]
-    public async Task<ActionResult<CreateVnPayUrlResponse>> CreateVnPayUrl(
+    public async Task<ActionResult<PaymentResponse>> CreateVnPayUrl(
         Guid id,
         CancellationToken ct)
     {
-        var command = new CreateVnPayUrlCommand(id);
+        var command = new CreatePaymentCommand
+            (
+            new CreatePaymentReq
+            {
+                OrderId = id,
+                PaymentMethod = Domain.Enums.PaymentMethod.VNPay
+            }
+            );
         var result = await _mediator.Send(command, ct);
 
         if (result.IsSuccess)
@@ -56,17 +63,28 @@ public class VnPayController : ControllerBase
         var cmd = new VnPayReturnCommand(queryDict);
         var result = await _mediator.Send(cmd, ct);
 
-        if (result.IsSuccess)
+        // Get client return URL from configuration
+        var clientUrl = HttpContext.RequestServices
+            .GetService<IConfiguration>()?
+            .GetSection("VNPay")["ClientReturnUrl"];
+            
+        var targetUrl = clientUrl ?? "http://localhost:3000/payment/result";
+
+        // Forward all VNPay query params to client URL
+        var queryString = HttpContext.Request.QueryString.Value ?? "";
+        
+        // Determine payment status
+        string paymentStatus = "failed";
+        if (result.IsSuccess && result.Value != null)
         {
-            return Ok(result.Value);
+            paymentStatus = result.Value.Success ? "success" : "failed";
         }
 
-        return result.Status switch
-        {
-            Ardalis.Result.ResultStatus.NotFound => NotFound(result.Errors),
-            Ardalis.Result.ResultStatus.Invalid => BadRequest(result.ValidationErrors),
-            _ => StatusCode(500, result.Errors)
-        };
+        // Append payment_status to query string
+        var separator = queryString.Contains("?") ? "&" : "?";
+        var redirectUrl = $"{targetUrl}{queryString}{separator}payment_status={paymentStatus}";
+
+        return Redirect(redirectUrl);
     }
 }
 

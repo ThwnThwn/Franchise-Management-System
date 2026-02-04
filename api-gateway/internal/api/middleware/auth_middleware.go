@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"api-gateway/internal/application/abstractions"
 	"api-gateway/internal/application/constants/errorcode"
 	"api-gateway/internal/domain/constants/jwttype"
 	"api-gateway/pkg/utils/jwtutils"
@@ -10,7 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func ValidateToken(secret []byte) gin.HandlerFunc {
+func ValidateToken(blackListUC abstractions.IBlacklistUseCase, secret []byte) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
@@ -28,6 +29,14 @@ func ValidateToken(secret []byte) gin.HandlerFunc {
 		token := strings.TrimPrefix(authHeader, "Bearer ")
 		claims, err := jwtutils.ValidateToken(secret, token, jwttype.AccessToken)
 		if err != nil {
+			c.Error(errorcode.ErrInvalidAccessToken)
+			c.Abort()
+			return
+		}
+
+		ctx := c.Request.Context()
+		isRevoked, _ := blackListUC.IsInBlacklist(ctx, token)
+		if isRevoked {
 			c.Error(errorcode.ErrInvalidAccessToken)
 			c.Abort()
 			return

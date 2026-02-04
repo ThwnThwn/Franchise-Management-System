@@ -1,8 +1,9 @@
-﻿using IdentityService.Application.ExternalServices;
-using IdentityService.Application.Persistences.Caches;
+﻿using IdentityService.Application.Persistences.Caches;
 using IdentityService.Application.Persistences.Repositories;
+using IdentityService.Application.ExternalServices;
 using IdentityService.Infrastructure.ApplicationDbContext;
 using IdentityService.Infrastructure.ExternalServices;
+using SharedKernel.Infrastructure.Kafka;
 using IdentityService.Infrastructure.Interceptor;
 using IdentityService.Infrastructure.Persistences.Cache;
 using IdentityService.Infrastructure.Persistences.Repositories;

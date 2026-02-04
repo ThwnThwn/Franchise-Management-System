@@ -8,6 +8,18 @@ package inventory.internal;
 service InventoryInternalGrpc {
   rpc DecreaseStockByOrder(DecreaseStockByOrderRequest) returns (DecreaseStockByOrderResponse);
   rpc CheckEnoughStock(CheckEnoughStockRequest) returns (CheckEnoughStockResponse);
+  rpc ReserveStock(ReserveStockRequest) returns (ReserveStockResponse);
+}
+
+message ReserveStockRequest {
+  string store_id = 1;
+  string order_id = 2;
+  repeated AmountVariant items = 3;
+}
+
+message ReserveStockResponse {
+  bool success = 1;
+  string message = 2; // e.g., "Out of stock"
 }
 
 message DecreaseStockByOrderRequest{

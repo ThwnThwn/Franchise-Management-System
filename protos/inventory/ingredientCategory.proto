@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+option csharp_namespace = "InventoryService.Grpc.Protos.IngredientCategory";
+option go_package = "api-gateway/pkg/pb/inventory";
+
+package inventory;
+
+service IngredientCategoryGrpc {
+    // Hàm Create: Nhận CreateCategoryRequest, không trả ra dữ liệu (trả về Empty)
+    rpc CreateCategory (CreateCategoryRequest) returns (google.protobuf.Empty);
+
+    // Hàm Update: Nhận UpdateCategoryRequest, trả về Empty
+    rpc UpdateCategory (UpdateCategoryRequest) returns (google.protobuf.Empty);
+
+    // Hàm Get All: Không đầu vào (Empty), trả về danh sách CategoryViewRes
+    rpc GetAllCategories (google.protobuf.Empty) returns (GetAllCategoriesResponse);
+
+    // Hàm Delete: Nhận Id (string thay cho Guid), trả về Empty
+    rpc DeleteCategory (DeleteCategoryRequest) returns (google.protobuf.Empty);
+}
+
+// --- Messages ---
+
+message CreateCategoryRequest {
+    string name = 1;
+    // Dùng optional để hỗ trợ null cho Description
+    optional string description = 2;
+}
+
+message UpdateCategoryRequest {
+    // gRPC không có kiểu Guid, ta dùng string và parse sang Guid trong C#
+    string id = 1; 
+    optional string name = 2;
+    optional string description = 3;
+}
+
+message DeleteCategoryRequest {
+    string id = 1;
+}
+
+message CategoryViewRes {
+    string id = 1;
+    string name = 2;
+    optional string description = 3;
+}
+
+message GetAllCategoriesResponse {
+    // Trả ra một danh sách các CategoryViewRes
+    repeated CategoryViewRes categories = 1;
+}
