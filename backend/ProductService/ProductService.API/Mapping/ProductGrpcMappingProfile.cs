@@ -19,6 +19,15 @@ public class ProductGrpcMappingProfile : Profile
             .ForMember(d => d.Cost, opt => opt.MapFrom(s => (double)s.Cost))
             .ForMember(d => d.IsActive, opt => opt.MapFrom(s => s.IsActive));
 
+        CreateMap<ProductSizeListItemDto, ProductService.API.ProductSize>()
+            .ForMember(d => d.Id, opt => opt.MapFrom(s => s.Id.ToString()))
+            .ForMember(d => d.Sku, opt => opt.MapFrom(s => s.Sku ?? string.Empty))
+            .ForMember(d => d.Name, opt => opt.MapFrom(s => s.Name ?? string.Empty))
+            .ForMember(d => d.Attributes, opt => opt.MapFrom(s => s.Attributes ?? string.Empty))
+            .ForMember(d => d.BasePrice, opt => opt.MapFrom(s => (double)s.BasePrice))
+            .ForMember(d => d.Cost, opt => opt.MapFrom(s => (double)s.Cost))
+            .ForMember(d => d.IsActive, opt => opt.MapFrom(s => s.IsActive));
+
         CreateMap<GetProductListItemDto, Product>()
             .ForMember(d => d.Id, opt => opt.MapFrom(s => s.Id.ToString()))
             .ForMember(d => d.Name, opt => opt.MapFrom(s => s.Name ?? string.Empty))
