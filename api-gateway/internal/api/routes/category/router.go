@@ -4,7 +4,6 @@ import (
 	"api-gateway/config"
 	"api-gateway/internal/api/handlers"
 	"api-gateway/internal/api/middleware"
-	"api-gateway/internal/application/abstractions"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,7 +13,7 @@ type CategoryRouter struct{}
 func (a *CategoryRouter) NewCategoryRouter(cfg *config.Config,
 	r *gin.RouterGroup,
 	categoryHander *handlers.CategoryHandler,
-	blackListUC abstractions.IBlacklistUseCase,
+	authMW *middleware.AuthMiddleware,
 ) {
 	categoryApi := r.Group("/categories")
 	{
@@ -23,7 +22,7 @@ func (a *CategoryRouter) NewCategoryRouter(cfg *config.Config,
 
 	accessTokenSecret := cfg.JwtSecret
 	privateApi := categoryApi.Group("")
-	privateApi.Use(middleware.ValidateToken(blackListUC, []byte(accessTokenSecret)))
+	privateApi.Use(authMW.ValidateToken([]byte(accessTokenSecret)))
 	{
 	}
 }

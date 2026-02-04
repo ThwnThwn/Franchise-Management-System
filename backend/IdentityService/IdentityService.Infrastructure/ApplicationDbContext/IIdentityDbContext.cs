@@ -7,9 +7,13 @@ namespace IdentityService.Infrastructure.ApplicationDbContext
 {
     public interface IIdentityDbContext : IDisposable
     {
+        DbSet<Permission> Permissions { get; set; }
+
         DbSet<RefreshToken> RefreshTokens { get; set; }
 
         DbSet<Role> Roles { get; set; }
+
+        DbSet<RolePermission> RolePermissions { get; set; }
 
         DbSet<User> Users { get; set; }
 

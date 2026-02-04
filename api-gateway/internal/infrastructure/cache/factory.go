@@ -10,10 +10,11 @@ import (
 	"go.uber.org/zap"
 )
 
-func NewRedis(rCfg *config.Redis, logger logger.Interface) *redis.Client {
+func NewRedis(rCfg *config.Redis, db int, logger logger.Interface) *redis.Client {
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%v", rCfg.Host, rCfg.Port),
 		Password: rCfg.Password,
+		DB:       db,
 	})
 
 	ctx := context.Background()

@@ -4,7 +4,6 @@ import (
 	"api-gateway/config"
 	"api-gateway/internal/api/handlers"
 	"api-gateway/internal/api/middleware"
-	"api-gateway/internal/application/abstractions"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,7 +13,7 @@ type AuthRouter struct{}
 func (a *AuthRouter) NewAuthRouter(cfg *config.Config,
 	r *gin.RouterGroup,
 	authHander *handlers.AuthHandler,
-	blackListUC abstractions.IBlacklistUseCase,
+	authMW *middleware.AuthMiddleware,
 ) {
 	authApi := r.Group("/auth")
 	{
@@ -39,7 +38,7 @@ func (a *AuthRouter) NewAuthRouter(cfg *config.Config,
 
 	accessTokenSecret := cfg.JwtSecret
 	privateApi := authApi.Group("")
-	privateApi.Use(middleware.ValidateToken(blackListUC, []byte(accessTokenSecret)))
+	privateApi.Use(authMW.ValidateToken([]byte(accessTokenSecret)))
 	{
 		privateApi.POST("/logout", authHander.Logout)
 		privateApi.POST("/change-password", authHander.ChangePassword)
