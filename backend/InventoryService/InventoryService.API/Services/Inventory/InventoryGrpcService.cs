@@ -77,7 +77,7 @@ namespace InventoryService.API.Services.Inventory
                 StockStatus = (int)s.StockStatus,
 
                 // Map object lồng IngredientViewRes
-                IngredientViewRes = new Grpc.Protos.Inventory.IngredientViewRes
+                IngredientViewRes = new Grpc.Protos.Ingredient.IngredientViewRes
                 {
                     Id = s.Ingredient.Id.ToString(),
                     Name = s.Ingredient.Name,

@@ -103,6 +103,7 @@ namespace InventoryService.Infrastructure.Persistences.Repositories
                     if (dbItem != null)
                     {
                         dbItem.Quantity += increaseItem.Quantity;
+                        if (dbItem.Quantity < 0) dbItem.Quantity = 0;
                     }
                 }
 
