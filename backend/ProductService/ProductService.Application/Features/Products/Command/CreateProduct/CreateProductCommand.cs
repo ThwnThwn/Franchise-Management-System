@@ -2,19 +2,23 @@
 using MediatR;
 using static ProductService.Application.Features.Products.Command.CreateProduct.CreateProductCommand;
 
+using Microsoft.AspNetCore.Http;
+
 namespace ProductService.Application.Features.Products.Command.CreateProduct
 {
     public sealed record CreateProductCommand(CreateProductCommandRequest Request)
         : IRequest<Result<CreateProductCommandResponse>>
     {
-        public sealed record CreateProductCommandRequest(
-            string Name,
-            string? Description,
-            string? ImageUrl,
-            string? ImagePublicId,
-            Guid CategoryId,
-            List<CreateProductVariantRequest>? Variants
-        );
+        public sealed class CreateProductCommandRequest
+        {
+            public string Name { get; set; } = null!;
+            public string? Description { get; set; }
+            public string? ImageUrl { get; set; }
+            public string? ImagePublicId { get; set; }
+            public IFormFile? ImageFile { get; set; }
+            public Guid CategoryId { get; set; }
+            public List<CreateProductVariantRequest>? Variants { get; set; }
+        }
 
 
         public sealed class CreateProductVariantRequest
@@ -32,7 +36,7 @@ namespace ProductService.Application.Features.Products.Command.CreateProduct
             public Guid ProductId { get; set; }
             public string Name { get; set; } = default!;
             public string? Description { get; set; }
-            public string? ImageUrl { get; set; } 
+            public string? ImageUrl { get; set; }
             public string? ImagePublicId { get; set; }
             public bool? IsActive { get; set; }
             public Guid CategoryId { get; set; }

@@ -20,9 +20,11 @@ service ProductGrpc {
 
   rpc DeleteProduct (DeleteProductRequest) returns (DeleteProductReply);
 
+
   rpc GetProductsByKeyword (GetProductsByKeywordRequest)
     returns (GetProductsByKeywordReply);
 
+  rpc UploadImage (UploadImageRequest) returns (UploadImageReply);
 }
 
 message GetProductsRequest {
@@ -141,6 +143,7 @@ message ProductSize {
   double cost = 6;
   bool is_active = 7;
 }
+
 message GetProductsByKeywordRequest {
   optional string keyword = 1;
   optional string category_id = 2;
@@ -160,3 +163,13 @@ message GetProductsByKeywordReply {
   bool has_previous_page = 7;
 }
 
+message UploadImageRequest {
+  bytes image_data = 1;
+  string file_name = 2;
+  string content_type = 3;
+}
+
+message UploadImageReply {
+  string url = 1;
+  string public_id = 2;
+}
