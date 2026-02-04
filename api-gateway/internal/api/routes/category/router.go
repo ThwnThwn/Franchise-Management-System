@@ -13,6 +13,7 @@ type CategoryRouter struct{}
 func (a *CategoryRouter) NewCategoryRouter(cfg *config.Config,
 	r *gin.RouterGroup,
 	categoryHander *handlers.CategoryHandler,
+	authMW *middleware.AuthMiddleware,
 ) {
 	categoryApi := r.Group("/categories")
 	{
@@ -21,7 +22,7 @@ func (a *CategoryRouter) NewCategoryRouter(cfg *config.Config,
 
 	accessTokenSecret := cfg.JwtSecret
 	privateApi := categoryApi.Group("")
-	privateApi.Use(middleware.ValidateToken([]byte(accessTokenSecret)))
+	privateApi.Use(authMW.ValidateToken([]byte(accessTokenSecret)))
 	{
 	}
 }

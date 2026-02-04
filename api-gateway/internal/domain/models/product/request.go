@@ -1,7 +1,17 @@
 package product
 
+import (
+	"api-gateway/internal/domain/models/common"
+)
+
 type GetProductsRequest struct {
 	CategoryId string `form:"categoryId"`
+}
+
+type GetProductsByKeywordRequest struct {
+	common.PaginationQuery
+	Keyword    *string `form:"keyword"`
+	CategoryId *string `form:"categoryId"`
 }
 
 type CreateProductRequest struct {

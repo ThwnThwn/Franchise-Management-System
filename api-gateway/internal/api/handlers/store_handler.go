@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"api-gateway/internal/application/abstractions"
 	"api-gateway/internal/application/constants/errorcode"
+	"api-gateway/internal/application/gateways/franchise"
 	"api-gateway/internal/domain/models/store"
 	"net/http"
 
@@ -11,11 +11,11 @@ import (
 )
 
 type StoreHandler struct {
-	storeUC abstractions.IStoreUseCase
+	storeGW franchise.IStoreService
 }
 
-func NewStoreHandler(storeUC abstractions.IStoreUseCase) *StoreHandler {
-	return &StoreHandler{storeUC: storeUC}
+func NewStoreHandler(storeGW franchise.IStoreService) *StoreHandler {
+	return &StoreHandler{storeGW: storeGW}
 }
 
 func (h *StoreHandler) GetStores(c *gin.Context) {
@@ -26,7 +26,7 @@ func (h *StoreHandler) GetStores(c *gin.Context) {
 	}
 
 	ctx := c.Request.Context()
-	res, err := h.storeUC.GetStores(ctx, &req)
+	res, err := h.storeGW.GetStores(ctx, &req)
 	if err != nil {
 		c.Error(err)
 		return
@@ -44,7 +44,7 @@ func (h *StoreHandler) GetStoreDetail(c *gin.Context) {
 	}
 
 	ctx := c.Request.Context()
-	res, err := h.storeUC.GetStoreDetail(ctx, storeId)
+	res, err := h.storeGW.GetStoreDetail(ctx, storeId)
 	if err != nil {
 		c.Error(err)
 		return
@@ -61,7 +61,7 @@ func (h *StoreHandler) FindNearbyStores(c *gin.Context) {
 	}
 
 	ctx := c.Request.Context()
-	res, err := h.storeUC.FindNearbyStores(ctx, req)
+	res, err := h.storeGW.FindNearbyStores(ctx, req)
 	if err != nil {
 		c.Error(err)
 		return
@@ -79,7 +79,7 @@ func (h *StoreHandler) CheckStoreAvailability(c *gin.Context) {
 	}
 
 	ctx := c.Request.Context()
-	isAvailable, msg, err := h.storeUC.CheckStoreAvailability(ctx, storeId)
+	isAvailable, msg, err := h.storeGW.CheckStoreAvailability(ctx, storeId)
 	if err != nil {
 		c.Error(err)
 		return

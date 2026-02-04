@@ -28,6 +28,7 @@ type ProductGrpcClient interface {
 	CreateProduct(ctx context.Context, in *CreateProductRequest, opts ...grpc.CallOption) (*CreateProductReply, error)
 	UpdateProduct(ctx context.Context, in *UpdateProductRequest, opts ...grpc.CallOption) (*UpdateProductReply, error)
 	DeleteProduct(ctx context.Context, in *DeleteProductRequest, opts ...grpc.CallOption) (*DeleteProductReply, error)
+	GetProductsByKeyword(ctx context.Context, in *GetProductsByKeywordRequest, opts ...grpc.CallOption) (*GetProductsByKeywordReply, error)
 }
 
 type productGrpcClient struct {
@@ -92,6 +93,15 @@ func (c *productGrpcClient) DeleteProduct(ctx context.Context, in *DeleteProduct
 	return out, nil
 }
 
+func (c *productGrpcClient) GetProductsByKeyword(ctx context.Context, in *GetProductsByKeywordRequest, opts ...grpc.CallOption) (*GetProductsByKeywordReply, error) {
+	out := new(GetProductsByKeywordReply)
+	err := c.cc.Invoke(ctx, "/product.ProductGrpc/GetProductsByKeyword", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ProductGrpcServer is the server API for ProductGrpc service.
 // All implementations must embed UnimplementedProductGrpcServer
 // for forward compatibility
@@ -102,6 +112,7 @@ type ProductGrpcServer interface {
 	CreateProduct(context.Context, *CreateProductRequest) (*CreateProductReply, error)
 	UpdateProduct(context.Context, *UpdateProductRequest) (*UpdateProductReply, error)
 	DeleteProduct(context.Context, *DeleteProductRequest) (*DeleteProductReply, error)
+	GetProductsByKeyword(context.Context, *GetProductsByKeywordRequest) (*GetProductsByKeywordReply, error)
 	mustEmbedUnimplementedProductGrpcServer()
 }
 
@@ -126,6 +137,9 @@ func (UnimplementedProductGrpcServer) UpdateProduct(context.Context, *UpdateProd
 }
 func (UnimplementedProductGrpcServer) DeleteProduct(context.Context, *DeleteProductRequest) (*DeleteProductReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteProduct not implemented")
+}
+func (UnimplementedProductGrpcServer) GetProductsByKeyword(context.Context, *GetProductsByKeywordRequest) (*GetProductsByKeywordReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetProductsByKeyword not implemented")
 }
 func (UnimplementedProductGrpcServer) mustEmbedUnimplementedProductGrpcServer() {}
 
@@ -248,6 +262,24 @@ func _ProductGrpc_DeleteProduct_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProductGrpc_GetProductsByKeyword_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetProductsByKeywordRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductGrpcServer).GetProductsByKeyword(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/product.ProductGrpc/GetProductsByKeyword",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductGrpcServer).GetProductsByKeyword(ctx, req.(*GetProductsByKeywordRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ProductGrpc_ServiceDesc is the grpc.ServiceDesc for ProductGrpc service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -278,6 +310,10 @@ var ProductGrpc_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteProduct",
 			Handler:    _ProductGrpc_DeleteProduct_Handler,
+		},
+		{
+			MethodName: "GetProductsByKeyword",
+			Handler:    _ProductGrpc_GetProductsByKeyword_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

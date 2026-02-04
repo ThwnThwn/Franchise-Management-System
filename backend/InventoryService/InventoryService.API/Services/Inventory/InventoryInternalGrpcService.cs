@@ -2,6 +2,7 @@
 using InventoryService.Application.Features.StoreIngredient.Commands.CheckEnoughStock;
 using InventoryService.Application.Features.StoreIngredient.Commands.DecreaseStockByOrder;
 using InventoryService.Application.Features.StoreIngredient.Commands.IncreaseStock;
+using InventoryService.Application.Features.StoreIngredient.Commands.ReleaseStock;
 using InventoryService.Grpc.Protos.Inventory.Internal;
 using MediatR;
 
@@ -63,6 +64,44 @@ namespace InventoryService.API.Services.Inventory
             }));
 
             return new DecreaseStockByOrderResponse();
+        }
+
+        public override async Task<ReserveStockResponse> ReserveStock(ReserveStockRequest request, ServerCallContext context)
+        {
+            var command = new Application.Features.StoreIngredient.Commands.ReserveStock.ReserveStockCommand
+            {
+                StoreId = Guid.Parse(request.StoreId),
+                OrderId = Guid.Parse(request.OrderId),
+                Items = request.Items.Select(x => new Application.Dtos.StoreIngredient.AmountVariant
+                {
+                    VariantId = Guid.Parse(x.VariantId),
+                    Amount = x.Amount
+                }).ToList()
+            };
+
+            var result = await _mediator.Send(command);
+
+            return new ReserveStockResponse
+            {
+                Success = result.Success,
+                Message = result.Message
+            };
+        }
+        public override async Task<ReleaseStockResponse> ReleaseStock(ReleaseStockRequest request,ServerCallContext context)
+        {
+            var command = new ReleaseStockCommand(new()
+            {
+                StoreId = Guid.Parse(request.StoreId),
+                OrderId = Guid.Parse(request.OrderId)
+            });
+
+            var result = await _mediator.Send(command);
+
+            return new ReleaseStockResponse
+            {
+                Success = result.Success,
+                Message = result.Message
+            };
         }
     }
 }

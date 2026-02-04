@@ -20,6 +20,7 @@ var ClientSet = wire.NewSet(
 	identity.NewIdentityClientFactory,
 	identity.ProvideAuthClient,
 	identity.ProvideUserClient,
+	identity.NewRolePermClient,
 
 	// Product Service
 	product.NewProductClientFactory,

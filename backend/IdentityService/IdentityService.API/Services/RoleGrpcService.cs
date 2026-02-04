@@ -6,10 +6,8 @@ using IdentityService.Application.Features.Roles.Commands.DeleteRole;
 using IdentityService.Application.Features.Roles.Commands.UpdateRole;
 using IdentityService.Application.Features.Roles.Queries.GetAllRoles;
 using IdentityService.Application.Features.Roles.Queries.GetRoleById;
-using IdentityService.Domain.Entities;
 using IdentityService.Grpc.Protos.Role;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 
 namespace IdentityService.API.Services;
 

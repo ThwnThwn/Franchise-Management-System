@@ -9,72 +9,66 @@ package di
 import (
 	"api-gateway/config"
 	"api-gateway/internal/api/handlers"
+	"api-gateway/internal/api/middleware"
 	"api-gateway/internal/api/routes"
 	"api-gateway/internal/application/usecases"
 	"api-gateway/internal/bootstrap"
+	"api-gateway/internal/infrastructure/cache"
 	"api-gateway/internal/infrastructure/grpc_clients/franchise"
 	"api-gateway/internal/infrastructure/grpc_clients/identity"
 	"api-gateway/internal/infrastructure/grpc_clients/inventory"
 	"api-gateway/internal/infrastructure/grpc_clients/product"
 	"api-gateway/internal/infrastructure/grpc_clients/sales"
+	"api-gateway/pkg/logger"
 )
 
 // Injectors from wire.go:
 
 // InitializeApp nằm ở package 'di', trả về 'bootstrap.App'
-func InitializeApp(cfg *config.Config) (*bootstrap.App, error) {
+func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, error) {
 	franchiseServiceUrl := cfg.FranchiseServiceUrl
 	clientFactory, err := franchise.NewFranchiseClientFactory(franchiseServiceUrl)
 	if err != nil {
 		return nil, err
 	}
 	iStoreService := franchise.ProvideStoreClient(clientFactory)
-	iStoreUseCase := usecases.NewStoreUseCase(iStoreService)
-	storeHandler := handlers.NewStoreHandler(iStoreUseCase)
+	storeHandler := handlers.NewStoreHandler(iStoreService)
 	iShiftService := franchise.ProvideShiftClient(clientFactory)
-	iShiftUseCase := usecases.NewShiftUseCasee(iShiftService)
-	shiftHandler := handlers.NewShiftHandler(iShiftUseCase)
+	shiftHandler := handlers.NewShiftHandler(iShiftService)
 	identityServiceUrl := cfg.IdentityServiceUrl
 	identityClientFactory, err := identity.NewIdentityClientFactory(identityServiceUrl)
 	if err != nil {
 		return nil, err
 	}
 	iAuthService := identity.ProvideAuthClient(identityClientFactory)
-	iAuthUseCase := usecases.NewAuthUseCase(iAuthService)
 	iUserService := identity.ProvideUserClient(identityClientFactory)
-	iUserUseCase := usecases.NewUserUseCase(iUserService)
-	authHandler := handlers.NewAuthHandler(iAuthUseCase, iUserUseCase)
-	userHandler := handlers.NewUserHandler(iUserUseCase)
+	authHandler := handlers.NewAuthHandler(iAuthService, iUserService)
+	userHandler := handlers.NewUserHandler(iUserService)
 	productServiceUrl := cfg.ProductServiceUrl
 	productClientFactory, err := product.NewProductClientFactory(productServiceUrl)
 	if err != nil {
 		return nil, err
 	}
 	iProductService := product.ProvideProductClient(productClientFactory)
-	iProductUseCase := usecases.NewProductUseCase(iProductService)
-	productHandler := handlers.NewProductHandler(iProductUseCase)
+	productHandler := handlers.NewProductHandler(iProductService)
 	iCategoryService := product.ProvideCategoryClient(productClientFactory)
-	iCategoryUseCase := usecases.NewCategoryUseCase(iCategoryService)
-	categoryHandler := handlers.NewCategoryHandler(iCategoryUseCase)
+	categoryHandler := handlers.NewCategoryHandler(iCategoryService)
 	salesServiceUrl := cfg.SalesServiceUrl
 	salesClientFactory, err := sales.NewSalesClientFactory(salesServiceUrl)
 	if err != nil {
 		return nil, err
 	}
 	iOrderService := sales.ProvideOrderClient(salesClientFactory)
-	iOrderUseCase := usecases.NewOrderUseCase(iOrderService)
-	orderHandler := handlers.NewOrderHandler(iOrderUseCase)
+	orderHandler := handlers.NewOrderHandler(iOrderService)
 	iCartService := sales.ProvideCartClient(salesClientFactory)
-	iCartUseCase := usecases.NewCartUseCase(iCartService)
-	cartHandler := handlers.NewCartHandler(iCartUseCase)
+	cartHandler := handlers.NewCartHandler(iCartService)
 	inventoryServiceUrl := cfg.InventoryServiceUrl
 	inventoryClientFactory, err := inventory.NewInventoryClientFactory(inventoryServiceUrl)
 	if err != nil {
 		return nil, err
 	}
 	iInventoryService := inventory.ProvideInventoryClient(inventoryClientFactory)
-	iInventoryUseCase := usecases.NewInventoryUseCase(iInventoryService)
-	inventoryHandler := handlers.NewInventoryHandler(iInventoryUseCase)
+	inventoryHandler := handlers.NewInventoryHandler(iInventoryService)
 	appHandlers := &handlers.AppHandlers{
 		StoreHandler:     storeHandler,
 		ShiftHandler:     shiftHandler,
@@ -86,7 +80,13 @@ func InitializeApp(cfg *config.Config) (*bootstrap.App, error) {
 		CartHandler:      cartHandler,
 		InventoryHandler: inventoryHandler,
 	}
-	engine := routes.NewRouter(cfg, appHandlers)
+	redis := &cfg.Redis
+	iPermCache := cache.NewPermCache(redis, l)
+	iRolePermissionService := identity.NewRolePermClient(identityClientFactory)
+	iBlacklistCache := cache.NewBlacklistCache(redis, l)
+	iBlacklistUseCase := usecases.NewBlacklistUseCase(iBlacklistCache, l)
+	authMiddleware := middleware.NewAuthMiddleware(iPermCache, iRolePermissionService, iBlacklistUseCase)
+	engine := routes.NewRouter(cfg, appHandlers, authMiddleware)
 	app := bootstrap.NewApp(cfg, engine)
 	return app, nil
 }

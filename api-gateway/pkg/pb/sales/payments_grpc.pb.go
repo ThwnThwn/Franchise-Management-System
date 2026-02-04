@@ -22,8 +22,8 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type PaymentGrpcClient interface {
-	// Tạo URL thanh toán VNPay cho một đơn hàng
-	CreateVnPayPaymentUrl(ctx context.Context, in *CreateVnPayPaymentUrlRequest, opts ...grpc.CallOption) (*CreateVnPayPaymentUrlReply, error)
+	// Tạo đơn thanh toán
+	CreatePayment(ctx context.Context, in *CreatePaymentRequest, opts ...grpc.CallOption) (*PaymentResponse, error)
 }
 
 type paymentGrpcClient struct {
@@ -34,9 +34,9 @@ func NewPaymentGrpcClient(cc grpc.ClientConnInterface) PaymentGrpcClient {
 	return &paymentGrpcClient{cc}
 }
 
-func (c *paymentGrpcClient) CreateVnPayPaymentUrl(ctx context.Context, in *CreateVnPayPaymentUrlRequest, opts ...grpc.CallOption) (*CreateVnPayPaymentUrlReply, error) {
-	out := new(CreateVnPayPaymentUrlReply)
-	err := c.cc.Invoke(ctx, "/payment.PaymentGrpc/CreateVnPayPaymentUrl", in, out, opts...)
+func (c *paymentGrpcClient) CreatePayment(ctx context.Context, in *CreatePaymentRequest, opts ...grpc.CallOption) (*PaymentResponse, error) {
+	out := new(PaymentResponse)
+	err := c.cc.Invoke(ctx, "/payment.PaymentGrpc/CreatePayment", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -47,8 +47,8 @@ func (c *paymentGrpcClient) CreateVnPayPaymentUrl(ctx context.Context, in *Creat
 // All implementations must embed UnimplementedPaymentGrpcServer
 // for forward compatibility
 type PaymentGrpcServer interface {
-	// Tạo URL thanh toán VNPay cho một đơn hàng
-	CreateVnPayPaymentUrl(context.Context, *CreateVnPayPaymentUrlRequest) (*CreateVnPayPaymentUrlReply, error)
+	// Tạo đơn thanh toán
+	CreatePayment(context.Context, *CreatePaymentRequest) (*PaymentResponse, error)
 	mustEmbedUnimplementedPaymentGrpcServer()
 }
 
@@ -56,8 +56,8 @@ type PaymentGrpcServer interface {
 type UnimplementedPaymentGrpcServer struct {
 }
 
-func (UnimplementedPaymentGrpcServer) CreateVnPayPaymentUrl(context.Context, *CreateVnPayPaymentUrlRequest) (*CreateVnPayPaymentUrlReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateVnPayPaymentUrl not implemented")
+func (UnimplementedPaymentGrpcServer) CreatePayment(context.Context, *CreatePaymentRequest) (*PaymentResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreatePayment not implemented")
 }
 func (UnimplementedPaymentGrpcServer) mustEmbedUnimplementedPaymentGrpcServer() {}
 
@@ -72,20 +72,20 @@ func RegisterPaymentGrpcServer(s grpc.ServiceRegistrar, srv PaymentGrpcServer) {
 	s.RegisterService(&PaymentGrpc_ServiceDesc, srv)
 }
 
-func _PaymentGrpc_CreateVnPayPaymentUrl_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateVnPayPaymentUrlRequest)
+func _PaymentGrpc_CreatePayment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePaymentRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PaymentGrpcServer).CreateVnPayPaymentUrl(ctx, in)
+		return srv.(PaymentGrpcServer).CreatePayment(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/payment.PaymentGrpc/CreateVnPayPaymentUrl",
+		FullMethod: "/payment.PaymentGrpc/CreatePayment",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PaymentGrpcServer).CreateVnPayPaymentUrl(ctx, req.(*CreateVnPayPaymentUrlRequest))
+		return srv.(PaymentGrpcServer).CreatePayment(ctx, req.(*CreatePaymentRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -98,8 +98,8 @@ var PaymentGrpc_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*PaymentGrpcServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "CreateVnPayPaymentUrl",
-			Handler:    _PaymentGrpc_CreateVnPayPaymentUrl_Handler,
+			MethodName: "CreatePayment",
+			Handler:    _PaymentGrpc_CreatePayment_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

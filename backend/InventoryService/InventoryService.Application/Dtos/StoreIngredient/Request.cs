@@ -3,7 +3,7 @@
     public class IncreaseStockReq
     {
         public Guid StoreId { get; set; }
-        public IEnumerable<IngredientStockItem> Items { get; set; }
+        public IEnumerable<IngredientStockItem> Items { get; set; } = [];
     }
 
     public class IngredientStockItem
@@ -28,5 +28,11 @@
     {
         public Guid VariantId { get; set; }
         public int Amount { get; set; }
+    }
+
+    public class ReleaseStockReq
+    {
+        public Guid StoreId { get; set; }
+        public Guid OrderId { get; set; }
     }
 }

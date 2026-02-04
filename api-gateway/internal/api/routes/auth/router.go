@@ -13,6 +13,7 @@ type AuthRouter struct{}
 func (a *AuthRouter) NewAuthRouter(cfg *config.Config,
 	r *gin.RouterGroup,
 	authHander *handlers.AuthHandler,
+	authMW *middleware.AuthMiddleware,
 ) {
 	authApi := r.Group("/auth")
 	{
@@ -37,7 +38,7 @@ func (a *AuthRouter) NewAuthRouter(cfg *config.Config,
 
 	accessTokenSecret := cfg.JwtSecret
 	privateApi := authApi.Group("")
-	privateApi.Use(middleware.ValidateToken([]byte(accessTokenSecret)))
+	privateApi.Use(authMW.ValidateToken([]byte(accessTokenSecret)))
 	{
 		privateApi.POST("/logout", authHander.Logout)
 		privateApi.POST("/change-password", authHander.ChangePassword)

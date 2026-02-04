@@ -1,12 +1,15 @@
 using AutoMapper;
 using Grpc.Core;
+using InventoryService.Grpc.Protos.Inventory.Internal;
 using MediatR;
 using SalesService.API;
-using SalesService.Application.Features.Orders.GetById;
-using System;
 using SalesService.Application.Features.Orders.Commands.Create;
+using SalesService.Application.Features.Orders.Commands.Update;
+using SalesService.Application.Features.Orders.Commands.UpdateOrderStatus;
+using SalesService.Application.Features.Orders.GetById;
 using SalesService.Application.Features.Orders.Queries.GetMyOrders;
-using InventoryService.Grpc.Protos.Inventory.Internal;
+using SalesService.Domain.Enums;
+using System;
 
 namespace SalesService.API.Services.Orders;
 
@@ -210,5 +213,75 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
         return reply;
     }
 
+    public override async Task<UpdateOrderStatusReply> UpdateOrderStatus(UpdateOrderStatusRequest request,ServerCallContext context)
+    {
+        //Validate orderId
+        if (!Guid.TryParse(request.OrderId, out var orderId))
+        {
+            throw new RpcException(new Status(StatusCode.InvalidArgument,"Invalid OrderId"));
+        }
 
+        //Validate status string → enum
+        if (!Enum.TryParse<OrderStatus>(request.Status, true, out var newStatus))
+        {
+            throw new RpcException(new Status(StatusCode.InvalidArgument,"Invalid status value"));
+        }
+
+        //Send MediatR command
+        var command = new UpdateOrderStatusCommand(
+            new UpdateOrderStatusReq
+            {
+                OrderId = orderId,
+                Status = newStatus
+            }
+        );
+
+        var resultMessage = await _mediator.Send(command, context.CancellationToken);
+
+        return new UpdateOrderStatusReply
+        {
+            Message = resultMessage
+        };
+    }
+    public override async Task<UpdateOrderReply> UpdateOrder(UpdateOrderRequest request,ServerCallContext context)
+    {
+
+        var command = new UpdateOrderCommand(new UpdateOrderReq
+        {
+            OrderId = Guid.Parse(request.OrderId),
+
+            Items = request.Items.Select(x => new Application.Features.Orders.Commands.Update.OrderItem
+            {
+                Sku = x.Sku,
+                Quantity = x.Quantity
+            }).ToList()
+        });
+        var result = await _mediator.Send(command);
+        var reply = new UpdateOrderReply
+        {
+            OrderId = result.OrderId.ToString(),
+            OrderCode = result.OrderCode ?? "",
+            TotalAmount = (double)(result.TotalAmount ?? 0),
+
+            StockCheck = new CheckEnoughStockResponse
+            {
+                IsEnough = result.CheckEnoughStockRes.IsEnough
+            }
+        };
+
+        // Add shortage items if any
+        if (result.CheckEnoughStockRes.ShortageItems != null)
+        {
+            reply.StockCheck.ShortageItems.AddRange(
+                result.CheckEnoughStockRes.ShortageItems.Select(x =>
+                    new ShortageItem
+                    {
+                        VariantId = x.VariantId.ToString(),
+                        MaxFeasibleQuantity = x.Amount
+                    })
+            );
+        }
+
+        return reply;
+    }
 }

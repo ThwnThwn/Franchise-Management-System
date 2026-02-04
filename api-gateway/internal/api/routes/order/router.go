@@ -13,6 +13,7 @@ type OrderRouter struct{}
 func (a *OrderRouter) NewOrderRouter(cfg *config.Config,
 	r *gin.RouterGroup,
 	orderHandler *handlers.OrderHandler,
+	authMW *middleware.AuthMiddleware,
 ) {
 	orderApi := r.Group("/orders")
 	{
@@ -21,7 +22,7 @@ func (a *OrderRouter) NewOrderRouter(cfg *config.Config,
 
 	accessTokenSecret := cfg.JwtSecret
 	privateApi := orderApi.Group("")
-	privateApi.Use(middleware.ValidateToken([]byte(accessTokenSecret)))
+	privateApi.Use(authMW.ValidateToken([]byte(accessTokenSecret)))
 	{
 		privateApi.GET("/me", orderHandler.GetMyOrders)
 		privateApi.POST("", orderHandler.CreateOrder)

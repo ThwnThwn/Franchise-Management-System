@@ -13,12 +13,13 @@ type CartRouter struct{}
 func (a *CartRouter) NewCartRouter(cfg *config.Config,
 	r *gin.RouterGroup,
 	cartHander *handlers.CartHandler,
+	authMW *middleware.AuthMiddleware,
 ) {
 	cartApi := r.Group("/carts")
 
 	accessTokenSecret := cfg.JwtSecret
 	privateApi := cartApi.Group("")
-	privateApi.Use(middleware.ValidateToken([]byte(accessTokenSecret)))
+	privateApi.Use(authMW.ValidateToken([]byte(accessTokenSecret)))
 	{
 		privateApi.GET("", cartHander.GetCartItems)
 		privateApi.POST("", cartHander.AddToCart)

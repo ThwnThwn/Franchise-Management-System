@@ -94,12 +94,13 @@ func (u *UserGrpcClient) Update(ctx context.Context, id uuid.UUID, req *user.Upd
 }
 
 // ChangePassword implements identity.IUserService.
-func (u *UserGrpcClient) ChangePassword(ctx context.Context, id uuid.UUID, req *user.ChangePasswordRequest) (*user.UserResponse, error) {
+func (u *UserGrpcClient) ChangePassword(ctx context.Context, accessToken string, req *user.ChangePasswordRequest) (*user.UserResponse, error) {
 	res, err := u.client.ChangePassword(ctx, &idenPb.ChangePasswordRequest{
-		Id:                 id.String(),
 		OldPassword:        req.OldPassword,
 		NewPassword:        req.NewPassword,
 		ConfirmNewPassword: req.ConfirmNewPassword,
+		AccessToken:        accessToken,
+		ForgetAll:          req.ForgetAll,
 	})
 	if err != nil {
 		return nil, err

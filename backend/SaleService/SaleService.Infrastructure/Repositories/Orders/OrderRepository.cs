@@ -54,4 +54,9 @@ public class OrderRepository : IOrderRepository
             .Where(o => o.CustomerId == customerId)
             .CountAsync(cancellationToken);
     }
+
+    public async Task UpdateAsync(Order order, CancellationToken cancellationToken = default)
+    {
+        await _context.SaveChangesAsync(cancellationToken);
+    }
 }

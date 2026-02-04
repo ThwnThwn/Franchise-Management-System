@@ -10,7 +10,11 @@ import (
 
 var RouterGroupApp = new(RouterGroup)
 
-func NewRouter(cfg *config.Config, h *handlers.AppHandlers) *gin.Engine {
+func NewRouter(
+	cfg *config.Config,
+	h *handlers.AppHandlers,
+	authMW *middleware.AuthMiddleware,
+) *gin.Engine {
 	r := gin.Default()
 	r.Use(gin.Recovery())
 
@@ -30,19 +34,19 @@ func NewRouter(cfg *config.Config, h *handlers.AppHandlers) *gin.Engine {
 		shiftGroup.NewShiftRouter(cfg, MainGroup, h.ShiftHandler)
 
 		// Identity
-		authGroup.NewAuthRouter(cfg, MainGroup, h.AuthHandler)
-		userGroup.NewUserRouter(cfg, MainGroup, h.UserHandler, h.ShiftHandler)
+		authGroup.NewAuthRouter(cfg, MainGroup, h.AuthHandler, authMW)
+		userGroup.NewUserRouter(cfg, MainGroup, h.UserHandler, h.ShiftHandler, authMW)
 
 		// Product
-		productGroup.NewProductRouter(cfg, MainGroup, h.ProductHandler)
-		categoryGroup.NewCategoryRouter(cfg, MainGroup, h.CategoryHandler)
+		productGroup.NewProductRouter(cfg, MainGroup, h.ProductHandler, authMW)
+		categoryGroup.NewCategoryRouter(cfg, MainGroup, h.CategoryHandler, authMW)
 
 		// Sales
-		orderGroup.NewOrderRouter(cfg, MainGroup, h.OrderHandler)
-		cartGroup.NewCartRouter(cfg, MainGroup, h.CartHandler)
+		orderGroup.NewOrderRouter(cfg, MainGroup, h.OrderHandler, authMW)
+		cartGroup.NewCartRouter(cfg, MainGroup, h.CartHandler, authMW)
 
 		// Inventory
-		inventoryGroup.NewInventoryRouter(cfg, MainGroup, h.InventoryHandler)
+		inventoryGroup.NewInventoryRouter(cfg, MainGroup, h.InventoryHandler, authMW)
 	}
 
 	return r

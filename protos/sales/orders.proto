@@ -14,6 +14,12 @@ service OrderGrpc {
 
   // Lấy danh sách đơn hàng của khách hàng hiện tại
   rpc GetMyOrders (GetMyOrdersRequest) returns (GetMyOrdersReply);
+
+  // Cập nhật trạng thái đơn hàng bởi nhân viên (staff)
+  rpc UpdateOrderStatus(UpdateOrderStatusRequest) returns (UpdateOrderStatusReply);
+
+  // Cập nhật đơn hàng 
+  rpc UpdateOrder(UpdateOrderRequest) returns (UpdateOrderReply);
 }
 
 message CreateOrderRequest {
@@ -107,4 +113,31 @@ message CheckEnoughStockResponse {
 message ShortageItem {
   string variant_id = 1;
   int32 max_feasible_quantity = 2;
+}
+
+message UpdateOrderStatusRequest {
+  string orderId = 1;
+  string status = 2; // Ordered, Preparing, Ready, Completed
+}
+
+message UpdateOrderStatusReply {
+  string message = 1;
+}
+
+message UpdateOrderItem {
+
+  string sku = 1;
+  int32 quantity = 2;
+}
+message UpdateOrderRequest {
+
+  string order_id = 1;
+  repeated UpdateOrderItem items = 2;
+}
+message UpdateOrderReply {
+
+  string order_id = 1;
+  string order_code = 2;
+  double total_amount = 3;
+  CheckEnoughStockResponse stock_check = 4;
 }

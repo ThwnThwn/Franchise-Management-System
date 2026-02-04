@@ -4,6 +4,7 @@ using MediatR;
 using ProductService.Application.Repositories;
 using ProductService.Domain.Entities;
 using static ProductService.Application.Features.Products.Command.CreateProduct.CreateProductCommand;
+using ProductService.Application.Interfaces;
 
 namespace ProductService.Application.Features.Products.Command.CreateProduct;
 
@@ -12,12 +13,21 @@ public sealed class CreateProductCommandHandler
 {
     private readonly IProductRepository _productRepository;
     private readonly IMapper _mapper;
+    private readonly ICloudinaryService _cloudinaryService;
 
-    public CreateProductCommandHandler(IProductRepository productRepository, IMapper mapper)
+    public CreateProductCommandHandler(IProductRepository productRepository, IMapper mapper, ICloudinaryService cloudinaryService)
     {
         _productRepository = productRepository;
         _mapper = mapper;
+        _cloudinaryService = cloudinaryService;
     }
+
+    /// <summary>
+    /// Handle the creation of a new product.
+    /// </summary>
+    /// <param name="command"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
 
     public async Task<Result<CreateProductCommandResponse>> Handle(
         CreateProductCommand command,
@@ -33,6 +43,18 @@ public sealed class CreateProductCommandHandler
         }
 
         var product = _mapper.Map<Product>(request);
+
+        // Thêm ảnh vào cho sản phẩm
+
+        if (request.ImageFile != null)
+        {
+            var uploadResult = await _cloudinaryService.UploadImageAsync(request.ImageFile);
+            if (uploadResult != null)
+            {
+                product.ImageUrl = uploadResult.Url;
+                product.ImagePublicId = uploadResult.PublicId;
+            }
+        }
 
         await _productRepository.AddAsync(product);
 

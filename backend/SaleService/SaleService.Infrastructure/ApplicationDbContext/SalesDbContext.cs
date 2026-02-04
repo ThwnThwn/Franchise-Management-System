@@ -126,7 +126,7 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
                 .HasDefaultValue(PaymentMethod.Cash)
                 .HasColumnName("payment_method");
             entity.Property(e => e.Status)
-                .HasDefaultValue(OrderStatus.Pending)
+                .HasDefaultValue(OrderStatus.Ordered)
                 .HasColumnName("status");
             entity.Property(e => e.Subtotal)
                 .HasPrecision(12, 3)
@@ -181,8 +181,9 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
 
             entity.HasOne(d => d.Order).WithMany(p => p.OrderItems)
                 .HasForeignKey(d => d.OrderId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("fk_order_items_order");
+
         });
 
         modelBuilder.Entity<Payment>(entity =>

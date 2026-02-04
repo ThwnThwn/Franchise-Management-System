@@ -21,6 +21,6 @@ func NewApp(cfg *config.Config, server *gin.Engine) *App {
 
 func (a *App) Run() error {
 	port := a.Config.Port
-	fmt.Printf("🚀 Gateway is running on port %s\n", port)
+	fmt.Printf("Gateway is running on port %s\n", port)
 	return a.Server.Run(":" + port)
 }

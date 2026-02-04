@@ -1,3 +1,5 @@
+using BuildingBlocks.Core.Extensions;
+using BuildingBlocks.Core.Pagination;
 using Microsoft.EntityFrameworkCore;
 using SalesService.Application.Interfaces.Payments;
 using SalesService.Domain.Entities;
@@ -32,6 +34,7 @@ public sealed class PaymentRepository : IPaymentRepository
     {
         return await _db.Payments
             .Include(p => p.Order)
+                .ThenInclude(o => o.OrderItems)
             .FirstOrDefaultAsync(p => p.Id == paymentId, cancellationToken);
     }
 
@@ -43,6 +46,18 @@ public sealed class PaymentRepository : IPaymentRepository
     public Task SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         return _db.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<PagedResult<Payment>> GetAllAsync(
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _db.Payments
+            .Where(p => p.IsDeleted == null || p.IsDeleted == false)
+            .OrderByDescending(p => p.CreatedAt);
+
+        return await query.ToPagedListAsync(page, pageSize, cancellationToken);
     }
 }
 

@@ -6,16 +6,50 @@ option go_package = "api-gateway/pkg/pb/sales";
 package payment;
 
 service PaymentGrpc {
-  // Tạo URL thanh toán VNPay cho một đơn hàng
-  rpc CreateVnPayPaymentUrl (CreateVnPayPaymentUrlRequest) returns (CreateVnPayPaymentUrlReply);
+  // Tạo đơn thanh toán
+  rpc CreatePayment (CreatePaymentRequest) returns (PaymentResponse);
+
+  // Lấy danh sách payment có phân trang
+  rpc GetAllPayments (GetAllPaymentsRequest) returns (GetAllPaymentsReply);
 }
 
-message CreateVnPayPaymentUrlRequest {
+enum PaymentMethodType {
+  CASH = 0;
+  VNPAY = 1;
+}
+
+message CreatePaymentRequest {
   string order_id = 1;
+  optional string return_url = 2;  // Optional: custom return URL after payment
+  PaymentMethodType paymentMethod = 3;
 }
 
-message CreateVnPayPaymentUrlReply {
-  string payment_url = 1;
+
+message PaymentResponse {
+  string url = 1;
 }
 
+message GetAllPaymentsRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+}
 
+message PaymentDto {
+  string id = 1;
+  string order_id = 2;
+  string code = 3;
+  double amount = 4;
+  string currency = 5;
+  int32 method = 6;
+  int32 status = 7;
+  string paid_at = 8;
+  string created_at = 9;
+}
+
+message GetAllPaymentsReply {
+  repeated PaymentDto payments = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+  int64 total_count = 4;
+  int32 total_pages = 5;
+}

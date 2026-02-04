@@ -29,7 +29,8 @@ func (u *UserUseCase) Update(ctx context.Context, id uuid.UUID, req *user.Update
 
 // ChangePassword implements abstractions.IUserUseCase.
 func (u *UserUseCase) ChangePassword(ctx context.Context, id uuid.UUID, req *user.ChangePasswordRequest) (*user.UserResponse, error) {
-	return u.servive.ChangePassword(ctx, id, req)
+	// return u.servive.ChangePassword(ctx, id, req)
+	return nil, nil
 }
 
 // Create implements abstractions.IUserUseCase.

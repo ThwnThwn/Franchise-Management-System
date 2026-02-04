@@ -1,13 +1,9 @@
-﻿using AutoMapper;
-using Grpc.Net.Client;
+﻿using Grpc.Net.Client;
 using InventoryService.Grpc.Protos.Inventory.Internal;
 using MediatR;
-using Microsoft.Extensions.Configuration;
 using SalesService.Application.ClientInterface.Inventory;
 using SalesService.Application.Constants;
 using SalesService.Application.Dtos.Inventory;
-using SalesService.Application.Features.Orders.Commands.Create;
-using System.Security.AccessControl;
 
 namespace SalesService.API.Services.Inventory
 {
@@ -84,5 +80,47 @@ namespace SalesService.API.Services.Inventory
             request.DecreaseItems.AddRange(decreaseItems);
             await _client.DecreaseStockByOrderAsync(request);
         }
+
+        public async Task<ReserveStockResponseDto> ReserveStockAsync(ReserveStockReq command)
+        {
+            var request = new ReserveStockRequest
+            {
+                StoreId = command.StoreId.ToString(),
+                OrderId = command.OrderId.ToString()
+            };
+
+            var items = command.Items.Select(x => new InventoryService.Grpc.Protos.Inventory.Internal.AmountVariant
+            {
+                VariantId = x.VariantId.ToString(),
+                Amount = x.Amount
+            });
+
+            request.Items.AddRange(items);
+
+            var response = await _client.ReserveStockAsync(request);
+
+            return new ReserveStockResponseDto
+            {
+                Success = response.Success,
+                Message = response.Message
+            };
+        }
+        public async Task<ReleaseStockRes> ReleaseStockAsync(ReleaseStockReq command)
+        {
+            var request = new ReleaseStockRequest
+            {
+                StoreId = command.StoreId.ToString(),
+                OrderId = command.OrderId.ToString()
+            };
+
+            var response = await _client.ReleaseStockAsync(request);
+
+            return new ReleaseStockRes
+            {
+                Success = response.Success,
+                Message = response.Message
+            };
+        }
+
     }
 }

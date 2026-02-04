@@ -13,7 +13,7 @@ type ShiftUseCase struct {
 	service franchiseGW.IShiftService
 }
 
-func NewShiftUseCasee(service franchiseGW.IShiftService) abstractions.IShiftUseCase {
+func NewShiftUseCase(service franchiseGW.IShiftService) abstractions.IShiftUseCase {
 	return &ShiftUseCase{service: service}
 }
 

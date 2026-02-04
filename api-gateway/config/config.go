@@ -10,9 +10,13 @@ import (
 )
 
 type Config struct {
+	Logger Logger
+
+	Redis Redis
+
+	Port           string
 	FrontEndOrigin string
 
-	Port                string
 	CalcServiceUrl      CalcServiceUrl
 	IdentityServiceUrl  IdentityServiceUrl
 	ProductServiceUrl   ProductServiceUrl
@@ -23,6 +27,23 @@ type Config struct {
 	JwtRefreshTokenExpDays          int
 	JwtSecret                       string
 	JwtAccessTokenExpirationMinutes int
+}
+
+type Logger struct {
+	LogLevel    string
+	FileLogName string
+	MaxBackups  int
+	MaxAge      int
+	MaxSize     int
+	Compress    bool
+}
+
+type Redis struct {
+	Host       string
+	Port       int
+	Password   string
+	BlaclistDb int
+	PermDb     int
 }
 
 type CalcServiceUrl string
@@ -43,7 +64,24 @@ func LoadConfig() *Config {
 		}
 	}
 
-	return &Config{
+	cfg := &Config{
+		Logger: Logger{
+			LogLevel:    getEnv("LOGGER_LOG_LEVEL", "debug"),
+			FileLogName: getEnv("LOGGER_FILE_LOG_NAME", "./logs/dev.log"),
+			MaxBackups:  getEnvInt("LOGGER_MAX_BACKUPS", 3),
+			MaxAge:      getEnvInt("LOGGER_MAX_AGE", 30),
+			MaxSize:     getEnvInt("LOGGER_MAX_SIZE", 100),
+			Compress:    getEnvBool("LOGGER_COMPRESS", true),
+		},
+
+		Redis: Redis{
+			Host:       getEnv("REDIS_HOST", "127.0.0.1"),
+			Port:       getEnvInt("REDIS_PORT", 6379),
+			Password:   getEnv("REDIS_PASSWORD", ""),
+			BlaclistDb: getEnvInt("REDIS_BLACKLIST_DB", 0),
+			PermDb:     getEnvInt("REDIS_PERM_DB", 1),
+		},
+
 		Port:           getEnv("GATEWAY_PORT", "8080"),
 		FrontEndOrigin: getEnv("FRONTEND_ORIGIN", "http://localhost:3000"),
 
@@ -59,6 +97,7 @@ func LoadConfig() *Config {
 		JwtSecret:                       getEnv("JWT_SECRET", ""),
 		JwtAccessTokenExpirationMinutes: getEnvInt("JWT_ACCESS_TOKEN_EXPIRATION_MINUTES", 15),
 	}
+	return cfg
 }
 
 func getEnv(key, fallback string) string {
@@ -82,6 +121,15 @@ func getEnvUrl(key, fallback string) string {
 		address := strings.TrimPrefix(value, "http://")
 		address = strings.TrimPrefix(address, "https://")
 		return address
+	}
+	return fallback
+}
+
+func getEnvBool(key string, fallback bool) bool {
+	if value, exists := os.LookupEnv(key); exists {
+		if val, err := strconv.ParseBool(value); err == nil {
+			return val
+		}
 	}
 	return fallback
 }

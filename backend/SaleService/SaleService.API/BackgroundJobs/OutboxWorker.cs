@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using SaleService.Application.ExternalServices;
+using SharedKernel.Infrastructure.Kafka;
+using SharedKernel.Constants;
 using SalesService.Infrastructure.ApplicationDbContext;
 using SharedKernel.Events;
 using System.Text.Json;
@@ -8,20 +9,28 @@ using SalesService.Application.Signals;
 namespace SalesService.API.BackgroundJobs;
 
 /// <summary>
-/// Background Service chịu trách nhiệm xử lý bảng Outbox.
-/// Sử dụng IOutboxSignal để phản ứng ngay lập tức khi có tin nhắn mới, đảm bảo gửi tin gần như Real-time.
+/// Background Service chịu trách nhiệm xử lý bảng Outbox và gửi tin nhắn lên Kafka.
+/// - Sử dụng Pattern: Transactional Outbox.
+/// - Cơ chế Trigger: Pulse Signal (giúp gửi tin Real-time mà không cần Polling liên tục).
+/// - Cơ chế Dispatch: Sử dụng KafkaProducerRegistry để map động từ Event Type -> Topic.
 /// </summary>
 public class OutboxWorker : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly IOutboxSignal _outboxSignal;
     private readonly ILogger<OutboxWorker> _logger;
+    private readonly KafkaProducerRegistry _registry;
 
-    public OutboxWorker(IServiceProvider serviceProvider, IOutboxSignal outboxSignal, ILogger<OutboxWorker> logger)
+    public OutboxWorker(
+        IServiceProvider serviceProvider, 
+        IOutboxSignal outboxSignal, 
+        ILogger<OutboxWorker> logger,
+        KafkaProducerRegistry registry)
     {
         _serviceProvider = serviceProvider;
         _outboxSignal = outboxSignal;
         _logger = logger;
+        _registry = registry;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -60,24 +69,22 @@ public class OutboxWorker : BackgroundService
         {
             try
             {
-                string topic = message.Type switch
-                {
-                    "OrderCreatedEvent" => "order-notifications",
-                    _ => "default-topic"
-                };
-
-                if (message.Type == "OrderCreatedEvent")
-                {
-                     var payload = JsonSerializer.Deserialize<OrderCreatedEvent>(message.Content);
-                     if(payload != null)
-                     {
-                         await kafkaProducer.PublishAsync(topic, payload);
-                         _logger.LogInformation("OutboxWorker published message {MessageId} to {Topic}", message.Id, topic);
-                     }
-                }
-                else 
+                // 1. Resolve Type and Topic from Registry
+                if (!_registry.TryGet(message.Type, out var eventType, out var topic))
                 {
                     _logger.LogWarning("Unknown message type: {Type}", message.Type);
+                }
+                else
+                {
+                    // 2. Deserialize generic
+                    var payload = JsonSerializer.Deserialize(message.Content, eventType);
+                    
+                    if (payload != null)
+                    {
+                        // 3. Publish generic
+                        await kafkaProducer.PublishAsync(topic, payload);
+                        _logger.LogInformation("OutboxWorker published {MessageType} {MessageId} to {Topic}", message.Type, message.Id, topic);
+                    }
                 }
 
                 message.ProcessedOn = DateTime.UtcNow;
