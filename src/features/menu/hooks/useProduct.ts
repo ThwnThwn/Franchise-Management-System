@@ -1,5 +1,5 @@
 import { GetAllProductParams } from "../models/products/request"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { QUERY_KEYS } from "@/constants/queryKeys"
 import { productApi } from "../services/productApi"
 import { addToast } from "@heroui/react"
@@ -9,18 +9,20 @@ import { BackendError } from "@/models/common/respone"
 export const useGetAllProducts = ({
     query
 }: // enabled = true
-{
-    query?: GetAllProductParams
-    // enabled?: boolean
-} = {}) => {
+    {
+        query?: GetAllProductParams
+        // enabled?: boolean
+    } = {}) => {
+
+    // ...
+
     return useQuery({
-        // queryKey: [...QUERY_KEYS.PRODUCTS, query],
-        queryKey: QUERY_KEYS.PRODUCTS,
+        queryKey: [...QUERY_KEYS.PRODUCTS, query],
         queryFn: async () => {
             const data = await productApi.getAll(query)
             return data
-        }
-        // enabled
+        },
+        placeholderData: keepPreviousData
     })
 }
 

@@ -6,5 +6,6 @@ export const QUERY_KEYS = {
     USERS: ["users"] as const,
     STORES: ["stores"] as const,
     ROLES: ["roles"] as const,
-    PERMISSIONS: ["permissions"] as const
+    PERMISSIONS: ["permissions"] as const,
+    INVENTORY: ["inventory"] as const
 }
