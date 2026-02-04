@@ -61,6 +61,17 @@ namespace SalesService.Application.Features.Orders.Commands.Update
             //Get SKUs
             var skus = request.Items.Select(x => x.Sku).ToList();
 
+            // Remove items that are no longer present 
+            var itemsToRemove = order.OrderItems
+                .Where(x => !skus.Contains(x.Sku))
+                .ToList();
+
+            foreach (var removed in itemsToRemove)
+            {
+                order.OrderItems.Remove(removed);
+            }
+
+
             //Validate variants exist
             var variants = await _productServiceClient.GetListProductVariantsBySkusAsync(skus);
 
@@ -94,31 +105,38 @@ namespace SalesService.Application.Features.Orders.Commands.Update
                 throw new BusinessException($"Stock update failed: {reserveRes.Message}");
 
             // Remove orderItem - save change order
-            _orderItemRepository.RemoveOrderItems(order.OrderItems.ToList());
-
-            var newOrderItems = new List<SalesService.Domain.Entities.OrderItem>();
             decimal subtotal = 0;
             foreach (var item in request.Items)
             {
-                var variant = variants.First(v => v.Sku == item.Sku);
-                decimal unitPrice = variant.BasePrice.Value;
-                subtotal += unitPrice * item.Quantity;
-                newOrderItems.Add(new SalesService.Domain.Entities.OrderItem
-                {
-                    Id = Guid.NewGuid(),
-                    OrderId = order.Id,
-                    ProductId = variant.ProductId,
-                    VariantId = variant.VariantId,
-                    Quantity = item.Quantity,
-                    UnitPrice = variant.BasePrice!.Value,
-                    ProductName = variant.ProductName,
-                    Sku = variant.Sku,
-                    ImageUrl = variant.ImageUrl,
-                    IsDeleted = false
-                });
-            }
-            _orderItemRepository.AddOrderItems(newOrderItems);
+                var existing = order.OrderItems
+                    .FirstOrDefault(x => x.Sku == item.Sku);
 
+                if (existing != null)
+                {
+                    // Update quantity
+                    existing.Quantity = item.Quantity;
+                }
+                else
+                {
+                    // Add new item
+                    var variant = variants.First(v => v.Sku == item.Sku);
+                    decimal unitPrice = variant.BasePrice.Value;
+                    subtotal += unitPrice * item.Quantity;
+                    order.OrderItems.Add(new Domain.Entities.OrderItem
+                    {
+                        Id = Guid.NewGuid(),
+                        OrderId = order.Id,
+                        ProductId = variant.ProductId,
+                        VariantId = variant.VariantId,
+                        Quantity = item.Quantity,
+                        UnitPrice = variant.BasePrice.Value,
+                        ProductName = variant.ProductName,
+                        Sku = variant.Sku,
+                        ImageUrl = variant.ImageUrl,
+                        IsDeleted = false
+                    });
+                }
+            }
 
             // Tax = 10%
             const decimal taxRate = 0.1m;

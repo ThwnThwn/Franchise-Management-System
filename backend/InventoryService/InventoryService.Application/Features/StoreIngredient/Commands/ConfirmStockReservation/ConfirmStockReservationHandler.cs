@@ -1,13 +1,17 @@
-using System.Text.Json;
 using InventoryService.Application.Abstractions;
 using InventoryService.Application.Persistences.Repositories;
 using InventoryService.Application.Signals;
 using InventoryService.Domain.Entities;
+using InventoryService.Domain.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using SharedKernel.Infrastructure.Extensions;
 
 namespace InventoryService.Application.Features.StoreIngredient.Commands.ConfirmStockReservation
 {
+    /// <summary>
+    /// Handler xử lý xác nhận giữ hàng (Trừ kho thật).
+    /// </summary>
     /// <summary>
     /// Handler xử lý xác nhận giữ hàng (Trừ kho thật).
     /// </summary>
@@ -19,6 +23,7 @@ namespace InventoryService.Application.Features.StoreIngredient.Commands.Confirm
         private readonly IOutboxSignal _outboxSignal;
         private readonly IInventoryDbContext _dbContext;
         private readonly ILogger<ConfirmStockReservationHandler> _logger;
+        private readonly IInventoryDomainService _domainService;
 
         public ConfirmStockReservationHandler(
             IStoreIngredientRepository storeIngredientRepo,
@@ -26,7 +31,8 @@ namespace InventoryService.Application.Features.StoreIngredient.Commands.Confirm
             IOutboxRepository outboxRepository,
             IOutboxSignal outboxSignal,
             IInventoryDbContext dbContext,
-            ILogger<ConfirmStockReservationHandler> logger)
+            ILogger<ConfirmStockReservationHandler> logger,
+            IInventoryDomainService domainService)
         {
             _storeIngredientRepo = storeIngredientRepo;
             _recipeRepo = recipeRepo;
@@ -34,6 +40,7 @@ namespace InventoryService.Application.Features.StoreIngredient.Commands.Confirm
             _outboxSignal = outboxSignal;
             _dbContext = dbContext;
             _logger = logger;
+            _domainService = domainService;
         }
 
         public async Task<bool> Handle(ConfirmStockReservationCommand request, CancellationToken cancellationToken)
@@ -45,66 +52,52 @@ namespace InventoryService.Application.Features.StoreIngredient.Commands.Confirm
                 // 1. Xóa khỏi Hàng đợi (Giải phóng giữ chỗ)
                 await _storeIngredientRepo.RemoveQueueByOrderIdAsync(request.OrderId);
 
-                // 2. Trừ tồn kho vật lý
+                // 2. Tính toán nguyên liệu thực tế cần trừ (Gom nhóm lại để tối ưu transaction)
                 var variantIds = request.Items.Select(x => x.VariantId).Distinct().ToList();
                 var allRecipes = await _recipeRepo.GetRecipesByVariantIdsAsync(variantIds, cancellationToken);
-
-                var recipeLookup = allRecipes?
-                    .GroupBy(r => r.VariantId)
-                    .ToDictionary(g => g.Key, g => g.ToList())
-                    ?? new Dictionary<Guid, List<Domain.Entities.Recipe>>();
+                
+                // Sử dụng Domain Service để tính toán tổng nguyên liệu
+                var totalRequiredIngredients = _domainService.CalculateRequiredIngredients(
+                    request.Items.Select(x => (x.VariantId, x.Quantity)), 
+                    allRecipes);
 
                 bool lowStockDetected = false;
 
-                foreach (var item in request.Items)
+                // 3. Trừ tồn kho vật lý (Atomic)
+                foreach (var req in totalRequiredIngredients)
                 {
-                    if (recipeLookup.TryGetValue(item.VariantId, out var recipes))
+                    var ingredientId = req.Key;
+                    var amountToDeduct = req.Value;
+
+                    var result = await _storeIngredientRepo.DecreaseStockAtomicallyAsync(
+                        request.StoreId,
+                        ingredientId,
+                        amountToDeduct);
+
+                    if (result != null)
                     {
-                        foreach (var recipe in recipes)
+                        // 4. Check Low Stock bằng Domain Service
+                        if (_domainService.IsLowStock(result.Quantity, result.MinThreshold ?? 0))
                         {
-                            var amountToDeduct = recipe.Quantity * item.Quantity;
-                            var result = await _storeIngredientRepo.DecreaseStockAtomicallyAsync(
-                                request.StoreId,
-                                recipe.IngredientId,
-                                amountToDeduct);
+                            _logger.LogInformation("Low stock detected for Ingredient {IngredientId}. Adding to Outbox...", ingredientId);
 
-                            if (result != null)
+                            var lowStockPayload = new
                             {
-                                // Check Low Stock
-                                if (result.Quantity < (result.MinThreshold ?? 0))
-                                {
-                                    _logger.LogInformation("Low stock detected for Ingredient {IngredientId}. Adding to Outbox...", recipe.IngredientId);
+                                StoreId = request.StoreId,
+                                IngredientId = ingredientId,
+                                // IngredientName = result.Ingredient?.Name ?? "Unknown", // Có thể lấy nếu load include, tạm thời skip để tối ưu
+                                CurrentStock = result.Quantity,
+                                MinThreshold = result.MinThreshold ?? 0,
+                            };
 
-                                    var lowStockPayload = new
-                                    {
-                                        StoreId = request.StoreId,
-                                        IngredientId = recipe.IngredientId,
-                                        //IngredientName = result.Ingredient?.Name ?? "Unknown",
-                                        CurrentStock = result.Quantity,
-                                        MinThreshold = result.MinThreshold ?? 0,
-                                    };
-
-                                    var outboxMessage = new OutboxMessage
-                                    {
-                                        Id = Guid.NewGuid(),
-                                        Type = "LowStockDetected",
-                                        Content = JsonSerializer.Serialize(lowStockPayload),
-                                        OccurredOn = DateTime.UtcNow
-                                    };
-
-                                    _outboxRepository.Add(outboxMessage);
-                                    lowStockDetected = true;
-                                }
-                            }
+                            // Sử dụng Extension Method
+                            _outboxRepository.AddEvent(lowStockPayload, "LowStockDetected");
+                            lowStockDetected = true;
                         }
-                    }
-                    else
-                    {
-                        _logger.LogWarning("Không tìm thấy công thức cho VariantId {VariantId}", item.VariantId);
                     }
                 }
 
-                // 3. Save Outbox Messages
+                // 5. Save Outbox Messages và Pulse
                 if (lowStockDetected)
                 {
                     await _dbContext.SaveChangesAsync(cancellationToken);

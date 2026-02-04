@@ -1,10 +1,5 @@
-﻿using ProductService.Domain.Commons;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq.Expressions;
+using ProductService.Domain.Commons;
 
 namespace ProductService.Application.Repositories
 {
@@ -20,7 +15,7 @@ namespace ProductService.Application.Repositories
         Task<T?> GetByIdAsync(Guid id);
         Task AddRangeAsync(IEnumerable<T> entities); // to add multiple entities at once such as seed data
         Task DeleteRangeAsync(IEnumerable<Guid> ids); // to delete multiple entities at once
-        void Remove(T entity); 
+        void Remove(T entity);
         Task<T[]> GetByIdsAsync(Guid[] ids); // get multiple entities by their ids 
     }
 }
