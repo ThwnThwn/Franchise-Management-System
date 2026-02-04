@@ -18,11 +18,11 @@ enum PaymentMethodType {
 
 message CreatePaymentRequest {
   string order_id = 1;
-  string return_url = 2;  // Optional: custom return URL after payment
+  optional string return_url = 2;  // Optional: custom return URL after payment
   PaymentMethodType paymentMethod = 3;
 }
 
 
 message PaymentResponse {
-  string message = 1;
+  string url = 1;
 }

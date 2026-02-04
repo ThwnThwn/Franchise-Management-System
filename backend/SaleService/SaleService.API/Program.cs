@@ -1,7 +1,6 @@
 using AutoMapper;
 using DotNetEnv;
 using Microsoft.EntityFrameworkCore;
-using SharedKernel.Infrastructure.Kafka;
 using SalesService.API.Middleware;
 using SalesService.API.Services.CartItems;
 using SalesService.API.Services.Identity;
@@ -11,23 +10,25 @@ using SalesService.API.Services.Payments;
 using SalesService.API.Services.Products;
 using SalesService.Application.ClientInterface.Inventory;
 using SalesService.Application.ClientInterface.Products;
-
 //using SalesService.Infrastructure.Models;
 using SalesService.Application.Interfaces.CartItems;
 using SalesService.Application.Interfaces.Identity;
 using SalesService.Application.Interfaces.Payments;
 using SalesService.Application.Mapping.Orders;
+using SalesService.Application.Persisitences.OrderItems;
 using SalesService.Application.Persisitences.Orders;
 using SalesService.Application.Persisitences.Outbox;
+using SalesService.Application.Signals;
 using SalesService.Infrastructure.ApplicationDbContext;
 using SalesService.Infrastructure.Extensions;
 using SalesService.Infrastructure.Interceptor;
 using SalesService.Infrastructure.Repositories.CartItems;
+using SalesService.Infrastructure.Repositories.OrderItems;
 using SalesService.Infrastructure.Repositories.Orders;
 using SalesService.Infrastructure.Repositories.Outbox;
 using SalesService.Infrastructure.Repositories.Payments;
-using SalesService.Application.Signals;
 using SalesService.Infrastructure.Signals;
+using SharedKernel.Infrastructure.Kafka;
 
 namespace SalesService.API;
 
@@ -127,6 +128,8 @@ public class Program
 
         // Register repositories
         builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+        builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
+
         builder.Services.AddScoped<IOutboxRepository, OutboxRepository>();
         builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
         builder.Services.AddScoped<ICartItemRepository, CartItemRepository>();

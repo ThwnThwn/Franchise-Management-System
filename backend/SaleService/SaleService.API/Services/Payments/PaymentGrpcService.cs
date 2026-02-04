@@ -53,7 +53,7 @@ public class PaymentGrpcService : PaymentGrpc.PaymentGrpcBase
 
         return new PaymentResponse
         {
-            Message = result.Value.Message
+            Url = result.Value.Url
         };
     }
 }

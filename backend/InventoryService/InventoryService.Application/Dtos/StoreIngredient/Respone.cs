@@ -30,4 +30,11 @@ namespace InventoryService.Application.Dtos.StoreIngredient
         public decimal Quantity { get; set; }
         public decimal? MinThreshold { get; set; }
     }
+
+    public sealed class ReleaseStockRes
+    {
+        public bool Success { get; set; }
+
+        public string Message { get; set; } = string.Empty;
+    }
 }

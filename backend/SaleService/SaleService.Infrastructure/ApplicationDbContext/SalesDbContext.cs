@@ -178,8 +178,9 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
 
             entity.HasOne(d => d.Order).WithMany(p => p.OrderItems)
                 .HasForeignKey(d => d.OrderId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("fk_order_items_order");
+
         });
 
         modelBuilder.Entity<Payment>(entity =>

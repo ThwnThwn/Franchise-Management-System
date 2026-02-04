@@ -9,6 +9,7 @@ service InventoryInternalGrpc {
   rpc DecreaseStockByOrder(DecreaseStockByOrderRequest) returns (DecreaseStockByOrderResponse);
   rpc CheckEnoughStock(CheckEnoughStockRequest) returns (CheckEnoughStockResponse);
   rpc ReserveStock(ReserveStockRequest) returns (ReserveStockResponse);
+  rpc ReleaseStock(ReleaseStockRequest) returns (ReleaseStockResponse);
 }
 
 message ReserveStockRequest {
@@ -44,4 +45,14 @@ message AmountVariant{
 message CheckEnoughStockResponse {
   bool is_enough = 1;
   repeated AmountVariant shortage_items = 2;
+}
+
+message ReleaseStockRequest {
+  string store_id  = 1;
+  string order_id = 2;
+}
+
+message ReleaseStockResponse {
+  bool success = 1;
+  string message = 2;
 }

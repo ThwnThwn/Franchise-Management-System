@@ -81,7 +81,7 @@ public sealed class CreatePaymentHandler : IRequestHandler<CreatePaymentCommand,
 
             return Result.Success(new CreatePaymentRes
             {
-                Message = "Cash payment created successfully."
+                Url = ""
             });
         }
         var vnpSection = _config.GetSection("VNPay");
@@ -120,7 +120,7 @@ public sealed class CreatePaymentHandler : IRequestHandler<CreatePaymentCommand,
 
         return Result.Success(new CreatePaymentRes
         {
-            Message = url
+            Url = url
         });
     }
 }

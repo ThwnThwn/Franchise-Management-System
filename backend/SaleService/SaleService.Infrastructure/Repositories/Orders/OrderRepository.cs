@@ -57,7 +57,6 @@ public class OrderRepository : IOrderRepository
 
     public async Task UpdateAsync(Order order, CancellationToken cancellationToken = default)
     {
-        _context.Orders.Update(order);
         await _context.SaveChangesAsync(cancellationToken);
     }
 }

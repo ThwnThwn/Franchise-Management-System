@@ -12,6 +12,7 @@ namespace SalesService.Application.ClientInterface.Inventory
         Task DecreaseStockByOrder(DecreaseStockByOrderReq request);
         Task<CheckEnoughStockRes> CheckEnoughStockAsync(CheckEnoughStockReq request);
         Task<ReserveStockResponseDto> ReserveStockAsync(ReserveStockReq request);
+        Task<ReleaseStockRes> ReleaseStockAsync(ReleaseStockReq request);
     }
     
     public class ReserveStockReq {
@@ -24,6 +25,16 @@ namespace SalesService.Application.ClientInterface.Inventory
         public bool Success { get; set; }
         public string Message { get; set; } = string.Empty;
     }
+    public class ReleaseStockReq
+    {
+        public Guid StoreId { get; set; }
+        public Guid OrderId { get; set; }
+    }
 
-    
+    public class ReleaseStockRes
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; } = string.Empty;
+    }
+
 }

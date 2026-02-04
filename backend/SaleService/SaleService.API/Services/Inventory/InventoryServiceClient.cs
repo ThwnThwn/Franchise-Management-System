@@ -1,14 +1,9 @@
-﻿using AutoMapper;
-using Grpc.Net.Client;
+﻿using Grpc.Net.Client;
 using InventoryService.Grpc.Protos.Inventory.Internal;
 using MediatR;
-using Microsoft.Extensions.Configuration;
 using SalesService.Application.ClientInterface.Inventory;
 using SalesService.Application.Constants;
 using SalesService.Application.Dtos.Inventory;
-using SalesService.Application.Features.Orders.Commands.Create;
-using System.Security.AccessControl;
-using InventoryService.Grpc.Protos.Inventory.Internal;
 
 namespace SalesService.API.Services.Inventory
 {
@@ -110,5 +105,22 @@ namespace SalesService.API.Services.Inventory
                 Message = response.Message
             };
         }
+        public async Task<ReleaseStockRes> ReleaseStockAsync(ReleaseStockReq command)
+        {
+            var request = new ReleaseStockRequest
+            {
+                StoreId = command.StoreId.ToString(),
+                OrderId = command.OrderId.ToString()
+            };
+
+            var response = await _client.ReleaseStockAsync(request);
+
+            return new ReleaseStockRes
+            {
+                Success = response.Success,
+                Message = response.Message
+            };
+        }
+
     }
 }

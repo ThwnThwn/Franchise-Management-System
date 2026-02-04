@@ -17,6 +17,9 @@ service OrderGrpc {
 
   // Cập nhật trạng thái đơn hàng bởi nhân viên (staff)
   rpc UpdateOrderStatus(UpdateOrderStatusRequest) returns (UpdateOrderStatusReply);
+
+  // Cập nhật đơn hàng 
+  rpc UpdateOrder(UpdateOrderRequest) returns (UpdateOrderReply);
 }
 
 message CreateOrderRequest {
@@ -119,4 +122,22 @@ message UpdateOrderStatusRequest {
 
 message UpdateOrderStatusReply {
   string message = 1;
+}
+
+message UpdateOrderItem {
+
+  string sku = 1;
+  int32 quantity = 2;
+}
+message UpdateOrderRequest {
+
+  string order_id = 1;
+  repeated UpdateOrderItem items = 2;
+}
+message UpdateOrderReply {
+
+  string order_id = 1;
+  string order_code = 2;
+  double total_amount = 3;
+  CheckEnoughStockResponse stock_check = 4;
 }
