@@ -12,19 +12,27 @@ import { DEFAULT_DATE_FORMAT } from "@/constants/constants"
 interface OrderCardProps {
     order: Order
     onClick: (order: Order) => void
+    isLatest?: boolean
 }
 
-export const OrderCard = ({ order, onClick }: OrderCardProps) => {
+export const OrderCard = ({ order, onClick, isLatest }: OrderCardProps) => {
     const { formatDateTime } = useDay({ defaultFormat: DEFAULT_DATE_FORMAT })
     return (
         <CardStyled
             isPressable
             onPress={() => onClick(order)}
-            className="w-full max-w-87.5 interactive-scale"
+            className={`w-full max-w-87.5 interactive-scale ${isLatest ? 'border-2 border-[#FFB74D]' : ''}`}
         >
-            <CardHeader className="flex justify-between items-center gap-4">
+            <CardHeader className="flex justify-between items-center gap-4 relative">
+                {isLatest && (
+                    <div className="absolute -top-3 -right-3 bg-gradient-to-r from-red-500 to-pink-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl-lg rounded-tr-lg shadow-sm z-10 flex items-center gap-1">
+                        <span>NEW</span>
+                        <div className="animate-pulse bg-white rounded-full w-1.5 h-1.5" />
+                    </div>
+                )}
+
                 <div className="flex flex-col items-start">
-                    <p className="text-small text-default-500 uppercase font-bold">
+                    <p className="text-small text-default-500 uppercase font-bold flex items-center gap-2">
                         {ORDER_TEXT.labels.ORDER_CODE}
                     </p>
                     <h4 className="text-black font-bold text-large">{order.code}</h4>

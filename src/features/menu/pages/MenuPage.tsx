@@ -208,11 +208,11 @@ export default function MenuPage() {
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, scale: 0.9 }}
                                     transition={{ duration: 0.3 }}
-                                    role="button"
-                                    tabIndex={0}
-                                    onClick={() => handleOpenProduct(product)}
                                 >
-                                    <ProductCard getProductListItemDto={product} />
+                                    <ProductCard
+                                        getProductListItemDto={product}
+                                        onClick={() => handleOpenProduct(product)}
+                                    />
                                 </motion.div>
                             ))}
 

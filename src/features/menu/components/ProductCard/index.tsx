@@ -26,7 +26,12 @@ const CupIcon = ({ size, opacity = 1 }: { size: "s" | "m" | "l"; opacity?: numbe
     )
 }
 
-export function ProductCard({ getProductListItemDto }: { getProductListItemDto: Product }) {
+type ProductCardProps = {
+    getProductListItemDto: Product
+    onClick?: () => void
+}
+
+export function ProductCard({ getProductListItemDto, onClick }: ProductCardProps) {
     // Find base price (usually the smallest size or first variant)
     const basePrice =
         getProductListItemDto.sizes.length > 0
@@ -39,6 +44,7 @@ export function ProductCard({ getProductListItemDto }: { getProductListItemDto: 
                 className="overflow-visible bg-gradient-to-b from-[#8D6E63] to-[#4E342E] rounded-[2.5rem] shadow-xl border-none min-h-[320px]"
                 shadow="sm"
                 isPressable
+                onPress={onClick}
             >
                 <CardBody className="overflow-visible p-0 items-center -mt-16 z-20">
                     <motion.div

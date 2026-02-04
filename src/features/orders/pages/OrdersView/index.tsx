@@ -42,9 +42,22 @@ export default function OrdersView() {
             </h1>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                {(ordes || mockOrders).map((order) => (
-                    <OrderCard key={order.id} order={order} onClick={handleOpenDetail} />
-                ))}
+                {(() => {
+                    const orderList = ordes || mockOrders
+                    // Find the latest order by createdAt date
+                    const latestOrderId = orderList.length > 0
+                        ? [...orderList].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0].id
+                        : null
+
+                    return orderList.map((order) => (
+                        <OrderCard
+                            key={order.id}
+                            order={order}
+                            onClick={handleOpenDetail}
+                            isLatest={order.id === latestOrderId}
+                        />
+                    ))
+                })()}
             </div>
 
             {selectedOrder && (
