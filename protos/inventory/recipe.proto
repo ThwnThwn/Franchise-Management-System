@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+option csharp_namespace = "InventoryService.Grpc.Protos.Recipe";
+option go_package = "api-gateway/pkg/pb/inventory";
+
+package inventory;
+
+service RecipeGrpc {
+  // Định nghĩa hàm GetByVariantIds
+  rpc GetByVariantIds (GetByVariantIdsRequest) returns (GetByVariantIdsResponse);
+}
+
+// Message Request chứa danh sách các VariantId (Guid truyền dưới dạng string)
+message GetByVariantIdsRequest {
+  repeated string variant_ids = 1;
+}
+
+// Message Response chứa danh sách các RecipeRep
+message GetByVariantIdsResponse {
+  repeated RecipeRep items = 1;
+}
+
+// Cấu trúc tương ứng với class RecipeRep của bạn
+message RecipeRep {
+  string variant_id = 1; // Guid chuyển thành string
+  double quantity = 2;   // decimal trong C# thường map với double hoặc một custom message cho tiền tệ
+  string name = 3;
+  string base_unit = 4;
+}
