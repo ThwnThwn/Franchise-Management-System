@@ -26,6 +26,7 @@ namespace InventoryService.Infrastructure.Persistences.Repositories
         public async Task<IEnumerable<Recipe>?> GetRecipesByVariantIdsAsync(IEnumerable<Guid> variantIds, CancellationToken cancellationToken)
         {
             return await _dbContext.Recipes.AsQueryable()
+                .Include(r => r.Ingredient)
                 .Where(r => variantIds.Contains(r.VariantId) && r.IsDeleted == false)
                 .ToListAsync(cancellationToken);
         }
