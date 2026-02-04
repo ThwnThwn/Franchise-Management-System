@@ -29,16 +29,14 @@ const CupIcon = ({ size, opacity = 1 }: { size: "s" | "m" | "l"; opacity?: numbe
 }
 
 type ProductCardProps = {
-    getProductListItemDto: Product
+    product: Product
     onClick?: () => void
 }
 
-export function ProductCard({ getProductListItemDto, onClick }: ProductCardProps) {
+export function ProductCard({ product, onClick }: ProductCardProps) {
     // Find base price (usually the smallest size or first variant)
     const basePrice =
-        getProductListItemDto.sizes.length > 0
-            ? Math.min(...getProductListItemDto.sizes.map((s) => s.basePrice))
-            : 0
+        product.sizes.length > 0 ? Math.min(...product.sizes.map((s) => s.basePrice)) : 0
 
     return (
         <div className="pt-12 mb-4 w-full max-w-70 mx-auto group">
@@ -58,9 +56,9 @@ export function ProductCard({ getProductListItemDto, onClick }: ProductCardProps
                         <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-3/4 h-8 bg-black/30 blur-xl rounded-full" />
 
                         <Image
-                            alt={getProductListItemDto.name}
+                            alt={product.name}
                             className="object-contain h-56 w-56 drop-shadow-2xl z-20"
-                            src={getProductListItemDto.imageUrl}
+                            src={product.imageUrl}
                             removeWrapper
                         />
                     </motion.div>
@@ -70,7 +68,7 @@ export function ProductCard({ getProductListItemDto, onClick }: ProductCardProps
                     {/* Name */}
                     <div className="w-full">
                         <h3 className="text-white font-black text-2xl uppercase leading-none tracking-tight line-clamp-2 min-h-12">
-                            {getProductListItemDto.name}
+                            {product.name}
                         </h3>
                     </div>
 
