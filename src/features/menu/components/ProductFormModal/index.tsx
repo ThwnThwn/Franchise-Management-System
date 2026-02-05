@@ -8,14 +8,13 @@ import {
     ModalFooter,
     Button,
     Divider,
-    Select,
-    SelectItem,
-    Switch
+    Switch,
+    AutocompleteItem
 } from "@heroui/react"
 import { useFormik, FieldArray, FormikProvider } from "formik"
 import * as Yup from "yup"
 import { Plus } from "lucide-react"
-import { InputStyled, ButtonStyled, ModalStyled } from "@/components"
+import { InputStyled, ButtonStyled, ModalStyled, AutocompleteStyled } from "@/components"
 import { useCreateProduct, useUpdateProduct, useGetAllCategories } from "../../hooks"
 import { CreateProductRequest, UpdateProductRequest } from "../../models/products/request"
 import { Product } from "../../models/products/respone"
@@ -155,24 +154,20 @@ export function ProductFormModal({
                                 isInvalid={!!(formik.touched.name && formik.errors.name)}
                                 errorMessage={formik.errors.name}
                             />
-                            <Select
-                                label="Danh mục"
-                                variant="bordered"
+                            <AutocompleteStyled
+                                label={"Dang mục"}
+                                items={categories}
+                                selectedKey={formik.values.categoryId || categories[0]?.id || ""}
+                                onSelectionChange={(id) => {
+                                    formik.setFieldValue("categoryId", id)
+                                }}
                                 isRequired
-                                disableAnimation
-                                selectedKeys={
-                                    formik.values.categoryId ? [formik.values.categoryId] : []
-                                }
-                                onChange={(e) => formik.setFieldValue("categoryId", e.target.value)}
-                                isInvalid={
-                                    !!(formik.touched.categoryId && formik.errors.categoryId)
-                                }
-                                errorMessage={formik.errors.categoryId}
+                                isClearable={false}
                             >
-                                {categories.map((cat: any) => (
-                                    <SelectItem key={cat.id}>{cat.name}</SelectItem>
+                                {(categories ?? []).map((item) => (
+                                    <AutocompleteItem key={item.id}>{item.name}</AutocompleteItem>
                                 ))}
-                            </Select>
+                            </AutocompleteStyled>
                             <InputStyled
                                 label="Mô tả sản phẩm"
                                 {...formik.getFieldProps("description")}

@@ -7,6 +7,7 @@ import { ChevronRight, Plus, ShieldCheck, ShieldUser } from "lucide-react"
 import { RoleResponse } from "../../models/respone"
 import { PermissionRow, RoleCard, RoleFormModal } from "../../components"
 import { ButtonStyled } from "@/components"
+import { DashboardHeader } from "@/features/dashboard/components/general/DashboardHeader"
 
 export default function RolesPageView() {
     const { data: roles } = useGetAllRoles({})
@@ -32,23 +33,11 @@ export default function RolesPageView() {
         <div className="max-w-7xl mx-auto min-h-screen p-4 md:p-6 lg:p-8">
             {/* PHẦN 1: DANH SÁCH ROLE (CARDS) */}
             <section className="flex flex-col gap-2">
-                <div className="mb-8">
-                    <div className="flex items-center gap-3 mb-2">
-                        <div className="w-12 h-12 rounded-xl bg-linear-to-br from-primary to-secondary flex items-center justify-center">
-                            <ShieldUser className="w-6 h-6 text-white" />
-                        </div>
-                        <div>
-                            <div>
-                                <h1 className="text-2xl font-black text-slate-800">
-                                    Vai trò hệ thống
-                                </h1>
-                                <p className="text-slate-500 text-sm">
-                                    Quản lý các nhóm quyền hạn chính trong hệ thống
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <DashboardHeader
+                    icon={<ShieldUser className="w-6 h-6 text-white" />}
+                    title="Vai trò hệ thống"
+                    description="Quản lý các nhóm quyền hạn chính trong hệ thống"
+                />
 
                 <ButtonStyled
                     color="primary"

@@ -1,10 +1,5 @@
 export type GetAllProductParams = {
-    page?: number
-    pageSize?: number
-    name?: string
     categoryId?: string
-    // segmentId?: string
-    storeId?: string
     keyword?: string
 }
 

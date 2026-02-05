@@ -1,28 +1,65 @@
 import { GetAllProductParams } from "../models/products/request"
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { QUERY_KEYS } from "@/constants/queryKeys"
 import { productApi } from "../services/productApi"
 import { addToast } from "@heroui/react"
 import { STRINGS } from "@/constants/strings"
-import { BackendError } from "@/models/common/respone"
+import { BackendError, PageResult } from "@/models/common/respone"
+import { PaginationParams } from "@/models/common/request"
+import { Product } from "../models/products/respone"
+
+export const useGetInfiniteProducts = ({
+    params,
+    pageSize = 4
+}: {
+    params: GetAllProductParams
+    pageSize?: number
+}) => {
+    return useInfiniteQuery({
+        queryKey: ["products", params],
+        queryFn: async ({ pageParam = 1 }) => {
+            const response = await productApi.getAll({
+                pagination: {
+                    page: pageParam,
+                    pageSize: pageSize
+                },
+                query: params
+            })
+            return response
+        },
+        initialPageParam: 1,
+        getNextPageParam: (lastPage, allPages) => {
+            // allPages.length chính là số trang hiện tại đã load thành công
+            const currentPage = allPages.length
+
+            // Nếu trang hiện tại vẫn nhỏ hơn tổng số trang backend báo về
+            return currentPage < lastPage.totalPages ? currentPage + 1 : undefined
+        }
+    })
+}
 
 export const useGetAllProducts = ({
-    query
-}: // enabled = true
-    {
-        query?: GetAllProductParams
-        // enabled?: boolean
-    } = {}) => {
-
-    // ...
+    params,
+    pagination = {},
+    enabled = true
+}: {
+    params: GetAllProductParams
+    pagination: PaginationParams
+    enabled?: boolean
+}) => {
+    const queryClient = useQueryClient()
 
     return useQuery({
-        queryKey: [...QUERY_KEYS.PRODUCTS, query],
-        queryFn: async () => {
-            const data = await productApi.getAll(query)
-            return data
+        queryKey: [...QUERY_KEYS.PRODUCTS, params],
+        queryFn: () => productApi.getAll({ query: params, pagination }),
+        initialData: () => {
+            return queryClient.getQueryData<PageResult<Product>>([
+                ...QUERY_KEYS.USERS,
+                params,
+                pagination
+            ])
         },
-        placeholderData: keepPreviousData
+        enabled
     })
 }
 

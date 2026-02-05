@@ -17,6 +17,7 @@ import {
     TableColumn
 } from "@heroui/react"
 import { Product, ProductSize } from "../../models/products/respone"
+import { useGetAllCategories } from "../../hooks"
 
 type ProductTableProps = {
     products: Product[]
@@ -35,7 +36,7 @@ export function ProductTable({
     onDelete,
     isRefetching = false
 }: ProductTableProps) {
-
+    const { data: categories = [] } = useGetAllCategories()
     // --- HELPERS ---
     // 1. Tính khoảng giá: Tìm giá thấp nhất và cao nhất trong danh sách sizes
     const getPriceDisplay = (sizes: ProductSize[]) => {
@@ -158,7 +159,7 @@ export function ProductTable({
 
                 {/* Cột 2: Danh mục */}
                 <TableCell className="text-sm text-slate-700 font-medium">
-                    {item.categoryName}
+                    {(categories || []).filter((c) => c.id === item.categoryId)[0].name}
                 </TableCell>
 
                 {/* Cột 3: Giá bán (Khoảng giá) */}

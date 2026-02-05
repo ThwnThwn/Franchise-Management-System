@@ -5,15 +5,18 @@ import {
     UpdateProductRequest
 } from "@/features/menu/models/products/request"
 import axiosInstance from "@/utils/axios"
-import { GetProductsResultDto, Product } from "../models/products/respone"
+import { Product } from "../models/products/respone"
+import { PaginationParams } from "@/models/common/request"
+import { PageResult } from "@/models/common/respone"
 
 export const productApi = {
-    getAll: (query?: GetAllProductParams) =>
-        requestWrapper<GetProductsResultDto>(async () => {
-            const params = buildQueryParams(query ?? {})
-
+    getAll: ({ query, pagination }: { query: GetAllProductParams; pagination: PaginationParams }) =>
+        requestWrapper<PageResult<Product>>(async () => {
+            const params = {
+                ...buildQueryParams(query),
+                ...buildQueryParams(pagination)
+            }
             const res = await axiosInstance.get("/products", { params })
-
             return res.data
         }),
 
