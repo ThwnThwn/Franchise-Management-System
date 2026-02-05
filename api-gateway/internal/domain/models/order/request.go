@@ -22,7 +22,7 @@ type GetMyOrdersRequest struct {
 
 type CreatePaymentRequest struct {
 	ReturnUrl     *string            `json:"returnUrl"`
-	PaymentMethod enum.PaymentMethod `json:"paymentMethod" binding:"required"`
+	PaymentMethod enum.PaymentMethod `json:"paymentMethod"`
 }
 
 type UpdateOrderStatus struct {
