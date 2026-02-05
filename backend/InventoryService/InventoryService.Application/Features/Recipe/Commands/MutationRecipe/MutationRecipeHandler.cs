@@ -1,4 +1,5 @@
-﻿using InventoryService.Application.Constants;
+﻿using InventoryService.Application.ClientInterface;
+using InventoryService.Application.Constants;
 using InventoryService.Application.Persistences.Repositories;
 using MediatR;
 using System;
@@ -7,28 +8,34 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace InventoryService.Application.Features.Recipe.Commands.UpdateRecipe
+namespace InventoryService.Application.Features.Recipe.Commands.MutationRecipe
 {
-    public class UpdateRecipeHandler : IRequestHandler<UpdateRecipeCommand, Unit>
+    public class MutationRecipeHandler : IRequestHandler<MutationRecipeCommand, Unit>
     {
         private readonly IRecipeRepository _recipeRepository;
-        public UpdateRecipeHandler(IRecipeRepository recipeRepository)
+        private readonly IProductServiceClient _productServiceClient;
+        public MutationRecipeHandler(IRecipeRepository recipeRepository, IProductServiceClient productServiceClient)
         {
             _recipeRepository = recipeRepository;
+            _productServiceClient = productServiceClient;
         }
-        public async Task<Unit> Handle(UpdateRecipeCommand command, CancellationToken cancellationToken)
+        public async Task<Unit> Handle(MutationRecipeCommand command, CancellationToken cancellationToken)
         {
-            var request = command.Request; 
+            var request = command.Request;
             //ktra variant có tồn tại hay k
-
+            var variant = await _productServiceClient.GetVariantById(request.VariantId);
+            if (variant == null)
+            {
+                throw new DirectoryNotFoundException(Message.ProductVariant.NotFound);
+            }
             //lấy recipe ra từ db
             var recipe = await _recipeRepository.GetRecipesByVariantIdAsync(request.VariantId, cancellationToken);
 
-            if(recipe == null || !recipe.Any())
-            {
-                //không có recipe nào thì ko thể update đc
-                throw new DirectoryNotFoundException(Message.Recipe.NotFound);
-            }
+            //if(recipe == null || !recipe.Any())
+            //{
+            //    //không có recipe nào thì ko thể update đc
+            //    throw new DirectoryNotFoundException(Message.Recipe.NotFound);
+            //}
 
             var ingredientUpdate = request.Ingredients.Select(i => i.IngredientId).ToList();
             var ingredientInRecipe = recipe.Select(r => r.IngredientId).ToList();

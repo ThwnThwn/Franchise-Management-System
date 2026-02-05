@@ -6,9 +6,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace InventoryService.Application.Features.Recipe.Commands.UpdateRecipe
+namespace InventoryService.Application.Features.Recipe.Commands.MutationRecipe
 {
-    public record class UpdateRecipeCommand(MutationRecipeReqDto Request) : IRequest<Unit>
+    public record class MutationRecipeCommand(MutationRecipeReqDto Request) : IRequest<Unit>
     {
     }
 }

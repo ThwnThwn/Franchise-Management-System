@@ -1,4 +1,4 @@
-using InventoryService.Application.ClientInterface.Indentity;
+using InventoryService.Application.ClientInterface;
 using SharedKernel.Infrastructure.Kafka;
 using SharedKernel.Constants;
 using InventoryService.Application.Signals;

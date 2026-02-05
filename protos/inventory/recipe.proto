@@ -12,10 +12,8 @@ service RecipeGrpc {
   rpc GetByVariantIds (GetByVariantIdsRequest) returns (GetByVariantIdsResponse);
 
   // Thêm hàm Create: Nhận vào CreateRecipeReq và trả về Empty
-  rpc Create (MutationRecipeRequest) returns (google.protobuf.Empty);
+  rpc Mutation (MutationRecipeRequest) returns (google.protobuf.Empty);
 
-  // Thêm hàm Update: Nhận vào UpdateRecipeReq và trả về Empty
-  rpc Update (MutationRecipeRequest) returns (google.protobuf.Empty);
 }
 
 // --- Messages cho hàm hiện có ---
@@ -35,15 +33,12 @@ message RecipeRep {
   string base_unit = 4;
 }
 
-// --- Messages mới cho Create và Update ---
 
-// Map từ class CreateRecipeRequest
 message MutationRecipeRequest {
   string variant_id = 1;
   repeated RecipeIngredientRequest ingredients = 2;
 }
 
-// Map từ class RecipeIngredientRequest
 message RecipeIngredientRequest {
   string ingredient_id = 1;
   double quantity = 2;
