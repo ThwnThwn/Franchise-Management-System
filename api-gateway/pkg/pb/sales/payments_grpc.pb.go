@@ -24,6 +24,8 @@ const _ = grpc.SupportPackageIsVersion7
 type PaymentGrpcClient interface {
 	// Tạo đơn thanh toán
 	CreatePayment(ctx context.Context, in *CreatePaymentRequest, opts ...grpc.CallOption) (*PaymentResponse, error)
+	// Lấy danh sách payment có phân trang
+	GetAllPayments(ctx context.Context, in *GetAllPaymentsRequest, opts ...grpc.CallOption) (*GetAllPaymentsReply, error)
 }
 
 type paymentGrpcClient struct {
@@ -43,12 +45,23 @@ func (c *paymentGrpcClient) CreatePayment(ctx context.Context, in *CreatePayment
 	return out, nil
 }
 
+func (c *paymentGrpcClient) GetAllPayments(ctx context.Context, in *GetAllPaymentsRequest, opts ...grpc.CallOption) (*GetAllPaymentsReply, error) {
+	out := new(GetAllPaymentsReply)
+	err := c.cc.Invoke(ctx, "/payment.PaymentGrpc/GetAllPayments", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PaymentGrpcServer is the server API for PaymentGrpc service.
 // All implementations must embed UnimplementedPaymentGrpcServer
 // for forward compatibility
 type PaymentGrpcServer interface {
 	// Tạo đơn thanh toán
 	CreatePayment(context.Context, *CreatePaymentRequest) (*PaymentResponse, error)
+	// Lấy danh sách payment có phân trang
+	GetAllPayments(context.Context, *GetAllPaymentsRequest) (*GetAllPaymentsReply, error)
 	mustEmbedUnimplementedPaymentGrpcServer()
 }
 
@@ -58,6 +71,9 @@ type UnimplementedPaymentGrpcServer struct {
 
 func (UnimplementedPaymentGrpcServer) CreatePayment(context.Context, *CreatePaymentRequest) (*PaymentResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreatePayment not implemented")
+}
+func (UnimplementedPaymentGrpcServer) GetAllPayments(context.Context, *GetAllPaymentsRequest) (*GetAllPaymentsReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAllPayments not implemented")
 }
 func (UnimplementedPaymentGrpcServer) mustEmbedUnimplementedPaymentGrpcServer() {}
 
@@ -90,6 +106,24 @@ func _PaymentGrpc_CreatePayment_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PaymentGrpc_GetAllPayments_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAllPaymentsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PaymentGrpcServer).GetAllPayments(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/payment.PaymentGrpc/GetAllPayments",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PaymentGrpcServer).GetAllPayments(ctx, req.(*GetAllPaymentsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PaymentGrpc_ServiceDesc is the grpc.ServiceDesc for PaymentGrpc service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -100,6 +134,10 @@ var PaymentGrpc_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreatePayment",
 			Handler:    _PaymentGrpc_CreatePayment_Handler,
+		},
+		{
+			MethodName: "GetAllPayments",
+			Handler:    _PaymentGrpc_GetAllPayments_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

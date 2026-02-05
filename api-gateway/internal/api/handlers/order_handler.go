@@ -83,6 +83,12 @@ func (h *OrderHandler) GetMyOrders(c *gin.Context) {
 }
 
 func (h *OrderHandler) CreatePaymentUrl(c *gin.Context) {
+	var req order.CreatePaymentRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.Error(validation.TranslateValidationError(err))
+		return
+	}
+
 	id := c.Param("id")
 	orderId, err := uuid.Parse(id)
 	if err != nil {
@@ -91,7 +97,7 @@ func (h *OrderHandler) CreatePaymentUrl(c *gin.Context) {
 	}
 
 	ctx := c.Request.Context()
-	res, err := h.orderGW.CreatePaymentUrl(ctx, orderId)
+	res, err := h.orderGW.CreatePaymentUrl(ctx, orderId, &req)
 	if err != nil {
 		c.Error(err)
 		return

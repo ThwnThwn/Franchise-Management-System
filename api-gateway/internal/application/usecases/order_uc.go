@@ -32,5 +32,5 @@ func (o *OrderUseCase) GetMyOrders(ctx context.Context, req *order.GetMyOrdersRe
 }
 
 func (o *OrderUseCase) CreatePaymentUrl(ctx context.Context, id uuid.UUID) (string, error) {
-	return o.service.CreatePaymentUrl(ctx, id)
+	return o.service.CreatePaymentUrl(ctx, id, nil)
 }

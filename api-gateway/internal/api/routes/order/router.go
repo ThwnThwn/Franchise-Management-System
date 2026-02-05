@@ -16,9 +16,6 @@ func (a *OrderRouter) NewOrderRouter(cfg *config.Config,
 	authMW *middleware.AuthMiddleware,
 ) {
 	orderApi := r.Group("/orders")
-	{
-		orderApi.GET("/:id", orderHandler.GetOrderById)
-	}
 
 	accessTokenSecret := cfg.JwtSecret
 	privateApi := orderApi.Group("")
@@ -28,5 +25,7 @@ func (a *OrderRouter) NewOrderRouter(cfg *config.Config,
 		privateApi.POST("", orderHandler.CreateOrder)
 		// Tạo url thanh toán cho 1 order
 		privateApi.POST("/:id/payment", orderHandler.CreatePaymentUrl)
+
+		privateApi.GET("/:id", orderHandler.GetOrderById)
 	}
 }

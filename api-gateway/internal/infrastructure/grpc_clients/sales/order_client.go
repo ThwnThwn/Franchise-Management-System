@@ -1,8 +1,10 @@
 package sales
 
 import (
+	"api-gateway/global"
 	salesGW "api-gateway/internal/application/gateways/sales"
 	"api-gateway/internal/domain/models/order"
+	"api-gateway/pkg/mapper"
 	salesPb "api-gateway/pkg/pb/sales"
 	"api-gateway/pkg/utils/numberutils"
 	"api-gateway/pkg/utils/timeutils"
@@ -45,9 +47,11 @@ func (o *OrderGrpcClient) CreateOrder(ctx context.Context, req *order.CreateOrde
 	}
 
 	return &order.CreateOrderReply{
-		OrderId:     res.OrderId,
-		OrderCode:   res.OrderCode,
-		TotalAmount: res.TotalAmount,
+		OrderId:           res.OrderId,
+		OrderCode:         res.OrderCode,
+		TotalAmount:       res.TotalAmount,
+		CustomerId:        res.CustomerId,
+		CheckStockRespone: mapper.MapCheckEnoughStockRes(res.CheckStockRespone),
 	}, nil
 }
 
@@ -129,13 +133,24 @@ func (o *OrderGrpcClient) GetMyOrders(ctx context.Context, req *order.GetMyOrder
 }
 
 // CreatePaymentUrl implements sales.IOrderService.
-func (o *OrderGrpcClient) CreatePaymentUrl(ctx context.Context, id uuid.UUID) (string, error) {
+func (o *OrderGrpcClient) CreatePaymentUrl(ctx context.Context,
+	id uuid.UUID, req *order.CreatePaymentRequest,
+) (string, error) {
+	var returnUrl string
+	if req.ReturnUrl != nil {
+		returnUrl = *req.ReturnUrl
+	} else {
+		returnUrl = global.Config.FrontEndOrigin + "/orders"
+	}
+
 	res, err := o.paymentClient.CreatePayment(ctx, &salesPb.CreatePaymentRequest{
-		OrderId: id.String(),
+		OrderId:       id.String(),
+		ReturnUrl:     &returnUrl,
+		PaymentMethod: salesPb.PaymentMethodType(req.PaymentMethod),
 	})
 	if err != nil {
 		return "", err
 	}
 
-	return res.Message, nil
+	return res.Url, nil
 }
