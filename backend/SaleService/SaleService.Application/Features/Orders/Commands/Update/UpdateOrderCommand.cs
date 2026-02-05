@@ -9,6 +9,9 @@ namespace SalesService.Application.Features.Orders.Commands.Update
     {
         public Guid OrderId { get; set; }
         public List<OrderItem> Items { get; set; } = new();
+
+        public Guid UserId { get; set; } = default!;
+        public string RoleSlug { get; set; } = default!;
     }
 
     public sealed class OrderItem
