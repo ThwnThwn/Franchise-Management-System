@@ -39,14 +39,14 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
         product.sizes.length > 0 ? Math.min(...product.sizes.map((s) => s.basePrice)) : 0
 
     return (
-        <div className="pt-12 mb-4 w-full max-w-70 mx-auto group">
+        <div className="pt-12 mb-4 w-full max-w-70 group">
             <Card
-                className="overflow-visible bg-linear-to-b from-[#8D6E63] to-[#4E342E] rounded-[2.5rem] shadow-xl border-none min-h-80"
+                className="mx-auto overflow-hidden bg-linear-to-b from-[#8D6E63] to-[#4E342E] rounded-[2.5rem] shadow-xl border-none min-h-80"
                 shadow="sm"
                 isPressable
                 onPress={onClick}
             >
-                <CardBody className="overflow-visible p-0 items-center -mt-16 z-20">
+                <CardBody className="overflow-visible p-0 items-center z-20">
                     <motion.div
                         whileHover={{ y: -10, scale: 1.05 }}
                         transition={{ duration: 0.3 }}
@@ -57,8 +57,8 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
 
                         <Image
                             alt={product.name}
-                            className="object-contain h-56 w-56 drop-shadow-2xl z-20"
-                            src={product.imageUrl}
+                            className="object-cover h-56 w-56 drop-shadow-2xl z-20"
+                            src={product.imageUrl ?? null}
                             removeWrapper
                         />
                     </motion.div>

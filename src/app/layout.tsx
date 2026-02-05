@@ -6,6 +6,7 @@ import { AppProviders } from "@/providers"
 import { ClientHydration, Navbar, Modals } from "@/components"
 import Footer from "@/components/shared/Footer"
 import CartDrawer from "@/features/cart/components/CartDrawer"
+import { ScrollToTopButton } from "@/components/shared/ScrollToTopButton"
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -41,6 +42,7 @@ export default function RootLayout({
                             <CartDrawer />
                             <Footer />
                             <Modals />
+                            <ScrollToTopButton />
                         </div>
                     </AppProviders>
                 </ClientHydration>

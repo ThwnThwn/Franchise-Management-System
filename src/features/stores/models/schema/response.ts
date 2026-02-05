@@ -8,9 +8,3 @@ export type StoreDetailDto = {
     longitude: number
     isOpenNow: boolean
 }
-
-export type GetStoresResponseDto = {
-    items: StoreDetailDto[]
-    totalCount: number
-    totalPages: number
-}

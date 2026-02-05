@@ -7,7 +7,7 @@ import { BackendError } from "@/models/common/respone"
 import { UpdateRolePermissionsRequest, UpdateRoleRequest } from "../models/request"
 
 export const useGetAllRoles = ({ enabled = true }: { enabled?: boolean }) => {
-    const key = QUERY_KEYS.ROLES
+    const key = [QUERY_KEYS.ROLES]
     return useQuery({
         queryKey: key,
         queryFn: roleApi.getAll,
@@ -17,7 +17,7 @@ export const useGetAllRoles = ({ enabled = true }: { enabled?: boolean }) => {
 
 export const useCreateRole = ({ onSuccess }: { onSuccess?: () => void }) => {
     const queryClient = useQueryClient()
-    const key = QUERY_KEYS.ROLES
+    const key = [QUERY_KEYS.ROLES]
     return useMutation({
         mutationFn: roleApi.create,
         onSuccess: () => {
@@ -42,7 +42,7 @@ export const useCreateRole = ({ onSuccess }: { onSuccess?: () => void }) => {
 
 export const useUpdateRole = ({ id, onSuccess }: { id: string; onSuccess?: () => void }) => {
     const queryClient = useQueryClient()
-    const key = QUERY_KEYS.ROLES
+    const key = [QUERY_KEYS.ROLES]
     return useMutation({
         mutationFn: async (req: UpdateRoleRequest) => {
             await roleApi.update(id, req)
@@ -74,7 +74,7 @@ export const useGetPermissionsByRoleId = ({
     id: string
     enabled?: boolean
 }) => {
-    const key = [...QUERY_KEYS.ROLES, id, ...QUERY_KEYS.PERMISSIONS]
+    const key = [QUERY_KEYS.ROLES, id, QUERY_KEYS.PERMISSIONS]
     return useQuery({
         queryKey: key,
         queryFn: async () => {
@@ -92,7 +92,7 @@ export const useUpdateRolePermissions = ({
     onSuccess?: () => void
 }) => {
     const queryClient = useQueryClient()
-    const key = [...QUERY_KEYS.ROLES, id, ...QUERY_KEYS.PERMISSIONS]
+    const key = [QUERY_KEYS.ROLES, id, QUERY_KEYS.PERMISSIONS]
 
     return useMutation({
         mutationFn: async (req: UpdateRolePermissionsRequest) => {

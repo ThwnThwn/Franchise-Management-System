@@ -7,7 +7,7 @@ import { STRINGS } from "@/constants/strings"
 import { BackendError } from "@/models/common/respone"
 
 export const useGetAllPermissions = ({ enabled = true }: { enabled?: boolean }) => {
-    const key = QUERY_KEYS.PERMISSIONS
+    const key = [QUERY_KEYS.PERMISSIONS]
     return useQuery({
         queryKey: key,
         queryFn: permissionApi.getAll,
@@ -16,7 +16,7 @@ export const useGetAllPermissions = ({ enabled = true }: { enabled?: boolean }) 
 }
 export const useUpdatePermission = ({ id, onSuccess }: { id: string; onSuccess?: () => void }) => {
     const queryClient = useQueryClient()
-    const key = QUERY_KEYS.PERMISSIONS
+    const key = [QUERY_KEYS.PERMISSIONS]
     return useMutation({
         mutationFn: async (req: UpdatePermissionInfoRequest) => {
             await permissionApi.update(id, req)

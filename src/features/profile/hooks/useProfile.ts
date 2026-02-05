@@ -12,7 +12,7 @@ export const useGetMe = () => {
     const isLogined = useTokenStore((s) => !!s.accessToken)
 
     const query = useQuery({
-        queryKey: QUERY_KEYS.ME,
+        queryKey: [QUERY_KEYS.ME],
         queryFn: profileApi.getMe,
         enabled: isLogined,
         staleTime: 14 * 60 * 1000,
@@ -34,7 +34,7 @@ export const useUpdateMe = ({
             return req
         },
         onSuccess: (data) => {
-            queryClient.setQueryData<UserProfileViewRes>(QUERY_KEYS.ME, (prev) => {
+            queryClient.setQueryData<UserProfileViewRes>([QUERY_KEYS.ME], (prev) => {
                 if (!prev) return prev
                 return {
                     ...prev,

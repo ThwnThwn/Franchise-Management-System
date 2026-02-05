@@ -20,11 +20,11 @@ export const useGetAllUsers = ({
     const queryClient = useQueryClient()
 
     return useQuery({
-        queryKey: [...QUERY_KEYS.USERS, params, pagination],
+        queryKey: [QUERY_KEYS.USERS, params, pagination],
         queryFn: () => userApi.getAll({ query: params, pagination }),
         initialData: () => {
             return queryClient.getQueryData<PageResult<User>>([
-                ...QUERY_KEYS.USERS,
+                QUERY_KEYS.USERS,
                 params,
                 pagination
             ])
@@ -35,7 +35,7 @@ export const useGetAllUsers = ({
 
 export const useGetUserById = (id: string) => {
     return useQuery({
-        queryKey: [...QUERY_KEYS.USERS, id],
+        queryKey: [QUERY_KEYS.USERS, id],
         queryFn: async () => {
             const data = await userApi.getById(id)
             return data
@@ -50,7 +50,7 @@ export const useCreateUser = ({ onSuccess }: { onSuccess?: () => void }) => {
         mutationFn: userApi.create,
         onSuccess: () => {
             queryClient.invalidateQueries({
-                queryKey: QUERY_KEYS.USERS
+                queryKey: [QUERY_KEYS.USERS]
             })
             addToast({
                 title: STRINGS.COMMON.SUCCESS,
@@ -76,7 +76,7 @@ export const useUpdateUserRole = () => {
         mutationFn: userApi.updateRole,
         onSuccess: () => {
             queryClient.invalidateQueries({
-                queryKey: QUERY_KEYS.USERS
+                queryKey: [QUERY_KEYS.USERS]
             })
             addToast({
                 title: STRINGS.COMMON.SUCCESS,

@@ -54,9 +54,12 @@ export default function FeaturedSection() {
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                const res = await productApi.getAll({ page: 1, pageSize: 4 })
-                if (res?.products) {
-                    setFeaturedItems(res.products.slice(0, 4))
+                const res = await productApi.getAll({
+                    pagination: { page: 1, pageSize: 4 },
+                    query: {}
+                })
+                if (res?.items) {
+                    setFeaturedItems(res.items.slice(0, 4))
                 }
             } catch (error) {
                 console.error("Failed to fetch featured products", error)

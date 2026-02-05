@@ -10,14 +10,14 @@ import { RoleSlug } from "@/constants/enums"
 
 export const useGetMyOrders = () => {
     return useQuery({
-        queryKey: [...QUERY_KEYS.ORDERS, ...QUERY_KEYS.ME],
+        queryKey: [QUERY_KEYS.ORDERS, QUERY_KEYS.ME],
         queryFn: ordersApi.getMyOrders
     })
 }
 
 export const useGetOrderById = ({ id }: { id: string }) => {
     return useQuery({
-        queryKey: [...QUERY_KEYS.ORDERS, id],
+        queryKey: [QUERY_KEYS.ORDERS, id],
         queryFn: async () => {
             const data = await ordersApi.getById({ id })
             return data
@@ -29,7 +29,7 @@ export const useCreateOrder = ({ onSuccess }: { onSuccess?: () => void } = {}) =
     const queryClient = useQueryClient()
     const roleSlug = useTokenStore((s) => s.roleSlug)
     const isCustomer = roleSlug === RoleSlug.Customer
-    const queryKey = isCustomer ? [...QUERY_KEYS.ORDERS, ...QUERY_KEYS.ME] : [...QUERY_KEYS.ORDERS]
+    const queryKey = isCustomer ? [QUERY_KEYS.ORDERS, QUERY_KEYS.ME] : [QUERY_KEYS.ORDERS]
 
     return useMutation({
         mutationFn: ordersApi.createOrder,

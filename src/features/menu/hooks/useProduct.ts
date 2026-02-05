@@ -16,7 +16,7 @@ export const useGetInfiniteProducts = ({
     pageSize?: number
 }) => {
     return useInfiniteQuery({
-        queryKey: ["products", params],
+        queryKey: [QUERY_KEYS.PRODUCTS, params],
         queryFn: async ({ pageParam = 1 }) => {
             const response = await productApi.getAll({
                 pagination: {
@@ -50,11 +50,11 @@ export const useGetAllProducts = ({
     const queryClient = useQueryClient()
 
     return useQuery({
-        queryKey: [...QUERY_KEYS.PRODUCTS, params],
+        queryKey: [QUERY_KEYS.PRODUCTS, params],
         queryFn: () => productApi.getAll({ query: params, pagination }),
         initialData: () => {
             return queryClient.getQueryData<PageResult<Product>>([
-                ...QUERY_KEYS.USERS,
+                QUERY_KEYS.USERS,
                 params,
                 pagination
             ])
@@ -65,7 +65,7 @@ export const useGetAllProducts = ({
 
 export const useGetProductById = ({ id }: { id: string }) => {
     return useQuery({
-        queryKey: [...QUERY_KEYS.PRODUCTS, id],
+        queryKey: [QUERY_KEYS.PRODUCTS, id],
         queryFn: async () => {
             return await productApi.getById({ id })
         }
@@ -74,7 +74,7 @@ export const useGetProductById = ({ id }: { id: string }) => {
 
 export const useCreateProduct = () => {
     const queryClient = useQueryClient()
-    const key = QUERY_KEYS.PRODUCTS
+    const key = [QUERY_KEYS.PRODUCTS]
 
     return useMutation({
         mutationFn: productApi.create,
@@ -98,7 +98,7 @@ export const useCreateProduct = () => {
 
 export const useUpdateProduct = () => {
     const queryClient = useQueryClient()
-    const key = QUERY_KEYS.PRODUCTS
+    const key = [QUERY_KEYS.PRODUCTS]
 
     return useMutation({
         mutationFn: productApi.update,
@@ -122,7 +122,7 @@ export const useUpdateProduct = () => {
 
 export const useDeleteProduct = () => {
     const queryClient = useQueryClient()
-    const key = QUERY_KEYS.PRODUCTS
+    const key = [QUERY_KEYS.PRODUCTS]
 
     return useMutation({
         mutationFn: productApi.delete,

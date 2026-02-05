@@ -8,6 +8,6 @@ export type PageResult<T> = {
     items: T[]
     pageNumber: number
     pageSize: number
-    total: number
+    totalCount: number
     totalPages: number
 }

@@ -14,7 +14,7 @@ export const useGetAllStocks = ({
     enabled?: boolean
 }) => {
     return useQuery({
-        queryKey: [...QUERY_KEYS.INVENTORY, params],
+        queryKey: [QUERY_KEYS.INVENTORY, params],
         queryFn: () => inventoryApi.getAllStocks(params),
         enabled
     })
@@ -27,7 +27,7 @@ export const useAdjustStock = ({ onSuccess }: { onSuccess?: () => void }) => {
         mutationFn: inventoryApi.adjustStock,
         onSuccess: () => {
             queryClient.invalidateQueries({
-                queryKey: QUERY_KEYS.INVENTORY
+                queryKey: [QUERY_KEYS.INVENTORY]
             })
             addToast({
                 title: STRINGS.COMMON.SUCCESS,

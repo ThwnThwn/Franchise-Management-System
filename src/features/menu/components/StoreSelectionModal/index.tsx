@@ -5,7 +5,7 @@ import StoreList from "@/features/stores/components/StoreList"
 import { StoreDetailDto } from "@/features/stores/models/schema/response"
 import { useUserLocation } from "@/features/stores/hooks/useUserLocation"
 import { ModalStyled } from "@/components"
-import { useGetNearbyStores, useStores } from "@/features/stores"
+import { useGetNearbyStores, useGetStores } from "@/features/stores"
 import Link from "next/link"
 
 type StoreSelectionModalProps = {
@@ -38,16 +38,19 @@ export default function StoreSelectionModal({
     })
 
     // Fallback: Get all stores if GPS is disabled or not found
-    const { data: allStoresData, loading: isLoadingAll } = useStores({
-        page: 1,
-        pageSize: 10
+    const { data: allStoresData, isLoading: isLoadingAll } = useGetStores({
+        pagination: {
+            page: 1,
+            pageSize: 3
+        },
+        params: {}
     })
 
     // Determine which data to show
     const showNearby = enabled && nearbyData && nearbyData.items && nearbyData.items.length > 0
     const stores = showNearby ? nearbyData?.items : allStoresData?.items
     const isLoading = showNearby ? isLoadingNearby : isLoadingAll
-    const totalCount = showNearby ? nearbyData?.totalCount : allStoresData?.totalCount
+    const totalCount = showNearby ? nearbyData?.totalPages : allStoresData?.totalPages
 
     return (
         <ModalStyled

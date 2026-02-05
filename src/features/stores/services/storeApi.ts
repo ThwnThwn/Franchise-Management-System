@@ -1,12 +1,17 @@
 import { buildQueryParams, requestWrapper } from "@/utils/helpers/axiosHelper"
 import axiosInstance from "@/utils/axios"
 import { FindNearbyStoresParams, GetStoresParams } from "../models/schema/request"
-import { GetStoresResponseDto, StoreDetailDto } from "../models/schema/response"
+import { StoreDetailDto } from "../models/schema/response"
+import { PaginationParams } from "@/models/common/request"
+import { PageResult } from "@/models/common/respone"
 
 export const storeApi = {
-    getAll: (query?: GetStoresParams) =>
-        requestWrapper<GetStoresResponseDto>(async () => {
-            const params = buildQueryParams(query ?? {})
+    getAll: ({ pagination, query }: { pagination: PaginationParams; query: GetStoresParams }) =>
+        requestWrapper<PageResult<StoreDetailDto>>(async () => {
+            const params = {
+                ...buildQueryParams(query),
+                ...buildQueryParams(pagination)
+            }
             const res = await axiosInstance.get("/stores", { params })
             return res.data
         }),
@@ -18,7 +23,7 @@ export const storeApi = {
         }),
 
     getNearby: (query: FindNearbyStoresParams) =>
-        requestWrapper<GetStoresResponseDto>(async () => {
+        requestWrapper<PageResult<StoreDetailDto>>(async () => {
             const params = buildQueryParams(query)
             const res = await axiosInstance.get("/stores/nearby", { params })
             return res.data

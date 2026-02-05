@@ -4,7 +4,7 @@ import { categoryApi } from "../services"
 
 export const useGetAllCategories = () => {
     return useQuery({
-        queryKey: QUERY_KEYS.CATEGORIES,
+        queryKey: [QUERY_KEYS.CATEGORIES],
         queryFn: async () => {
             const data = await categoryApi.getAll()
             return data

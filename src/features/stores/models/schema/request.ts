@@ -1,6 +1,4 @@
 export type GetStoresParams = {
-    page?: number
-    pageSize?: number
     keyword?: string
 }
 

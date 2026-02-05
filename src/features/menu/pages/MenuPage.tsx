@@ -17,6 +17,9 @@ import { debouncedWrapper } from "@/utils/helpers/axiosHelper"
 import { ProductCard, ProductVariantsModal, StoreSelectionModal } from "../components"
 
 export default function MenuPage() {
+    const { onOpen: onOpenLogin } = useLoginDiscloresureSingleton()
+    const isLogined = useTokenStore((s) => !!s.accessToken)
+
     const selectedStore = useCartStore((s) => s.currentStore)
     const setStore = useCartStore((s) => s.setStore)
 
@@ -41,34 +44,27 @@ export default function MenuPage() {
     const products = useMemo(() => data?.pages.flatMap((page) => page.items) ?? [], [data])
     const isEmpty = !products || products.length === 0
 
-    const handleSetFilter = useCallback((newFilter: GetAllProductParams) => {
-        setFilter(newFilter)
-    }, [])
-
     const [isTyping, setIsTyping] = useState(false)
     const debouncedSearch = useMemo(
         () =>
             debouncedWrapper(
                 async (params: GetAllProductParams) => {
-                    handleSetFilter(params)
+                    setFilter(params)
                 },
                 1000,
                 () => setIsTyping(true),
                 () => setIsTyping(false)
             ),
-        [handleSetFilter]
+        []
     )
 
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
-
     const { isOpen, onOpen, onOpenChange } = useDisclosure()
     const {
         isOpen: isStoreModalOpen,
         onOpen: onOpenStoreModal,
         onOpenChange: onStoreModalOpenChange
     } = useDisclosure({ defaultOpen: false })
-    const { onOpen: onOpenLogin } = useLoginDiscloresureSingleton()
-    const isLogined = useTokenStore((s) => !!s.accessToken)
 
     const handleOpenProduct = useCallback(
         (product: Product) => {
@@ -87,77 +83,74 @@ export default function MenuPage() {
     return (
         <div className="min-h-[80vh] w-7xl max-w-7xl mx-auto px-4 md:px-8">
             {/* Header Section */}
-            <div className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-6 mt-8 mb-12">
-                {/* Left: Title + Store Selection */}
-                <div className="flex flex-col gap-4 max-w-2xl">
-                    <h1 className="text-6xl md:text-7xl font-sans font-black uppercase text-slate-900 tracking-tighter leading-[0.9]">
-                        CÀ MENU
-                    </h1>
+            <div className="flex flex-col gap-4 max-w-3xl mt-3 px-4">
+                <h1 className="text-6xl md:text-7xl font-sans font-black uppercase text-slate-900 tracking-tighter leading-[0.9]">
+                    CÀ MENU
+                </h1>
 
-                    <div className="flex items-center gap-3">
-                        {/* Store Selector */}
-                        <div className="min-w-fit">
-                            {selectedStore ? (
-                                <div
-                                    className="flex items-center gap-2 cursor-pointer hover:bg-default-200 transition-colors bg-default-100 px-4 py-2 rounded-full"
-                                    onClick={onOpenStoreModal}
-                                >
-                                    <MapPin size={18} className="text-primary" />
-                                    <div className="flex flex-col">
-                                        <span className="font-bold text-sm text-slate-800">
-                                            {selectedStore.name}
-                                        </span>
-                                    </div>
+                <div className="flex items-center gap-3">
+                    {/* Store Selector */}
+                    <div className="min-w-fit">
+                        {selectedStore ? (
+                            <div
+                                className="flex items-center gap-2 cursor-pointer hover:bg-default-200 transition-colors bg-default-100 px-4 py-2 rounded-full"
+                                onClick={onOpenStoreModal}
+                            >
+                                <MapPin size={18} className="text-primary" />
+                                <div className="flex flex-col">
+                                    <span className="font-bold text-sm text-slate-800">
+                                        {selectedStore.name}
+                                    </span>
                                 </div>
-                            ) : (
-                                <button
-                                    onClick={onOpenStoreModal}
-                                    className="flex items-center gap-2 text-sm font-semibold bg-primary text-white px-5 py-2.5 rounded-full hover:bg-primary/90 transition-shadow shadow-md hover:shadow-lg"
-                                >
-                                    <MapPin size={18} />
-                                    Chọn cửa hàng
-                                </button>
-                            )}
-                        </div>
-
-                        {/* Search Input */}
-                        <InputStyled
-                            placeholder="Tìm kiếm theo tên, danh mục, sku"
-                            startContent={<Search size={18} className="text-slate-400" />}
-                            radius="full"
-                            className="w-7xl"
-                            classNames={{
-                                inputWrapper: "bg-white shadow-sm border border-gray-200"
-                            }}
-                            size="md"
-                            onChange={async (e) => {
-                                await debouncedSearch({
-                                    ...filter,
-                                    keyword: e.target.value.trim()
-                                })
-                            }}
-                            isClearable
-                        />
-                        <AutocompleteStyled
-                            placeholder={"Danh mục"}
-                            items={categories}
-                            selectedKey={filter.categoryId}
-                            onSelectionChange={(id) => {
-                                setFilter((prev) => {
-                                    return {
-                                        ...prev,
-                                        categoryId: id ? (id as string) : undefined
-                                    }
-                                })
-                            }}
-                            className="bg-white border-none rounded-full"
-                            radius="full"
-                        >
-                            {(categories ?? []).map((item) => (
-                                <AutocompleteItem key={item.id}>{item.name}</AutocompleteItem>
-                            ))}
-                        </AutocompleteStyled>
+                            </div>
+                        ) : (
+                            <button
+                                onClick={onOpenStoreModal}
+                                className="flex items-center gap-2 text-sm font-semibold bg-primary text-white px-5 py-2.5 rounded-full hover:bg-primary/90 transition-shadow shadow-md hover:shadow-lg"
+                            >
+                                <MapPin size={18} />
+                                Chọn cửa hàng
+                            </button>
+                        )}
                     </div>
+
+                    {/* Search Input */}
+                    <InputStyled
+                        placeholder="Tìm kiếm theo tên, danh mục, sku"
+                        startContent={<Search size={18} className="text-slate-400" />}
+                        radius="full"
+                        className="w-7xl"
+                        classNames={{
+                            inputWrapper: "bg-white shadow-sm border border-gray-200"
+                        }}
+                        size="md"
+                        onChange={async (e) => {
+                            await debouncedSearch({
+                                ...filter,
+                                keyword: e.target.value.trim()
+                            })
+                        }}
+                        isClearable
+                    />
+                    <AutocompleteStyled
+                        placeholder={"Danh mục"}
+                        items={categories}
+                        selectedKey={filter.categoryId}
+                        onSelectionChange={(id) => {
+                            setFilter((prev) => {
+                                return {
+                                    ...prev,
+                                    categoryId: id ? (id as string) : undefined
+                                }
+                            })
+                        }}
+                        className="bg-white border-none rounded-full w-xl"
+                        radius="full"
+                    >
+                        {(categories ?? []).map((item) => (
+                            <AutocompleteItem key={item.id}>{item.name}</AutocompleteItem>
+                        ))}
+                    </AutocompleteStyled>
                 </div>
             </div>
 
