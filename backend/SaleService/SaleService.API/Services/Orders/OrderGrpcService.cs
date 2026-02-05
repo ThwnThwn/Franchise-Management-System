@@ -246,8 +246,22 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             Message = resultMessage
         };
     }
-    public override async Task<OrderReply> UpdateOrder(UpdateOrderRequest request,ServerCallContext context)
+    public override async Task<OrderReply> UpdateOrder(UpdateOrderRequest request, ServerCallContext context)
     {
+        var userIdEntry = context.RequestHeaders.FirstOrDefault(h =>
+            h.Key.Equals("x-user-id", StringComparison.OrdinalIgnoreCase));
+        var roleSlug = context.RequestHeaders.FirstOrDefault(h =>
+            h.Key.Equals("x-role-slug", StringComparison.OrdinalIgnoreCase));
+
+        if (userIdEntry == null)
+        {
+            throw new RpcException(new Status(StatusCode.Unauthenticated, "Missing x-user-id in request headers"));
+        }
+
+        if (roleSlug == null)
+        {
+            throw new RpcException(new Status(StatusCode.Unauthenticated, "Missing x-role-slug in request headers"));
+        }
 
         var command = new UpdateOrderCommand(new UpdateOrderReq
         {
@@ -257,7 +271,10 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             {
                 Sku = x.Sku,
                 Quantity = x.Quantity
-            }).ToList()
+            }).ToList(),
+            UserId = Guid.Parse(userIdEntry.Value),
+            RoleSlug = roleSlug.Value
+            
         });
         var result = await _mediator.Send(command);
         var reply = new OrderReply

@@ -9,6 +9,7 @@ using SalesService.Application.Persisitences.Orders;
 using SalesService.Application.Persisitences.Outbox;
 using SalesService.Application.Signals;
 using SalesService.Domain.Enums;
+using System.Diagnostics.CodeAnalysis;
 
 namespace SalesService.Application.Features.Orders.Commands.Update
 {
@@ -39,15 +40,19 @@ namespace SalesService.Application.Features.Orders.Commands.Update
         public async Task<UpdateOrderRes> Handle(UpdateOrderCommand command, CancellationToken cancellationToken)
         {
             var request = command.Request;
-
             if (request.Items == null || !request.Items.Any())
                 throw new BusinessException("Order must contain at least one item.");
 
             //Load existing order
             var order = await _orderRepository.GetByIdAsync(request.OrderId!, cancellationToken);
-
             if (order == null)
                 throw new BusinessException("Order not found.");
+
+            //Check if currentUser is the onwer or staff
+            var isStaff = request.RoleSlug != "customer";
+            if (request.UserId != order.CustomerId && !isStaff)
+                throw new BusinessException("Olny staff/admin or the owner can update order");
+
 
             //Only allow update when still Ordered
             if (order.Status != OrderStatus.PaymentPending)
