@@ -20,23 +20,20 @@ func NewProductHandler(productGW prodGW.IProductService) *ProductHandler {
 }
 
 func (h *ProductHandler) GetProducts(c *gin.Context) {
-	var req product.GetProductsRequest
+	var req product.GetProductsByKeywordRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
 		c.Error(err)
 		return
 	}
 
 	ctx := c.Request.Context()
-	res, err := h.productGW.GetProducts(ctx, &req)
+	res, err := h.productGW.GetAllWithPagingBy(ctx, &req)
 	if err != nil {
 		c.Error(err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"products":   res.Products,
-		"totalCount": res.TotalCount,
-	})
+	c.JSON(http.StatusOK, res)
 }
 
 func (h *ProductHandler) GetProductById(c *gin.Context) {

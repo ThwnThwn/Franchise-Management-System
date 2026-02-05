@@ -29,7 +29,9 @@ namespace ProductService.Application.Features.Products.Queries.GetByKeyword
 
         public Guid CategoryId { get; set; }
 
-        public List<ProductVariantDTO> Variants { get; init; } = new();
+        public string CategoryName { get; set; } = null!;
+
+        public List<ProductVariantDTO> Variants { get; init; } = [];
     }
 
     public sealed class ProductVariantDTO
