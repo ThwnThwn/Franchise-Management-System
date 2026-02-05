@@ -50,7 +50,7 @@ namespace SalesService.Application.Features.Orders.Commands.Update
                 throw new BusinessException("Order not found.");
 
             //Only allow update when still Ordered
-            if (order.Status != OrderStatus.Ordered)
+            if (order.Status != OrderStatus.PaymentPending)
                 throw new BusinessException("Order cannot be updated after preparation has started.");
 
             //Get SKUs

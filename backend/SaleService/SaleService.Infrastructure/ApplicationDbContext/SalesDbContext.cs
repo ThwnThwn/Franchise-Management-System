@@ -129,7 +129,7 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
                 .HasDefaultValue(PaymentMethod.Cash)
                 .HasColumnName("payment_method");
             entity.Property(e => e.Status)
-                .HasDefaultValue(OrderStatus.Ordered)
+                .HasDefaultValue(OrderStatus.PaymentPending)
                 .HasColumnName("status");
             entity.Property(e => e.Subtotal)
                 .HasPrecision(12, 3)
