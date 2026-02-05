@@ -12,4 +12,5 @@ public interface IOrderRepository
 
     Task<int> CountOrdersByCustomerIdAsync(Guid customerId, CancellationToken cancellationToken = default);
     Task UpdateAsync(Order order, CancellationToken cancellationToken = default);
+    Task SaveAsync(CancellationToken cancellationToken = default);
 }
