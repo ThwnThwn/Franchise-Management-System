@@ -5,11 +5,9 @@ using SalesService.Application.AppExceptions;
 using SalesService.Application.ClientInterface.Inventory;
 using SalesService.Application.ClientInterface.Products;
 using SalesService.Application.Dtos.Inventory;
-using SalesService.Application.Persisitences.OrderItems;
 using SalesService.Application.Persisitences.Orders;
 using SalesService.Application.Persisitences.Outbox;
 using SalesService.Application.Signals;
-using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
 
 namespace SalesService.Application.Features.Orders.Commands.Update
@@ -19,7 +17,6 @@ namespace SalesService.Application.Features.Orders.Commands.Update
         private readonly IOrderRepository _orderRepository;
         private readonly IProductServiceClient _productServiceClient;
         private readonly IInventoryServiceClient _inventoryServiceClient;
-        private readonly IOrderItemRepository _orderItemRepository;
         private readonly IOutboxRepository _outboxRepository;
         private readonly IOutboxSignal _outboxSignal;
         private readonly ILogger<UpdateOrderHandler> _logger;
@@ -28,7 +25,6 @@ namespace SalesService.Application.Features.Orders.Commands.Update
         IOrderRepository orderRepository,
         IProductServiceClient productServiceClient,
         IInventoryServiceClient inventoryServiceClient,
-        IOrderItemRepository orderItemRepository,
         IOutboxRepository outboxRepository,
         IOutboxSignal outboxSignal,
         ILogger<UpdateOrderHandler> logger)
@@ -36,7 +32,6 @@ namespace SalesService.Application.Features.Orders.Commands.Update
             _orderRepository = orderRepository;
             _productServiceClient = productServiceClient;
             _inventoryServiceClient = inventoryServiceClient;
-            _orderItemRepository = orderItemRepository;
             _outboxRepository = outboxRepository;
             _outboxSignal = outboxSignal;
             _logger = logger;
@@ -70,7 +65,6 @@ namespace SalesService.Application.Features.Orders.Commands.Update
             {
                 order.OrderItems.Remove(removed);
             }
-
 
             //Validate variants exist
             var variants = await _productServiceClient.GetListProductVariantsBySkusAsync(skus);
@@ -124,7 +118,6 @@ namespace SalesService.Application.Features.Orders.Commands.Update
                     subtotal += unitPrice * item.Quantity;
                     order.OrderItems.Add(new Domain.Entities.OrderItem
                     {
-                        Id = Guid.NewGuid(),
                         OrderId = order.Id,
                         ProductId = variant.ProductId,
                         VariantId = variant.VariantId,
@@ -148,7 +141,7 @@ namespace SalesService.Application.Features.Orders.Commands.Update
             order.TotalAmount = totalAmount;
 
             // 10. Save update
-            await _orderItemRepository.SaveAsync(cancellationToken);
+            await _orderRepository.SaveAsync(cancellationToken);
             _logger.LogInformation("Order {OrderCode} updated successfully.", order.Code);
 
             return Result.Success(new UpdateOrderRes
