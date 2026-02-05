@@ -1,11 +1,30 @@
 "use client"
 import React from "react"
-import { Button, ButtonProps, cn, Spinner } from "@heroui/react"
+import { Button, ButtonProps, cn } from "@heroui/react"
 
-export function ButtonStyled({ className, color = "default", isLoading, ...rest }: ButtonProps) {
-    if (isLoading) {
-        return <Spinner className="mx-auto" />
-    }
+// Tạo một interface mới loại bỏ các trường gây xung đột từ ButtonProps gốc
+interface ButtonStyledProps extends Omit<ButtonProps, "className" | "color" | "isLoading"> {
+    className?: string
+    color?: ButtonProps["color"]
+    isLoading?: boolean
+    children?: React.ReactNode
+}
 
-    return <Button color={color} {...rest} className={cn("font-medium text-base", className)} />
+export function ButtonStyled({
+    className,
+    color = "default",
+    isLoading,
+    children,
+    ...rest
+}: ButtonStyledProps) {
+    return (
+        <Button
+            color={color}
+            isLoading={isLoading}
+            {...(rest as any)} // Cast nhẹ về any ở đây để cắt đứt chuỗi logic phức tạp của TS
+            className={cn("font-medium text-base", className) as string}
+        >
+            {children}
+        </Button>
+    )
 }

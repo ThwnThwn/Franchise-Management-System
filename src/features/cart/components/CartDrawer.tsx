@@ -155,8 +155,8 @@ export default function CartDrawer() {
             onClose()
 
             // Dọn dẹp các sản phẩm đã mua khỏi giỏ hàng server
-            const skusToRemove = selectedItems.map((i) => i.sku)
-            if (skusToRemove.length > 0) deleteListCartItemMutation.mutate({ skus: skusToRemove })
+            // const skusToRemove = selectedItems.map((i) => i.sku)
+            // if (skusToRemove.length > 0) deleteListCartItemMutation.mutate({ skus: skusToRemove })
 
             // Reset các trạng thái local
             setSelectedKeys(new Set())
@@ -378,7 +378,7 @@ export default function CartDrawer() {
                             {/* Nút thanh toán: Thay đổi kiểu dáng và trạng thái dựa trên lỗi kho */}
                             <ButtonStyled
                                 color={hasShortageError ? "default" : "primary"}
-                                className="w-full font-bold h-12 shadow-lg"
+                                className="font-bold h-12 shadow-lg"
                                 onPress={handleCheckout}
                                 isLoading={createOrderMutation.isPending}
                                 isDisabled={selectedItems.length === 0}

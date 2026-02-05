@@ -12,7 +12,7 @@ import { BackendError } from "@/models/common/respone"
 import { STRINGS } from "@/constants/strings"
 
 export default function OrdersView() {
-    const { isOpen, onOpen, onOpenChange } = useDisclosure()
+    const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure()
     const [selectedOrder, setSelectedOrder] = useState<OrderSummary | undefined>(undefined)
 
     const { data: ordes, isLoading, error } = useGetMyOrders()
@@ -45,9 +45,14 @@ export default function OrdersView() {
                 {(() => {
                     const orderList = ordes || mockOrders
                     // Find the latest order by createdAt date
-                    const latestOrderId = orderList.length > 0
-                        ? [...orderList].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0].id
-                        : null
+                    const latestOrderId =
+                        orderList.length > 0
+                            ? [...orderList].sort(
+                                  (a, b) =>
+                                      new Date(b.createdAt).getTime() -
+                                      new Date(a.createdAt).getTime()
+                              )[0].id
+                            : null
 
                     return orderList.map((order) => (
                         <OrderCard
@@ -64,6 +69,7 @@ export default function OrdersView() {
                 <OrderDetailModal
                     isOpen={isOpen}
                     onOpenChange={onOpenChange}
+                    onClose={onClose}
                     orderId={selectedOrder.id}
                 />
             )}

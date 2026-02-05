@@ -7,11 +7,12 @@ export const ORDER_TEXT = {
         PRODUCTS: "sản phẩm",
         CREATED_AT: "Ngày tạo",
         CREATED_SUCCESS: "Đặt hàng thành công",
+        UPDATE_SUCCESS: "Cập nhật đơn thành công",
 
         ORDER_DETAIL_TITLE: "Chi tiết đơn hàng",
         ORDER_DATE: "Ngày đặt:",
         CLOSE: "Đóng",
-        PRINT_INVOICE: "Thanh toán bằng VN Pay",
+        PAY: "Thanh toán",
         INVOICE_FEATURE_ALERT: "Tính năng in hóa đơn đang phát triển",
 
         CUSTOMER: "Khách hàng",

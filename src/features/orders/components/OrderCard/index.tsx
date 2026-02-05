@@ -1,11 +1,11 @@
 import React from "react"
 import { CardHeader, CardBody, CardFooter, Chip, Divider } from "@heroui/react"
 import { Order } from "@/features/orders/models/response"
-import { getOrderStatusColor, getOrderStatusLabel } from "@/features/orders/"
+import { getOrderStatusColor } from "@/features/orders/"
 import { Calendar } from "lucide-react"
 import { formatCurrencyWithSymbol } from "@/utils/helpers/currency"
 import { CardStyled } from "@/components"
-import { ORDER_TEXT } from "@/features/orders/constants"
+import { ORDER_TEXT, OrderStatusLabels } from "@/features/orders/constants"
 import { useDay } from "@/hooks"
 import { DEFAULT_DATE_FORMAT } from "@/constants/constants"
 
@@ -21,11 +21,11 @@ export const OrderCard = ({ order, onClick, isLatest }: OrderCardProps) => {
         <CardStyled
             isPressable
             onPress={() => onClick(order)}
-            className={`w-full max-w-87.5 interactive-scale ${isLatest ? 'border-2 border-[#FFB74D]' : ''}`}
+            className={`w-full max-w-87.5 interactive-scale ${isLatest ? "border-2 border-[#FFB74D]" : ""}`}
         >
             <CardHeader className="flex justify-between items-center gap-4 relative">
                 {isLatest && (
-                    <div className="absolute -top-3 -right-3 bg-gradient-to-r from-red-500 to-pink-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl-lg rounded-tr-lg shadow-sm z-10 flex items-center gap-1">
+                    <div className="absolute -top-3 -right-3 bg-linear-to-r from-red-500 to-pink-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl-lg rounded-tr-lg shadow-sm z-10 flex items-center gap-1">
                         <span>NEW</span>
                         <div className="animate-pulse bg-white rounded-full w-1.5 h-1.5" />
                     </div>
@@ -37,8 +37,8 @@ export const OrderCard = ({ order, onClick, isLatest }: OrderCardProps) => {
                     </p>
                     <h4 className="text-start text-black font-bold text-large">{order.code}</h4>
                 </div>
-                <Chip color={getOrderStatusColor(order.status)} variant="flat" size="sm">
-                    {getOrderStatusLabel(order.status)}
+                <Chip color={getOrderStatusColor(order.status)} variant="bordered" size="sm">
+                    {OrderStatusLabels[order.status]}
                 </Chip>
             </CardHeader>
 
