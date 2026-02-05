@@ -1,7 +1,7 @@
 package order
 
 import (
-	"api-gateway/internal/application/constants/enum"
+	"api-gateway/internal/domain/constants/enum"
 	"api-gateway/internal/domain/models/common"
 )
 

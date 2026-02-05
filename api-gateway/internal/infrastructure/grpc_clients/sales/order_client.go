@@ -2,8 +2,8 @@ package sales
 
 import (
 	"api-gateway/global"
-	"api-gateway/internal/application/constants/enum"
 	salesGW "api-gateway/internal/application/gateways/sales"
+	"api-gateway/internal/domain/constants/enum"
 	"api-gateway/internal/domain/models/order"
 	"api-gateway/pkg/mapper"
 	salesPb "api-gateway/pkg/pb/sales"
@@ -164,7 +164,7 @@ func (o *OrderGrpcClient) GetMyOrders(ctx context.Context, req *order.GetMyOrder
 func (o *OrderGrpcClient) UpdateStatus(ctx context.Context, id uuid.UUID, status enum.OrderStatus) error {
 	_, err := o.client.UpdateOrderStatus(ctx, &salesPb.UpdateOrderStatusRequest{
 		OrderId: id.String(),
-		Status:  "",
+		Status:  salesPb.OrderStatus(status),
 	})
 
 	return err
