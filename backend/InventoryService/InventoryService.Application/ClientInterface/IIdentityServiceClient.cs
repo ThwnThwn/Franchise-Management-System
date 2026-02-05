@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace InventoryService.Application.ClientInterface.Indentity
+namespace InventoryService.Application.ClientInterface
 {
     public interface IIdentityServiceClient
     {

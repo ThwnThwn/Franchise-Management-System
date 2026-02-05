@@ -158,6 +158,7 @@ namespace ProductService.API
             app.MapControllers();
             app.MapGrpcService<ProductGrpcService>();
             app.MapGrpcService<Services.CategoryGrpcService>();
+            app.MapGrpcService<Services.ProductVariantInternalGrpcService>();
             app.MapGrpcReflectionService(); // Enable gRPC Server Reflection endpoint
             app.MapGet("/", () => "Product Service API is running. Visit /swagger for API documentation.");
 
