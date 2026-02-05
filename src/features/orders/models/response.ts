@@ -1,9 +1,21 @@
 import { OrderStatus, PaymentMethod } from "@/features/orders/constants"
 
-export interface CreateOrderReply {
+export interface ShortageItem {
+    variantId: string
+    maxFeasibleQuantity: number
+}
+
+export interface CheckEnoughStockResponse {
+    isEnough: boolean
+    shortageItems: ShortageItem[]
+}
+
+export interface OrderReply {
     orderId: string
     orderCode: string
     totalAmount: number
+    customerId: string
+    checkStockResponse?: CheckEnoughStockResponse
 }
 
 export interface OrderItem {

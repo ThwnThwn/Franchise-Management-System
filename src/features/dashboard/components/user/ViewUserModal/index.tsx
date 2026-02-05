@@ -21,7 +21,7 @@ export function ViewUserModal({
     userId: string
 }) {
     const { toFullName } = useUserHelper()
-    const { data, isLoading, error } = useGetUserById(userId)
+    const { data, isLoading, error } = useGetUserById({ id: userId, enabled: isOpen })
     const { toDate } = useDay({ defaultFormat: DEFAULT_DATE_FORMAT })
 
     useEffect(() => {

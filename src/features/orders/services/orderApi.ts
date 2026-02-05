@@ -1,5 +1,5 @@
 import { requestWrapper } from "@/utils/helpers/axiosHelper"
-import { CreateOrderReply, Order, OrderSummary } from "@/features/orders/models/response"
+import { OrderReply, Order, OrderSummary } from "@/features/orders/models/response"
 import axiosInstance from "@/utils/axios"
 import { CreateOrderRequest } from "@/features/orders/models/request"
 
@@ -17,7 +17,7 @@ export const ordersApi = {
         }),
 
     createOrder: (req: CreateOrderRequest) =>
-        requestWrapper<CreateOrderReply>(async () => {
+        requestWrapper<OrderReply>(async () => {
             const res = await axiosInstance.post("/orders", req)
             return res.data
         }),

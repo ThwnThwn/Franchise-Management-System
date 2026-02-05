@@ -58,7 +58,7 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
                         <Image
                             alt={product.name}
                             className="object-cover h-56 w-56 drop-shadow-2xl z-20"
-                            src={product.imageUrl ?? null}
+                            src={product.imageUrl === "" ? undefined : product.imageUrl}
                             removeWrapper
                         />
                     </motion.div>

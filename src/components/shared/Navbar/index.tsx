@@ -241,10 +241,6 @@ export function Navbar() {
                     </motion.div>
                 </div>
 
-                {/* nút giỏ hàng */}
-                {/* <NavbarItem className="flex items-center z-9999">
-                    <CartPopover />
-                </NavbarItem> */}
                 {store && <StoreChip storeName={store.name} className="hover:cursor-auto" />}
 
                 {isCustomer && (

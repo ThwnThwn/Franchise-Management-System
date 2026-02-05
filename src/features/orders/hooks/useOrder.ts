@@ -7,6 +7,7 @@ import { ORDER_TEXT } from "@/features/orders/constants"
 import { BackendError } from "@/models/common/respone"
 import { useTokenStore } from "@/hooks"
 import { RoleSlug } from "@/constants/enums"
+import { OrderReply } from "../models/response"
 
 export const useGetMyOrders = () => {
     return useQuery({
@@ -15,17 +16,18 @@ export const useGetMyOrders = () => {
     })
 }
 
-export const useGetOrderById = ({ id }: { id: string }) => {
+export const useGetOrderById = ({ id, enabled = true }: { id: string; enabled?: boolean }) => {
     return useQuery({
         queryKey: [QUERY_KEYS.ORDERS, id],
         queryFn: async () => {
             const data = await ordersApi.getById({ id })
             return data
-        }
+        },
+        enabled: enabled
     })
 }
 
-export const useCreateOrder = ({ onSuccess }: { onSuccess?: () => void } = {}) => {
+export const useCreateOrder = ({ onSuccess }: { onSuccess?: (res: OrderReply) => void } = {}) => {
     const queryClient = useQueryClient()
     const roleSlug = useTokenStore((s) => s.roleSlug)
     const isCustomer = roleSlug === RoleSlug.Customer
@@ -33,17 +35,19 @@ export const useCreateOrder = ({ onSuccess }: { onSuccess?: () => void } = {}) =
 
     return useMutation({
         mutationFn: ordersApi.createOrder,
-        onSuccess: () => {
-            queryClient.invalidateQueries({
-                queryKey: queryKey,
-                exact: false
-            })
-            onSuccess?.()
-            addToast({
-                title: STRINGS.COMMON.SUCCESS,
-                description: ORDER_TEXT.labels.CREATED_SUCCESS,
-                color: "success"
-            })
+        onSuccess: (res) => {
+            onSuccess?.(res)
+            if (res.checkStockResponse?.isEnough === true) {
+                queryClient.invalidateQueries({
+                    queryKey: queryKey,
+                    exact: false
+                })
+                addToast({
+                    title: STRINGS.COMMON.SUCCESS,
+                    description: ORDER_TEXT.labels.CREATED_SUCCESS,
+                    color: "success"
+                })
+            }
         },
         onError: (error: BackendError) => {
             addToast({

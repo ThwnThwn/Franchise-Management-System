@@ -33,13 +33,14 @@ export const useGetAllUsers = ({
     })
 }
 
-export const useGetUserById = (id: string) => {
+export const useGetUserById = ({ id, enabled = true }: { id: string; enabled?: boolean }) => {
     return useQuery({
         queryKey: [QUERY_KEYS.USERS, id],
         queryFn: async () => {
             const data = await userApi.getById(id)
             return data
-        }
+        },
+        enabled: enabled
     })
 }
 

@@ -1,5 +1,3 @@
-import { PaymentMethod } from "@/features/orders/constants"
-
 export interface CartItemCreateRequest {
     sku: string
     quantity: number
@@ -7,8 +5,8 @@ export interface CartItemCreateRequest {
 
 export interface CreateOrderRequest {
     items: CartItemCreateRequest[]
-    tax: number
-    paymentMethod: PaymentMethod
+    // tax: number
+    // paymentMethod: PaymentMethod
     notes: string
     storeId?: string
 }

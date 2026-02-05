@@ -30,7 +30,7 @@ interface OrderDetailModalProps {
 
 export const OrderDetailModal = ({ isOpen, onOpenChange, orderId }: OrderDetailModalProps) => {
     const router = useRouter()
-    const { data: order, isLoading, error } = useGetOrderById({ id: orderId })
+    const { data: order, isLoading, error } = useGetOrderById({ id: orderId, enabled: isOpen })
     const { formatDateTime } = useDay({ defaultFormat: DEFAULT_DATE_FORMAT })
 
     const { mutate: payment, isPending: isPaymentPending } = usePayment()
@@ -62,6 +62,7 @@ export const OrderDetailModal = ({ isOpen, onOpenChange, orderId }: OrderDetailM
         }
     }, [error])
 
+    if (!isOpen) return null
     if (isLoading || !order) return <Spinner />
 
     return (

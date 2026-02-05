@@ -4,7 +4,7 @@ import { Minus, Plus, Trash2 } from "lucide-react"
 import { CartItem as CartItemType } from "../models/types"
 import { ButtonIconStyled, CardStyled, ImageStyled } from "@/components"
 import { parseAttributes } from "@/features/menu/utils/utils"
-import { formatCurrencyWithSymbol } from "@/utils/helpers/currency"
+import { formatCurrency, formatCurrencyWithSymbol } from "@/utils/helpers/currency"
 
 interface CartItemProps {
     item: CartItemType
@@ -27,7 +27,7 @@ export const CartItem: React.FC<CartItemProps> = ({ item, onUpdateQuantity, onRe
     const attrs = parseAttributes(item.attributes)
 
     return (
-        <CardStyled className="mb-3 h-fit">
+        <CardStyled className="h-fit">
             <CardBody className="py-0">
                 <div className="flex justify-between items-center gap-3 w-full">
                     {/* Product Info */}
@@ -94,7 +94,9 @@ export const CartItem: React.FC<CartItemProps> = ({ item, onUpdateQuantity, onRe
                     >
                         <Minus size={14} />
                     </ButtonIconStyled>
-                    <span className="text-sm font-medium w-8 text-center">{item.quantity}</span>
+                    <span className="text-sm font-medium w-fit text-center">
+                        {formatCurrency(item.quantity)}
+                    </span>
                     <ButtonIconStyled
                         variant="flat"
                         size="sm"
