@@ -68,12 +68,18 @@ func TranslateValidationError(err error) *errormodel.BackendError {
 				msg = fmt.Sprintf("%s phải khác với %s", fieldName, paramName)
 			case "len":
 				msg = fmt.Sprintf("%s phải dài %s kí tự", fieldName, paramName)
+			case "gt":
+				msg = fmt.Sprintf("%s phải lớn hơn %s", fieldName, paramName)
 			case "min":
 				msg = fmt.Sprintf("%s phải dài ít nhất %s kí tự", fieldName, paramName)
 			case "max":
-				msg = fmt.Sprintf("%s không được vượt quá %s kí tự", fieldName, paramName)
+				if fe.Kind().String() == "int32" || fe.Kind().String() == "int" {
+					msg = fmt.Sprintf("%s không được lớn hơn %s", fieldName, paramName)
+				} else {
+					msg = fmt.Sprintf("%s không được vượt quá %s kí tự", fieldName, paramName)
+				}
 			default:
-				msg = fmt.Sprintf("%s: %s", fieldName, fe.Tag())
+				msg = fmt.Sprintf("%s: %s không hợp lệ", fieldName, fe.Tag())
 			}
 			msgs = append(msgs, msg)
 		}
@@ -83,6 +89,15 @@ func TranslateValidationError(err error) *errormodel.BackendError {
 			Detail: strings.Join(msgs, "; "),
 		}
 	}
+
+	if strings.Contains(err.Error(), "unmarshal") {
+		return &errormodel.BackendError{
+			Status: http.StatusBadRequest,
+			Title:  "Dữ liệu không đúng định dạng",
+			Detail: "Giá trị số quá lớn hoặc kiểu dữ liệu không hợp lệ",
+		}
+	}
+
 	return &errormodel.BackendError{
 		Status: http.StatusBadRequest,
 		Title:  "Yêu cầu không hợp lệ",

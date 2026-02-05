@@ -13,7 +13,7 @@ type CreateOrderRequest struct {
 
 type CartItem struct {
 	Sku      string `json:"sku" binding:"required"`
-	Quantity *int32 `json:"quantity" binding:"required"`
+	Quantity int32  `json:"quantity" binding:"required,gt=0,max=100000"`
 }
 
 type GetMyOrdersRequest struct {
@@ -23,4 +23,13 @@ type GetMyOrdersRequest struct {
 type CreatePaymentRequest struct {
 	ReturnUrl     *string            `json:"returnUrl"`
 	PaymentMethod enum.PaymentMethod `json:"paymentMethod" binding:"required"`
+}
+
+type UpdateOrderStatus struct {
+	Status enum.OrderStatus `json:"status" binding:"required"`
+}
+
+type UpdateOrderItem struct {
+	Sku      string `json:"sku" binding:"required"`
+	Quantity int32  `json:"quantity" binding:"required,gt=0,max=100000"`
 }

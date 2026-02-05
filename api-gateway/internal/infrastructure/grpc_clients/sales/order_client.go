@@ -2,6 +2,7 @@ package sales
 
 import (
 	"api-gateway/global"
+	"api-gateway/internal/application/constants/enum"
 	salesGW "api-gateway/internal/application/gateways/sales"
 	"api-gateway/internal/domain/models/order"
 	"api-gateway/pkg/mapper"
@@ -27,13 +28,13 @@ func ProvideOrderClient(f *salesClientFactory) salesGW.IOrderService {
 }
 
 // CreateOrder implements sales.IOrderService.
-func (o *OrderGrpcClient) CreateOrder(ctx context.Context, req *order.CreateOrderRequest) (*order.CreateOrderReply, error) {
+func (o *OrderGrpcClient) CreateOrder(ctx context.Context, req *order.CreateOrderRequest) (*order.OrderReply, error) {
 	pbItems := []*salesPb.CartItem{}
 
 	for _, item := range req.Items {
 		pbItems = append(pbItems, &salesPb.CartItem{
 			Sku:      item.Sku,
-			Quantity: numberutils.GetInt32(item.Quantity),
+			Quantity: item.Quantity,
 		})
 	}
 
@@ -46,7 +47,34 @@ func (o *OrderGrpcClient) CreateOrder(ctx context.Context, req *order.CreateOrde
 		return nil, err
 	}
 
-	return &order.CreateOrderReply{
+	return &order.OrderReply{
+		OrderId:           res.OrderId,
+		OrderCode:         res.OrderCode,
+		TotalAmount:       res.TotalAmount,
+		CustomerId:        res.CustomerId,
+		CheckStockRespone: mapper.MapCheckEnoughStockRes(res.CheckStockRespone),
+	}, nil
+}
+
+// UpdateOrder implements sales.IOrderService.
+func (o *OrderGrpcClient) UpdateOrder(ctx context.Context, id uuid.UUID, items []*order.UpdateOrderItem) (*order.OrderReply, error) {
+	pbItems := []*salesPb.UpdateOrderItem{}
+	for _, i := range items {
+		pbItems = append(pbItems, &salesPb.UpdateOrderItem{
+			Sku:      i.Sku,
+			Quantity: i.Quantity,
+		})
+	}
+
+	res, err := o.client.UpdateOrder(ctx, &salesPb.UpdateOrderRequest{
+		OrderId: id.String(),
+		Items:   pbItems,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &order.OrderReply{
 		OrderId:           res.OrderId,
 		OrderCode:         res.OrderCode,
 		TotalAmount:       res.TotalAmount,
@@ -130,6 +158,16 @@ func (o *OrderGrpcClient) GetMyOrders(ctx context.Context, req *order.GetMyOrder
 	}
 
 	return orders, nil
+}
+
+// UpdateStatus implements sales.IOrderService.
+func (o *OrderGrpcClient) UpdateStatus(ctx context.Context, id uuid.UUID, status enum.OrderStatus) error {
+	_, err := o.client.UpdateOrderStatus(ctx, &salesPb.UpdateOrderStatusRequest{
+		OrderId: id.String(),
+		Status:  "",
+	})
+
+	return err
 }
 
 // CreatePaymentUrl implements sales.IOrderService.

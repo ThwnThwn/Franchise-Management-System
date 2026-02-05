@@ -2,7 +2,7 @@ package order
 
 import "time"
 
-type CreateOrderReply struct {
+type OrderReply struct {
 	OrderId           string                    `json:"orderId"`
 	OrderCode         string                    `json:"orderCode"`
 	TotalAmount       float64                   `json:"totalAmount"`

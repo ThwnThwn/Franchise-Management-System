@@ -23,9 +23,10 @@ func (a *OrderRouter) NewOrderRouter(cfg *config.Config,
 	{
 		privateApi.GET("/me", orderHandler.GetMyOrders)
 		privateApi.POST("", orderHandler.CreateOrder)
-		// Tạo url thanh toán cho 1 order
-		privateApi.POST("/:id/payment", orderHandler.CreatePaymentUrl)
 
 		privateApi.GET("/:id", orderHandler.GetOrderById)
+		privateApi.PUT("/:id", orderHandler.UpdateOrder)
+		privateApi.PATCH("/:id/status", orderHandler.UpdateOrderStatus)
+		privateApi.POST("/:id/payment", orderHandler.CreatePaymentUrl)
 	}
 }
