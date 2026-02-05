@@ -30,5 +30,11 @@ namespace InventoryService.Infrastructure.Persistences.Repositories
                 .Where(r => variantIds.Contains(r.VariantId) && r.IsDeleted == false)
                 .ToListAsync(cancellationToken);
         }
+
+        public async Task StrictDelete(Recipe entity)
+        {
+            _dbContext.Recipes.Remove(entity);
+            await _dbContext.SaveChangesAsync();
+        }
     }
 }

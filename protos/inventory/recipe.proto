@@ -8,24 +8,38 @@ option go_package = "api-gateway/pkg/pb/inventory";
 package inventory;
 
 service RecipeGrpc {
-  // Định nghĩa hàm GetByVariantIds
+  // Hàm lấy danh sách theo VariantIds
   rpc GetByVariantIds (GetByVariantIdsRequest) returns (GetByVariantIdsResponse);
+
+  // Thêm hàm Create: Nhận vào CreateRecipeReq và trả về Empty
+  rpc Mutation (MutationRecipeRequest) returns (google.protobuf.Empty);
+
 }
 
-// Message Request chứa danh sách các VariantId (Guid truyền dưới dạng string)
+// --- Messages cho hàm hiện có ---
+
 message GetByVariantIdsRequest {
   repeated string variant_ids = 1;
 }
 
-// Message Response chứa danh sách các RecipeRep
 message GetByVariantIdsResponse {
   repeated RecipeRep items = 1;
 }
 
-// Cấu trúc tương ứng với class RecipeRep của bạn
 message RecipeRep {
-  string variant_id = 1; // Guid chuyển thành string
-  double quantity = 2;   // decimal trong C# thường map với double hoặc một custom message cho tiền tệ
+  string variant_id = 1; 
+  double quantity = 2;   
   string name = 3;
   string base_unit = 4;
+}
+
+
+message MutationRecipeRequest {
+  string variant_id = 1;
+  repeated RecipeIngredientRequest ingredients = 2;
+}
+
+message RecipeIngredientRequest {
+  string ingredient_id = 1;
+  double quantity = 2;
 }

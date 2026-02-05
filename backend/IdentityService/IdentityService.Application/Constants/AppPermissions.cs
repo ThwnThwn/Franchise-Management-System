@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using Confluent.Kafka;
 using IdentityService.Domain.Entities;
 
 namespace IdentityService.Application.Constants
@@ -32,8 +33,25 @@ namespace IdentityService.Application.Constants
         public static class  Recipe
         {
             public const string Read = "recipe.read";
-
         }
+
+        public static class Ingredient
+        {
+            public const string Read = "ingredient.read";
+            public const string Create = "ingredient.create";
+            public const string Update = "ingredient.update";
+            public const string Delete = "ingredient.delete";
+        }
+
+        public static class IngredientCategory
+        {
+            public const string Read = "ingredient_category.read";
+            public const string Create = "ingredient_category.create";
+            public const string Update = "ingredient_category.update";
+            public const string Delete = "ingredient_category.delete";
+        }
+
+
 
         // --- TỰ ĐỘNG QUÉT (REFLECTION) ---
         // Biến này sẽ được dùng cho SyncService

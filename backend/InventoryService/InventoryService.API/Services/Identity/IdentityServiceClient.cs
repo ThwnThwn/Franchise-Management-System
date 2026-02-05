@@ -2,7 +2,7 @@
 using Grpc.Net.Client;
 using IdentityService.Grpc.Protos.User;
 using InventoryService.API.Mapper;
-using InventoryService.Application.ClientInterface.Indentity;
+using InventoryService.Application.ClientInterface;
 using InventoryService.Application.Constants;
 using InventoryService.Application.Dtos.User;
 using MediatR;

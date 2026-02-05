@@ -2,7 +2,6 @@ using AutoMapper;
 using DotNetEnv;
 using InventoryService.API.Middleware;
 using InventoryService.API.Services.Identity;
-using InventoryService.Application.ClientInterface.Indentity;
 using InventoryService.Application.Constants;
 using InventoryService.Application.DependencyInjection;
 using InventoryService.Infrastructure.ApplicationDbContext; // Added back for concrete class
@@ -24,6 +23,8 @@ using InventoryService.API.Services.Inventory;
 using InventoryService.Application.Abstractions;
 using InventoryService.API.Services.IngredientCategory;
 using InventoryService.API.Services.Recipe;
+using InventoryService.Application.ClientInterface;
+using InventoryService.API.Services.Product;
 
 namespace InventoryService.API
 {
@@ -147,6 +148,7 @@ namespace InventoryService.API
             builder.Services.AddScoped<InventoryService.Domain.Services.IInventoryDomainService, InventoryService.Domain.Services.InventoryDomainService>();
             //add client
             builder.Services.AddScoped<IIdentityServiceClient, IdentityServiceClient>();
+            builder.Services.AddScoped<IProductServiceClient, ProductServiceClient>();
             // Kafka Producer Registry (for Outbox)
             builder.Services.AddSingleton<KafkaProducerRegistry>(sp => {
                 var registry = new KafkaProducerRegistry();
