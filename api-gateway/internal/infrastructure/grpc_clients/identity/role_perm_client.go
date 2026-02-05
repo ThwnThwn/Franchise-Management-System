@@ -3,6 +3,7 @@ package identity
 import (
 	idenGW "api-gateway/internal/application/gateways/identity"
 	"api-gateway/internal/domain/models/permission"
+	"api-gateway/internal/domain/models/role"
 	idenPb "api-gateway/pkg/pb/identity"
 	"context"
 
@@ -14,7 +15,7 @@ type rolePermGrpcClient struct {
 	client idenPb.RolePermissionGrpcClient
 }
 
-func NewRolePermClient(f *identityClientFactory) idenGW.IRolePermissionService {
+func ProvideRolePermClient(f *identityClientFactory) idenGW.IRolePermissionService {
 	return &rolePermGrpcClient{client: idenPb.NewRolePermissionGrpcClient(f.conn)}
 }
 
@@ -49,19 +50,19 @@ func (r *rolePermGrpcClient) GetAllPermissionsGrouped(ctx context.Context) ([]*p
 }
 
 // GetPermissionsByRoleId implements identity.IRolePermissionService.
-func (r *rolePermGrpcClient) GetPermissionsByRoleId(ctx context.Context, id uuid.UUID) ([]*permission.RolePermissionGroupRes, error) {
+func (r *rolePermGrpcClient) GetPermissionsByRoleId(ctx context.Context, id uuid.UUID) ([]*role.RolePermissionGroupRes, error) {
 	res, err := r.client.GetPermissionsByRoleId(ctx, &idenPb.GetPermissionsByRoleIdRequest{
 		Id: id.String(),
 	})
 	if err != nil {
-		return []*permission.RolePermissionGroupRes{}, err
+		return []*role.RolePermissionGroupRes{}, err
 	}
 
-	result := make([]*permission.RolePermissionGroupRes, 0, len(res.Groups))
+	result := make([]*role.RolePermissionGroupRes, 0, len(res.Groups))
 	for _, g := range res.Groups {
-		groupPerms := make([]*permission.RolePermissionRes, 0, len(g.Permissions))
+		groupPerms := make([]*role.RolePermissionRes, 0, len(g.Permissions))
 		for _, p := range g.Permissions {
-			groupPerms = append(groupPerms, &permission.RolePermissionRes{
+			groupPerms = append(groupPerms, &role.RolePermissionRes{
 				Id:          p.Id,
 				Slug:        p.Slug,
 				Name:        p.Name,
@@ -69,7 +70,7 @@ func (r *rolePermGrpcClient) GetPermissionsByRoleId(ctx context.Context, id uuid
 				IsActived:   p.IsActived,
 			})
 
-			result = append(result, &permission.RolePermissionGroupRes{
+			result = append(result, &role.RolePermissionGroupRes{
 				Resource:    g.Resource,
 				Permissions: groupPerms,
 			})
@@ -101,7 +102,7 @@ func (r *rolePermGrpcClient) UpdatePermissionInfo(ctx context.Context, id uuid.U
 }
 
 // UpdateRolePermissions implements identity.IRolePermissionService.
-func (r *rolePermGrpcClient) UpdateRolePermissions(ctx context.Context, id uuid.UUID, req *permission.UpdateRolePermissionsRequest) error {
+func (r *rolePermGrpcClient) UpdateRolePermissions(ctx context.Context, id uuid.UUID, req *role.UpdateRolePermissionsRequest) error {
 	_, err := r.client.UpdateRolePermissions(ctx, &idenPb.UpdateRolePermissionsRequest{
 		Id:                  id.String(),
 		PermissionsToGrant:  req.PermissionsToGrant,

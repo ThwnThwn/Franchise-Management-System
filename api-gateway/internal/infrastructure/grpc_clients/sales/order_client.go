@@ -130,12 +130,12 @@ func (o *OrderGrpcClient) GetMyOrders(ctx context.Context, req *order.GetMyOrder
 
 // CreatePaymentUrl implements sales.IOrderService.
 func (o *OrderGrpcClient) CreatePaymentUrl(ctx context.Context, id uuid.UUID) (string, error) {
-	res, err := o.paymentClient.CreateVnPayPaymentUrl(ctx, &salesPb.CreateVnPayPaymentUrlRequest{
+	res, err := o.paymentClient.CreatePayment(ctx, &salesPb.CreatePaymentRequest{
 		OrderId: id.String(),
 	})
 	if err != nil {
 		return "", err
 	}
 
-	return res.PaymentUrl, nil
+	return res.Message, nil
 }

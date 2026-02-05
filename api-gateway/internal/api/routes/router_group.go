@@ -6,7 +6,9 @@ import (
 	"api-gateway/internal/api/routes/category"
 	"api-gateway/internal/api/routes/inventory"
 	"api-gateway/internal/api/routes/order"
+	"api-gateway/internal/api/routes/permission"
 	"api-gateway/internal/api/routes/product"
+	"api-gateway/internal/api/routes/role"
 	"api-gateway/internal/api/routes/shift"
 	"api-gateway/internal/api/routes/store"
 	"api-gateway/internal/api/routes/user"
@@ -18,8 +20,10 @@ type RouterGroup struct {
 	Shift shift.RouterGroup
 
 	// Identitt
-	Auth auth.RouterGroup
-	User user.RouterGroup
+	Auth     auth.RouterGroup
+	User     user.RouterGroup
+	Role     role.RouterGroup
+	RolePerm permission.RouterGroup
 
 	// Product
 	Product  product.RouterGroup
@@ -39,8 +43,10 @@ var (
 	shiftGroup = RouterGroupApp.Shift
 
 	// Identity
-	authGroup = RouterGroupApp.Auth
-	userGroup = RouterGroupApp.User
+	authGroup     = RouterGroupApp.Auth
+	userGroup     = RouterGroupApp.User
+	roleGroup     = RouterGroupApp.Role
+	rolePermGroup = RouterGroupApp.RolePerm
 
 	// Product
 	productGroup  = RouterGroupApp.Product

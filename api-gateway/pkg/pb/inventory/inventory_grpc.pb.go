@@ -23,6 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type InventoryGrpcClient interface {
 	IncreaseStock(ctx context.Context, in *IncreaseStockRequest, opts ...grpc.CallOption) (*IncreaseStockResponse, error)
+	GetAllStock(ctx context.Context, in *GetAllStockReq, opts ...grpc.CallOption) (*GetAllStockRep, error)
 }
 
 type inventoryGrpcClient struct {
@@ -42,11 +43,21 @@ func (c *inventoryGrpcClient) IncreaseStock(ctx context.Context, in *IncreaseSto
 	return out, nil
 }
 
+func (c *inventoryGrpcClient) GetAllStock(ctx context.Context, in *GetAllStockReq, opts ...grpc.CallOption) (*GetAllStockRep, error) {
+	out := new(GetAllStockRep)
+	err := c.cc.Invoke(ctx, "/inventory.InventoryGrpc/GetAllStock", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // InventoryGrpcServer is the server API for InventoryGrpc service.
 // All implementations must embed UnimplementedInventoryGrpcServer
 // for forward compatibility
 type InventoryGrpcServer interface {
 	IncreaseStock(context.Context, *IncreaseStockRequest) (*IncreaseStockResponse, error)
+	GetAllStock(context.Context, *GetAllStockReq) (*GetAllStockRep, error)
 	mustEmbedUnimplementedInventoryGrpcServer()
 }
 
@@ -56,6 +67,9 @@ type UnimplementedInventoryGrpcServer struct {
 
 func (UnimplementedInventoryGrpcServer) IncreaseStock(context.Context, *IncreaseStockRequest) (*IncreaseStockResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method IncreaseStock not implemented")
+}
+func (UnimplementedInventoryGrpcServer) GetAllStock(context.Context, *GetAllStockReq) (*GetAllStockRep, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAllStock not implemented")
 }
 func (UnimplementedInventoryGrpcServer) mustEmbedUnimplementedInventoryGrpcServer() {}
 
@@ -88,6 +102,24 @@ func _InventoryGrpc_IncreaseStock_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _InventoryGrpc_GetAllStock_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAllStockReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InventoryGrpcServer).GetAllStock(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/inventory.InventoryGrpc/GetAllStock",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InventoryGrpcServer).GetAllStock(ctx, req.(*GetAllStockReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // InventoryGrpc_ServiceDesc is the grpc.ServiceDesc for InventoryGrpc service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -98,6 +130,10 @@ var InventoryGrpc_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "IncreaseStock",
 			Handler:    _InventoryGrpc_IncreaseStock_Handler,
+		},
+		{
+			MethodName: "GetAllStock",
+			Handler:    _InventoryGrpc_GetAllStock_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

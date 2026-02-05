@@ -38,3 +38,10 @@ func HashString(stringutils string, secret []byte) string {
 	h.Write([]byte(stringutils))
 	return hex.EncodeToString(h.Sum(nil))
 }
+
+func GetString(in *string) string {
+	if in == nil {
+		return ""
+	}
+	return *in
+}

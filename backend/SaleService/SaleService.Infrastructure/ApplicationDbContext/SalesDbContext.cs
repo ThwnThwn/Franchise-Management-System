@@ -34,6 +34,9 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
     public virtual DbSet<OutboxMessage> OutboxMessages { get; set; }
 
     public virtual DbSet<CartItem> CartItems { get; set; }
+    public virtual DbSet<Wallet> Wallets { get; set; }
+    public virtual DbSet<WalletTransaction> WalletTransactions { get; set; }
+    public virtual DbSet<RefundTicket> RefundTickets { get; set; }
     public DbSet<T> Set<T>() where T : class, IEntity => base.Set<T>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -178,8 +181,9 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
 
             entity.HasOne(d => d.Order).WithMany(p => p.OrderItems)
                 .HasForeignKey(d => d.OrderId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("fk_order_items_order");
+
         });
 
         modelBuilder.Entity<Payment>(entity =>

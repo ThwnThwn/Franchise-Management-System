@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"api-gateway/internal/application/abstractions"
 	"api-gateway/internal/application/constants/errorcode"
+	"api-gateway/internal/application/gateways/franchise"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -10,11 +10,11 @@ import (
 )
 
 type ShiftHandler struct {
-	shiftUC abstractions.IShiftUseCase
+	shiftGW franchise.IShiftService
 }
 
-func NewShiftHandler(shiftUC abstractions.IShiftUseCase) *ShiftHandler {
-	return &ShiftHandler{shiftUC: shiftUC}
+func NewShiftHandler(shiftGW franchise.IShiftService) *ShiftHandler {
+	return &ShiftHandler{shiftGW: shiftGW}
 }
 
 func (h *ShiftHandler) GetUserCurrentShift(c *gin.Context) {
@@ -25,7 +25,7 @@ func (h *ShiftHandler) GetUserCurrentShift(c *gin.Context) {
 	}
 
 	ctx := c.Request.Context()
-	res, err := h.shiftUC.GetUserCurrentShift(ctx, userID.(uuid.UUID))
+	res, err := h.shiftGW.GetUserCurrentShift(ctx, userID.(uuid.UUID))
 	if err != nil {
 		c.Error(err)
 		return

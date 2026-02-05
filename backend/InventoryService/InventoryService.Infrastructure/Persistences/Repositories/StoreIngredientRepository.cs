@@ -234,5 +234,15 @@ namespace InventoryService.Infrastructure.Persistences.Repositories
                          && x.IsDeleted == false)
                 .SumAsync(x => x.Amount);
         }
+
+        public async Task<List<IngredientQueue>> GetQueueByOrderIdAsync(Guid orderId,CancellationToken cancellationToken)
+        {
+            return await _dbContext.IngredientQueues
+                .Where(x =>
+                    x.OrderId == orderId &&
+                    x.ExpiresAt > DateTimeOffset.UtcNow &&
+                    x.IsDeleted == false)
+                .ToListAsync(cancellationToken);
+        }
     }
 }

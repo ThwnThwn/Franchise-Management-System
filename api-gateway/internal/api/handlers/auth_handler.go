@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"api-gateway/global"
-	"api-gateway/internal/application/abstractions"
 	"api-gateway/internal/application/constants/errorcode"
+	"api-gateway/internal/application/gateways/identity"
 	"api-gateway/internal/domain/constants/jwttype"
 	"api-gateway/internal/domain/models/auth"
 	"api-gateway/internal/domain/models/user"
@@ -12,22 +12,21 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"google.golang.org/grpc/metadata"
 )
 
 type AuthHandler struct {
-	authUC abstractions.IAuthUseCase
-	userUC abstractions.IUserUseCase
+	authGW identity.IAuthService
+	userGW identity.IUserService
 }
 
 func NewAuthHandler(
-	authUC abstractions.IAuthUseCase,
-	userUC abstractions.IUserUseCase,
+	authGW identity.IAuthService,
+	userGW identity.IUserService,
 ) *AuthHandler {
 	return &AuthHandler{
-		authUC: authUC,
-		userUC: userUC,
+		authGW: authGW,
+		userGW: userGW,
 	}
 }
 
@@ -39,7 +38,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	}
 
 	ctx := c.Request.Context()
-	res, err := h.authUC.Login(ctx, &req)
+	res, err := h.authGW.Login(ctx, &req)
 	if err != nil {
 		c.Error(err)
 		return
@@ -67,7 +66,7 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 	}
 
 	ctx := c.Request.Context()
-	res, err := h.authUC.Logout(ctx, &auth.LogoutRequest{
+	res, err := h.authGW.Logout(ctx, &auth.LogoutRequest{
 		AccessToken:  accessToken.(string),
 		RefreshToken: refreshToken,
 	})
@@ -90,7 +89,7 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	}
 
 	ctx := c.Request.Context()
-	res, err := h.authUC.RefreshToken(ctx, &auth.RefreshTokenRequest{
+	res, err := h.authGW.RefreshToken(ctx, &auth.RefreshTokenRequest{
 		RefreshToken: refreshToken,
 	})
 	if err != nil {
@@ -115,7 +114,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	}
 
 	ctx := c.Request.Context()
-	res, err := h.authUC.Register(ctx, &auth.RegisterRequest{
+	res, err := h.authGW.Register(ctx, &auth.RegisterRequest{
 		Email:           req.Email,
 		Username:        req.Username,
 		FirstName:       req.FirstName,
@@ -146,7 +145,7 @@ func (h *AuthHandler) ConfirmRegisterOtp(c *gin.Context) {
 	}
 
 	ctx := c.Request.Context()
-	success, msg, err := h.authUC.ConfirmRegisterOtp(ctx, &auth.ConfirmOtpRequest{
+	success, msg, err := h.authGW.ConfirmRegisterOtp(ctx, &auth.ConfirmOtpRequest{
 		Email: req.Email,
 		Otp:   req.Otp,
 	})
@@ -170,7 +169,7 @@ func (h *AuthHandler) ReSendRegisterOtp(c *gin.Context) {
 	}
 
 	ctx := c.Request.Context()
-	msg, err := h.authUC.ReSendOtp(ctx, req.Email, jwttype.Register)
+	msg, err := h.authGW.ReSendOtp(ctx, req.Email, jwttype.Register)
 	if err != nil {
 		c.Error(err)
 		return
@@ -190,7 +189,7 @@ func (h *AuthHandler) ForgotPassword(c *gin.Context) {
 	}
 
 	ctx := c.Request.Context()
-	msg, err := h.authUC.ForgotPassword(ctx, req.Email)
+	msg, err := h.authGW.ForgotPassword(ctx, req.Email)
 
 	if err != nil {
 		c.Error(err)
@@ -210,7 +209,7 @@ func (h *AuthHandler) ConfirmForgotPasswordOtp(c *gin.Context) {
 	}
 
 	ctx := c.Request.Context()
-	token, err := h.authUC.ConfirmForgotPasswordOtp(ctx, &auth.ConfirmOtpRequest{
+	token, err := h.authGW.ConfirmForgotPasswordOtp(ctx, &auth.ConfirmOtpRequest{
 		Email: req.Email,
 		Otp:   req.Otp,
 	})
@@ -251,11 +250,13 @@ func (h *AuthHandler) NewPassword(c *gin.Context) {
 		"x-email", claims.Subject,
 	)
 	ctx := metadata.NewOutgoingContext(c.Request.Context(), md)
-	success, msg, err := h.authUC.NewPassword(ctx, req.NewPassword)
+	success, msg, err := h.authGW.NewPassword(ctx, req.NewPassword)
 	if err != nil {
 		c.Error(err)
 		return
 	}
+
+	c.SetCookie("forgot_password_token", "", -1, "/", "", false, true)
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": success,
@@ -271,7 +272,7 @@ func (h *AuthHandler) ReSendForgotPasswordOtp(c *gin.Context) {
 	}
 
 	ctx := c.Request.Context()
-	msg, err := h.authUC.ReSendOtp(ctx, req.Email, jwttype.ForgotPassword)
+	msg, err := h.authGW.ReSendOtp(ctx, req.Email, jwttype.ForgotPassword)
 	if err != nil {
 		c.Error(err)
 		return
@@ -290,13 +291,14 @@ func (h *AuthHandler) ChangePassword(c *gin.Context) {
 		return
 	}
 
-	userID, exists := c.Get("userID")
-	if !exists {
+	accessToken := c.GetString("accessToken")
+	if accessToken == "" {
 		c.Error(errorcode.ErrMissingTokenInfo)
 		return
 	}
+
 	ctx := c.Request.Context()
-	res, err := h.userUC.ChangePassword(ctx, userID.(uuid.UUID), &req)
+	res, err := h.userGW.ChangePassword(ctx, accessToken, &req)
 	if err != nil {
 		c.Error(err)
 		return

@@ -4,6 +4,7 @@ type GetProductsReply struct {
 	Products   []*Product `json:"products"`
 	TotalCount int32      `json:"totalCount"`
 }
+
 type Product struct {
 	Id           string         `json:"id"`
 	Name         string         `json:"name"`

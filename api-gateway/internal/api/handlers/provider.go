@@ -13,6 +13,8 @@ var HandlerSet = wire.NewSet(
 	// Identity
 	NewAuthHandler,
 	NewUserHandler,
+	NewRoleHandler,
+	NewPermHandler,
 
 	// Product
 	NewProductHandler,
@@ -34,6 +36,8 @@ type AppHandlers struct {
 	// Identity
 	*AuthHandler
 	*UserHandler
+	*RoleHandler
+	*PermHandler
 
 	// Product
 	*ProductHandler

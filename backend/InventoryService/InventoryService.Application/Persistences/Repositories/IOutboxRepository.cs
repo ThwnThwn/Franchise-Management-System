@@ -1,8 +1,10 @@
 using InventoryService.Domain.Entities;
+using SharedKernel.Abstractions;
 
 namespace InventoryService.Application.Persistences.Repositories;
 
-public interface IOutboxRepository
+public interface IOutboxRepository : SharedKernel.Abstractions.IOutboxRepository<OutboxMessage>
 {
-    void Add(OutboxMessage message);
+    // Inherits Add(OutboxMessage message)
 }
+

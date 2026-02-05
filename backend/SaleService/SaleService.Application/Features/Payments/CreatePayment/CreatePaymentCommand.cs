@@ -10,7 +10,7 @@ namespace SalesService.Application.Features.Payments.CreatePayment
 
     public sealed class CreatePaymentRes
     {
-        public string Message { get; set; } = default!;
+        public string Url { get; set; } = default!;
     }
 
     public sealed class CreatePaymentReq

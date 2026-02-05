@@ -16,24 +16,31 @@ namespace InventoryService.API.BackgroundJobs;
 
 /// <summary>
 /// Worker xử lý Outbox của Inventory Service.
-/// Nhiệm vụ: Đọc event "LowStockDetected" -> Lấy Email Manager (gRPC) -> Bắn Kafka "LowStockEvent".
+/// Nhiệm vụ: Đọc event từ Outbox -> Dispatch generic qua KafkaProducerRegistry -> Kafka.
 /// </summary>
 public class InventoryOutboxWorker : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly IOutboxSignal _outboxSignal;
     private readonly ILogger<InventoryOutboxWorker> _logger;
+    private readonly KafkaProducerRegistry _registry;
 
     public InventoryOutboxWorker(
         IServiceProvider serviceProvider, 
         IOutboxSignal outboxSignal, 
-        ILogger<InventoryOutboxWorker> logger)
+        ILogger<InventoryOutboxWorker> logger,
+        KafkaProducerRegistry registry)
     {
         _serviceProvider = serviceProvider ;
         _outboxSignal = outboxSignal;
         _logger = logger;
+        _registry = registry;
     }
 
+    /// <summary>
+    /// Vòng lặp chính của Background Service.
+    /// Chờ tín hiệu từ OutboxSignal để xử lý tin nhắn mới.
+    /// </summary>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _logger.LogInformation("InventoryOutboxWorker started.");
@@ -48,11 +55,17 @@ public class InventoryOutboxWorker : BackgroundService
             {
                 _logger.LogError(ex, "Error processing Inventory Outbox messages.");
             }
-            // Chờ đợt signal tiếp theo (không polling 2s nữa)
+            // Chờ đợt signal tiếp theo
             await _outboxSignal.WaitForPulseAsync(stoppingToken);
         }
     }
 
+    /// <summary>
+    /// Xử lý batch các tin nhắn trong bảng Outbox.
+    /// - Lấy batch 10 tin chưa xử lý.
+    /// - Dựa vào Registry để tìm ra Topic và EventType.
+    /// - Deserialize tin nhắn và Publish lên Kafka.
+    /// </summary>
     private async Task ProcessOutboxMessagesAsync(CancellationToken stoppingToken)
     {
         using var scope = _serviceProvider.CreateScope();
@@ -62,7 +75,7 @@ public class InventoryOutboxWorker : BackgroundService
         var messages = await dbContext.OutboxMessages
             .Where(m => m.ProcessedOn == null)
             .OrderBy(m => m.OccurredOn)
-            .Take(10) // Batch size nhỏ để xử lý nhanh
+            .Take(10) // Batch size nhỏ
             .ToListAsync(stoppingToken);
 
         if (!messages.Any()) return;
@@ -71,27 +84,26 @@ public class InventoryOutboxWorker : BackgroundService
         {
             try
             {
-                if (message.Type == "LowStockDetected")
+                // 1. Resolve Type and Topic from Registry
+                if (!_registry.TryGet(message.Type, out var eventType, out var topic))
                 {
-                    // 1. Deserialize nội dung thô
-                    var payload = JsonSerializer.Deserialize<LowStockEventPayload>(message.Content);
+                    _logger.LogWarning("Unknown message type: {Type}", message.Type);
+                    // Có thể đánh dấu lỗi để không retry vô hạn? Hoặc log warning rồi skip
+                }
+                else
+                {
+                    // 2. Deserialize generic
+                    var payload = JsonSerializer.Deserialize(message.Content, eventType);
                     
                     if (payload != null)
                     {
-                        // 2. Tạo Event Kafka chính thức (Consumer sẽ tự fetch Email)
-                        var lowStockEvent = new LowStockEvent
-                        {
-                            StoreId = payload.StoreId,
-                            IngredientId = payload.IngredientId,
-                            IngredientName = payload.IngredientName,
-                            CurrentStock = payload.CurrentStock,
-                            MinThreshold = payload.MinThreshold,
-                            ManagerEmail = string.Empty // Để trống, Consumer sẽ Enrich sau
-                        };
-
-                        // 3. Bắn Kafka
-                        await kafkaProducer.PublishAsync(KafkaTopics.LowStockNotifications, lowStockEvent);
-                        _logger.LogInformation("Published LowStockEvent for Ingredient {Id} (Manager Email lookup deferred to Consumer)", payload.IngredientId);
+                        // 3. Publish generic
+                        await kafkaProducer.PublishAsync(topic, payload);
+                        _logger.LogInformation("OutboxWorker published {MessageType} {MessageId} to {Topic}", message.Type, message.Id, topic);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Failed to deserialize message {Id} of type {Type}", message.Id, message.Type);
                     }
                 }
 
@@ -105,15 +117,5 @@ public class InventoryOutboxWorker : BackgroundService
         }
 
         await dbContext.SaveChangesAsync(stoppingToken);
-    }
-
-    // Helper class để deserialize payload từ Outbox
-    private class LowStockEventPayload
-    {
-        public Guid StoreId { get; set; }
-        public Guid IngredientId { get; set; }
-        public string IngredientName { get; set; } = string.Empty;
-        public decimal CurrentStock { get; set; }
-        public decimal MinThreshold { get; set; }
     }
 }

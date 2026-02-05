@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"api-gateway/internal/application/abstractions"
 	"api-gateway/internal/application/constants/errorcode"
+	"api-gateway/internal/application/gateways/sales"
 	"api-gateway/internal/domain/models/order"
 	"api-gateway/pkg/utils/grpcutils"
 	"api-gateway/pkg/utils/validation"
@@ -13,11 +13,11 @@ import (
 )
 
 type OrderHandler struct {
-	orderUC abstractions.IOrderUseCase
+	orderGW sales.IOrderService
 }
 
-func NewOrderHandler(orderUC abstractions.IOrderUseCase) *OrderHandler {
-	return &OrderHandler{orderUC: orderUC}
+func NewOrderHandler(orderGW sales.IOrderService) *OrderHandler {
+	return &OrderHandler{orderGW: orderGW}
 }
 
 func (h *OrderHandler) CreateOrder(c *gin.Context) {
@@ -33,7 +33,7 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
 		return
 	}
 
-	res, err := h.orderUC.CreateOrder(ctx, &req)
+	res, err := h.orderGW.CreateOrder(ctx, &req)
 	if err != nil {
 		c.Error(err)
 		return
@@ -51,7 +51,7 @@ func (h *OrderHandler) GetOrderById(c *gin.Context) {
 	}
 
 	ctx := c.Request.Context()
-	res, err := h.orderUC.GetOrderById(ctx, orderId)
+	res, err := h.orderGW.GetOrderById(ctx, orderId)
 	if err != nil {
 		c.Error(err)
 		return
@@ -73,7 +73,7 @@ func (h *OrderHandler) GetMyOrders(c *gin.Context) {
 		return
 	}
 
-	res, err := h.orderUC.GetMyOrders(ctx, &req)
+	res, err := h.orderGW.GetMyOrders(ctx, &req)
 	if err != nil {
 		c.Error(err)
 		return
@@ -91,7 +91,7 @@ func (h *OrderHandler) CreatePaymentUrl(c *gin.Context) {
 	}
 
 	ctx := c.Request.Context()
-	res, err := h.orderUC.CreatePaymentUrl(ctx, orderId)
+	res, err := h.orderGW.CreatePaymentUrl(ctx, orderId)
 	if err != nil {
 		c.Error(err)
 		return

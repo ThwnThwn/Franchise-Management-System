@@ -1,0 +1,116 @@
+syntax = "proto3";
+
+option csharp_namespace = "SalesService.Grpc";
+option go_package = "api-gateway/pkg/pb/wallet";
+
+package wallet;
+
+/* ================= SERVICE ================= */
+
+service WalletGrpc {
+  rpc CreateWallet (CreateWalletRequest) returns (CreateWalletResponse);
+  rpc AddBalance (AddBalanceRequest) returns (AddBalanceResponse);
+  rpc DeductBalance (DeductBalanceRequest) returns (DeductBalanceResponse);
+  rpc UpdateWalletStatus (UpdateWalletStatusRequest)
+      returns (UpdateWalletStatusResponse);
+  rpc GetWalletByUserId (GetWalletByUserIdRequest)
+      returns (GetWalletByUserIdResponse);
+}
+
+/* ================= CREATE WALLET ================= */
+
+message CreateWalletRequest {
+  string userId = 1;
+}
+
+message CreateWalletResponse {
+  string walletId = 1;
+}
+
+/* ================= ADD BALANCE ================= */
+
+message AddBalanceRequest {
+  string walletId = 1;
+  double amount = 2;
+  bytes rowVersion = 3;
+}
+
+message AddBalanceResponse {
+  bool success = 1;
+  string message = 2;
+
+  string walletId = 3;
+  string userId = 4;
+
+  double balanceBefore = 5;
+  double balanceAfter = 6;
+  double amountAdded = 7;
+
+  string transactionId = 8;     
+  bytes newRowVersion = 9;
+  string updatedAt = 10;
+}
+
+/* ================= DEDUCT BALANCE ================= */
+
+message DeductBalanceRequest {
+  string walletId = 1;
+  double amount = 2;
+  bytes rowVersion = 3;
+}
+
+message DeductBalanceResponse {
+  bool success = 1;
+  string message = 2;
+
+  string walletId = 3;
+  string userId = 4;
+
+  double balanceBefore = 5;
+  double balanceAfter = 6;
+  double amountDeducted = 7;
+
+  string transactionId = 8;
+  bytes newRowVersion = 9;
+  string updatedAt = 10;
+}
+
+/* ================= UPDATE STATUS ================= */
+
+enum WalletStatus {
+  WALLET_STATUS_UNSPECIFIED = 0;
+  INACTIVE = 1;
+  ACTIVE = 2;
+  LOCKED = 3;
+  SUSPENDED = 4;
+}
+
+message UpdateWalletStatusRequest {
+  string walletId = 1;
+  WalletStatus newStatus = 2;
+  string reason = 3;
+}
+
+message UpdateWalletStatusResponse {
+  bool success = 1;
+  string message = 2;
+
+  string walletId = 3;
+  WalletStatus oldStatus = 4;
+  WalletStatus newStatus = 5;
+  string updatedAt = 6;
+}
+
+message GetWalletByUserIdRequest {
+  string user_id = 1;
+}
+
+message GetWalletByUserIdResponse {
+  string id = 1;
+  string user_id = 2;
+  double balance = 3;
+  int32 status = 4;
+  bytes row_version = 5;
+  string created_at = 6;
+  string updated_at = 7;
+}

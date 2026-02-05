@@ -15,10 +15,7 @@
 	</ItemGroup>
 
   <ItemGroup>
-    <Compile Remove="Protos\**" />
-    <Content Remove="Protos\**" />
-    <EmbeddedResource Remove="Protos\**" />
-    <None Remove="Protos\**" />
+    <None Remove="Protos\productVariants.proto" />
   </ItemGroup>
 
   <ItemGroup>
@@ -43,6 +40,10 @@
   <ItemGroup>
     <ProjectReference Include="..\ProductService.Application\ProductService.Application.csproj" />
     <ProjectReference Include="..\ProductService.Infrastructure\ProductService.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Include="Protos\productVariants.proto" GrpcServices="Server" />
   </ItemGroup>
 
 </Project>

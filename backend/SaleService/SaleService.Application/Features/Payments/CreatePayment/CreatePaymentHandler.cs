@@ -4,6 +4,9 @@ using Microsoft.Extensions.Configuration;
 using SalesService.Application.Helpers;
 using SalesService.Application.Interfaces.Payments;
 using SalesService.Application.Persisitences.Orders;
+using SalesService.Application.Persisitences.Outbox;
+using SalesService.Application.Signals;
+using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
 namespace SalesService.Application.Features.Payments.CreatePayment;
 
@@ -12,15 +15,21 @@ public sealed class CreatePaymentHandler : IRequestHandler<CreatePaymentCommand,
     private readonly IOrderRepository _orderRepository;
     private readonly IPaymentRepository _paymentRepository;
     private readonly IConfiguration _config;
+    private readonly IOutboxRepository _outboxRepository;
+    private readonly IOutboxSignal _outboxSignal;
 
     public CreatePaymentHandler(
         IOrderRepository orderRepository,
         IPaymentRepository paymentRepository,
-        IConfiguration config)
+        IConfiguration config,
+        IOutboxRepository outboxRepository,
+        IOutboxSignal outboxSignal)
     {
         _orderRepository = orderRepository;
         _paymentRepository = paymentRepository;
         _config = config;
+        _outboxRepository = outboxRepository;
+        _outboxSignal = outboxSignal;
     }
 
     public async Task<Result<CreatePaymentRes>> Handle(
@@ -68,7 +77,7 @@ public sealed class CreatePaymentHandler : IRequestHandler<CreatePaymentCommand,
         };
 
         await _paymentRepository.CreateAsync(payment, cancellationToken);
-        if (payment.Method == 0)
+        if (payment.Method == 0) // Cash
         {
             //Mark Order as Paid
             order.PaidAmount = order.TotalAmount;
@@ -77,11 +86,39 @@ public sealed class CreatePaymentHandler : IRequestHandler<CreatePaymentCommand,
             order.Status = OrderStatus.Completed;
             order.UpdatedAt = DateTime.UtcNow;
 
+            // PUBLISH OrderPaidEvent via Outbox
+            if (order.OrderItems != null && order.OrderItems.Any())
+            {
+                var paidEvent = new SharedKernel.Events.OrderPaidEvent
+                {
+                    OrderId = order.Id,
+                    StoreId = order.StoreId ?? Guid.Empty,
+                    PaidAt = DateTimeOffset.UtcNow,
+                    Items = order.OrderItems.Select(oi => new SharedKernel.Events.OrderPaidItem
+                    {
+                        VariantId = oi.VariantId,
+                        Quantity = oi.Quantity
+                    }).ToList()
+                };
+
+                var outbox = new OutboxMessage
+                {
+                    Id = Guid.NewGuid(),
+                    Type = SharedKernel.Constants.KafkaTopics.OrderPaid,
+                    Content = System.Text.Json.JsonSerializer.Serialize(paidEvent),
+                    OccurredOn = DateTimeOffset.UtcNow
+                };
+                _outboxRepository.Add(outbox);
+            }
+
             await _orderRepository.UpdateAsync(order, cancellationToken);
+
+            // Pulse Worker
+            _outboxSignal.Pulse();
 
             return Result.Success(new CreatePaymentRes
             {
-                Message = "Cash payment created successfully."
+                Url = ""
             });
         }
         var vnpSection = _config.GetSection("VNPay");
@@ -120,7 +157,7 @@ public sealed class CreatePaymentHandler : IRequestHandler<CreatePaymentCommand,
 
         return Result.Success(new CreatePaymentRes
         {
-            Message = url
+            Url = url
         });
     }
 }

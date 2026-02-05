@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using SalesService.Domain.Entities;
+﻿using SalesService.Domain.Entities;
 
 public partial class Payment
 {

@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"api-gateway/internal/application/abstractions"
+	"api-gateway/internal/application/gateways/sales"
 	"api-gateway/internal/domain/models/cart"
 	"api-gateway/pkg/utils/grpcutils"
 	"api-gateway/pkg/utils/validation"
@@ -11,11 +11,11 @@ import (
 )
 
 type CartHandler struct {
-	cartUC abstractions.ICartUseCase
+	cartGW sales.ICartService
 }
 
-func NewCartHandler(cartUC abstractions.ICartUseCase) *CartHandler {
-	return &CartHandler{cartUC: cartUC}
+func NewCartHandler(cartGW sales.ICartService) *CartHandler {
+	return &CartHandler{cartGW: cartGW}
 }
 
 func (h *CartHandler) GetCartItems(c *gin.Context) {
@@ -25,7 +25,7 @@ func (h *CartHandler) GetCartItems(c *gin.Context) {
 		return
 	}
 
-	res, err := h.cartUC.GetCartItems(ctx)
+	res, err := h.cartGW.GetCartItems(ctx)
 	if err != nil {
 		c.Error(err)
 		return
@@ -47,7 +47,7 @@ func (h *CartHandler) AddToCart(c *gin.Context) {
 		return
 	}
 
-	res, err := h.cartUC.AddToCart(ctx, req)
+	res, err := h.cartGW.AddToCart(ctx, req)
 	if err != nil {
 		c.Error(err)
 		return
@@ -69,7 +69,7 @@ func (h *CartHandler) UpdateCartItem(c *gin.Context) {
 		return
 	}
 
-	res, err := h.cartUC.UpdateCartItem(ctx, req)
+	res, err := h.cartGW.UpdateCartItem(ctx, req)
 	if err != nil {
 		c.Error(err)
 		return
@@ -91,7 +91,7 @@ func (h *CartHandler) DeleteListCartItem(c *gin.Context) {
 		return
 	}
 
-	isSuccess, err := h.cartUC.DeleteListCartItem(ctx, req)
+	isSuccess, err := h.cartGW.DeleteListCartItem(ctx, req)
 	if err != nil {
 		c.Error(err)
 		return
@@ -109,7 +109,7 @@ func (h *CartHandler) ClearCart(c *gin.Context) {
 		return
 	}
 
-	isSuccess, err := h.cartUC.ClearCart(ctx)
+	isSuccess, err := h.cartGW.ClearCart(ctx)
 	if err != nil {
 		c.Error(err)
 		return

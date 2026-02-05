@@ -2,6 +2,7 @@
 using Grpc.Core;
 using MediatR;
 using SalesService.Application.Features.Payments.CreatePayment;
+using SalesService.Application.Features.Payments.GetAll;
 using SalesService.Domain.Enums;
 
 namespace SalesService.API.Services.Payments;
@@ -53,7 +54,43 @@ public class PaymentGrpcService : PaymentGrpc.PaymentGrpcBase
 
         return new PaymentResponse
         {
-            Message = result.Value.Message
+            Url = result.Value.Url
         };
+    }
+
+    public override async Task<GetAllPaymentsReply> GetAllPayments(
+        GetAllPaymentsRequest request,
+        ServerCallContext context)
+    {
+        var query = new GetAllPaymentsQuery
+        {
+            Page = request.Page <= 0 ? 1 : request.Page,
+            PageSize = request.PageSize <= 0 ? 10 : request.PageSize
+        };
+
+        var paged = await _mediator.Send(query, context.CancellationToken);
+
+        var reply = new GetAllPaymentsReply
+        {
+            Page = paged.Page,
+            PageSize = paged.PageSize,
+            TotalCount = paged.TotalCount,
+            TotalPages = paged.TotalPages
+        };
+
+        reply.Payments.AddRange(paged.Items.Select(p => new PaymentDto
+        {
+            Id = p.Id.ToString(),
+            OrderId = p.OrderId.ToString(),
+            Code = p.Code,
+            Amount = (double)p.Amount,
+            Currency = p.Currency,
+            Method = p.Method,
+            Status = p.Status,
+            PaidAt = p.PaidAt?.ToString("O") ?? string.Empty,
+            CreatedAt = p.CreatedAt?.ToString("O") ?? string.Empty
+        }));
+
+        return reply;
     }
 }

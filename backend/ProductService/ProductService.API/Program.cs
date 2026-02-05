@@ -10,6 +10,9 @@ using ProductService.Infrastructure.ApplicationDbContext;
 using ProductService.Infrastructure.Extensions;
 using ProductService.Infrastructure.Interceptor;
 using ProductService.Infrastructure.Repositories;
+using ProductService.Application.Interfaces;
+using ProductService.Infrastructure.Services;
+using ProductService.Infrastructure.Settings;
 
 namespace ProductService.API
 {
@@ -17,7 +20,7 @@ namespace ProductService.API
     {
         public static void Main(string[] args)
         {
-            // Load .env file
+            // Load .env file 
             Env.Load("../../../.env");
 
             var builder = WebApplication.CreateBuilder(args);
@@ -100,7 +103,20 @@ namespace ProductService.API
 
             // Register repositories
             builder.Services.AddScoped<IProductRepository, ProductRepository>();
+
             builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+            builder.Services.AddScoped<IProductVariantRepository, ProductVariantRepository>();
+
+            // Register Cloudinary service
+            builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
+
+            // Cloudinary configuration
+            builder.Services.Configure<CloudinarySettings>(options =>
+            {
+                options.CloudName = builder.Configuration["CLOUDINARY_CLOUD_NAME"] ?? string.Empty;
+                options.ApiKey = builder.Configuration["CLOUDINARY_API_KEY"] ?? string.Empty;
+                options.ApiSecret = builder.Configuration["CLOUDINARY_API_SECRET"] ?? string.Empty;
+            });
 
             // Register GlobalExceptionHandlerMiddleware
             builder.Services.AddSingleton<GlobalExceptionHandlerMiddleware>();

@@ -144,8 +144,17 @@ namespace InventoryService.API
             builder.Services.AddScoped<IIngredientRepository, IngredientRepository>();
             builder.Services.AddScoped<IRecipeRepository, RecipeRepository>();
             builder.Services.AddScoped<IIngredientCategoryRepository, IngredientCategoryRepository>();
+            builder.Services.AddScoped<InventoryService.Domain.Services.IInventoryDomainService, InventoryService.Domain.Services.InventoryDomainService>();
             //add client
             builder.Services.AddScoped<IIdentityServiceClient, IdentityServiceClient>();
+            // Kafka Producer Registry (for Outbox)
+            builder.Services.AddSingleton<KafkaProducerRegistry>(sp => {
+                var registry = new KafkaProducerRegistry();
+                // Map "LowStockDetected" (stored in DB) -> LowStockEvent -> KafkaTopics.LowStockNotifications
+                registry.Register<SharedKernel.Events.LowStockEvent>(SharedKernel.Constants.KafkaTopics.LowStockNotifications, "LowStockDetected");
+                return registry;
+            });
+
             // Kafka Producer
             builder.Services.AddSingleton<IKafkaProducer, KafkaProducer>();
 
@@ -153,8 +162,14 @@ namespace InventoryService.API
             builder.Services.AddScoped<IOutboxRepository, OutboxRepository>();
             builder.Services.AddSingleton<IOutboxSignal, OutboxSignal>();
             builder.Services.AddHostedService<API.BackgroundJobs.InventoryOutboxWorker>();
-            // Kafka Consumer
-            builder.Services.AddHostedService<InventoryService.API.Consumers.OrderEventConsumer>();
+            // Kafka Consumer (Generic)
+            builder.Services.AddKafkaConsumer(config =>
+            {
+                config.Register<SharedKernel.Events.OrderPaidEvent>(SharedKernel.Constants.KafkaTopics.OrderPaid, typeof(InventoryService.Application.EventHandlers.OrderPaidHandler));
+                config.Register<SharedKernel.Events.OrderCancelledEvent>(SharedKernel.Constants.KafkaTopics.OrderCancelled, typeof(InventoryService.Application.EventHandlers.OrderCancelledHandler));
+            });
+
+            // builder.Services.AddHostedService<InventoryService.API.Consumers.OrderEventConsumer>();
 
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 

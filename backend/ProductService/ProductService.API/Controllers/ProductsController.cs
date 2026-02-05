@@ -1,12 +1,12 @@
-using Ardalis.Result;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using ProductService.Application.Features.Products.Command.CreateProduct;
 using ProductService.Application.Features.Products.Command.DeleteProduct;
-using ProductService.Application.Features.Products.Command.UpdateProduct;
 using ProductService.Application.Features.Products.Queries.GetById;
+using ProductService.Application.Features.Products.Queries.GetByKeyword;
 using ProductService.Application.Features.Products.Queries.GetByProductName;
 using ProductService.Application.Features.Products.Queries.GetList;
+using ProductService.Application.Interfaces;
 
 namespace ProductService.API.Controllers;
 
@@ -15,10 +15,12 @@ namespace ProductService.API.Controllers;
 public class ProductsController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly ICloudinaryService _cloudinaryService;
 
-    public ProductsController(IMediator mediator)
+    public ProductsController(IMediator mediator, ICloudinaryService cloudinaryService)
     {
         _mediator = mediator;
+        _cloudinaryService = cloudinaryService;
     }
 
     [HttpGet]
@@ -62,7 +64,7 @@ public class ProductsController : ControllerBase
 
     [HttpPost]
     public async Task<IActionResult> Create(
-        CreateProductCommand.CreateProductCommandRequest request,
+        [FromForm] CreateProductCommand.CreateProductCommandRequest request,
         CancellationToken ct)
     {
         var result = await _mediator.Send(
@@ -101,4 +103,79 @@ public class ProductsController : ControllerBase
             ? Ok(result.Value)
             : NotFound(result.Errors);
     }
+
+
+    [HttpGet("by-keyword")]
+    public async Task<IActionResult> Search(
+        [FromQuery] string? keyword,
+        [FromQuery] Guid? categoryId,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10,
+        CancellationToken ct = default)
+    {
+        var query = new GetProductByKeywordQuery(
+            keyword,
+            categoryId,
+            page,
+            pageSize);
+
+        var result = await _mediator.Send(query, ct);
+
+        return Ok(result);
+    }
+    /// <summary>
+    /// Upload image to Cloudinary
+    /// </summary>
+    [HttpPost("upload-image")]
+    public async Task<IActionResult> UploadImage(
+        [FromForm] IFormFile imageFile,
+        CancellationToken ct)
+    {
+        try
+        {
+            if (imageFile == null || imageFile.Length == 0)
+            {
+                return BadRequest(new { error = "File is required" });
+            }
+
+            var result = await _cloudinaryService.UploadImageAsync(imageFile);
+            return Ok(new
+            {
+                url = result.Url,
+                publicId = result.PublicId
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = $"Upload failed: {ex.Message}" });
+        }
+    }
+
+    /// <summary>
+    /// Delete image from Cloudinary by public ID
+    /// Use catch-all route (**) to handle publicId with slashes (e.g., "products/xxx")
+    /// </summary>
+    [HttpDelete("images/{**publicId}")]
+    public async Task<IActionResult> DeleteImage(
+        string publicId,
+        CancellationToken ct)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(publicId))
+            {
+                return BadRequest(new { error = "Public ID is required" });
+            }
+
+            await _cloudinaryService.DeleteImageAsync(publicId);
+            return Ok(new { message = "Image deleted successfully" });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = $"Delete failed: {ex.Message}" });
+        }
+    }
 }
+
+
+

@@ -36,6 +36,8 @@ func NewRouter(
 		// Identity
 		authGroup.NewAuthRouter(cfg, MainGroup, h.AuthHandler, authMW)
 		userGroup.NewUserRouter(cfg, MainGroup, h.UserHandler, h.ShiftHandler, authMW)
+		roleGroup.NewRoleRouter(cfg, MainGroup, h.RoleHandler, authMW)
+		rolePermGroup.NewPermissionRouter(cfg, MainGroup, h.PermHandler, authMW)
 
 		// Product
 		productGroup.NewProductRouter(cfg, MainGroup, h.ProductHandler, authMW)
