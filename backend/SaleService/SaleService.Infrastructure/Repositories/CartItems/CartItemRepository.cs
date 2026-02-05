@@ -74,7 +74,7 @@ namespace SalesService.Infrastructure.Repositories.CartItems
             await _context.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task RemoveItemsAsync(Guid customerId,List<string> skus,CancellationToken cancellationToken = default)
+        public async Task RemoveItemsAsync(Guid? customerId,List<string> skus,CancellationToken cancellationToken = default)
         {
             var items = await _context.CartItems
                 .Where(x => x.CustomerId == customerId && skus.Contains(x.Sku))

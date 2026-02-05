@@ -221,10 +221,13 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             throw new RpcException(new Status(StatusCode.InvalidArgument,"Invalid OrderId"));
         }
 
-        //Validate status string → enum
-        if (!Enum.TryParse<OrderStatus>(request.Status, true, out var newStatus))
+        //Validate status enum
+        if (!Enum.IsDefined(typeof(OrderStatus), request.Status))
         {
-            throw new RpcException(new Status(StatusCode.InvalidArgument,"Invalid status value"));
+            throw new RpcException(new Status(
+                StatusCode.InvalidArgument,
+                "Invalid OrderStatus value"
+            ));
         }
 
         //Send MediatR command
@@ -232,7 +235,7 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             new UpdateOrderStatusReq
             {
                 OrderId = orderId,
-                Status = newStatus
+                Status = (Domain.Enums.OrderStatus)(int)request.Status
             }
         );
 
@@ -243,8 +246,22 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             Message = resultMessage
         };
     }
-    public override async Task<OrderReply> UpdateOrder(UpdateOrderRequest request,ServerCallContext context)
+    public override async Task<OrderReply> UpdateOrder(UpdateOrderRequest request, ServerCallContext context)
     {
+        var userIdEntry = context.RequestHeaders.FirstOrDefault(h =>
+            h.Key.Equals("x-user-id", StringComparison.OrdinalIgnoreCase));
+        var roleSlug = context.RequestHeaders.FirstOrDefault(h =>
+            h.Key.Equals("x-role-slug", StringComparison.OrdinalIgnoreCase));
+
+        if (userIdEntry == null)
+        {
+            throw new RpcException(new Status(StatusCode.Unauthenticated, "Missing x-user-id in request headers"));
+        }
+
+        if (roleSlug == null)
+        {
+            throw new RpcException(new Status(StatusCode.Unauthenticated, "Missing x-role-slug in request headers"));
+        }
 
         var command = new UpdateOrderCommand(new UpdateOrderReq
         {
@@ -254,7 +271,10 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             {
                 Sku = x.Sku,
                 Quantity = x.Quantity
-            }).ToList()
+            }).ToList(),
+            UserId = Guid.Parse(userIdEntry.Value),
+            RoleSlug = roleSlug.Value
+            
         });
         var result = await _mediator.Send(command);
         var reply = new OrderReply
@@ -284,4 +304,6 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
 
         return reply;
     }
+
+
 }

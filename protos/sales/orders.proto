@@ -114,10 +114,17 @@ message ShortageItem {
   string variant_id = 1;
   int32 max_feasible_quantity = 2;
 }
+enum OrderStatus{
+  PaymentPending = 0;
+  Preparing = 1;
+  Ready = 2;
+  Completed = 3;
+  Cancel = 4;
+}
 
 message UpdateOrderStatusRequest {
   string orderId = 1;
-  string status = 2; // Ordered, Preparing, Ready, Completed
+  OrderStatus status = 2; // PaymentPending, Preparing, Ready, Completed, Cancel
 }
 
 message UpdateOrderStatusReply {
