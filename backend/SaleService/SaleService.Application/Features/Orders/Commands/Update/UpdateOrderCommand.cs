@@ -20,6 +20,8 @@ namespace SalesService.Application.Features.Orders.Commands.Update
     public sealed class UpdateOrderRes
     {
         public Guid? OrderId { get; set; }
+
+        public Guid? CustomerId { get; set; }
         public string? OrderCode { get; set; } = default!;
         public decimal? TotalAmount { get; set; }
         public CheckEnoughStockRes CheckEnoughStockRes { get; set; } = new();

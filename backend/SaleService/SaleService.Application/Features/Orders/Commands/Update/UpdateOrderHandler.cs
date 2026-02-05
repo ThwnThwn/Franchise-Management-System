@@ -154,6 +154,7 @@ namespace SalesService.Application.Features.Orders.Commands.Update
             return Result.Success(new UpdateOrderRes
             {
                 OrderId = order.Id,
+                CustomerId = order.CustomerId,
                 OrderCode = order.Code,
                 TotalAmount = order.TotalAmount,
                 CheckEnoughStockRes = new CheckEnoughStockRes

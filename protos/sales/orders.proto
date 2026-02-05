@@ -7,7 +7,7 @@ package order;
 
 service OrderGrpc {
   // Tạo đơn hàng từ giỏ hàng
-  rpc CreateOrder (CreateOrderRequest) returns (CreateOrderReply);
+  rpc CreateOrder (CreateOrderRequest) returns (OrderReply);
   
   // Lấy thông tin đơn hàng theo ID
   rpc GetOrderById (GetOrderByIdRequest) returns (GetOrderByIdReply);
@@ -19,7 +19,7 @@ service OrderGrpc {
   rpc UpdateOrderStatus(UpdateOrderStatusRequest) returns (UpdateOrderStatusReply);
 
   // Cập nhật đơn hàng 
-  rpc UpdateOrder(UpdateOrderRequest) returns (UpdateOrderReply);
+  rpc UpdateOrder(UpdateOrderRequest) returns (OrderReply);
 }
 
 message CreateOrderRequest {
@@ -33,7 +33,7 @@ message CartItem {
   int32 quantity = 2;
 }
 
-message CreateOrderReply {
+message OrderReply {
   string order_id = 1;
   string order_code = 2;
   double total_amount = 3;
@@ -133,11 +133,4 @@ message UpdateOrderRequest {
 
   string order_id = 1;
   repeated UpdateOrderItem items = 2;
-}
-message UpdateOrderReply {
-
-  string order_id = 1;
-  string order_code = 2;
-  double total_amount = 3;
-  CheckEnoughStockResponse stock_check = 4;
 }

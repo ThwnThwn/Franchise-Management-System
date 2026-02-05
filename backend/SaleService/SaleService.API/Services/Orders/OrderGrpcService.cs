@@ -24,7 +24,7 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
         _mapper = mapper;
     }
 
-    public override async Task<CreateOrderReply> CreateOrder(CreateOrderRequest request, ServerCallContext context)
+    public override async Task<OrderReply> CreateOrder(CreateOrderRequest request, ServerCallContext context)
     {
         // Lấy UserId từ Metadata header
         var userIdEntry = context.RequestHeaders.FirstOrDefault(h =>
@@ -59,7 +59,7 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             throw new RpcException(new Status(StatusCode.Internal, errorMessage));
         }
 
-        var reply = new CreateOrderReply
+        var reply = new OrderReply
         {
             OrderId = result.Value.OrderId.ToString(),
             OrderCode = result.Value.OrderCode ?? string.Empty, // Tránh lỗi null cũ
@@ -243,7 +243,7 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             Message = resultMessage
         };
     }
-    public override async Task<UpdateOrderReply> UpdateOrder(UpdateOrderRequest request,ServerCallContext context)
+    public override async Task<OrderReply> UpdateOrder(UpdateOrderRequest request,ServerCallContext context)
     {
 
         var command = new UpdateOrderCommand(new UpdateOrderReq
@@ -257,13 +257,13 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             }).ToList()
         });
         var result = await _mediator.Send(command);
-        var reply = new UpdateOrderReply
+        var reply = new OrderReply
         {
             OrderId = result.OrderId.ToString(),
             OrderCode = result.OrderCode ?? "",
             TotalAmount = (double)(result.TotalAmount ?? 0),
-
-            StockCheck = new CheckEnoughStockResponse
+            CustomerId = result.CustomerId.ToString(),
+            CheckStockRespone = new CheckEnoughStockResponse
             {
                 IsEnough = result.CheckEnoughStockRes.IsEnough
             }
@@ -272,7 +272,7 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
         // Add shortage items if any
         if (result.CheckEnoughStockRes.ShortageItems != null)
         {
-            reply.StockCheck.ShortageItems.AddRange(
+            reply.CheckStockRespone.ShortageItems.AddRange(
                 result.CheckEnoughStockRes.ShortageItems.Select(x =>
                     new ShortageItem
                     {
