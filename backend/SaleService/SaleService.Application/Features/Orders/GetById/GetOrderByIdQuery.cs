@@ -13,7 +13,7 @@ namespace SalesService.Application.Features.Orders.GetById
             public Guid OrderId { get; set; }
             public string OrderCode { get; set; } = default!;
             public decimal Subtotal { get; set; }
-            public decimal Tax { get; set; }
+            public decimal? Tax { get; set; }
             public decimal TotalAmount { get; set; }
             public decimal? PaidAmount { get; set; }
             public int? PaymentMethod { get; set; }

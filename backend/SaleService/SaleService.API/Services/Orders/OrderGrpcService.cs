@@ -8,6 +8,7 @@ using SalesService.Application.Features.Orders.Commands.Update;
 using SalesService.Application.Features.Orders.Commands.UpdateOrderStatus;
 using SalesService.Application.Features.Orders.GetById;
 using SalesService.Application.Features.Orders.Queries.GetMyOrders;
+using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
 using System;
 
@@ -121,18 +122,18 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             Id = dto.OrderId.ToString(),
             Code = dto.OrderCode,
             Subtotal = (double)dto.Subtotal,
-            Tax = (double)dto.Tax,
             TotalAmount = (double)dto.TotalAmount,
-            PaidAmount = dto.PaidAmount.HasValue
-                ? (double)dto.PaidAmount.Value
-                : 0,
-            PaymentMethod = dto.PaymentMethod ?? 0,
+            //dùng -1 cho NULL (chưa thanh toán)
+            Tax = dto.Tax.HasValue ? (double)dto.Tax :-1,
+            PaidAmount = dto.PaidAmount.HasValue? (double)dto.PaidAmount.Value: -1,
+            PaymentMethod = dto.PaymentMethod ?? -1,
             Status = dto.Status,
             PaidAt = dto.PaidAt.ToString("O"),
             Notes = dto.Notes ?? string.Empty,
             CreatedAt = dto.CreatedAt.ToString("O"),
             UpdatedAt = dto.UpdatedAt.ToString("O"),
             CustomerId = dto.CustomerId.ToString(),
+            
         };
 
         orderMessage.Items.AddRange(dto.Items.Select(i => new OrderItem
