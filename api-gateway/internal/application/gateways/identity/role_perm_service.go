@@ -10,7 +10,7 @@ import (
 
 type IRolePermissionService interface {
 	// 1. Get PermissionsByRoleId
-	GetPermissionsByRoleId(ctx context.Context, id uuid.UUID) ([]*role.RolePermissionGroupRes, error)
+	GetPermissionsByRoleId(ctx context.Context, id uuid.UUID) ([]*permission.PermissionGroup, error)
 	// 1.5. Get Cache (Lazy Loading)
 	GetPermissionsBySlug(ctx context.Context, roleSlug string) ([]string, error)
 	// 2. Update Info (Name, Description)

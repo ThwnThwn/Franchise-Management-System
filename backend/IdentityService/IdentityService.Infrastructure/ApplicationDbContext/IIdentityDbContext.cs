@@ -13,8 +13,6 @@ namespace IdentityService.Infrastructure.ApplicationDbContext
 
         DbSet<Role> Roles { get; set; }
 
-        DbSet<RolePermission> RolePermissions { get; set; }
-
         DbSet<User> Users { get; set; }
 
         public DbSet<T> Set<T>() where T : class, IEntity;

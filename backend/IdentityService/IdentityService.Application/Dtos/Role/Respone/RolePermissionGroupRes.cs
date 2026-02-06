@@ -12,6 +12,6 @@
         public required string Slug { get; set; }
         public required string Name { get; set; }
         public required string Description { get; set; }
-        public required bool IsActived { get; set; }
+        //public required bool IsActived { get; set; }
     }
 }

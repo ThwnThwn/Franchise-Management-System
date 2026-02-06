@@ -47,7 +47,8 @@ namespace IdentityService.Application
                         Slug = codeP.Slug,
                         Name = codeP.Name,        // Giá trị mặc định
                         Description = codeP.Description, // Giá trị mặc định
-                        Resource = codeP.Resource
+                        Resource = codeP.Resource,
+                        IsActive = true          // Mặc định là Active
                     });
                 }
                 else
@@ -87,8 +88,8 @@ namespace IdentityService.Application
                 // Giả sử Entity Role có field Slug (ví dụ: "admin", "hr_manager")
                 if (string.IsNullOrEmpty(role.Slug)) return Task.CompletedTask;
 
-                var permissionSlugs = role.RolePermissions
-                                .Select(rp => rp.Permission.Slug)
+                var permissionSlugs = role.Permissions
+                                .Select(rp => rp.Slug)
                                 .ToList();
 
                 // Gọi hàm Cache với Slug
