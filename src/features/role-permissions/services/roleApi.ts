@@ -1,11 +1,11 @@
 import { requestWrapper } from "@/utils/helpers/axiosHelper"
-import { RolePermissionGroupRes, RoleResponse } from "../models/respone"
 import axiosInstance from "@/utils/axios"
 import {
     CreateRoleRequest,
     UpdateRolePermissionsRequest,
     UpdateRoleRequest
 } from "../models/request"
+import { PermissionGroup, RoleResponse } from "../models/respone"
 
 export const roleApi = {
     getAll: () =>
@@ -25,7 +25,7 @@ export const roleApi = {
         }),
 
     getPermissionsByRoleId: (id: string) =>
-        requestWrapper<RolePermissionGroupRes[]>(async () => {
+        requestWrapper<PermissionGroup[]>(async () => {
             const res = await axiosInstance.get(`/roles/${id}/permissions`)
             return res.data
         }),

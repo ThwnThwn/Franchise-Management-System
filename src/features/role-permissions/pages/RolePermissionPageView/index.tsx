@@ -33,9 +33,7 @@ export default function RolePermissionPageView({ roleId }: { roleId: string }) {
 
         // Lưu các slug đang Active của role vào một Set để tìm kiếm nhanh O(1)
         const activeSlugs = new Set(
-            rolePermissions?.flatMap((group) =>
-                group.permissions.filter((p) => p.isActived).map((p) => p.slug)
-            ) || []
+            rolePermissions?.flatMap((group) => group.permissions.map((p) => p.slug)) || []
         )
 
         return allPermissions.map((group) => ({

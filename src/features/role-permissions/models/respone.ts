@@ -12,19 +12,6 @@ export interface RoleResponse {
     updatedAt?: string
 }
 
-export interface RolePermissionGroupRes {
-    resource: string
-    permissions: RolePermissionRes[]
-}
-
-export interface RolePermissionRes {
-    id: string
-    slug: string
-    name: string
-    description: string
-    isActived: boolean
-}
-
 export interface PermissionGroup {
     resource: string
     permissions: PermissionDetail[]

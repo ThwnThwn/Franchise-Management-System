@@ -119,15 +119,15 @@ export default function StoresPageView() {
                     </div>
                 </div>
 
-                {locationLoading && (
+                {/* {locationLoading && (
                     <p className="text-sm text-gray-500 mt-2">Đang lấy vị trí GPS...</p>
-                )}
+                )} */}
                 {/* {latitude && longitude && !locationLoading && (
                         <p className="text-sm text-green-600 mt-2">Những cửa hàng gần bạn</p>
                     )} */}
                 {!latitude && !locationLoading && (
                     <p className="text-sm text-gray-500 mt-2">
-                        Sắp xếp theo mới nhất (cho phép GPS để xem cửa hàng gần nhất)
+                        Cho phép GPS để xem cửa hàng gần nhất
                     </p>
                 )}
             </div>

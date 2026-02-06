@@ -148,7 +148,7 @@ export function ProductTable({
                             className: "bg-gray-100",
                             fallback: (
                                 <span className="text-lg">
-                                    {item.name.charAt(0)?.toUpperCase()}
+                                    {item.name?.charAt(0)?.toUpperCase()}
                                 </span>
                             )
                         }}

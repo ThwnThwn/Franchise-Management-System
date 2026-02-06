@@ -9,9 +9,16 @@ type StoreListProps = {
     loading: boolean
     onStoreClick: (store: StoreDetailDto) => void
     userLocation?: { latitude: number; longitude: number } | null
+    emptyMessage?: string
 }
 
-export default function StoreList({ stores, loading, onStoreClick, userLocation }: StoreListProps) {
+export default function StoreList({
+    stores,
+    loading,
+    onStoreClick,
+    userLocation,
+    emptyMessage = "Không tìm thấy cửa hàng nào"
+}: StoreListProps) {
     if (loading) {
         return <SpinnerStyled />
     }
@@ -34,8 +41,7 @@ export default function StoreList({ stores, loading, onStoreClick, userLocation 
                         />
                     </svg>
                 </div>
-                <p className="text-xl font-medium">Không tìm thấy cửa hàng nào</p>
-                <p className="text-sm mt-2 opacity-60">Thử thay đổi từ khóa tìm kiếm</p>
+                <p className="text-xl font-medium">{emptyMessage}</p>
             </div>
         )
     }

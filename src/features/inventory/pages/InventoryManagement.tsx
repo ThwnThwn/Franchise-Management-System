@@ -8,6 +8,7 @@ import { AdjustStockModal } from "../components/AdjustStockModal"
 import { useGetAllStocks, useAdjustStock } from "../hooks/useInventory"
 import { StockItem } from "../models/response"
 import { GetAllStockParams } from "../models/request"
+import { DashboardHeader } from "@/features/dashboard/components/general/DashboardHeader"
 
 export default function InventoryManagementPage() {
     // State
@@ -17,7 +18,11 @@ export default function InventoryManagementPage() {
     })
 
     // Fetch stocks
-    const { data: stocksData, isLoading, isRefetching } = useGetAllStocks({
+    const {
+        data: stocksData,
+        isLoading,
+        isRefetching
+    } = useGetAllStocks({
         params: filter
     })
     const stocks = stocksData?.stocks || []
@@ -62,19 +67,12 @@ export default function InventoryManagementPage() {
     }
 
     return (
-        <div className="p-6">
-            {/* --- HEADER --- */}
-            <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                    <div className="p-2 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg">
-                        <Package className="text-white" size={24} />
-                    </div>
-                    <div>
-                        <h1 className="text-2xl font-bold text-slate-900">Quản lý kho</h1>
-                        <p className="text-sm text-slate-500">Theo dõi và điều chỉnh tồn kho nguyên liệu</p>
-                    </div>
-                </div>
-            </div>
+        <div className="max-w-7xl mb-8 mx-auto min-h-screen p-4 md:p-6 lg:p-8 bg-slate-50/30">
+            <DashboardHeader
+                icon={<Package className="w-6 h-6 text-white" />}
+                title="Quản lý kho"
+                description="Theo dõi và điều chỉnh tồn kho nguyên liệu"
+            />
 
             {/* --- TOOLBAR --- */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
@@ -97,7 +95,11 @@ export default function InventoryManagementPage() {
             {/* --- STOCK COUNT --- */}
             <div className="mb-4 flex items-center justify-between">
                 <div className="text-sm text-slate-600">
-                    Tổng số: <span className="font-semibold text-slate-900">{stocksData?.totalCount || 0}</span> mục
+                    Tổng số:{" "}
+                    <span className="font-semibold text-slate-900">
+                        {stocksData?.totalCount || 0}
+                    </span>{" "}
+                    mục
                 </div>
             </div>
 
