@@ -8,8 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var RouterGroupApp = new(RouterGroup)
-
 func NewRouter(
 	cfg *config.Config,
 	h *handlers.AppHandlers,
@@ -48,7 +46,7 @@ func NewRouter(
 		cartGroup.NewCartRouter(cfg, MainGroup, h.CartHandler, authMW)
 
 		// Inventory
-		inventoryGroup.NewInventoryRouter(cfg, MainGroup, h.InventoryHandler, authMW)
+		// inventoryGroup.NewInventoryRouter(cfg, MainGroup, h.StoreIngredientHandler, authMW)
 	}
 
 	return r

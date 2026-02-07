@@ -2,40 +2,40 @@ package routes
 
 import (
 	"api-gateway/internal/api/routes/auth"
-	"api-gateway/internal/api/routes/cart"
-	"api-gateway/internal/api/routes/category"
-	"api-gateway/internal/api/routes/inventory"
-	"api-gateway/internal/api/routes/order"
-	"api-gateway/internal/api/routes/permission"
-	"api-gateway/internal/api/routes/product"
-	"api-gateway/internal/api/routes/role"
-	"api-gateway/internal/api/routes/shift"
-	"api-gateway/internal/api/routes/store"
-	"api-gateway/internal/api/routes/user"
+	"api-gateway/internal/api/routes/carts"
+	"api-gateway/internal/api/routes/categories"
+	"api-gateway/internal/api/routes/orders"
+	"api-gateway/internal/api/routes/permissions"
+	"api-gateway/internal/api/routes/products"
+	"api-gateway/internal/api/routes/roles"
+	"api-gateway/internal/api/routes/shifts"
+	"api-gateway/internal/api/routes/stores"
+	"api-gateway/internal/api/routes/users"
 )
 
 type RouterGroup struct {
 	// Franchise
-	Store store.RouterGroup
-	Shift shift.RouterGroup
+	Store stores.RouterGroup
+	Shift shifts.RouterGroup
 
 	// Identitt
 	Auth     auth.RouterGroup
-	User     user.RouterGroup
-	Role     role.RouterGroup
-	RolePerm permission.RouterGroup
+	User     users.RouterGroup
+	Role     roles.RouterGroup
+	RolePerm permissions.RouterGroup
 
 	// Product
-	Product  product.RouterGroup
-	Category category.RouterGroup
+	Product  products.RouterGroup
+	Category categories.RouterGroup
 
 	// Sales
-	Order order.RouterGroup
-	Cart  cart.RouterGroup
+	Order orders.RouterGroup
+	Cart  carts.RouterGroup
 
 	// Inventory
-	Inventory inventory.RouterGroup
 }
+
+var RouterGroupApp = new(RouterGroup)
 
 var (
 	// Franchise
@@ -57,5 +57,4 @@ var (
 	cartGroup  = RouterGroupApp.Cart
 
 	// Inventory
-	inventoryGroup = RouterGroupApp.Inventory
 )

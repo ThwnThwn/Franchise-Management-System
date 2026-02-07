@@ -35,5 +35,5 @@ var ClientSet = wire.NewSet(
 
 	// Inventory Service
 	inventory.NewInventoryClientFactory,
-	inventory.ProvideInventoryClient,
+	inventory.ProvideStoreIngredientClient,
 )

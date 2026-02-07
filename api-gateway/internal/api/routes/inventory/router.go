@@ -12,10 +12,10 @@ type InventoryRouter struct{}
 
 func (a *InventoryRouter) NewInventoryRouter(cfg *config.Config,
 	r *gin.RouterGroup,
-	inventoryHandler *handlers.InventoryHandler,
+	inventoryHandler *handlers.StoreIngredientHandler,
 	authMW *middleware.AuthMiddleware,
 ) {
-	ingredientApi := r.Group("/inventory")
+	ingredientApi := r.Group("/")
 	{
 	}
 
@@ -23,12 +23,7 @@ func (a *InventoryRouter) NewInventoryRouter(cfg *config.Config,
 	privateApi := ingredientApi.Group("")
 	privateApi.Use(authMW.ValidateToken([]byte(accessTokenSecret)))
 	{
-	}
-
-	// managerApi := privateApi.Group("")
-	// managerApi.Use(middleware.RequireRoles(string(roleslug.Manager)))
-	{
-		// thêm / giảm số lượng tồn kho (hiện chỉ mới tăng)
+		// thêm / giảm số lượng tồn kho
 		privateApi.POST("/adjustments", authMW.PermissionCheck("inventory.adjustments"), inventoryHandler.IncreaseStock)
 	}
 }

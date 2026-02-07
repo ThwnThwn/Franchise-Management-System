@@ -13,7 +13,8 @@ GO_PB_DIR = pkg/pb
 GO_MAIN_REL_PATH = cmd/server/main.go
 GO_BIN_OUT = bin/main.exe
 
-PROTOBUF_REGEX = `protobuf:.*?"\s+json:".*?"`
+PROTOBUF_REGEX = \s*protobuf:"[^"]*"\s+json:"([^",]+),omitempty"
+REPLACE_REGEX = json:"$1"
 
 # ==============================================================================
 # COMMANDS

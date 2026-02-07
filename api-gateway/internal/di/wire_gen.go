@@ -71,20 +71,20 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, erro
 	if err != nil {
 		return nil, err
 	}
-	iInventoryService := inventory.ProvideInventoryClient(inventoryClientFactory)
-	inventoryHandler := handlers.NewInventoryHandler(iInventoryService)
+	iStoreIngredientService := inventory.ProvideStoreIngredientClient(inventoryClientFactory)
+	storeIngredientHandler := handlers.NewStoreIngredientHandler(iStoreIngredientService)
 	appHandlers := &handlers.AppHandlers{
-		StoreHandler:     storeHandler,
-		ShiftHandler:     shiftHandler,
-		AuthHandler:      authHandler,
-		UserHandler:      userHandler,
-		RoleHandler:      roleHandler,
-		PermHandler:      permHandler,
-		ProductHandler:   productHandler,
-		CategoryHandler:  categoryHandler,
-		OrderHandler:     orderHandler,
-		CartHandler:      cartHandler,
-		InventoryHandler: inventoryHandler,
+		StoreHandler:           storeHandler,
+		ShiftHandler:           shiftHandler,
+		AuthHandler:            authHandler,
+		UserHandler:            userHandler,
+		RoleHandler:            roleHandler,
+		PermHandler:            permHandler,
+		ProductHandler:         productHandler,
+		CategoryHandler:        categoryHandler,
+		OrderHandler:           orderHandler,
+		CartHandler:            cartHandler,
+		StoreIngredientHandler: storeIngredientHandler,
 	}
 	redis := &cfg.Redis
 	iPermCache := cache.NewPermCache(redis, l)
