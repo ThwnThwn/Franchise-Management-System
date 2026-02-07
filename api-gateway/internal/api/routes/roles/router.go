@@ -1,44 +1,33 @@
 package roles
 
 import (
-	"api-gateway/config"
-	"api-gateway/internal/api/handlers"
-	"api-gateway/internal/api/middleware"
-
 	"github.com/gin-gonic/gin"
 )
 
-type RoleRouter struct{}
-
-func (u *RoleRouter) NewRoleRouter(cfg *config.Config,
-	r *gin.RouterGroup,
-	roleHandler *handlers.RoleHandler,
-	authMW *middleware.AuthMiddleware,
-) {
+func (rR *RoleRouter) Init(r *gin.RouterGroup) {
 	roleApi := r.Group("/roles")
 	{
-		roleApi.GET("", roleHandler.GetAll)
+		roleApi.GET("", rR.roleHl.GetAll)
 	}
 
-	accessTokenSecret := cfg.JwtSecret
 	privateApi := roleApi.Group("")
-	privateApi.Use(authMW.ValidateToken([]byte(accessTokenSecret)))
+	privateApi.Use(rR.authMW.ValidateToken([]byte(rR.cfg.JwtSecret)))
 	{
 		privateApi.POST("",
-			authMW.PermissionCheck("role.create"),
-			roleHandler.Create)
+			rR.authMW.PermissionCheck("role.create"),
+			rR.roleHl.Create)
 		privateApi.PATCH("/:id",
-			authMW.PermissionCheck("role.update"),
-			roleHandler.Update)
+			rR.authMW.PermissionCheck("role.update"),
+			rR.roleHl.Update)
 	}
 
 	rolePermApi := privateApi.Group("/:id/permissions")
 	{
 		rolePermApi.GET("",
-			authMW.PermissionCheck("role.read_permission"),
-			roleHandler.GetPermissionsByRoleId)
+			rR.authMW.PermissionCheck("role.read_permission"),
+			rR.roleHl.GetPermissionsByRoleId)
 		rolePermApi.PUT("",
-			authMW.PermissionCheck("role.update_permission"),
-			roleHandler.UpdateRolePermissions)
+			rR.authMW.PermissionCheck("role.update_permission"),
+			rR.roleHl.UpdateRolePermissions)
 	}
 }

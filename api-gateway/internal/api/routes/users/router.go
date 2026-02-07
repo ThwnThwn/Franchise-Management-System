@@ -1,48 +1,33 @@
 package users
 
 import (
-	"api-gateway/config"
-	"api-gateway/internal/api/handlers"
-	"api-gateway/internal/api/middleware"
-
 	"github.com/gin-gonic/gin"
 )
 
-type UserRouter struct{}
-
-func (u *UserRouter) NewUserRouter(cfg *config.Config,
-	r *gin.RouterGroup,
-	userHander *handlers.UserHandler,
-	shiftHandler *handlers.ShiftHandler,
-	authMW *middleware.AuthMiddleware,
-) {
+func (u *UserRouter) Init(r *gin.RouterGroup) {
 	userApi := r.Group("/users")
 
-	accessTokenSecret := cfg.JwtSecret
 	privateApi := userApi.Group("")
-	privateApi.Use(authMW.ValidateToken([]byte(accessTokenSecret)))
+	privateApi.Use(u.authMW.ValidateToken([]byte(u.cfg.JwtSecret)))
 	{
-		privateApi.GET("/me", userHander.GetMe)
-		privateApi.PATCH("/me", userHander.UpdateMe)
+		privateApi.GET("/me", u.userHl.GetMe)
+		privateApi.PATCH("/me", u.userHl.UpdateMe)
 	}
 
-	// staffApi := privateApi.Group("")
-	// staffApi.Use(middleware.RequireRoles(string(roleslug.Staff)))
 	{
 		// Staff láy thông tin ca làm hiện tại
-		privateApi.GET("/me/current-shift", authMW.PermissionCheck("me.current_shift"), shiftHandler.GetUserCurrentShift)
+		privateApi.GET("/me/current-shift",
+			u.authMW.PermissionCheck("me.current_shift"), u.shiftHl.GetUserCurrentShift)
 	}
 
-	// adminApi := privateApi.Group("")
-	// adminApi.Use(middleware.RequireRoles(string(roleslug.Admin)))
 	{
 		// Admin lấy danh sách user
-		privateApi.GET("", authMW.PermissionCheck("user.read"), userHander.GetAll)
+		privateApi.GET("", u.authMW.PermissionCheck("user.read"), u.userHl.GetAll)
 		// Admin lấy thông tin 1 user
-		privateApi.GET("/:id", authMW.PermissionCheck("user.read"), userHander.GetById)
+		privateApi.GET("/:id", u.authMW.PermissionCheck("user.read"), u.userHl.GetById)
 		// Admin tạo 1 user
-		privateApi.POST("", authMW.PermissionCheck("user.create"), userHander.Create)
+		privateApi.POST("", u.authMW.PermissionCheck("user.create"), u.userHl.Create)
 		// Admin update role cho 1 user
-		privateApi.PATCH("/:id/role", authMW.PermissionCheck("user.update"), userHander.UpdateRole)
+		privateApi.PATCH("/:id/role", u.authMW.PermissionCheck("user.update"), u.userHl.UpdateRole)
 	}
 }

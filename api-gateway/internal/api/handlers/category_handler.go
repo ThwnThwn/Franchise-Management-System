@@ -49,7 +49,7 @@ func (h *CategoryHandler) GetById(c *gin.Context) {
 }
 
 func (h *CategoryHandler) Create(c *gin.Context) {
-	var req category.MutationCategoryReq
+	var req category.CreateCategoryReq
 	if err := c.ShouldBindJSON(req); err != nil {
 		c.Error(validation.TranslateValidationError(err))
 		return
@@ -73,7 +73,7 @@ func (h *CategoryHandler) UpdateById(c *gin.Context) {
 		return
 	}
 
-	var req category.MutationCategoryReq
+	var req category.UpdateCategoryReq
 	if err := c.ShouldBindJSON(req); err != nil {
 		c.Error(validation.TranslateValidationError(err))
 		return

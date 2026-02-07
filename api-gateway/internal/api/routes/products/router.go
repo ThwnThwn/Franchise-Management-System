@@ -1,35 +1,24 @@
 package products
 
 import (
-	"api-gateway/config"
-	"api-gateway/internal/api/handlers"
-	"api-gateway/internal/api/middleware"
-
 	"github.com/gin-gonic/gin"
 )
 
-type ProductRouter struct{}
-
-func (a *ProductRouter) NewProductRouter(cfg *config.Config,
-	r *gin.RouterGroup,
-	productHandler *handlers.ProductHandler,
-	authMW *middleware.AuthMiddleware,
-) {
+func (p *ProductRouter) Init(r *gin.RouterGroup) {
 	productApi := r.Group("/products")
 	{
-		productApi.GET("", productHandler.GetProducts)
-		productApi.GET("/:id", productHandler.GetProductById)
+		productApi.GET("", p.productHl.GetProducts)
+		productApi.GET("/:id", p.productHl.GetProductById)
 	}
 
-	accessTokenSecret := cfg.JwtSecret
 	privateApi := productApi.Group("")
-	privateApi.Use(authMW.ValidateToken([]byte(accessTokenSecret)))
+	privateApi.Use(p.authMW.ValidateToken([]byte(p.cfg.JwtSecret)))
 
 	// adminApi := privateApi.Group("")
 	// adminApi.Use(middleware.RequireRoles(string(roleslug.Admin)))
 	{
-		privateApi.POST("", authMW.PermissionCheck("product.create"), productHandler.CreateProduct)
-		privateApi.PATCH("/:id", authMW.PermissionCheck("product.update"), productHandler.UpdateProduct)
-		privateApi.DELETE("/:id", authMW.PermissionCheck("product.delete"), productHandler.DeleteProduct)
+		privateApi.POST("", p.authMW.PermissionCheck("product.create"), p.productHl.CreateProduct)
+		privateApi.PATCH("/:id", p.authMW.PermissionCheck("product.update"), p.productHl.UpdateProduct)
+		privateApi.DELETE("/:id", p.authMW.PermissionCheck("product.delete"), p.productHl.DeleteProduct)
 	}
 }

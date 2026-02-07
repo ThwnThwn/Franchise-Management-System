@@ -1,32 +1,22 @@
 package ingredients
 
 import (
-	"api-gateway/config"
-	"api-gateway/internal/api/handlers"
-	"api-gateway/internal/api/middleware"
-
 	"github.com/gin-gonic/gin"
 )
 
-type StoreIngredientRouter struct{}
-
-func (sI *StoreIngredientRouter) NewStoreIngredientRouter(cfg *config.Config,
-	storeR *gin.RouterGroup,
-	storeIngreHl *handlers.StoreIngredientHandler,
-	authMW *middleware.AuthMiddleware,
-) {
+func (i *StoreIngredientRouter) Init(storeR *gin.RouterGroup) {
 	storeIngreR := storeR.Group("")
-	storeIngreR.Use(authMW.ValidateToken([]byte(cfg.JwtSecret)))
+	storeIngreR.Use(i.authMW.ValidateToken([]byte(i.cfg.JwtSecret)))
 
 	storeIngreApi := storeIngreR.Group("/ingredients")
 	{
-		storeIngreApi.GET("", authMW.PermissionCheck("stock.read"), storeIngreHl.GetAllStock)
+		storeIngreApi.GET("", i.authMW.PermissionCheck("stock.read"), i.storeIngreHl.GetAllStock)
 	}
 
 	storeIngreIdApi := storeIngreR.Group("/:id/ingredients")
 	{
-		storeIngreIdApi.GET("", authMW.PermissionCheck("stock.read"), storeIngreHl.GetStockByStoreId)
+		storeIngreIdApi.GET("", i.authMW.PermissionCheck("stock.read"), i.storeIngreHl.GetStockByStoreId)
 		storeIngreIdApi.PUT("/adjustments",
-			authMW.PermissionCheck("stock.update"), storeIngreHl.IncreaseStock)
+			i.authMW.PermissionCheck("stock.update"), i.storeIngreHl.IncreaseStock)
 	}
 }

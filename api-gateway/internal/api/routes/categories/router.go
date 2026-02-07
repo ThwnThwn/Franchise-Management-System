@@ -1,32 +1,21 @@
 package categories
 
 import (
-	"api-gateway/config"
-	"api-gateway/internal/api/handlers"
-	"api-gateway/internal/api/middleware"
-
 	"github.com/gin-gonic/gin"
 )
 
-type CategoryRouter struct{}
-
-func (a *CategoryRouter) NewCategoryRouter(cfg *config.Config,
-	r *gin.RouterGroup,
-	categoryHander *handlers.CategoryHandler,
-	authMW *middleware.AuthMiddleware,
-) {
+func (c *CategoryRouter) Init(r *gin.RouterGroup) {
 	categoryApi := r.Group("/categories")
 	{
-		categoryApi.GET("", categoryHander.GetCategories)
-		categoryApi.GET("/:id", categoryHander.GetById)
+		categoryApi.GET("", c.categoryHl.GetCategories)
+		categoryApi.GET("/:id", c.categoryHl.GetById)
 	}
 
-	accessTokenSecret := cfg.JwtSecret
 	privateApi := categoryApi.Group("")
-	privateApi.Use(authMW.ValidateToken([]byte(accessTokenSecret)))
+	privateApi.Use(c.authMW.ValidateToken([]byte(c.cfg.JwtSecret)))
 	{
-		privateApi.POST("", authMW.PermissionCheck("category.create"), categoryHander.Create)
-		privateApi.POST("/:id", authMW.PermissionCheck("category.update"), categoryHander.UpdateById)
-		privateApi.POST("/:id", authMW.PermissionCheck("category.delete"), categoryHander.DeleteById)
+		privateApi.POST("", c.authMW.PermissionCheck("category.create"), c.categoryHl.Create)
+		privateApi.PATCH("/:id", c.authMW.PermissionCheck("category.update"), c.categoryHl.UpdateById)
+		privateApi.DELETE("/:id", c.authMW.PermissionCheck("category.delete"), c.categoryHl.DeleteById)
 	}
 }

@@ -1,8 +1,29 @@
 package handlers
 
-import (
-	"github.com/google/wire"
-)
+import "github.com/google/wire"
+
+type AppHandlers struct {
+	// Franchise
+	*StoreHandler
+	*ShiftHandler
+
+	// Identity
+	*AuthHandler
+	*UserHandler
+	*RoleHandler
+	*PermHandler
+
+	// Product
+	*ProductHandler
+	*CategoryHandler
+
+	// Sales
+	*OrderHandler
+	*CartHandler
+
+	// Inventory
+	*StoreIngredientHandler
+}
 
 // Gom nhóm tất cả Handler lại
 var HandlerSet = wire.NewSet(
@@ -27,26 +48,3 @@ var HandlerSet = wire.NewSet(
 	// Inventory
 	NewStoreIngredientHandler,
 )
-
-type AppHandlers struct {
-	// Franchise
-	*StoreHandler
-	*ShiftHandler
-
-	// Identity
-	*AuthHandler
-	*UserHandler
-	*RoleHandler
-	*PermHandler
-
-	// Product
-	*ProductHandler
-	*CategoryHandler
-
-	// Sales
-	*OrderHandler
-	*CartHandler
-
-	// Inventory
-	*StoreIngredientHandler
-}

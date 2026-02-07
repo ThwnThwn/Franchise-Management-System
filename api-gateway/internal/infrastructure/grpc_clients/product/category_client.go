@@ -6,6 +6,7 @@ import (
 
 	"api-gateway/internal/domain/models/category"
 	productPb "api-gateway/pkg/pb/product"
+	"api-gateway/pkg/utils/stringutils"
 
 	"github.com/google/uuid"
 )
@@ -58,7 +59,7 @@ func (c *CategoryGrpcClient) GetById(ctx context.Context, id uuid.UUID) (*catego
 }
 
 // Create implements product.ICategoryService.
-func (c *CategoryGrpcClient) Create(ctx context.Context, req *category.MutationCategoryReq) error {
+func (c *CategoryGrpcClient) Create(ctx context.Context, req *category.CreateCategoryReq) error {
 	_, err := c.client.CreateCategory(ctx, &productPb.CreateCategoryRequest{
 		Name:        req.Name,
 		Description: req.Description,
@@ -67,11 +68,11 @@ func (c *CategoryGrpcClient) Create(ctx context.Context, req *category.MutationC
 }
 
 // Update implements product.ICategoryService.
-func (c *CategoryGrpcClient) Update(ctx context.Context, id uuid.UUID, req *category.MutationCategoryReq) error {
+func (c *CategoryGrpcClient) Update(ctx context.Context, id uuid.UUID, req *category.UpdateCategoryReq) error {
 	_, err := c.client.UpdateCategory(ctx, &productPb.UpdateCategoryRequest{
 		Id:          id.String(),
-		Name:        req.Name,
-		Description: req.Description,
+		Name:        stringutils.GetString(req.Name),
+		Description: stringutils.GetString(req.Description),
 	})
 	return err
 }
