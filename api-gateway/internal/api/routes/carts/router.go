@@ -1,30 +1,19 @@
 package carts
 
 import (
-	"api-gateway/config"
-	"api-gateway/internal/api/handlers"
-	"api-gateway/internal/api/middleware"
-
 	"github.com/gin-gonic/gin"
 )
 
-type CartRouter struct{}
-
-func (a *CartRouter) NewCartRouter(cfg *config.Config,
-	r *gin.RouterGroup,
-	cartHander *handlers.CartHandler,
-	authMW *middleware.AuthMiddleware,
-) {
+func (c *CartRouter) Init(r *gin.RouterGroup) {
 	cartApi := r.Group("/carts")
 
-	accessTokenSecret := cfg.JwtSecret
 	privateApi := cartApi.Group("")
-	privateApi.Use(authMW.ValidateToken([]byte(accessTokenSecret)))
+	privateApi.Use(c.authMW.ValidateToken([]byte(c.cfg.JwtSecret)))
 	{
-		privateApi.GET("", cartHander.GetCartItems)
-		privateApi.POST("", cartHander.AddToCart)
-		privateApi.PUT("", cartHander.UpdateCartItem)
-		privateApi.DELETE("", cartHander.DeleteListCartItem)
-		privateApi.DELETE("/clear", cartHander.ClearCart)
+		privateApi.GET("", c.cartHl.GetCartItems)
+		privateApi.POST("", c.cartHl.AddToCart)
+		privateApi.PUT("", c.cartHl.UpdateCartItem)
+		privateApi.DELETE("", c.cartHl.DeleteListCartItem)
+		privateApi.DELETE("/clear", c.cartHl.ClearCart)
 	}
 }

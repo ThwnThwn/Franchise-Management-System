@@ -1,27 +1,21 @@
 package stores
 
 import (
-	"api-gateway/config"
-	"api-gateway/internal/api/handlers"
-
 	"github.com/gin-gonic/gin"
 )
 
-type StoreRouter struct{}
-
-func (s *StoreRouter) NewStoreRouter(cfg *config.Config,
-	r *gin.RouterGroup,
-	storeHandler *handlers.StoreHandler,
-) {
+func (s *StoreRouter) Init(r *gin.RouterGroup) {
 	storeApi := r.Group("/stores")
 	{
 		// Lấy danh sách tất cả store
-		storeApi.GET("", storeHandler.GetStores)
+		storeApi.GET("", s.storeHl.GetStores)
 		// Lấy detail của 1 store
-		storeApi.GET("/:id", storeHandler.GetStoreDetail)
+		storeApi.GET("/:id", s.storeHl.GetStoreDetail)
 		// Check xem store có đang mở cửa không
-		storeApi.GET("/:id/availability", storeHandler.CheckStoreAvailability)
+		storeApi.GET("/:id/availability", s.storeHl.CheckStoreAvailability)
 		// Nhận vào kinh độ, vĩ độ và tìm các cửa hàng gần nhất (theo bán kính xung quanh)
-		storeApi.GET("/nearby", storeHandler.FindNearbyStores)
+		storeApi.GET("/nearby", s.storeHl.FindNearbyStores)
 	}
+
+	s.storeIngreR.Init(storeApi)
 }
