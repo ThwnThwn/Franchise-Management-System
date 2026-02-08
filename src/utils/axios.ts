@@ -1,11 +1,17 @@
 import { BACKEND_API_URL } from "@/constants/env"
 import { useTokenStore } from "@/hooks"
 import axios from "axios"
+import qs from "qs"
 
 const axiosInstance = axios.create({
     baseURL: BACKEND_API_URL,
     withCredentials: true,
-    headers: { "Content-Type": "application/json" }
+    headers: { "Content-Type": "application/json" },
+    paramsSerializer: (params) => {
+        // arrayFormat: 'repeat' sẽ tạo ra: ?ids=1&ids=2 (Chuẩn cho Gin/Golang)
+        // arrayFormat: 'brackets' sẽ tạo ra: ?ids[]=1&ids[]=2 (Chuẩn mặc định Axios)
+        return qs.stringify(params, { arrayFormat: "repeat" })
+    }
 })
 
 const refreshInstance = axios.create({

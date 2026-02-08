@@ -7,7 +7,7 @@ export const inventoryApi = {
     getAllStocks: (params?: GetAllStockParams) =>
         requestWrapper<GetAllStockResult>(async () => {
             const queryParams = buildQueryParams(params ?? {})
-            const res = await axiosInstance.get("/inventory/stocks", { params: queryParams })
+            const res = await axiosInstance.get("/stores/stock", { params: queryParams })
             return res.data
         }),
 

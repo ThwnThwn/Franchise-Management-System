@@ -17,7 +17,7 @@ export const ordersApi = {
 
     getMyOrders: () =>
         requestWrapper<OrderSummary[]>(async () => {
-            const res = await axiosInstance.get("/orders/me")
+            const res = await axiosInstance.get("/me/orders")
             return res.data
         }),
 
