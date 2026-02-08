@@ -13,9 +13,6 @@ func (p *ProductRouter) Init(r *gin.RouterGroup) {
 
 	privateApi := productApi.Group("")
 	privateApi.Use(p.authMW.ValidateToken([]byte(p.cfg.JwtSecret)))
-
-	// adminApi := privateApi.Group("")
-	// adminApi.Use(middleware.RequireRoles(string(roleslug.Admin)))
 	{
 		privateApi.POST("", p.authMW.PermissionCheck("product.create"), p.productHl.CreateProduct)
 		privateApi.PATCH("/:id", p.authMW.PermissionCheck("product.update"), p.productHl.UpdateProduct)

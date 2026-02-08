@@ -11,16 +11,16 @@ import (
 	"github.com/google/uuid"
 )
 
-type storeIngredientGrpcClient struct {
+type stockGrpcClient struct {
 	client inventoryPb.InventoryGrpcClient
 }
 
-func ProvideStoreIngredientClient(f *clientFactory) inventoryGW.IStoreIngredientService {
-	return &storeIngredientGrpcClient{client: inventoryPb.NewInventoryGrpcClient(f.conn)}
+func ProvideStoreIngredientClient(f *clientFactory) inventoryGW.IStockService {
+	return &stockGrpcClient{client: inventoryPb.NewInventoryGrpcClient(f.conn)}
 }
 
-// IncreaseStock implements inventory.IStoreIngredientService.
-func (s *storeIngredientGrpcClient) IncreaseStock(ctx context.Context, id uuid.UUID, req []*ingredient.IngredientStockItem) error {
+// IncreaseStock implements inventory.IStockService.
+func (s *stockGrpcClient) IncreaseStock(ctx context.Context, id uuid.UUID, req []*ingredient.IngredientStockItem) error {
 	items := make([]*inventoryPb.IngredientStockItem, 0, len(req))
 	for _, item := range req {
 		items = append(items, &inventoryPb.IngredientStockItem{
@@ -40,8 +40,8 @@ func (s *storeIngredientGrpcClient) IncreaseStock(ctx context.Context, id uuid.U
 	return nil
 }
 
-// GetAllStock implements inventory.IStoreIngredientService.
-func (s *storeIngredientGrpcClient) GetAllStock(ctx context.Context, req *ingredient.GetAllStockReq) (*common.PaginationResult[*ingredient.StockViewRes], error) {
+// GetAllStock implements inventory.IStockService.
+func (s *stockGrpcClient) GetAllStock(ctx context.Context, req *ingredient.GetAllStockReq) (*common.PaginationResult[*ingredient.StockViewRes], error) {
 	res, err := s.client.GetAllStock(ctx, &inventoryPb.GetAllStockReq{
 		// StoreIds:      req.StoreIds,
 		CategoryIds:   req.CategoryIds,
@@ -80,8 +80,8 @@ func (s *storeIngredientGrpcClient) GetAllStock(ctx context.Context, req *ingred
 	}, nil
 }
 
-// GetStockByStoreId implements inventory.IStoreIngredientService.
-func (s *storeIngredientGrpcClient) GetStockByStoreId(ctx context.Context, id uuid.UUID, req *ingredient.GetAllStockReq) (*common.PaginationResult[*ingredient.StockViewRes], error) {
+// GetStockByStoreId implements inventory.IStockService.
+func (s *stockGrpcClient) GetStockByStoreId(ctx context.Context, id uuid.UUID, req *ingredient.GetAllStockReq) (*common.PaginationResult[*ingredient.StockViewRes], error) {
 	res, err := s.client.GetAllStock(ctx, &inventoryPb.GetAllStockReq{
 		StoreIds:      []string{id.String()},
 		CategoryIds:   req.CategoryIds,

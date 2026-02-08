@@ -22,7 +22,10 @@ type AppHandlers struct {
 	*CartHandler
 
 	// Inventory
-	*StoreIngredientHandler
+	*StockHandler
+	*IngredientHandler
+	*IngredientCategoryHandler
+	*RecipeHandler
 }
 
 // Gom nhóm tất cả Handler lại
@@ -46,5 +49,8 @@ var HandlerSet = wire.NewSet(
 	NewCartHandler,
 
 	// Inventory
-	NewStoreIngredientHandler,
+	NewStockHandler,
+	NewIngredientHandler,
+	NewIngredientCategoryHandler,
+	NewRecipeHandler,
 )

@@ -13,14 +13,18 @@ import (
 	"api-gateway/internal/api/routes"
 	"api-gateway/internal/api/routes/auth"
 	"api-gateway/internal/api/routes/carts"
-	"api-gateway/internal/api/routes/categories"
+	categories2 "api-gateway/internal/api/routes/categories"
+	"api-gateway/internal/api/routes/ingredients"
+	"api-gateway/internal/api/routes/ingredients/categories"
 	"api-gateway/internal/api/routes/orders"
 	"api-gateway/internal/api/routes/permissions"
 	"api-gateway/internal/api/routes/products"
+	"api-gateway/internal/api/routes/recipes"
 	"api-gateway/internal/api/routes/roles"
 	"api-gateway/internal/api/routes/stores"
-	"api-gateway/internal/api/routes/stores/ingredients"
+	"api-gateway/internal/api/routes/stores/stock"
 	"api-gateway/internal/api/routes/users"
+	"api-gateway/internal/api/routes/variants"
 	"api-gateway/internal/application/usecases"
 	"api-gateway/internal/bootstrap"
 	"api-gateway/internal/infrastructure/cache"
@@ -59,10 +63,10 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, erro
 	if err != nil {
 		return nil, err
 	}
-	iStoreIngredientService := inventory.ProvideStoreIngredientClient(inventoryClientFactory)
-	storeIngredientHandler := handlers.NewStoreIngredientHandler(iStoreIngredientService)
-	storeIngredientRouter := ingredients.NewRouter(cfg, authMiddleware, storeIngredientHandler)
-	storeRouter := stores.NewRouter(cfg, storeHandler, storeIngredientRouter)
+	iStockService := inventory.ProvideStoreIngredientClient(inventoryClientFactory)
+	stockHandler := handlers.NewStockHandler(iStockService)
+	stockRouter := stock.NewRouter(cfg, authMiddleware, stockHandler)
+	storeRouter := stores.NewRouter(cfg, storeHandler, stockRouter)
 	iAuthService := identity.ProvideAuthClient(identityClientFactory)
 	iUserService := identity.ProvideUserClient(identityClientFactory)
 	authHandler := handlers.NewAuthHandler(iAuthService, iUserService)
@@ -76,6 +80,15 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, erro
 	roleRouter := roles.NewRouter(cfg, authMiddleware, roleHandler)
 	permHandler := handlers.NewPermHandler(iRolePermissionService)
 	permissionRouter := permissions.NewRouter(cfg, authMiddleware, permHandler)
+	iIngredientService := inventory.ProvideIngredientClient(inventoryClientFactory)
+	ingredientHandler := handlers.NewIngredientHandler(iIngredientService)
+	iIngredientCategoryService := inventory.ProvideIngredientCategoryClient(inventoryClientFactory)
+	ingredientCategoryHandler := handlers.NewIngredientCategoryHandler(iIngredientCategoryService)
+	ingredientCategoryRouter := categories.NewRouter(cfg, authMiddleware, ingredientCategoryHandler)
+	ingredientRouter := ingredients.NewRouter(cfg, authMiddleware, ingredientHandler, ingredientCategoryRouter)
+	iRecipeService := inventory.ProvideRecipeClient(inventoryClientFactory)
+	recipeHandler := handlers.NewRecipeHandler(iRecipeService)
+	recipeRouter := recipes.NewRouter(cfg, authMiddleware, recipeHandler)
 	productServiceUrl := cfg.ProductServiceUrl
 	productClientFactory, err := product.NewProductClientFactory(productServiceUrl)
 	if err != nil {
@@ -86,7 +99,8 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, erro
 	productRouter := products.NewRouter(cfg, authMiddleware, productHandler)
 	iCategoryService := product.ProvideCategoryClient(productClientFactory)
 	categoryHandler := handlers.NewCategoryHandler(iCategoryService)
-	categoryRouter := categories.NewRouter(cfg, authMiddleware, categoryHandler)
+	categoryRouter := categories2.NewRouter(cfg, authMiddleware, categoryHandler)
+	variantRouter := variants.NewRouter(cfg, authMiddleware, recipeHandler)
 	salesServiceUrl := cfg.SalesServiceUrl
 	salesClientFactory, err := sales.NewSalesClientFactory(salesServiceUrl)
 	if err != nil {
@@ -104,8 +118,11 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, erro
 		UserRouter:       userRouter,
 		RoleRouter:       roleRouter,
 		PermissionRouter: permissionRouter,
+		IngredientRouter: ingredientRouter,
+		RecipeRouter:     recipeRouter,
 		ProductRouter:    productRouter,
 		CategoryRouter:   categoryRouter,
+		VariantRouter:    variantRouter,
 		OrderRouter:      orderRouter,
 		CartRouter:       cartRouter,
 	}

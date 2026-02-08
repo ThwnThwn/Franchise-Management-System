@@ -14,3 +14,9 @@ type IngredientViewRes struct {
 	BaseUnit   string `json:"baseUnit"`
 	CategoryId string `json:"categoryId"`
 }
+
+type IngreCateViewRes struct {
+	Id          string  `json:"id"`
+	Name        string  `json:"name"`
+	Description *string `json:"description"`
+}

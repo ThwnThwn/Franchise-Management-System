@@ -5,7 +5,11 @@ import (
 	"api-gateway/internal/api/middleware"
 	"net/http"
 
+	_ "api-gateway/docs"
+
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func NewEngine(cfg *config.Config, aR *AppRouter) *gin.Engine {
@@ -24,6 +28,9 @@ func NewEngine(cfg *config.Config, aR *AppRouter) *gin.Engine {
 		})
 	})
 
+	// Truy cập: http://localhost:8080/swagger/index.html
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
 	MainGroup := r.Group("/api")
 	{
 		// Franchise
@@ -35,9 +42,14 @@ func NewEngine(cfg *config.Config, aR *AppRouter) *gin.Engine {
 		aR.RoleRouter.Init(MainGroup)
 		aR.PermissionRouter.Init(MainGroup)
 
+		// Inventory
+		aR.IngredientRouter.Init(MainGroup)
+		aR.RecipeRouter.Init(MainGroup)
+
 		// Product
 		aR.ProductRouter.Init(MainGroup)
 		aR.CategoryRouter.Init(MainGroup)
+		aR.VariantRouter.Init(MainGroup)
 
 		// Sales
 		aR.OrderRouter.Init(MainGroup)

@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type IStoreIngredientService interface {
+type IStockService interface {
 	IncreaseStock(ctx context.Context, id uuid.UUID, req []*ingredient.IngredientStockItem) error
 
 	GetAllStock(ctx context.Context, req *ingredient.GetAllStockReq,

@@ -1,0 +1,2414 @@
+basePath: /api
+definitions:
+  api-gateway_internal_domain_constants_enum.OrderStatus:
+    enum:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    format: int32
+    type: integer
+    x-enum-varnames:
+    - OrderStatus_PAYMENT_PENDING
+    - OrderStatus_PREPARING
+    - OrderStatus_READY
+    - OrderStatus_COMPLETED
+    - OrderStatus_CANCEL
+  api-gateway_internal_domain_constants_enum.PaymentMethod:
+    enum:
+    - 0
+    - 1
+    format: int32
+    type: integer
+    x-enum-varnames:
+    - PaymentMethod_CASH
+    - PaymentMethod_VNPAY
+  api-gateway_internal_domain_models_auth.ConfirmOtpRequest:
+    properties:
+      email:
+        type: string
+      otp:
+        type: string
+    required:
+    - email
+    - otp
+    type: object
+  api-gateway_internal_domain_models_auth.LoginRequest:
+    properties:
+      emailOrUsername:
+        type: string
+      password:
+        type: string
+    required:
+    - emailOrUsername
+    - password
+    type: object
+  api-gateway_internal_domain_models_auth.NewPasswordRequest:
+    properties:
+      confirmPassword:
+        type: string
+      newPassword:
+        type: string
+    required:
+    - confirmPassword
+    - newPassword
+    type: object
+  api-gateway_internal_domain_models_auth.RegisterRequest:
+    properties:
+      address:
+        type: string
+      confirmPassword:
+        type: string
+      dateOfBirth:
+        type: string
+      email:
+        type: string
+      firstName:
+        type: string
+      gender:
+        type: integer
+      lastName:
+        type: string
+      password:
+        maxLength: 30
+        minLength: 6
+        type: string
+      phone:
+        type: string
+      username:
+        type: string
+    required:
+    - address
+    - confirmPassword
+    - dateOfBirth
+    - email
+    - firstName
+    - gender
+    - password
+    - phone
+    - username
+    type: object
+  api-gateway_internal_domain_models_auth.SendOtpRequest:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
+  api-gateway_internal_domain_models_cart.DeleteCartItemsRequest:
+    properties:
+      skus:
+        items:
+          type: string
+        type: array
+    type: object
+  api-gateway_internal_domain_models_cart.UpsertCartItemRequest:
+    properties:
+      quantity:
+        type: integer
+      sku:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_category.CreateCategoryReq:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  api-gateway_internal_domain_models_category.UpdateCategoryReq:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_ingredient.CreateIngreCateReq:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  api-gateway_internal_domain_models_ingredient.CreateIngredientReq:
+    properties:
+      baseUnit:
+        type: string
+      categoryId:
+        type: string
+      name:
+        type: string
+    required:
+    - baseUnit
+    - name
+    type: object
+  api-gateway_internal_domain_models_ingredient.IngredientStockItem:
+    properties:
+      ingredientId:
+        type: string
+      quantity:
+        type: number
+    type: object
+  api-gateway_internal_domain_models_ingredient.UpdateIngreCateReq:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_ingredient.UpdateIngredientReq:
+    properties:
+      baseUnit:
+        type: string
+      categoryId:
+        type: string
+      name:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_order.CartItem:
+    properties:
+      quantity:
+        maximum: 100000
+        type: integer
+      sku:
+        type: string
+    required:
+    - quantity
+    - sku
+    type: object
+  api-gateway_internal_domain_models_order.CreateOrderRequest:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/api-gateway_internal_domain_models_order.CartItem'
+        type: array
+      notes:
+        type: string
+      storeId:
+        type: string
+    required:
+    - items
+    - storeId
+    type: object
+  api-gateway_internal_domain_models_order.CreatePaymentRequest:
+    properties:
+      paymentMethod:
+        $ref: '#/definitions/api-gateway_internal_domain_constants_enum.PaymentMethod'
+      returnUrl:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_order.UpdateOrderItem:
+    properties:
+      quantity:
+        maximum: 100000
+        type: integer
+      sku:
+        type: string
+    required:
+    - quantity
+    - sku
+    type: object
+  api-gateway_internal_domain_models_order.UpdateOrderStatus:
+    properties:
+      status:
+        $ref: '#/definitions/api-gateway_internal_domain_constants_enum.OrderStatus'
+    required:
+    - status
+    type: object
+  api-gateway_internal_domain_models_permission.UpdatePermissionInfoRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_product.CreateProductRequest:
+    properties:
+      categoryId:
+        description: ImagePublicId *string                 `json:"imagePublicId"`
+        type: string
+      description:
+        type: string
+      imaageUrl:
+        type: string
+      name:
+        type: string
+      variants:
+        items:
+          $ref: '#/definitions/api-gateway_internal_domain_models_product.CreateProductVariant'
+        type: array
+    required:
+    - name
+    type: object
+  api-gateway_internal_domain_models_product.CreateProductVariant:
+    properties:
+      attributes:
+        type: string
+      basePrice:
+        type: number
+      cost:
+        type: number
+      isActive:
+        type: boolean
+      name:
+        type: string
+      sku:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_product.UpdateProductRequest:
+    properties:
+      categoryId:
+        description: ImagePublicId *string                 `json:"ImagePublicId"`
+        type: string
+      description:
+        type: string
+      imageUrl:
+        type: string
+      isActive:
+        type: boolean
+      name:
+        type: string
+      variants:
+        items:
+          $ref: '#/definitions/api-gateway_internal_domain_models_product.UpdateProductVariant'
+        type: array
+    type: object
+  api-gateway_internal_domain_models_product.UpdateProductVariant:
+    properties:
+      attributes:
+        type: string
+      basePrice:
+        type: number
+      cost:
+        type: number
+      isActive:
+        type: boolean
+      name:
+        type: string
+      sku:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_recipe.RecipeIngredientRequest:
+    properties:
+      ingredientId:
+        type: string
+      quantity:
+        type: number
+    type: object
+  api-gateway_internal_domain_models_role.CreateRoleRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      slug:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_role.UpdateRolePermissionsRequest:
+    properties:
+      permissionsToGrant:
+        items:
+          type: string
+        type: array
+      permissionsToRevoke:
+        items:
+          type: string
+        type: array
+    type: object
+  api-gateway_internal_domain_models_role.UpdateRoleRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_user.ChangePasswordRequest:
+    properties:
+      confirmNewPassword:
+        type: string
+      forgetAll:
+        type: boolean
+      newPassword:
+        maxLength: 30
+        minLength: 6
+        type: string
+      oldPassword:
+        maxLength: 30
+        minLength: 6
+        type: string
+    required:
+    - confirmNewPassword
+    - newPassword
+    - oldPassword
+    type: object
+  api-gateway_internal_domain_models_user.CreateUserRequest:
+    properties:
+      address:
+        type: string
+      dateOfBirth:
+        type: string
+      email:
+        type: string
+      firstName:
+        type: string
+      gender:
+        type: integer
+      lastName:
+        type: string
+      phone:
+        type: string
+      roleSlug:
+        type: string
+      username:
+        type: string
+    required:
+    - email
+    - gender
+    - roleSlug
+    - username
+    type: object
+  api-gateway_internal_domain_models_user.UpdateMeRequest:
+    properties:
+      address:
+        type: string
+      dateOfBirth:
+        type: string
+      email:
+        type: string
+      firstName:
+        type: string
+      gender:
+        type: integer
+      lastName:
+        type: string
+      phone:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_user.UpdateUserRoleRequest:
+    properties:
+      roleSlug:
+        type: string
+    required:
+    - roleSlug
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+  description: API docs for CHD Gateway.
+  termsOfService: http://swagger.io/terms/
+  title: API Gateway Documentation
+  version: "1.0"
+paths:
+  /auth/change-password:
+    post:
+      consumes:
+      - application/json
+      description: Allows the logged-in user to change their password. Requires a
+        valid Access Token.
+      parameters:
+      - description: Old and New Password
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_user.ChangePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Returns success status
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized or missing token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Change Password
+      tags:
+      - Auth
+  /auth/forgot-password:
+    post:
+      consumes:
+      - application/json
+      description: Initiates the password reset process by sending an OTP to the provided
+        email address.
+      parameters:
+      - description: Email address
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_auth.SendOtpRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Returns success message
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Request Password Reset
+      tags:
+      - Auth
+  /auth/forgot-password/confirm-otp:
+    post:
+      consumes:
+      - application/json
+      description: Verifies the OTP sent to the email. If successful, a 'forgot_password_token'
+        HttpOnly cookie will be set, which is required for setting the new password.
+      parameters:
+      - description: Email and OTP
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_auth.ConfirmOtpRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Returns success message and sets cookie
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid OTP or validation error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Verify Password Reset OTP
+      tags:
+      - Auth
+  /auth/forgot-password/new-password:
+    post:
+      consumes:
+      - application/json
+      description: Finalizes the password reset process. This endpoint requires the
+        'forgot_password_token' cookie obtained from the OTP verification step.
+      parameters:
+      - description: New Password
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_auth.NewPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Returns success status
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Missing cookie or validation error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Invalid or expired token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Set New Password
+      tags:
+      - Auth
+  /auth/forgot-password/resend-otp:
+    post:
+      consumes:
+      - application/json
+      description: Resends the OTP for password reset if the previous one expired.
+      parameters:
+      - description: Email address
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_auth.SendOtpRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Returns success message
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Resend Password Reset OTP
+      tags:
+      - Auth
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Enter username/email and password to get access token
+      parameters:
+      - description: Login Request Body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_auth.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Login
+      tags:
+      - Auth
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: Invalidates the current access token and clears the refresh token
+        cookie.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Returns success status
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized or invalid token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Logout user
+      tags:
+      - Auth
+  /auth/refresh-token:
+    post:
+      consumes:
+      - application/json
+      description: Obtains a new access token using the valid refresh token stored
+        in the HttpOnly cookie.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Returns new Access Token
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Missing cookie
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Invalid refresh token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Refresh Access Token
+      tags:
+      - Auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account. After successful registration, an OTP
+        will be sent to the email for verification.
+      parameters:
+      - description: Registration details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_auth.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Returns success message
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register a new account
+      tags:
+      - Auth
+  /auth/register/confirm-otp:
+    post:
+      consumes:
+      - application/json
+      description: Verify the OTP sent to email to activate the new account.
+      parameters:
+      - description: Email and OTP
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_auth.ConfirmOtpRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Returns success status and message
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid OTP or validation error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Verify Registration OTP
+      tags:
+      - Auth
+  /auth/register/resend-otp:
+    post:
+      consumes:
+      - application/json
+      description: Resend the activation OTP if the previous one expired or was not
+        received.
+      parameters:
+      - description: Email address
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_auth.SendOtpRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Returns success message
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Resend Registration OTP
+      tags:
+      - Auth
+  /categories:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all available product categories.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of categories
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get All Categories
+      tags:
+      - Categories
+    post:
+      consumes:
+      - application/json
+      description: Create a new product category.
+      parameters:
+      - description: Category details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_category.CreateCategoryReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create Category
+      tags:
+      - Categories
+  /categories/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Permanently delete a category by its ID.
+      parameters:
+      - description: Category UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete Category
+      tags:
+      - Categories
+    get:
+      consumes:
+      - application/json
+      description: Retrieve details of a specific category using its UUID.
+      parameters:
+      - description: Category UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Category details
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Category not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get Category by ID
+      tags:
+      - Categories
+    patch:
+      consumes:
+      - application/json
+      description: Update an existing category by its ID.
+      parameters:
+      - description: Category UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_category.UpdateCategoryReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error or Invalid ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update Category
+      tags:
+      - Categories
+  /ingredients:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of ingredients with optional filtering and pagination.
+      parameters:
+      - in: query
+        name: categoryId
+        type: string
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of ingredients
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get All Ingredients
+      tags:
+      - Ingredients
+    post:
+      consumes:
+      - application/json
+      description: Add a new ingredient to the inventory.
+      parameters:
+      - description: Ingredient details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_ingredient.CreateIngredientReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create Ingredient
+      tags:
+      - Ingredients
+  /ingredients/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove an ingredient from the inventory.
+      parameters:
+      - description: Ingredient UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete Ingredient
+      tags:
+      - Ingredients
+    patch:
+      consumes:
+      - application/json
+      description: Update details of an existing ingredient by its ID.
+      parameters:
+      - description: Ingredient UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_ingredient.UpdateIngredientReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error or Invalid ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update Ingredient
+      tags:
+      - Ingredients
+  /ingredients/categories:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all ingredient categories.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of categories
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get All Ingredient Categories
+      tags:
+      - Ingredient Categories
+    post:
+      consumes:
+      - application/json
+      description: Create a new category for ingredients.
+      parameters:
+      - description: Category details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_ingredient.CreateIngreCateReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create Ingredient Category
+      tags:
+      - Ingredient Categories
+  /ingredients/categories/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Permanently remove an ingredient category.
+      parameters:
+      - description: Category UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete Ingredient Category
+      tags:
+      - Ingredient Categories
+    patch:
+      consumes:
+      - application/json
+      description: Update an existing ingredient category by its ID.
+      parameters:
+      - description: Category UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_ingredient.UpdateIngreCateReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error or Invalid ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update Ingredient Category
+      tags:
+      - Ingredient Categories
+  /me/cart:
+    delete:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Clear My Cart
+      tags:
+      - Cart
+    get:
+      consumes:
+      - application/json
+      description: Retrieve current user's shopping cart.
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Get My Cart
+      tags:
+      - Cart
+  /me/cart/items:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: List of Item IDs
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_cart.DeleteCartItemsRequest'
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Remove Items from My Cart
+      tags:
+      - Cart
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Item details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_cart.UpsertCartItemRequest'
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Add Item to My Cart
+      tags:
+      - Cart
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Update details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_cart.UpsertCartItemRequest'
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Update Item in My Cart
+      tags:
+      - Cart
+  /me/orders:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of orders placed by the current logged-in user
+        with optional filtering.
+      parameters:
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of orders
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get My Order History
+      tags:
+      - Orders
+  /orders:
+    post:
+      consumes:
+      - application/json
+      description: Create a new order based on the provided items and shipping information.
+      parameters:
+      - description: Order creation details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_order.CreateOrderRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Created Order Data
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Place New Order
+      tags:
+      - Orders
+  /orders/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve full details of a specific order by its ID.
+      parameters:
+      - description: Order UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Order details
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Order not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get Order Details
+      tags:
+      - Orders
+    put:
+      consumes:
+      - application/json
+      description: Update the list of items in an existing order (usually allowed
+        only when order is in 'Pending' state).
+      parameters:
+      - description: Order UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: List of items to update
+        in: body
+        name: request
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/api-gateway_internal_domain_models_order.UpdateOrderItem'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated Order Data
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update Order Items
+      tags:
+      - Orders
+  /orders/{id}/payment:
+    post:
+      consumes:
+      - application/json
+      description: Generate a payment link (e.g., VNPay, Momo) for the specific order.
+      parameters:
+      - description: Order UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Payment details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_order.CreatePaymentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Payment URL
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Generate Payment URL
+      tags:
+      - Orders
+  /orders/{id}/status:
+    patch:
+      consumes:
+      - application/json
+      description: Change the status of an order (e.g., to 'Cancelled', 'Completed').
+      parameters:
+      - description: Order UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: New Status
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_order.UpdateOrderStatus'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update Order Status
+      tags:
+      - Orders
+  /permissions:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all system permissions, grouped by their module
+        or category.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of permissions grouped by module
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get All Permissions (Grouped)
+      tags:
+      - Permissions
+  /permissions/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Update details (e.g., description, name) of a specific permission
+        by its ID.
+      parameters:
+      - description: Permission UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_permission.UpdatePermissionInfoRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error or Invalid ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update Permission
+      tags:
+      - Permissions
+  /products:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of products with pagination and keyword search
+        support.
+      parameters:
+      - in: query
+        name: categoryId
+        type: string
+      - in: query
+        name: keyword
+        type: string
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of products
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get All Products
+      tags:
+      - Products
+    post:
+      consumes:
+      - application/json
+      description: Add a new product to the catalog.
+      parameters:
+      - description: Product details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_product.CreateProductRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create New Product
+      tags:
+      - Products
+  /products/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Permanently remove a product from the catalog.
+      parameters:
+      - description: Product UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete Product
+      tags:
+      - Products
+    get:
+      consumes:
+      - application/json
+      description: Retrieve full details of a specific product by its ID.
+      parameters:
+      - description: Product UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Product details
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Product not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get Product Details
+      tags:
+      - Products
+    patch:
+      consumes:
+      - application/json
+      description: Update details of an existing product.
+      parameters:
+      - description: Product UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_product.UpdateProductRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error or Invalid ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update Product
+      tags:
+      - Products
+  /recipes:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of recipes with optional filtering.
+      parameters:
+      - collectionFormat: csv
+        in: query
+        items:
+          type: string
+        name: variantIds
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of recipes
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get All Recipes
+      tags:
+      - Recipes
+  /roles:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all defined roles in the system.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of roles
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get All Roles
+      tags:
+      - Roles
+    post:
+      consumes:
+      - application/json
+      description: Define a new role with a specific name and description.
+      parameters:
+      - description: Role details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_role.CreateRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create New Role
+      tags:
+      - Roles
+  /roles/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Update details (name, description) of an existing role.
+      parameters:
+      - description: Role UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_role.UpdateRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error or Invalid ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update Role
+      tags:
+      - Roles
+  /roles/{id}/permissions:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all permissions assigned to a specific role.
+      parameters:
+      - description: Role UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of permissions
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get Role Permissions
+      tags:
+      - Roles
+    put:
+      consumes:
+      - application/json
+      description: Update the list of permissions assigned to a specific role.
+      parameters:
+      - description: Role UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: List of Permission IDs
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_role.UpdateRolePermissionsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error or Invalid ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Assign Permissions to Role
+      tags:
+      - Roles
+  /stores:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of stores with optional filtering (e.g., by city,
+        district).
+      parameters:
+      - description: Tìm theo tên
+        in: query
+        name: keyword
+        type: string
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of stores
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get All Stores
+      tags:
+      - Stores
+  /stores/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve full details of a specific store by its ID.
+      parameters:
+      - description: Store UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Store details
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Store not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get Store Details
+      tags:
+      - Stores
+  /stores/{id}/availability:
+    get:
+      consumes:
+      - application/json
+      description: Check if a store is currently open or active.
+      parameters:
+      - description: Store UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Availability status
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Check Store Availability
+      tags:
+      - Stores
+  /stores/{id}/stock:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve the current inventory of ingredients for a specific store.
+      parameters:
+      - description: Store UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - collectionFormat: csv
+        description: StoreIds      []string `form:"storeIds"`
+        in: query
+        items:
+          type: string
+        name: categoryIds
+        type: array
+      - collectionFormat: csv
+        in: query
+        items:
+          type: string
+        name: ingredientIds
+        type: array
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      - in: query
+        name: stockStatus
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Store inventory list
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Store not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get Store Stock
+      tags:
+      - Store Stock
+    put:
+      consumes:
+      - application/json
+      description: Add quantity to specific ingredients in a store's inventory.
+      parameters:
+      - description: Store UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: List of ingredients to add
+        in: body
+        name: request
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/api-gateway_internal_domain_models_ingredient.IngredientStockItem'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error or Invalid ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Increase Ingredient Stock
+      tags:
+      - Store Stock
+  /stores/nearby:
+    get:
+      consumes:
+      - application/json
+      description: Find stores based on current location (Lat/Long) and radius.
+      parameters:
+      - description: Mặc định 10 quán
+        in: query
+        name: limit
+        type: integer
+      - description: Mặc định 5km nếu không truyền
+        in: query
+        name: radiusKm
+        type: number
+      - in: query
+        name: userLat
+        required: true
+        type: number
+      - in: query
+        name: userLong
+        required: true
+        type: number
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of nearby stores
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Find Nearby Stores
+      tags:
+      - Stores
+  /stores/stock:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve inventory levels of ingredients across all stores (Management
+        view).
+      parameters:
+      - collectionFormat: csv
+        description: StoreIds      []string `form:"storeIds"`
+        in: query
+        items:
+          type: string
+        name: categoryIds
+        type: array
+      - collectionFormat: csv
+        in: query
+        items:
+          type: string
+        name: ingredientIds
+        type: array
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      - in: query
+        name: stockStatus
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Global inventory list
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get All Global Stock
+      tags:
+      - Store Stock
+  /users:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of users with optional filtering (Admin).
+      parameters:
+      - in: query
+        name: keyword
+        type: string
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      - in: query
+        name: roleSlug
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of users
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get All Users
+      tags:
+      - Users
+    post:
+      consumes:
+      - application/json
+      description: Manually create a new user (e.g., for employees or admin accounts).
+      parameters:
+      - description: User creation details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_user.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Created user details
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create New User (Admin)
+      tags:
+      - Users
+  /users/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve details of a specific user by their ID.
+      parameters:
+      - description: User UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User details
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: User not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get User by ID
+      tags:
+      - Users
+  /users/{id}/role:
+    patch:
+      consumes:
+      - application/json
+      description: Change the role (permission level) of a specific user.
+      parameters:
+      - description: User UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: New Role Slug
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_user.UpdateUserRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated user details
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update User Role
+      tags:
+      - Users
+  /users/me:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve the profile information of the currently logged-in user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User profile details
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get My Profile
+      tags:
+      - Profile
+    patch:
+      consumes:
+      - application/json
+      description: Update personal information (Email, Phone, Address, etc.) for the
+        logged-in user.
+      parameters:
+      - description: Updated profile details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_user.UpdateMeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated profile
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update My Profile
+      tags:
+      - Profile
+  /users/me/shifts/current:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve the current active shift for the logged-in user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Current shift details
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: No active shift found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get My Current Shift
+      tags:
+      - Shifts
+  /variants/{id}/recipes:
+    put:
+      consumes:
+      - application/json
+      description: Define or update the list of ingredients (recipe) for a specific
+        product variant.
+      parameters:
+      - description: Variant UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: List of ingredients and quantities
+        in: body
+        name: request
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/api-gateway_internal_domain_models_recipe.RecipeIngredientRequest'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error or Invalid ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update Variant Recipe
+      tags:
+      - Recipes
+securityDefinitions:
+  BearerAuth:
+    description: 'Don''t forget to type "Bearer" before the token. For example: Bearer
+      eyJhbG...'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

@@ -5,15 +5,15 @@ import (
 )
 
 func (c *CartRouter) Init(r *gin.RouterGroup) {
-	cartApi := r.Group("/carts")
+	myCartApi := r.Group("/me/cart")
 
-	privateApi := cartApi.Group("")
+	privateApi := myCartApi.Group("")
 	privateApi.Use(c.authMW.ValidateToken([]byte(c.cfg.JwtSecret)))
 	{
-		privateApi.GET("", c.cartHl.GetCartItems)
-		privateApi.POST("", c.cartHl.AddToCart)
-		privateApi.PUT("", c.cartHl.UpdateCartItem)
-		privateApi.DELETE("", c.cartHl.DeleteListCartItem)
-		privateApi.DELETE("/clear", c.cartHl.ClearCart)
+		privateApi.GET("", c.cartHl.GetMyCart)
+		privateApi.POST("/items", c.cartHl.AddToMyCart)
+		privateApi.PUT("/items", c.cartHl.UpdateMyCartItems)
+		privateApi.DELETE("/items", c.cartHl.DeleteMyCartItems)
+		privateApi.DELETE("", c.cartHl.ClearMyCart)
 	}
 }

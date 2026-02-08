@@ -21,6 +21,16 @@ func NewPermHandler(rolePermGW identity.IRolePermissionService) *PermHandler {
 	}
 }
 
+// GetAllPermissionsGrouped
+// @Summary      Get All Permissions (Grouped)
+// @Description  Retrieve a list of all system permissions, grouped by their module or category.
+// @Tags         Permissions
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200  {object}  map[string]interface{} "List of permissions grouped by module"
+// @Failure      500  {object}  map[string]string      "Internal server error"
+// @Router       /permissions [get]
 func (h *PermHandler) GetAllPermissionsGrouped(c *gin.Context) {
 	ctx := c.Request.Context()
 	res, err := h.rolePermGW.GetAllPermissionsGrouped(ctx)
@@ -31,6 +41,18 @@ func (h *PermHandler) GetAllPermissionsGrouped(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
+// UpdatePermission
+// @Summary      Update Permission
+// @Description  Update details (e.g., description, name) of a specific permission by its ID.
+// @Tags         Permissions
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id       path     string                                  true  "Permission UUID"
+// @Param        request  body     permission.UpdatePermissionInfoRequest  true  "Updated details"
+// @Success      200      {object} map[string]interface{}                  "Success"
+// @Failure      400      {object} map[string]string                       "Validation error or Invalid ID"
+// @Router       /permissions/{id} [patch]
 func (h *PermHandler) UpdatePermission(c *gin.Context) {
 	id := c.Param("id")
 	permId, err := uuid.Parse(id)
