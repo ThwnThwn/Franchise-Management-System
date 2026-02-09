@@ -3,7 +3,7 @@ import { Button } from "@heroui/react"
 import { X } from "lucide-react"
 import { InputStyled } from "@/components"
 import { FormikProps } from "formik"
-import { ProductFormValues } from "../types"
+import { ProductFormValues } from "../../types"
 
 interface AttributeItemProps {
     index: number

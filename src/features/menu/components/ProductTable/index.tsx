@@ -2,7 +2,7 @@
 
 import React from "react"
 
-import { PencilIcon, TrashIcon } from "lucide-react"
+import { PencilIcon } from "lucide-react"
 import { TableStyled, ButtonIconStyled, TitleSkeleton } from "@/components"
 import { formatCurrencyWithSymbol } from "@/utils/helpers/currency"
 import {
@@ -22,7 +22,7 @@ type ProductTableProps = {
     products: Product[]
     isLoading?: boolean
     emptyMessage?: string
-    onEdit?: (product: Product) => void
+    onEdit?: (productId: string) => void
     onDelete?: (product: Product) => void
     isRefetching?: boolean
 }
@@ -32,7 +32,7 @@ export function ProductTable({
     isLoading = false,
     emptyMessage,
     onEdit,
-    onDelete,
+    // onDelete,
     isRefetching = false
 }: ProductTableProps) {
     // --- HELPERS ---
@@ -206,13 +206,13 @@ export function ProductTable({
                                 variant="light"
                                 color="primary"
                                 className="opacity-70 hover:opacity-100"
-                                onPress={() => onEdit?.(item)}
+                                onPress={() => onEdit?.(item.id)}
                             >
                                 <PencilIcon size={18} />
                             </ButtonIconStyled>
                         </Tooltip>
 
-                        <Tooltip content="Xóa sản phẩm" color="danger">
+                        {/* <Tooltip content="Xóa sản phẩm" color="danger">
                             <ButtonIconStyled
                                 variant="light"
                                 color="danger"
@@ -221,7 +221,7 @@ export function ProductTable({
                             >
                                 <TrashIcon size={18} />
                             </ButtonIconStyled>
-                        </Tooltip>
+                        </Tooltip> */}
                     </div>
                 </TableCell>
             </TableRow>

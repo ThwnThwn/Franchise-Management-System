@@ -10,6 +10,7 @@ export function DropdownStyled({ children, className, ...props }: DropdownStyleP
     return (
         <Dropdown
             placement="bottom-start"
+            closeOnSelect={true}
             {...props}
             className={cn("font-medium text-base", className)}
         >

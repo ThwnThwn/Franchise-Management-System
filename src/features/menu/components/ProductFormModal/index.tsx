@@ -18,9 +18,9 @@ import { InputStyled, ButtonStyled, ModalStyled, AutocompleteStyled } from "@/co
 import { useCreateProduct, useUpdateProduct, useGetAllCategories } from "../../hooks"
 import { CreateProductRequest, UpdateProductRequest } from "../../models/products/request"
 import { Product } from "../../models/products/respone"
-import { ProductFormValues } from "./types"
-import { VariantItem } from "./VariantItem"
+import { ProductFormValues } from "../../types"
 import { parseAttributes } from "../../utils/utils"
+import { VariantItem } from "../VariantItem"
 
 // --- 3. COMPONENT CHÍNH ---
 export function ProductFormModal({

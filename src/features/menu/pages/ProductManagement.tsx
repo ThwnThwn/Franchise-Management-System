@@ -2,7 +2,7 @@
 
 import React, { Suspense, useCallback, useMemo, useState } from "react"
 import { Coffee, Plus, Search } from "lucide-react"
-import { useDisclosure, AutocompleteItem } from "@heroui/react"
+import { AutocompleteItem } from "@heroui/react"
 import { useDeleteProduct, useGetAllProducts } from "../hooks"
 import { useGetAllCategories } from "../hooks/useCategory"
 import { Product } from "../models/products/respone"
@@ -19,11 +19,14 @@ import { debouncedWrapper } from "@/utils/helpers/axiosHelper"
 import { PaginationParams } from "@/models/common/request"
 import { DashboardHeader } from "@/features/dashboard/components/general/DashboardHeader"
 import { ProductTable } from "../components/ProductTable"
-import { ProductFormModal } from "../components"
+import { useRouter } from "next/navigation"
+import { PRODUCTS_ROUTES } from "../constants/routes"
 
 // Import Components & Hooks
 
 export default function ProductManagementPage() {
+    const router = useRouter()
+
     const { data: categories = [] } = useGetAllCategories()
     // Search & Filter State
     const [filter, setFilter] = useState<GetAllProductParams>({})
@@ -57,18 +60,20 @@ export default function ProductManagementPage() {
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
 
     // Chỉ cần 1 biến state cho modal
-    const { isOpen, onOpen, onOpenChange } = useDisclosure()
+    // const { isOpen, onOpen, onOpenChange } = useDisclosure()
 
     // Handler: Mở để Tạo mới
     const handleCreate = () => {
-        setSelectedProduct(null) // Quan trọng: set null để modal biết là Create
-        onOpen()
+        // setSelectedProduct(null) // Quan trọng: set null để modal biết là Create
+        // onOpen()
+        router.push(PRODUCTS_ROUTES.CREATE)
     }
 
     // Handler: Mở để Update
-    const handleEdit = (product: Product) => {
-        setSelectedProduct(product) // Truyền product vào để modal biết là Edit
-        onOpen()
+    const handleEdit = (productId: string) => {
+        // setSelectedProduct(product) // Truyền product vào để modal biết là Edit
+        // onOpen()
+        router.push(PRODUCTS_ROUTES.EDIT(productId))
     }
 
     // Modal Delete
@@ -182,11 +187,11 @@ export default function ProductManagementPage() {
 
             <>
                 {/* --- MODALS --- */}
-                <ProductFormModal
+                {/* <ProductFormModal
                     isOpen={isOpen}
                     onOpenChange={onOpenChange}
                     product={selectedProduct} // Modal tự check: Có hàng -> Edit, Null -> Create
-                />
+                /> */}
 
                 {/* 3. Delete */}
                 <AlertModal

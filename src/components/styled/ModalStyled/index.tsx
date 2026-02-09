@@ -21,28 +21,34 @@ export function ModalStyled(props: ModalProps) {
             placement="top"
             color="secondary"
             isDismissable={false}
+            isKeyboardDismissDisabled={true}
             size="lg"
-            {...props}
+            {...(props as any)}
             className={cn("min-w-sm", props.className)}
         />
     )
 }
 
 export function ModalHeaderStyled(props: ModalHeaderProps) {
-    return <ModalHeader {...props} className={cn("text-lg font-semibold", props.className)} />
+    return (
+        <ModalHeader {...(props as any)} className={cn("text-lg font-semibold", props.className)} />
+    )
 }
 
 export function ModalContentStyled(props: ModalContentProps) {
-    return <ModalContent {...props} className={cn("w-full", props.className)} />
+    return <ModalContent {...(props as any)} className={cn("w-full", props.className)} />
 }
 
 export function ModalBodyStyled(props: ModalBodyProps) {
-    return <ModalBody {...props} className={cn("space-y-4", props.className)} />
+    return <ModalBody {...(props as any)} className={cn("space-y-4", props.className)} />
 }
 
 export function ModalFooterStyled(props: ModalFooterProps) {
     return (
-        <ModalFooter {...props} className={cn("flex items-center justify-end", props.className)} />
+        <ModalFooter
+            {...(props as any)}
+            className={cn("flex items-center justify-end", props.className)}
+        />
     )
 }
 

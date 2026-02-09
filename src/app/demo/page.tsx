@@ -1,69 +1,68 @@
 "use client"
 
-// import React from "react"
-// import MenuPage from "@/features/menu/pages/MenuPage"
-// import ProfilePage from "../(private)/profile/page"
-// import MenuPage from "@/features/menu/pages/MenuPage"
-// import OrdersPage from "@/features/orders/pages/OrdersView"
-// import CoffeeHome from "@/features/home/pages/HomeView"
+import { MultiImageUploaderModal } from "@/components/shared/ImageUploaderCore/MultiImageUploaderModal"
+import { useDisclosure } from "@heroui/react"
+import { useMutation } from "@tanstack/react-query"
+import React from "react"
+
+// Hàm giả lập API
+const mockUploadImages = async (formData: FormData) => {
+    console.group("🚀 START MOCK UPLOAD")
+
+    // 1. Kiểm tra xem FormData có gì bên trong
+    // Lưu ý: console.log(formData) trực tiếp sẽ thấy rỗng, phải loop qua entries
+    const files = formData.getAll("images") // Hoặc key mà bạn đã append
+    console.log(`📦 Nhận được ${files.length} file(s):`)
+
+    files.forEach((file: any, index) => {
+        console.log(`#${index + 1}:`, {
+            name: file.name,
+            size: (file.size / 1024).toFixed(2) + " KB",
+            type: file.type
+        })
+    })
+
+    // 2. Giả lập độ trễ mạng (2 giây) để test Spinner loading
+    console.log("⏳ Đang giả lập upload...")
+    await new Promise((resolve) => setTimeout(resolve, 2000))
+
+    console.log("✅ Upload thành công!")
+    console.groupEnd()
+
+    // 3. Trả về kết quả giả (để React Query tưởng là xong)
+    return { success: true, message: "Fake upload done" }
+}
 
 export default function Home() {
-    // handle when log
+    const { onOpenChange, onClose } = useDisclosure()
+
+    const mockMutation = useMutation({
+        mutationFn: mockUploadImages, // <--- Gắn hàm mock vào đây
+        onSuccess: () => {
+            alert("Test: Upload thành công rồi nè!")
+        }
+    })
 
     return (
-        // <div className="p-10 gap-4 flex flex-col">
-        //     {/* 1. Nút bấm */}
-        //     <div className="flex gap-4">
-        //         <div className="flex gap-4 p-10 bg-background">
-        //             <ButtonStyled color="primary" variant="ghost">
-        //                 Đặt món ngay
-        //             </ButtonStyled>
-        //             <ButtonStyled color="secondary">Thêm Topping</ButtonStyled>
-        //             <ButtonStyled color="default">Mặc định</ButtonStyled>
+        <div>
+            {/* ... */}
 
-        //             {/* Hai nút này sẽ đổi màu mới */}
-        //             <ButtonStyled color="success">Thành công (Success)</ButtonStyled>
-        //             <ButtonStyled color="warning">Cảnh báo (Warning)</ButtonStyled>
-        //             <ButtonStyled color="danger">Xóa bỏ (Danger)</ButtonStyled>
-        //         </div>
-        //     </div>
-
-        //     {/* 2. Card sản phẩm */}
-        //     {/* Tự động ăn màu nền trắng (content1) và chữ nâu (foreground) */}
-        //     <Card className="max-w-100">
-        //         <CardBody>
-        //             <h2 className="text-xl font-bold">Cà phê Sữa Đá</h2>
-        //             <p className="text-default-500">Đậm đà hương vị Việt Nam</p>
-
-        //             <div className="mt-4">
-        //                 {/* Input focus sẽ ra viền màu Nâu */}
-        //                 <Input label="Ghi chú" placeholder="Ít đường, nhiều đá..." />
-        //             </div>
-        //         </CardBody>
-        //     </Card>
-        //     <NavbarStyled>
-        //         <NavbarContent>
-        //             <NavbarItem className="flex items-center z-9999">
-        //                 {isLoggedIn ? (
-        //                     // <ProfileDropdown onOpen={() => setIsOpen(false)} />
-        //                     "haha"
-        //                 ) : (
-        //                     <ButtonStyled
-        //                         onPress={() => {
-        //                             onOpenLogin()
-        //                             // setIsOpen(false)
-        //                         }}
-        //                         color="primary"
-        //                         variant="solid"
-        //                         className="rounded-3xl opacity-97"
-        //                     >
-        //                         {"Login"}
-        //                     </ButtonStyled>
-        //                 )}
-        //             </NavbarItem>
-        //         </NavbarContent>
-        //     </NavbarStyled>
-        // </div>
-        null
+            <MultiImageUploaderModal
+                isOpen={true}
+                onOpenChange={onOpenChange}
+                onClose={onClose}
+                // Truyền hàm mock vào
+                uploadFn={mockMutation.mutateAsync}
+                isUploadPending={mockMutation.isPending}
+                // Test các config
+                label="Test Upload Nhiều Ảnh"
+                maxFiles={15} // Thử giới hạn 5 ảnh
+                minFiles={2} // Thử bắt buộc chọn 2 ảnh
+                cropSize={{
+                    width: 400,
+                    height: 300
+                }}
+            />
+        </div>
     )
 }

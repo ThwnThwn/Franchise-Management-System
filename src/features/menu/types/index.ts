@@ -1,4 +1,4 @@
-import { ProductAttribute } from "../../models/products/respone"
+import { ProductAttribute } from "../models/products/respone"
 
 export interface AttributeUI {
     key: string

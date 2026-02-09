@@ -30,7 +30,7 @@ export const useGetInfiniteProducts = ({
         initialPageParam: 1,
         getNextPageParam: (lastPage, allPages) => {
             // allPages.length chính là số trang hiện tại đã load thành công
-            const currentPage = allPages.length
+            const currentPage = allPages?.length ?? 0
 
             // Nếu trang hiện tại vẫn nhỏ hơn tổng số trang backend báo về
             return currentPage < lastPage.totalPages ? currentPage + 1 : undefined
@@ -63,16 +63,17 @@ export const useGetAllProducts = ({
     })
 }
 
-export const useGetProductById = ({ id }: { id: string }) => {
+export const useGetProductById = ({ id, enabled = true }: { id: string; enabled?: boolean }) => {
     return useQuery({
         queryKey: [QUERY_KEYS.PRODUCTS, id],
         queryFn: async () => {
             return await productApi.getById({ id })
-        }
+        },
+        enabled: enabled
     })
 }
 
-export const useCreateProduct = () => {
+export const useCreateProduct = ({ onSuccess }: { onSuccess?: () => void }) => {
     const queryClient = useQueryClient()
     const key = [QUERY_KEYS.PRODUCTS]
 
@@ -85,6 +86,7 @@ export const useCreateProduct = () => {
                 description: "Tạo sản phẩm thành công",
                 color: "success"
             })
+            onSuccess?.()
         },
         onError: (error: BackendError) => {
             addToast({
@@ -103,7 +105,7 @@ export const useUpdateProduct = () => {
     return useMutation({
         mutationFn: productApi.update,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: key })
+            queryClient.invalidateQueries({ queryKey: key, exact: false })
             addToast({
                 title: STRINGS.COMMON.SUCCESS,
                 description: "Cập nhật sản phẩm thành công",
@@ -133,6 +135,42 @@ export const useDeleteProduct = () => {
                 description: "Xoá sản phẩm thành công",
                 color: "success"
             })
+        },
+        onError: (error: BackendError) => {
+            addToast({
+                title: error.title || STRINGS.COMMON.ERROR,
+                description: error.detail,
+                color: "danger"
+            })
+        }
+    })
+}
+
+export const useUploadProductImage = ({
+    id,
+    onSuccess
+}: {
+    id: string
+    onSuccess?: () => void
+}) => {
+    const queryClient = useQueryClient()
+    const key = [QUERY_KEYS.PRODUCTS]
+
+    return useMutation({
+        mutationFn: async (formData: FormData) => {
+            return await productApi.uploadImage({
+                id: id,
+                formData: formData
+            })
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: key, exact: false })
+            addToast({
+                title: STRINGS.COMMON.SUCCESS,
+                description: "Cập nhật ảnh thành công",
+                color: "success"
+            })
+            onSuccess?.()
         },
         onError: (error: BackendError) => {
             addToast({

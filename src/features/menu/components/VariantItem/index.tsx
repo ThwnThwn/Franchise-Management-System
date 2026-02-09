@@ -5,7 +5,7 @@ import { Trash2, Plus } from "lucide-react"
 import { InputStyled, ButtonIconStyled } from "@/components"
 import { AttributeItem } from "../AttributeItem"
 import { FormikProps } from "formik"
-import { ProductFormValues, VariantUI } from "../types"
+import { ProductFormValues, VariantUI } from "../../types"
 
 interface VariantItemProps {
     index: number

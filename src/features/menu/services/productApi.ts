@@ -41,5 +41,13 @@ export const productApi = {
     delete: ({ id }: { id: string }) =>
         requestWrapper<void>(async () => {
             await axiosInstance.delete(`/products/${id}`)
+        }),
+
+    uploadImage: ({ id, formData }: { id: string; formData: FormData }) =>
+        requestWrapper<string>(async () => {
+            const res = await axiosInstance.post(`/products/${id}/images`, formData, {
+                headers: { "Content-Type": "multipart/form-data" }
+            })
+            return res.data
         })
 }
