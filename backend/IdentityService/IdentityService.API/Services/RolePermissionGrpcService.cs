@@ -20,7 +20,7 @@ namespace IdentityService.API.Services
         }
 
         // 1. Get Permissions by Role Id
-        public override async Task<GetPermissionsByRoleIdResponse> GetPermissionsByRoleId(
+        public override async Task<PermissionsGroupedResponse> GetPermissionsByRoleId(
             GetPermissionsByRoleIdRequest request,
             ServerCallContext context)
         {
@@ -34,22 +34,21 @@ namespace IdentityService.API.Services
                 Id = roleId
             };
             var groupedPermissions = await _mediator.Send(query);
-            var response = new GetPermissionsByRoleIdResponse();
+            var response = new PermissionsGroupedResponse();
             foreach (var group in groupedPermissions)
             {
-                var protoGroup = new RolePermissionGroupRes
+                var protoGroup = new PermissionGroup
                 {
                     Resource = group.Resource
                 };
                 foreach (var perm in group.Permissions)
                 {
-                    protoGroup.Permissions.Add(new RolePermissionRes
+                    protoGroup.Permissions.Add(new PermissionDetail
                     {
                         Id = perm.Id.ToString(),
                         Slug = perm.Slug,
                         Name = perm.Name ?? string.Empty,
                         Description = perm.Description ?? string.Empty,
-                        IsActived = perm.IsActived
                     });
                 }
                 response.Groups.Add(protoGroup);
@@ -119,14 +118,14 @@ namespace IdentityService.API.Services
         }
 
         // 4. Get All Grouped (Cho UI Matrix)
-        public override async Task<GetAllPermissionsGroupedResponse> GetAllPermissionsGrouped(
+        public override async Task<PermissionsGroupedResponse> GetAllPermissionsGrouped(
             Empty request,
             ServerCallContext context)
         {
             // Gọi Query lấy List<PermissionGroupDto>
             var groupsDto = await _mediator.Send(new GetPermissionsByIdQuery());
 
-            var response = new GetAllPermissionsGroupedResponse();
+            var response = new PermissionsGroupedResponse();
 
             foreach (var groupDto in groupsDto)
             {

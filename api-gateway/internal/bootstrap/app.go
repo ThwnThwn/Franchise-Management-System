@@ -8,14 +8,14 @@ import (
 )
 
 type App struct {
-	Server *gin.Engine
 	Config *config.Config
+	Server *gin.Engine
 }
 
 func NewApp(cfg *config.Config, server *gin.Engine) *App {
 	return &App{
-		Server: server,
 		Config: cfg,
+		Server: server,
 	}
 }
 

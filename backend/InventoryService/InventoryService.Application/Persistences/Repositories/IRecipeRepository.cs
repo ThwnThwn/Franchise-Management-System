@@ -11,5 +11,6 @@ namespace InventoryService.Application.Persistences.Repositories
     {
         public Task<IEnumerable<Recipe>> GetRecipesByVariantIdAsync(Guid variantId, CancellationToken cancellationToken);
         public Task<IEnumerable<Recipe>?> GetRecipesByVariantIdsAsync(IEnumerable<Guid> variantIds, CancellationToken cancellationToken);
+        Task StrictDelete(Recipe entity);
     }
 }

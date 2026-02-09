@@ -15,13 +15,17 @@ using SalesService.Application.Interfaces.CartItems;
 using SalesService.Application.Interfaces.Identity;
 using SalesService.Application.Interfaces.Payments;
 using SalesService.Application.Mapping.Orders;
+using SalesService.Application.Persisitences;
 using SalesService.Application.Persisitences.OrderItems;
 using SalesService.Application.Persisitences.Orders;
 using SalesService.Application.Persisitences.Outbox;
+using SalesService.Application.Persisitences.Wallets;
+using SalesService.Application.Persisitences.WalletTransactions;
 using SalesService.Application.Signals;
 using SalesService.Infrastructure.ApplicationDbContext;
 using SalesService.Infrastructure.Extensions;
 using SalesService.Infrastructure.Interceptor;
+using SalesService.Infrastructure.Repositories;
 using SalesService.Infrastructure.Repositories.CartItems;
 using SalesService.Infrastructure.Repositories.OrderItems;
 using SalesService.Infrastructure.Repositories.Orders;
@@ -133,6 +137,7 @@ public class Program
         builder.Services.AddScoped<IOutboxRepository, OutboxRepository>();
         builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
         builder.Services.AddScoped<ICartItemRepository, CartItemRepository>();
+        builder.Services.AddScoped<IWalletRepository, WalletRepository>();
 
         // Register ProductService gRPC client
         builder.Services.AddSingleton<IProductServiceClient, ProductServiceClient>();
@@ -161,6 +166,9 @@ public class Program
         //Inventory Service Client
         builder.Services.AddScoped<IInventoryServiceClient, InventoryServiceClient>();
 
+        //Wallet 
+        builder.Services.AddScoped<IRefundTicketRepository, RefundTicketRepository>();
+        builder.Services.AddScoped<IWalletTransactionRepository, WalletTransactionRepository>();
         // Signal for Outbox
         builder.Services.AddSingleton<IOutboxSignal, OutboxSignal>();
 

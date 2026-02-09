@@ -21,8 +21,8 @@ func ProvideCartClient(f *salesClientFactory) salesGW.ICartService {
 	}
 }
 
-// GetCartItems implements sales.ICartService.
-func (c *CartGrpcClient) GetCartItems(ctx context.Context) ([]*cart.CartItemReply, error) {
+// GetMyCart implements sales.ICartService.
+func (c *CartGrpcClient) GetMyCart(ctx context.Context) ([]*cart.CartItemReply, error) {
 	res, err := c.client.GetCartItems(ctx, &emptypb.Empty{})
 	if err != nil {
 		return nil, err
@@ -36,8 +36,8 @@ func (c *CartGrpcClient) GetCartItems(ctx context.Context) ([]*cart.CartItemRepl
 	return items, nil
 }
 
-// AddToCart implements sales.ICartService.
-func (c *CartGrpcClient) AddToCart(ctx context.Context, req *cart.UpsertCartItemRequest) (*cart.CartItemReply, error) {
+// AddToMyCart implements sales.ICartService.
+func (c *CartGrpcClient) AddToMyCart(ctx context.Context, req *cart.UpsertCartItemRequest) (*cart.CartItemReply, error) {
 	res, err := c.client.AddToCart(ctx, &salesPb.AddToCartRequest{
 		Sku:      req.Sku,
 		Quantity: req.Quantity,
@@ -49,8 +49,8 @@ func (c *CartGrpcClient) AddToCart(ctx context.Context, req *cart.UpsertCartItem
 	return mapper.MapCartItemReplyPbToModel(res), nil
 }
 
-// UpdateCartItem implements sales.ICartService.
-func (c *CartGrpcClient) UpdateCartItem(ctx context.Context, req *cart.UpsertCartItemRequest) (*cart.CartItemReply, error) {
+// UpdateMyCartItems implements sales.ICartService.
+func (c *CartGrpcClient) UpdateMyCartItems(ctx context.Context, req *cart.UpsertCartItemRequest) (*cart.CartItemReply, error) {
 	res, err := c.client.UpdateCartItem(ctx, &salesPb.UpdateCartItemRequest{
 		Sku:      req.Sku,
 		Quantity: req.Quantity,
@@ -63,7 +63,7 @@ func (c *CartGrpcClient) UpdateCartItem(ctx context.Context, req *cart.UpsertCar
 }
 
 // DeleteListCartItem implements sales.ICartService.
-func (c *CartGrpcClient) DeleteListCartItem(ctx context.Context, req *cart.DeleteCartItemsRequest) (bool, error) {
+func (c *CartGrpcClient) DeleteMyCartItems(ctx context.Context, req *cart.DeleteCartItemsRequest) (bool, error) {
 	res, err := c.client.DeleteListCartItem(ctx, &salesPb.DeleteListCartItemRequest{
 		Skus: req.Skus,
 	})
@@ -71,7 +71,7 @@ func (c *CartGrpcClient) DeleteListCartItem(ctx context.Context, req *cart.Delet
 }
 
 // ClearCart implements sales.ICartService.
-func (c *CartGrpcClient) ClearCart(ctx context.Context) (bool, error) {
+func (c *CartGrpcClient) ClearMyCart(ctx context.Context) (bool, error) {
 	res, err := c.client.ClearCart(ctx, &emptypb.Empty{})
 	return res.Success, err
 }

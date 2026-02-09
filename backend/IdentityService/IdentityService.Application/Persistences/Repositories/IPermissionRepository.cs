@@ -8,6 +8,6 @@ namespace IdentityService.Application.Persistences.Repositories
 
         Task<IEnumerable<Permission>> GetListBySlugsAsync(IEnumerable<string> permissionSlugs);
 
-        Task<IEnumerable<string>> GetSlugsByRoleSlugAsync(string slug, bool isOnlyActived);
+        Task<IEnumerable<string>> GetSlugsByRoleSlugAsync(string slug, bool onlyActive);
     }
 }

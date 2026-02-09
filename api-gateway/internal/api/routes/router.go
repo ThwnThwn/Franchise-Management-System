@@ -2,21 +2,19 @@ package routes
 
 import (
 	"api-gateway/config"
-	"api-gateway/internal/api/handlers"
 	"api-gateway/internal/api/middleware"
+	"net/http"
+
+	_ "api-gateway/docs"
 
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-var RouterGroupApp = new(RouterGroup)
-
-func NewRouter(
-	cfg *config.Config,
-	h *handlers.AppHandlers,
-	authMW *middleware.AuthMiddleware,
-) *gin.Engine {
+func NewEngine(cfg *config.Config, aR *AppRouter) *gin.Engine {
 	r := gin.Default()
-	r.Use(gin.Recovery())
+	// r.Use(gin.Recovery())
 
 	// Apply Global Middleware
 	r.Use(middleware.GlobalErrorHandler())
@@ -24,29 +22,38 @@ func NewRouter(
 
 	// Health check cho Gateway
 	r.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{"status": "Gateway is running", "port": cfg.Port})
+		c.JSON(http.StatusOK, gin.H{
+			"status": "UP",
+			"port":   cfg.Port,
+		})
 	})
+
+	// Truy cập: http://localhost:8080/swagger/index.html
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	MainGroup := r.Group("/api")
 	{
 		// Franchise
-		storeGroup.NewStoreRouter(cfg, MainGroup, h.StoreHandler)
-		shiftGroup.NewShiftRouter(cfg, MainGroup, h.ShiftHandler)
+		aR.StoreRouter.Init(MainGroup)
 
 		// Identity
-		authGroup.NewAuthRouter(cfg, MainGroup, h.AuthHandler, authMW)
-		userGroup.NewUserRouter(cfg, MainGroup, h.UserHandler, h.ShiftHandler, authMW)
-
-		// Product
-		productGroup.NewProductRouter(cfg, MainGroup, h.ProductHandler, authMW)
-		categoryGroup.NewCategoryRouter(cfg, MainGroup, h.CategoryHandler, authMW)
-
-		// Sales
-		orderGroup.NewOrderRouter(cfg, MainGroup, h.OrderHandler, authMW)
-		cartGroup.NewCartRouter(cfg, MainGroup, h.CartHandler, authMW)
+		aR.AuthRouter.Init(MainGroup)
+		aR.UserRouter.Init(MainGroup)
+		aR.RoleRouter.Init(MainGroup)
+		aR.PermissionRouter.Init(MainGroup)
 
 		// Inventory
-		inventoryGroup.NewInventoryRouter(cfg, MainGroup, h.InventoryHandler, authMW)
+		aR.IngredientRouter.Init(MainGroup)
+		aR.RecipeRouter.Init(MainGroup)
+
+		// Product
+		aR.ProductRouter.Init(MainGroup)
+		aR.CategoryRouter.Init(MainGroup)
+		aR.VariantRouter.Init(MainGroup)
+
+		// Sales
+		aR.OrderRouter.Init(MainGroup)
+		aR.CartRouter.Init(MainGroup)
 	}
 
 	return r

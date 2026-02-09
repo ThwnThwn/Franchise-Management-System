@@ -29,9 +29,9 @@ namespace ProductService.Application.Features.Products.Command.UpdateProduct
             UpdateProductCommand request,
             CancellationToken cancellationToken)
         {
-            var checkName = await _productRepository
-                .GetProductByNameAsync(request.Request.Name ?? "");
-            if (checkName is not null)
+            var tmpProd = await _productRepository
+                .GetProductByNameAsync(request.Request.Name ?? "", request.ProductId);
+            if (tmpProd is not null)
             {
                 return Result.Conflict($"Product with name '{request.Request.Name}' already exists");
             }

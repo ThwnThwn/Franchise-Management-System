@@ -17,6 +17,17 @@ func NewShiftHandler(shiftGW franchise.IShiftService) *ShiftHandler {
 	return &ShiftHandler{shiftGW: shiftGW}
 }
 
+// GetUserCurrentShift
+// @Summary      Get My Current Shift
+// @Description  Retrieve the current active shift for the logged-in user.
+// @Tags         Shifts
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200  {object}  map[string]interface{} "Current shift details"
+// @Failure      401  {object}  map[string]string      "Unauthorized"
+// @Failure      404  {object}  map[string]string      "No active shift found"
+// @Router       /users/me/shifts/current [get]
 func (h *ShiftHandler) GetUserCurrentShift(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {

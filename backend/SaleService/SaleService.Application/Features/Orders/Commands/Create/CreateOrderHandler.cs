@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using SalesService.Application.ClientInterface.Inventory;
 using SalesService.Application.ClientInterface.Products;
 using SalesService.Application.Dtos.Inventory;
+using SalesService.Application.Interfaces.CartItems;
 using SalesService.Application.Persisitences.Orders;
 using SalesService.Application.Persisitences.Outbox;
 using SalesService.Application.Signals;
@@ -17,6 +18,7 @@ public sealed class CreateOrderHandler
     : IRequestHandler<CreateOrderCommand, Result<CreateOrderResponseDto>>
 {
     private readonly IOrderRepository _orderRepository;
+    private readonly ICartItemRepository _cartItemRepository;
     private readonly IProductServiceClient _productServiceClient;
     private readonly IInventoryServiceClient _inventoryServiceClient;
     private readonly IOutboxRepository _outboxRepository;
@@ -25,6 +27,7 @@ public sealed class CreateOrderHandler
 
     public CreateOrderHandler(
         IOrderRepository orderRepository,
+        ICartItemRepository cartItemRepository,
         IProductServiceClient productServiceClient,
         IInventoryServiceClient inventoryServiceClient,
         IOutboxRepository outboxRepository,
@@ -32,6 +35,7 @@ public sealed class CreateOrderHandler
         ILogger<CreateOrderHandler> logger)
     {
         _orderRepository = orderRepository;
+        _cartItemRepository = cartItemRepository;
         _productServiceClient = productServiceClient;
         _inventoryServiceClient = inventoryServiceClient;
         _outboxRepository = outboxRepository;
@@ -78,6 +82,8 @@ public sealed class CreateOrderHandler
             VariantId = v.VariantId,
             Amount = request.Request.Items.First(i => i.Sku == v.Sku).Quantity
         });
+
+
 
         // Generate OrderId and Code early
         var orderId = Guid.NewGuid();
@@ -149,7 +155,7 @@ public sealed class CreateOrderHandler
             TotalAmount = totalAmount,
             StoreId = request.Request.StoreId, // đã validate khác null ở trên
             PaymentMethod = null,
-            Status = OrderStatus.Ordered, // 0 = Ordered
+            Status = OrderStatus.PaymentPending, // 0 = Ordered
             Notes = request.Request.Notes,
             CustomerId = request.Request.CustomerId,
             IsDeleted = false
@@ -193,6 +199,9 @@ public sealed class CreateOrderHandler
             _outboxRepository.Add(outboxMessage);
             _logger.LogInformation("Added OrderCreatedEvent to Outbox for Order {OrderCode}", order.Code);
         }
+
+        //Remove orderd items in cartItem
+        await _cartItemRepository.RemoveItemsAsync(order.CustomerId, skus, cancellationToken) ;
 
         // 2. Save Order (and OutboxMessage) in one transaction (implicitly handled by CreateAsync -> SaveChanges)
         var createdOrder = await _orderRepository.CreateAsync(order, cancellationToken);

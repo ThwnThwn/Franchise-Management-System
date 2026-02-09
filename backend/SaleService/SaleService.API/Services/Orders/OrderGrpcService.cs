@@ -8,6 +8,7 @@ using SalesService.Application.Features.Orders.Commands.Update;
 using SalesService.Application.Features.Orders.Commands.UpdateOrderStatus;
 using SalesService.Application.Features.Orders.GetById;
 using SalesService.Application.Features.Orders.Queries.GetMyOrders;
+using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
 using System;
 
@@ -24,7 +25,7 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
         _mapper = mapper;
     }
 
-    public override async Task<CreateOrderReply> CreateOrder(CreateOrderRequest request, ServerCallContext context)
+    public override async Task<OrderReply> CreateOrder(CreateOrderRequest request, ServerCallContext context)
     {
         // Lấy UserId từ Metadata header
         var userIdEntry = context.RequestHeaders.FirstOrDefault(h =>
@@ -59,7 +60,7 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             throw new RpcException(new Status(StatusCode.Internal, errorMessage));
         }
 
-        var reply = new CreateOrderReply
+        var reply = new OrderReply
         {
             OrderId = result.Value.OrderId.ToString(),
             OrderCode = result.Value.OrderCode ?? string.Empty, // Tránh lỗi null cũ
@@ -121,18 +122,18 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             Id = dto.OrderId.ToString(),
             Code = dto.OrderCode,
             Subtotal = (double)dto.Subtotal,
-            Tax = (double)dto.Tax,
             TotalAmount = (double)dto.TotalAmount,
-            PaidAmount = dto.PaidAmount.HasValue
-                ? (double)dto.PaidAmount.Value
-                : 0,
-            PaymentMethod = dto.PaymentMethod ?? 0,
+            //dùng -1 cho NULL (chưa thanh toán)
+            Tax = dto.Tax.HasValue ? (double)dto.Tax :-1,
+            PaidAmount = dto.PaidAmount.HasValue? (double)dto.PaidAmount.Value: -1,
+            PaymentMethod = dto.PaymentMethod ?? -1,
             Status = dto.Status,
             PaidAt = dto.PaidAt.ToString("O"),
             Notes = dto.Notes ?? string.Empty,
             CreatedAt = dto.CreatedAt.ToString("O"),
             UpdatedAt = dto.UpdatedAt.ToString("O"),
             CustomerId = dto.CustomerId.ToString(),
+            
         };
 
         orderMessage.Items.AddRange(dto.Items.Select(i => new OrderItem
@@ -221,10 +222,13 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             throw new RpcException(new Status(StatusCode.InvalidArgument,"Invalid OrderId"));
         }
 
-        //Validate status string → enum
-        if (!Enum.TryParse<OrderStatus>(request.Status, true, out var newStatus))
+        //Validate status enum
+        if (!Enum.IsDefined(typeof(OrderStatus), request.Status))
         {
-            throw new RpcException(new Status(StatusCode.InvalidArgument,"Invalid status value"));
+            throw new RpcException(new Status(
+                StatusCode.InvalidArgument,
+                "Invalid OrderStatus value"
+            ));
         }
 
         //Send MediatR command
@@ -232,7 +236,7 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             new UpdateOrderStatusReq
             {
                 OrderId = orderId,
-                Status = newStatus
+                Status = (Domain.Enums.OrderStatus)(int)request.Status
             }
         );
 
@@ -243,8 +247,22 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             Message = resultMessage
         };
     }
-    public override async Task<UpdateOrderReply> UpdateOrder(UpdateOrderRequest request,ServerCallContext context)
+    public override async Task<OrderReply> UpdateOrder(UpdateOrderRequest request, ServerCallContext context)
     {
+        var userIdEntry = context.RequestHeaders.FirstOrDefault(h =>
+            h.Key.Equals("x-user-id", StringComparison.OrdinalIgnoreCase));
+        var roleSlug = context.RequestHeaders.FirstOrDefault(h =>
+            h.Key.Equals("x-role-slug", StringComparison.OrdinalIgnoreCase));
+
+        if (userIdEntry == null)
+        {
+            throw new RpcException(new Status(StatusCode.Unauthenticated, "Missing x-user-id in request headers"));
+        }
+
+        if (roleSlug == null)
+        {
+            throw new RpcException(new Status(StatusCode.Unauthenticated, "Missing x-role-slug in request headers"));
+        }
 
         var command = new UpdateOrderCommand(new UpdateOrderReq
         {
@@ -254,16 +272,19 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             {
                 Sku = x.Sku,
                 Quantity = x.Quantity
-            }).ToList()
+            }).ToList(),
+            UserId = Guid.Parse(userIdEntry.Value),
+            RoleSlug = roleSlug.Value
+            
         });
         var result = await _mediator.Send(command);
-        var reply = new UpdateOrderReply
+        var reply = new OrderReply
         {
             OrderId = result.OrderId.ToString(),
             OrderCode = result.OrderCode ?? "",
             TotalAmount = (double)(result.TotalAmount ?? 0),
-
-            StockCheck = new CheckEnoughStockResponse
+            CustomerId = result.CustomerId.ToString(),
+            CheckStockRespone = new CheckEnoughStockResponse
             {
                 IsEnough = result.CheckEnoughStockRes.IsEnough
             }
@@ -272,7 +293,7 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
         // Add shortage items if any
         if (result.CheckEnoughStockRes.ShortageItems != null)
         {
-            reply.StockCheck.ShortageItems.AddRange(
+            reply.CheckStockRespone.ShortageItems.AddRange(
                 result.CheckEnoughStockRes.ShortageItems.Select(x =>
                     new ShortageItem
                     {
@@ -284,4 +305,6 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
 
         return reply;
     }
+
+
 }

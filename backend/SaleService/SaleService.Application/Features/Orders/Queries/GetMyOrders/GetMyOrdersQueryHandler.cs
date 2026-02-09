@@ -24,7 +24,7 @@ namespace SalesService.Application.Features.Orders.Queries.GetMyOrders
                 request.CustomerId,
                 cancellationToken);
 
-            // Map to DYO
+            // Map to DTO
             var orderDtos = orders.Select(o => new OrderSummaryDto(
                 o.Id,
                 o.Code,

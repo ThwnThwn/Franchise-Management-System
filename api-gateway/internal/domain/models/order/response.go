@@ -2,10 +2,22 @@ package order
 
 import "time"
 
-type CreateOrderReply struct {
-	OrderId     string  `json:"orderId"`
-	OrderCode   string  `json:"orderCode"`
-	TotalAmount float64 `json:"totalAmount"`
+type OrderReply struct {
+	OrderId           string                    `json:"orderId"`
+	OrderCode         string                    `json:"orderCode"`
+	TotalAmount       float64                   `json:"totalAmount"`
+	CustomerId        string                    `json:"customerId"`
+	CheckStockRespone *CheckEnoughStockResponse `json:"checkStockResponse"`
+}
+
+type CheckEnoughStockResponse struct {
+	IsEnough      bool            `json:"isEnough"`
+	ShortageItems []*ShortageItem `json:"shortageItems"`
+}
+
+type ShortageItem struct {
+	VariantId           string `json:"variantId"`
+	MaxFeasibleQuantity int32  `json:"maxFeasibleQuantity"`
 }
 
 type OrderHeader struct {

@@ -35,7 +35,7 @@ public sealed class CreateProductCommandHandler
     {
         var request = command.Request;
 
-        var exist = await _productRepository.GetProductByNameAsync(request.Name);
+        var exist = await _productRepository.GetProductByNameAsync(request.Name, null);
         if (exist != null)
         {
             return Result.Conflict(

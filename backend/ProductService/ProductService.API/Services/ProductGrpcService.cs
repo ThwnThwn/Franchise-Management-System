@@ -261,6 +261,7 @@ public class ProductGrpcService : ProductGrpc.ProductGrpcBase
             UpdatedAt = result.Value.UpdatedAt.ToString("O")
         };
     }
+
     public override async Task<DeleteProductReply> DeleteProduct(
         DeleteProductRequest request,
         ServerCallContext context)
@@ -289,10 +290,11 @@ public class ProductGrpcService : ProductGrpc.ProductGrpcBase
 
         return new DeleteProductReply { Success = true };
     }
-    public override async Task<GetProductsByKeywordReply>
-GetProductsByKeyword(
-    GetProductsByKeywordRequest request,
-    ServerCallContext context)
+
+    public override async Task<GetProductsByKeywordReply> GetProductsByKeyword(
+        GetProductsByKeywordRequest request,
+        ServerCallContext context
+    )
     {
         Guid? categoryId = null;
 
@@ -317,12 +319,34 @@ GetProductsByKeyword(
             HasPreviousPage = result.HasPreviousPage
         };
 
-        reply.Products.AddRange(
-            _mapper.Map<List<Product>>(result.Items));
+        foreach (var p in result.Items)
+        {
+            reply.Products.Add(new Product
+            {
+                Id = p.Id.ToString(),
+                Name = p.Name,
+                Description = p.Description ?? "",
+                ImageUrl = p.ImageUrl ?? "",
+                IsActive = p.IsActive ?? true,
+                CategoryId = p.CategoryId.ToString(),
+                CategoryName = p.CategoryName ?? "",
+                Sizes =                 {
+                    p.Variants.Select(v => new ProductSize
+                    {
+                        Id = v.Id.ToString(),
+                        Sku = v.Sku ?? "",
+                        Name = v.Name ?? "",
+                        Attributes = v.Attributes ?? "",
+                        BasePrice = (double)(v.BasePrice ?? 0),
+                        Cost = (double)(v.Cost ?? 0),
+                        IsActive = v.IsActive ?? true,
+                    })
+                },
+            });
+        }
 
         return reply;
     }
-
 
     public override async Task<UploadImageReply> UploadImage(
         UploadImageRequest request,
@@ -361,6 +385,7 @@ GetProductsByKeyword(
                 new Status(StatusCode.Internal, $"Upload image failed: {ex.Message}"));
         }
     }
+
 
     public override async Task<UploadProductImageReply> UploadProductImage(
         UploadProductImageRequest request,
@@ -428,3 +453,5 @@ GetProductsByKeyword(
         }
     }
 }
+
+

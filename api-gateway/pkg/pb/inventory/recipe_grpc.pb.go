@@ -11,6 +11,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -22,8 +23,10 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type RecipeGrpcClient interface {
-	// Định nghĩa hàm GetByVariantIds
+	// Hàm lấy danh sách theo VariantIds
 	GetByVariantIds(ctx context.Context, in *GetByVariantIdsRequest, opts ...grpc.CallOption) (*GetByVariantIdsResponse, error)
+	// Thêm hàm Create: Nhận vào CreateRecipeReq và trả về Empty
+	Mutation(ctx context.Context, in *MutationRecipeRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type recipeGrpcClient struct {
@@ -43,12 +46,23 @@ func (c *recipeGrpcClient) GetByVariantIds(ctx context.Context, in *GetByVariant
 	return out, nil
 }
 
+func (c *recipeGrpcClient) Mutation(ctx context.Context, in *MutationRecipeRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/inventory.RecipeGrpc/Mutation", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RecipeGrpcServer is the server API for RecipeGrpc service.
 // All implementations must embed UnimplementedRecipeGrpcServer
 // for forward compatibility
 type RecipeGrpcServer interface {
-	// Định nghĩa hàm GetByVariantIds
+	// Hàm lấy danh sách theo VariantIds
 	GetByVariantIds(context.Context, *GetByVariantIdsRequest) (*GetByVariantIdsResponse, error)
+	// Thêm hàm Create: Nhận vào CreateRecipeReq và trả về Empty
+	Mutation(context.Context, *MutationRecipeRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedRecipeGrpcServer()
 }
 
@@ -58,6 +72,9 @@ type UnimplementedRecipeGrpcServer struct {
 
 func (UnimplementedRecipeGrpcServer) GetByVariantIds(context.Context, *GetByVariantIdsRequest) (*GetByVariantIdsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetByVariantIds not implemented")
+}
+func (UnimplementedRecipeGrpcServer) Mutation(context.Context, *MutationRecipeRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Mutation not implemented")
 }
 func (UnimplementedRecipeGrpcServer) mustEmbedUnimplementedRecipeGrpcServer() {}
 
@@ -90,6 +107,24 @@ func _RecipeGrpc_GetByVariantIds_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _RecipeGrpc_Mutation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MutationRecipeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RecipeGrpcServer).Mutation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/inventory.RecipeGrpc/Mutation",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RecipeGrpcServer).Mutation(ctx, req.(*MutationRecipeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // RecipeGrpc_ServiceDesc is the grpc.ServiceDesc for RecipeGrpc service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -100,6 +135,10 @@ var RecipeGrpc_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetByVariantIds",
 			Handler:    _RecipeGrpc_GetByVariantIds_Handler,
+		},
+		{
+			MethodName: "Mutation",
+			Handler:    _RecipeGrpc_Mutation_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

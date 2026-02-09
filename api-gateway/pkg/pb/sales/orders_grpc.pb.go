@@ -23,13 +23,15 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type OrderGrpcClient interface {
 	// Tạo đơn hàng từ giỏ hàng
-	CreateOrder(ctx context.Context, in *CreateOrderRequest, opts ...grpc.CallOption) (*CreateOrderReply, error)
+	CreateOrder(ctx context.Context, in *CreateOrderRequest, opts ...grpc.CallOption) (*OrderReply, error)
 	// Lấy thông tin đơn hàng theo ID
 	GetOrderById(ctx context.Context, in *GetOrderByIdRequest, opts ...grpc.CallOption) (*GetOrderByIdReply, error)
 	// Lấy danh sách đơn hàng của khách hàng hiện tại
 	GetMyOrders(ctx context.Context, in *GetMyOrdersRequest, opts ...grpc.CallOption) (*GetMyOrdersReply, error)
 	// Cập nhật trạng thái đơn hàng bởi nhân viên (staff)
 	UpdateOrderStatus(ctx context.Context, in *UpdateOrderStatusRequest, opts ...grpc.CallOption) (*UpdateOrderStatusReply, error)
+	// Cập nhật đơn hàng
+	UpdateOrder(ctx context.Context, in *UpdateOrderRequest, opts ...grpc.CallOption) (*OrderReply, error)
 }
 
 type orderGrpcClient struct {
@@ -40,8 +42,8 @@ func NewOrderGrpcClient(cc grpc.ClientConnInterface) OrderGrpcClient {
 	return &orderGrpcClient{cc}
 }
 
-func (c *orderGrpcClient) CreateOrder(ctx context.Context, in *CreateOrderRequest, opts ...grpc.CallOption) (*CreateOrderReply, error) {
-	out := new(CreateOrderReply)
+func (c *orderGrpcClient) CreateOrder(ctx context.Context, in *CreateOrderRequest, opts ...grpc.CallOption) (*OrderReply, error) {
+	out := new(OrderReply)
 	err := c.cc.Invoke(ctx, "/order.OrderGrpc/CreateOrder", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -76,18 +78,29 @@ func (c *orderGrpcClient) UpdateOrderStatus(ctx context.Context, in *UpdateOrder
 	return out, nil
 }
 
+func (c *orderGrpcClient) UpdateOrder(ctx context.Context, in *UpdateOrderRequest, opts ...grpc.CallOption) (*OrderReply, error) {
+	out := new(OrderReply)
+	err := c.cc.Invoke(ctx, "/order.OrderGrpc/UpdateOrder", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // OrderGrpcServer is the server API for OrderGrpc service.
 // All implementations must embed UnimplementedOrderGrpcServer
 // for forward compatibility
 type OrderGrpcServer interface {
 	// Tạo đơn hàng từ giỏ hàng
-	CreateOrder(context.Context, *CreateOrderRequest) (*CreateOrderReply, error)
+	CreateOrder(context.Context, *CreateOrderRequest) (*OrderReply, error)
 	// Lấy thông tin đơn hàng theo ID
 	GetOrderById(context.Context, *GetOrderByIdRequest) (*GetOrderByIdReply, error)
 	// Lấy danh sách đơn hàng của khách hàng hiện tại
 	GetMyOrders(context.Context, *GetMyOrdersRequest) (*GetMyOrdersReply, error)
 	// Cập nhật trạng thái đơn hàng bởi nhân viên (staff)
 	UpdateOrderStatus(context.Context, *UpdateOrderStatusRequest) (*UpdateOrderStatusReply, error)
+	// Cập nhật đơn hàng
+	UpdateOrder(context.Context, *UpdateOrderRequest) (*OrderReply, error)
 	mustEmbedUnimplementedOrderGrpcServer()
 }
 
@@ -95,7 +108,7 @@ type OrderGrpcServer interface {
 type UnimplementedOrderGrpcServer struct {
 }
 
-func (UnimplementedOrderGrpcServer) CreateOrder(context.Context, *CreateOrderRequest) (*CreateOrderReply, error) {
+func (UnimplementedOrderGrpcServer) CreateOrder(context.Context, *CreateOrderRequest) (*OrderReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateOrder not implemented")
 }
 func (UnimplementedOrderGrpcServer) GetOrderById(context.Context, *GetOrderByIdRequest) (*GetOrderByIdReply, error) {
@@ -106,6 +119,9 @@ func (UnimplementedOrderGrpcServer) GetMyOrders(context.Context, *GetMyOrdersReq
 }
 func (UnimplementedOrderGrpcServer) UpdateOrderStatus(context.Context, *UpdateOrderStatusRequest) (*UpdateOrderStatusReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateOrderStatus not implemented")
+}
+func (UnimplementedOrderGrpcServer) UpdateOrder(context.Context, *UpdateOrderRequest) (*OrderReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateOrder not implemented")
 }
 func (UnimplementedOrderGrpcServer) mustEmbedUnimplementedOrderGrpcServer() {}
 
@@ -192,6 +208,24 @@ func _OrderGrpc_UpdateOrderStatus_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OrderGrpc_UpdateOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateOrderRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderGrpcServer).UpdateOrder(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/order.OrderGrpc/UpdateOrder",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderGrpcServer).UpdateOrder(ctx, req.(*UpdateOrderRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // OrderGrpc_ServiceDesc is the grpc.ServiceDesc for OrderGrpc service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -214,6 +248,10 @@ var OrderGrpc_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateOrderStatus",
 			Handler:    _OrderGrpc_UpdateOrderStatus_Handler,
+		},
+		{
+			MethodName: "UpdateOrder",
+			Handler:    _OrderGrpc_UpdateOrder_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

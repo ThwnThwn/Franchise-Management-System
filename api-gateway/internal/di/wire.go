@@ -42,11 +42,15 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, erro
 		handlers.HandlerSet,
 
 		// 4.5. Wire auto group all the handlers
-		wire.Struct(new(handlers.AppHandlers), "*"),
+		// wire.Struct(new(handlers.AppHandlers), "*"),
 
-		// 5. Router
+		// 5. Middleware
 		middleware.NewAuthMiddleware,
-		routes.NewRouter,
+
+		// 6. Router
+		routes.RouterSet,
+		wire.Struct(new(routes.AppRouter), "*"),
+		routes.NewEngine,
 	)
 	return &bootstrap.App{}, nil
 }

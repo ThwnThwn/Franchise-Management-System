@@ -100,7 +100,7 @@ func (u *UserGrpcClient) ChangePassword(ctx context.Context, accessToken string,
 		NewPassword:        req.NewPassword,
 		ConfirmNewPassword: req.ConfirmNewPassword,
 		AccessToken:        accessToken,
-		ForgetAll:          req.ForgetAll,
+		ForgetAll:          &req.ForgetAll,
 	})
 	if err != nil {
 		return nil, err

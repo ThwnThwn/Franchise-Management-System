@@ -28,9 +28,7 @@ public sealed class GetOrderByIdQueryHandler
             });
         }
 
-        var order = await _orderRepository.GetByIdAsync(
-            query.OrderId,
-            cancellationToken);
+        var order = await _orderRepository.GetByIdAsync(query.OrderId,cancellationToken);
 
         if (order == null || order.IsDeleted)
         {

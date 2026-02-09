@@ -1,46 +1,35 @@
 package auth
 
 import (
-	"api-gateway/config"
-	"api-gateway/internal/api/handlers"
-	"api-gateway/internal/api/middleware"
-
 	"github.com/gin-gonic/gin"
 )
 
-type AuthRouter struct{}
-
-func (a *AuthRouter) NewAuthRouter(cfg *config.Config,
-	r *gin.RouterGroup,
-	authHander *handlers.AuthHandler,
-	authMW *middleware.AuthMiddleware,
-) {
+func (a *AuthRouter) Init(r *gin.RouterGroup) {
 	authApi := r.Group("/auth")
 	{
-		authApi.POST("/login", authHander.Login)
-		authApi.POST("/refresh-token", authHander.RefreshToken)
+		authApi.POST("/login", a.authHl.Login)
+		authApi.POST("/refresh-token", a.authHl.RefreshToken)
 	}
 
 	registerApi := authApi.Group("/register")
 	{
-		registerApi.POST("", authHander.Register)
-		registerApi.POST("/confirm-otp", authHander.ConfirmRegisterOtp)
-		registerApi.POST("/resend-otp", authHander.ReSendRegisterOtp)
+		registerApi.POST("", a.authHl.Register)
+		registerApi.POST("/confirm-otp", a.authHl.ConfirmRegisterOtp)
+		registerApi.POST("/resend-otp", a.authHl.ReSendRegisterOtp)
 	}
 
 	forgotPasswordApi := authApi.Group("/forgot-password")
 	{
-		forgotPasswordApi.POST("", authHander.ForgotPassword)
-		forgotPasswordApi.POST("/confirm-otp", authHander.ConfirmForgotPasswordOtp)
-		forgotPasswordApi.POST("/new-password", authHander.NewPassword)
-		forgotPasswordApi.POST("/resend-otp", authHander.ReSendForgotPasswordOtp)
+		forgotPasswordApi.POST("", a.authHl.ForgotPassword)
+		forgotPasswordApi.POST("/confirm-otp", a.authHl.ConfirmForgotPasswordOtp)
+		forgotPasswordApi.POST("/new-password", a.authHl.NewPassword)
+		forgotPasswordApi.POST("/resend-otp", a.authHl.ReSendForgotPasswordOtp)
 	}
 
-	accessTokenSecret := cfg.JwtSecret
 	privateApi := authApi.Group("")
-	privateApi.Use(authMW.ValidateToken([]byte(accessTokenSecret)))
+	privateApi.Use(a.authMW.ValidateToken([]byte(a.cfg.JwtSecret)))
 	{
-		privateApi.POST("/logout", authHander.Logout)
-		privateApi.POST("/change-password", authHander.ChangePassword)
+		privateApi.POST("/logout", a.authHl.Logout)
+		privateApi.POST("/change-password", a.authHl.ChangePassword)
 	}
 }

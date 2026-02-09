@@ -14,35 +14,29 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
         public async Task<IEnumerable<Permission>> GetAllByRoleId(Guid roleId)
         {
             return await _dbContext.Permissions.AsNoTracking()
-                .Where(p => p.RolePermissions.Any(rp => rp.RoleId == roleId && !rp.IsDeleted)
-                    && !p.IsDeleted)
+                .Where(p => p.Roles.Any(r => r.Id == roleId && !r.IsDeleted)
+                            && p.IsActive)
+                .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
         }
 
         public async Task<IEnumerable<Permission>> GetListBySlugsAsync(IEnumerable<string> permissionSlugs)
         {
-            return await _dbContext.Permissions
-                .AsNoTracking()
-                .Where(p => permissionSlugs.Contains(p.Slug) && !p.IsDeleted)
+            return await _dbContext.Permissions.AsNoTracking()
+                .Where(p => permissionSlugs.Contains(p.Slug) && p.IsActive)
+                .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<string>> GetSlugsByRoleSlugAsync(string slug, bool isOnlyActived)
+        public async Task<IEnumerable<string>> GetSlugsByRoleSlugAsync(string roleSlug, bool onlyActive)
         {
             var query = _dbContext.Permissions.AsNoTracking();
 
-            if (isOnlyActived)
+            query = query.Where(p => p.Roles.Any(r => r.Slug == roleSlug && !r.IsDeleted));
+
+            if (onlyActive)
             {
-                query = query.Where(p => p.RolePermissions.Any(rp => rp.Role.Slug == slug
-                        && rp.IsActived
-                        && !rp.IsDeleted)
-                    && !p.IsDeleted);
-            }
-            else
-            {
-                query = query.Where(p => p.RolePermissions.Any(rp => rp.Role.Slug == slug
-                        && !rp.IsDeleted)
-                    && !p.IsDeleted);
+                query = query.Where(p => p.IsActive);
             }
 
             return await query

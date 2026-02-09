@@ -2,12 +2,8 @@ using InventoryService.Application.Abstractions;
 using InventoryService.Application.Constants;
 using InventoryService.Application.Persistences.Repositories;
 using InventoryService.Domain.Entities;
+using InventoryService.Domain.Services;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace InventoryService.Application.Features.StoreIngredient.Commands.ReserveStock;
 
@@ -20,15 +16,18 @@ public class ReserveStockHandler : IRequestHandler<ReserveStockCommand, ReserveS
     private readonly IStoreIngredientRepository _storeIngredientRepo;
     private readonly IRecipeRepository _recipeRepository;
     private readonly IInventoryDbContext _dbContext;
+    private readonly IInventoryDomainService _domainService;
 
     public ReserveStockHandler(
         IStoreIngredientRepository storeIngredientRepo,
         IRecipeRepository recipeRepository,
-        IInventoryDbContext dbContext)
+        IInventoryDbContext dbContext,
+        IInventoryDomainService domainService)
     {
         _storeIngredientRepo = storeIngredientRepo;
         _recipeRepository = recipeRepository;
         _dbContext = dbContext;
+        _domainService = domainService;
     }
 
     /// <summary>
@@ -44,32 +43,22 @@ public class ReserveStockHandler : IRequestHandler<ReserveStockCommand, ReserveS
             return new ReserveStockResponseDto { Success = true };
         }
 
-        // 1. Tính toán nguyên liệu cần thiết dựa trên Công thức (Recipe)
+        // Lấy tất cả công thức liên quan đến các Variant trong đơn hàng
         var variantIds = request.Items.Select(x => x.VariantId).Distinct().ToList();
         var allRecipes = await _recipeRepository.GetRecipesByVariantIdsAsync(variantIds, cancellationToken);
-        
+
         if (allRecipes == null || !allRecipes.Any())
         {
             return new ReserveStockResponseDto { Success = false, Message = Message.Recipe.NotFound };
         }
 
-        //Tính toán nguyên liệu cần thiết
-        var totalRequiredIngredients = new Dictionary<Guid, decimal>();
-        foreach (var item in request.Items)
-        {
-            var recipesForItem = allRecipes.Where(r => r.VariantId == item.VariantId);
-            foreach (var recipe in recipesForItem)
-            {
-                var totalNeeded = recipe.Quantity * item.Amount;
-                if (totalRequiredIngredients.ContainsKey(recipe.IngredientId))
-                    totalRequiredIngredients[recipe.IngredientId] += totalNeeded;
-                else
-                    totalRequiredIngredients[recipe.IngredientId] = totalNeeded;
-            }
-        }
+        // Tính toán nguyên liệu dựa trên Domain Service
+        var totalRequiredIngredients = _domainService.CalculateRequiredIngredients(
+            request.Items.Select(x => (x.VariantId, x.Amount)),
+            allRecipes);
 
         var ingredientIds = totalRequiredIngredients.Keys.ToList();
-        
+
         // 2. Tải thông tin Tồn kho Vật lý (Physical Stock) từ DB
         // Tồn kho vật lý (Physical Stock) là số lượng tồn kho thực tế trong kho
         var physicalStocks = await _storeIngredientRepo.GetStockByStoreIdAndIngredientIdsAsync(request.StoreId, ingredientIds, cancellationToken);
@@ -81,27 +70,27 @@ public class ReserveStockHandler : IRequestHandler<ReserveStockCommand, ReserveS
         {
             var ingredientId = req.Key;
             var neededAmount = req.Value;
-            
+
             var physicalItem = physicalStocks.FirstOrDefault(x => x.IngredientId == ingredientId);
             var physicalQty = physicalItem?.Quantity ?? 0;
 
             var currentReserved = await _storeIngredientRepo.GetReservedQuantityAsync(request.StoreId, ingredientId);
-            
+
             var availableParams = physicalQty - currentReserved;
 
             if (availableParams < neededAmount)
             {
                 var ingName = physicalItem?.Ingredient?.Name ?? "Unknown";
-                return new ReserveStockResponseDto 
-                { 
-                    Success = false, 
-                    Message = $"Not enough stock for {ingName}. Available: {availableParams}, Required: {neededAmount}" 
+                return new ReserveStockResponseDto
+                {
+                    Success = false,
+                    Message = $"Not enough stock for {ingName}. Available: {availableParams}, Required: {neededAmount}"
                 };
             }
         }
 
         // 4. Chèn vào Hàng đợi (IngredientQueue)
-        try 
+        try
         {
             // Tạo các item trong hàng đợi
             // TỐI ƯU HÓA: Batch Insert (Đảm bảo Atomicity)
@@ -130,7 +119,7 @@ public class ReserveStockHandler : IRequestHandler<ReserveStockCommand, ReserveS
         }
         catch (Exception ex)
         {
-             return new ReserveStockResponseDto { Success = false, Message = ex.Message };
+            return new ReserveStockResponseDto { Success = false, Message = ex.Message };
         }
 
         return new ReserveStockResponseDto { Success = true };

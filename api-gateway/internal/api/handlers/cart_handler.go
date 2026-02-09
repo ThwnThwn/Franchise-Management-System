@@ -18,14 +18,22 @@ func NewCartHandler(cartGW sales.ICartService) *CartHandler {
 	return &CartHandler{cartGW: cartGW}
 }
 
-func (h *CartHandler) GetCartItems(c *gin.Context) {
+// GetMyCart
+// @Summary      Get My Cart
+// @Description  Retrieve current user's shopping cart.
+// @Tags         Cart
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Router       /me/cart [get]
+func (h *CartHandler) GetMyCart(c *gin.Context) {
 	ctx, err := grpcutils.BuildAuthContext(c)
 	if err != nil {
 		c.Error(err)
 		return
 	}
 
-	res, err := h.cartGW.GetCartItems(ctx)
+	res, err := h.cartGW.GetMyCart(ctx)
 	if err != nil {
 		c.Error(err)
 		return
@@ -34,7 +42,15 @@ func (h *CartHandler) GetCartItems(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (h *CartHandler) AddToCart(c *gin.Context) {
+// AddToMyCart
+// @Summary      Add Item to My Cart
+// @Tags         Cart
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        request body cart.UpsertCartItemRequest true "Item details"
+// @Router       /me/cart/items [post]
+func (h *CartHandler) AddToMyCart(c *gin.Context) {
 	var req *cart.UpsertCartItemRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.Error(validation.TranslateValidationError(err))
@@ -47,7 +63,7 @@ func (h *CartHandler) AddToCart(c *gin.Context) {
 		return
 	}
 
-	res, err := h.cartGW.AddToCart(ctx, req)
+	res, err := h.cartGW.AddToMyCart(ctx, req)
 	if err != nil {
 		c.Error(err)
 		return
@@ -56,7 +72,15 @@ func (h *CartHandler) AddToCart(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (h *CartHandler) UpdateCartItem(c *gin.Context) {
+// UpdateMyCartItems
+// @Summary      Update Item in My Cart
+// @Tags         Cart
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        request body cart.UpsertCartItemRequest true "Update details"
+// @Router       /me/cart/items [put]
+func (h *CartHandler) UpdateMyCartItems(c *gin.Context) {
 	var req *cart.UpsertCartItemRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.Error(validation.TranslateValidationError(err))
@@ -69,7 +93,7 @@ func (h *CartHandler) UpdateCartItem(c *gin.Context) {
 		return
 	}
 
-	res, err := h.cartGW.UpdateCartItem(ctx, req)
+	res, err := h.cartGW.UpdateMyCartItems(ctx, req)
 	if err != nil {
 		c.Error(err)
 		return
@@ -78,7 +102,15 @@ func (h *CartHandler) UpdateCartItem(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (h *CartHandler) DeleteListCartItem(c *gin.Context) {
+// DeleteMyCartItems
+// @Summary      Remove Items from My Cart
+// @Tags         Cart
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        request body cart.DeleteCartItemsRequest true "List of Item IDs"
+// @Router       /me/cart/items [delete]
+func (h *CartHandler) DeleteMyCartItems(c *gin.Context) {
 	var req *cart.DeleteCartItemsRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.Error(validation.TranslateValidationError(err))
@@ -91,7 +123,7 @@ func (h *CartHandler) DeleteListCartItem(c *gin.Context) {
 		return
 	}
 
-	isSuccess, err := h.cartGW.DeleteListCartItem(ctx, req)
+	isSuccess, err := h.cartGW.DeleteMyCartItems(ctx, req)
 	if err != nil {
 		c.Error(err)
 		return
@@ -102,14 +134,21 @@ func (h *CartHandler) DeleteListCartItem(c *gin.Context) {
 	})
 }
 
-func (h *CartHandler) ClearCart(c *gin.Context) {
+// ClearMyCart
+// @Summary      Clear My Cart
+// @Tags         Cart
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Router       /me/cart [delete]
+func (h *CartHandler) ClearMyCart(c *gin.Context) {
 	ctx, err := grpcutils.BuildAuthContext(c)
 	if err != nil {
 		c.Error(err)
 		return
 	}
 
-	isSuccess, err := h.cartGW.ClearCart(ctx)
+	isSuccess, err := h.cartGW.ClearMyCart(ctx)
 	if err != nil {
 		c.Error(err)
 		return

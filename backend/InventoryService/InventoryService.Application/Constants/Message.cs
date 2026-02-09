@@ -11,6 +11,7 @@ namespace InventoryService.Application.Constants
         public static class Recipe
         {
             public const string NotFound = "Không tìm thấy công thức cho các sản phẩm đã chọn.";
+            public const string AlreadyExists = "Công thức cho sản phẩm này đã tồn tại.";
         }
 
         public static class StoreIngredient
@@ -39,5 +40,10 @@ namespace InventoryService.Application.Constants
             public const string NameRequired = "Tên danh mục không được để trống.";
             public const string NameTooLong = "Tên danh mục không được vượt quá 100 ký tự.";
         }
+
+        public static class ProductVariant
+        {
+            public const string NotFound = "Không tìm thấy biến thể sản phẩm.";
+        }   
     }
 }

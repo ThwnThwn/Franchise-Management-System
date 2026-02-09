@@ -2,6 +2,7 @@ package product
 
 import (
 	"api-gateway/config"
+	"api-gateway/global"
 	"crypto/tls"
 	"fmt"
 
@@ -25,6 +26,8 @@ func NewProductClientFactory(url config.ProductServiceUrl) (*clientFactory, erro
 	conn, err := grpc.NewClient(string(url),
 		grpc.WithTransportCredentials(creds),
 		grpc.WithDefaultServiceConfig(`{"loadBalancingConfig": [{"round_robin":{}}]}`),
+		grpc.WithDefaultCallOptions(
+			grpc.MaxCallSendMsgSize(global.Config.MaxUploadSizeMb*1024*1024)),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("Cannot connect to gRPC server at %s: %w", url, err)

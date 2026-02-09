@@ -1,11 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
+﻿using Confluent.Kafka;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 using SalesService.Domain.Commons;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
 using SalesService.Infrastructure.Interceptor;
+using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
 
 namespace SalesService.Infrastructure.ApplicationDbContext;
 
@@ -34,6 +36,9 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
     public virtual DbSet<OutboxMessage> OutboxMessages { get; set; }
 
     public virtual DbSet<CartItem> CartItems { get; set; }
+    public virtual DbSet<Wallet> Wallets { get; set; }
+    public virtual DbSet<WalletTransaction> WalletTransactions { get; set; }
+    public virtual DbSet<RefundTicket> RefundTickets { get; set; }
     public DbSet<T> Set<T>() where T : class, IEntity => base.Set<T>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -106,7 +111,8 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
                 .HasColumnName("code");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnName("created_at");
+                .HasColumnName("created_at")
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
             entity.Property(e => e.CustomerId).HasColumnName("customer_id");
             entity.Property(e => e.StoreId).HasColumnName("store_id");
             entity.Property(e => e.IsDeleted)
@@ -123,7 +129,7 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
                 .HasDefaultValue(PaymentMethod.Cash)
                 .HasColumnName("payment_method");
             entity.Property(e => e.Status)
-                .HasDefaultValue(OrderStatus.Ordered)
+                .HasDefaultValue(OrderStatus.PaymentPending)
                 .HasColumnName("status");
             entity.Property(e => e.Subtotal)
                 .HasPrecision(12, 3)
@@ -152,7 +158,8 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
                 .HasColumnName("id");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnName("created_at");
+                .HasColumnName("created_at")
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
             entity.Property(e => e.ImageUrl)
                 .HasMaxLength(500)
                 .HasColumnName("image_url");

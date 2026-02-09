@@ -7,7 +7,7 @@ package order;
 
 service OrderGrpc {
   // Tạo đơn hàng từ giỏ hàng
-  rpc CreateOrder (CreateOrderRequest) returns (CreateOrderReply);
+  rpc CreateOrder (CreateOrderRequest) returns (OrderReply);
   
   // Lấy thông tin đơn hàng theo ID
   rpc GetOrderById (GetOrderByIdRequest) returns (GetOrderByIdReply);
@@ -19,7 +19,7 @@ service OrderGrpc {
   rpc UpdateOrderStatus(UpdateOrderStatusRequest) returns (UpdateOrderStatusReply);
 
   // Cập nhật đơn hàng 
-  rpc UpdateOrder(UpdateOrderRequest) returns (UpdateOrderReply);
+  rpc UpdateOrder(UpdateOrderRequest) returns (OrderReply);
 }
 
 message CreateOrderRequest {
@@ -33,7 +33,7 @@ message CartItem {
   int32 quantity = 2;
 }
 
-message CreateOrderReply {
+message OrderReply {
   string order_id = 1;
   string order_code = 2;
   double total_amount = 3;
@@ -114,10 +114,17 @@ message ShortageItem {
   string variant_id = 1;
   int32 max_feasible_quantity = 2;
 }
+enum OrderStatus{
+  PaymentPending = 0;
+  Preparing = 1;
+  Ready = 2;
+  Completed = 3;
+  Cancel = 4;
+}
 
 message UpdateOrderStatusRequest {
   string orderId = 1;
-  string status = 2; // Ordered, Preparing, Ready, Completed
+  OrderStatus status = 2; // PaymentPending, Preparing, Ready, Completed, Cancel
 }
 
 message UpdateOrderStatusReply {
@@ -133,11 +140,4 @@ message UpdateOrderRequest {
 
   string order_id = 1;
   repeated UpdateOrderItem items = 2;
-}
-message UpdateOrderReply {
-
-  string order_id = 1;
-  string order_code = 2;
-  double total_amount = 3;
-  CheckEnoughStockResponse stock_check = 4;
 }

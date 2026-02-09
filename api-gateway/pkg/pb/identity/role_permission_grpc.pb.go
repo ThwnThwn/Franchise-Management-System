@@ -24,7 +24,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type RolePermissionGrpcClient interface {
 	// 1. Get PermissionsByRoleId
-	GetPermissionsByRoleId(ctx context.Context, in *GetPermissionsByRoleIdRequest, opts ...grpc.CallOption) (*GetPermissionsByRoleIdResponse, error)
+	GetPermissionsByRoleId(ctx context.Context, in *GetPermissionsByRoleIdRequest, opts ...grpc.CallOption) (*PermissionsGroupedResponse, error)
 	// 1.5. Get Cache (Lazy Loading)
 	GetPermissionsBySlug(ctx context.Context, in *GetPermissionsBySlugRequest, opts ...grpc.CallOption) (*GetPermissionsBySlugResponse, error)
 	// 2. Update Info (Name, Description)
@@ -32,7 +32,7 @@ type RolePermissionGrpcClient interface {
 	// 3. Update Permissions for Role
 	UpdateRolePermissions(ctx context.Context, in *UpdateRolePermissionsRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// 4. Get All Grouped (Cho UI Matrix)
-	GetAllPermissionsGrouped(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetAllPermissionsGroupedResponse, error)
+	GetAllPermissionsGrouped(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*PermissionsGroupedResponse, error)
 }
 
 type rolePermissionGrpcClient struct {
@@ -43,8 +43,8 @@ func NewRolePermissionGrpcClient(cc grpc.ClientConnInterface) RolePermissionGrpc
 	return &rolePermissionGrpcClient{cc}
 }
 
-func (c *rolePermissionGrpcClient) GetPermissionsByRoleId(ctx context.Context, in *GetPermissionsByRoleIdRequest, opts ...grpc.CallOption) (*GetPermissionsByRoleIdResponse, error) {
-	out := new(GetPermissionsByRoleIdResponse)
+func (c *rolePermissionGrpcClient) GetPermissionsByRoleId(ctx context.Context, in *GetPermissionsByRoleIdRequest, opts ...grpc.CallOption) (*PermissionsGroupedResponse, error) {
+	out := new(PermissionsGroupedResponse)
 	err := c.cc.Invoke(ctx, "/identity.role_permission.RolePermissionGrpc/GetPermissionsByRoleId", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -79,8 +79,8 @@ func (c *rolePermissionGrpcClient) UpdateRolePermissions(ctx context.Context, in
 	return out, nil
 }
 
-func (c *rolePermissionGrpcClient) GetAllPermissionsGrouped(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetAllPermissionsGroupedResponse, error) {
-	out := new(GetAllPermissionsGroupedResponse)
+func (c *rolePermissionGrpcClient) GetAllPermissionsGrouped(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*PermissionsGroupedResponse, error) {
+	out := new(PermissionsGroupedResponse)
 	err := c.cc.Invoke(ctx, "/identity.role_permission.RolePermissionGrpc/GetAllPermissionsGrouped", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -93,7 +93,7 @@ func (c *rolePermissionGrpcClient) GetAllPermissionsGrouped(ctx context.Context,
 // for forward compatibility
 type RolePermissionGrpcServer interface {
 	// 1. Get PermissionsByRoleId
-	GetPermissionsByRoleId(context.Context, *GetPermissionsByRoleIdRequest) (*GetPermissionsByRoleIdResponse, error)
+	GetPermissionsByRoleId(context.Context, *GetPermissionsByRoleIdRequest) (*PermissionsGroupedResponse, error)
 	// 1.5. Get Cache (Lazy Loading)
 	GetPermissionsBySlug(context.Context, *GetPermissionsBySlugRequest) (*GetPermissionsBySlugResponse, error)
 	// 2. Update Info (Name, Description)
@@ -101,7 +101,7 @@ type RolePermissionGrpcServer interface {
 	// 3. Update Permissions for Role
 	UpdateRolePermissions(context.Context, *UpdateRolePermissionsRequest) (*emptypb.Empty, error)
 	// 4. Get All Grouped (Cho UI Matrix)
-	GetAllPermissionsGrouped(context.Context, *emptypb.Empty) (*GetAllPermissionsGroupedResponse, error)
+	GetAllPermissionsGrouped(context.Context, *emptypb.Empty) (*PermissionsGroupedResponse, error)
 	mustEmbedUnimplementedRolePermissionGrpcServer()
 }
 
@@ -109,7 +109,7 @@ type RolePermissionGrpcServer interface {
 type UnimplementedRolePermissionGrpcServer struct {
 }
 
-func (UnimplementedRolePermissionGrpcServer) GetPermissionsByRoleId(context.Context, *GetPermissionsByRoleIdRequest) (*GetPermissionsByRoleIdResponse, error) {
+func (UnimplementedRolePermissionGrpcServer) GetPermissionsByRoleId(context.Context, *GetPermissionsByRoleIdRequest) (*PermissionsGroupedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPermissionsByRoleId not implemented")
 }
 func (UnimplementedRolePermissionGrpcServer) GetPermissionsBySlug(context.Context, *GetPermissionsBySlugRequest) (*GetPermissionsBySlugResponse, error) {
@@ -121,7 +121,7 @@ func (UnimplementedRolePermissionGrpcServer) UpdatePermissionInfo(context.Contex
 func (UnimplementedRolePermissionGrpcServer) UpdateRolePermissions(context.Context, *UpdateRolePermissionsRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateRolePermissions not implemented")
 }
-func (UnimplementedRolePermissionGrpcServer) GetAllPermissionsGrouped(context.Context, *emptypb.Empty) (*GetAllPermissionsGroupedResponse, error) {
+func (UnimplementedRolePermissionGrpcServer) GetAllPermissionsGrouped(context.Context, *emptypb.Empty) (*PermissionsGroupedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAllPermissionsGrouped not implemented")
 }
 func (UnimplementedRolePermissionGrpcServer) mustEmbedUnimplementedRolePermissionGrpcServer() {}
