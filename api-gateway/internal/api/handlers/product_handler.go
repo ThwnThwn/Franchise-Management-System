@@ -3,8 +3,11 @@ package handlers
 import (
 	"api-gateway/internal/application/constants/errorcode"
 	prodGW "api-gateway/internal/application/gateways/product"
+	"api-gateway/internal/domain/models/common"
 	"api-gateway/internal/domain/models/product"
+	"api-gateway/pkg/utils/stringutils"
 	"api-gateway/pkg/utils/validation"
+	"io"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -166,4 +169,84 @@ func (h *ProductHandler) DeleteProduct(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{})
+}
+
+// UploadImage
+// @Summary      Upload Product Image
+// @Description  Upload an image for a specific product. Supports JPG, PNG, and WebP formats. Max file size is 10MB.
+// @Tags         Products
+// @Accept       multipart/form-data
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id         path      string  true   "Product UUID"
+// @Param        image      formData  file    true   "Image file to upload"
+// @Param        file_name  formData  string  false  "Custom file name (Optional)"
+// @Success      200        {object}  map[string]string "Returns the uploaded image URL"
+// @Failure      400        {object}  map[string]string "Invalid ID or unsupported image format"
+// @Failure      413        {object}  map[string]string "Request entity too large"
+// @Failure      500        {object}  map[string]string "Internal server error"
+// @Router       /products/{id}/images [post]
+func (h *ProductHandler) UploadImage(c *gin.Context) {
+	id := c.Param("id")
+	productId, err := uuid.Parse(id)
+	if err != nil {
+		c.Error(errorcode.ErrInvalidId)
+		return
+	}
+
+	// 1. Lấy file từ form-data (key là "image")
+	file, header, err := c.Request.FormFile("image")
+	if err != nil {
+		c.Error(errorcode.ErrImageRequired)
+		return
+	}
+	defer file.Close()
+
+	// 2. Đọc file vào byte slice
+	fileBytes, err := io.ReadAll(file)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	// 3. Validation: Kiểm tra xem có thực sự là ảnh không (Magic Bytes)
+	contentType := http.DetectContentType(fileBytes)
+	allowedTypes := map[string]bool{
+		"image/jpeg": true,
+		"image/png":  true,
+		"image/webp": true,
+	}
+	if !allowedTypes[contentType] {
+		c.Error(errorcode.ErrInvalidImageFormat)
+		return
+	}
+
+	// 4. Sanitize tên file
+	// Sử dụng productId làm salt để tên file mang tính định danh và không trùng
+	salt := productId.String()
+	rawFileName := header.Filename
+	if customName := c.PostForm("file_name"); customName != "" {
+		rawFileName = customName
+	}
+	fileName := stringutils.SanitizeFileName(rawFileName, &salt)
+
+	// 5. Build request cho tầng Client
+	req := &common.UploadImageRequest{
+		ImageData:   fileBytes,
+		FileName:    fileName,
+		ContentType: contentType,
+	}
+
+	// 6. Gọi xuống Client (Gateway)
+	ctx := c.Request.Context()
+	url, err := h.productGW.UploadImage(ctx, productId, req)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	// 7. Trả kết quả
+	c.JSON(http.StatusOK, gin.H{
+		"url": url,
+	})
 }

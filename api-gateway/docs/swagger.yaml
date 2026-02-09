@@ -1661,6 +1661,59 @@ paths:
       summary: Update Product
       tags:
       - Products
+  /products/{id}/images:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload an image for a specific product. Supports JPG, PNG, and
+        WebP formats. Max file size is 10MB.
+      parameters:
+      - description: Product UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Image file to upload
+        in: formData
+        name: image
+        required: true
+        type: file
+      - description: Custom file name (Optional)
+        in: formData
+        name: file_name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Returns the uploaded image URL
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Invalid ID or unsupported image format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "413":
+          description: Request entity too large
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Upload Product Image
+      tags:
+      - Products
   /recipes:
     get:
       consumes:

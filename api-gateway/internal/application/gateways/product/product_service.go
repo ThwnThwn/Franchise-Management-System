@@ -17,4 +17,7 @@ type IProductService interface {
 	CreateProduct(ctx context.Context, req *product.CreateProductRequest) error
 	UpdateProduct(ctx context.Context, id uuid.UUID, req *product.UpdateProductRequest) error
 	DeleteProduct(ctx context.Context, id uuid.UUID) error
+
+	// Upload image
+	UploadImage(ctx context.Context, id uuid.UUID, req *common.UploadImageRequest) (*string, error)
 }

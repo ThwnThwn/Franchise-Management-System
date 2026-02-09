@@ -3,6 +3,7 @@ package main
 import (
 	"api-gateway/config"
 	"api-gateway/global"
+	"api-gateway/internal/application/constants/errorcode"
 	"api-gateway/internal/di"
 	"api-gateway/pkg/logger"
 
@@ -27,6 +28,7 @@ import (
 func main() {
 	// 1. Load Config
 	global.Config = config.LoadConfig()
+	errorcode.InitErrorMap()
 	l := logger.New(global.Config.Logger)
 
 	// 2. Init App

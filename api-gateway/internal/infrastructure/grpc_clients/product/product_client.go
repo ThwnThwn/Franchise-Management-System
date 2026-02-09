@@ -1,6 +1,7 @@
 package product
 
 import (
+	"api-gateway/internal/application/constants/errorcode"
 	productGW "api-gateway/internal/application/gateways/product"
 
 	"api-gateway/internal/domain/models/common"
@@ -127,4 +128,22 @@ func (c *ProductGrpcClient) DeleteProduct(ctx context.Context, id uuid.UUID) err
 		return err
 	}
 	return nil
+}
+
+// UploadImage implements product.IProductService.
+func (c *ProductGrpcClient) UploadImage(ctx context.Context, id uuid.UUID, req *common.UploadImageRequest) (*string, error) {
+	if len(req.ImageData) == 0 {
+		return nil, errorcode.ErrImageRequired
+	}
+
+	res, err := c.client.UploadImage(ctx, &productPb.UploadImageRequest{
+		ImageData:   req.ImageData,
+		FileName:    req.FileName,
+		ContentType: req.ContentType,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &res.Url, nil
 }

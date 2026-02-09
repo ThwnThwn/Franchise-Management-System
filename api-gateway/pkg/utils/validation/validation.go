@@ -85,7 +85,7 @@ func TranslateValidationError(err error) *errormodel.BackendError {
 		}
 		return &errormodel.BackendError{
 			Status: http.StatusBadRequest,
-			Title:  "Yêu cầu không hợp lệ",
+			Title:  "Thao tác không thành công",
 			Detail: strings.Join(msgs, "; "),
 		}
 	}
@@ -100,7 +100,7 @@ func TranslateValidationError(err error) *errormodel.BackendError {
 
 	return &errormodel.BackendError{
 		Status: http.StatusBadRequest,
-		Title:  "Yêu cầu không hợp lệ",
+		Title:  "Thao tác không thành công",
 		Detail: err.Error(),
 	}
 }

@@ -27,6 +27,8 @@ type Config struct {
 	JwtRefreshTokenExpDays          int
 	JwtSecret                       string
 	JwtAccessTokenExpirationMinutes int
+
+	MaxUploadSizeMb int
 }
 
 type Logger struct {
@@ -96,6 +98,8 @@ func LoadConfig() *Config {
 		JwtRefreshTokenExpDays:          getEnvInt("JWT_REFRESH_TOKEN_EXPIRATION_DAYS", 7),
 		JwtSecret:                       getEnv("JWT_SECRET", ""),
 		JwtAccessTokenExpirationMinutes: getEnvInt("JWT_ACCESS_TOKEN_EXPIRATION_MINUTES", 15),
+
+		MaxUploadSizeMb: getEnvInt("MAX_UPLOAD_SIZE_MB", 10),
 	}
 	return cfg
 }
@@ -115,6 +119,15 @@ func getEnvInt(key string, fallback int) int {
 	}
 	return fallback
 }
+
+// func getEnvFloat32(key string, fallback float32) float32 {
+// 	if value, exists := os.LookupEnv(key); exists {
+// 		if val, err := strconv.ParseFloat(value, 32); err == nil {
+// 			return float32(val)
+// 		}
+// 	}
+// 	return fallback
+// }
 
 func getEnvUrl(key, fallback string) string {
 	if value, exists := os.LookupEnv(key); exists {
