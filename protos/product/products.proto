@@ -25,6 +25,9 @@ service ProductGrpc {
     returns (GetProductsByKeywordReply);
 
   rpc UploadImage (UploadImageRequest) returns (UploadImageReply);
+
+  // Upload image and assign to a specific product
+  rpc UploadProductImage (UploadProductImageRequest) returns (UploadProductImageReply);
 }
 
 message GetProductsRequest {
@@ -172,4 +175,17 @@ message UploadImageRequest {
 message UploadImageReply {
   string url = 1;
   string public_id = 2;
+}
+
+message UploadProductImageRequest {
+  string product_id = 1;
+  bytes image_data = 2;
+  string file_name = 3;
+  string content_type = 4;
+}
+
+message UploadProductImageReply {
+  string product_id = 1;
+  string image_url = 2;
+  string image_public_id = 3;
 }
