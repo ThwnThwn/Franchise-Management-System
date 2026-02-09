@@ -30,6 +30,8 @@ type ProductGrpcClient interface {
 	DeleteProduct(ctx context.Context, in *DeleteProductRequest, opts ...grpc.CallOption) (*DeleteProductReply, error)
 	GetProductsByKeyword(ctx context.Context, in *GetProductsByKeywordRequest, opts ...grpc.CallOption) (*GetProductsByKeywordReply, error)
 	UploadImage(ctx context.Context, in *UploadImageRequest, opts ...grpc.CallOption) (*UploadImageReply, error)
+	// Upload image and assign to a specific product
+	UploadProductImage(ctx context.Context, in *UploadProductImageRequest, opts ...grpc.CallOption) (*UploadProductImageReply, error)
 }
 
 type productGrpcClient struct {
@@ -112,6 +114,15 @@ func (c *productGrpcClient) UploadImage(ctx context.Context, in *UploadImageRequ
 	return out, nil
 }
 
+func (c *productGrpcClient) UploadProductImage(ctx context.Context, in *UploadProductImageRequest, opts ...grpc.CallOption) (*UploadProductImageReply, error) {
+	out := new(UploadProductImageReply)
+	err := c.cc.Invoke(ctx, "/product.ProductGrpc/UploadProductImage", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ProductGrpcServer is the server API for ProductGrpc service.
 // All implementations must embed UnimplementedProductGrpcServer
 // for forward compatibility
@@ -124,6 +135,8 @@ type ProductGrpcServer interface {
 	DeleteProduct(context.Context, *DeleteProductRequest) (*DeleteProductReply, error)
 	GetProductsByKeyword(context.Context, *GetProductsByKeywordRequest) (*GetProductsByKeywordReply, error)
 	UploadImage(context.Context, *UploadImageRequest) (*UploadImageReply, error)
+	// Upload image and assign to a specific product
+	UploadProductImage(context.Context, *UploadProductImageRequest) (*UploadProductImageReply, error)
 	mustEmbedUnimplementedProductGrpcServer()
 }
 
@@ -154,6 +167,9 @@ func (UnimplementedProductGrpcServer) GetProductsByKeyword(context.Context, *Get
 }
 func (UnimplementedProductGrpcServer) UploadImage(context.Context, *UploadImageRequest) (*UploadImageReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UploadImage not implemented")
+}
+func (UnimplementedProductGrpcServer) UploadProductImage(context.Context, *UploadProductImageRequest) (*UploadProductImageReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UploadProductImage not implemented")
 }
 func (UnimplementedProductGrpcServer) mustEmbedUnimplementedProductGrpcServer() {}
 
@@ -312,6 +328,24 @@ func _ProductGrpc_UploadImage_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProductGrpc_UploadProductImage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UploadProductImageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductGrpcServer).UploadProductImage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/product.ProductGrpc/UploadProductImage",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductGrpcServer).UploadProductImage(ctx, req.(*UploadProductImageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ProductGrpc_ServiceDesc is the grpc.ServiceDesc for ProductGrpc service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -350,6 +384,10 @@ var ProductGrpc_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UploadImage",
 			Handler:    _ProductGrpc_UploadImage_Handler,
+		},
+		{
+			MethodName: "UploadProductImage",
+			Handler:    _ProductGrpc_UploadProductImage_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -136,7 +136,8 @@ func (c *ProductGrpcClient) UploadImage(ctx context.Context, id uuid.UUID, req *
 		return nil, errorcode.ErrImageRequired
 	}
 
-	res, err := c.client.UploadImage(ctx, &productPb.UploadImageRequest{
+	res, err := c.client.UploadProductImage(ctx, &productPb.UploadProductImageRequest{
+		ProductId:   id.String(),
 		ImageData:   req.ImageData,
 		FileName:    req.FileName,
 		ContentType: req.ContentType,
@@ -145,5 +146,5 @@ func (c *ProductGrpcClient) UploadImage(ctx context.Context, id uuid.UUID, req *
 		return nil, err
 	}
 
-	return &res.Url, nil
+	return &res.ImageUrl, nil
 }

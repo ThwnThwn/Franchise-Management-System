@@ -93,9 +93,33 @@ public class ProductGrpcService : ProductGrpc.ProductGrpcBase
                     result.Errors.FirstOrDefault() ?? "Get product failed"));
         }
 
+        var res = result.Value;
+        var productRes = new Product
+        {
+            Id = res.Id.ToString(),
+            Name = res.Name,
+            Description = res.Description ?? "",
+            ImageUrl = res.ImageUrl ?? "",
+            IsActive = res.IsActive,
+            CategoryId = res.CategoryId.ToString(),
+            CategoryName = res.CategoryName ?? "",
+        };
+
+        productRes.Sizes.AddRange(
+            res.Sizes.Select(v => new ProductSize
+            {
+                Id = v.Id.ToString(),
+                Sku = v.Sku ?? "",
+                Name = v.Name ?? "",
+                Attributes = v.Attributes ?? "",
+                BasePrice = (double)(v.BasePrice),
+                Cost = (double)(v.Cost),
+                IsActive = v.IsActive,
+            }));
+
         return new GetProductByIdReply
         {
-            Product = _mapper.Map<Product>(result.Value)
+            Product = productRes
         };
     }
 
@@ -386,7 +410,6 @@ public class ProductGrpcService : ProductGrpc.ProductGrpcBase
         }
     }
 
-
     public override async Task<UploadProductImageReply> UploadProductImage(
         UploadProductImageRequest request,
         ServerCallContext context)
@@ -453,5 +476,3 @@ public class ProductGrpcService : ProductGrpc.ProductGrpcBase
         }
     }
 }
-
-
