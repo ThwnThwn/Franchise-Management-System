@@ -7,6 +7,7 @@ using ProductService.Application.Features.Products.Queries.GetByKeyword;
 using ProductService.Application.Features.Products.Queries.GetByProductName;
 using ProductService.Application.Features.Products.Queries.GetList;
 using ProductService.Application.Interfaces;
+using ProductService.Application.Repositories;
 
 namespace ProductService.API.Controllers;
 
@@ -16,11 +17,16 @@ public class ProductsController : ControllerBase
 {
     private readonly IMediator _mediator;
     private readonly ICloudinaryService _cloudinaryService;
+    private readonly IProductRepository _productRepository;
 
-    public ProductsController(IMediator mediator, ICloudinaryService cloudinaryService)
+    public ProductsController(
+        IMediator mediator,
+        ICloudinaryService cloudinaryService,
+        IProductRepository productRepository)
     {
         _mediator = mediator;
         _cloudinaryService = cloudinaryService;
+        _productRepository = productRepository;
     }
 
     [HttpGet]
@@ -124,7 +130,7 @@ public class ProductsController : ControllerBase
         return Ok(result);
     }
     /// <summary>
-    /// Upload image to Cloudinary
+    /// Upload image to Cloudinary (standalone, not bound to product)
     /// </summary>
     [HttpPost("upload-image")]
     public async Task<IActionResult> UploadImage(
@@ -143,6 +149,55 @@ public class ProductsController : ControllerBase
             {
                 url = result.Url,
                 publicId = result.PublicId
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = $"Upload failed: {ex.Message}" });
+        }
+    }
+
+    /// <summary>
+    /// Upload image and assign to a specific product (overwrite existing image)
+    /// </summary>
+    [HttpPost("{productId:guid}/image")]
+    public async Task<IActionResult> UploadProductImage(
+        Guid productId,
+        [FromForm] IFormFile imageFile,
+        CancellationToken ct)
+    {
+        try
+        {
+            if (imageFile == null || imageFile.Length == 0)
+            {
+                return BadRequest(new { error = "File is required" });
+            }
+
+            var product = await _productRepository.GetByIdAsync(productId);
+            if (product is null)
+            {
+                return NotFound(new { error = $"Product with id '{productId}' not found" });
+            }
+
+            // Delete old image if exists
+            if (!string.IsNullOrWhiteSpace(product.ImagePublicId))
+            {
+                await _cloudinaryService.DeleteImageAsync(product.ImagePublicId);
+            }
+
+            // Upload new image
+            var uploadResult = await _cloudinaryService.UploadImageAsync(imageFile);
+
+            product.ImageUrl = uploadResult.Url;
+            product.ImagePublicId = uploadResult.PublicId;
+
+            await _productRepository.UpdateAsync(product);
+
+            return Ok(new
+            {
+                productId = product.Id,
+                imageUrl = product.ImageUrl,
+                imagePublicId = product.ImagePublicId
             });
         }
         catch (Exception ex)

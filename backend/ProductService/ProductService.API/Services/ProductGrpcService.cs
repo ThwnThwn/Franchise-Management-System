@@ -9,6 +9,7 @@ using ProductService.Application.Features.Products.Queries.GetByKeyword;
 using ProductService.Application.Features.Products.Queries.GetByProductName;
 using ProductService.Application.Features.Products.Queries.GetList;
 using ProductService.Application.Interfaces;
+using ProductService.Application.Repositories;
 using ProductService.Domain.Entities;
 
 namespace ProductService.API.Services;
@@ -18,12 +19,18 @@ public class ProductGrpcService : ProductGrpc.ProductGrpcBase
     private readonly IMediator _mediator;
     private readonly IMapper _mapper;
     private readonly ICloudinaryService _cloudinaryService;
+    private readonly IProductRepository _productRepository;
 
-    public ProductGrpcService(IMediator mediator, IMapper mapper, ICloudinaryService cloudinaryService)
+    public ProductGrpcService(
+        IMediator mediator,
+        IMapper mapper,
+        ICloudinaryService cloudinaryService,
+        IProductRepository productRepository)
     {
         _mediator = mediator;
         _mapper = mapper;
         _cloudinaryService = cloudinaryService;
+        _productRepository = productRepository;
     }
 
     public override async Task<GetProductsReply> GetProducts(
@@ -352,6 +359,72 @@ GetProductsByKeyword(
         {
             throw new RpcException(
                 new Status(StatusCode.Internal, $"Upload image failed: {ex.Message}"));
+        }
+    }
+
+    public override async Task<UploadProductImageReply> UploadProductImage(
+        UploadProductImageRequest request,
+        ServerCallContext context)
+    {
+        if (!Guid.TryParse(request.ProductId, out var productId))
+        {
+            throw new RpcException(
+                new Status(StatusCode.InvalidArgument, "Invalid productId"));
+        }
+
+        if (request.ImageData == null || request.ImageData.Length == 0)
+        {
+            throw new RpcException(
+                new Status(StatusCode.InvalidArgument, "Image data is required"));
+        }
+
+        if (string.IsNullOrWhiteSpace(request.FileName))
+        {
+            throw new RpcException(
+                new Status(StatusCode.InvalidArgument, "File name is required"));
+        }
+
+        try
+        {
+            var product = await _productRepository.GetByIdAsync(productId);
+            if (product is null)
+            {
+                throw new RpcException(
+                    new Status(StatusCode.NotFound, "Product not found"));
+            }
+
+            // Delete old image if exists
+            if (!string.IsNullOrWhiteSpace(product.ImagePublicId))
+            {
+                await _cloudinaryService.DeleteImageAsync(product.ImagePublicId);
+            }
+
+            // Upload new image from bytes
+            var uploadResult = await _cloudinaryService.UploadImageFromBytesAsync(
+                request.ImageData.ToByteArray(),
+                request.FileName,
+                request.ContentType ?? "image/png");
+
+            product.ImageUrl = uploadResult.Url;
+            product.ImagePublicId = uploadResult.PublicId;
+
+            await _productRepository.UpdateAsync(product);
+
+            return new UploadProductImageReply
+            {
+                ProductId = product.Id.ToString(),
+                ImageUrl = product.ImageUrl ?? string.Empty,
+                ImagePublicId = product.ImagePublicId ?? string.Empty
+            };
+        }
+        catch (RpcException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            throw new RpcException(
+                new Status(StatusCode.Internal, $"Upload product image failed: {ex.Message}"));
         }
     }
 }
