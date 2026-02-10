@@ -33,4 +33,5 @@ export interface UpdateUserRoleRequest {
 export type UserFilterParams = {
     roleSlug?: RoleSlug
     keyword?: string
+    storeId?: string
 }

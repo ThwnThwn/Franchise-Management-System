@@ -1,164 +1,154 @@
 "use client"
 
-import React, { useCallback } from "react"
-import { DropdownTrigger, DropdownMenu, DropdownItem, User } from "@heroui/react"
-import { DropdownStyled } from "@/components"
+import React, { useCallback, useMemo } from "react"
+import { DropdownTrigger, DropdownMenu, DropdownItem, User, cn } from "@heroui/react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { LogOut, User as UserIcon, LayoutDashboard, ShoppingBag, History } from "lucide-react"
+
 import { DEFAULT_AVATAR_URL } from "@/constants/constants"
-import { RoleSlug } from "@/constants/enums"
 import { STRINGS } from "@/constants/strings"
 import { useLogout } from "@/features"
-import { useRouter } from "next/navigation"
-import { useTokenStore } from "@/hooks"
+import { useTokenStore, useUserHelper } from "@/hooks"
+// Giả sử đường dẫn này, nếu bạn để enum chỗ khác thì sửa lại nhé
+import { RoleSlug } from "@/constants/enums"
+import { DropdownStyled } from "@/components/styled"
+import { useGetMe } from "@/features/profile/hooks"
 
-type DropdownLinkItem = {
+// Định nghĩa kiểu dữ liệu cho Menu Item
+type ProfileMenuItem = {
     key: string
-    href?: string
     label: string
-    color?: "danger"
+    href?: string
+    icon?: React.ReactNode
+    color?: "default" | "danger"
+    allowedRoles?: RoleSlug[] // Nếu không có field này nghĩa là hiện cho all
+    action?: () => void // Dành cho nút Logout
 }
 
-export const buildItems = ({
-    roleSlug,
-    defaultItems,
-    customerItems = [],
-    staffItems = [],
-    adminItems = [],
-    managerItems = [],
-    bottomItems = []
-}: {
-    roleSlug?: RoleSlug
-    defaultItems: DropdownLinkItem[]
-    customerItems?: DropdownLinkItem[]
-    staffItems?: DropdownLinkItem[]
-    adminItems?: DropdownLinkItem[]
-    managerItems?: DropdownLinkItem[]
-    bottomItems?: DropdownLinkItem[]
-}) => {
-    const roleItemsMap: Record<RoleSlug, DropdownLinkItem[]> = {
-        [RoleSlug.Customer]: customerItems,
-        [RoleSlug.Staff]: staffItems,
-        [RoleSlug.Manager]: managerItems,
-        [RoleSlug.Admin]: adminItems
-    }
-    const combinedItems = [...defaultItems, ...(roleSlug ? roleItemsMap[roleSlug] : [])]
-
-    const uniqueItems: DropdownLinkItem[] = []
-    const seenKeys = new Set<string>()
-
-    for (const tab of combinedItems) {
-        if (seenKeys.has(tab.key)) continue
-        seenKeys.add(tab.key)
-        uniqueItems.push(tab)
-    }
-
-    uniqueItems.push(...bottomItems)
-    return uniqueItems
-}
-
-export function ProfileDropdown({ onOpen = undefined }: { onOpen?: () => void }) {
+export function ProfileDropdown() {
     const router = useRouter()
-    const logoutMutation = useLogout({ onSuccess: () => router.replace("/") })
+    const { toFullName } = useUserHelper()
+    const { data: user } = useGetMe()
 
+    // Global State
     const roleSlug = useTokenStore((s) => s.roleSlug)
 
-    const defaultItems: DropdownLinkItem[] = [
-        {
-            key: "profile",
-            href: "/profile",
-            label: STRINGS.NAVBAR.PROFILE
-        }
-    ]
-
-    const bottomItems: DropdownLinkItem[] = [
-        { key: "logout", label: STRINGS.NAVBAR.LOGOUT, color: "danger" }
-    ]
-
-    const customerItems: DropdownLinkItem[] = [
-        {
-            key: "orders",
-            href: "/orders",
-            label: STRINGS.NAVBAR.ORDER_HISTORY
-        }
-    ]
-
-    const adminItems: DropdownLinkItem[] = [
-        {
-            key: "dashboard",
-            href: "/dashboard",
-            label: STRINGS.NAVBAR.DASHBOARD.DASHBOARD
-        }
-    ]
-
-    const managerItems: DropdownLinkItem[] = []
-
-    const staffItems: DropdownLinkItem[] = []
-
-    const dropdownItems = buildItems({
-        roleSlug: roleSlug || undefined,
-        defaultItems,
-        managerItems,
-        adminItems,
-        staffItems,
-        customerItems,
-        bottomItems
+    // Logout Mutation
+    const logoutMutation = useLogout({
+        onSuccess: () => router.replace("/")
     })
 
     const handleLogout = useCallback(async () => {
         await logoutMutation.mutateAsync()
     }, [logoutMutation])
 
-    // handle get me error
-    // if (isGetMeLoading || isGetMeError) return <Spinner />
+    // Cấu hình Menu Items
+    const menuItems: ProfileMenuItem[] = useMemo(
+        () => [
+            {
+                key: "profile",
+                label: STRINGS.NAVBAR.PROFILE || "Hồ sơ cá nhân",
+                href: "/profile",
+                icon: <UserIcon size={18} />
+            },
+            {
+                key: "dashboard",
+                label: STRINGS.NAVBAR.DASHBOARD?.DASHBOARD || "Trang quản trị",
+                href: "/dashboard",
+                icon: <LayoutDashboard size={18} />,
+                // Chỉ hiện cho Admin và Manager
+                allowedRoles: [RoleSlug.Admin, RoleSlug.Manager]
+            },
+            {
+                key: "orders",
+                label: STRINGS.NAVBAR.ORDER_HISTORY || "Lịch sử mua hàng",
+                href: "/orders",
+                icon: <ShoppingBag size={18} />,
+                // Chỉ hiện cho Customer
+                allowedRoles: [RoleSlug.Customer]
+            },
+            // Ví dụ thêm item cho Staff
+            {
+                key: "schedule",
+                label: "Lịch làm việc",
+                href: "/staff/schedule",
+                icon: <History size={18} />,
+                allowedRoles: [RoleSlug.Staff]
+            },
+            {
+                key: "logout",
+                label: STRINGS.NAVBAR.LOGOUT || "Đăng xuất",
+                color: "danger",
+                icon: <LogOut size={18} />,
+                action: handleLogout // Action riêng
+            }
+        ],
+        [handleLogout]
+    )
+
+    // Filter Items dựa trên Role
+    const visibleItems = useMemo(() => {
+        return menuItems.filter((item) => {
+            // 1. Nếu không quy định role -> Hiện all
+            if (!item.allowedRoles) return true
+            // 2. Nếu có role -> Check role hiện tại có trong list không
+            return roleSlug && item.allowedRoles.includes(roleSlug)
+        })
+    }, [menuItems, roleSlug])
 
     return (
-        <div className="gap-4 flex items-center">
+        <div className="flex items-center gap-4">
             <DropdownStyled
+                placement="bottom-end"
                 classNames={{
-                    content: "min-w-fit"
+                    content: "min-w-fit w-fit"
                 }}
             >
                 <DropdownTrigger>
                     <User
-                        id="navbar-user"
                         as="button"
                         avatarProps={{
                             isBordered: true,
-                            // src: user?.avatarUrl || DEFAULT_AVATAR_URL
-                            src: DEFAULT_AVATAR_URL
+                            src: DEFAULT_AVATAR_URL, // Thay bằng user?.avatarUrl
+                            color: "primary",
+                            size: "sm"
                         }}
                         className="transition-transform"
-                        // name={user?.firstName.trim() || ""}
-                        name=""
+                        description={roleSlug || "Guest"} // Hiển thị role nhỏ ở dưới
+                        name={toFullName({
+                            firstName: user?.firstName,
+                            lastName: user?.lastName
+                        })}
                         classNames={{
-                            name: "hidden sm:block text-[16px] font-bold"
+                            name: "text-sm font-semibold text-default-700",
+                            description: "text-xs capitalize text-default-500"
                         }}
-                        onClick={() => onOpen?.()}
                     />
                 </DropdownTrigger>
-                <DropdownMenu className="max-w-fit" variant="flat">
-                    {dropdownItems.map((item) =>
-                        item.href ? (
-                            <DropdownItem
-                                id={item.key === "profile" ? "navbar-profile" : ""}
-                                key={item.key}
-                                as={Link}
-                                href={item.href}
-                                className="block pr-5"
-                            >
-                                {item.label}
-                            </DropdownItem>
-                        ) : (
-                            <DropdownItem
-                                key={item.key}
-                                textValue={item.label}
-                                color={item.color}
-                                className="block pr-5"
-                                onPress={handleLogout}
-                            >
-                                {item.label}
-                            </DropdownItem>
-                        )
+
+                <DropdownMenu
+                    aria-label="Profile Actions"
+                    variant="flat"
+                    className="w-fit"
+                    items={visibleItems} // Dùng items prop của HeroUI để tối ưu
+                >
+                    {(item) => (
+                        <DropdownItem
+                            key={item.key}
+                            color={item.color || "default"}
+                            className={cn(
+                                "text-left w-fit",
+                                item.color === "danger" && "text-danger"
+                            )}
+                            startContent={item.icon}
+                            // Logic xử lý Link hoặc Button
+                            href={item.href}
+                            as={item.href ? Link : "button"}
+                            onPress={item.action} // Nếu có action (logout) thì gọi onPress
+                        >
+                            {item.label}
+                        </DropdownItem>
                     )}
                 </DropdownMenu>
             </DropdownStyled>

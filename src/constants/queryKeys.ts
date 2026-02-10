@@ -7,5 +7,7 @@ export const QUERY_KEYS = {
     STORES: "stores" as const,
     ROLES: "roles" as const,
     PERMISSIONS: "permissions" as const,
-    INVENTORY: "inventory" as const
+    INVENTORY: "inventories" as const,
+    SHIFTS: "shifts" as const,
+    SHIFT_TEMPLATES: "shift_templates" as const
 }

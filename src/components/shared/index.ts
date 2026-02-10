@@ -1,6 +1,7 @@
 export * from "./ClientHydration"
 export * from "./Navbar"
 export * from "./Footer"
+export * from "./GlobalConfirmDialog"
 export * from "./ImageUploaderCore"
 export * from "./Pagination"
 export * from "./ScrollToTopButton"

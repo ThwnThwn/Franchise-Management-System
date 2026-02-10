@@ -1,6 +1,24 @@
-import { DEFAULT_DATE_TIME_FORMAT, DEFAULT_TIMEZONE } from "@/constants/constants"
+import {
+    DEFAULT_DATE_TIME_FORMAT,
+    DEFAULT_TIMEZONE,
+    DEFAULT_DATE_FORMAT
+} from "@/constants/constants"
 import dayjs from "dayjs"
-import { DateValue, parseDate, parseZonedDateTime, ZonedDateTime } from "@internationalized/date"
+import utc from "dayjs/plugin/utc"
+import timezone from "dayjs/plugin/timezone"
+import {
+    DateValue,
+    parseDate,
+    parseZonedDateTime,
+    ZonedDateTime,
+    parseTime,
+    Time,
+    CalendarDate
+} from "@internationalized/date"
+
+// Kích hoạt plugin để xử lý Timezone chuẩn xác
+dayjs.extend(utc)
+dayjs.extend(timezone)
 
 export const useDay = ({
     defaultFormat = DEFAULT_DATE_TIME_FORMAT,
@@ -9,39 +27,86 @@ export const useDay = ({
     defaultFormat?: string
     timeZone?: string
 } = {}) => {
-    const toZonedDateTime = (dateTime: string | number | Date | dayjs.Dayjs | null | undefined) => {
+    /**
+     * Chuyển đổi String/Date -> Time Object (Dùng cho TimeInput)
+     * Input: "08:00:00" | "08:00"
+     */
+    const toTime = (timeStr: string | null | undefined): Time | null => {
+        if (!timeStr) return null
+        try {
+            // Clean string: bỏ mili giây hoặc timezone thừa nếu có
+            const cleanTime = timeStr.split("T")[1] || timeStr // Handle if full ISO string passed
+            const finalTime = cleanTime.split(".")[0].split("+")[0].split("Z")[0].trim()
+            return parseTime(finalTime)
+        } catch {
+            return null
+        }
+    }
+
+    /**
+     * Format Time Object -> String chuẩn (Gửi API)
+     * Output: "08:00:00"
+     */
+    const formatTime = (time: Time | null | undefined): string => {
+        if (!time) return ""
+        return time.toString()
+    }
+
+    /**
+     * Format Date -> YYYY-MM-DD (Gửi API)
+     */
+    const formatDateApi = (
+        date: DateValue | string | Date | dayjs.Dayjs | null | undefined
+    ): string => {
+        if (!date) return ""
+        if (typeof date === "object" && "toString" in date) return date.toString()
+        return dayjs(date).format(DEFAULT_DATE_FORMAT)
+    }
+
+    const toZonedDateTime = (
+        dateTime: string | number | Date | dayjs.Dayjs | null | undefined
+    ): ZonedDateTime | null => {
         if (!dateTime) return null
 
-        if (typeof dateTime === "string") {
-            dateTime = dayjs(dateTime).format(defaultFormat)
-            dateTime = dateTime.split("+")[0]
-        }
-
         const d = dayjs(dateTime)
+        if (!d.isValid()) return null
 
-        const str = `${d.format(defaultFormat).split("+")[0]}[${timeZone}]`
-        return parseZonedDateTime(str)
+        // Tạo format chuẩn cho parseZonedDateTime bất kể input
+        // Format yêu cầu: YYYY-MM-DDTHH:mm:ss[TimeZone]
+        const isoString = d.format("YYYY-MM-DDTHH:mm:ss")
+        return parseZonedDateTime(`${isoString}[${timeZone}]`)
     }
 
-    const toDate = (date: string | number | Date | dayjs.Dayjs | null | undefined) => {
+    const toDate = (
+        date: string | number | Date | dayjs.Dayjs | null | undefined
+    ): CalendarDate | null => {
         if (!date) return null
-        const str = dayjs(date).format(defaultFormat)
-        return parseDate(str)
+
+        const d = dayjs(date)
+        if (!d.isValid()) return null
+
+        // Cải tiến: Luôn format về YYYY-MM-DD để parseDate không bị lỗi với string có giờ
+        return parseDate(d.format(DEFAULT_DATE_FORMAT))
     }
 
+    // Giữ nguyên signature nhận object params như cũ
     const formatDateTime = ({
         date,
-        timeZone = DEFAULT_TIMEZONE
+        timeZone: tz = timeZone // Dùng alias để ưu tiên tham số truyền vào, fallback về prop của hook
     }: {
-        date: DateValue | string
+        date: DateValue | string | null | undefined // Cho phép null/undefined để an toàn
         timeZone?: string
     }): string => {
         if (!date) return ""
+
+        // Nếu là string, format trực tiếp
         if (typeof date === "string") {
             return dayjs(date).format(defaultFormat)
         }
 
-        const dateJs = dayjs(date.toDate(timeZone))
+        // Nếu là DateValue (ZonedDateTime, CalendarDate)
+        // Chuyển về native Date rồi format
+        const dateJs = dayjs(date.toDate(tz))
         return dateJs.format(defaultFormat)
     }
 
@@ -97,5 +162,14 @@ export const useDay = ({
         return rounded
     }
 
-    return { toDate, toZonedDateTime, formatDateTime, getDiffDaysCeil, normalizeDateByMinuteStep }
+    return {
+        toTime,
+        formatTime,
+        formatDateApi,
+        toDate,
+        toZonedDateTime,
+        formatDateTime,
+        getDiffDaysCeil,
+        normalizeDateByMinuteStep
+    }
 }

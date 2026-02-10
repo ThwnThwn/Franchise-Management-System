@@ -1,5 +1,5 @@
+export * from "./DashboardSidebar"
 export * from "./RecentOrders"
 export * from "./SalesChart"
 export * from "./StatCard"
 export * from "./TopProducts"
-export * from "./Sidebar"

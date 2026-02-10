@@ -251,7 +251,8 @@ export function Navbar() {
 
                 <NavbarItem className="flex items-center z-9999">
                     {isLoggedIn ? (
-                        <ProfileDropdown onOpen={() => setIsOpen(false)} />
+                        // <ProfileDropdown onOpen={() => setIsOpen(false)} />
+                        <ProfileDropdown />
                     ) : (
                         <ButtonStyled
                             onPress={() => {

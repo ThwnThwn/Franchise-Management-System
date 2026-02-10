@@ -5,6 +5,7 @@ import { ToastProvider } from "@heroui/toast"
 import { getQueryClient } from "@/utils/helpers/getQueryClient"
 import { QueryClientProvider } from "@tanstack/react-query"
 import { DisclosureProvider } from "./DisclosureProvider"
+import { GlobalConfirmDialog } from "@/components"
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
     const queryClient = getQueryClient()
@@ -13,6 +14,7 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
         <QueryClientProvider client={queryClient}>
             <HeroUIProvider>
                 <DisclosureProvider>{children}</DisclosureProvider>
+                <GlobalConfirmDialog />
                 <ToastProvider
                     placement="bottom-center"
                     toastProps={{

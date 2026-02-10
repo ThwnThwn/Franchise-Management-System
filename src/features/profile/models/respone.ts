@@ -10,5 +10,6 @@ export type UserProfileViewRes = {
     gender?: number
     dateOfBirth?: string
     phone?: string
+    homeStoreId?: string
     role?: RoleUserResponse
 }
