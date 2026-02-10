@@ -40,7 +40,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, LoginRep>
         if (!BCrypt.Net.BCrypt.Verify(request.Request.Password, user.Password))
             throw new UnauthorizedAccessException("Wrong password");
 
-        var accessToken = _jwtHelper.GenerateAccessToken(user.Id, user.Role.Slug);
+        var accessToken = _jwtHelper.GenerateAccessToken(user.Id, user.Role.Slug, user.HomeStoreId);
         var (refreshTokenValue, refreshTokenExpiry) = _jwtHelper.GenerateRefreshToken(user.Id);
 
         await _refreshTokenRepository.AddAsync(new Domain.Entities.RefreshToken

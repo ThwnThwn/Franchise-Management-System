@@ -76,7 +76,7 @@ public class TokenRefreshCommandHandler : IRequestHandler<TokenRefreshCommand, R
         if (user.IsBlocked == true)
             throw new UnauthorizedAccessException("Account is blocked");
 
-        if(user.Role == null)
+        if (user.Role == null)
             throw new UnauthorizedAccessException("Account's role is null");
 
         //Rotation: revoke old refresh token
@@ -85,7 +85,7 @@ public class TokenRefreshCommandHandler : IRequestHandler<TokenRefreshCommand, R
         await _refreshTokenRepository.SaveChangesAsync();
 
         // Gen new token
-        var newAccessToken = _jwtHelper.GenerateAccessToken(userId,user.Role.Slug);
+        var newAccessToken = _jwtHelper.GenerateAccessToken(userId, user.Role.Slug, user.HomeStoreId);
         var (newRefreshTokenValue, newRefreshTokenExpiry) = _jwtHelper.GenerateRefreshToken(userId);
 
         var newRefreshToken = new RefreshToken
