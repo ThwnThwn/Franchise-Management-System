@@ -13,8 +13,9 @@ export interface CreateShiftRequest {
     startTime: string
     endTime: string
     requiredStaffCount: number
-    shiftTemplateId?: string
+    breakDurationMinutes: number
     note?: string
+    shiftTemplateId?: string
 }
 
 export interface UpdateShiftRequest {
@@ -22,6 +23,7 @@ export interface UpdateShiftRequest {
     startTime?: string
     endTime?: string
     requiredStaffCount?: number
+    breakDurationMinutes?: number
     note?: string
     status?: ShiftStatus
 }
@@ -36,7 +38,7 @@ export interface GetShiftTemplatesParams {
 }
 
 export interface CreateShiftTemplateRequest {
-    storeId: string
+    storeId?: string
     code: string
     name: string
     startTime: string

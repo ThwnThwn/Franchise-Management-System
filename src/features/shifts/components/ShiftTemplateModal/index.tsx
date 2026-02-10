@@ -3,39 +3,30 @@
 import React, { useEffect } from "react"
 import { ModalContent, ModalHeader, ModalBody, ModalFooter } from "@heroui/react"
 import { useFormik } from "formik"
-import * as Yup from "yup"
 import { CreateShiftTemplateRequest } from "../../models/request"
 import { ShiftTemplateResponse } from "../../models/response"
 import { useCreateShiftTemplate, useUpdateShiftTemplate } from "@/features/shifts/hooks"
-import { ButtonStyled, InputStyled, ModalStyled } from "@/components"
-import { HOUR_MINUTE_REGEX } from "@/constants/regexs"
-
-// 1. Validation Schema
-const validationSchema = Yup.object({
-    code: Yup.string().required("Mã ca không được để trống"),
-    name: Yup.string().required("Tên ca không được để trống"),
-    startTime: Yup.string()
-        .required("Vui lòng chọn giờ")
-        .matches(HOUR_MINUTE_REGEX, "Giờ không hợp lệ"),
-    endTime: Yup.string()
-        .required("Vui lòng chọn giờ")
-        .matches(HOUR_MINUTE_REGEX, "Giờ không hợp lệ"),
-    breakDurationMinutes: Yup.number()
-        .min(0, "Thời gian nghỉ phải >= 0")
-        .required("Nhập 0 nếu không nghỉ")
-})
+import {
+    ButtonStyled,
+    InputStyled,
+    ModalStyled,
+    NumberInputStyled,
+    TimeInputStyled
+} from "@/components"
+import { validationSchema } from "./schema"
+import { useDay, useFormikHelpers } from "@/hooks"
 
 interface ShiftTemplateModalProps {
     isOpen: boolean
     onOpenChange: () => void
     onClose: () => void
     selectedTemplate?: ShiftTemplateResponse
-    storeId: string
+    storeId?: string
 }
 
 // Giá trị mặc định ban đầu
 const INITIAL_VALUES: CreateShiftTemplateRequest = {
-    storeId: "",
+    storeId: undefined,
     code: "",
     name: "",
     startTime: "08:00",
@@ -50,6 +41,8 @@ export const ShiftTemplateModal = ({
     selectedTemplate,
     storeId
 }: ShiftTemplateModalProps) => {
+    const { formatTime, toTime } = useDay()
+
     // 2. Setup Hooks
     const createMutation = useCreateShiftTemplate({ onSuccess: () => handleClose() })
     const updateMutation = useUpdateShiftTemplate({ onSuccess: () => handleClose() })
@@ -62,13 +55,15 @@ export const ShiftTemplateModal = ({
         initialValues: INITIAL_VALUES,
         validationSchema: validationSchema,
         onSubmit: (values) => {
-            // Format data
+            // const formatTimeStr = (t: string) => (t.length === 5 ? `${t}:00` : t)
+
             const submitData = {
                 ...values,
-                storeId: storeId, // Đảm bảo storeId luôn đúng
-                startTime:
-                    values.startTime.length === 5 ? `${values.startTime}:00` : values.startTime,
-                endTime: values.endTime.length === 5 ? `${values.endTime}:00` : values.endTime
+                storeId: storeId,
+                startTime: values.startTime,
+                endTime: values.endTime
+                // startTime: formatTimeStr(values.startTime),
+                // endTime: formatTimeStr(values.endTime)
             }
 
             if (isEdit && selectedTemplate) {
@@ -81,6 +76,7 @@ export const ShiftTemplateModal = ({
             }
         }
     })
+    const { isInvalid, getErrorMessage } = useFormikHelpers(formik)
 
     // 4. Effect: Chỉ cập nhật form khi Modal thực sự MỞ
     useEffect(() => {
@@ -109,21 +105,8 @@ export const ShiftTemplateModal = ({
         formik.resetForm()
     }
 
-    // Helper UI check lỗi
-    const isInvalid = (field: keyof CreateShiftTemplateRequest) =>
-        !!formik.errors[field] && !!formik.touched[field]
-
-    const getErrorMessage = (field: keyof CreateShiftTemplateRequest) =>
-        isInvalid(field) ? formik.errors[field] : undefined
-
     return (
-        <ModalStyled
-            isOpen={isOpen}
-            onOpenChange={onOpenChange}
-            size="lg"
-            placement="center"
-            backdrop="blur"
-        >
+        <ModalStyled isOpen={isOpen} onOpenChange={onOpenChange} size="lg">
             <ModalContent>
                 <form onSubmit={formik.handleSubmit}>
                     <ModalHeader className="flex flex-col gap-1 text-xl font-bold">
@@ -158,36 +141,35 @@ export const ShiftTemplateModal = ({
                         </div>
 
                         <div className="grid grid-cols-3 gap-4">
-                            <InputStyled
-                                type="time"
+                            <TimeInputStyled
                                 label="Bắt đầu"
-                                variant="bordered"
                                 name="startTime"
-                                value={formik.values.startTime}
-                                onChange={formik.handleChange}
-                                onBlur={formik.handleBlur}
+                                value={toTime(formik.values.startTime)}
+                                onChange={(time) => {
+                                    if (!time) return
+                                    formik.setFieldValue("startTime", formatTime(time, false))
+                                }}
                                 isInvalid={isInvalid("startTime")}
                                 errorMessage={getErrorMessage("startTime")}
                             />
-                            <InputStyled
-                                type="time"
+                            <TimeInputStyled
                                 label="Kết thúc"
-                                variant="bordered"
                                 name="endTime"
-                                value={formik.values.endTime}
-                                onChange={formik.handleChange}
-                                onBlur={formik.handleBlur}
+                                value={toTime(formik.values.endTime)}
+                                onChange={(time) => {
+                                    if (!time) return
+                                    formik.setFieldValue("endTime", formatTime(time, false))
+                                }}
                                 isInvalid={isInvalid("endTime")}
                                 errorMessage={getErrorMessage("endTime")}
                             />
-                            <InputStyled
-                                type="number"
+                            <NumberInputStyled
                                 label="Nghỉ (phút)"
-                                variant="bordered"
                                 name="breakDurationMinutes"
-                                value={String(formik.values.breakDurationMinutes)}
-                                onChange={formik.handleChange}
-                                onBlur={formik.handleBlur}
+                                value={formik.values.breakDurationMinutes}
+                                onValueChange={(n) =>
+                                    formik.setFieldValue("breakDurationMinutes", n)
+                                }
                                 isInvalid={isInvalid("breakDurationMinutes")}
                                 errorMessage={getErrorMessage("breakDurationMinutes")}
                             />

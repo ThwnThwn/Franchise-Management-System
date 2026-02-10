@@ -5,11 +5,13 @@ import { RoleSlug } from "@/constants/enums"
 interface JwtPayload {
     sub?: string
     role_slug?: string
+    store_id?: string
 }
 
 type TokenStore = {
     accessToken: string | null
     roleSlug: RoleSlug | null
+    storeId: string | null
     isHydrated: boolean
     hydrate: () => void
     setAccessToken: (token: string, rememberMe?: boolean) => void
@@ -23,8 +25,17 @@ const getRoleFromToken = (token: string | null): RoleSlug | null => {
     try {
         const decoded = jwtDecode<JwtPayload>(token)
         return (decoded.role_slug as RoleSlug) || null
-    } catch (error) {
-        console.error("Invalid token:", error)
+    } catch {
+        return null
+    }
+}
+
+const getStoreIdFromToken = (token: string | null): string | null => {
+    if (!token) return null
+    try {
+        const decoded = jwtDecode<JwtPayload>(token)
+        return decoded.store_id || null
+    } catch {
         return null
     }
 }
@@ -44,16 +55,24 @@ const getStoredToken = () => {
 export const useTokenStore = create<TokenStore>()((set) => {
     const initialToken = getStoredToken()
     const initialRole = getRoleFromToken(initialToken)
+    const initialStoreId = getStoreIdFromToken(initialToken)
 
     return {
         accessToken: initialToken,
         roleSlug: initialRole,
+        storeId: initialStoreId,
         isHydrated: false,
 
         hydrate: () => {
             const token = getStoredToken()
             const role = getRoleFromToken(token)
-            set({ accessToken: token, roleSlug: role, isHydrated: true })
+            const storeId = getStoreIdFromToken(token)
+            set({
+                accessToken: token,
+                roleSlug: role,
+                storeId: storeId,
+                isHydrated: true
+            })
         },
 
         setAccessToken: (token: string, rememberMe = true) => {
@@ -70,8 +89,13 @@ export const useTokenStore = create<TokenStore>()((set) => {
             }
 
             const role = getRoleFromToken(token)
+            const storeId = getStoreIdFromToken(token)
 
-            set({ accessToken: token, roleSlug: role })
+            set({
+                accessToken: token,
+                roleSlug: role,
+                storeId: storeId
+            })
         },
 
         removeAccessToken: () => {
@@ -80,7 +104,11 @@ export const useTokenStore = create<TokenStore>()((set) => {
             localStorage.removeItem("remember_me")
             sessionStorage.removeItem("access_token")
 
-            set({ accessToken: null, roleSlug: null })
+            set({
+                accessToken: null,
+                roleSlug: null,
+                storeId: null
+            })
         },
 
         setRememberMe: (rememberMe: boolean) => {

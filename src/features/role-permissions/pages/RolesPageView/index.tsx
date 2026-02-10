@@ -33,20 +33,22 @@ export default function RolesPageView() {
         <div className="max-w-7xl mx-auto min-h-screen p-4 md:p-6 lg:p-8">
             {/* PHẦN 1: DANH SÁCH ROLE (CARDS) */}
             <section className="flex flex-col gap-2">
-                <DashboardHeader
-                    icon={<ShieldUser className="w-6 h-6 text-white" />}
-                    title="Vai trò hệ thống"
-                    description="Quản lý các nhóm quyền hạn chính trong hệ thống"
-                />
+                <div className="flex justify-between">
+                    <DashboardHeader
+                        icon={<ShieldUser className="w-6 h-6 text-white" />}
+                        title="Vai trò hệ thống"
+                        description="Quản lý các nhóm quyền hạn chính trong hệ thống"
+                    />
 
-                <ButtonStyled
-                    color="primary"
-                    startContent={<Plus size={18} />}
-                    onPress={handleCreateRole}
-                    className="font-bold max-w-fit"
-                >
-                    Tạo vai trò mới
-                </ButtonStyled>
+                    <ButtonStyled
+                        color="primary"
+                        startContent={<Plus size={18} />}
+                        onPress={handleCreateRole}
+                        className="font-bold max-w-fit"
+                    >
+                        Tạo vai trò mới
+                    </ButtonStyled>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {roles?.map((role) => (
                         <button

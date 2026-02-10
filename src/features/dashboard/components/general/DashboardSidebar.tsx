@@ -12,7 +12,8 @@ import {
     Menu,
     X,
     ShieldUser,
-    CalendarClock // Icon cho ca làm việc
+    FileClock,
+    CalendarRange
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -52,10 +53,15 @@ export const DashboardSidebar = () => {
                 allowedRoles: [RoleSlug.Admin, RoleSlug.Manager]
             },
             {
-                icon: <CalendarClock className="w-5 h-5" />,
+                icon: <FileClock className="w-5 h-5" />,
+                label: "Quản lý mẫu ca làm",
+                href: "/dashboard/shift-templates",
+                allowedRoles: [RoleSlug.Admin, RoleSlug.Manager]
+            },
+            {
+                icon: <CalendarRange className="w-5 h-5" />,
                 label: "Quản lý ca làm",
                 href: "/dashboard/shifts",
-                // Chỉ Manager thấy trang này
                 allowedRoles: [RoleSlug.Manager]
             },
             {

@@ -8,7 +8,7 @@ export const TextareaStyled = React.forwardRef<React.ElementRef<typeof Textarea>
             ref={ref}
             variant={variant}
             color={color}
-            {...rest}
+            {...(rest as any)}
             className={cn("w-full", className)}
             classNames={{
                 ...classNames,

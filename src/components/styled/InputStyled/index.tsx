@@ -7,7 +7,6 @@ interface InputStyledPropes extends InputProps {
 }
 
 export function InputStyled(props: InputStyledPropes) {
-    // const mergedClassNames = mergeClassNames(props.classNames)
     return (
         <Input
             variant="bordered"
@@ -20,9 +19,8 @@ export function InputStyled(props: InputStyledPropes) {
                     <></>
                 )
             }
-            {...props}
+            {...(props as any)}
             className={cn(props.className)}
-            // classNames={mergedClassNames}
             classNames={{
                 ...props.classNames,
                 inputWrapper: cn(

@@ -19,6 +19,8 @@ export interface ShiftResponse {
     startTime: string
     endTime: string
     requiredStaffCount: number
+    breakDurationMinutes: number
+
     shiftTemplateId?: string
     status: ShiftStatus
     note?: string
@@ -33,7 +35,7 @@ export interface ShiftResponse {
 // ===============================
 export interface ShiftTemplateResponse {
     id: string
-    storeId: string | null
+    storeId?: string
     code: string
     name: string
     startTime: string

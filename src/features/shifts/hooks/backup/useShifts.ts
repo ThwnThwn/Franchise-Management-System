@@ -4,24 +4,20 @@ import { shiftApi } from "@/features/shifts/services/shiftApi"
 import { addToast } from "@heroui/react"
 import { STRINGS } from "@/constants/strings"
 import { BackendError } from "@/models/common/respone"
-import { PaginationParams } from "@/models/common/request"
 import { GetShiftsParams } from "@/features/shifts/models/request"
 
 // --- QUERY HOOKS (GET DATA) ---
 
 export const useGetShifts = ({
     params,
-    pagination = {},
     enabled = true
 }: {
     params: GetShiftsParams
-    pagination?: PaginationParams
     enabled?: boolean
 }) => {
     return useQuery({
-        // Key bao gồm params và pagination để tự động refetch khi filter thay đổi
-        queryKey: [QUERY_KEYS.SHIFTS, params, pagination],
-        queryFn: () => shiftApi.getAll({ query: params, pagination }),
+        queryKey: [QUERY_KEYS.SHIFTS, params],
+        queryFn: () => shiftApi.getAll({ query: params }),
         enabled
     })
 }

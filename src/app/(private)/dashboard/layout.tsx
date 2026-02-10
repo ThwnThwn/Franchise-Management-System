@@ -38,7 +38,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     }
 
     return (
-        <div className="flex justify-between rounded-2xl max-w-svw md:w-7xl mx-7 bg-linear-to-b from-white/55 to-white/50 backdrop-blur-xl border-r border-primary-100 shadow-2xl">
+        <div className="flex justify-between overflow-hidden rounded-2xl max-w-svw md:w-7xl mx-7 bg-linear-to-b from-white/55 to-white/50 backdrop-blur-xl border-r border-primary-100 shadow-2xl">
             <DashboardSidebar />
             <div className="w-full">{children}</div>
         </div>

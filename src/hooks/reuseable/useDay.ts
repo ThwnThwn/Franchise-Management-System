@@ -13,10 +13,11 @@ import {
     ZonedDateTime,
     parseTime,
     Time,
-    CalendarDate
+    CalendarDate,
+    CalendarDateTime
 } from "@internationalized/date"
 
-// Kích hoạt plugin để xử lý Timezone chuẩn xác
+// Kích hoạt plugin UTC và Timezone cho dayjs
 dayjs.extend(utc)
 dayjs.extend(timezone)
 
@@ -27,56 +28,35 @@ export const useDay = ({
     defaultFormat?: string
     timeZone?: string
 } = {}) => {
+    // ========================================================================
+    // 1. PARSERS (Chuyển đổi String/Date -> Object UI Components)
+    // ========================================================================
+
     /**
-     * Chuyển đổi String/Date -> Time Object (Dùng cho TimeInput)
-     * Input: "08:00:00" | "08:00"
+     * Chuyển đổi String giờ -> Time Object (Dùng cho HeroUI Input Time)
+     * Input: "08:00:00" | "08:00" | ISO String
+     * Output: Time Object
      */
     const toTime = (timeStr: string | null | undefined): Time | null => {
         if (!timeStr) return null
         try {
-            // Clean string: bỏ mili giây hoặc timezone thừa nếu có
-            const cleanTime = timeStr.split("T")[1] || timeStr // Handle if full ISO string passed
-            const finalTime = cleanTime.split(".")[0].split("+")[0].split("Z")[0].trim()
-            return parseTime(finalTime)
+            const d = dayjs(timeStr)
+            if (!d.isValid()) {
+                // Nếu không phải ISO chuẩn, thử parseTime kiểu cũ
+                return parseTime(timeStr)
+            }
+            // Trả về object Time từ giờ và phút của dayjs
+            return new Time(d.hour(), d.minute())
         } catch {
             return null
         }
     }
 
     /**
-     * Format Time Object -> String chuẩn (Gửi API)
-     * Output: "08:00:00"
+     * Chuyển đổi String/Date -> CalendarDate (Dùng cho HeroUI DatePicker)
+     * Input: "2026-02-10" | Date Object | Dayjs Object
+     * Output: CalendarDate (YYYY-MM-DD)
      */
-    const formatTime = (time: Time | null | undefined): string => {
-        if (!time) return ""
-        return time.toString()
-    }
-
-    /**
-     * Format Date -> YYYY-MM-DD (Gửi API)
-     */
-    const formatDateApi = (
-        date: DateValue | string | Date | dayjs.Dayjs | null | undefined
-    ): string => {
-        if (!date) return ""
-        if (typeof date === "object" && "toString" in date) return date.toString()
-        return dayjs(date).format(DEFAULT_DATE_FORMAT)
-    }
-
-    const toZonedDateTime = (
-        dateTime: string | number | Date | dayjs.Dayjs | null | undefined
-    ): ZonedDateTime | null => {
-        if (!dateTime) return null
-
-        const d = dayjs(dateTime)
-        if (!d.isValid()) return null
-
-        // Tạo format chuẩn cho parseZonedDateTime bất kể input
-        // Format yêu cầu: YYYY-MM-DDTHH:mm:ss[TimeZone]
-        const isoString = d.format("YYYY-MM-DDTHH:mm:ss")
-        return parseZonedDateTime(`${isoString}[${timeZone}]`)
-    }
-
     const toDate = (
         date: string | number | Date | dayjs.Dayjs | null | undefined
     ): CalendarDate | null => {
@@ -85,16 +65,102 @@ export const useDay = ({
         const d = dayjs(date)
         if (!d.isValid()) return null
 
-        // Cải tiến: Luôn format về YYYY-MM-DD để parseDate không bị lỗi với string có giờ
+        // Format về YYYY-MM-DD trước khi parse để tránh lỗi timezone
         return parseDate(d.format(DEFAULT_DATE_FORMAT))
     }
 
-    // Giữ nguyên signature nhận object params như cũ
+    /**
+     * Chuyển đổi String/Date -> ZonedDateTime (Dùng cho HeroUI DateTimePicker có Timezone)
+     * Input: DateTime String | Date Object
+     * Output: ZonedDateTime Object (kèm Timezone default)
+     */
+    const toZonedDateTime = (
+        dateTime: string | number | Date | dayjs.Dayjs | null | undefined
+    ): ZonedDateTime | null => {
+        if (!dateTime) return null
+
+        const d = dayjs(dateTime)
+        if (!d.isValid()) return null
+
+        // Format chuẩn YYYY-MM-DDTHH:mm:ss để ghép timezone
+        const isoString = d.format("YYYY-MM-DDTHH:mm:ss")
+        return parseZonedDateTime(`${isoString}[${timeZone}]`)
+    }
+
+    // ========================================================================
+    // 2. FORMATTERS (Chuyển đổi Object -> String chuẩn API/Display)
+    // ========================================================================
+
+    /**
+     * Format Time Object -> String "HH:mm:ss" (Gửi API)
+     */
+    const formatTime = (
+        time: Time | CalendarDateTime | ZonedDateTime | null | undefined,
+        withSecond: boolean = true
+    ): string => {
+        if (!time || !("hour" in time)) return ""
+
+        // 2. Format giờ và phút
+        const hour = time.hour.toString().padStart(2, "0")
+        const minute = time.minute.toString().padStart(2, "0")
+        let result = `${hour}:${minute}`
+
+        // 3. Nếu cần giây, lấy giá trị second thực tế (ép kiểu để lấy thuộc tính)
+        if (withSecond) {
+            // Trong @internationalized/date, second thường mặc định là 0 nếu không có
+            const second = time.second?.toString().padStart(2, "0") || "00"
+            result += `:${second}`
+        }
+
+        return result
+    }
+
+    /**
+     * Format Date -> String "YYYY-MM-DD" (Gửi API - chỉ lấy ngày)
+     */
+    const formatDateApi = (
+        date: DateValue | string | Date | dayjs.Dayjs | null | undefined
+    ): string => {
+        if (!date) return ""
+
+        // FIX: Chỉ dùng toString() nếu nó là object của HeroUI (có property 'calendar')
+        // Còn nếu là JS Date thuần (instanceof Date) thì bỏ qua để xuống dưới dùng dayjs
+        if (
+            typeof date === "object" &&
+            "toString" in date &&
+            !(date instanceof Date) && // <--- Thêm điều kiện này
+            !dayjs.isDayjs(date) // <--- Và không phải Dayjs object
+        ) {
+            return date.toString()
+        }
+
+        // Các trường hợp còn lại (String, Date, Dayjs) để dayjs lo
+        return dayjs(date).format(DEFAULT_DATE_FORMAT)
+    }
+
+    /**
+     * Format Date -> String UTC ISO [Z] (Gửi API DateTime)
+     * Chuyển đổi giờ Local (User) -> Giờ UTC (Server)
+     * Input: Local Time (VD: 08:00 VN)
+     * Output: UTC Time (VD: 01:00 Z)
+     */
+    const formatToApiUTC = (
+        date: dayjs.Dayjs | Date | string | null | undefined
+    ): string | undefined => {
+        if (!date) return undefined
+        // .utc() tự động trừ giờ theo timezone hiện tại
+        return dayjs(date).utc().format(DEFAULT_DATE_TIME_FORMAT)
+    }
+
+    /**
+     * Format DateTime -> String hiển thị đẹp (Display)
+     * Dùng để hiển thị lên UI cho người dùng đọc
+     */
     const formatDateTime = ({
         date,
-        timeZone: tz = timeZone // Dùng alias để ưu tiên tham số truyền vào, fallback về prop của hook
+        timeZone: tz = timeZone
     }: {
-        date: DateValue | string | null | undefined // Cho phép null/undefined để an toàn
+        date: DateValue | string | null | undefined
         timeZone?: string
     }): string => {
         if (!date) return ""
@@ -104,12 +170,18 @@ export const useDay = ({
             return dayjs(date).format(defaultFormat)
         }
 
-        // Nếu là DateValue (ZonedDateTime, CalendarDate)
-        // Chuyển về native Date rồi format
+        // Nếu là Object của HeroUI, convert sang Date rồi format
         const dateJs = dayjs(date.toDate(tz))
         return dateJs.format(defaultFormat)
     }
 
+    // ========================================================================
+    // 3. HELPERS (Các hàm tiện ích tính toán)
+    // ========================================================================
+
+    /**
+     * Tính số ngày chênh lệch giữa 2 mốc thời gian (làm tròn lên)
+     */
     const getDiffDaysCeil = ({
         startDate,
         endDate
@@ -121,6 +193,10 @@ export const useDay = ({
         return Math.ceil(dayjs(endDate).diff(dayjs(startDate), "day", true))
     }
 
+    /**
+     * Làm tròn phút theo bước nhảy (VD: step = 5 -> 00, 05, 10...)
+     * Dùng cho việc scroll chọn giờ để trải nghiệm mượt hơn
+     */
     const normalizeDateByMinuteStep = (
         currentValue: DateValue,
         prevValue?: DateValue,
@@ -130,7 +206,6 @@ export const useDay = ({
 
         const curr = currentValue as ZonedDateTime
         const prev = prevValue as ZonedDateTime | undefined
-
         let isIncreasing = true
 
         if (prev) {
@@ -158,17 +233,22 @@ export const useDay = ({
             newMinute = 60 - step
         }
 
-        const rounded = newDate.set({ minute: newMinute, second: 0 })
-        return rounded
+        return newDate.set({ minute: newMinute, second: 0 })
     }
 
     return {
+        // Parsers
         toTime,
-        formatTime,
-        formatDateApi,
         toDate,
         toZonedDateTime,
+
+        // Formatters
+        formatTime,
+        formatDateApi,
+        formatToApiUTC,
         formatDateTime,
+
+        // Helpers
         getDiffDaysCeil,
         normalizeDateByMinuteStep
     }

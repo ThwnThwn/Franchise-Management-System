@@ -1,16 +1,15 @@
 import { buildQueryParams, requestWrapper } from "@/utils/helpers/axiosHelper"
 import axiosInstance from "@/utils/axios"
 import { PageResult } from "@/models/common/respone"
-import { PaginationParams } from "@/models/common/request"
 import { CreateShiftRequest, GetShiftsParams, UpdateShiftRequest } from "../models/request"
 import { ShiftResponse } from "../models/response"
 
 export const shiftApi = {
-    getAll: ({ query, pagination }: { query: GetShiftsParams; pagination: PaginationParams }) =>
+    getAll: ({ query }: { query: GetShiftsParams }) =>
         requestWrapper<PageResult<ShiftResponse>>(async () => {
             const params = {
-                ...buildQueryParams(query),
-                ...buildQueryParams(pagination)
+                ...buildQueryParams(query)
+                // ...buildQueryParams(pagination)
             }
             const res = await axiosInstance.get("/shifts", { params })
             return res.data

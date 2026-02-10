@@ -26,7 +26,7 @@ type ProfileMenuItem = {
     action?: () => void // Dành cho nút Logout
 }
 
-export function ProfileDropdown() {
+export function ProfileDropdown({ isTextChangeColor = false }: { isTextChangeColor?: boolean }) {
     const router = useRouter()
     const { toFullName } = useUserHelper()
     const { data: user } = useGetMe()
@@ -121,8 +121,14 @@ export function ProfileDropdown() {
                             lastName: user?.lastName
                         })}
                         classNames={{
-                            name: "text-sm font-semibold text-default-700",
-                            description: "text-xs capitalize text-default-500"
+                            name: cn(
+                                "text-sm font-semibold ",
+                                isTextChangeColor ? "text-white" : "text-default-700"
+                            ),
+                            description: cn(
+                                "text-xs capitalize",
+                                isTextChangeColor ? "text-white-500" : "text-default-500"
+                            )
                         }}
                     />
                 </DropdownTrigger>

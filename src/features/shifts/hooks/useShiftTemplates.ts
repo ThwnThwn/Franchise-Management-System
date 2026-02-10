@@ -13,7 +13,7 @@ import { ShiftTemplateResponse } from "../models/response"
 let MOCK_DB: ShiftTemplateResponse[] = [
     {
         id: "tpl-1",
-        storeId: null, // Global Template (Admin tạo)
+        storeId: undefined, // Global Template (Admin tạo)
         code: "CA-SANG-HANH-CHINH",
         name: "Ca Hành Chính",
         startTime: "08:00:00",
@@ -102,6 +102,8 @@ export const useCreateShiftTemplate = ({ onSuccess }: { onSuccess?: () => void }
     return useMutation({
         mutationFn: async (req: CreateShiftTemplateRequest) => {
             await fakeDelay(800) // Giả vờ xử lý lâu tí
+
+            console.log(req)
 
             const newItem: ShiftTemplateResponse = {
                 id: `tpl-${Date.now()}`, // Fake ID

@@ -2,8 +2,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { QUERY_KEYS } from "@/constants/queryKeys"
 import { addToast } from "@heroui/react"
 import { STRINGS } from "@/constants/strings"
-import { PageResult } from "@/models/common/respone"
-import { PaginationParams } from "@/models/common/request"
 import {
     CreateShiftRequest,
     GetShiftsParams,
@@ -21,13 +19,13 @@ const generateMockShifts = (): ShiftResponse[] => {
     const monday = dayjs().day(1)
     const tuesday = monday.add(1, "day")
     const wednesday = monday.add(2, "day")
-    const thursday = monday.add(3, "day")
+    // const thursday = monday.add(3, "day")
 
     // Helper format nhanh
     const fmtDate = (d: dayjs.Dayjs) => d.format(DEFAULT_DATE_FORMAT)
     const fmtDateTime = (d: dayjs.Dayjs, timeStr: string) => {
         // timeStr dạng "08:00:00"
-        return d.format(`YYYY-MM-DDT${timeStr}`)
+        return d.format(`YYYY-MM-DDT${timeStr}[Z]`)
         // Hoặc nếu muốn chuẩn format có Z thì dùng: d.format(`YYYY-MM-DDT${timeStr}[Z]`)
         // Nhưng ở đây mock đơn giản để test UI
     }
@@ -37,9 +35,10 @@ const generateMockShifts = (): ShiftResponse[] => {
             id: "shift-1",
             storeId: "b7ac8328-2ca3-470d-80ca-15444eeab2dd",
             shiftDate: fmtDate(monday), // Thứ 2
-            startTime: fmtDateTime(monday, "08:00:00"),
-            endTime: fmtDateTime(monday, "16:00:00"),
+            startTime: fmtDateTime(monday, "01:00:00"),
+            endTime: fmtDateTime(monday, "09:00:00"),
             requiredStaffCount: 3,
+            breakDurationMinutes: 15,
             shiftTemplateId: "tpl-1",
             status: ShiftStatus.Published,
             note: "Ca sáng đầu tuần",
@@ -69,9 +68,10 @@ const generateMockShifts = (): ShiftResponse[] => {
             id: "shift-2",
             storeId: "b7ac8328-2ca3-470d-80ca-15444eeab2dd",
             shiftDate: fmtDate(tuesday), // Thứ 3
-            startTime: fmtDateTime(tuesday, "13:00:00"),
-            endTime: fmtDateTime(tuesday, "21:00:00"),
+            startTime: fmtDateTime(tuesday, "06:00:00"),
+            endTime: fmtDateTime(tuesday, "14:00:00"),
             requiredStaffCount: 2,
+            breakDurationMinutes: 60,
             shiftTemplateId: "tpl-2",
             status: ShiftStatus.Draft,
             assignedStaffCount: 0,
@@ -81,9 +81,10 @@ const generateMockShifts = (): ShiftResponse[] => {
             id: "shift-3",
             storeId: "b7ac8328-2ca3-470d-80ca-15444eeab2dd",
             shiftDate: fmtDate(wednesday), // Thứ 4
-            startTime: fmtDateTime(wednesday, "18:00:00"),
-            endTime: fmtDateTime(thursday, "02:00:00"), // Ca qua đêm sang thứ 5
+            startTime: fmtDateTime(wednesday, "11:00:00"),
+            endTime: fmtDateTime(wednesday, "20:00:00"), // Ca qua đêm sang thứ 5
             requiredStaffCount: 5,
+            breakDurationMinutes: 20,
             shiftTemplateId: "tpl-3",
             status: ShiftStatus.Published,
             assignedStaffCount: 5, // Đủ người
@@ -101,15 +102,13 @@ const fakeDelay = (ms = 500) => new Promise((resolve) => setTimeout(resolve, ms)
 
 export const useGetShifts = ({
     params,
-    pagination = {},
     enabled = true
 }: {
     params: GetShiftsParams
-    pagination?: PaginationParams
     enabled?: boolean
 }) => {
     return useQuery({
-        queryKey: [QUERY_KEYS.SHIFTS, params, pagination],
+        queryKey: [QUERY_KEYS.SHIFTS, params],
         queryFn: async () => {
             await fakeDelay()
             console.log("Mock API Get Shifts:", params)
@@ -123,13 +122,7 @@ export const useGetShifts = ({
                 filtered = filtered.filter((s) => s.shiftDate <= params.toDate!)
             }
 
-            return {
-                items: filtered,
-                pageNumber: 1,
-                pageSize: 100,
-                totalCount: filtered.length,
-                totalPages: 1
-            } as PageResult<ShiftResponse>
+            return filtered
         },
         enabled
     })
@@ -163,16 +156,20 @@ export const useCreateShift = ({ onSuccess }: { onSuccess?: () => void } = {}) =
                 startTime: req.startTime,
                 endTime: req.endTime,
                 requiredStaffCount: req.requiredStaffCount,
+                breakDurationMinutes: req.breakDurationMinutes,
                 shiftTemplateId: req.shiftTemplateId,
                 status: ShiftStatus.Draft,
                 note: req.note,
                 assignedStaffCount: 0,
                 assignments: []
             }
+
+            console.log(newShift)
+
             MOCK_SHIFTS_DB.push(newShift)
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SHIFTS] })
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SHIFTS], exact: false })
             addToast({
                 title: STRINGS.COMMON.SUCCESS,
                 description: "Tạo ca làm việc thành công (MOCK)",
@@ -194,7 +191,7 @@ export const useUpdateShift = ({ onSuccess }: { onSuccess?: () => void } = {}) =
             await fakeDelay()
             const index = MOCK_SHIFTS_DB.findIndex((s) => s.id === id)
             if (index !== -1) {
-                MOCK_SHIFTS_DB[index] = { ...MOCK_SHIFTS_DB[index], ...req } as ShiftResponse
+                MOCK_SHIFTS_DB[index] = { ...MOCK_SHIFTS_DB[index], ...req }
             }
         },
         onSuccess: () => {

@@ -6,7 +6,7 @@ export function NumberInputStyled(props: NumberInputProps) {
     return (
         <NumberInput
             variant="bordered"
-            {...props}
+            {...(props as any)}
             className={cn(props.className)}
             classNames={{
                 ...props.classNames,

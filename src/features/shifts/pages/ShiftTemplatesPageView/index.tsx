@@ -1,4 +1,4 @@
-// src/features/manager/pages/ShiftTemplatePage.tsx
+"use client"
 
 import React, { useState } from "react"
 import {
@@ -13,16 +13,23 @@ import {
     Chip,
     Tooltip
 } from "@heroui/react"
-import { Plus, Edit, Trash2, Clock } from "lucide-react"
+import { Plus, Edit, Trash2, Clock, Lock, FileClock } from "lucide-react"
 import { useGetShiftTemplates, useDeleteShiftTemplate } from "@/features/shifts/hooks"
-import { ShiftTemplateResponse } from "../models/response"
-import { confirmDialog } from "@/hooks"
-import { ShiftTemplateModal } from "../components/ShiftTemplateModal"
+import { ShiftTemplateResponse } from "../../models/response"
+import { confirmDialog, useTokenStore } from "@/hooks"
+import { ShiftTemplateModal } from "../../components/ShiftTemplateModal"
+import { RoleSlug } from "@/constants/enums"
+import { DashboardHeader } from "@/features/dashboard/components/general/DashboardHeader"
+import { ButtonStyled } from "@/components"
+import { formatCurrency } from "@/utils/helpers/currency"
 
-export const ShiftTemplatePageView = ({ storeId }: { storeId?: string }) => {
+export default function ShiftTemplatesPageView() {
+    const storeId = useTokenStore((s) => s.storeId)
+    const roleSlug = useTokenStore((s) => s.roleSlug)
+    const isAdmin = roleSlug === RoleSlug.Admin
+
     const { data, isLoading } = useGetShiftTemplates({
-        params: { storeId: storeId },
-        enabled: !!storeId
+        params: { storeId: storeId || undefined }
     })
 
     // 2. Modal Logic
@@ -79,55 +86,75 @@ export const ShiftTemplatePageView = ({ storeId }: { storeId?: string }) => {
                     </Chip>
                 )
             case "break":
-                return <span>{template.breakDurationMinutes} phút</span>
-            case "actions":
-                // Không cho sửa/xóa Template của hệ thống (storeId === null)
-                if (!template.storeId) {
+                return <span>{formatCurrency(template.breakDurationMinutes)} phút</span>
+            case "actions": {
+                const isSystemTemplate = !template.storeId
+                const isReadOnly = !isAdmin && isSystemTemplate
+
+                if (isReadOnly) {
                     return (
-                        <Chip size="sm" variant="dot" color="default">
-                            Read Only
-                        </Chip>
+                        <div className="flex justify-center">
+                            <Chip
+                                size="sm"
+                                variant="flat"
+                                color="warning"
+                                startContent={<Lock size={12} />}
+                                className="text-xs"
+                            >
+                                Mẫu hệ thống
+                            </Chip>
+                        </div>
                     )
                 }
+
                 return (
                     <div className="flex items-center justify-center gap-2">
                         <Tooltip content="Chỉnh sửa">
-                            <span
-                                className="text-lg text-default-400 cursor-pointer active:opacity-50 hover:text-primary"
-                                onClick={() => handleEdit(template)}
+                            <Button
+                                isIconOnly
+                                size="sm"
+                                variant="light"
+                                color="primary"
+                                onPress={() => handleEdit(template)}
                             >
                                 <Edit size={18} />
-                            </span>
+                            </Button>
                         </Tooltip>
+
                         <Tooltip content="Xóa" color="danger">
-                            <span
-                                className="text-lg text-danger cursor-pointer active:opacity-50 hover:text-danger-400"
-                                onClick={() => handleDelete(template.id)}
+                            <Button
+                                isIconOnly
+                                size="sm"
+                                variant="light"
+                                color="danger"
+                                onPress={() => handleDelete(template.id)}
                             >
                                 <Trash2 size={18} />
-                            </span>
+                            </Button>
                         </Tooltip>
                     </div>
                 )
+            }
             default:
                 return null
         }
     }
 
-    if (!storeId) return null
-
     return (
-        <div className="p-6">
-            <div className="flex justify-between items-center mb-6">
-                <div>
-                    <h1 className="text-2xl font-bold">Mẫu Ca Làm Việc</h1>
-                    <p className="text-gray-500 text-sm">
-                        Quản lý các khung giờ làm việc thường dùng
-                    </p>
-                </div>
-                <Button color="primary" startContent={<Plus size={20} />} onPress={handleCreate}>
+        <div className="max-w-7xl mx-auto min-h-screen p-4 md:p-6 lg:p-8">
+            <div className="flex justify-between">
+                <DashboardHeader
+                    icon={<FileClock className="w-6 h-6 text-white" />}
+                    title="Mẫu Ca Làm Việc"
+                    description="Quản lý các khung giờ làm việc thường dùng"
+                />
+                <ButtonStyled
+                    color="primary"
+                    startContent={<Plus size={20} />}
+                    onPress={handleCreate}
+                >
                     Tạo Mẫu Mới
-                </Button>
+                </ButtonStyled>
             </div>
 
             <Table aria-label="Shift Templates Table">
@@ -159,7 +186,7 @@ export const ShiftTemplatePageView = ({ storeId }: { storeId?: string }) => {
                 onOpenChange={onOpenChange}
                 onClose={onClose}
                 selectedTemplate={selectedTemplate}
-                storeId={storeId}
+                storeId={storeId || undefined}
             />
         </div>
     )

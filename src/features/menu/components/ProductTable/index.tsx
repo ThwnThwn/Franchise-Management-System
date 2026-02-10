@@ -78,12 +78,12 @@ export function ProductTable({
     }
 
     // 3. Render nội dung Tooltip cho cột Sizes
-    const renderSizeTooltip = (sizes: ProductSize[]) => {
+    const renderSizeTooltip = (sizes?: ProductSize[]) => {
         return (
             <div className="px-1 py-2">
                 <div className="text-xs font-bold mb-2 text-slate-300">Danh sách phân loại:</div>
                 <div className="flex flex-col gap-1">
-                    {sizes.map((s) => (
+                    {(sizes || []).map((s) => (
                         <div key={s.id} className="flex justify-between gap-4 text-xs">
                             <span className="text-white font-medium">{getSizeName(s)}</span>
                             <span className="text-emerald-400">
