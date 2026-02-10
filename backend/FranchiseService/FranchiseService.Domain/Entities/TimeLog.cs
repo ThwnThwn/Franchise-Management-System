@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using FranchiseService.Domain.Commons;
+﻿using FranchiseService.Domain.Commons;
 
 namespace FranchiseService.Domain.Entities;
 
@@ -8,7 +6,7 @@ public partial class TimeLog : SoftDeletedEntity, IEntity
 {
     public Guid Id { get; set; }
 
-    public Guid ScheduleId { get; set; }
+    public Guid ShiftAssignmentId { get; set; }
 
     public DateTime? CheckInAt { get; set; }
 
@@ -30,11 +28,11 @@ public partial class TimeLog : SoftDeletedEntity, IEntity
 
     public int? Status { get; set; }
 
-    public string? AdminNote { get; set; }
+    public string? ManagerNote { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; }
 
     public DateTimeOffset UpdatedAt { get; set; }
 
-    public virtual Schedule Schedule { get; set; } = null!;
+    public virtual ShiftAssignment ShiftAssignment { get; set; } = null!;
 }

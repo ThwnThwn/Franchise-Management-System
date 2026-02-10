@@ -90,6 +90,7 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
 
         return MapUser(rep);
     }
+
     public override async Task<GetAllUserOrWithRoleResponse> GetAll(GetAllUserOrWithRoleRequest request, ServerCallContext context)
     {
         var userEntry = context.RequestHeaders.FirstOrDefault(h =>
@@ -115,35 +116,7 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
             TotalPages = pagedResult.TotalPages
         };
 
-        res.Users.AddRange(pagedResult.Items.Select(u => new UserResponse
-        {
-            Id = u.Id.ToString(),
-            Email = u.Email ?? "",
-            Username = u.Username ?? "",
-            Phone = u.Phone ?? "",
-            Address = u.Address ?? "",
-            IsBlocked = u.IsBlocked ?? false,
-
-            FirstName = u.FirstName ?? "",
-            LastName = u.LastName ?? "",
-            Gender = u.Gender,
-
-            DateOfBirth = u.DateOfBirth.HasValue
-        ? Timestamp.FromDateTime(u.DateOfBirth.Value.ToUniversalTime())
-        : null,
-
-            Role = u.Role == null
-            ? null
-            : new RoleUserResponse
-            {
-                Id = u.Role.Id.ToString(),
-                Slug = u.Role.Slug,
-                Name = u.Role.Name
-            },
-
-            CreatedAt = Timestamp.FromDateTime(u.CreatedAt.UtcDateTime),
-            UpdatedAt = Timestamp.FromDateTime(u.UpdatedAt.UtcDateTime),
-        }));
+        res.Users.AddRange(pagedResult.Items.Select(u => MapUser(u)));
         return res;
     }
 
@@ -257,9 +230,10 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
                 : null,
             CreatedAt = Timestamp.FromDateTime(user.CreatedAt.UtcDateTime),
             UpdatedAt = Timestamp.FromDateTime(user.UpdatedAt.UtcDateTime),
+            HomeStoreId = user.HomeStoreId.HasValue ? user.HomeStoreId.Value.ToString() : "",
             Role = user.Role == null
-                ? new Grpc.Protos.Role.RoleUserResponse()
-                : new Grpc.Protos.Role.RoleUserResponse
+                ? new RoleUserResponse()
+                : new RoleUserResponse
                 {
                     Id = user.Role.Id.ToString(),
                     Name = user.Role.Name ?? "",

@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using FranchiseService.Domain.Commons;
+﻿using FranchiseService.Domain.Commons;
 
 namespace FranchiseService.Domain.Entities;
 

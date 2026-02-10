@@ -16,7 +16,7 @@ public static class DependencyInjection
 
         services.AddDbContext<IFranchiseDbContext, FranchiseDbContext>(opt => opt.UseNpgsql(identityDbConn));
 
-        services.AddScoped<IScheduleRepository, ScheduleRepository>();
+        services.AddScoped<IShiftRepository, ShiftRepository>();
         services.AddScoped<IStoreRepository, StoreRepository>();
 
         return services;

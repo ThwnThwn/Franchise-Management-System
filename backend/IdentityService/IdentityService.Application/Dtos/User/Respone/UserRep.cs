@@ -29,6 +29,8 @@ namespace IdentityService.Application.Dtos.User.Respone
 
         public bool? IsBlocked { get; set; }
 
+        public Guid? HomeStoreId { get; set; }
+
         public RoleUserRep? Role { get; set; }
 
         public DateTimeOffset CreatedAt { get; set; }

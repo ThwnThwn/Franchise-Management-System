@@ -19,6 +19,7 @@ func MapUserPbToUserModel(userPb *identity.UserResponse) *user.UserResponse {
 		Gender:      userPb.Gender,
 		DateOfBirth: timeutils.ProtoToTimePtr(userPb.DateOfBirth),
 		IsBlocked:   userPb.IsBlocked,
+		HomeStoreID: userPb.HomeStoreId,
 		Role: &role.RoleUserResponse{
 			Id:   userPb.Role.Id,
 			Name: userPb.Role.Name,

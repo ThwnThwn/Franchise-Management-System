@@ -6,11 +6,11 @@ namespace FranchiseService.Application.Features.Shifts.Queries.GetUserCurrentShi
 {
     public class GetUserCurrentShiftHandler : IRequestHandler<GetUserCurrentShiftQuery, UserShiftDto>
     {
-        private readonly IScheduleRepository _scheduleRepo;
+        private readonly IShiftRepository _shiftRepo;
 
-        public GetUserCurrentShiftHandler(IScheduleRepository scheduleRepo)
+        public GetUserCurrentShiftHandler(IShiftRepository shiftRepo)
         {
-            _scheduleRepo = scheduleRepo;
+            _shiftRepo = shiftRepo;
         }
 
         public async Task<UserShiftDto> Handle(GetUserCurrentShiftQuery request, CancellationToken cancellationToken)
@@ -21,18 +21,18 @@ namespace FranchiseService.Application.Features.Shifts.Queries.GetUserCurrentShi
             var today = DateTime.UtcNow.Date; // Convert sang giờ VN nếu cần
 
             // Gọi Repo
-            var schedule = await _scheduleRepo.GetPublishedShiftAsync(userGuid, today, cancellationToken);
+            var shift = await _shiftRepo.GetPublishedShiftAsync(userGuid, today, cancellationToken);
 
-            if (schedule == null)
+            if (shift == null)
                 return new UserShiftDto { HasShiftToday = false };
 
             return new UserShiftDto
             {
                 HasShiftToday = true,
-                StoreId = schedule.StoreId,
-                StoreName = schedule.Store?.Name, // Null check vì Repo đã Include
-                ShiftStart = schedule.StartTime.ToString("HH:mm"),
-                ShiftEnd = schedule.EndTime.ToString("HH:mm")
+                StoreId = shift.StoreId,
+                StoreName = shift.Store?.Name ?? "", // Null check vì Repo đã Include
+                ShiftStart = shift.StartTime.ToString("HH:mm"),
+                ShiftEnd = shift.EndTime.ToString("HH:mm")
             };
         }
     }
