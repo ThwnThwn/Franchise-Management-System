@@ -9,9 +9,15 @@ namespace FranchiseService.Infrastructure.ApplicationDbContext
     {
         DbSet<Franchisee> Franchisees { get; set; }
 
-        DbSet<Schedule> Schedules { get; set; }
+        DbSet<Shift> Shifts { get; set; }
+
+        DbSet<ShiftAssignment> ShiftAssignments { get; set; }
+
+        DbSet<ShiftRule> ShiftRules { get; set; }
 
         DbSet<ShiftTemplate> ShiftTemplates { get; set; }
+
+        DbSet<StaffAvailability> StaffAvailabilities { get; set; }
 
         DbSet<Store> Stores { get; set; }
 

@@ -5,7 +5,7 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Dọn dẹp dữ liệu cũ
-TRUNCATE TABLE time_logs, schedules, shift_templates, store_hours, stores, franchisees CASCADE;
+TRUNCATE TABLE time_logs, shift_templates, store_hours, stores, franchisees CASCADE;
 
 DO $$
 DECLARE
@@ -67,18 +67,18 @@ BEGIN
     -- === 6. SEED SCHEDULES (Gắn lịch làm việc cho Staff & Managers) ===
     
     -- STAFFS
-    INSERT INTO schedules (user_id, store_id, shift_template_id, shift_date, start_time, end_time, status, hourly_wage)
-    VALUES 
-    (u_staff_q1, s_q1, tpl_morning, cur_date, (cur_date || ' 07:00:00')::timestamp AT TIME ZONE 'Asia/Ho_Chi_Minh', (cur_date || ' 15:00:00')::timestamp AT TIME ZONE 'Asia/Ho_Chi_Minh', 1, 25000),
-    (u_staff_q3, s_q3, tpl_morning, cur_date, (cur_date || ' 07:00:00')::timestamp AT TIME ZONE 'Asia/Ho_Chi_Minh', (cur_date || ' 15:00:00')::timestamp AT TIME ZONE 'Asia/Ho_Chi_Minh', 1, 25000),
-    (u_staff_td, s_td, tpl_evening, cur_date, (cur_date || ' 14:00:00')::timestamp AT TIME ZONE 'Asia/Ho_Chi_Minh', (cur_date || ' 22:00:00')::timestamp AT TIME ZONE 'Asia/Ho_Chi_Minh', 1, 28000);
+    -- INSERT INTO schedules (user_id, store_id, shift_template_id, shift_date, start_time, end_time, status, hourly_wage)
+    -- VALUES 
+    -- (u_staff_q1, s_q1, tpl_morning, cur_date, (cur_date || ' 07:00:00')::timestamp AT TIME ZONE 'Asia/Ho_Chi_Minh', (cur_date || ' 15:00:00')::timestamp AT TIME ZONE 'Asia/Ho_Chi_Minh', 1, 25000),
+    -- (u_staff_q3, s_q3, tpl_morning, cur_date, (cur_date || ' 07:00:00')::timestamp AT TIME ZONE 'Asia/Ho_Chi_Minh', (cur_date || ' 15:00:00')::timestamp AT TIME ZONE 'Asia/Ho_Chi_Minh', 1, 25000),
+    -- (u_staff_td, s_td, tpl_evening, cur_date, (cur_date || ' 14:00:00')::timestamp AT TIME ZONE 'Asia/Ho_Chi_Minh', (cur_date || ' 22:00:00')::timestamp AT TIME ZONE 'Asia/Ho_Chi_Minh', 1, 28000);
 
     -- MANAGERS (Gán lịch để Manager có thể thực hiện chấm công/quản lý tại cửa hàng)
-    INSERT INTO schedules (user_id, store_id, shift_template_id, shift_date, start_time, end_time, status, hourly_wage)
-    VALUES 
-    (u_mana_q1, s_q1, tpl_morning, cur_date, (cur_date || ' 07:00:00')::timestamp AT TIME ZONE 'Asia/Ho_Chi_Minh', (cur_date || ' 15:00:00')::timestamp AT TIME ZONE 'Asia/Ho_Chi_Minh', 1, 50000),
-    (u_mana_q3, s_q3, tpl_morning, cur_date, (cur_date || ' 07:00:00')::timestamp AT TIME ZONE 'Asia/Ho_Chi_Minh', (cur_date || ' 15:00:00')::timestamp AT TIME ZONE 'Asia/Ho_Chi_Minh', 1, 50000),
-    (u_mana_td, s_td, tpl_evening, cur_date, (cur_date || ' 14:00:00')::timestamp AT TIME ZONE 'Asia/Ho_Chi_Minh', (cur_date || ' 22:00:00')::timestamp AT TIME ZONE 'Asia/Ho_Chi_Minh', 1, 55000);
+    -- INSERT INTO schedules (user_id, store_id, shift_template_id, shift_date, start_time, end_time, status, hourly_wage)
+    -- VALUES 
+    -- (u_mana_q1, s_q1, tpl_morning, cur_date, (cur_date || ' 07:00:00')::timestamp AT TIME ZONE 'Asia/Ho_Chi_Minh', (cur_date || ' 15:00:00')::timestamp AT TIME ZONE 'Asia/Ho_Chi_Minh', 1, 50000),
+    -- (u_mana_q3, s_q3, tpl_morning, cur_date, (cur_date || ' 07:00:00')::timestamp AT TIME ZONE 'Asia/Ho_Chi_Minh', (cur_date || ' 15:00:00')::timestamp AT TIME ZONE 'Asia/Ho_Chi_Minh', 1, 50000),
+    -- (u_mana_td, s_td, tpl_evening, cur_date, (cur_date || ' 14:00:00')::timestamp AT TIME ZONE 'Asia/Ho_Chi_Minh', (cur_date || ' 22:00:00')::timestamp AT TIME ZONE 'Asia/Ho_Chi_Minh', 1, 55000);
 
     RAISE NOTICE 'Franchise DB Seeded with Staff and Managers Successfully!';
 END $$;

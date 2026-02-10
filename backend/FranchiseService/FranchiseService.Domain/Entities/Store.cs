@@ -1,5 +1,4 @@
 ﻿using FranchiseService.Domain.Commons;
-using FranchiseService.Domain.Enums;
 
 namespace FranchiseService.Domain.Entities;
 
@@ -35,7 +34,7 @@ public partial class Store : SoftDeletedEntity, IEntity
 
     public virtual Franchisee? Franchisee { get; set; }
 
-    public virtual ICollection<Schedule> Schedules { get; set; } = new List<Schedule>();
+    public virtual ICollection<Shift> Shifts { get; set; } = new List<Shift>();
 
     public virtual ICollection<StoreHour> StoreHours { get; set; } = new List<StoreHour>();
 }
