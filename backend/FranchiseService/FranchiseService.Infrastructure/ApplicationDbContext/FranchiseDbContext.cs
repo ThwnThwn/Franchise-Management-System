@@ -184,6 +184,8 @@ public partial class FranchiseDbContext : DbContext, IFranchiseDbContext
 
             entity.ToTable("shift_rules");
 
+            entity.HasIndex(e => e.StoreId, "idx_rules_store_unique").IsUnique();
+
             entity.Property(e => e.Id)
                 .HasDefaultValueSql("uuid_generate_v4()")
                 .HasColumnName("id");

@@ -192,7 +192,7 @@ CREATE TABLE IF NOT EXISTS shift_rules (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
-
+CREATE UNIQUE INDEX idx_rules_store_unique ON shift_rules(store_id);
 
 -- ========================================================
 -- 8. STAFF AVAILABILITIES (Lịch rảnh của nhân viên)
