@@ -47,6 +47,7 @@ public class GetAllUsersQueryHandler : IRequestHandler<GetAllUsersQuery, PagedRe
             UpdatedAt = u.UpdatedAt,
             DateOfBirth = u.DateOfBirth,
             IsBlocked = u.IsBlocked,
+            HomeStoreId = u.HomeStoreId,
             Role = u.Role == null
                 ? null
                 : _mapper.Map<RoleUserRep>(u.Role)

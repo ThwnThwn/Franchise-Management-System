@@ -115,9 +115,10 @@ message UserResponse {
   int32 gender = 9;
   google.protobuf.Timestamp dateOfBirth = 10;
 
-  identity.role.RoleUserResponse role = 11;
-  google.protobuf.Timestamp createdAt = 12;
-  google.protobuf.Timestamp updatedAt = 13;
+  optional string homeStoreId = 11;
+  identity.role.RoleUserResponse role = 12;
+  google.protobuf.Timestamp createdAt = 13;
+  google.protobuf.Timestamp updatedAt = 14;
 }
 
 message GetManagerRequest{

@@ -18,5 +18,6 @@ type UserResponse struct {
 	CreatedAt   *time.Time             `json:"createdAt"`
 	UpdatedAt   *time.Time             `json:"updatedAt"`
 	IsBlocked   bool                   `json:"isBlocked"`
+	HomeStoreID *string                `json:"homeStoreId"`
 	Role        *role.RoleUserResponse `json:"role"`
 }
