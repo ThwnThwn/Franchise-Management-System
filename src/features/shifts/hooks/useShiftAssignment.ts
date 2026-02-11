@@ -4,8 +4,12 @@ import { addToast } from "@heroui/react"
 import { StaffAssignmentCandidate } from "../models/response"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { fakeDelay, MOCK_SHIFTS_DB } from "./useShifts"
+import { useMemo, useState } from "react"
 
-// --- MOCK CANDIDATES GENERATOR ---
+// Giả lập DB tạm thời cho candidates
+let MOCK_CANDIDATES_DB: Record<string, StaffAssignmentCandidate[]> = {}
+
+// --- MOCK CANDIDATES GENERATOR (Thêm dữ liệu validation thô) ---
 const generateMockCandidates = (shiftId: string): StaffAssignmentCandidate[] => {
     return [
         {
@@ -16,8 +20,15 @@ const generateMockCandidates = (shiftId: string): StaffAssignmentCandidate[] => 
             currentHourlyWage: 25000,
             isAvailable: true,
             isConflict: false,
-            isAssigned: shiftId === "shift-1", // Giả định user-1 đã được gán vào shift-1
-            note: "Sẵn sàng tăng ca"
+            isAssigned: shiftId === "shift-1",
+            note: "Sẵn sàng tăng ca",
+            validation: {
+                isRestTimeInvalid: false,
+                restHours: 12,
+                isOverLimit: false,
+                weeklyHours: 35,
+                isShuttleInvalid: false
+            }
         },
         {
             id: "user-2",
@@ -28,7 +39,14 @@ const generateMockCandidates = (shiftId: string): StaffAssignmentCandidate[] => 
             isAvailable: true,
             isConflict: false,
             isAssigned: shiftId === "shift-1",
-            note: ""
+            note: "",
+            validation: {
+                isRestTimeInvalid: true,
+                restHours: 6,
+                isOverLimit: false,
+                weeklyHours: 20,
+                isShuttleInvalid: false
+            }
         },
         {
             id: "user-3",
@@ -39,7 +57,14 @@ const generateMockCandidates = (shiftId: string): StaffAssignmentCandidate[] => 
             isAvailable: false,
             isConflict: false,
             isAssigned: false,
-            note: "Đi học thêm buổi sáng"
+            note: "Đi học thêm buổi sáng",
+            validation: {
+                isRestTimeInvalid: false,
+                restHours: 24,
+                isOverLimit: true,
+                weeklyHours: 42,
+                isShuttleInvalid: false
+            }
         },
         {
             id: "user-4",
@@ -50,8 +75,16 @@ const generateMockCandidates = (shiftId: string): StaffAssignmentCandidate[] => 
             isAvailable: true,
             isConflict: true,
             isAssigned: false,
-            note: "Trùng lịch ca Part-time tại Store khác"
+            note: "Trùng lịch ca Part-time tại Store khác",
+            validation: {
+                isRestTimeInvalid: false,
+                restHours: 8,
+                isOverLimit: false,
+                weeklyHours: 15,
+                isShuttleInvalid: false
+            }
         },
+        // --- THÊM USER E (Cảnh báo nghỉ ít) ---
         {
             id: "user-5",
             firstName: "Thanh E",
@@ -61,13 +94,36 @@ const generateMockCandidates = (shiftId: string): StaffAssignmentCandidate[] => 
             isAvailable: true,
             isConflict: false,
             isAssigned: false,
-            note: ""
+            note: "Nhân viên cứng",
+            validation: {
+                isRestTimeInvalid: true,
+                restHours: 4.5, // Nghỉ quá ít, BE trả về 4.5h
+                isOverLimit: false,
+                weeklyHours: 30,
+                isShuttleInvalid: false
+            }
+        },
+        // --- THÊM USER F (Cảnh báo quá giờ tuần) ---
+        {
+            id: "user-6",
+            firstName: "Quốc F",
+            lastName: "Đỗ",
+            avatarUrl: "https://i.pravatar.cc/150?u=user-6",
+            currentHourlyWage: 27000,
+            isAvailable: true,
+            isConflict: false,
+            isAssigned: false,
+            note: "",
+            validation: {
+                isRestTimeInvalid: false,
+                restHours: 15,
+                isOverLimit: true,
+                weeklyHours: 45, // Đã làm 45h, vượt 40h quy định
+                isShuttleInvalid: false
+            }
         }
     ]
 }
-
-// Giả lập DB tạm thời cho candidates
-let MOCK_CANDIDATES_DB: Record<string, StaffAssignmentCandidate[]> = {}
 
 // --- HOOK IMPLEMENTATION ---
 
@@ -83,6 +139,9 @@ export const useShiftAssignment = ({
     const queryClient = useQueryClient()
     const queryKey = [QUERY_KEYS.SHIFT_CANDIDATES, storeId, shiftId]
 
+    // ===============================
+    // Query
+    // ===============================
     // Query lấy danh sách ứng viên
     const { data: candidates = [], isLoading } = useQuery<StaffAssignmentCandidate[]>({
         queryKey,
@@ -99,7 +158,9 @@ export const useShiftAssignment = ({
         enabled: !!storeId && !!shiftId
     })
 
-    // Mutation đồng bộ (Sync) mảng nhân sự
+    // ===============================
+    // Mutation
+    // ===============================
     const syncMutation = useMutation({
         mutationFn: async (userIds: string[]) => {
             await fakeDelay(1000)
@@ -139,10 +200,67 @@ export const useShiftAssignment = ({
         }
     })
 
+    // ===============================
+    // Logic
+    // ===============================
+    const [draftIds, setDraftIds] = useState<string[] | null>(null)
+
+    // 1. Danh sách ID gốc từ DB
+    const originalAssignedIds = useMemo(
+        () => candidates.filter((c) => c.isAssigned).map((c) => c.id),
+        [candidates]
+    )
+
+    // 2. Mảng ID đang được chọn (nháp hoặc gốc)
+    const effectiveSelectedIds = useMemo(
+        () => draftIds ?? originalAssignedIds,
+        [draftIds, originalAssignedIds]
+    )
+
+    // 3. Logic so sánh thay đổi
+    const hasChanges = useMemo(() => {
+        if (draftIds === null) return false
+        return [...originalAssignedIds].sort().join(",") !== [...draftIds].sort().join(",")
+    }, [originalAssignedIds, draftIds])
+
+    // 4. PHÂN LOẠI DATA (Đây là chỗ sửa lỗi)
+    // Assigned: Những người có ID nằm trong danh sách được chọn
+    const assignedList = useMemo(
+        () => candidates.filter((c) => effectiveSelectedIds.includes(c.id)),
+        [candidates, effectiveSelectedIds]
+    )
+
+    // Available: Những người KHÔNG nằm trong danh sách được chọn
+    const availableList = useMemo(
+        () => candidates.filter((c) => !effectiveSelectedIds.includes(c.id)),
+        [candidates, effectiveSelectedIds]
+    )
+
+    const handleToggle = (userId: string) => {
+        // Tìm candidate để check hard-block
+        const candidate = candidates.find((c) => c.id === userId)
+        if (candidate?.isConflict || candidate?.validation?.isShuttleInvalid) return
+
+        setDraftIds((prev) => {
+            const current = prev ?? originalAssignedIds
+            return current.includes(userId)
+                ? current.filter((id) => id !== userId)
+                : [...current, userId]
+        })
+    }
+
+    const handleReset = () => setDraftIds(null)
+
     return {
         candidates,
         isLoading,
         syncAssignments: syncMutation.mutate,
-        isSyncing: syncMutation.isPending
+        isSyncing: syncMutation.isPending,
+        hasChanges,
+        effectiveSelectedIds,
+        assignedList,
+        availableList,
+        handleToggle,
+        handleReset
     }
 }

@@ -4,7 +4,8 @@ import { SaveShiftRuleRequest } from "../models/request"
 
 /**
  * SHIFT RULE API
- * Quản lý luật lệ ca làm (Global & Store Specific)
+ * @title Quản lý luật lệ ca làm (Global & Store Specific)
+ * @description Sẽ ưu tiên dùng rule của store, nếu store chưa tạo thì dùng rule global
  */
 export const shiftRuleApi = {
     // Lấy cấu hình cho trang Settings (Manager/Admin)

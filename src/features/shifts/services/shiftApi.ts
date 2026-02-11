@@ -73,6 +73,6 @@ export const shiftApi = {
         // Backend sẽ so sánh mảng này với DB:
         // - User nào mới thì Insert, có mà đang isDeleted = true thì thành false
         // - User nào thiếu so với DB thì soft Delete
-        await axiosInstance.put(`/shifts/${shiftId}/assign`, { userIds })
+        await axiosInstance.put(`/shifts/${shiftId}/assign`, userIds)
     }
 }

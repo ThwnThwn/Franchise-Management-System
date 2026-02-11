@@ -1,10 +1,12 @@
 "use client"
 
-import React, { useState, useMemo } from "react"
+import React from "react"
 import { Listbox, ListboxItem, User, Tooltip, ScrollShadow, Spinner } from "@heroui/react"
-import { AlertTriangle, CheckCircle2, UserPlus, UserMinus } from "lucide-react"
+import { AlertTriangle, CheckCircle2, UserPlus, UserMinus, Info } from "lucide-react"
 import { useShiftAssignment } from "../../hooks/useShiftAssignment"
 import { UnsavedChangesNotifier } from "@/components"
+import { getValidationErrors } from "./helper"
+import { useUserHelper } from "@/hooks"
 
 type Props = {
     storeId: string
@@ -21,55 +23,23 @@ export function ShiftAssignmentTab({
     isSubmitable,
     onClose
 }: Props) {
-    const { candidates, isLoading, syncAssignments, isSyncing } = useShiftAssignment({
+    const { toFullName } = useUserHelper()
+
+    const {
+        isLoading,
+        syncAssignments,
+        isSyncing,
+        hasChanges,
+        effectiveSelectedIds,
+        assignedList,
+        availableList,
+        handleToggle,
+        handleReset
+    } = useShiftAssignment({
         shiftId: shiftId,
         storeId: storeId,
         onSuccess: onClose
     })
-
-    const [draftIds, setDraftIds] = useState<string[] | null>(null)
-
-    // 1. Danh sách ID gốc từ DB
-    const originalAssignedIds = useMemo(
-        () => candidates.filter((c) => c.isAssigned).map((c) => c.id),
-        [candidates]
-    )
-
-    // 2. Mảng ID đang được chọn (nháp hoặc gốc)
-    const effectiveSelectedIds = useMemo(
-        () => draftIds ?? originalAssignedIds,
-        [draftIds, originalAssignedIds]
-    )
-
-    // 3. Logic so sánh thay đổi
-    const hasChanges = useMemo(() => {
-        if (draftIds === null) return false
-        return [...originalAssignedIds].sort().join(",") !== [...draftIds].sort().join(",")
-    }, [originalAssignedIds, draftIds])
-
-    // 4. PHÂN LOẠI DATA (Đây là chỗ sửa lỗi)
-    // Assigned: Những người có ID nằm trong danh sách được chọn
-    const assignedList = useMemo(
-        () => candidates.filter((c) => effectiveSelectedIds.includes(c.id)),
-        [candidates, effectiveSelectedIds]
-    )
-
-    // Available: Những người KHÔNG nằm trong danh sách được chọn
-    const availableList = useMemo(
-        () => candidates.filter((c) => !effectiveSelectedIds.includes(c.id)),
-        [candidates, effectiveSelectedIds]
-    )
-
-    const handleToggle = (userId: string) => {
-        setDraftIds((prev) => {
-            const current = prev ?? originalAssignedIds
-            return current.includes(userId)
-                ? current.filter((id) => id !== userId)
-                : [...current, userId]
-        })
-    }
-
-    const handleReset = () => setDraftIds(null)
 
     if (isLoading) {
         return (
@@ -103,7 +73,10 @@ export function ShiftAssignmentTab({
                                     isReadOnly={!isSubmitable}
                                 >
                                     <User
-                                        name={`${item.firstName} ${item.lastName}`}
+                                        name={toFullName({
+                                            firstName: item.firstName,
+                                            lastName: item.lastName
+                                        })}
                                         description={`${item.currentHourlyWage.toLocaleString()}đ/h`}
                                         avatarProps={{ src: item.avatarUrl, size: "sm" }}
                                     />
@@ -120,35 +93,69 @@ export function ShiftAssignmentTab({
                         Ứng viên khả dụng ({availableList.length})
                     </h4>
                     <Listbox items={availableList} variant="flat" aria-label="Available list">
-                        {(item) => (
-                            <ListboxItem
-                                key={item.id}
-                                textValue={`${item.firstName} ${item.lastName}`}
-                                endContent={
-                                    item.isConflict && (
-                                        <Tooltip content="Trùng lịch" color="danger">
-                                            <AlertTriangle size={18} className="text-danger" />
-                                        </Tooltip>
-                                    )
-                                }
-                                onPress={() => !item.isConflict && handleToggle(item.id)}
-                                className={item.isConflict ? "opacity-50 cursor-not-allowed" : ""}
-                                isReadOnly={!isSubmitable}
-                            >
-                                <div className="flex flex-col items-start gap-1">
-                                    <User
-                                        name={`${item.firstName} ${item.lastName}`}
-                                        description={`${item.currentHourlyWage.toLocaleString()}đ/h`}
-                                        avatarProps={{ src: item.avatarUrl, size: "sm" }}
-                                    />
-                                    {!item.isAvailable && (
-                                        <span className="text-[10px] text-warning italic pl-10">
-                                            Bận: {item.note || "Nghỉ"}
-                                        </span>
-                                    )}
-                                </div>
-                            </ListboxItem>
-                        )}
+                        {(item) => {
+                            const errors = getValidationErrors(item)
+                            const isHardBlocked =
+                                item.isConflict || item.validation?.isShuttleInvalid
+
+                            return (
+                                <ListboxItem
+                                    key={item.id}
+                                    textValue={`${item.firstName} ${item.lastName}`}
+                                    onPress={() => handleToggle(item.id)}
+                                    className={isHardBlocked ? "opacity-50 cursor-not-allowed" : ""}
+                                    isReadOnly={!isSubmitable || isHardBlocked}
+                                    endContent={
+                                        errors.length > 0 && (
+                                            <Tooltip
+                                                placement="right"
+                                                closeDelay={200}
+                                                content={
+                                                    <div className="px-1 py-2">
+                                                        <div className="text-tiny font-bold mb-1">
+                                                            Cảnh báo:
+                                                        </div>
+                                                        {errors.map((err, i) => (
+                                                            <div key={i} className="text-tiny">
+                                                                • {err}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                }
+                                                color="danger"
+                                            >
+                                                <AlertTriangle
+                                                    size={18}
+                                                    className={
+                                                        isHardBlocked
+                                                            ? "text-danger"
+                                                            : "text-warning"
+                                                    }
+                                                />
+                                            </Tooltip>
+                                        )
+                                    }
+                                >
+                                    <div className="flex flex-col items-start gap-1">
+                                        <User
+                                            name={toFullName({
+                                                firstName: item.firstName,
+                                                lastName: item.lastName
+                                            })}
+                                            description={`${item.currentHourlyWage.toLocaleString()}đ/h`}
+                                            avatarProps={{ src: item.avatarUrl, size: "sm" }}
+                                        />
+                                        {/* Hiển thị note bận nếu có */}
+                                        {!item.isAvailable && (
+                                            <div className="flex items-center gap-1 text-[10px] text-warning italic pl-10">
+                                                <Info size={10} />
+                                                Lịch bận: {item.note || "Nghỉ"}
+                                            </div>
+                                        )}
+                                    </div>
+                                </ListboxItem>
+                            )
+                        }}
                     </Listbox>
                 </section>
             </ScrollShadow>

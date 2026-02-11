@@ -84,7 +84,7 @@ export const ShiftModal = ({
     }
 
     return (
-        <ModalStyled isOpen={isOpen} onClose={handleClose}>
+        <ModalStyled isOpen={isOpen} onClose={handleClose} isKeyboardDismissDisabled={false}>
             <ModalContent>
                 <ModalHeader className="flex flex-col gap-1">
                     {initialData?.id ? "Quản lý Ca làm việc" : "Tạo Ca Mới"}

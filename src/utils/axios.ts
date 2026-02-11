@@ -42,7 +42,7 @@ axiosInstance.interceptors.response.use(
         // --- 1. Logic Refresh Token ---
         if (
             error.response?.status === 401 &&
-            error.response?.data.detail === "invalid access token" &&
+            error.response?.data.detail === "4011" &&
             !originalRequest.sent
         ) {
             originalRequest.sent = true

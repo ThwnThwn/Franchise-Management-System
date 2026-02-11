@@ -48,6 +48,10 @@ export interface ShiftTemplateResponse {
 // ===============================
 // Shift assignment
 // ===============================
+/**
+ * DTO đại diện cho một ứng viên nhân viên có thể gán vào ca làm.
+ * Dữ liệu validation được tính toán dựa trên context của ca làm (shiftId/thời gian/cửa hàng).
+ */
 export interface StaffAssignmentCandidate {
     id: string
     firstName: string
@@ -55,12 +59,50 @@ export interface StaffAssignmentCandidate {
     avatarUrl?: string
     currentHourlyWage: number
 
+    // --- TRẠNG THÁI KHẢ DỤNG (AVAILABILITY) ---
+    // Dựa trên lịch đăng ký rảnh/bận của nhân viên (Staff Availability)
     isAvailable: boolean
+    // Ghi chú từ lịch rảnh (VD: "Chỉ làm được ca tối", "Bận việc gia đình")
     note?: string
 
-    // Dữ liệu check chéo với bảng shift_assignments
-    isConflict: boolean // check xem có record nào trùng giờ chưa
-    isAssigned: boolean // check xem staff đã có trong ca này chưa
+    // --- TRẠNG THÁI GÁN CA ---
+    // true nếu nhân viên đã nằm trong danh sách gán của ca này (tránh add trùng)
+    isAssigned: boolean
+
+    /**
+     * RULE 1: CONFLICT TIME (TRÙNG LỊCH)
+     * Trạng thái chặn cứng (Hard Block).
+     * true nếu nhân viên đã có một ca làm khác (ở bất kỳ Store nào)
+     * giao thoa về mặt thời gian với ca hiện tại.
+     */
+    isConflict: boolean
+
+    // --- BỘ DỮ LIỆU KIỂM TRA QUY ĐỊNH (BUSINESS RULES VALIDATION) ---
+    // BE tính toán dựa trên Settings của Store (min_rest, max_hours, allow_shuttle)
+    validation?: {
+        /**
+         * RULE 2: REST PERIOD (THỜI GIAN NGHỈ)
+         * isRestTimeInvalid: true nếu khoảng nghỉ từ ca trước đến ca này < quy định.
+         * restHours: Số giờ nghỉ thực tế giữa 2 ca (Dùng để FE render message).
+         */
+        isRestTimeInvalid: boolean
+        restHours: number
+
+        /**
+         * RULE 3: WEEKLY CAP (GIỚI HẠN GIỜ TUẦN)
+         * isOverLimit: true nếu tổng giờ trong tuần (bao gồm ca này) > quy định.
+         * weeklyHours: Tổng số giờ nhân viên đã gán trong tuần hiện tại (trước ca này).
+         */
+        isOverLimit: boolean
+        weeklyHours: number
+
+        /**
+         * RULE 4: SHUTTLE CHECK (ĐIỀU CHUYỂN)
+         * true nếu: Ca ở Store A, nhân viên thuộc Store B
+         * NHƯNG một trong hai Store không cho phép điều chuyển (allow_shuttle = false).
+         */
+        isShuttleInvalid: boolean
+    }
 }
 
 // ===============================
