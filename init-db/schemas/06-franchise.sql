@@ -116,8 +116,8 @@ CREATE TABLE IF NOT EXISTS shifts (
     store_id UUID NOT NULL,
     
     shift_date DATE NOT NULL,
-    start_time TIMESTAMP WITH TIME ZONE NOT NULL, 
-    end_time TIMESTAMP WITH TIME ZONE NOT NULL,
+    start_time TIME NOT NULL, 
+    end_time TIME NOT NULL,
     
     required_staff_count INT NOT NULL DEFAULT 1,
     
@@ -131,6 +131,9 @@ CREATE TABLE IF NOT EXISTS shifts (
     status INT DEFAULT 0,
     
     note TEXT,
+    
+    break_duration_minutes INT DEFAULT 0, -- Thời gian nghỉ (phút)
+    lock_version INT DEFAULT 1,           -- Optimistic Locking
     
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -270,3 +273,20 @@ CREATE TABLE IF NOT EXISTS time_logs (
     CONSTRAINT fk_timelogs_assignment FOREIGN KEY (shift_assignment_id) REFERENCES shift_assignments(id)
 );
 CREATE INDEX idx_timelogs_assignment ON time_logs(shift_assignment_id);
+
+-- =======================================================
+-- 10. OUTBOX MESSAGES (Pattern for Reliable Events)
+-- =======================================================
+CREATE TABLE IF NOT EXISTS outbox_messages (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    type TEXT NOT NULL,
+    content TEXT NOT NULL,
+    occurred_on TIMESTAMP WITH TIME ZONE NOT NULL,
+    processed_on TIMESTAMP WITH TIME ZONE NULL,
+    error TEXT NULL,
+
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX ix_outbox_messages_processed_on ON outbox_messages(processed_on) WHERE processed_on IS NULL;

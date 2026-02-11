@@ -26,6 +26,8 @@ public partial class User : SoftDeletedEntity, IEntity
 
     public bool? IsBlocked { get; set; }
 
+    public decimal? CurrentHourlyWage { get; set; }
+
     public Guid? HomeStoreId { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; }

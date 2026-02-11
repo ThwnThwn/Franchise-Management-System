@@ -83,12 +83,21 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
 
     public override async Task<UserResponse> GetById(GetUserByIdRequest request, ServerCallContext context)
     {
-        var rep = await _mediator.Send(new GetUserByIdQuery(Guid.Parse(request.Id)));
+        try
+        {
+            var rep = await _mediator.Send(new GetUserByIdQuery(Guid.Parse(request.Id)));
 
-        if (rep == null)
-            throw new RpcException(new Status(StatusCode.NotFound, "User not found"));
+            if (rep == null)
+                throw new RpcException(new Status(StatusCode.NotFound, "User not found"));
 
-        return MapUser(rep);
+            return MapUser(rep);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ERROR] GetById Failed: {ex.Message}");
+            Console.WriteLine(ex.StackTrace);
+            throw new RpcException(new Status(StatusCode.Internal, $"Internal Server Error: {ex.Message}"));
+        }
     }
 
     public override async Task<GetAllUserOrWithRoleResponse> GetAll(GetAllUserOrWithRoleRequest request, ServerCallContext context)
@@ -230,6 +239,7 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
                 : null,
             CreatedAt = Timestamp.FromDateTime(user.CreatedAt.UtcDateTime),
             UpdatedAt = Timestamp.FromDateTime(user.UpdatedAt.UtcDateTime),
+            CurrentHourlyWage = (double)(user.CurrentHourlyWage ?? 0),
             HomeStoreId = user.HomeStoreId.HasValue ? user.HomeStoreId.Value.ToString() : "",
             Role = user.Role == null
                 ? new RoleUserResponse()
