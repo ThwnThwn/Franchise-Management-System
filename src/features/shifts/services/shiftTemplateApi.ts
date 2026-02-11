@@ -1,4 +1,4 @@
-import { buildQueryParams, requestWrapper } from "@/utils/helpers/axiosHelper"
+import { buildQueryParams } from "@/utils/helpers/axiosHelper"
 import axiosInstance from "@/utils/axios"
 import {
     CreateShiftTemplateRequest,
@@ -7,41 +7,42 @@ import {
 } from "../models/request"
 import { ShiftTemplateResponse } from "../models/response"
 
+/**
+ * SHIFT TEMPLATE API
+ * Quản lý các mẫu ca làm việc (Sáng, Chiều, Tối...)
+ */
 export const shiftTemplateApi = {
-    getAll: ({
+    // Lấy toàn bộ danh sách mẫu ca theo Store
+    getAll: async ({
         query
-        // pagination
     }: {
         query: GetShiftTemplatesParams
-        // pagination?: PaginationParams
-    }) =>
-        requestWrapper<ShiftTemplateResponse[]>(async () => {
-            const params = {
-                ...buildQueryParams(query)
-                // ...(pagination ? buildQueryParams(pagination) : {})
-            }
-            const res = await axiosInstance.get("/shift-templates", { params })
-            return res.data
-        }),
+    }): Promise<ShiftTemplateResponse[]> => {
+        const params = {
+            ...buildQueryParams(query)
+        }
+        const res = await axiosInstance.get("/shift-templates", { params })
+        return res.data
+    },
 
-    getById: ({ id }: { id: string }) =>
-        requestWrapper<ShiftTemplateResponse>(async () => {
-            const res = await axiosInstance.get(`/shift-templates/${id}`)
-            return res.data
-        }),
+    // Lấy chi tiết một mẫu ca
+    getById: async ({ id }: { id: string }): Promise<ShiftTemplateResponse> => {
+        const res = await axiosInstance.get(`/shift-templates/${id}`)
+        return res.data
+    },
 
-    create: (req: CreateShiftTemplateRequest) =>
-        requestWrapper<void>(async () => {
-            await axiosInstance.post("/shift-templates", req)
-        }),
+    // Tạo mẫu ca mới
+    create: async (req: CreateShiftTemplateRequest): Promise<void> => {
+        await axiosInstance.post("/shift-templates", req)
+    },
 
-    update: ({ id, req }: { id: string; req: UpdateShiftTemplateRequest }) =>
-        requestWrapper<void>(async () => {
-            await axiosInstance.patch(`/shift-templates/${id}`, req)
-        }),
+    // Cập nhật mẫu ca
+    update: async ({ id, req }: { id: string; req: UpdateShiftTemplateRequest }): Promise<void> => {
+        await axiosInstance.patch(`/shift-templates/${id}`, req)
+    },
 
-    delete: ({ id }: { id: string }) =>
-        requestWrapper<void>(async () => {
-            await axiosInstance.delete(`/shift-templates/${id}`)
-        })
+    // Xóa mẫu ca
+    delete: async ({ id }: { id: string }): Promise<void> => {
+        await axiosInstance.delete(`/shift-templates/${id}`)
+    }
 }

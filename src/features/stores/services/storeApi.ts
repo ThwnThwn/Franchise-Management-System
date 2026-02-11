@@ -1,31 +1,41 @@
-import { buildQueryParams, requestWrapper } from "@/utils/helpers/axiosHelper"
-import axiosInstance from "@/utils/axios"
+import { buildQueryParams } from "@/utils/helpers/axiosHelper"
 import { FindNearbyStoresParams, GetStoresParams } from "../models/schema/request"
+import axiosInstance from "@/utils/axios"
 import { StoreDetailDto } from "../models/schema/response"
 import { PaginationParams } from "@/models/common/request"
 import { PageResult } from "@/models/common/respone"
 
+/**
+ * STORE API
+ * Quản lý danh sách và chi tiết cửa hàng.
+ */
 export const storeApi = {
-    getAll: ({ pagination, query }: { pagination: PaginationParams; query: GetStoresParams }) =>
-        requestWrapper<PageResult<StoreDetailDto>>(async () => {
-            const params = {
-                ...buildQueryParams(query),
-                ...buildQueryParams(pagination)
-            }
-            const res = await axiosInstance.get("/stores", { params })
-            return res.data
-        }),
+    // Lấy danh sách cửa hàng (Phân trang + Filter)
+    getAll: async ({
+        pagination,
+        query
+    }: {
+        pagination: PaginationParams
+        query: GetStoresParams
+    }): Promise<PageResult<StoreDetailDto>> => {
+        const params = {
+            ...buildQueryParams(query),
+            ...buildQueryParams(pagination)
+        }
+        const res = await axiosInstance.get("/stores", { params })
+        return res.data
+    },
 
-    getDetail: (id: string) =>
-        requestWrapper<StoreDetailDto>(async () => {
-            const res = await axiosInstance.get(`/stores/${id}`)
-            return res.data
-        }),
+    // Lấy chi tiết một cửa hàng
+    getDetail: async (id: string): Promise<StoreDetailDto> => {
+        const res = await axiosInstance.get(`/stores/${id}`)
+        return res.data
+    },
 
-    getNearby: (query: FindNearbyStoresParams) =>
-        requestWrapper<PageResult<StoreDetailDto>>(async () => {
-            const params = buildQueryParams(query)
-            const res = await axiosInstance.get("/stores/nearby", { params })
-            return res.data
-        })
+    // Tìm các cửa hàng gần đây (Dựa trên tọa độ GPS)
+    getNearby: async (query: FindNearbyStoresParams): Promise<PageResult<StoreDetailDto>> => {
+        const params = buildQueryParams(query)
+        const res = await axiosInstance.get("/stores/nearby", { params })
+        return res.data
+    }
 }

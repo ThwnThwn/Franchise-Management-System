@@ -65,7 +65,7 @@ export const useLogout = ({ onSuccess }: { onSuccess?: () => void }) => {
 
 export const useRegister = ({ onSuccess }: { onSuccess?: () => void }) => {
     return useMutation({
-        mutationFn: authApi.regsiter,
+        mutationFn: authApi.register,
         onSuccess: onSuccess,
         onError: (error: BackendError) => {
             addToast({

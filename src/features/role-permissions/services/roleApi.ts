@@ -1,4 +1,3 @@
-import { requestWrapper } from "@/utils/helpers/axiosHelper"
 import axiosInstance from "@/utils/axios"
 import {
     CreateRoleRequest,
@@ -7,31 +6,35 @@ import {
 } from "../models/request"
 import { PermissionGroup, RoleResponse } from "../models/respone"
 
+/**
+ * ROLE API
+ * Quản lý vai trò và phân quyền theo vai trò.
+ */
 export const roleApi = {
-    getAll: () =>
-        requestWrapper<RoleResponse[]>(async () => {
-            const res = await axiosInstance.get("/roles")
-            return res.data
-        }),
+    // Lấy danh sách tất cả vai trò
+    getAll: async (): Promise<RoleResponse[]> => {
+        const res = await axiosInstance.get("/roles")
+        return res.data
+    },
 
-    create: (req: CreateRoleRequest) =>
-        requestWrapper<void>(async () => {
-            await axiosInstance.post("/roles", req)
-        }),
+    // Tạo vai trò mới
+    create: async (req: CreateRoleRequest): Promise<void> => {
+        await axiosInstance.post("/roles", req)
+    },
 
-    update: (id: string, req: UpdateRoleRequest) =>
-        requestWrapper<void>(async () => {
-            await axiosInstance.patch(`/roles/${id}`, req)
-        }),
+    // Cập nhật thông tin cơ bản của vai trò
+    update: async (id: string, req: UpdateRoleRequest): Promise<void> => {
+        await axiosInstance.patch(`/roles/${id}`, req)
+    },
 
-    getPermissionsByRoleId: (id: string) =>
-        requestWrapper<PermissionGroup[]>(async () => {
-            const res = await axiosInstance.get(`/roles/${id}/permissions`)
-            return res.data
-        }),
+    // Lấy danh sách quyền hiện tại của một vai trò
+    getPermissionsByRoleId: async (id: string): Promise<PermissionGroup[]> => {
+        const res = await axiosInstance.get(`/roles/${id}/permissions`)
+        return res.data
+    },
 
-    updateRolePermissions: (id: string, req: UpdateRolePermissionsRequest) =>
-        requestWrapper<void>(async () => {
-            await axiosInstance.put(`/roles/${id}/permissions`, req)
-        })
+    // Cập nhật (ghi đè) danh sách quyền cho vai trò
+    updateRolePermissions: async (id: string, req: UpdateRolePermissionsRequest): Promise<void> => {
+        await axiosInstance.put(`/roles/${id}/permissions`, req)
+    }
 }

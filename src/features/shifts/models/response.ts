@@ -44,3 +44,20 @@ export interface ShiftTemplateResponse {
     isActive: boolean
     createdAt: string
 }
+
+// ===============================
+// Shift assignment
+// ===============================
+export interface StaffAssignmentCandidate {
+    id: string
+    firstName: string
+    lastName?: string
+    avatarUrl?: string
+    currentHourlyWage: number
+
+    isAvailable: boolean
+    note?: string
+
+    // Dữ liệu check chéo với bảng shift_assignments
+    isConflict: boolean // Backend check xem có record nào trùng giờ chưa
+}

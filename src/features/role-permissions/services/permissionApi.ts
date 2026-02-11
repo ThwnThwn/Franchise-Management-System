@@ -1,17 +1,20 @@
-import { requestWrapper } from "@/utils/helpers/axiosHelper"
-import { PermissionGroup } from "../models/respone"
 import axiosInstance from "@/utils/axios"
+import { PermissionGroup } from "../models/respone"
 import { UpdatePermissionInfoRequest } from "../models/request"
 
+/**
+ * PERMISSION API
+ * Quản lý phân quyền hệ thống.
+ */
 export const permissionApi = {
-    getAll: () =>
-        requestWrapper<PermissionGroup[]>(async () => {
-            const res = await axiosInstance.get("/permissions")
-            return res.data
-        }),
+    // Lấy toàn bộ nhóm quyền
+    getAll: async (): Promise<PermissionGroup[]> => {
+        const res = await axiosInstance.get("/permissions")
+        return res.data
+    },
 
-    update: (id: string, req: UpdatePermissionInfoRequest) =>
-        requestWrapper<void>(async () => {
-            await axiosInstance.patch(`/permissions/${id}`, req)
-        })
+    // Cập nhật thông tin quyền
+    update: async (id: string, req: UpdatePermissionInfoRequest): Promise<void> => {
+        await axiosInstance.patch(`/permissions/${id}`, req)
+    }
 }

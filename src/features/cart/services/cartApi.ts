@@ -1,4 +1,3 @@
-import { requestWrapper } from "@/utils/helpers/axiosHelper"
 import axiosInstance from "@/utils/axios"
 import {
     AddToCartRequest,
@@ -7,30 +6,33 @@ import {
 } from "../models/schema/request"
 import { GetCartResponse } from "../models/schema/response"
 
+/**
+ * CART API
+ */
 export const cartApi = {
-    getCart: () =>
-        requestWrapper<GetCartResponse>(async () => {
-            const res = await axiosInstance.get("/me/cart")
-            return res.data
-        }),
+    // Lấy thông tin giỏ hàng
+    getCart: async (): Promise<GetCartResponse> => {
+        const res = await axiosInstance.get("/me/cart")
+        return res.data
+    },
 
-    addToCart: (data: AddToCartRequest) =>
-        requestWrapper<void>(async () => {
-            await axiosInstance.post("/me/cart/items", data)
-        }),
+    // Thêm sản phẩm vào giỏ
+    addToCart: async (data: AddToCartRequest): Promise<void> => {
+        await axiosInstance.post("/me/cart/items", data)
+    },
 
-    updateCartItem: (data: UpdateCartItemRequest) =>
-        requestWrapper<void>(async () => {
-            await axiosInstance.put("/me/cart/items", data)
-        }),
+    // Cập nhật số lượng/thuộc tính item trong giỏ
+    updateCartItem: async (data: UpdateCartItemRequest): Promise<void> => {
+        await axiosInstance.put("/me/cart/items", data)
+    },
 
-    deleteListCartItem: (data: DeleteListCartItemRequest) =>
-        requestWrapper<void>(async () => {
-            await axiosInstance.delete("/me/cart/items", { data })
-        }),
+    // Xóa danh sách sản phẩm đã chọn khỏi giỏ
+    deleteListCartItem: async (data: DeleteListCartItemRequest): Promise<void> => {
+        await axiosInstance.delete("/me/cart/items", { data })
+    },
 
-    clearCart: () =>
-        requestWrapper<void>(async () => {
-            await axiosInstance.delete("/me/cart")
-        })
+    // Xóa sạch giỏ hàng
+    clearCart: async (): Promise<void> => {
+        await axiosInstance.delete("/me/cart")
+    }
 }
