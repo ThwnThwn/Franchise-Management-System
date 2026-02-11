@@ -28,6 +28,45 @@ service ProductGrpc {
 
   // Upload image and assign to a specific product
   rpc UploadProductImage (UploadProductImageRequest) returns (UploadProductImageReply);
+
+  // Get product variant info by SKU
+  rpc GetProductBySku (GetProductBySkuRequest) returns (GetProductBySkuReply);
+
+  // Get multiple product variants by list of SKUs
+  rpc GetProductsBySkus (GetProductsBySkusRequest) returns (GetProductsBySkusReply);
+}
+
+// ── GetProductBySku ──
+message GetProductBySkuRequest {
+  string sku = 1;
+}
+
+message GetProductBySkuReply {
+  bool found = 1;
+  string product_id = 2;
+  string variant_id = 3;
+  string product_name = 4;
+  string sku = 5;
+  double base_price = 6;
+  string image_url = 7;
+}
+
+// ── GetProductsBySkus ──
+message GetProductsBySkusRequest {
+  repeated string skus = 1;
+}
+
+message GetProductsBySkusReply {
+  repeated ProductVariantDetail variants = 1;
+}
+
+message ProductVariantDetail {
+  string product_id = 1;
+  string variant_id = 2;
+  string product_name = 3;
+  string sku = 4;
+  double base_price = 5;
+  string image_url = 6;
 }
 
 message GetProductsRequest {

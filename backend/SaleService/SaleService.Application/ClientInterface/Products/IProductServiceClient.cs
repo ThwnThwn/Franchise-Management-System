@@ -5,6 +5,11 @@ namespace SalesService.Application.ClientInterface.Products;
 
 public interface IProductServiceClient
 {
+    /// <summary>
+    ///  Get product variants by SKU.
+    /// </summary>
+    /// <param name="sku"></param>
+    /// <returns></returns>
     Task<ProductVariantInfo?> GetProductVariantBySkuAsync(string sku);
     
     /// <summary>
