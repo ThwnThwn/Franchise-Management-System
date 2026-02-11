@@ -1,20 +1,28 @@
 "use client"
 
 import React, { useEffect } from "react"
-import { Select, SelectItem, DatePicker } from "@heroui/react"
+import { Select, SelectItem } from "@heroui/react"
 import { useFormik } from "formik"
 import { ShiftFormValues } from "./schema"
 import { getLocalTimeZone } from "@internationalized/date"
 import { useGetShiftTemplates } from "@/features/shifts/hooks/useShiftTemplates"
 import { useTokenStore } from "@/hooks/singleton/store"
-import { NumberInputStyled, TextareaStyled, TimeInputStyled } from "@/components"
+import {
+    DatePickerStyled,
+    EnumPicker,
+    NumberInputStyled,
+    TextareaStyled,
+    TimeInputStyled
+} from "@/components"
 import { useDay, useFormikHelpers } from "@/hooks"
+import { ShiftStatusLabels } from "@/features/shifts/constants/labels"
 
 interface ShiftFormProps {
     formik: ReturnType<typeof useFormik<ShiftFormValues>>
+    isSubmitable: boolean
 }
 
-export const ShiftForm = ({ formik }: ShiftFormProps) => {
+export const ShiftForm = ({ formik, isSubmitable }: ShiftFormProps) => {
     const storeId = useTokenStore((s) => s.storeId)
     const { toDate, formatTime, toTime } = useDay({ defaultFormat: "HH:mm" })
 
@@ -25,40 +33,17 @@ export const ShiftForm = ({ formik }: ShiftFormProps) => {
         }
     })
 
-    // 2. Setup Formik
-    // const formik = useFormik<ShiftFormValues>({
-    //     initialValues: {
-    //         storeId: storeId || "",
-    //         shiftDate: new Date(),
-    //         startTime: "08:00",
-    //         endTime: "12:00",
-    //         requiredStaffCount: 1,
-    //         breakDurationMinutes: 0,
-    //         note: "",
-    //         status: ShiftStatus.Draft,
-    //         shiftTemplateId: null
-    //     },
-    //     validationSchema: shiftSchema,
-    //     onSubmit: (values) => {
-    //         onSubmit(values)
-    //         onClose()
-    //     }
-    // })
-
     const { isInvalid, getErrorMessage } = useFormikHelpers(formik)
 
-    // 4. Logic: Auto-fill giờ khi chọn Template
     // Lắng nghe templateId thay đổi
     useEffect(() => {
         const templateId = formik.values.shiftTemplateId
         if (templateId && templates) {
             const template = templates.find((t) => t.id === templateId)
             if (template) {
-                // Cắt chuỗi "08:00:00" -> "08:00" cho Input Time
                 formik.setFieldValue("startTime", template.startTime.slice(0, 5))
                 formik.setFieldValue("endTime", template.endTime.slice(0, 5))
                 formik.setFieldValue("breakDurationMinutes", template.breakDurationMinutes)
-                // Nếu muốn auto-fill cả số lượng nhân viên thì thêm ở đây
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -70,12 +55,14 @@ export const ShiftForm = ({ formik }: ShiftFormProps) => {
             <Select
                 label="Chọn mẫu (Tùy chọn)"
                 placeholder="Chọn mẫu để điền nhanh"
+                variant="bordered"
                 items={templates || []}
                 selectedKeys={formik.values.shiftTemplateId ? [formik.values.shiftTemplateId] : []}
                 onChange={(e) => {
                     // e.target.value có thể rỗng nếu user bỏ chọn, cần handle
                     formik.setFieldValue("shiftTemplateId", e.target.value || null)
                 }}
+                isDisabled={!isSubmitable}
             >
                 {/* 4. Dùng render function thay vì map trực tiếp */}
                 {(item) => (
@@ -86,7 +73,7 @@ export const ShiftForm = ({ formik }: ShiftFormProps) => {
             </Select>
 
             {/* 2. Ngày làm việc */}
-            <DatePicker
+            <DatePickerStyled
                 label="Ngày làm việc"
                 value={toDate(formik.values.shiftDate)}
                 onChange={(date) => {
@@ -98,6 +85,7 @@ export const ShiftForm = ({ formik }: ShiftFormProps) => {
                 }}
                 isInvalid={isInvalid("shiftDate")}
                 errorMessage={getErrorMessage("shiftDate")}
+                isReadOnly={!isSubmitable}
             />
 
             {/* 3. Giờ Bắt đầu - Kết thúc */}
@@ -112,6 +100,7 @@ export const ShiftForm = ({ formik }: ShiftFormProps) => {
                     }}
                     isInvalid={isInvalid("startTime")}
                     errorMessage={getErrorMessage("startTime")}
+                    isReadOnly={!isSubmitable}
                 />
                 <TimeInputStyled
                     label="Kết thúc"
@@ -123,11 +112,21 @@ export const ShiftForm = ({ formik }: ShiftFormProps) => {
                     }}
                     isInvalid={isInvalid("endTime")}
                     errorMessage={getErrorMessage("endTime")}
+                    isReadOnly={!isSubmitable}
                 />
             </div>
 
             {/* 4. Số lượng nhân viên và số phút nghỉ */}
-            <div className="flex gap-2">
+            <div className="flex flex-col md:flex-row gap-2">
+                <EnumPicker
+                    label="Trạng thái"
+                    labels={ShiftStatusLabels}
+                    value={formik.values.status}
+                    onChange={(val) => formik.setFieldValue("status", val !== null ? val : 0)}
+                    className="w-xl"
+                    isClearable={false}
+                    isReadOnly={!isSubmitable}
+                />
                 <NumberInputStyled
                     label="Số nhân viên cần"
                     name="requiredStaffCount"
@@ -135,6 +134,7 @@ export const ShiftForm = ({ formik }: ShiftFormProps) => {
                     onValueChange={(n) => formik.setFieldValue("requiredStaffCount", n)}
                     isInvalid={isInvalid("requiredStaffCount")}
                     errorMessage={getErrorMessage("requiredStaffCount")}
+                    isReadOnly={!isSubmitable}
                 />
                 <NumberInputStyled
                     label="Nghỉ (phút)"
@@ -143,6 +143,7 @@ export const ShiftForm = ({ formik }: ShiftFormProps) => {
                     onValueChange={(n) => formik.setFieldValue("breakDurationMinutes", n)}
                     isInvalid={isInvalid("breakDurationMinutes")}
                     errorMessage={getErrorMessage("breakDurationMinutes")}
+                    isReadOnly={!isSubmitable}
                 />
             </div>
 
@@ -153,6 +154,7 @@ export const ShiftForm = ({ formik }: ShiftFormProps) => {
                 name="note"
                 value={formik.values.note || ""}
                 onChange={formik.handleChange}
+                isReadOnly={!isSubmitable}
             />
         </form>
     )

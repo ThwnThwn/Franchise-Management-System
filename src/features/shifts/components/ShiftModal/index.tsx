@@ -28,12 +28,17 @@ export const ShiftModal = ({
     onDelete
 }: ShiftModalProps) => {
     const storeId = useTokenStore((s) => s.storeId)
-
     const [activeTab, setActiveTab] = useState<string>("info")
+
+    const isSubmitable =
+        !initialData?.id ||
+        initialData?.status === ShiftStatus.Draft ||
+        initialData?.status === ShiftStatus.Published
 
     // 2. Setup Formik
     const formik = useFormik<ShiftFormValues>({
         initialValues: {
+            id: initialData?.id || undefined,
             storeId: storeId || "",
             shiftDate: new Date(),
             startTime: "08:00",
@@ -46,6 +51,7 @@ export const ShiftModal = ({
         },
         validationSchema: shiftSchema,
         onSubmit: (values) => {
+            if (!isSubmitable) return
             onSubmit(values)
             onClose()
         }
@@ -63,100 +69,89 @@ export const ShiftModal = ({
                     storeId: storeId || ""
                 })
             } else {
-                // Create Mode -> Reset về default
+                // Create Mode
                 formik.resetForm()
                 formik.setFieldValue("storeId", storeId || "")
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isOpen, initialData, storeId])
-
-    // 4. Logic: Auto-fill giờ khi chọn Template
-    // Lắng nghe templateId thay đổi
-    // useEffect(() => {
-    //     const templateId = formik.values.shiftTemplateId
-    //     if (templateId && templates) {
-    //         const template = templates.find((t) => t.id === templateId)
-    //         if (template) {
-    //             // Cắt chuỗi "08:00:00" -> "08:00" cho Input Time
-    //             formik.setFieldValue("startTime", template.startTime.slice(0, 5))
-    //             formik.setFieldValue("endTime", template.endTime.slice(0, 5))
-    //             formik.setFieldValue("breakDurationMinutes", template.breakDurationMinutes)
-    //             // Nếu muốn auto-fill cả số lượng nhân viên thì thêm ở đây
-    //         }
-    //     }
-    //     // eslint-disable-next-line react-hooks/exhaustive-deps
-    // }, [formik.values.shiftTemplateId, templates])
+    }, [isOpen, initialData?.id, storeId])
 
     const handleClose = () => {
         setActiveTab("info")
+        formik.resetForm()
         onClose()
     }
 
     return (
         <ModalStyled isOpen={isOpen} onClose={handleClose}>
-            <form onSubmit={formik.handleSubmit}>
-                <ModalContent>
-                    <ModalHeader className="flex flex-col gap-1">
-                        {initialData?.id ? "Quản lý Ca làm việc" : "Tạo Ca Mới"}
-                    </ModalHeader>
-                    <ModalBody>
-                        <Tabs
-                            aria-label="Shift Options"
-                            selectedKey={activeTab}
-                            onSelectionChange={(key) => setActiveTab(key as string)}
-                            fullWidth
-                            color="primary"
-                            variant="underlined"
+            <ModalContent>
+                <ModalHeader className="flex flex-col gap-1">
+                    {initialData?.id ? "Quản lý Ca làm việc" : "Tạo Ca Mới"}
+                </ModalHeader>
+                <ModalBody>
+                    <Tabs
+                        aria-label="Shift Options"
+                        selectedKey={activeTab}
+                        onSelectionChange={(key) => setActiveTab(key as string)}
+                        fullWidth
+                        color="primary"
+                        variant="underlined"
+                    >
+                        <Tab key="info" title="Thông tin cơ bản">
+                            <ShiftForm formik={formik} isSubmitable={isSubmitable} />
+                        </Tab>
+                        <Tab
+                            key="staff"
+                            title="Phân công nhân sự"
+                            isDisabled={!initialData?.id} // Chưa có ca thì không cho gán
                         >
-                            <Tab key="info" title="Thông tin cơ bản">
-                                <ShiftForm formik={formik} />
-                            </Tab>
-                            <Tab
-                                key="staff"
-                                title="Phân công nhân sự"
-                                isDisabled={!initialData?.id} // Chưa có ca thì không cho gán
-                            >
-                                <div className="mt-4">
-                                    {initialData?.id ? (
-                                        <ShiftAssignmentTab
-                                            storeId={storeId || ""}
-                                            shiftId={initialData.id}
-                                            requiredStaffCount={formik.values.requiredStaffCount}
-                                            onClose={onClose}
-                                        />
-                                    ) : (
-                                        <p className="text-center text-default-400">
-                                            Vui lòng lưu ca làm việc trước khi gán nhân sự.
-                                        </p>
-                                    )}
-                                </div>
-                            </Tab>
-                        </Tabs>
-                    </ModalBody>
-                    {activeTab === "info" && (
-                        <ModalFooter>
-                            {/* Nút Xóa (Chỉ hiện khi Edit) */}
-                            {onDelete && (
-                                <ButtonStyled color="danger" variant="flat" onPress={onDelete}>
-                                    Xóa ca
-                                </ButtonStyled>
-                            )}
-
-                            <ButtonStyled
-                                variant="light"
-                                onPress={handleClose}
-                                isDisabled={isSubmitting}
-                            >
-                                Hủy
+                            <div className="mt-4">
+                                {initialData?.id ? (
+                                    <ShiftAssignmentTab
+                                        storeId={storeId || ""}
+                                        shiftId={initialData.id}
+                                        requiredStaffCount={formik.values.requiredStaffCount}
+                                        isSubmitable={isSubmitable}
+                                        onClose={onClose}
+                                    />
+                                ) : (
+                                    <p className="text-center text-default-400">
+                                        Vui lòng lưu ca làm việc trước khi gán nhân sự.
+                                    </p>
+                                )}
+                            </div>
+                        </Tab>
+                    </Tabs>
+                </ModalBody>
+                {activeTab === "info" && (
+                    <ModalFooter>
+                        {/* Nút Xóa (Chỉ hiện khi Edit) */}
+                        {onDelete && isSubmitable && (
+                            <ButtonStyled color="danger" variant="flat" onPress={onDelete}>
+                                Xóa ca
                             </ButtonStyled>
-                            <ButtonStyled color="primary" type="submit" isLoading={isSubmitting}>
+                        )}
+
+                        <ButtonStyled
+                            variant="light"
+                            onPress={handleClose}
+                            isDisabled={isSubmitting}
+                        >
+                            Hủy
+                        </ButtonStyled>
+                        {isSubmitable && (
+                            <ButtonStyled
+                                color="primary"
+                                isLoading={isSubmitting}
+                                onPress={() => formik.handleSubmit()}
+                            >
                                 Lưu thay đổi
                             </ButtonStyled>
-                        </ModalFooter>
-                    )}
-                </ModalContent>
-            </form>
+                        )}
+                    </ModalFooter>
+                )}
+            </ModalContent>
         </ModalStyled>
     )
 }

@@ -10,10 +10,17 @@ type Props = {
     storeId: string
     shiftId: string
     requiredStaffCount: number
+    isSubmitable: boolean
     onClose?: () => void
 }
 
-export function ShiftAssignmentTab({ storeId, shiftId, requiredStaffCount, onClose }: Props) {
+export function ShiftAssignmentTab({
+    storeId,
+    shiftId,
+    requiredStaffCount,
+    isSubmitable,
+    onClose
+}: Props) {
     const { candidates, isLoading, syncAssignments, isSyncing } = useShiftAssignment({
         shiftId: shiftId,
         storeId: storeId,
@@ -93,6 +100,7 @@ export function ShiftAssignmentTab({ storeId, shiftId, requiredStaffCount, onClo
                                     textValue={`${item.firstName} ${item.lastName}`}
                                     endContent={<UserMinus className="text-danger" size={18} />}
                                     onPress={() => handleToggle(item.id)}
+                                    isReadOnly={!isSubmitable}
                                 >
                                     <User
                                         name={`${item.firstName} ${item.lastName}`}
@@ -125,6 +133,7 @@ export function ShiftAssignmentTab({ storeId, shiftId, requiredStaffCount, onClo
                                 }
                                 onPress={() => !item.isConflict && handleToggle(item.id)}
                                 className={item.isConflict ? "opacity-50 cursor-not-allowed" : ""}
+                                isReadOnly={!isSubmitable}
                             >
                                 <div className="flex flex-col items-start gap-1">
                                     <User

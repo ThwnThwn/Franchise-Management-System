@@ -39,6 +39,7 @@ export const useDay = ({
      */
     const toTime = (timeStr: string | null | undefined): Time | null => {
         if (!timeStr) return null
+
         try {
             const d = dayjs(timeStr)
             if (!d.isValid()) {

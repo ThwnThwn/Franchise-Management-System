@@ -215,7 +215,7 @@ export function Register({ email, setEmail, onSuccess }: RegisterInfoProps) {
                     labels={GenderLabels}
                     value={formik.values.gender}
                     onChange={(val) =>
-                        formik.setFieldValue("gender", number.parse(val?.toString() ?? ""))
+                        formik.setFieldValue("gender", number.parse(val?.toString() ?? "0"))
                     }
                 />
                 <DatePickerStyled

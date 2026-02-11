@@ -6,9 +6,11 @@ import dayGridPlugin from "@fullcalendar/daygrid"
 import timeGridPlugin from "@fullcalendar/timegrid"
 import interactionPlugin from "@fullcalendar/interaction"
 import { CalendarApi } from "@fullcalendar/core"
-import { Users, AlertCircle, CheckCircle2 } from "lucide-react"
+import { Users, AlertCircle, CheckCircle2, Ban } from "lucide-react"
 import { ShiftResponse } from "../../models/response"
 import { ShiftStatus } from "../../constants"
+import { ShiftStatusLabels } from "../../constants/labels"
+import { ShiftFullStyle, ShiftStatusStyles } from "../../constants/styles"
 
 interface ShiftCalendarProps {
     shifts: ShiftResponse[]
@@ -18,7 +20,7 @@ interface ShiftCalendarProps {
 
     onDateClick: (date: Date) => void
     onEventClick: (shift: ShiftResponse) => void
-    onEventDrop: (shiftId: string, newStart: Date, newEnd: Date) => void
+    onEventDrop: (shiftId: string, newStart: Date, newEnd: Date, dropInfo: any) => void
 }
 
 export const ShiftCalendar = ({
@@ -55,42 +57,62 @@ export const ShiftCalendar = ({
     // --- 2. Custom Render Event Content ---
     const renderEventContent = (eventInfo: any) => {
         const shift = eventInfo.event.extendedProps as ShiftResponse
-        const isDraft = shift.status === ShiftStatus.Draft
         const isFull = shift.assignedStaffCount >= shift.requiredStaffCount
+        const statusLabel = ShiftStatusLabels[shift.status]
 
-        // Dynamic Styles
+        let statusClasses = ShiftStatusStyles[shift.status]
+        if (shift.status === ShiftStatus.Published && isFull) {
+            statusClasses = ShiftFullStyle
+        }
+
         const containerClass = `
-            w-full h-full p-1 rounded-md border-l-4 text-xs flex flex-col justify-between overflow-hidden
-            ${
-                isDraft
-                    ? "bg-gray-100 border-gray-400 text-gray-500 border-dashed border-1"
-                    : isFull
-                      ? "bg-green-100 border-green-500 text-green-800"
-                      : "bg-orange-50 border-orange-400 text-orange-800"
-            }
-        `
+        w-full h-full p-1.5 rounded-md border-l-4 text-[11px] flex flex-col justify-between overflow-hidden shadow-sm
+        ${statusClasses}
+    `
 
         return (
             <div className={containerClass}>
-                <div className="font-semibold truncate">{eventInfo.timeText}</div>
-
-                {/* Note/Template Name */}
-                <div className="truncate font-medium">
-                    {shift.shiftTemplateId ? "Theo mẫu" : shift.note || "Ca tùy chỉnh"}
+                {/* HEADER: Start - End Time */}
+                <div className="flex items-center gap-1 font-bold text-[12px] leading-tight border-b border-black/5 pb-0.5">
+                    <span>{eventInfo.timeText}</span>
                 </div>
 
-                {/* Staff Counter Footer */}
-                <div className="flex items-center gap-1 mt-1">
-                    {isDraft ? (
-                        <span className="italic text-[10px]">Bản nháp</span>
-                    ) : (
-                        <>
-                            {isFull ? <CheckCircle2 size={10} /> : <AlertCircle size={10} />}
-                            <span className="font-bold">
-                                {shift.assignedStaffCount}/{shift.requiredStaffCount}
+                {/* BODY: Staff Count & Note */}
+                <div className="flex flex-col grow py-1 justify-center">
+                    {/* Số người: Xuống hàng ngay dưới giờ */}
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                        {shift.status === ShiftStatus.Cancelled ? (
+                            <Ban size={11} className="opacity-60" />
+                        ) : isFull ? (
+                            <CheckCircle2 size={11} className="text-success" />
+                        ) : (
+                            <AlertCircle size={11} />
+                        )}
+                        <span className="font-extrabold text-[12px] tabular-nums">
+                            {shift.assignedStaffCount}/{shift.requiredStaffCount}
+                        </span>
+                        <Users size={11} className="opacity-70" />
+                    </div>
+
+                    {/* Note/Template Name */}
+                    <div className="truncate text-[10px] opacity-80 italic">
+                        {shift.shiftTemplateId ? "📋 Theo mẫu" : shift.note || "📝 Ca tùy chỉnh"}
+                    </div>
+                </div>
+
+                {/* FOOTER: Status Label */}
+                <div className="flex items-center justify-between pt-0.5 border-t border-black/5">
+                    <span className="uppercase text-[9px] font-black tracking-widest opacity-80">
+                        {statusLabel}
+                    </span>
+
+                    {/* Visual Indicator cho ca Published chưa đủ người */}
+                    {shift.status === ShiftStatus.Published && !isFull && (
+                        <div className="flex items-center gap-1">
+                            <span className="text-[9px] font-medium text-orange-600 animate-pulse">
+                                Cần thêm người
                             </span>
-                            <Users size={10} />
-                        </>
+                        </div>
                     )}
                 </div>
             </div>
@@ -105,11 +127,11 @@ export const ShiftCalendar = ({
 
         // Nếu view tháng, drop chỉ đổi ngày, giữ nguyên giờ cũ -> logic này FullCalendar tự lo 1 phần
         // Nhưng ta cần gọi API update
-        onEventDrop(shiftId, newStart, newEnd)
+        onEventDrop(shiftId, newStart, newEnd, info)
     }
 
     return (
-        <div className={`calendar-wrapper ${isLoading ? "opacity-50 pointer-events-none" : ""}`}>
+        <div className={`calendar-wrapper ${isLoading && "opacity-50 pointer-events-none"}`}>
             <FullCalendar
                 ref={calendarRef}
                 plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
@@ -139,7 +161,7 @@ export const ShiftCalendar = ({
                 scrollTime="07:00:00"
                 nextDayThreshold="00:00:00"
                 allDaySlot={false} // Tắt dòng all-day
-                height="auto"
+                height="550px"
                 slotDuration="01:00:00" // Mỗi ô là 1 tiếng
                 expandRows={true}
                 stickyHeaderDates={true}
@@ -167,6 +189,26 @@ export const ShiftCalendar = ({
                         .fc-theme-standard td, .fc-theme-standard th { border-color: #f3f4f6; }
                         .fc-timegrid-now-indicator-line { border-color: #ef4444; }
                         .fc-timegrid-now-indicator-arrow { border-color: #ef4444; }
+
+                        /* Tùy chỉnh scrollbar cho các view timeGrid (Tuần/Ngày) */
+                        .fc-scroller::-webkit-scrollbar {
+                            width: 10px;
+                        }
+                        .fc-scroller::-webkit-scrollbar-track {
+                            background: transparent;
+                        }
+                        .fc-scroller::-webkit-scrollbar-thumb {
+                            background: #cbd5e1; /* slate-300 */
+                            border-radius: 10px;
+                        }
+                        .fc-scroller::-webkit-scrollbar-thumb:hover {
+                            background: #94a3b8; /* slate-400 */
+                        }
+
+                        /* Đảm bảo sticky header hoạt động tốt khi scroll */
+                        .fc .fc-scroller-harness {
+                            overflow: hidden !important;
+                        }
                     `
                 }}
             />

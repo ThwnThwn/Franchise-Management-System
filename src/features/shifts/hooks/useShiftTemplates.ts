@@ -17,8 +17,8 @@ let MOCK_DB: ShiftTemplateResponse[] = [
         code: "CA-SANG-HANH-CHINH",
         name: "Ca Hành Chính",
         startTime: "08:00:00",
-        endTime: "17:00:00",
-        breakDurationMinutes: 60,
+        endTime: "16:00:00",
+        breakDurationMinutes: 15,
         isActive: true,
         createdAt: new Date().toISOString()
     },
@@ -28,8 +28,8 @@ let MOCK_DB: ShiftTemplateResponse[] = [
         code: "CA-CHIEU",
         name: "Ca Chiều (Part-time)",
         startTime: "13:00:00",
-        endTime: "18:00:00",
-        breakDurationMinutes: 0,
+        endTime: "21:00:00",
+        breakDurationMinutes: 60,
         isActive: true,
         createdAt: new Date().toISOString()
     },
@@ -39,8 +39,8 @@ let MOCK_DB: ShiftTemplateResponse[] = [
         code: "CA-TOI",
         name: "Ca Tối (Đông khách)",
         startTime: "18:00:00",
-        endTime: "23:00:00",
-        breakDurationMinutes: 15,
+        endTime: "03:00:00",
+        breakDurationMinutes: 20,
         isActive: true,
         createdAt: new Date().toISOString()
     }
@@ -68,7 +68,6 @@ export const useGetShiftTemplates = ({
                 (t) => t.storeId === params.storeId || t.storeId === undefined
             )
 
-            // Trả về đúng format PageResult
             return filtered
         },
         enabled

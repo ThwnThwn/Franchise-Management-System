@@ -73,7 +73,7 @@ export const useGetProductById = ({ id, enabled = true }: { id: string; enabled?
     })
 }
 
-export const useCreateProduct = ({ onSuccess }: { onSuccess?: () => void }) => {
+export const useCreateProduct = ({ onSuccess }: { onSuccess?: () => void } = {}) => {
     const queryClient = useQueryClient()
     const key = [QUERY_KEYS.PRODUCTS]
 

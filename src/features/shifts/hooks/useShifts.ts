@@ -111,8 +111,6 @@ export const useGetShifts = ({
         queryKey: [QUERY_KEYS.SHIFTS, params],
         queryFn: async () => {
             await fakeDelay()
-            console.log("Mock API Get Shifts:", params)
-
             let filtered = MOCK_SHIFTS_DB
             // So sánh string YYYY-MM-DD vẫn đúng
             if (params.fromDate) {

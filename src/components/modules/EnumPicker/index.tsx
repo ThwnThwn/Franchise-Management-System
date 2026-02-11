@@ -1,58 +1,50 @@
 "use client"
-import { AutocompleteItem } from "@heroui/react"
+
 import React from "react"
-import type { Key } from "@react-types/shared"
+import { AutocompleteItem, AutocompleteProps } from "@heroui/react"
 import { AutocompleteStyled } from "@/components"
 
-type EnumPickerProps<T extends number> = {
-    value?: Key | null
-    onChange?: (value: Key | null) => void
-    onKeyDown?: () => void
-    labels: Record<T, string> // map enum → label (ví dụ OrderStatusLabels)
-    label?: string // nhãn hiển thị cho Autocomplete
-    placeholder?: string
-    className?: string
-    isReadOnly?: boolean
-    isClearable?: boolean
-    isRequired?: boolean
+// Loại bỏ các props mình muốn ghi đè logic riêng để tránh xung đột
+interface EnumPickerProps<T extends number> extends Omit<
+    AutocompleteProps,
+    "value" | "onChange" | "children" | "items" | "onSelectionChange" | "selectedKey"
+> {
+    labels: Record<T, string>
+    value?: T | null
+    onChange?: (value: T | null) => void
 }
 
 export function EnumPicker<T extends number>({
+    labels,
     value,
     onChange,
-    onKeyDown = undefined,
-    labels,
-    label,
-    placeholder,
-    className,
-    isReadOnly = false,
-    isClearable = true,
-    isRequired = false
+    ...restProps // Gom tất cả props còn lại của HeroUI (label, placeholder, isReadOnly, etc.)
 }: EnumPickerProps<T>) {
-    // Lấy items từ labels
+    // Convert object enum thành mảng để render
     const items = Object.entries(labels).map(([key, label]) => ({
-        key,
-        label
+        key: String(key),
+        label: label as string
     }))
+
+    const handleSelectionChange = (key: React.Key | null) => {
+        if (!onChange) return
+        // Trả về kiểu số (number) để khớp với Enum của bro thay vì string
+        onChange(key !== null ? (Number(key) as T) : null)
+    }
 
     return (
         <AutocompleteStyled
-            label={label}
-            placeholder={placeholder}
-            isReadOnly={isReadOnly}
-            isClearable={isClearable}
             variant="bordered"
-            className={className}
-            selectedKey={value !== null ? String(value) : null}
-            onSelectionChange={onChange}
-            onKeyDown={onKeyDown}
+            {...restProps} // Spread props: giờ bro truyền cái gì vào EnumPicker nó cũng bay thẳng vào đây
+            selectedKey={value !== null && value !== undefined ? String(value) : null}
+            onSelectionChange={handleSelectionChange}
             classNames={{
-                popoverContent: "min-w-fit"
+                popoverContent: "min-w-fit",
+                ...restProps.classNames // Cho phép ghi đè classNames từ bên ngoài
             }}
-            isRequired={isRequired}
         >
             {items.map((item) => (
-                <AutocompleteItem key={item.key}>{item.label as React.ReactNode}</AutocompleteItem>
+                <AutocompleteItem key={item.key}>{item.label}</AutocompleteItem>
             ))}
         </AutocompleteStyled>
     )

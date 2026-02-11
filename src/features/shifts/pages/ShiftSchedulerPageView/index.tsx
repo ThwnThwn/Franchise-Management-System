@@ -12,7 +12,7 @@ import {
 import { ScheduleToolbar } from "../../components/ScheduleToolbar"
 import { ShiftCalendar } from "../../components/ShiftCalendar"
 import { confirmDialog, useDay, useTokenStore } from "@/hooks"
-import { useDisclosure } from "@heroui/react"
+import { addToast, useDisclosure } from "@heroui/react"
 import { ShiftFormValues } from "../../components/ShiftModal/ShiftForm/schema"
 import { ShiftResponse } from "../../models/response"
 import dayjs from "dayjs"
@@ -20,6 +20,7 @@ import { ShiftModal } from "../../components"
 import { CreateShiftRequest, UpdateShiftRequest } from "../../models/request"
 import { DashboardHeader } from "@/features/dashboard/components/general/DashboardHeader"
 import { CalendarRange } from "lucide-react"
+import { ShiftStatus } from "../../constants"
 
 export default function ShiftSchedulerPageView() {
     const { formatDateApi, formatToApiUTC, formatDateTime } = useDay({ defaultFormat: "HH:mm" })
@@ -96,21 +97,61 @@ export default function ShiftSchedulerPageView() {
     }
 
     // 3. Kéo thả (Drag & Drop) -> Update ngay lập tức
-    const handleEventDrop = (shiftId: string, newStart: Date, newEnd: Date) => {
-        // Convert sang UTC chuẩn API
+    const handleEventDrop = (
+        shiftId: string,
+        newStart: Date,
+        newEnd: Date,
+        dropInfo: any // Thêm tham số này
+    ) => {
+        const targetShift = shiftsData?.find((s) => s.id === shiftId)
+
+        const isSubmitable =
+            targetShift?.status === ShiftStatus.Draft ||
+            targetShift?.status === ShiftStatus.Published
+
+        if (!isSubmitable) {
+            // 1. Thực hiện REVERT ngay lập tức trên UI
+            if (dropInfo && typeof dropInfo.revert === "function") {
+                dropInfo.revert()
+            }
+
+            // 2. Báo lỗi cho User
+            addToast({
+                title: "Không thể di chuyển",
+                description: "Ca làm việc đã hoàn thành hoặc đã hủy không thể thay đổi thời gian.",
+                color: "warning"
+            })
+
+            return
+        }
+
+        // --- Logic update API ---
         const startISO = formatToApiUTC(newStart)
         const endISO = formatToApiUTC(newEnd)
 
-        if (!startISO || !endISO) return // Guard clause
+        if (!startISO || !endISO) {
+            dropInfo?.revert()
+            return
+        }
 
-        updateMutation.mutate({
-            id: shiftId,
-            req: {
-                startTime: startISO,
-                endTime: endISO,
-                shiftDate: formatDateApi(newStart)
+        updateMutation.mutate(
+            {
+                id: shiftId,
+                req: {
+                    startTime: startISO,
+                    endTime: endISO,
+                    shiftDate: formatDateApi(newStart)
+                }
+            },
+            {
+                onSettled: (_, error) => {
+                    if (error) {
+                        // Chỉ revert khi có lỗi
+                        dropInfo?.revert()
+                    }
+                }
             }
-        })
+        )
     }
 
     // 4. Submit Form (Create or Update)
@@ -139,7 +180,8 @@ export default function ShiftSchedulerPageView() {
                 endTime: endISO,
                 requiredStaffCount: data.requiredStaffCount,
                 breakDurationMinutes: data.breakDurationMinutes,
-                note: data.note || ""
+                note: data.note || "",
+                status: data.status
             }
             console.log(payload)
 
