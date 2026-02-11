@@ -39,26 +39,23 @@ public class ProductServiceClient : IProductServiceClient
     {
         try
         {
-            var request = new GetProductsRequest { CategoryId = string.Empty };
-            var response = await _client.GetProductsAsync(request);
+            var request = new GetProductBySkuRequest { Sku = sku };
+            var response = await _client.GetProductBySkuAsync(request);
 
-            foreach (var product in response.Products)
+            if (!response.Found)
             {
-                var variant = product.Sizes.FirstOrDefault(s => s.Sku == sku && s.IsActive);
-                if (variant != null)
-                {
-                    return new ProductVariantInfo
-                    {
-                        ProductId = Guid.Parse(product.Id),
-                        VariantId = Guid.Parse(variant.Id),
-                        ProductName = product.Name,
-                        Sku = variant.Sku,
-                        BasePrice = (decimal)variant.BasePrice,
-                        ImageUrl = product.ImageUrl
-                    };
-                }
+                return null;
             }
-            return null;
+
+            return new ProductVariantInfo
+            {
+                ProductId = Guid.Parse(response.ProductId),
+                VariantId = Guid.Parse(response.VariantId),
+                ProductName = response.ProductName,
+                Sku = response.Sku,
+                BasePrice = (decimal)response.BasePrice,
+                ImageUrl = response.ImageUrl
+            };
         }
         catch (Exception ex)
         {
@@ -76,7 +73,6 @@ public class ProductServiceClient : IProductServiceClient
 
         try
         {
-            // Xóa duplicates và empty sku
             var uniqueSkus = skus.Where(s => !string.IsNullOrWhiteSpace(s)).Distinct().ToList();
             
             if (!uniqueSkus.Any())
@@ -84,37 +80,20 @@ public class ProductServiceClient : IProductServiceClient
                 return new List<ProductVariantInfo>();
             }
 
-            // Get All products để check sku có tồn tại không
-            var request = new GetProductsRequest { CategoryId = string.Empty };
-            var response = await _client.GetProductsAsync(request);
+            var request = new GetProductsBySkusRequest();
+            request.Skus.AddRange(uniqueSkus);
 
-            var result = new List<ProductVariantInfo>();
+            var response = await _client.GetProductsBySkusAsync(request);
 
-            // Tạo set của các sku để check xem sku có tồn tại không
-            var requestedSkuSet = new HashSet<string>(uniqueSkus, StringComparer.OrdinalIgnoreCase);
-
-            // Duyệt tất cả các sản phẩm 
-            foreach (var product in response.Products)
+            return response.Variants.Select(v => new ProductVariantInfo
             {
-                foreach (var variant in product.Sizes)
-                {
-                    // Chỉ include active và trong list sku
-                    if (variant.IsActive && requestedSkuSet.Contains(variant.Sku))
-                    {
-                        result.Add(new ProductVariantInfo
-                        {
-                            ProductId = Guid.Parse(product.Id),
-                            VariantId = Guid.Parse(variant.Id),
-                            ProductName = product.Name,
-                            Sku = variant.Sku,
-                            BasePrice = (decimal)variant.BasePrice,
-                            ImageUrl = product.ImageUrl
-                        });
-                    }
-                }
-            }
-
-            return result;
+                ProductId = Guid.Parse(v.ProductId),
+                VariantId = Guid.Parse(v.VariantId),
+                ProductName = v.ProductName,
+                Sku = v.Sku,
+                BasePrice = (decimal)v.BasePrice,
+                ImageUrl = v.ImageUrl
+            }).ToList();
         }
         catch (Exception ex)
         {

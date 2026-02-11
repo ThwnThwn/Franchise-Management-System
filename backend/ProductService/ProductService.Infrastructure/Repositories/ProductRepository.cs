@@ -125,4 +125,40 @@ public class ProductRepository : GenericRepository<Product>, IProductRepository
             .OrderByDescending(p => p.CreatedAt)
             .ToList();
     }
+
+    public async Task<Product?> GetProductBySkuAsync(string sku)
+    {
+        return await _dbContext.Products
+            .Include(p => p.Category)
+            .Include(p => p.ProductVariants
+                .Where(pv => pv.IsActive == true && pv.IsDeleted == false))
+            .Where(p => p.IsActive == true && p.IsDeleted == false 
+                                            && p.Category.IsActive == true 
+                                            && p.Category.IsDeleted == false)
+            .FirstOrDefaultAsync(p =>
+                p.ProductVariants.Any(pv =>
+                    pv.Sku == sku &&
+                    pv.IsActive == true &&
+                    pv.IsDeleted == false));
+    }
+
+    public async Task<List<Product>> GetProductsBySkusAsync(List<string> skus)
+    {
+        var skuSet = new HashSet<string>(skus, StringComparer.OrdinalIgnoreCase);
+
+        return await _dbContext.Products
+            .Include(p => p.Category)
+            .Include(p => p.ProductVariants
+                .Where(pv => pv.IsActive == true && pv.IsDeleted == false))
+            .Where(p =>
+                p.IsActive == true &&
+                p.IsDeleted == false &&
+                p.Category.IsActive == true &&
+                p.Category.IsDeleted == false &&
+                p.ProductVariants.Any(pv =>
+                    skuSet.Contains(pv.Sku) &&
+                    pv.IsActive == true &&
+                    pv.IsDeleted == false))
+            .ToListAsync();
+    }
 }
