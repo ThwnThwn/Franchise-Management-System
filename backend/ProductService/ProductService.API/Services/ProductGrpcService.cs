@@ -2,6 +2,7 @@ using Ardalis.Result;
 using AutoMapper;
 using Grpc.Core;
 using MediatR;
+using ProductService.API.Interceptors;
 using ProductService.Application.Features.Products.Command.CreateProduct;
 using ProductService.Application.Features.Products.Command.DeleteProduct;
 using ProductService.Application.Features.Products.Queries.GetById;
@@ -475,4 +476,86 @@ public class ProductGrpcService : ProductGrpc.ProductGrpcBase
                 new Status(StatusCode.Internal, $"Upload product image failed: {ex.Message}"));
         }
     }
+
+    // GetProductBySku
+    public override async Task<GetProductBySkuReply> GetProductBySku(
+        GetProductBySkuRequest request,
+        ServerCallContext context)
+    {
+        if (string.IsNullOrWhiteSpace(request.Sku))
+        {
+            throw new RpcException(
+                new Status(StatusCode.InvalidArgument, "SKU is required"));
+        }
+
+        var product = await _productRepository.GetProductBySkuAsync(request.Sku);
+
+        if (product is null)
+        {
+            return new GetProductBySkuReply { Found = false };
+        }
+
+        var variant = product.ProductVariants
+            .FirstOrDefault(v => v.Sku == request.Sku && v.IsActive == true);
+
+        if (variant is null)
+        {
+            return new GetProductBySkuReply { Found = false };
+        }
+
+        return new GetProductBySkuReply
+        {
+            Found = true,
+            ProductId = product.Id.ToString(),
+            VariantId = variant.Id.ToString(),
+            ProductName = product.Name,
+            Sku = variant.Sku,
+            BasePrice = (double)variant.BasePrice,
+            ImageUrl = product.ImageUrl ?? string.Empty
+        };
+    }
+
+    // GetProductsBySkus 
+    public override async Task<GetProductsBySkusReply> GetProductsBySkus(
+        GetProductsBySkusRequest request,
+        ServerCallContext context)
+    {
+        var skus = request.Skus
+            .Where(s => !string.IsNullOrWhiteSpace(s))
+            .Distinct()
+            .ToList();
+
+        if (!skus.Any())
+        {
+            throw new RpcException(
+                new Status(StatusCode.InvalidArgument, "SKUs is required"));
+        }
+
+        var products = await _productRepository.GetProductsBySkusAsync(skus);
+
+        var reply = new GetProductsBySkusReply();
+        var requestedSkuSet = new HashSet<string>(skus, StringComparer.OrdinalIgnoreCase);
+
+        foreach (var product in products)
+        {
+            foreach (var variant in product.ProductVariants)
+            {
+                if (variant.IsActive == true && requestedSkuSet.Contains(variant.Sku))
+                {
+                    reply.Variants.Add(new ProductVariantDetail
+                    {
+                        ProductId = product.Id.ToString(),
+                        VariantId = variant.Id.ToString(),
+                        ProductName = product.Name,
+                        Sku = variant.Sku,
+                        BasePrice = (double)variant.BasePrice,
+                        ImageUrl = product.ImageUrl ?? string.Empty
+                    });
+                }
+            }
+        }
+        return reply;
+    }
 }
+
+
