@@ -54,7 +54,7 @@ func InitErrorMap() {
 
 	// --- 401 Unauthorized ---
 	ErrInvalidToken = errors.New("Token không hợp lệ")
-	ErrInvalidAccessToken = errors.New("invalid access token")
+	ErrInvalidAccessToken = errors.New("4011")
 	ErrMissingTokenInfo = errors.New("Token thiếu thông tin yêu cầu")
 
 	// --- 403 Forbidden ---
