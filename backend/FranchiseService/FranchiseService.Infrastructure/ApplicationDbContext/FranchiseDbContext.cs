@@ -251,15 +251,15 @@ public partial class FranchiseDbContext : DbContext, IFranchiseDbContext
 
             entity.ToTable("staff_availabilities");
 
-            entity.HasIndex(e => new { e.UserId, e.AvailabilityDate }, "idx_availabilities_user_date");
+            entity.HasIndex(e => new { e.UserId, e.IsAvailable, e.SpecificDate, e.DayOfWeek }, "idx_staff_availability_query").HasFilter("(is_deleted = false)");
 
             entity.Property(e => e.Id)
                 .HasDefaultValueSql("uuid_generate_v4()")
                 .HasColumnName("id");
-            entity.Property(e => e.AvailabilityDate).HasColumnName("availability_date");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("created_at");
+            entity.Property(e => e.DayOfWeek).HasColumnName("day_of_week");
             entity.Property(e => e.EndTime).HasColumnName("end_time");
             entity.Property(e => e.IsAvailable)
                 .HasDefaultValue(true)
@@ -267,9 +267,13 @@ public partial class FranchiseDbContext : DbContext, IFranchiseDbContext
             entity.Property(e => e.IsDeleted)
                 .HasDefaultValue(false)
                 .HasColumnName("is_deleted");
+            entity.Property(e => e.IsRecurring)
+                .HasDefaultValue(false)
+                .HasColumnName("is_recurring");
             entity.Property(e => e.Note)
                 .HasMaxLength(255)
                 .HasColumnName("note");
+            entity.Property(e => e.SpecificDate).HasColumnName("specific_date");
             entity.Property(e => e.StartTime).HasColumnName("start_time");
             entity.Property(e => e.UpdatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")

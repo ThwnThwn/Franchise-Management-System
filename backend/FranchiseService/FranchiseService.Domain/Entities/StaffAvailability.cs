@@ -8,13 +8,17 @@ public partial class StaffAvailability : SoftDeletedEntity, IEntity
 
     public Guid UserId { get; set; }
 
-    public DateOnly AvailabilityDate { get; set; }
+    public bool IsAvailable { get; set; }
+
+    public bool? IsRecurring { get; set; }
+
+    public DateOnly? SpecificDate { get; set; }
+
+    public short? DayOfWeek { get; set; }
 
     public TimeOnly StartTime { get; set; }
 
     public TimeOnly EndTime { get; set; }
-
-    public bool? IsAvailable { get; set; }
 
     public string? Note { get; set; }
 

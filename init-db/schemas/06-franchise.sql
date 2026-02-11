@@ -195,28 +195,46 @@ CREATE TABLE IF NOT EXISTS shift_rules (
 CREATE UNIQUE INDEX idx_rules_store_unique ON shift_rules(store_id);
 
 -- ========================================================
--- 8. STAFF AVAILABILITIES (Lịch rảnh của nhân viên)
+-- 8. STAFF AVAILABILITIES (Lịch của nhân viên)
 -- ========================================================
 CREATE TABLE IF NOT EXISTS staff_availabilities (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL,
     
-    availability_date DATE NOT NULL,
+    -- Trạng thái: TRUE (Rảnh), FALSE (Bận)
+    is_available BOOLEAN NOT NULL DEFAULT TRUE,
+
+    -- TRUE: Lặp lại hàng tuần (Thứ 2, 3...) | FALSE: Ngày cụ thể (Việc đột xuất)
+    is_recurring BOOLEAN DEFAULT FALSE,
+
+    -- Dùng khi is_recurring = FALSE (Ví dụ: '2026-02-14')
+    specific_date DATE, 
+
+    -- Dùng khi is_recurring = TRUE (0: Chủ Nhật, ..., 6: Thứ Bảy)
+    day_of_week SMALLINT CHECK (day_of_week BETWEEN 0 AND 6),
     
+    -- Giờ bắt đầu (Có thể > end_time nếu làm qua đêm)
     start_time TIME NOT NULL, 
+    -- Giờ kết thúc
     end_time TIME NOT NULL,
     
-    -- Trạng thái: TRUE (Rảnh, có thể làm), FALSE (Bận/Xin nghỉ)
-    is_available BOOLEAN DEFAULT TRUE,
-    
+    -- Lý do bận hoặc ghi chú rảnh (nullable)
     note VARCHAR(255),
     
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP, 
-    is_deleted BOOLEAN DEFAULT FALSE
-);
-CREATE INDEX idx_availabilities_user_date ON staff_availabilities(user_id, availability_date);
+    is_deleted BOOLEAN DEFAULT FALSE,
 
+    -- Ràng buộc logic dữ liệu hybrid
+    CONSTRAINT date_or_day_check CHECK (
+        (is_recurring = FALSE AND specific_date IS NOT NULL) OR 
+        (is_recurring = TRUE AND day_of_week IS NOT NULL)
+    )
+);
+
+CREATE INDEX idx_staff_availability_query 
+ON staff_availabilities(user_id, is_available, specific_date, day_of_week) 
+WHERE is_deleted = FALSE;
 
 -- ========================================================
 -- 9. TIME LOGS (Chấm công thực tế)
