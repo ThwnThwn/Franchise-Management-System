@@ -97,9 +97,15 @@ public sealed class CreateOrderHandler
             Items = listItemCheck.ToList()
         };
         var reserveRes = await _inventoryServiceClient.ReserveStockAsync(reserveReq);
-        if (!reserveRes.Success)
+        if(!reserveRes.IsEnough)
         {
-            return Result.Error($"Out of stock: {reserveRes.Message}");
+            return Result.Success(new CreateOrderResponseDto
+            {
+                OrderId = Guid.Empty,
+                OrderCode = "Failed",
+                TotalAmount = 0,
+                CheckEnoughStockRes = reserveRes
+            });
         }
 
 

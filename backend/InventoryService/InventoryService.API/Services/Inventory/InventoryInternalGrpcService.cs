@@ -66,7 +66,7 @@ namespace InventoryService.API.Services.Inventory
             return new DecreaseStockByOrderResponse();
         }
 
-        public override async Task<ReserveStockResponse> ReserveStock(ReserveStockRequest request, ServerCallContext context)
+        public override async Task<CheckEnoughStockResponse> ReserveStock(ReserveStockRequest request, ServerCallContext context)
         {
             var command = new Application.Features.StoreIngredient.Commands.ReserveStock.ReserveStockCommand
             {
@@ -79,13 +79,32 @@ namespace InventoryService.API.Services.Inventory
                 }).ToList()
             };
 
-            var result = await _mediator.Send(command);
+            var rep = await _mediator.Send(command);
 
-            return new ReserveStockResponse
+            //return new ReserveStockResponse
+            //{
+            //    Success = result.Success,
+            //    Message = result.Message
+            //};
+            // 1. Khởi tạo đối tượng Response của gRPC
+            var response = new CheckEnoughStockResponse
             {
-                Success = result.Success,
-                Message = result.Message
+                IsEnough = rep.IsEnough
             };
+
+            // 2. Chuyển đổi từ DTO sang class ShortageItem của gRPC và thêm vào danh sách
+            if (rep.ShortageItems != null)
+            {
+                var grpcItems = rep.ShortageItems.Select(x => new AmountVariant
+                {
+                    VariantId = x.VariantId.ToString(),
+                    Amount = x.Amount
+                });
+
+                response.ShortageItems.AddRange(grpcItems); // Dùng AddRange thay vì gán dấu "="
+            }
+
+            return response;
         }
         public override async Task<ReleaseStockResponse> ReleaseStock(ReleaseStockRequest request,ServerCallContext context)
         {
