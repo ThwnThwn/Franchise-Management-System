@@ -169,20 +169,18 @@ export default function ProductManagementPage() {
                 </div>
             </Suspense>
             {(data?.items || []).length > 0 && !isLoading && !isTyping && (
-                <div className="mt-6 flex justify-center">
-                    <PaginationStyled
-                        page={pagination.page ?? 1}
-                        total={data?.totalPages ?? 10}
-                        onChange={(page: number) =>
-                            setPagination((prev) => {
-                                return {
-                                    ...prev,
-                                    page: page
-                                }
-                            })
-                        }
-                    />
-                </div>
+                <PaginationStyled
+                    page={pagination.page ?? 1}
+                    total={data?.totalPages ?? 10}
+                    onChange={(page: number) =>
+                        setPagination((prev) => {
+                            return {
+                                ...prev,
+                                page: page
+                            }
+                        })
+                    }
+                />
             )}
 
             <>

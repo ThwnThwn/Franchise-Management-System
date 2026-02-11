@@ -6,8 +6,8 @@ export type BackendError = {
 
 export type PageResult<T> = {
     items: T[]
-    pageNumber: number
-    pageSize: number
+    // pageNumber: number
+    // pageSize: number
     totalCount: number
     totalPages: number
 }

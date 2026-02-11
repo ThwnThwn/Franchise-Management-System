@@ -1,6 +1,5 @@
 import { buildQueryParams } from "@/utils/helpers/axiosHelper"
 import axiosInstance from "@/utils/axios"
-import { PageResult } from "@/models/common/respone"
 import { CreateShiftRequest, GetShiftsParams, UpdateShiftRequest } from "../models/request"
 import { ShiftResponse, StaffAssignmentCandidate } from "../models/response"
 
@@ -10,7 +9,7 @@ import { ShiftResponse, StaffAssignmentCandidate } from "../models/response"
  */
 export const shiftApi = {
     // Lấy danh sách ca làm việc (Calendar/List view)
-    getAll: async ({ query }: { query: GetShiftsParams }): Promise<PageResult<ShiftResponse>> => {
+    getAll: async ({ query }: { query: GetShiftsParams }): Promise<ShiftResponse[]> => {
         const params = {
             ...buildQueryParams(query)
         }

@@ -7,7 +7,7 @@ import { Menu } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { useTokenStore } from "@/hooks"
 import { RoleSlug } from "@/constants/enums"
-import { SIDEBAR_MENU } from "./menuItems"
+import { SIDEBAR_MENU } from "@/constants/sidebar-menu"
 import { SidebarContent } from "./SidebarContent"
 
 export const DashboardSidebar = () => {

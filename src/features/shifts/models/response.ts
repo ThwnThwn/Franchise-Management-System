@@ -1,3 +1,4 @@
+import { DayOfWeek } from "@/constants/enums"
 import { ShiftAssignmentStatus, ShiftStatus } from "../constants/enum"
 
 export interface ShiftAssignment {
@@ -125,4 +126,21 @@ export interface ShiftRuleSettingsResponse {
     // dùng mảng do nếu admin xem thì lấy hết store lên
     // manager xem thì trong query param có truyền store id và trong mảng chỉ có 0 / 1 item
     stores: ShiftRuleResponse[]
+}
+
+// ===============================
+// Shift availability
+// ===============================
+export interface ShiftAvailabilityResponse {
+    id: string
+    userId: string
+    isAvailable: boolean
+    isRecurring: boolean
+    specificDate?: string
+    dayOfWeek?: DayOfWeek
+    startTime: string // HH:mm:ss từ BE
+    endTime: string
+    note?: string
+    createdAt: string // Dùng để hiển thị "Ngày gửi" trong Table
+    updatedAt: string // Dùng để hiển thị "Cập nhật cuối"
 }

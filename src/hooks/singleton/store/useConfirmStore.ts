@@ -4,8 +4,8 @@ import { STRINGS } from "@/constants/strings"
 
 // Định nghĩa Option nhận vào linh hoạt
 export type ConfirmDialogOptions = {
-    message: ReactNode
     title?: string
+    message?: ReactNode
     confirmText?: string
     cancelText?: string
     variant?: "danger" | "success" | "warning" | "info"

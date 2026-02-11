@@ -1,46 +1,70 @@
 "use client"
 
-import React from "react"
+import React, { useMemo } from "react"
 import { AutocompleteItem, AutocompleteProps } from "@heroui/react"
 import { AutocompleteStyled } from "@/components"
 
-// Loại bỏ các props mình muốn ghi đè logic riêng để tránh xung đột
-interface EnumPickerProps<T extends number> extends Omit<
+interface EnumPickerProps<T extends string | number> extends Omit<
     AutocompleteProps,
     "value" | "onChange" | "children" | "items" | "onSelectionChange" | "selectedKey"
 > {
-    labels: Record<T, string>
-    value?: T | null
-    onChange?: (value: T | null) => void
+    labels: Partial<Record<T, string>>
+    value?: T
+    onChange?: (value?: T) => void
 }
 
-export function EnumPicker<T extends number>({
+export function EnumPicker<T extends string | number>({
     labels,
     value,
     onChange,
-    ...restProps // Gom tất cả props còn lại của HeroUI (label, placeholder, isReadOnly, etc.)
+    ...restProps
 }: EnumPickerProps<T>) {
-    // Convert object enum thành mảng để render
-    const items = Object.entries(labels).map(([key, label]) => ({
-        key: String(key),
-        label: label as string
-    }))
+    // 1. Chuyển đổi labels thành mảng items
+    const items = useMemo(() => {
+        return Object.entries(labels)
+            .filter(([, label]) => label !== undefined)
+            .map(([key, label]) => ({
+                key: String(key),
+                label: label as string
+            }))
+    }, [labels])
+
+    // 2. Tự động suy luận kiểu Enum dựa trên key đầu tiên của labels
+    const isActuallyNumberEnum = useMemo(() => {
+        const keys = Object.keys(labels)
+        if (keys.length === 0) return false
+
+        // Kiểm tra xem key đầu tiên có phải là "chuỗi số" không (VD: "0", "1")
+        // Lưu ý: Chúng ta dùng !isNaN để check, vì Enum string như "admin" sẽ ra NaN
+        const firstKey = keys[0]
+        return !isNaN(Number(firstKey)) && isFinite(Number(firstKey))
+    }, [labels])
 
     const handleSelectionChange = (key: React.Key | null) => {
         if (!onChange) return
-        // Trả về kiểu số (number) để khớp với Enum của bro thay vì string
-        onChange(key !== null ? (Number(key) as T) : null)
+
+        if (key === null) {
+            onChange(undefined)
+            return
+        }
+
+        const stringKey = String(key)
+
+        // Nếu tự suy luận là Number Enum thì convert, không thì giữ String
+        const finalValue = isActuallyNumberEnum ? (Number(stringKey) as T) : (stringKey as T)
+
+        onChange(finalValue)
     }
 
     return (
         <AutocompleteStyled
             variant="bordered"
-            {...restProps} // Spread props: giờ bro truyền cái gì vào EnumPicker nó cũng bay thẳng vào đây
-            selectedKey={value !== null && value !== undefined ? String(value) : null}
+            {...restProps}
+            selectedKey={value !== undefined ? String(value) : null}
             onSelectionChange={handleSelectionChange}
             classNames={{
                 popoverContent: "min-w-fit",
-                ...restProps.classNames // Cho phép ghi đè classNames từ bên ngoài
+                ...restProps.classNames
             }}
         >
             {items.map((item) => (

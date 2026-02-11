@@ -8,7 +8,8 @@ import {
     Users,
     ShieldUser,
     Package,
-    Settings
+    Settings,
+    Calendar
 } from "lucide-react"
 
 export interface MenuItem {
@@ -30,12 +31,6 @@ export const SIDEBAR_MENU: MenuItem[] = [
         label: "Cấu hình ca làm",
         href: "/dashboard/shift-settings",
         allowedRoles: [RoleSlug.Admin, RoleSlug.Manager]
-    },
-    {
-        icon: <CalendarRange className="w-5 h-5" />,
-        label: "Quản lý ca làm",
-        href: "/dashboard/shifts",
-        allowedRoles: [RoleSlug.Manager]
     },
     {
         icon: <Coffee className="w-5 h-5" />,
@@ -66,5 +61,17 @@ export const SIDEBAR_MENU: MenuItem[] = [
         label: "Cài đặt",
         href: "/dashboard/settings",
         allowedRoles: [RoleSlug.Admin]
+    },
+    {
+        icon: <CalendarRange className="w-5 h-5" />,
+        label: "Quản lý ca làm",
+        href: "/dashboard/shifts",
+        allowedRoles: [RoleSlug.Manager]
+    },
+    {
+        icon: <Calendar className="w-5 h-5" />,
+        label: "Lịch cá nhân",
+        href: "/dashboard/my-schedule",
+        allowedRoles: [RoleSlug.Staff]
     }
 ]

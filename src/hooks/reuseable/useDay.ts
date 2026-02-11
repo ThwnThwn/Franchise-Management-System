@@ -119,7 +119,7 @@ export const useDay = ({
     /**
      * Format Date -> String "YYYY-MM-DD" (Gửi API - chỉ lấy ngày)
      */
-    const formatDateApi = (
+    const formatDate = (
         date: DateValue | string | Date | dayjs.Dayjs | null | undefined
     ): string => {
         if (!date) return ""
@@ -245,7 +245,7 @@ export const useDay = ({
 
         // Formatters
         formatTime,
-        formatDateApi,
+        formatDate,
         formatToApiUTC,
         formatDateTime,
 

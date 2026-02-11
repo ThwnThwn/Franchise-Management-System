@@ -9,12 +9,14 @@ export function PaginationStyled({ page, onChange, className, ...rest }: Paginat
     }
 
     return (
-        <Pagination
-            hidden={rest.total <= 0}
-            {...rest}
-            page={page}
-            onChange={handleClick}
-            className={cn("flex justify-center items-center", className)}
-        />
+        <div className="mt-6 flex justify-center">
+            <Pagination
+                hidden={rest.total <= 0}
+                {...(rest as any)}
+                page={page}
+                onChange={handleClick}
+                className={cn("flex justify-center items-center", className)}
+            />
+        </div>
     )
 }

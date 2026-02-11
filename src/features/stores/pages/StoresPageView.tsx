@@ -141,20 +141,18 @@ export default function StoresPageView() {
                 />
 
                 {(data?.items || []).length > 0 && !isLoading && (
-                    <div className="mt-6 flex justify-center">
-                        <PaginationStyled
-                            page={pagination.page ?? 1}
-                            total={data?.totalPages ?? 10}
-                            onChange={(page: number) =>
-                                setPagination((prev) => {
-                                    return {
-                                        ...prev,
-                                        page: page
-                                    }
-                                })
-                            }
-                        />
-                    </div>
+                    <PaginationStyled
+                        page={pagination.page ?? 1}
+                        total={data?.totalPages ?? 10}
+                        onChange={(page: number) =>
+                            setPagination((prev) => {
+                                return {
+                                    ...prev,
+                                    page: page
+                                }
+                            })
+                        }
+                    />
                 )}
             </div>
 

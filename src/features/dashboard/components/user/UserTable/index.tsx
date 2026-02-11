@@ -13,16 +13,16 @@ import {
 import { useUserHelper } from "@/hooks" // Import hook mutation
 import { DEFAULT_AVATAR_URL } from "@/constants/constants"
 import { User } from "@/models/user"
-import { Key } from "@react-types/shared"
 import { useUpdateUserRole } from "@/features/dashboard/hooks"
 import { RoleSlug } from "@/constants/enums"
 import { RoleSlugLabels } from "@/constants/labels"
+import { useGetStores } from "@/features/stores"
 
 // --- Component con để xử lý ô Role riêng biệt ---
 const RoleCell = ({ user }: { user: User }) => {
     const { mutate, isPending } = useUpdateUserRole()
 
-    const handleRoleChange = (key: Key | null) => {
+    const handleRoleChange = (key: RoleSlug | undefined) => {
         if (!key) return
 
         mutate({
@@ -31,7 +31,7 @@ const RoleCell = ({ user }: { user: User }) => {
         })
     }
 
-    const roleSlug = user.role?.name.toLowerCase()
+    const roleSlug = user.role?.name.toLowerCase() as RoleSlug
 
     return (
         <EnumPicker
@@ -57,12 +57,18 @@ type UserUserManagementProps = {
 
 export function UserTable({
     users,
-    isLoading = false,
+    isLoading: isUserLoading = false,
     emptyMessage,
     onViewUser,
     isRefetching = false
 }: UserUserManagementProps) {
     const { toFullName } = useUserHelper()
+    const { data: stores, isLoading: isStoreLoading } = useGetStores({
+        params: {},
+        pagination: { page: 1, pageSize: 100 }
+    })
+
+    const isLoading = isUserLoading || isStoreLoading
 
     const renderBody = () => {
         if (isLoading) {
@@ -129,7 +135,8 @@ export function UserTable({
 
                     {/* Cột 4: Cửa hàng */}
                     <TableCell className="text-center text-sm text-slate-700">
-                        {item.homeStoreId || "-"}
+                        {(stores?.items || []).filter((s) => s.id === item.homeStoreId)[0].name ||
+                            "-"}
                     </TableCell>
 
                     {/* Cột 5: Thao tác */}

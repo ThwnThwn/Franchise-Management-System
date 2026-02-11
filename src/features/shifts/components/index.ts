@@ -1,4 +1,6 @@
 export * from "./ScheduleToolbar"
+export * from "./ShiftAssignmentTab"
+export * from "./ShiftAvailabilityModal"
 export * from "./ShiftCalendar"
 export * from "./ShiftModal"
 export * from "./ShiftTemplateModal"

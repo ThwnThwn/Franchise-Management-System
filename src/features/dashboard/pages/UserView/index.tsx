@@ -99,7 +99,7 @@ export default function UserView() {
                     labels={RoleSlugLabels}
                     value={filter.roleSlug}
                     onChange={(e) => {
-                        handleSetFilter({ ...filter, roleSlug: e as RoleSlug })
+                        handleSetFilter({ ...filter, roleSlug: e })
                     }}
                     isReadOnly={isLoading}
                     className="w-70"
@@ -153,20 +153,18 @@ export default function UserView() {
             )}
 
             {(data?.items || []).length > 0 && !isLoading && !isTyping && (
-                <div className="mt-6 flex justify-center">
-                    <PaginationStyled
-                        page={pagination.page ?? 1}
-                        total={data?.totalPages ?? 10}
-                        onChange={(page: number) =>
-                            setPagination((prev) => {
-                                return {
-                                    ...prev,
-                                    page: page
-                                }
-                            })
-                        }
-                    />
-                </div>
+                <PaginationStyled
+                    page={pagination.page ?? 1}
+                    total={data?.totalPages ?? 10}
+                    onChange={(page: number) =>
+                        setPagination((prev) => {
+                            return {
+                                ...prev,
+                                page: page
+                            }
+                        })
+                    }
+                />
             )}
         </div>
     )

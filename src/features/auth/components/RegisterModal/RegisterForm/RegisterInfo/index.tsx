@@ -10,7 +10,6 @@ import { UserRegisterReq } from "@/features/auth/models/request"
 import { useDay } from "@/hooks"
 import { EnumPicker } from "@/components/modules/EnumPicker"
 import { useFormik } from "formik"
-import { number } from "framer-motion"
 import React, { useCallback, useState } from "react"
 import * as Yup from "yup"
 
@@ -214,9 +213,7 @@ export function Register({ email, setEmail, onSuccess }: RegisterInfoProps) {
                     label={AUTH_TEXT.TITLES.GENDER}
                     labels={GenderLabels}
                     value={formik.values.gender}
-                    onChange={(val) =>
-                        formik.setFieldValue("gender", number.parse(val?.toString() ?? "0"))
-                    }
+                    onChange={(val) => formik.setFieldValue("gender", val)}
                 />
                 <DatePickerStyled
                     label={AUTH_TEXT.TITLES.DATE_OF_BIRTH}

@@ -4,7 +4,7 @@ import React, { useCallback, useMemo } from "react"
 import { DropdownTrigger, DropdownMenu, DropdownItem, User, cn } from "@heroui/react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { LogOut, User as UserIcon, LayoutDashboard, ShoppingBag, History } from "lucide-react"
+import { LogOut, User as UserIcon, LayoutDashboard, ShoppingBag } from "lucide-react"
 
 import { DEFAULT_AVATAR_URL } from "@/constants/constants"
 import { STRINGS } from "@/constants/strings"
@@ -58,7 +58,7 @@ export function ProfileDropdown({ isTextChangeColor = false }: { isTextChangeCol
                 href: "/dashboard",
                 icon: <LayoutDashboard size={18} />,
                 // Chỉ hiện cho Admin và Manager
-                allowedRoles: [RoleSlug.Admin, RoleSlug.Manager]
+                allowedRoles: [RoleSlug.Admin, RoleSlug.Manager, RoleSlug.Staff]
             },
             {
                 key: "orders",
@@ -69,13 +69,13 @@ export function ProfileDropdown({ isTextChangeColor = false }: { isTextChangeCol
                 allowedRoles: [RoleSlug.Customer]
             },
             // Ví dụ thêm item cho Staff
-            {
-                key: "schedule",
-                label: "Lịch làm việc",
-                href: "/staff/schedule",
-                icon: <History size={18} />,
-                allowedRoles: [RoleSlug.Staff]
-            },
+            // {
+            //     key: "schedule",
+            //     label: "Lịch làm việc",
+            //     href: "/staff/schedule",
+            //     icon: <History size={18} />,
+            //     allowedRoles: [RoleSlug.Staff]
+            // },
             {
                 key: "logout",
                 label: STRINGS.NAVBAR.LOGOUT || "Đăng xuất",
@@ -144,7 +144,7 @@ export function ProfileDropdown({ isTextChangeColor = false }: { isTextChangeCol
                             key={item.key}
                             color={item.color || "default"}
                             className={cn(
-                                "text-left w-fit",
+                                "text-left w-full",
                                 item.color === "danger" && "text-danger"
                             )}
                             startContent={item.icon}

@@ -23,7 +23,7 @@ import { CalendarRange } from "lucide-react"
 import { ShiftStatus } from "../../constants"
 
 export default function ShiftSchedulerPageView() {
-    const { formatDateApi, formatToApiUTC, formatDateTime } = useDay({ defaultFormat: "HH:mm" })
+    const { formatDate, formatToApiUTC, formatDateTime } = useDay({ defaultFormat: "HH:mm" })
 
     // 1. Logic Hook
     const {
@@ -140,7 +140,7 @@ export default function ShiftSchedulerPageView() {
                 req: {
                     startTime: startISO,
                     endTime: endISO,
-                    shiftDate: formatDateApi(newStart)
+                    shiftDate: formatDate(newStart)
                 }
             },
             {
@@ -157,7 +157,7 @@ export default function ShiftSchedulerPageView() {
     // 4. Submit Form (Create or Update)
     const handleModalSubmit = (data: ShiftFormValues) => {
         // 1. Format Shift Date (Dùng hàm có sẵn của bạn)
-        const dateStr = formatDateApi(data.shiftDate) // Ra "2026-02-10"
+        const dateStr = formatDate(data.shiftDate) // Ra "2026-02-10"
 
         // 2. Logic tính toán giờ (Vẫn cần làm ở đây vì liên quan business logic ca đêm)
         const startDateTime = dayjs(`${dateStr}T${data.startTime}:00`)
