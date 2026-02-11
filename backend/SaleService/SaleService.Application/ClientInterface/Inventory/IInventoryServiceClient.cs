@@ -11,7 +11,7 @@ namespace SalesService.Application.ClientInterface.Inventory
     {
         Task DecreaseStockByOrder(DecreaseStockByOrderReq request);
         Task<CheckEnoughStockRes> CheckEnoughStockAsync(CheckEnoughStockReq request);
-        Task<ReserveStockResponseDto> ReserveStockAsync(ReserveStockReq request);
+        Task<CheckEnoughStockRes> ReserveStockAsync(ReserveStockReq request);
         Task<ReleaseStockRes> ReleaseStockAsync(ReleaseStockReq request);
     }
     

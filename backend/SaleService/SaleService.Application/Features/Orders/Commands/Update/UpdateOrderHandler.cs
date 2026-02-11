@@ -100,11 +100,13 @@ namespace SalesService.Application.Features.Orders.Commands.Update
                 Items = newReserveItems
             });
 
-            if (!reserveRes.Success)
-                throw new BusinessException($"Stock update failed: {reserveRes.Message}");
+            if (!reserveRes.IsEnough)
+                //throw new BusinessException($"Stock update failed: {reserveRes.Message}");
+                throw new BusinessException($"Stock update faile");
 
-            // Remove orderItem - save change order
-            decimal subtotal = 0;
+
+                // Remove orderItem - save change order
+                decimal subtotal = 0;
             foreach (var item in request.Items)
             {
                 var existing = order.OrderItems

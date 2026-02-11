@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace InventoryService.Application.Features.StoreIngredient.Commands.ReserveStock;
 
-public class ReserveStockCommand : IRequest<ReserveStockResponseDto>
+public class ReserveStockCommand : IRequest<CheckEnoughStockRes>
 {
     public Guid StoreId { get; set; }
     public Guid OrderId { get; set; }

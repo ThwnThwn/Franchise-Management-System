@@ -54,11 +54,11 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
         var command = new CreateOrderCommand(createOrderRequest);
         var result = await _mediator.Send(command, context.CancellationToken);
 
-        if (!result.IsSuccess)
-        {
-            var errorMessage = result.Errors.FirstOrDefault() ?? "Failed to create order";
-            throw new RpcException(new Status(StatusCode.Internal, errorMessage));
-        }
+        //if (!result.IsSuccess)
+        //{
+        //    var errorMessage = result.Errors.FirstOrDefault() ?? "Failed to create order";
+        //    throw new RpcException(new Status(StatusCode.Internal, errorMessage));
+        //}
 
         var reply = new OrderReply
         {

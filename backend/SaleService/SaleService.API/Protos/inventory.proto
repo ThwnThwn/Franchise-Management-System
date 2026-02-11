@@ -8,7 +8,7 @@ package inventory.internal;
 service InventoryInternalGrpc {
   rpc DecreaseStockByOrder(DecreaseStockByOrderRequest) returns (DecreaseStockByOrderResponse);
   rpc CheckEnoughStock(CheckEnoughStockRequest) returns (CheckEnoughStockReply);
-  rpc ReserveStock(ReserveStockRequest) returns (ReserveStockResponse);
+  rpc ReserveStock(ReserveStockRequest) returns (CheckEnoughStockReply);
   rpc ReleaseStock(ReleaseStockRequest) returns (ReleaseStockResponse);
 }
 
