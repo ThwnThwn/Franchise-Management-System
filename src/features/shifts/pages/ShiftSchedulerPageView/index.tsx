@@ -181,9 +181,9 @@ export default function ShiftSchedulerPageView() {
                 requiredStaffCount: data.requiredStaffCount,
                 breakDurationMinutes: data.breakDurationMinutes,
                 note: data.note || "",
-                status: data.status
+                status: data.status,
+                shiftTemplateId: data.shiftTemplateId || undefined
             }
-            console.log(payload)
 
             updateMutation.mutate({ id: selectedShiftId, req: payload })
         } else {
@@ -195,8 +195,8 @@ export default function ShiftSchedulerPageView() {
                 endTime: endISO!,
                 requiredStaffCount: data.requiredStaffCount,
                 breakDurationMinutes: data.breakDurationMinutes,
-                shiftTemplateId: data.shiftTemplateId || undefined,
-                note: data.note || ""
+                note: data.note || "",
+                shiftTemplateId: data.shiftTemplateId || undefined
             }
             createMutation.mutate(payload)
         }

@@ -62,3 +62,25 @@ export interface StaffAssignmentCandidate {
     isConflict: boolean // check xem có record nào trùng giờ chưa
     isAssigned: boolean // check xem staff đã có trong ca này chưa
 }
+
+// ===============================
+// Shift rule
+// ===============================
+export interface ShiftRuleResponse {
+    id: string
+    storeId?: string
+    allowShuttle: boolean
+    allowShiftSwap: boolean
+    minHoursBetweenShifts: number
+    maxHoursPerWeek: number
+    updatedAt: string
+}
+
+// Kiểu trả về mới khi Manager xem cấu hình
+export interface ShiftRuleSettingsResponse {
+    global: ShiftRuleResponse
+
+    // dùng mảng do nếu admin xem thì lấy hết store lên
+    // manager xem thì trong query param có truyền store id và trong mảng chỉ có 0 / 1 item
+    stores: ShiftRuleResponse[]
+}

@@ -5,7 +5,7 @@ import React from "react"
 export function AlertStyled(props: AlertProps) {
     return (
         <Alert
-            {...props}
+            {...(props as any)}
             className={cn("max-w-fit text-sm px-3 py-1 font-[450] text-left", props.className)}
         />
     )

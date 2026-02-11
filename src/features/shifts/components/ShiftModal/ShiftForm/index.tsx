@@ -49,6 +49,15 @@ export const ShiftForm = ({ formik, isSubmitable }: ShiftFormProps) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [formik.values.shiftTemplateId, templates])
 
+    const handleFieldChange = (field: string, value: any) => {
+        formik.setFieldValue(field, value)
+
+        // Nếu đang có link với Template thì xoá ID đi vì dữ liệu đã khác mẫu
+        if (formik.values.shiftTemplateId) {
+            formik.setFieldValue("shiftTemplateId", undefined)
+        }
+    }
+
     return (
         <form onSubmit={formik.handleSubmit} className="space-y-2">
             {/* 1. Chọn Mẫu */}
@@ -64,7 +73,6 @@ export const ShiftForm = ({ formik, isSubmitable }: ShiftFormProps) => {
                 }}
                 isDisabled={!isSubmitable}
             >
-                {/* 4. Dùng render function thay vì map trực tiếp */}
                 {(item) => (
                     <SelectItem key={item.id} textValue={item.name}>
                         {item.name} ({item.startTime.slice(0, 5)} - {item.endTime.slice(0, 5)})
@@ -96,7 +104,7 @@ export const ShiftForm = ({ formik, isSubmitable }: ShiftFormProps) => {
                     value={toTime(formik.values.startTime)}
                     onChange={(time) => {
                         if (!time) return
-                        formik.setFieldValue("startTime", formatTime(time, false))
+                        handleFieldChange("startTime", formatTime(time, false))
                     }}
                     isInvalid={isInvalid("startTime")}
                     errorMessage={getErrorMessage("startTime")}
@@ -108,7 +116,7 @@ export const ShiftForm = ({ formik, isSubmitable }: ShiftFormProps) => {
                     value={toTime(formik.values.endTime)}
                     onChange={(time) => {
                         if (!time) return
-                        formik.setFieldValue("endTime", formatTime(time, false))
+                        handleFieldChange("endTime", formatTime(time, false))
                     }}
                     isInvalid={isInvalid("endTime")}
                     errorMessage={getErrorMessage("endTime")}
@@ -140,7 +148,7 @@ export const ShiftForm = ({ formik, isSubmitable }: ShiftFormProps) => {
                     label="Nghỉ (phút)"
                     name="breakDurationMinutes"
                     value={formik.values.breakDurationMinutes}
-                    onValueChange={(n) => formik.setFieldValue("breakDurationMinutes", n)}
+                    onValueChange={(n) => handleFieldChange("breakDurationMinutes", n)}
                     isInvalid={isInvalid("breakDurationMinutes")}
                     errorMessage={getErrorMessage("breakDurationMinutes")}
                     isReadOnly={!isSubmitable}

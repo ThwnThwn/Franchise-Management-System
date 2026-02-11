@@ -47,7 +47,7 @@ export const ShiftModal = ({
             breakDurationMinutes: 0,
             note: "",
             status: ShiftStatus.Draft,
-            shiftTemplateId: null
+            shiftTemplateId: undefined
         },
         validationSchema: shiftSchema,
         onSubmit: (values) => {

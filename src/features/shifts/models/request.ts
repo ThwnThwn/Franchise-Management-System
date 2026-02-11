@@ -26,6 +26,7 @@ export interface UpdateShiftRequest {
     breakDurationMinutes?: number
     note?: string
     status?: ShiftStatus
+    shiftTemplateId?: string
 }
 
 // ===============================
@@ -53,4 +54,15 @@ export interface UpdateShiftTemplateRequest {
     endTime?: string
     breakDurationMinutes?: number
     isActive?: boolean
+}
+
+// ===============================
+// Shift rule
+// ===============================
+export interface SaveShiftRuleRequest {
+    storeId?: string // Truyền ID store để tạo/cập nhật store rule
+    allowShuttle: boolean
+    allowShiftSwap: boolean
+    minHoursBetweenShifts: number
+    maxHoursPerWeek: number
 }
