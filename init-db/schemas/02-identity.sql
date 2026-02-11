@@ -57,6 +57,8 @@ CREATE TABLE IF NOT EXISTS users (
     gender INT NOT NULL DEFAULT 0, -- 0: Male, 1: Female
     date_of_birth TIMESTAMP NOT NULL,
     is_blocked BOOLEAN DEFAULT FALSE,
+    
+    current_hourly_wage DECIMAL(18, 2), -- Mức lương theo giờ hiện tại
 
     -- Định danh nhân viên này thuộc biên chế cửa hàng nào
     home_store_id UUID,

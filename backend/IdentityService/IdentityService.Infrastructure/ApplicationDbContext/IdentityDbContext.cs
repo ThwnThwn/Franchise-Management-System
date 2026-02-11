@@ -203,6 +203,10 @@ public partial class IdentityDbContext : DbContext, IIdentityDbContext
             entity.Property(e => e.Username)
                 .HasMaxLength(70)
                 .HasColumnName("username");
+            
+            entity.Property(e => e.CurrentHourlyWage)
+                .HasPrecision(18, 2)
+                .HasColumnName("current_hourly_wage");
 
             entity.HasOne(d => d.Role).WithMany(p => p.Users)
                 .HasForeignKey(d => d.RoleId)

@@ -1,24 +1,33 @@
 ﻿using FranchiseService.Domain.Commons;
 
-namespace FranchiseService.Domain.Entities;
-
-public partial class StaffAvailability : SoftDeletedEntity, IEntity
+namespace FranchiseService.Domain.Entities
 {
-    public Guid Id { get; set; }
+    /// <summary>
+    /// Lịch rảnh/bận của nhân viên.
+    /// Bảng: staff_availabilities
+    /// </summary>
+    public class StaffAvailability : SoftDeletedEntity, IEntity
+    {
+        public Guid Id { get; set; }
 
-    public Guid UserId { get; set; }
+        public Guid UserId { get; set; }
 
-    public DateOnly AvailabilityDate { get; set; }
+        /// <summary>
+        /// Ngày đăng ký
+        /// </summary>
+        public DateOnly AvailabilityDate { get; set; }
 
-    public TimeOnly StartTime { get; set; }
+        public TimeOnly StartTime { get; set; }
+        public TimeOnly EndTime { get; set; }
 
-    public TimeOnly EndTime { get; set; }
+        /// <summary>
+        /// True: Rảnh (Có thể làm), False: Bận (Xin nghỉ)
+        /// </summary>
+        public bool IsAvailable { get; set; }
 
-    public bool? IsAvailable { get; set; }
+        public string? Note { get; set; }
 
-    public string? Note { get; set; }
-
-    public DateTimeOffset CreatedAt { get; set; }
-
-    public DateTimeOffset UpdatedAt { get; set; }
+        public DateTimeOffset CreatedAt { get; set; }
+        public DateTimeOffset UpdatedAt { get; set; }
+    }
 }
