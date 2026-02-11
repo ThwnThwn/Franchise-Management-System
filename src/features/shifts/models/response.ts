@@ -59,5 +59,6 @@ export interface StaffAssignmentCandidate {
     note?: string
 
     // Dữ liệu check chéo với bảng shift_assignments
-    isConflict: boolean // Backend check xem có record nào trùng giờ chưa
+    isConflict: boolean // check xem có record nào trùng giờ chưa
+    isAssigned: boolean // check xem staff đã có trong ca này chưa
 }
