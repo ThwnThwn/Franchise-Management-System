@@ -45,25 +45,34 @@ export const shiftApi = {
     },
 
     /**
-     * Lấy danh sách nhân viên tiềm năng để gán vào ca
-     * Backend sẽ xử lý check Conflict và Availability dựa trên ShiftID
+     * @param storeId - ID của cửa hàng để giới hạn danh sách nhân viên
+     * @param shiftId - ID của ca làm để check conflict/availability/assigned
      */
-    getAvailableStaffs: async (shiftId: string): Promise<StaffAssignmentCandidate[]> => {
-        const res = await axiosInstance.get(`/shifts/${shiftId}/available-staffs`)
+    getAvailableStaffs: async ({
+        storeId,
+        shiftId
+    }: {
+        storeId: string
+        shiftId: string
+    }): Promise<StaffAssignmentCandidate[]> => {
+        const res = await axiosInstance.get(`/stores/${storeId}/shifts/${shiftId}/candidates`)
         return res.data
     },
 
     /**
-     * Gán nhân viên vào ca
+     * @param shiftId - ID của ca làm việc
+     * @param userIds - Mảng các User ID cuối cùng sau khi Manager đã chỉnh sửa
      */
-    assignStaff: async ({ id, userIds }: { id: string; userIds: string[] }): Promise<void> => {
-        await axiosInstance.post(`/shifts/${id}/assign`, { userIds })
-    },
-
-    /**
-     * Gỡ nhân viên khỏi ca
-     */
-    removeStaff: async ({ id, userId }: { id: string; userId: string }): Promise<void> => {
-        await axiosInstance.delete(`/shifts/${id}/assign/${userId}`)
+    updateAssignments: async ({
+        shiftId,
+        userIds
+    }: {
+        shiftId: string
+        userIds: string[]
+    }): Promise<void> => {
+        // Backend sẽ so sánh mảng này với DB:
+        // - User nào mới thì Insert, có mà đang isDeleted = true thì thành false
+        // - User nào thiếu so với DB thì soft Delete
+        await axiosInstance.put(`/shifts/${shiftId}/assign`, { userIds })
     }
 }
