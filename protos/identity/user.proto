@@ -119,6 +119,7 @@ message UserResponse {
   identity.role.RoleUserResponse role = 12;
   google.protobuf.Timestamp createdAt = 13;
   google.protobuf.Timestamp updatedAt = 14;
+  optional double current_hourly_wage = 15;
 }
 
 message GetManagerRequest{

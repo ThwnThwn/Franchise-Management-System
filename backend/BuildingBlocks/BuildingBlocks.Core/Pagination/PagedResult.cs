@@ -1,9 +1,22 @@
-﻿namespace BuildingBlocks.Core.Pagination
+﻿using System.Text.Json.Serialization;
+
+namespace BuildingBlocks.Core.Pagination
 {
+    /// <summary>
+    /// Kết quả phân trang chuẩn.
+    /// Property "Page" serialize thành "pageNumber" để khớp FE.
+    /// </summary>
     public class PagedResult<T>
     {
         public IReadOnlyList<T> Items { get; }
+
+        /// <summary>
+        /// Trang hiện tại (1-indexed).
+        /// Serialize thành "pageNumber" để khớp với FE PageResult.
+        /// </summary>
+        [JsonPropertyName("pageNumber")]
         public int Page { get; }
+
         public int PageSize { get; }
         public long TotalCount { get; }
         public int TotalPages { get; }
