@@ -1,7 +1,11 @@
 import { HOUR_MINUTE_REGEX } from "@/constants/regexs"
 import * as Yup from "yup"
+import { ShiftStatus } from "../../../constants"
+
+const shiftStatusValues = Object.values(ShiftStatus).filter((v) => typeof v === "number")
 
 export const shiftSchema = Yup.object().shape({
+    id: Yup.string(),
     storeId: Yup.string().required(),
     shiftDate: Yup.date().required("Vui lòng chọn ngày"),
     startTime: Yup.string()
@@ -18,6 +22,7 @@ export const shiftSchema = Yup.object().shape({
         .integer("Phải là số nguyên")
         .default(0),
     note: Yup.string().nullable(),
+    status: Yup.mixed<ShiftStatus>().oneOf(shiftStatusValues).default(ShiftStatus.Draft),
     shiftTemplateId: Yup.string().nullable()
 })
 

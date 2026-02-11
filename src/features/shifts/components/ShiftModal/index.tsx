@@ -1,28 +1,14 @@
 "use client"
 
-import React, { useEffect } from "react"
-import {
-    ModalContent,
-    ModalHeader,
-    ModalBody,
-    ModalFooter,
-    Select,
-    SelectItem,
-    DatePicker
-} from "@heroui/react"
+import React, { useEffect, useState } from "react"
+import { ModalContent, ModalHeader, ModalBody, ModalFooter, Tabs, Tab } from "@heroui/react"
 import { useFormik } from "formik"
-import { shiftSchema, ShiftFormValues } from "./schema"
-import { getLocalTimeZone } from "@internationalized/date"
-import { useGetShiftTemplates } from "@/features/shifts/hooks/useShiftTemplates"
+import { shiftSchema, ShiftFormValues } from "./ShiftForm/schema"
 import { useTokenStore } from "@/hooks/singleton/store"
-import {
-    ButtonStyled,
-    ModalStyled,
-    NumberInputStyled,
-    TextareaStyled,
-    TimeInputStyled
-} from "@/components"
-import { useDay, useFormikHelpers } from "@/hooks"
+import { ButtonStyled, ModalStyled } from "@/components"
+import { ShiftAssignmentTab } from "../ShiftAssignmentTab"
+import { ShiftStatus } from "../../constants"
+import { ShiftForm } from "./ShiftForm"
 
 interface ShiftModalProps {
     isOpen: boolean
@@ -42,14 +28,8 @@ export const ShiftModal = ({
     onDelete
 }: ShiftModalProps) => {
     const storeId = useTokenStore((s) => s.storeId)
-    const { toDate, formatTime, toTime } = useDay({ defaultFormat: "HH:mm" })
 
-    // 1. API lấy Template
-    const { data: templates } = useGetShiftTemplates({
-        params: {
-            storeId: storeId || ""
-        }
-    })
+    const [activeTab, setActiveTab] = useState<string>("info")
 
     // 2. Setup Formik
     const formik = useFormik<ShiftFormValues>({
@@ -61,15 +41,15 @@ export const ShiftModal = ({
             requiredStaffCount: 1,
             breakDurationMinutes: 0,
             note: "",
+            status: ShiftStatus.Draft,
             shiftTemplateId: null
         },
         validationSchema: shiftSchema,
         onSubmit: (values) => {
             onSubmit(values)
+            onClose()
         }
     })
-
-    const { isInvalid, getErrorMessage } = useFormikHelpers(formik)
 
     // 3. Reset form khi mở Modal hoặc đổi Data (Edit Mode)
     useEffect(() => {
@@ -93,140 +73,90 @@ export const ShiftModal = ({
 
     // 4. Logic: Auto-fill giờ khi chọn Template
     // Lắng nghe templateId thay đổi
-    useEffect(() => {
-        const templateId = formik.values.shiftTemplateId
-        if (templateId && templates) {
-            const template = templates.find((t) => t.id === templateId)
-            if (template) {
-                // Cắt chuỗi "08:00:00" -> "08:00" cho Input Time
-                formik.setFieldValue("startTime", template.startTime.slice(0, 5))
-                formik.setFieldValue("endTime", template.endTime.slice(0, 5))
-                formik.setFieldValue("breakDurationMinutes", template.breakDurationMinutes)
-                // Nếu muốn auto-fill cả số lượng nhân viên thì thêm ở đây
-            }
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [formik.values.shiftTemplateId, templates])
+    // useEffect(() => {
+    //     const templateId = formik.values.shiftTemplateId
+    //     if (templateId && templates) {
+    //         const template = templates.find((t) => t.id === templateId)
+    //         if (template) {
+    //             // Cắt chuỗi "08:00:00" -> "08:00" cho Input Time
+    //             formik.setFieldValue("startTime", template.startTime.slice(0, 5))
+    //             formik.setFieldValue("endTime", template.endTime.slice(0, 5))
+    //             formik.setFieldValue("breakDurationMinutes", template.breakDurationMinutes)
+    //             // Nếu muốn auto-fill cả số lượng nhân viên thì thêm ở đây
+    //         }
+    //     }
+    //     // eslint-disable-next-line react-hooks/exhaustive-deps
+    // }, [formik.values.shiftTemplateId, templates])
+
+    const handleClose = () => {
+        setActiveTab("info")
+        onClose()
+    }
 
     return (
-        <ModalStyled isOpen={isOpen} onClose={onClose} placement="top-center">
-            <ModalContent>
-                <form onSubmit={formik.handleSubmit}>
-                    <ModalHeader>
-                        {initialData?.startTime ? "Chỉnh sửa Ca làm việc" : "Tạo Ca Mới"}
+        <ModalStyled isOpen={isOpen} onClose={handleClose}>
+            <form onSubmit={formik.handleSubmit}>
+                <ModalContent>
+                    <ModalHeader className="flex flex-col gap-1">
+                        {initialData?.id ? "Quản lý Ca làm việc" : "Tạo Ca Mới"}
                     </ModalHeader>
                     <ModalBody>
-                        {/* 1. Chọn Mẫu */}
-                        <Select
-                            label="Chọn mẫu (Tùy chọn)"
-                            placeholder="Chọn mẫu để điền nhanh"
-                            items={templates || []}
-                            selectedKeys={
-                                formik.values.shiftTemplateId ? [formik.values.shiftTemplateId] : []
-                            }
-                            onChange={(e) => {
-                                // e.target.value có thể rỗng nếu user bỏ chọn, cần handle
-                                formik.setFieldValue("shiftTemplateId", e.target.value || null)
-                            }}
+                        <Tabs
+                            aria-label="Shift Options"
+                            selectedKey={activeTab}
+                            onSelectionChange={(key) => setActiveTab(key as string)}
+                            fullWidth
+                            color="primary"
+                            variant="underlined"
                         >
-                            {/* 4. Dùng render function thay vì map trực tiếp */}
-                            {(item) => (
-                                <SelectItem key={item.id} textValue={item.name}>
-                                    {item.name} ({item.startTime.slice(0, 5)} -{" "}
-                                    {item.endTime.slice(0, 5)})
-                                </SelectItem>
-                            )}
-                        </Select>
-
-                        {/* 2. Ngày làm việc */}
-                        <DatePicker
-                            label="Ngày làm việc"
-                            value={toDate(formik.values.shiftDate)}
-                            onChange={(date) => {
-                                // Convert ngược về JS Date để lưu vào Formik (dùng timezone local của user)
-                                formik.setFieldValue(
-                                    "shiftDate",
-                                    date ? date.toDate(getLocalTimeZone()) : undefined
-                                )
-                            }}
-                            isInvalid={isInvalid("shiftDate")}
-                            errorMessage={getErrorMessage("shiftDate")}
-                        />
-
-                        {/* 3. Giờ Bắt đầu - Kết thúc */}
-                        <div className="flex gap-4">
-                            <TimeInputStyled
-                                label="Bắt đầu"
-                                name="startTime"
-                                value={toTime(formik.values.startTime)}
-                                onChange={(time) => {
-                                    if (!time) return
-                                    formik.setFieldValue("startTime", formatTime(time, false))
-                                }}
-                                isInvalid={isInvalid("startTime")}
-                                errorMessage={getErrorMessage("startTime")}
-                            />
-                            <TimeInputStyled
-                                label="Kết thúc"
-                                name="endTime"
-                                value={toTime(formik.values.endTime)}
-                                onChange={(time) => {
-                                    if (!time) return
-                                    formik.setFieldValue("endTime", formatTime(time, false))
-                                }}
-                                isInvalid={isInvalid("endTime")}
-                                errorMessage={getErrorMessage("endTime")}
-                            />
-                        </div>
-
-                        {/* 4. Số lượng nhân viên và số phút nghỉ */}
-                        <div className="flex gap-4">
-                            <NumberInputStyled
-                                label="Số nhân viên cần"
-                                name="requiredStaffCount"
-                                value={formik.values.requiredStaffCount}
-                                onValueChange={(n) => formik.setFieldValue("requiredStaffCount", n)}
-                                isInvalid={isInvalid("requiredStaffCount")}
-                                errorMessage={getErrorMessage("requiredStaffCount")}
-                            />
-                            <NumberInputStyled
-                                label="Nghỉ (phút)"
-                                name="breakDurationMinutes"
-                                value={formik.values.breakDurationMinutes}
-                                onValueChange={(n) =>
-                                    formik.setFieldValue("breakDurationMinutes", n)
-                                }
-                                isInvalid={isInvalid("breakDurationMinutes")}
-                                errorMessage={getErrorMessage("breakDurationMinutes")}
-                            />
-                        </div>
-
-                        {/* 5. Ghi chú */}
-                        <TextareaStyled
-                            label="Ghi chú"
-                            placeholder="VD: Ca này cần kiểm kê kho"
-                            name="note"
-                            value={formik.values.note || ""}
-                            onChange={formik.handleChange}
-                        />
+                            <Tab key="info" title="Thông tin cơ bản">
+                                <ShiftForm formik={formik} />
+                            </Tab>
+                            <Tab
+                                key="staff"
+                                title="Phân công nhân sự"
+                                isDisabled={!initialData?.id} // Chưa có ca thì không cho gán
+                            >
+                                <div className="mt-4">
+                                    {initialData?.id ? (
+                                        <ShiftAssignmentTab
+                                            storeId={storeId || ""}
+                                            shiftId={initialData.id}
+                                            requiredStaffCount={formik.values.requiredStaffCount}
+                                            onClose={onClose}
+                                        />
+                                    ) : (
+                                        <p className="text-center text-default-400">
+                                            Vui lòng lưu ca làm việc trước khi gán nhân sự.
+                                        </p>
+                                    )}
+                                </div>
+                            </Tab>
+                        </Tabs>
                     </ModalBody>
-                    <ModalFooter>
-                        {/* Nút Xóa (Chỉ hiện khi Edit) */}
-                        {onDelete && (
-                            <ButtonStyled color="danger" variant="flat" onPress={onDelete}>
-                                Xóa ca
-                            </ButtonStyled>
-                        )}
+                    {activeTab === "info" && (
+                        <ModalFooter>
+                            {/* Nút Xóa (Chỉ hiện khi Edit) */}
+                            {onDelete && (
+                                <ButtonStyled color="danger" variant="flat" onPress={onDelete}>
+                                    Xóa ca
+                                </ButtonStyled>
+                            )}
 
-                        <ButtonStyled variant="light" onPress={onClose} isDisabled={isSubmitting}>
-                            Hủy
-                        </ButtonStyled>
-                        <ButtonStyled color="primary" type="submit" isLoading={isSubmitting}>
-                            Lưu thay đổi
-                        </ButtonStyled>
-                    </ModalFooter>
-                </form>
-            </ModalContent>
+                            <ButtonStyled
+                                variant="light"
+                                onPress={handleClose}
+                                isDisabled={isSubmitting}
+                            >
+                                Hủy
+                            </ButtonStyled>
+                            <ButtonStyled color="primary" type="submit" isLoading={isSubmitting}>
+                                Lưu thay đổi
+                            </ButtonStyled>
+                        </ModalFooter>
+                    )}
+                </ModalContent>
+            </form>
         </ModalStyled>
     )
 }

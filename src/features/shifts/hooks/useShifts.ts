@@ -94,9 +94,9 @@ const generateMockShifts = (): ShiftResponse[] => {
 }
 
 // Khởi tạo Mock DB
-let MOCK_SHIFTS_DB = generateMockShifts()
+export let MOCK_SHIFTS_DB = generateMockShifts()
 
-const fakeDelay = (ms = 500) => new Promise((resolve) => setTimeout(resolve, ms))
+export const fakeDelay = (ms = 500) => new Promise((resolve) => setTimeout(resolve, ms))
 
 // --- QUERY HOOKS (GET DATA) ---
 

@@ -13,7 +13,7 @@ import { ScheduleToolbar } from "../../components/ScheduleToolbar"
 import { ShiftCalendar } from "../../components/ShiftCalendar"
 import { confirmDialog, useDay, useTokenStore } from "@/hooks"
 import { useDisclosure } from "@heroui/react"
-import { ShiftFormValues } from "../../components/ShiftModal/schema"
+import { ShiftFormValues } from "../../components/ShiftModal/ShiftForm/schema"
 import { ShiftResponse } from "../../models/response"
 import dayjs from "dayjs"
 import { ShiftModal } from "../../components"
@@ -70,6 +70,7 @@ export default function ShiftSchedulerPageView() {
     const handleDateClick = (date: Date) => {
         setSelectedShiftId(null)
         setSelectedShift({
+            id: undefined,
             shiftDate: date,
             startTime: "08:00", // Default
             endTime: "12:00"
@@ -81,12 +82,14 @@ export default function ShiftSchedulerPageView() {
     const handleEventClick = (shift: ShiftResponse) => {
         setSelectedShiftId(shift.id)
         setSelectedShift({
+            id: shift.id,
             shiftDate: new Date(shift.shiftDate),
             startTime: formatDateTime({ date: shift.startTime }), // Lấy HH:mm từ ISO string
             endTime: formatDateTime({ date: shift.endTime }),
             requiredStaffCount: shift.requiredStaffCount,
             breakDurationMinutes: shift.breakDurationMinutes,
             note: shift.note,
+            status: shift.status,
             shiftTemplateId: shift.shiftTemplateId
         })
         onOpen()

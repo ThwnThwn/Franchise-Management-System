@@ -65,7 +65,7 @@ export const useGetShiftTemplates = ({
 
             // Giả lập lọc dữ liệu theo storeId và Global
             const filtered = MOCK_DB.filter(
-                (t) => t.storeId === params.storeId || t.storeId === null
+                (t) => t.storeId === params.storeId || t.storeId === undefined
             )
 
             // Trả về đúng format PageResult
