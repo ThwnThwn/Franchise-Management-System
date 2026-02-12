@@ -37,5 +37,25 @@ namespace FranchiseService.Application.Repositories
         /// Dùng để check trùng ca và tính tổng giờ/tuần.
         /// </summary>
         Task<IEnumerable<ShiftAssignment>> GetAssignmentsByUserAsync(Guid userId, DateOnly fromDate, DateOnly toDate, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Lấy danh sách phân công của NHIỀU nhân viên trong khoảng thời gian.
+        /// Dùng cho GetAvailableStaffs để tránh N+1 Query.
+        /// </summary>
+        Task<IEnumerable<ShiftAssignment>> GetAssignmentsByUsersAsync(IEnumerable<Guid> userIds, DateOnly fromDate, DateOnly toDate, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Lấy TẤT CẢ assignment của 1 ca, BAO GỒM CẢ SOFT-DELETED.
+        /// Dùng cho Sync Logic: khi user bị xóa rồi gán lại, cần restore row cũ
+        /// thay vì INSERT mới (tránh vi phạm UNIQUE constraint shift_id + user_id).
+        /// </summary>
+        Task<List<ShiftAssignment>> GetAllAssignmentsIncludingDeletedAsync(Guid shiftId, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Khôi phục assignment đã bị soft-delete.
+        /// Dùng khi user bị xóa rồi gán lại cùng ca.
+        /// Bypass Global Query Filter để tìm và update entity.
+        /// </summary>
+        Task RestoreAssignmentAsync(ShiftAssignment assignment, CancellationToken cancellationToken);
     }
 }

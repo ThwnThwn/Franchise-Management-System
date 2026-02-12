@@ -1,22 +1,20 @@
 namespace FranchiseService.Application.ClientInterfaces
 {
-    /// <summary>
-    /// Interface giao tiếp với IdentityService qua gRPC.
-    /// Dùng để validate user tồn tại và lấy thông tin nhân viên.
-    /// </summary>
+    // Interface giao tiep voi IdentityService qua gRPC
+    // Dung de validate user ton tai va lay thong tin nhan vien
     public interface IIdentityServiceClient
     {
-        /// <summary>
-        /// Lấy thông tin user theo ID từ IdentityService.
-        /// Trả về null nếu không tìm thấy.
-        /// </summary>
+        // Lay thong tin user theo ID tu IdentityService
+        // Tra ve null neu khong tim thay
         Task<UserInfo?> GetUserByIdAsync(Guid userId);
+
+        // Lay danh sach tat ca user (co the filter theo role)
+        // Dung cho GetAvailableStaffs de lay danh sach nhan vien cua store
+        Task<List<UserInfo>> GetAllUsersAsync(string? roleSlug = null);
     }
 
-    /// <summary>
-    /// DTO chứa thông tin user từ IdentityService.
-    /// Chỉ lấy các field cần dùng trong FranchiseService.
-    /// </summary>
+    // DTO chua thong tin user tu IdentityService
+    // Chi lay cac field can dung trong FranchiseService
     public class UserInfo
     {
         public Guid Id { get; set; }
@@ -24,5 +22,13 @@ namespace FranchiseService.Application.ClientInterfaces
         public string Email { get; set; } = string.Empty;
         public string? Phone { get; set; }
         public decimal? CurrentHourlyWage { get; set; }
+
+        // Cac field bo sung cho StaffAssignmentCandidate
+        public string FirstName { get; set; } = string.Empty;
+        public string? LastName { get; set; }
+        public string? AvatarUrl { get; set; }
+
+        // ID cua hang "nha" cua nhan vien (homeStoreId trong Identity)
+        public Guid? HomeStoreId { get; set; }
     }
 }
