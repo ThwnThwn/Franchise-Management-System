@@ -1,15 +1,16 @@
+"use client"
+
+import { useState, useMemo, useCallback } from "react"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { QUERY_KEYS } from "@/constants/queryKeys"
 import { STRINGS } from "@/constants/strings"
 import { addToast } from "@heroui/react"
-import { StaffAssignmentCandidate } from "../models/response"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { fakeDelay, MOCK_SHIFTS_DB } from "./useShifts"
-import { useMemo, useState } from "react"
+import { StaffAssignmentCandidate } from "@/features/shifts/models/response"
+import { fakeDelay, MOCK_SHIFTS_DB } from "./useShifts" // Đảm bảo đúng path
 
-// Giả lập DB tạm thời cho candidates
+// --- MOCK DATABASE TẠI CHỖ ---
 let MOCK_CANDIDATES_DB: Record<string, StaffAssignmentCandidate[]> = {}
 
-// --- MOCK CANDIDATES GENERATOR (Thêm dữ liệu validation thô) ---
 const generateMockCandidates = (shiftId: string): StaffAssignmentCandidate[] => {
     return [
         {
@@ -84,7 +85,6 @@ const generateMockCandidates = (shiftId: string): StaffAssignmentCandidate[] => 
                 isShuttleInvalid: false
             }
         },
-        // --- THÊM USER E (Cảnh báo nghỉ ít) ---
         {
             id: "user-5",
             firstName: "Thanh E",
@@ -97,13 +97,12 @@ const generateMockCandidates = (shiftId: string): StaffAssignmentCandidate[] => 
             note: "Nhân viên cứng",
             validation: {
                 isRestTimeInvalid: true,
-                restHours: 4.5, // Nghỉ quá ít, BE trả về 4.5h
+                restHours: 4.5,
                 isOverLimit: false,
                 weeklyHours: 30,
                 isShuttleInvalid: false
             }
         },
-        // --- THÊM USER F (Cảnh báo quá giờ tuần) ---
         {
             id: "user-6",
             firstName: "Quốc F",
@@ -118,63 +117,55 @@ const generateMockCandidates = (shiftId: string): StaffAssignmentCandidate[] => 
                 isRestTimeInvalid: false,
                 restHours: 15,
                 isOverLimit: true,
-                weeklyHours: 45, // Đã làm 45h, vượt 40h quy định
+                weeklyHours: 45,
                 isShuttleInvalid: false
             }
         }
     ]
 }
 
-// --- HOOK IMPLEMENTATION ---
-
 export const useShiftAssignment = ({
     storeId,
     shiftId,
+    requiredStaffCount,
     onSuccess
 }: {
     storeId: string
     shiftId: string
+    requiredStaffCount: number
     onSuccess?: () => void
 }) => {
     const queryClient = useQueryClient()
     const queryKey = [QUERY_KEYS.SHIFT_CANDIDATES, storeId, shiftId]
 
-    // ===============================
-    // Query
-    // ===============================
-    // Query lấy danh sách ứng viên
+    // --- State cho UI ---
+    const [keyword, setKeyword] = useState("")
+    const [draftIds, setDraftIds] = useState<string[] | null>(null)
+
+    // --- 1. Query fetch data mock ---
     const { data: candidates = [], isLoading } = useQuery<StaffAssignmentCandidate[]>({
         queryKey,
         queryFn: async () => {
-            await fakeDelay(800) // Delay lâu hơn chút để test Skeleton/Spinner
-
-            // Nếu chưa có data cho shift này trong mock DB, khởi tạo nó
+            await fakeDelay(800)
             if (!MOCK_CANDIDATES_DB[shiftId]) {
                 MOCK_CANDIDATES_DB[shiftId] = generateMockCandidates(shiftId)
             }
-
             return MOCK_CANDIDATES_DB[shiftId]
         },
         enabled: !!storeId && !!shiftId
     })
 
-    // ===============================
-    // Mutation
-    // ===============================
+    // --- 2. Mutation sync data ---
     const syncMutation = useMutation({
         mutationFn: async (userIds: string[]) => {
             await fakeDelay(1000)
-            console.log(`[MOCK API] Syncing shift ${shiftId} with users:`, userIds)
-
-            // Cập nhật trạng thái isAssigned trong Mock DB
             if (MOCK_CANDIDATES_DB[shiftId]) {
-                MOCK_CANDIDATES_DB[shiftId] = MOCK_CANDIDATES_DB[shiftId].map((candidate) => ({
-                    ...candidate,
-                    isAssigned: userIds.includes(candidate.id)
+                MOCK_CANDIDATES_DB[shiftId] = MOCK_CANDIDATES_DB[shiftId].map((c) => ({
+                    ...c,
+                    isAssigned: userIds.includes(c.id)
                 }))
             }
-
-            // Đồng bộ ngược lại vào MOCK_SHIFTS_DB để Calendar cập nhật count
+            // Cập nhật ngược lại MOCK_SHIFTS_DB nếu có
             const shiftIndex = MOCK_SHIFTS_DB.findIndex((s) => s.id === shiftId)
             if (shiftIndex !== -1) {
                 MOCK_SHIFTS_DB[shiftIndex].assignedStaffCount = userIds.length
@@ -183,84 +174,146 @@ export const useShiftAssignment = ({
         onSuccess: () => {
             addToast({
                 title: STRINGS.COMMON.SUCCESS,
-                description: "Cập nhật nhân sự thành công (MOCK)",
+                description: "Cập nhật thành công",
                 color: "success"
             })
-            // Invalidate các query liên quan
             queryClient.invalidateQueries({ queryKey })
             queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SHIFTS] })
+            setDraftIds(null)
             onSuccess?.()
-        },
-        onError: (error: any) => {
-            addToast({
-                title: STRINGS.COMMON.ERROR,
-                description: error?.detail || "Lỗi Mock sync",
-                color: "danger"
-            })
         }
     })
 
-    // ===============================
-    // Logic
-    // ===============================
-    const [draftIds, setDraftIds] = useState<string[] | null>(null)
-
-    // 1. Danh sách ID gốc từ DB
+    // --- 3. Logic xử lý danh sách ---
     const originalAssignedIds = useMemo(
         () => candidates.filter((c) => c.isAssigned).map((c) => c.id),
         [candidates]
     )
-
-    // 2. Mảng ID đang được chọn (nháp hoặc gốc)
     const effectiveSelectedIds = useMemo(
         () => draftIds ?? originalAssignedIds,
         [draftIds, originalAssignedIds]
     )
+    const selectedSet = useMemo(() => new Set(effectiveSelectedIds), [effectiveSelectedIds])
 
-    // 3. Logic so sánh thay đổi
     const hasChanges = useMemo(() => {
         if (draftIds === null) return false
         return [...originalAssignedIds].sort().join(",") !== [...draftIds].sort().join(",")
     }, [originalAssignedIds, draftIds])
 
-    // 4. PHÂN LOẠI DATA (Đây là chỗ sửa lỗi)
-    // Assigned: Những người có ID nằm trong danh sách được chọn
+    const filteredCandidates = useMemo(() => {
+        const lowKey = keyword.toLowerCase()
+        return candidates.filter((c) =>
+            `${c.firstName} ${c.lastName}`.toLowerCase().includes(lowKey)
+        )
+    }, [candidates, keyword])
+
     const assignedList = useMemo(
-        () => candidates.filter((c) => effectiveSelectedIds.includes(c.id)),
-        [candidates, effectiveSelectedIds]
+        () => candidates.filter((c) => selectedSet.has(c.id)),
+        [candidates, selectedSet]
     )
+    // 1. Hàm tính điểm ưu tiên (Số càng nhỏ càng ưu tiên)
+    const getPriorityScore = (c: StaffAssignmentCandidate) => {
+        // Tầng 3: Chặn cứng (Nặng nhất)
+        if (c.isConflict || c.validation?.isShuttleInvalid) return 3
 
-    // Available: Những người KHÔNG nằm trong danh sách được chọn
-    const availableList = useMemo(
-        () => candidates.filter((c) => !effectiveSelectedIds.includes(c.id)),
-        [candidates, effectiveSelectedIds]
-    )
+        // Tầng 2: Có cảnh báo hoặc báo bận cá nhân
+        const hasWarnings =
+            !c.isAvailable ||
+            (c.validation && (c.validation.isRestTimeInvalid || c.validation.isOverLimit))
+        if (hasWarnings) return 2
 
-    const handleToggle = (userId: string) => {
-        // Tìm candidate để check hard-block
-        const candidate = candidates.find((c) => c.id === userId)
-        if (candidate?.isConflict || candidate?.validation?.isShuttleInvalid) return
-
-        setDraftIds((prev) => {
-            const current = prev ?? originalAssignedIds
-            return current.includes(userId)
-                ? current.filter((id) => id !== userId)
-                : [...current, userId]
-        })
+        // Tầng 1: Sạch sẽ, khả dụng hoàn toàn
+        return 1
     }
 
-    const handleReset = () => setDraftIds(null)
+    // 2. Áp dụng vào availableList
+    const availableList = useMemo(() => {
+        return filteredCandidates
+            .filter((c) => !selectedSet.has(c.id))
+            .sort((a, b) => {
+                const scoreA = getPriorityScore(a)
+                const scoreB = getPriorityScore(b)
+
+                // Sort theo tầng ưu tiên trước
+                if (scoreA !== scoreB) return scoreA - scoreB
+
+                // Nếu cùng tầng, có thể sort thêm theo tên để dễ tìm
+                return a.firstName.localeCompare(b.firstName)
+            })
+    }, [filteredCandidates, selectedSet])
+
+    // --- 4. Event Handlers ---
+    const handleToggle = useCallback(
+        (userId: string) => {
+            const candidate = candidates.find((c) => c.id === userId)
+            if (candidate?.isConflict || candidate?.validation?.isShuttleInvalid) return
+
+            setDraftIds((prev) => {
+                const current = prev ?? originalAssignedIds
+                return current.includes(userId)
+                    ? current.filter((id) => id !== userId)
+                    : [...current, userId]
+            })
+        },
+        [candidates, originalAssignedIds]
+    )
+
+    const handleReset = () => {
+        setDraftIds(null)
+        setKeyword("")
+    }
+
+    const handleQuickSuggest = useCallback(() => {
+        const currentIds = draftIds ?? originalAssignedIds
+        const neededCount = requiredStaffCount - currentIds.length
+
+        if (neededCount <= 0) {
+            addToast({
+                title: "Thông báo",
+                description: "Ca làm việc đã đủ (hoặc thừa) nhân sự rồi bro!",
+                color: "warning"
+            })
+            return
+        }
+
+        // Lấy những người sạch nhất (Priority 1) từ danh sách available
+        // availableList đã được sort sẵn nên mình cứ thế mà "hốt" từ đầu xuống
+        const bestCandidates = availableList
+            .filter((c) => getPriorityScore(c) === 1) // Chỉ lấy người "sạch" hoàn toàn
+            .slice(0, neededCount)
+            .map((c) => c.id)
+
+        if (bestCandidates.length === 0) {
+            addToast({
+                title: "Không tìm thấy ứng viên tốt",
+                description: "Không còn nhân viên nào rảnh hoàn toàn để gợi ý.",
+                color: "danger"
+            })
+            return
+        }
+
+        // Cập nhật vào bản nháp
+        setDraftIds([...currentIds, ...bestCandidates])
+
+        addToast({
+            title: "Gợi ý thành công",
+            description: `Đã tự động chọn thêm ${bestCandidates.length} nhân viên tốt nhất.`,
+            color: "success"
+        })
+    }, [draftIds, originalAssignedIds, availableList, requiredStaffCount])
 
     return {
         candidates,
         isLoading,
-        syncAssignments: syncMutation.mutate,
         isSyncing: syncMutation.isPending,
-        hasChanges,
-        effectiveSelectedIds,
         assignedList,
         availableList,
+        hasChanges,
+        keyword,
+        setKeyword,
         handleToggle,
-        handleReset
+        handleReset,
+        handleQuickSuggest,
+        syncAssignments: () => syncMutation.mutate(effectiveSelectedIds)
     }
 }

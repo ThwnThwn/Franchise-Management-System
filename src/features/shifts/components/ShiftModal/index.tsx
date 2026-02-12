@@ -7,7 +7,7 @@ import { shiftSchema, ShiftFormValues } from "./ShiftForm/schema"
 import { useTokenStore } from "@/hooks/singleton/store"
 import { ButtonStyled, ModalStyled } from "@/components"
 import { ShiftAssignmentTab } from "./ShiftAssignmentTab"
-import { ShiftStatus } from "../../constants"
+import { ShiftStatus } from "@/features/shifts/constants"
 import { ShiftForm } from "./ShiftForm"
 
 interface ShiftModalProps {
@@ -105,22 +105,21 @@ export const ShiftModal = ({
                             key="staff"
                             title="Phân công nhân sự"
                             isDisabled={!initialData?.id} // Chưa có ca thì không cho gán
+                            className="py-0"
                         >
-                            <div className="mt-4">
-                                {initialData?.id ? (
-                                    <ShiftAssignmentTab
-                                        storeId={storeId || ""}
-                                        shiftId={initialData.id}
-                                        requiredStaffCount={formik.values.requiredStaffCount}
-                                        isSubmitable={isSubmitable}
-                                        onClose={onClose}
-                                    />
-                                ) : (
-                                    <p className="text-center text-default-400">
-                                        Vui lòng lưu ca làm việc trước khi gán nhân sự.
-                                    </p>
-                                )}
-                            </div>
+                            {initialData?.id ? (
+                                <ShiftAssignmentTab
+                                    storeId={storeId || ""}
+                                    shiftId={initialData.id}
+                                    requiredStaffCount={formik.values.requiredStaffCount}
+                                    isSubmitable={isSubmitable}
+                                    onClose={onClose}
+                                />
+                            ) : (
+                                <p className="text-center text-default-400 mt-3">
+                                    Vui lòng lưu ca làm việc trước khi gán nhân sự.
+                                </p>
+                            )}
                         </Tab>
                     </Tabs>
                 </ModalBody>

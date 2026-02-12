@@ -1,4 +1,5 @@
 export * from "./shiftApi"
 export * from "./shiftAvailabilityApi"
+export * from "./shiftBulkApi"
 export * from "./shiftRuleApi"
 export * from "./shiftTemplateApi"

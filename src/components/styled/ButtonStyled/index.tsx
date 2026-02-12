@@ -22,7 +22,7 @@ export function ButtonStyled({
             color={color}
             isLoading={isLoading}
             {...(rest as any)} // Cast nhẹ về any ở đây để cắt đứt chuỗi logic phức tạp của TS
-            className={cn("font-medium text-base", className) as string}
+            className={cn("font-medium", className) as string}
         >
             {children}
         </Button>

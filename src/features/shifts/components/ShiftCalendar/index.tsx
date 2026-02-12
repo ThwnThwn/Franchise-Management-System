@@ -1,16 +1,13 @@
 "use client"
 
-import React, { useRef, useEffect } from "react"
+import React, { useRef, useEffect, useCallback, useMemo } from "react"
 import FullCalendar from "@fullcalendar/react"
 import dayGridPlugin from "@fullcalendar/daygrid"
 import timeGridPlugin from "@fullcalendar/timegrid"
 import interactionPlugin from "@fullcalendar/interaction"
 import { CalendarApi } from "@fullcalendar/core"
-import { Users, AlertCircle, CheckCircle2, Ban } from "lucide-react"
-import { ShiftResponse } from "../../models/response"
-import { ShiftStatus } from "../../constants"
-import { ShiftStatusLabels } from "../../constants/labels"
-import { ShiftFullStyle, ShiftStatusStyles } from "../../constants/styles"
+import { ShiftResponse } from "@/features/shifts/models/response"
+import { ShiftEventCard } from "./ShiftEventCard"
 
 interface ShiftCalendarProps {
     shifts: ShiftResponse[]
@@ -34,100 +31,43 @@ export const ShiftCalendar = ({
 }: ShiftCalendarProps) => {
     const calendarRef = useRef<FullCalendar>(null)
 
-    // Gửi Calendar API ra ngoài khi mount
+    // 1. Chặn Drag & Drop trên Mobile (Check đơn giản bằng window width)
+    // Hoặc bro có thể dùng một custom hook useMediaQuery xịn hơn
+    const isMobile = typeof window !== "undefined" && window.innerWidth < 768
+
     useEffect(() => {
         if (calendarRef.current) {
             onCalendarApiReady(calendarRef.current.getApi())
         }
     }, [onCalendarApiReady])
 
-    // --- 1. Map Data API -> FullCalendar Events ---
-    const events = shifts.map((shift) => ({
-        id: shift.id,
-        title: shift.note || "Ca làm việc", // Fallback title
-        start: shift.startTime, // String ISO ok
-        end: shift.endTime,
-        extendedProps: shift, // Lưu toàn bộ object gốc để dùng khi render
-        // Logic màu sắc cơ bản (Custom Render sẽ ghi đè cái này nhưng giữ làm fallback)
-        backgroundColor: shift.status === ShiftStatus.Draft ? "#f3f4f6" : "#ecfccb",
-        borderColor: "transparent",
-        textColor: "#000"
-    }))
+    // 2. Map Data - Dùng useMemo để không map lại mảng nếu shifts không đổi
+    const events = useMemo(
+        () =>
+            shifts.map((shift) => ({
+                id: shift.id,
+                title: shift.note || "Ca làm việc", // Fallback title
+                start: shift.startTime, // String ISO ok
+                end: shift.endTime,
+                extendedProps: shift, // Lưu toàn bộ object gốc để dùng khi render
+                backgroundColor: "transparent",
+                borderColor: "transparent"
+            })),
+        [shifts]
+    )
 
-    // --- 2. Custom Render Event Content ---
-    const renderEventContent = (eventInfo: any) => {
-        const shift = eventInfo.event.extendedProps as ShiftResponse
-        const isFull = shift.assignedStaffCount >= shift.requiredStaffCount
-        const statusLabel = ShiftStatusLabels[shift.status]
-
-        let statusClasses = ShiftStatusStyles[shift.status]
-        if (shift.status === ShiftStatus.Published && isFull) {
-            statusClasses = ShiftFullStyle
-        }
-
-        const containerClass = `
-        w-full h-full p-1.5 rounded-md border-l-4 text-[11px] flex flex-col justify-between overflow-hidden shadow-sm
-        ${statusClasses}
-    `
-
+    // 3. Memoize renderEventContent
+    const renderEventContent = useCallback((eventInfo: any) => {
         return (
-            <div className={containerClass}>
-                {/* HEADER: Start - End Time */}
-                <div className="flex items-center gap-1 font-bold text-[12px] leading-tight border-b border-black/5 pb-0.5">
-                    <span>{eventInfo.timeText}</span>
-                </div>
-
-                {/* BODY: Staff Count & Note */}
-                <div className="flex flex-col grow py-1 justify-center">
-                    {/* Số người: Xuống hàng ngay dưới giờ */}
-                    <div className="flex items-center gap-1.5 mb-0.5">
-                        {shift.status === ShiftStatus.Cancelled ? (
-                            <Ban size={11} className="opacity-60" />
-                        ) : isFull ? (
-                            <CheckCircle2 size={11} className="text-success" />
-                        ) : (
-                            <AlertCircle size={11} />
-                        )}
-                        <span className="font-extrabold text-[12px] tabular-nums">
-                            {shift.assignedStaffCount}/{shift.requiredStaffCount}
-                        </span>
-                        <Users size={11} className="opacity-70" />
-                    </div>
-
-                    {/* Note/Template Name */}
-                    <div className="truncate text-[10px] opacity-80 italic">
-                        {shift.shiftTemplateId ? "📋 Theo mẫu" : shift.note || "📝 Ca tùy chỉnh"}
-                    </div>
-                </div>
-
-                {/* FOOTER: Status Label */}
-                <div className="flex items-center justify-between pt-0.5 border-t border-black/5">
-                    <span className="uppercase text-[9px] font-black tracking-widest opacity-80">
-                        {statusLabel}
-                    </span>
-
-                    {/* Visual Indicator cho ca Published chưa đủ người */}
-                    {shift.status === ShiftStatus.Published && !isFull && (
-                        <div className="flex items-center gap-1">
-                            <span className="text-[9px] font-medium text-orange-600 animate-pulse">
-                                Cần thêm người
-                            </span>
-                        </div>
-                    )}
-                </div>
-            </div>
+            <ShiftEventCard
+                shift={eventInfo.event.extendedProps as ShiftResponse}
+                timeText={eventInfo.timeText}
+            />
         )
-    }
+    }, [])
 
-    // Helper: Xử lý khi Drop (Kéo thả)
     const handleDrop = (info: any) => {
-        const shiftId = info.event.id
-        const newStart = info.event.start
-        const newEnd = info.event.end
-
-        // Nếu view tháng, drop chỉ đổi ngày, giữ nguyên giờ cũ -> logic này FullCalendar tự lo 1 phần
-        // Nhưng ta cần gọi API update
-        onEventDrop(shiftId, newStart, newEnd, info)
+        onEventDrop(info.event.id, info.event.start, info.event.end, info)
     }
 
     return (
@@ -159,7 +99,6 @@ export const ShiftCalendar = ({
                 slotMinTime="00:00:00"
                 slotMaxTime="24:00:00"
                 scrollTime="07:00:00"
-                nextDayThreshold="00:00:00"
                 allDaySlot={false} // Tắt dòng all-day
                 height="550px"
                 slotDuration="01:00:00" // Mỗi ô là 1 tiếng
@@ -167,8 +106,9 @@ export const ShiftCalendar = ({
                 stickyHeaderDates={true}
                 //===============================
                 // Interaction Settings
-                editable={true}
-                droppable={true}
+                // Chỉ cho phép kéo thả/chỉnh size nếu không phải Mobile
+                editable={!isMobile}
+                droppable={!isMobile}
                 selectable={true}
                 // Event Handlers
                 dateClick={(info) => onDateClick(info.date)}

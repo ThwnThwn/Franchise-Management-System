@@ -5,7 +5,7 @@ import { Select, SelectItem } from "@heroui/react"
 import { useFormik } from "formik"
 import { ShiftFormValues } from "./schema"
 import { getLocalTimeZone } from "@internationalized/date"
-import { useGetShiftTemplates } from "@/features/shifts/hooks/useShiftTemplates"
+import { useGetShiftTemplates } from "@/features/shifts/hooks"
 import { useTokenStore } from "@/hooks/singleton/store"
 import {
     DatePickerStyled,
@@ -16,6 +16,7 @@ import {
 } from "@/components"
 import { useDay, useFormikHelpers } from "@/hooks"
 import { ShiftStatusLabels } from "@/features/shifts/constants/labels"
+import dayjs from "dayjs"
 
 interface ShiftFormProps {
     formik: ReturnType<typeof useFormik<ShiftFormValues>>
@@ -33,6 +34,7 @@ export const ShiftForm = ({ formik, isSubmitable }: ShiftFormProps) => {
         }
     })
 
+    const minDateStr = dayjs().add(2, "day").format("YYYY-MM-DD")
     const { isInvalid, getErrorMessage } = useFormikHelpers(formik)
 
     // Lắng nghe templateId thay đổi
@@ -91,6 +93,7 @@ export const ShiftForm = ({ formik, isSubmitable }: ShiftFormProps) => {
                         date ? date.toDate(getLocalTimeZone()) : undefined
                     )
                 }}
+                minValue={toDate(minDateStr)}
                 isInvalid={isInvalid("shiftDate")}
                 errorMessage={getErrorMessage("shiftDate")}
                 isReadOnly={!isSubmitable}

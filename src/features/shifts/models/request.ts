@@ -1,6 +1,9 @@
 import { DayOfWeek } from "@/constants/enums"
 import { ShiftStatus } from "../constants/enum"
 
+// ===============================
+// Shift
+// ===============================
 export interface GetShiftsParams {
     storeId: string
     fromDate?: string
@@ -28,6 +31,37 @@ export interface UpdateShiftRequest {
     note?: string
     status?: ShiftStatus
     shiftTemplateId?: string
+}
+
+// ===============================
+// Shift bulk
+// ===============================
+/**
+ * DTO cho việc tạo ca làm việc thủ công hàng loạt.
+ * Hệ thống sẽ quét từ startDate đến endDate, ngày nào khớp với daysOfWeek sẽ tạo 1 ca Draft.
+ */
+export interface BulkCreateManualRequest {
+    storeId: string
+    startTime: string // HH:mm (VD: "08:00")
+    endTime: string // HH:mm (VD: "12:00")
+    daysOfWeek: DayOfWeek[] // Mảng các thứ cần tạo [1, 3, 5]
+    startDate: string // YYYY-MM-DD
+    endDate: string // YYYY-MM-DD
+
+    requiredStaffCount: number // Số nhân viên cần cho mỗi ca
+    breakDurationMinutes: number // Thời gian nghỉ
+    note?: string // Ghi chú chung
+}
+
+/**
+ * DTO cho việc đổ lịch từ Template hàng loạt.
+ */
+export interface BulkCreateFromTemplateRequest {
+    storeId: string
+    templateId: string // ID của mẫu ca làm việc (Sáng/Chiều/Tối)
+    startDate: string // YYYY-MM-DD
+    endDate: string // YYYY-MM-DD
+    requiredStaffCount: number
 }
 
 // ===============================

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect } from "react"
+import React, { useEffect, useMemo } from "react"
 import { ModalContent, ModalHeader, ModalBody, ModalFooter, Switch } from "@heroui/react"
 import { useFormik } from "formik"
 import { CreateShiftAvailabilityRequest } from "@/features/shifts/models/request"
@@ -41,13 +41,14 @@ export const ShiftAvailabilityModal = ({
     onClose,
     selectedItem
 }: ShiftAvailabilityModalProps) => {
-    const { formatTime, toTime, formatDate, toDate } = useDay()
+    const { dateNow, formatTime, toTime, formatDate, toDate } = useDay()
     const createMutation = useCreateAvailability({ onSuccess: () => handleClose() })
     const updateMutation = useUpdateAvailability({ onSuccess: () => handleClose() })
 
     const isEdit = !!selectedItem
     const isLoading = createMutation.isPending || updateMutation.isPending
 
+    const minDateStr = dateNow(2)
     const formik = useFormik<CreateShiftAvailabilityRequest>({
         initialValues: INITIAL_VALUES,
         validationSchema: shiftAvailabilitySchema,
@@ -59,8 +60,12 @@ export const ShiftAvailabilityModal = ({
             }
         }
     })
-
     const { isInvalid, getErrorMessage } = useFormikHelpers(formik)
+
+    const isOvernight = useMemo(() => {
+        if (!formik.values.startTime || !formik.values.endTime) return false
+        return formik.values.startTime > formik.values.endTime
+    }, [formik.values.startTime, formik.values.endTime])
 
     useEffect(() => {
         if (isOpen) {
@@ -160,6 +165,7 @@ export const ShiftAvailabilityModal = ({
                                 onChange={(val) =>
                                     formik.setFieldValue("specificDate", formatDate(val))
                                 }
+                                minValue={toDate(minDateStr)}
                                 isInvalid={isInvalid("specificDate")}
                                 errorMessage={getErrorMessage("specificDate")}
                             />
@@ -181,6 +187,11 @@ export const ShiftAvailabilityModal = ({
                                 }
                             />
                         </div>
+                        {isOvernight && (
+                            <p className="text-tiny text-warning-500 italic -mt-3 px-2">
+                                * Hệ thống ghi nhận đây là khung giờ làm việc xuyên đêm.
+                            </p>
+                        )}
 
                         <InputStyled
                             label="Ghi chú thêm"

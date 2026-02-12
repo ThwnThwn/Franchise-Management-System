@@ -8,7 +8,7 @@ import { shiftRuleSchema, ShiftRuleFormValues } from "./schema"
 import { AlertStyled, NumberInputStyled, UnsavedChangesNotifier } from "@/components"
 import { DashboardHeader } from "@/features/dashboard/components/general/DashboardHeader"
 import { ShieldCheck, Zap, Store } from "lucide-react"
-import { useGetShiftRuleSettings, useSaveShiftRule } from "../../hooks"
+import { useGetShiftRuleSettings, useSaveShiftRule } from "@/features/shifts/hooks"
 import { SystemDefaultHint } from "./SystemDefaultHint"
 
 export default function ShiftRulesManagerPageView() {

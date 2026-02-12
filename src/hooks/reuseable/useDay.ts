@@ -179,6 +179,16 @@ export const useDay = ({
     // ========================================================================
     // 3. HELPERS (Các hàm tiện ích tính toán)
     // ========================================================================
+    /**
+     * Lấy ngày hiện tại
+     * @param dayBuffer số hoặc undefined
+     * @returns ngày hiện tiện theo format DEFAULT_DATE_FORMAT (YYYY-MM-DD)
+     */
+    const dateNow = (dayBuffer?: number) => {
+        return dayjs()
+            .add(dayBuffer ?? 0, "day")
+            .format(DEFAULT_DATE_FORMAT)
+    }
 
     /**
      * Tính số ngày chênh lệch giữa 2 mốc thời gian (làm tròn lên)
@@ -250,6 +260,7 @@ export const useDay = ({
         formatDateTime,
 
         // Helpers
+        dateNow,
         getDiffDaysCeil,
         normalizeDateByMinuteStep
     }

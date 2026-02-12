@@ -1,16 +1,20 @@
-import { StaffAssignmentCandidate } from "../../models/response"
+import { StaffAssignmentCandidate } from "@/features/shifts/models/response"
 
 export const getValidationErrors = (item: StaffAssignmentCandidate) => {
     const errors: string[] = []
-    if (item.isConflict) errors.push("Trùng lịch với ca làm việc khác")
+    const { validation, isConflict } = item
 
-    if (item.validation) {
-        if (item.validation.isShuttleInvalid)
-            errors.push("Cửa hàng không hỗ trợ điều chuyển nhân sự")
-        if (item.validation.isRestTimeInvalid)
-            errors.push(`Nghỉ quá ngắn giữa 2 ca (chỉ có ${item.validation.restHours}h)`)
-        if (item.validation.isOverLimit)
-            errors.push(`Vượt định mức giờ tuần (đã làm ${item.validation.weeklyHours}h)`)
+    if (isConflict) errors.push("Trùng lịch với ca làm việc khác")
+    if (!item.isAvailable) errors.push("Nhân viên có lịch bận cá nhân")
+
+    if (validation) {
+        const { isShuttleInvalid, isRestTimeInvalid, isOverLimit, restHours, weeklyHours } =
+            validation
+
+        if (isShuttleInvalid) errors.push("Cửa hàng không hỗ trợ điều chuyển")
+        if (isRestTimeInvalid) errors.push(`Nghỉ quá ngắn (${restHours}h)`)
+        if (isOverLimit) errors.push(`Vượt định mức tuần (${weeklyHours}h)`)
     }
+
     return errors
 }

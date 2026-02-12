@@ -3,8 +3,8 @@
 import React, { useEffect } from "react"
 import { ModalContent, ModalHeader, ModalBody, ModalFooter } from "@heroui/react"
 import { useFormik } from "formik"
-import { CreateShiftTemplateRequest } from "../../models/request"
-import { ShiftTemplateResponse } from "../../models/response"
+import { CreateShiftTemplateRequest } from "@/features/shifts/models/request"
+import { ShiftTemplateResponse } from "@/features/shifts/models/response"
 import { useCreateShiftTemplate, useUpdateShiftTemplate } from "@/features/shifts/hooks"
 import {
     ButtonStyled,

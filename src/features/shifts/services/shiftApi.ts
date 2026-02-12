@@ -40,7 +40,14 @@ export const shiftApi = {
 
     // Chuyển trạng thái sang Published để nhân viên thấy được lịch
     publish: async ({ id }: { id: string }): Promise<void> => {
-        await axiosInstance.post(`/shifts/${id}/publish`)
+        await axiosInstance.put(`/shifts/${id}/publish`)
+    },
+
+    /**
+     * @param ids Mảng các shift id để publish đồng thời
+     */
+    bulkPublish: async (ids: string[]): Promise<void> => {
+        await axiosInstance.post("/shifts/bulk-publish", { ids })
     },
 
     /**

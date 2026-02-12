@@ -8,9 +8,10 @@ import {
     UpdateShiftTemplateRequest
 } from "../models/request"
 import { ShiftTemplateResponse } from "../models/response"
+import { fakeDelay } from "./useShifts"
 
 // --- MOCK DATABASE (Lưu trong RAM để test logic thêm/sửa/xóa) ---
-let MOCK_DB: ShiftTemplateResponse[] = [
+export let MOCK_TEMPLATES_DB: ShiftTemplateResponse[] = [
     {
         id: "tpl-1",
         storeId: undefined, // Global Template (Admin tạo)
@@ -45,13 +46,12 @@ let MOCK_DB: ShiftTemplateResponse[] = [
         createdAt: new Date().toISOString()
     }
 ]
-
-// Hàm delay giả lập mạng lag (500ms)
-const fakeDelay = (ms = 500) => new Promise((resolve) => setTimeout(resolve, ms))
+export // Hàm delay giả lập mạng lag (500ms)
+// const fakeDelay = (ms = 500) => new Promise((resolve) => setTimeout(resolve, ms))
 
 // --- QUERY HOOKS ---
 
-export const useGetShiftTemplates = ({
+const useGetShiftTemplates = ({
     params,
     enabled = true
 }: {
@@ -64,7 +64,7 @@ export const useGetShiftTemplates = ({
             await fakeDelay()
 
             // Giả lập lọc dữ liệu theo storeId và Global
-            const filtered = MOCK_DB.filter(
+            const filtered = MOCK_TEMPLATES_DB.filter(
                 (t) => t.storeId === params.storeId || t.storeId === undefined
             )
 
@@ -85,7 +85,7 @@ export const useGetShiftTemplateById = ({
         queryKey: [QUERY_KEYS.SHIFT_TEMPLATES, id],
         queryFn: async () => {
             await fakeDelay()
-            const found = MOCK_DB.find((t) => t.id === id)
+            const found = MOCK_TEMPLATES_DB.find((t) => t.id === id)
             if (!found) throw new Error("Template not found")
             return found
         },
@@ -116,7 +116,7 @@ export const useCreateShiftTemplate = ({ onSuccess }: { onSuccess?: () => void }
                 createdAt: new Date().toISOString()
             }
 
-            MOCK_DB.push(newItem) // Lưu vào Mock DB
+            MOCK_TEMPLATES_DB.push(newItem) // Lưu vào Mock DB
             return newItem
         },
         onSuccess: () => {
@@ -145,20 +145,20 @@ export const useUpdateShiftTemplate = ({ onSuccess }: { onSuccess?: () => void }
         mutationFn: async ({ id, req }: { id: string; req: UpdateShiftTemplateRequest }) => {
             await fakeDelay(600)
 
-            const index = MOCK_DB.findIndex((t) => t.id === id)
+            const index = MOCK_TEMPLATES_DB.findIndex((t) => t.id === id)
             if (index === -1) throw new Error("Not found")
 
             // Merge data cũ với data mới
-            MOCK_DB[index] = {
-                ...MOCK_DB[index],
+            MOCK_TEMPLATES_DB[index] = {
+                ...MOCK_TEMPLATES_DB[index],
                 ...req,
                 // Giữ lại các field không có trong req
-                code: req.code || MOCK_DB[index].code,
-                name: req.name || MOCK_DB[index].name,
-                startTime: req.startTime || MOCK_DB[index].startTime,
-                endTime: req.endTime || MOCK_DB[index].endTime,
+                code: req.code || MOCK_TEMPLATES_DB[index].code,
+                name: req.name || MOCK_TEMPLATES_DB[index].name,
+                startTime: req.startTime || MOCK_TEMPLATES_DB[index].startTime,
+                endTime: req.endTime || MOCK_TEMPLATES_DB[index].endTime,
                 breakDurationMinutes:
-                    req.breakDurationMinutes ?? MOCK_DB[index].breakDurationMinutes
+                    req.breakDurationMinutes ?? MOCK_TEMPLATES_DB[index].breakDurationMinutes
             }
         },
         onSuccess: () => {
@@ -188,7 +188,7 @@ export const useDeleteShiftTemplate = ({ onSuccess }: { onSuccess?: () => void }
             await fakeDelay(600)
 
             // Lọc bỏ item có id tương ứng
-            MOCK_DB = MOCK_DB.filter((t) => t.id !== id)
+            MOCK_TEMPLATES_DB = MOCK_TEMPLATES_DB.filter((t) => t.id !== id)
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SHIFT_TEMPLATES] })

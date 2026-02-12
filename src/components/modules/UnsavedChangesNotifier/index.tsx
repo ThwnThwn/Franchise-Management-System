@@ -33,7 +33,7 @@ export function UnsavedChangesNotifier({
                     animate={{ y: 0, x: "-50%", opacity: 1 }}
                     exit={{ y: 100, x: "-50%", opacity: 0 }}
                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                    className="fixed bottom-8 left-1/2 z-9999 bg-slate-900 border border-slate-700 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-6 min-w-[320px] max-w-[90vw]"
+                    className="fixed bottom-8 left-1/2 z-51 bg-slate-900 border border-slate-700 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-6 min-w-[320px] max-w-[90vw]"
                 >
                     <div className="flex flex-col">
                         <span className="text-sm font-bold text-success">{title}</span>

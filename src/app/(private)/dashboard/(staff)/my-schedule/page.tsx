@@ -1,6 +1,6 @@
-import ShiftAvailabilitiesPageView from "@/features/shifts/pages/ShiftAvailabilitiesPageView"
+import MyShiftAvailabilitiesPageView from "@/features/shifts/pages/MyShiftAvailabilitiesPageView"
 import React from "react"
 
 export default function ShiftAvailabilitiesPage() {
-    return <ShiftAvailabilitiesPageView />
+    return <MyShiftAvailabilitiesPageView />
 }

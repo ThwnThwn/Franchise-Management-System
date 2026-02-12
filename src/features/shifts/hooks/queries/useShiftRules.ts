@@ -1,6 +1,6 @@
 "use client"
 
-import { ShiftRuleSettingsResponse } from "../models/response"
+import { ShiftRuleSettingsResponse } from "@/features/shifts/models/response"
 
 export const useGetShiftRuleSettings = (storeId?: string) => {
     const mockData: ShiftRuleSettingsResponse = {

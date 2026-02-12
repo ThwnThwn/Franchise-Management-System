@@ -6,3 +6,8 @@ export const ShiftStatusLabels: Record<ShiftStatus, string> = {
     [ShiftStatus.Completed]: "Hoàn thành",
     [ShiftStatus.Cancelled]: "Huỷ"
 }
+
+export const BulkShiftTypeLabels = {
+    manual: "Tạo Thủ Công",
+    template: "Dùng Mẫu Ca"
+}
