@@ -10,9 +10,9 @@ namespace FranchiseService.Application.Repositories
     {
         /// <summary>
         /// Lấy ca làm việc đã Published của nhân viên trong ngày.
-        /// Dùng cho nhân viên xem "Lịch của tôi".
+        /// Dùng cho nhân viên checkin checkout.
         /// </summary>
-        Task<Shift?> GetPublishedShiftAsync(Guid userId, DateTime date, CancellationToken cancellationToken);
+        Task<ShiftAssignment?> GetActiveShiftAssignmentAsync(Guid userId, DateTime now, int bufferInMin, int bufferOutHour);
 
         /// <summary>
         /// Lấy danh sách ca làm việc của Store trong khoảng thời gian.

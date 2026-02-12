@@ -29,11 +29,30 @@ func (s *shiftGrpcClient) GetUserCurrentShift(ctx context.Context, id uuid.UUID)
 
 	return &shift.GetUserCurrentShiftResponse{
 		HasShiftToday: res.HasShiftToday,
-		StoreId:       res.StoreId,
-		StoreName:     res.StoreName,
-		ShiftStart:    res.ShiftStart,
-		ShiftEnd:      res.ShiftEnd,
-		StoreLat:      res.StoreLat,
-		StoreLong:     res.StoreLong,
+
+		// IDs (Optional)
+		AssignmentId: res.AssignmentId,
+		ShiftId:      res.ShiftId,
+		CurrentLogId: res.CurrentLogId,
+
+		// Cửa hàng
+		StoreId:   res.StoreId,
+		StoreName: res.StoreName,
+		StoreLat:  res.StoreLat,  // Map con trỏ *float64
+		StoreLong: res.StoreLong, // Map con trỏ *float64
+
+		// Thời gian ca làm
+		StartTime: res.StartTime,
+		EndTime:   res.EndTime,
+
+		// Logic Flags
+		CanCheckIn:  res.CanCheckIn,
+		CanCheckOut: res.CanCheckOut,
+		IsOvertime:  res.IsOvertime,
+
+		// Timestamps (Optional)
+		CheckInAt:  res.CheckInAt,
+		CheckOutAt: res.CheckOutAt,
+		ServerTime: res.ServerTime,
 	}, nil
 }

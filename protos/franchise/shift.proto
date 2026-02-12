@@ -20,11 +20,31 @@ message GetUserCurrentShiftRequest {
 }
 
 message GetUserCurrentShiftResponse {
+  // Trạng thái ca làm
   bool has_shift_today = 1;
-  string store_id = 2;       // ID cửa hàng phải làm hôm nay
-  string store_name = 3;
-  string shift_start = 4;    // "07:00"
-  string shift_end = 5;      // "12:00"
-  double store_lat = 6;      // Để App so sánh GPS khi check-in
-  double store_long = 7;
+  
+  // Thông tin định danh (UUID mapping sang string)
+  optional string assignment_id = 2;
+  optional string shift_id = 3;
+  optional string current_log_id = 4;
+
+  // Thông tin Cửa hàng
+  string store_id = 5;
+  string store_name = 6;
+  optional double store_lat = 7;
+  optional double store_long = 8;
+
+  // Thời gian ca làm (Format: "HH:mm:ss")
+  string start_time = 9;
+  string end_time = 10;
+
+  // Logic điều khiển Check-in/out
+  bool can_check_in = 11;
+  bool can_check_out = 12;
+  bool is_overtime = 13;
+
+  // Mốc thời gian ISO 8601 ("2026-02-12T21:00:00Z")
+  optional string check_in_at = 14;
+  optional string check_out_at = 15;
+  string server_time = 16;
 }

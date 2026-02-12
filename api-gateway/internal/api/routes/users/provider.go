@@ -7,21 +7,18 @@ import (
 )
 
 type UserRouter struct {
-	cfg     *config.Config
-	authMW  *middleware.AuthMiddleware
-	userHl  *handlers.UserHandler
-	shiftHl *handlers.ShiftHandler
+	cfg    *config.Config
+	authMW *middleware.AuthMiddleware
+	userHl *handlers.UserHandler
 }
 
 func NewRouter(cfg *config.Config,
 	authMW *middleware.AuthMiddleware,
 	userHl *handlers.UserHandler,
-	shiftHl *handlers.ShiftHandler,
 ) *UserRouter {
 	return &UserRouter{
-		cfg:     cfg,
-		authMW:  authMW,
-		userHl:  userHl,
-		shiftHl: shiftHl,
+		cfg:    cfg,
+		authMW: authMW,
+		userHl: userHl,
 	}
 }

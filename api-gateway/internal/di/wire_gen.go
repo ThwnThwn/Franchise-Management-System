@@ -16,6 +16,7 @@ import (
 	categories2 "api-gateway/internal/api/routes/categories"
 	"api-gateway/internal/api/routes/ingredients"
 	"api-gateway/internal/api/routes/ingredients/categories"
+	"api-gateway/internal/api/routes/myshifts"
 	"api-gateway/internal/api/routes/orders"
 	"api-gateway/internal/api/routes/permissions"
 	"api-gateway/internal/api/routes/products"
@@ -67,14 +68,15 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, erro
 	stockHandler := handlers.NewStockHandler(iStockService)
 	stockRouter := stock.NewRouter(cfg, authMiddleware, stockHandler)
 	storeRouter := stores.NewRouter(cfg, storeHandler, stockRouter)
+	iShiftService := franchise.ProvideShiftClient(clientFactory)
+	shiftHandler := handlers.NewShiftHandler(iShiftService)
+	myShiftsRouter := myshifts.NewRouter(cfg, authMiddleware, shiftHandler)
 	iAuthService := identity.ProvideAuthClient(identityClientFactory)
 	iUserService := identity.ProvideUserClient(identityClientFactory)
 	authHandler := handlers.NewAuthHandler(iAuthService, iUserService)
 	authRouter := auth.NewRouter(cfg, authMiddleware, authHandler)
 	userHandler := handlers.NewUserHandler(iUserService)
-	iShiftService := franchise.ProvideShiftClient(clientFactory)
-	shiftHandler := handlers.NewShiftHandler(iShiftService)
-	userRouter := users.NewRouter(cfg, authMiddleware, userHandler, shiftHandler)
+	userRouter := users.NewRouter(cfg, authMiddleware, userHandler)
 	iRoleService := identity.ProvideRoleClient(identityClientFactory)
 	roleHandler := handlers.NewRoleHandler(iRoleService, iRolePermissionService)
 	roleRouter := roles.NewRouter(cfg, authMiddleware, roleHandler)
@@ -114,6 +116,7 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, erro
 	cartRouter := carts.NewRouter(cfg, authMiddleware, cartHandler)
 	appRouter := &routes.AppRouter{
 		StoreRouter:      storeRouter,
+		MyShiftsRouter:   myShiftsRouter,
 		AuthRouter:       authRouter,
 		UserRouter:       userRouter,
 		RoleRouter:       roleRouter,

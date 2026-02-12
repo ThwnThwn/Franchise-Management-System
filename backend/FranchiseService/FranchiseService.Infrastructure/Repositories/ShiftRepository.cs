@@ -21,20 +21,37 @@ namespace FranchiseService.Infrastructure.Repositories
         /// Lấy ca làm việc đã Published của nhân viên trong ngày.
         /// Dùng cho nhân viên xem "Lịch của tôi".
         /// </summary>
-        public async Task<Shift?> GetPublishedShiftAsync(Guid userId, DateTime date, CancellationToken cancellationToken)
+        public async Task<ShiftAssignment?> GetActiveShiftAssignmentAsync(
+            Guid userId, DateTime now, int bufferInMin, int bufferOutHour
+        )
         {
-            var targetDate = DateOnly.FromDateTime(date);
+            var today = DateOnly.FromDateTime(now);
+            var yesterday = today.AddDays(-1);
 
-            return await _dbContext.Shifts
+            return await _dbContext.ShiftAssignments
+                .Include(sa => sa.Shift).ThenInclude(s => s.Store)
+                .Include(sa => sa.TimeLogs.Where(tl => !tl.IsDeleted))
                 .AsNoTracking()
-                .Include(s => s.Store)
-                .Include(s => s.ShiftAssignments)
-                .Where(s => s.ShiftAssignments.Any(a => a.UserId == userId && a.IsDeleted == false)
-                         && s.ShiftDate == targetDate
-                         && s.Status == (int)ShiftStatus.Published
-                         && s.IsDeleted == false)
-                .OrderBy(s => s.StartTime)
-                .FirstOrDefaultAsync(cancellationToken);
+                .Where(sa => sa.UserId == userId
+                          && !sa.IsDeleted
+                          && sa.Shift.Status == (int)ShiftStatus.Published
+                          && (sa.Shift.ShiftDate == today || sa.Shift.ShiftDate == yesterday))
+                .Select(sa => new
+                {
+                    Assignment = sa,
+                    ActualStart = sa.Shift.ShiftDate.ToDateTime(sa.Shift.StartTime),
+                    ActualEnd = sa.Shift.StartTime < sa.Shift.EndTime
+                        ? sa.Shift.ShiftDate.ToDateTime(sa.Shift.EndTime)
+                        : sa.Shift.ShiftDate.AddDays(1).ToDateTime(sa.Shift.EndTime)
+                })
+                .Where(x => now >= x.ActualStart.AddMinutes(-bufferInMin)
+                         && now <= x.ActualEnd.AddHours(bufferOutHour))
+                // --- LOGIC GIẢI QUYẾT XUNG ĐỘT ---
+                .OrderByDescending(x => x.Assignment.TimeLogs.Any(tl => tl.CheckInAt != null && tl.CheckOutAt == null)) // 1. Ưu tiên ca đang In-Progress
+                .ThenByDescending(x => !x.Assignment.TimeLogs.Any()) // 2. Ưu tiên ca chưa chấm công tí nào (so với ca đã hoàn thành nhưng vẫn trong buffer)
+                .ThenBy(x => x.ActualStart) // 3. Ưu tiên ca nào bắt đầu sớm hơn
+                .Select(x => x.Assignment)
+                .FirstOrDefaultAsync();
         }
 
         /// <summary>
