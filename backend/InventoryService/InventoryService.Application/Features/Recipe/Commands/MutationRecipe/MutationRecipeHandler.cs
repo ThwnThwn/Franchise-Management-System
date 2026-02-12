@@ -1,7 +1,9 @@
-﻿using InventoryService.Application.ClientInterface;
+﻿using InventoryService.Application.Abstractions;
+using InventoryService.Application.ClientInterface;
 using InventoryService.Application.Constants;
 using InventoryService.Application.Persistences.Repositories;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,10 +16,12 @@ namespace InventoryService.Application.Features.Recipe.Commands.MutationRecipe
     {
         private readonly IRecipeRepository _recipeRepository;
         private readonly IProductServiceClient _productServiceClient;
-        public MutationRecipeHandler(IRecipeRepository recipeRepository, IProductServiceClient productServiceClient)
+        private readonly IInventoryDbContext _dbContext;
+        public MutationRecipeHandler(IRecipeRepository recipeRepository, IProductServiceClient productServiceClient, IInventoryDbContext dbContext)
         {
             _recipeRepository = recipeRepository;
             _productServiceClient = productServiceClient;
+            _dbContext = dbContext;
         }
         public async Task<Unit> Handle(MutationRecipeCommand command, CancellationToken cancellationToken)
         {
@@ -65,10 +69,22 @@ namespace InventoryService.Application.Features.Recipe.Commands.MutationRecipe
             }
 
             //xử lý xóa
-            foreach (var ingredientId in removeItem)
+            using var transaction = await _dbContext.Database.BeginTransactionAsync();
+
+            try
             {
-                var recipeToDelete = recipe.First(r => r.IngredientId == ingredientId);
-                await _recipeRepository.StrictDelete(recipeToDelete);
+                foreach (var ingredientId in removeItem)
+                {
+                    var recipeToDelete = recipe.First(r => r.IngredientId == ingredientId);
+                    await _recipeRepository.DeleteAsync(recipeToDelete.Id);
+                }
+
+                await transaction.CommitAsync(); // Chỉ commit khi toàn bộ vòng lặp chạy xong
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync(); // Nếu bất kỳ thằng nào lỗi, quay xe hết
+                throw;
             }
 
             return Unit.Value;
