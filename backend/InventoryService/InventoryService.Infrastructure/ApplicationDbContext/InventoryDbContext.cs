@@ -106,9 +106,6 @@ public partial class InventoryDbContext : DbContext, IInventoryDbContext
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("created_at");
             entity.Property(e => e.IngredientId).HasColumnName("ingredient_id");
-            entity.Property(e => e.IsDeleted)
-                .HasDefaultValue(false)
-                .HasColumnName("is_deleted");
             entity.Property(e => e.Quantity)
                 .HasPrecision(12, 3)
                 .HasColumnName("quantity");

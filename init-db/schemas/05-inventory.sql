@@ -34,7 +34,7 @@ CREATE TABLE "recipes" (
   "quantity" DECIMAL(12, 3) NOT NULL,
   "created_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  "is_deleted" BOOLEAN DEFAULT FALSE,
+
   
   -- Ràng buộc: Một sản phẩm không được trùng nguyên liệu trong công thức
   CONSTRAINT "unique_variant_ingredient" UNIQUE ("variant_id", "ingredient_id"),
