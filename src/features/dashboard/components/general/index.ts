@@ -1,3 +1,4 @@
+export * from "./DashboardHeader"
 export * from "./DashboardSidebar"
 export * from "./RecentOrders"
 export * from "./SalesChart"

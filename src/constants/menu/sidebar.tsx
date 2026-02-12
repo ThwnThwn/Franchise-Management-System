@@ -19,7 +19,7 @@ export interface MenuItem {
     allowedRoles: RoleSlug[]
 }
 
-export const SIDEBAR_MENU: MenuItem[] = [
+export const DASHBOARD_SIDEBAR_MENU: MenuItem[] = [
     {
         icon: <LayoutDashboard className="w-5 h-5" />,
         label: "Tổng quan",

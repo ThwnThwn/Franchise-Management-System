@@ -6,7 +6,7 @@ import { useFormik } from "formik"
 import { shiftSchema, ShiftFormValues } from "./ShiftForm/schema"
 import { useTokenStore } from "@/hooks/singleton/store"
 import { ButtonStyled, ModalStyled } from "@/components"
-import { ShiftAssignmentTab } from "../ShiftAssignmentTab"
+import { ShiftAssignmentTab } from "./ShiftAssignmentTab"
 import { ShiftStatus } from "../../constants"
 import { ShiftForm } from "./ShiftForm"
 

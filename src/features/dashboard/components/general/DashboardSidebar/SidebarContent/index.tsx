@@ -7,7 +7,7 @@ import { X } from "lucide-react"
 import Link from "next/link"
 import { LogoStyled } from "@/components"
 import { RoleSlugLabels } from "@/constants/labels"
-import { MenuItem } from "../../../../../../constants/sidebar-menu"
+import { MenuItem } from "../../../../../../constants/menu/sidebar"
 import { RoleSlug } from "@/constants/enums"
 
 interface SidebarContentProps {

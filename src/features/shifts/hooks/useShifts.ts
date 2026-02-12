@@ -50,8 +50,9 @@ const generateMockShifts = (): ShiftResponse[] => {
                     userId: "user-1",
                     status: ShiftAssignmentStatus.Confirmed,
                     hourlyWage: 25000,
-                    staffName: "Nguyễn Văn A",
-                    staffAvatarUrl: "https://i.pravatar.cc/150?u=a042581f4e29026024d"
+                    firstName: "A",
+                    lastName: "Nguyễn Văn",
+                    avatarUrl: "https://i.pravatar.cc/150?u=a042581f4e29026024d"
                 },
                 {
                     id: "assign-2",
@@ -59,8 +60,9 @@ const generateMockShifts = (): ShiftResponse[] => {
                     userId: "user-2",
                     status: ShiftAssignmentStatus.Assigned,
                     hourlyWage: 22000,
-                    staffName: "Trần Thị B",
-                    staffAvatarUrl: "https://i.pravatar.cc/150?u=a042581f4e29026704d"
+                    firstName: "B",
+                    lastName: "Trần Thị",
+                    avatarUrl: "https://i.pravatar.cc/150?u=a042581f4e29026704d"
                 }
             ]
         },

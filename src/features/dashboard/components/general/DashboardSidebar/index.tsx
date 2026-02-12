@@ -7,7 +7,7 @@ import { Menu } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { useTokenStore } from "@/hooks"
 import { RoleSlug } from "@/constants/enums"
-import { SIDEBAR_MENU } from "@/constants/sidebar-menu"
+import { DASHBOARD_SIDEBAR_MENU } from "@/constants/menu/sidebar"
 import { SidebarContent } from "./SidebarContent"
 
 export const DashboardSidebar = () => {
@@ -16,7 +16,10 @@ export const DashboardSidebar = () => {
     const roleSlug = useTokenStore((s) => s.roleSlug) || RoleSlug.Staff
 
     const filteredMenuItems = useMemo(
-        () => SIDEBAR_MENU.filter((item) => roleSlug && item.allowedRoles.includes(roleSlug)),
+        () =>
+            DASHBOARD_SIDEBAR_MENU.filter(
+                (item) => roleSlug && item.allowedRoles.includes(roleSlug)
+            ),
         [roleSlug]
     )
 

@@ -2,25 +2,25 @@
 
 import React, { useRef, useState } from "react"
 import { CalendarApi } from "@fullcalendar/core"
+
+import { ShiftModal, ScheduleToolbar, ShiftCalendar } from "@/features/shifts/components"
+import { ShiftFormValues } from "@/features/shifts/components/ShiftModal/ShiftForm/schema"
+import { ShiftStatus } from "@/features/shifts/constants"
+import { CreateShiftRequest, UpdateShiftRequest } from "@/features/shifts/models/request"
+import { ShiftResponse } from "@/features/shifts/models/response"
 import {
     useCreateShift,
     useDeleteShift,
     useGetShifts,
     useScheduleLogic,
     useUpdateShift
-} from "../../hooks"
-import { ScheduleToolbar } from "../../components/ScheduleToolbar"
-import { ShiftCalendar } from "../../components/ShiftCalendar"
+} from "@/features/shifts/hooks"
+
+import { DashboardHeader } from "@/features/dashboard"
 import { confirmDialog, useDay, useTokenStore } from "@/hooks"
 import { addToast, useDisclosure } from "@heroui/react"
-import { ShiftFormValues } from "../../components/ShiftModal/ShiftForm/schema"
-import { ShiftResponse } from "../../models/response"
 import dayjs from "dayjs"
-import { ShiftModal } from "../../components"
-import { CreateShiftRequest, UpdateShiftRequest } from "../../models/request"
-import { DashboardHeader } from "@/features/dashboard/components/general/DashboardHeader"
 import { CalendarRange } from "lucide-react"
-import { ShiftStatus } from "../../constants"
 
 export default function ShiftSchedulerPageView() {
     const { formatDate, formatToApiUTC, formatDateTime } = useDay({ defaultFormat: "HH:mm" })

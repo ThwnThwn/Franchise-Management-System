@@ -8,9 +8,10 @@ export interface ShiftAssignment {
     status: ShiftAssignmentStatus
     hourlyWage: number
 
-    staffName: string
-    staffAvatarUrl?: string
-    staffEmail?: string
+    firstName: string
+    lastName?: string
+    avatarUrl?: string
+    email?: string
 }
 
 export interface ShiftResponse {

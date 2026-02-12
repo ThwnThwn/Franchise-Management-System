@@ -2,7 +2,7 @@
 
 import { SpinnerStyled } from "@/components"
 import { DashboardSidebar } from "@/features/dashboard/components"
-import { SIDEBAR_MENU } from "@/constants/sidebar-menu"
+import { DASHBOARD_SIDEBAR_MENU } from "@/constants/menu/sidebar"
 import { useTokenStore } from "@/hooks"
 import { useRouter, usePathname } from "next/navigation"
 import React, { useEffect, useMemo } from "react"
@@ -17,7 +17,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     // 1. Tự động lấy danh sách các Path mà Role hiện tại được phép vào
     const allowedPathsForCurrentRole = useMemo(() => {
         if (!roleSlug) return []
-        return SIDEBAR_MENU.filter((item) => item.allowedRoles.includes(roleSlug)).map(
+        return DASHBOARD_SIDEBAR_MENU.filter((item) => item.allowedRoles.includes(roleSlug)).map(
             (item) => item.href
         )
     }, [roleSlug])
