@@ -28,6 +28,14 @@ namespace FranchiseService.Domain.Enums
         Cancelled = 3   // Đã hủy
     }
 
+    // Trạng thái phân công nhân viên vào ca
+    public enum ShiftAssignmentStatus
+    {
+        Assigned = 0,   // Quản lý mới gán
+        Confirmed = 1,  // Nhân viên đã xác nhận
+        Rejected = 2    // Nhân viên từ chối
+    }
+
     public enum TimeLogStatus
     {
         Processing = 0, // Đang làm
