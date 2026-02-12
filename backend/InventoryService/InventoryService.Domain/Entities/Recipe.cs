@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace InventoryService.Domain.Entities;
 
-public partial class Recipe: SoftDeletedEntity, IEntity
+public partial class Recipe: IEntity
 {
     public Guid Id { get; set; }
 

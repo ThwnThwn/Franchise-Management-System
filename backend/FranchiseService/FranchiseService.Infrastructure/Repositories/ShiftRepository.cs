@@ -127,5 +127,57 @@ namespace FranchiseService.Infrastructure.Repositories
                          && a.Shift.IsDeleted == false)
                 .ToListAsync(cancellationToken);
         }
+
+        /// <summary>
+        /// Lấy danh sách phân công của NHIỀU nhân viên trong khoảng thời gian.
+        /// Dùng cho GetAvailableStaffs để tránh N+1 Query.
+        /// </summary>
+        public async Task<IEnumerable<ShiftAssignment>> GetAssignmentsByUsersAsync(
+            IEnumerable<Guid> userIds, DateOnly fromDate, DateOnly toDate, CancellationToken cancellationToken)
+        {
+            return await _dbContext.ShiftAssignments
+                .AsNoTracking()
+                .Include(a => a.Shift)
+                .Where(a => userIds.Contains(a.UserId)
+                         && a.Shift.ShiftDate >= fromDate
+                         && a.Shift.ShiftDate <= toDate
+                         && a.IsDeleted == false
+                         && a.Shift.IsDeleted == false)
+                .ToListAsync(cancellationToken);
+        }
+
+        /// <summary>
+        /// Lấy TẤT CẢ assignment của 1 ca, BAO GỒM CẢ SOFT-DELETED.
+        /// KHÔNG filter IsDeleted để Sync Logic có thể tìm row cũ và restore.
+        /// </summary>
+        public async Task<List<ShiftAssignment>> GetAllAssignmentsIncludingDeletedAsync(
+            Guid shiftId, CancellationToken cancellationToken)
+        {
+            return await _dbContext.ShiftAssignments
+                .IgnoreQueryFilters()  // Bypass Global Query Filter (IsDeleted == false)
+                .Where(a => a.ShiftId == shiftId)
+                .ToListAsync(cancellationToken);
+        }
+
+        /// <summary>
+        /// Khôi phục assignment đã bị soft-delete.
+        /// Bypass Global Query Filter để tìm entity và update.
+        /// </summary>
+        public async Task RestoreAssignmentAsync(ShiftAssignment assignment, CancellationToken cancellationToken)
+        {
+            // Tim entity bao gom ca soft-deleted (bypass Global Query Filter)
+            var entity = await _dbContext.ShiftAssignments
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(a => a.Id == assignment.Id, cancellationToken)
+                ?? throw new KeyNotFoundException($"Khong tim thay ShiftAssignment {assignment.Id}");
+
+            // Cap nhat tu entity truyen vao
+            entity.IsDeleted = assignment.IsDeleted;
+            entity.Status = assignment.Status;
+            entity.HourlyWage = assignment.HourlyWage;
+            entity.UpdatedAt = assignment.UpdatedAt;
+
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
     }
 }

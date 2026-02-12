@@ -73,8 +73,12 @@ namespace FranchiseService.API
             });
             builder.Services.AddGrpcReflection();
 
+            // HttpContextAccessor (de forward x-user-id header sang gRPC metadata)
+            builder.Services.AddHttpContextAccessor();
+
             // gRPC Client → IdentityService (để validate user và lấy thông tin nhân viên)
-            builder.Services.AddSingleton<Application.ClientInterfaces.IIdentityServiceClient,
+            // Scoped vi can doc HttpContext.Request.Headers cua tung request
+            builder.Services.AddScoped<Application.ClientInterfaces.IIdentityServiceClient,
                 Infrastructure.Clients.Identity.IdentityServiceClient>();
 
             // Rest API Controllers
