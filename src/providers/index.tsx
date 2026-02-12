@@ -6,6 +6,7 @@ import { getQueryClient } from "@/utils/helpers/getQueryClient"
 import { QueryClientProvider } from "@tanstack/react-query"
 import { DisclosureProvider } from "./DisclosureProvider"
 import { GlobalConfirmDialog } from "@/components"
+import { StaffAttendanceFloatingBar } from "@/features/shifts/components"
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
     const queryClient = getQueryClient()
@@ -23,6 +24,7 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
                         // hideIcon: true,
                     }}
                 />
+                <StaffAttendanceFloatingBar />
             </HeroUIProvider>
         </QueryClientProvider>
     )

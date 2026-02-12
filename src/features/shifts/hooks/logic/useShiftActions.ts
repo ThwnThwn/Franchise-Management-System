@@ -5,7 +5,6 @@ import { ShiftResponse } from "@/features/shifts/models/response"
 import { ShiftStatus } from "@/features/shifts/constants"
 import { CreateShiftRequest, UpdateShiftRequest } from "@/features/shifts/models/request"
 import { addToast } from "@heroui/react"
-import dayjs from "dayjs"
 import { confirmDialog, useDay } from "@/hooks"
 
 export const useShiftActions = ({
@@ -19,7 +18,9 @@ export const useShiftActions = ({
     onOpenModal: () => void
     onCloseModal: () => void
 }) => {
-    const { formatDate, formatToApiUTC, formatDateTime } = useDay({ defaultFormat: "HH:mm" })
+    const { formatDate, formatDateTime } = useDay({
+        defaultFormat: "HH:mm"
+    })
 
     const [selectedShift, setSelectedShift] = useState<Partial<ShiftFormValues> | null>(null)
     const [selectedShiftId, setSelectedShiftId] = useState<string | null>(null)
@@ -43,11 +44,12 @@ export const useShiftActions = ({
     // 2. Click vào Event có sẵn -> Mở Modal Edit
     const handleEventClick = (shift: ShiftResponse) => {
         setSelectedShiftId(shift.id)
+
         setSelectedShift({
             id: shift.id,
             shiftDate: new Date(shift.shiftDate),
-            startTime: formatDateTime({ date: shift.startTime }), // Lấy HH:mm từ ISO string
-            endTime: formatDateTime({ date: shift.endTime }),
+            startTime: shift.startTime, // Lấy HH:mm từ ISO string
+            endTime: shift.endTime,
             requiredStaffCount: shift.requiredStaffCount,
             breakDurationMinutes: shift.breakDurationMinutes,
             note: shift.note,
@@ -87,8 +89,8 @@ export const useShiftActions = ({
         }
 
         // --- Logic update API ---
-        const startISO = formatToApiUTC(newStart)
-        const endISO = formatToApiUTC(newEnd)
+        const startISO = formatDateTime({ date: newStart })
+        const endISO = formatDateTime({ date: newEnd })
 
         if (!startISO || !endISO) {
             dropInfo?.revert()
@@ -121,24 +123,24 @@ export const useShiftActions = ({
         const dateStr = formatDate(data.shiftDate) // Ra "2026-02-10"
 
         // 2. Logic tính toán giờ (Vẫn cần làm ở đây vì liên quan business logic ca đêm)
-        const startDateTime = dayjs(`${dateStr}T${data.startTime}:00`)
-        let endDateTime = dayjs(`${dateStr}T${data.endTime}:00`)
+        // const startDateTime = dayjs(`${dateStr}T${data.startTime}:00`)
+        // let endDateTime = dayjs(`${dateStr}T${data.endTime}:00`)
 
-        if (endDateTime.isBefore(startDateTime) || endDateTime.isSame(startDateTime)) {
-            endDateTime = endDateTime.add(1, "day")
-        }
+        // if (endDateTime.isBefore(startDateTime) || endDateTime.isSame(startDateTime)) {
+        //     endDateTime = endDateTime.add(1, "day")
+        // }
 
         // 3. Convert sang UTC để gửi API (Dùng hàm MỚI)
-        const startISO = formatToApiUTC(startDateTime)
-        const endISO = formatToApiUTC(endDateTime)
+        // const startISO = formatToApiUTC(startDateTime)
+        // const endISO = formatToApiUTC(endDateTime)
 
         if (selectedShiftId) {
             // Update Mode
             const payload: UpdateShiftRequest = {
                 // shiftDate vẫn giữ nguyên là ngày bắt đầu ca (để BE biết ca này thuộc ngày nào)
                 shiftDate: dateStr,
-                startTime: startISO,
-                endTime: endISO,
+                startTime: data.startTime,
+                endTime: data.endTime,
                 requiredStaffCount: data.requiredStaffCount,
                 breakDurationMinutes: data.breakDurationMinutes,
                 note: data.note || "",
@@ -152,8 +154,8 @@ export const useShiftActions = ({
             const payload: CreateShiftRequest = {
                 storeId: storeId,
                 shiftDate: dateStr,
-                startTime: startISO!,
-                endTime: endISO!,
+                startTime: data.startTime,
+                endTime: data.endTime,
                 requiredStaffCount: data.requiredStaffCount,
                 breakDurationMinutes: data.breakDurationMinutes,
                 note: data.note || "",

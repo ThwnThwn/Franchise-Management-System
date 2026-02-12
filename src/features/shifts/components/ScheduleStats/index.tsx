@@ -6,6 +6,7 @@ import { Clock, DollarSign, Users, AlertTriangle } from "lucide-react"
 import dayjs from "dayjs"
 import { ShiftResponse } from "@/features/shifts/models/response"
 import { ShiftStatus } from "@/features/shifts/constants"
+import { getShiftDateTime } from "@/features/shifts/utils"
 import { CardStyled } from "@/components"
 import { formatCurrency, formatCurrencyWithSymbol } from "@/utils/helpers/currency"
 
@@ -24,8 +25,11 @@ export const ScheduleStats = ({ shifts }: ScheduleStatsProps) => {
         shifts.forEach((shift) => {
             if (shift.status === ShiftStatus.Cancelled) return
 
+            const start = getShiftDateTime(shift.shiftDate, shift.startTime)
+            const end = getShiftDateTime(shift.shiftDate, shift.endTime, shift.startTime)
+
             // 1. Thời lượng ca (giờ)
-            const durationInMinutes = dayjs(shift.endTime).diff(dayjs(shift.startTime), "minute")
+            const durationInMinutes = dayjs(end).diff(start, "minute")
             const durationInHours = durationInMinutes / 60
             totalMinutes += durationInMinutes
 
@@ -102,7 +106,7 @@ export const ScheduleStats = ({ shifts }: ScheduleStatsProps) => {
                     shadow="sm"
                     className="border-none bg-white/60 backdrop-blur-md"
                 >
-                    <CardBody className="flex flex-row items-center gap-4 p-4">
+                    <CardBody className="flex flex-row items-center gap-4 p-0">
                         <div className={`p-2.5 rounded-xl ${item.color}`}>{item.icon}</div>
                         <div className="flex flex-col">
                             <span className="text-tiny text-default-500 font-medium uppercase tracking-wider">

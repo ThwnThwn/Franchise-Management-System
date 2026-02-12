@@ -8,7 +8,8 @@ import {
     ScheduleToolbar,
     ShiftCalendar,
     ScheduleStats,
-    BulkShiftModal
+    BulkShiftModal,
+    StaffWorkloadSummary
 } from "@/features/shifts/components"
 import { ShiftStatus } from "@/features/shifts/constants"
 import {
@@ -102,6 +103,10 @@ export default function ShiftSchedulerPageView() {
                 />
                 {/* Stats */}
                 <ScheduleStats shifts={shiftsData || []} />
+
+                {/* Overwork */}
+                <StaffWorkloadSummary shifts={shiftsData || []} storeId={storeId!} />
+
                 {/* Main Calendar Area */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 overflow-hidden">
                     <ShiftCalendar

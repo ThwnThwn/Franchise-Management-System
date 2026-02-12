@@ -138,3 +138,12 @@ export interface CreateShiftAvailabilityRequest {
 }
 
 export interface UpdateShiftAvailabilityRequest extends Partial<CreateShiftAvailabilityRequest> {}
+
+// ===============================
+// My schedule (Staff)
+// ===============================
+export interface AttendancePayload {
+    latitude?: number
+    longitude?: number
+    note?: string
+}

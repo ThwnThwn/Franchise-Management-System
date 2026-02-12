@@ -23,20 +23,20 @@ const generateMockShifts = (): ShiftResponse[] => {
 
     // Helper format nhanh
     const fmtDate = (d: dayjs.Dayjs) => d.format(DEFAULT_DATE_FORMAT)
-    const fmtDateTime = (d: dayjs.Dayjs, timeStr: string) => {
-        // timeStr dạng "08:00:00"
-        return d.format(`YYYY-MM-DDT${timeStr}[Z]`)
-        // Hoặc nếu muốn chuẩn format có Z thì dùng: d.format(`YYYY-MM-DDT${timeStr}[Z]`)
-        // Nhưng ở đây mock đơn giản để test UI
-    }
+    // const fmtDateTime = (d: dayjs.Dayjs, timeStr: string) => {
+    //     // timeStr dạng "08:00:00"
+    //     return d.format(`YYYY-MM-DDT${timeStr}[Z]`)
+    //     // Hoặc nếu muốn chuẩn format có Z thì dùng: d.format(`YYYY-MM-DDT${timeStr}[Z]`)
+    //     // Nhưng ở đây mock đơn giản để test UI
+    // }
 
     return [
         {
             id: "shift-1",
             storeId: "b7ac8328-2ca3-470d-80ca-15444eeab2dd",
             shiftDate: fmtDate(monday), // Thứ 2
-            startTime: fmtDateTime(monday, "01:00:00"),
-            endTime: fmtDateTime(monday, "09:00:00"),
+            startTime: "08:00:00",
+            endTime: "16:00:00",
             requiredStaffCount: 3,
             breakDurationMinutes: 15,
             shiftTemplateId: "tpl-1",
@@ -70,8 +70,8 @@ const generateMockShifts = (): ShiftResponse[] => {
             id: "shift-2",
             storeId: "b7ac8328-2ca3-470d-80ca-15444eeab2dd",
             shiftDate: fmtDate(tuesday), // Thứ 3
-            startTime: fmtDateTime(tuesday, "06:00:00"),
-            endTime: fmtDateTime(tuesday, "14:00:00"),
+            startTime: "13:00:00",
+            endTime: "21:00:00",
             requiredStaffCount: 2,
             breakDurationMinutes: 60,
             shiftTemplateId: "tpl-2",
@@ -83,8 +83,8 @@ const generateMockShifts = (): ShiftResponse[] => {
             id: "shift-3",
             storeId: "b7ac8328-2ca3-470d-80ca-15444eeab2dd",
             shiftDate: fmtDate(wednesday), // Thứ 4
-            startTime: fmtDateTime(wednesday, "11:00:00"),
-            endTime: fmtDateTime(wednesday, "20:00:00"), // Ca qua đêm sang thứ 5
+            startTime: "18:00:00",
+            endTime: "03:00:00", // Ca qua đêm sang thứ 5
             requiredStaffCount: 5,
             breakDurationMinutes: 20,
             shiftTemplateId: "tpl-3",

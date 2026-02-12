@@ -1,5 +1,7 @@
 export * from "./useDay"
+export * from "./useDistanceToTarget"
 export * from "./useFormikHelpers"
+export * from "./useGeolocation"
 export * from "./useImageUploadModal"
 export * from "./useScrollToCenter"
 export * from "./useUserHelper"

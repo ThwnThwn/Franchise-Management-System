@@ -157,23 +157,32 @@ export const useDay = ({
      * Format DateTime -> String hiển thị đẹp (Display)
      * Dùng để hiển thị lên UI cho người dùng đọc
      */
+    /**
+     * Format DateTime -> String hiển thị đẹp (Display)
+     * Chấp nhận: string, native Date, hoặc HeroUI DateValue
+     */
     const formatDateTime = ({
         date,
-        timeZone: tz = timeZone
+        timeZone: tz = timeZone // Múi giờ mặc định từ context/config
     }: {
-        date: DateValue | string | null | undefined
+        date: DateValue | string | Date | null | undefined // Đã thêm kiểu Date ở đây
         timeZone?: string
     }): string => {
         if (!date) return ""
 
-        // Nếu là string, format trực tiếp
-        if (typeof date === "string") {
+        // 1. Xử lý nếu là string hoặc native Date (Dayjs "vít" được cả 2 thằng này)
+        if (typeof date === "string" || date instanceof Date) {
             return dayjs(date).format(defaultFormat)
         }
 
-        // Nếu là Object của HeroUI, convert sang Date rồi format
-        const dateJs = dayjs(date.toDate(tz))
-        return dateJs.format(defaultFormat)
+        // 2. Xử lý nếu là Object của HeroUI (DateValue)
+        // Kiểm tra xem có method toDate không để tránh lỗi runtime
+        if (typeof (date as any).toDate === "function") {
+            const dateJs = dayjs((date as any).toDate(tz))
+            return dateJs.format(defaultFormat)
+        }
+
+        return ""
     }
 
     // ========================================================================

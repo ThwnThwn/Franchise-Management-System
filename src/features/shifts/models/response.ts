@@ -145,3 +145,35 @@ export interface ShiftAvailabilityResponse {
     createdAt: string // Dùng để hiển thị "Ngày gửi" trong Table
     updatedAt: string // Dùng để hiển thị "Cập nhật cuối"
 }
+
+// ===============================
+// My schedule (Staff)
+// ===============================
+export interface UserCurrentShift {
+    hasShiftToday: boolean
+
+    // Optional properties (undefined nếu không có)
+    assignmentId?: string
+    shiftId?: string
+    currentLogId?: string
+
+    // Store info
+    storeId: string
+    storeName: string
+    storeLat?: number
+    storeLong?: number
+
+    // Format: "HH:mm:ss"
+    startTime: string
+    endTime: string
+
+    // Logic flags
+    canCheckIn: boolean
+    canCheckOut: boolean
+    isOvertime: boolean
+
+    // ISO Strings hoặc undefined
+    checkInAt?: string
+    checkOutAt?: string
+    serverTime: string
+}

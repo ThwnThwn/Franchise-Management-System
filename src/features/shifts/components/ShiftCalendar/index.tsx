@@ -1,13 +1,16 @@
 "use client"
 
 import React, { useRef, useEffect, useCallback, useMemo } from "react"
+
 import FullCalendar from "@fullcalendar/react"
 import dayGridPlugin from "@fullcalendar/daygrid"
 import timeGridPlugin from "@fullcalendar/timegrid"
 import interactionPlugin from "@fullcalendar/interaction"
 import { CalendarApi } from "@fullcalendar/core"
-import { ShiftResponse } from "@/features/shifts/models/response"
+
 import { ShiftEventCard } from "./ShiftEventCard"
+import { mapShiftsToEvents } from "@/features/shifts/utils"
+import { ShiftResponse } from "@/features/shifts/models/response"
 
 interface ShiftCalendarProps {
     shifts: ShiftResponse[]
@@ -42,19 +45,7 @@ export const ShiftCalendar = ({
     }, [onCalendarApiReady])
 
     // 2. Map Data - Dùng useMemo để không map lại mảng nếu shifts không đổi
-    const events = useMemo(
-        () =>
-            shifts.map((shift) => ({
-                id: shift.id,
-                title: shift.note || "Ca làm việc", // Fallback title
-                start: shift.startTime, // String ISO ok
-                end: shift.endTime,
-                extendedProps: shift, // Lưu toàn bộ object gốc để dùng khi render
-                backgroundColor: "transparent",
-                borderColor: "transparent"
-            })),
-        [shifts]
-    )
+    const events = useMemo(() => mapShiftsToEvents(shifts), [shifts])
 
     // 3. Memoize renderEventContent
     const renderEventContent = useCallback((eventInfo: any) => {
