@@ -46,9 +46,9 @@ export const shiftApi = {
     /**
      * @param ids Mảng các shift id để publish đồng thời
      */
-    bulkPublish: async (ids: string[]): Promise<void> => {
-        await axiosInstance.post("/shifts/bulk-publish", { ids })
-    },
+    // bulkPublish: async (ids: string[]): Promise<void> => {
+    //     await axiosInstance.post("/shifts/bulk-publish", { ids })
+    // },
 
     /**
      * @param storeId - ID của cửa hàng để giới hạn danh sách nhân viên
