@@ -2,7 +2,7 @@ package ingredients
 
 import (
 	"api-gateway/config"
-	"api-gateway/internal/api/handlers"
+	"api-gateway/internal/api/handlers/inventory"
 	"api-gateway/internal/api/middleware"
 	"api-gateway/internal/api/routes/ingredients/categories"
 )
@@ -10,7 +10,7 @@ import (
 type IngredientRouter struct {
 	cfg          *config.Config
 	authMW       *middleware.AuthMiddleware
-	ingredientHl *handlers.IngredientHandler
+	ingredientHl *inventory.IngredientHandler
 
 	ingreCateR *categories.IngredientCategoryRouter
 }
@@ -18,7 +18,7 @@ type IngredientRouter struct {
 func NewRouter(
 	cfg *config.Config,
 	authMW *middleware.AuthMiddleware,
-	ingredientHl *handlers.IngredientHandler,
+	ingredientHl *inventory.IngredientHandler,
 	ingreCateR *categories.IngredientCategoryRouter,
 ) *IngredientRouter {
 	return &IngredientRouter{

@@ -1,4 +1,4 @@
-package handlers
+package identity
 
 import (
 	"api-gateway/global"

@@ -1,4 +1,4 @@
-package handlers
+package franchise
 
 import (
 	"api-gateway/internal/application/constants/errorcode"

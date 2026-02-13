@@ -1,4 +1,4 @@
-package handlers
+package sales
 
 import (
 	"api-gateway/internal/application/constants/errorcode"

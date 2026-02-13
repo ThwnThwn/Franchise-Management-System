@@ -1,4 +1,4 @@
-package handlers
+package inventory
 
 import (
 	"api-gateway/internal/application/constants/errorcode"

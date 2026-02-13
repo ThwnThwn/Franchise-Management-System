@@ -1,4 +1,4 @@
-package handlers
+package identity
 
 import (
 	"api-gateway/internal/application/constants/errorcode"

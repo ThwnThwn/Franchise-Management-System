@@ -11,7 +11,7 @@ func (s *MyShiftsRouter) Init(r *gin.RouterGroup) {
 		// 1. Lấy ca hiện tại
 		myShiftApi.GET("/current",
 			s.authMW.PermissionCheck("me.current_shift"),
-			s.shiftHl.GetUserCurrentShift,
+			s.shiftStaffHl.GetUserCurrentShift,
 		)
 
 		// 2. Check-in (Tác động lên Assignment)
