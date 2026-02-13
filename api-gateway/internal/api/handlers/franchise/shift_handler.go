@@ -210,7 +210,7 @@ func (h *ShiftHandler) GetAvailableStaffs(c *gin.Context) {
 // @Param        body    body      []string  true  "Danh sách User ID"
 // @Router       /shifts/{shiftId}/assign [put]
 func (h *ShiftHandler) UpdateAssignments(c *gin.Context) {
-	shiftID, err := uuid.Parse(c.Param("shiftId"))
+	shiftID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		c.Error(errorcode.ErrInvalidId)
 		return

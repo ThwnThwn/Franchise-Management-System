@@ -7,18 +7,21 @@ import (
 )
 
 type MyShiftsRouter struct {
-	cfg          *config.Config
-	authMW       *middleware.AuthMiddleware
-	shiftStaffHl *franchise.ShiftStaffHandler
+	cfg            *config.Config
+	authMW         *middleware.AuthMiddleware
+	shiftStaffHl   *franchise.ShiftStaffHandler
+	availabilityHl *franchise.ShiftAvailabilityHandler
 }
 
 func NewRouter(cfg *config.Config,
 	authMW *middleware.AuthMiddleware,
 	shiftStaffHl *franchise.ShiftStaffHandler,
+	availabilityHl *franchise.ShiftAvailabilityHandler,
 ) *MyShiftsRouter {
 	return &MyShiftsRouter{
-		cfg:          cfg,
-		authMW:       authMW,
-		shiftStaffHl: shiftStaffHl,
+		cfg:            cfg,
+		authMW:         authMW,
+		shiftStaffHl:   shiftStaffHl,
+		availabilityHl: availabilityHl,
 	}
 }

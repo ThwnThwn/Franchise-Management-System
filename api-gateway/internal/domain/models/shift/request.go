@@ -1,5 +1,7 @@
 package shift
 
+import "api-gateway/internal/domain/models/common"
+
 // ===============================
 // Shift
 // ===============================
@@ -102,6 +104,7 @@ type SaveShiftRuleRequest struct {
 // ===============================
 
 type GetAvailabilityParams struct {
+	common.PaginationQuery
 	FromDate    *string `form:"fromDate" json:"fromDate,omitempty"`
 	ToDate      *string `form:"toDate" json:"toDate,omitempty"`
 	IsAvailable *bool   `form:"isAvailable" json:"isAvailable,omitempty"`
