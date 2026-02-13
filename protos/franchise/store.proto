@@ -59,10 +59,10 @@ message StoreDetailResponse {
   string id = 1;
   string name = 2;
   string address = 3;
-  string phone = 4;
-  string image_url = 5;
-  double latitude = 6;
-  double longitude = 7;
+  optional string phone = 4;
+  optional string image_url = 5;
+  optional double latitude = 6;
+  optional double longitude = 7;
   bool is_open_now = 8; // Tính toán dựa trên StoreHours ngay lúc gọi
 }
 

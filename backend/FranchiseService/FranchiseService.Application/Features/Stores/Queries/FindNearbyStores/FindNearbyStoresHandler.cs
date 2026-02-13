@@ -27,8 +27,8 @@ namespace FranchiseService.Application.Features.Stores.Queries.FindNearbyStores
                 Id = s.Id,
                 Name = s.Name,
                 Address = s.Address,
-                Latitude = (double)(s.Latitude ?? 0),
-                Longitude = (double)(s.Longitude ?? 0),
+                Latitude = (double?)(s.Latitude),
+                Longitude = (double?)(s.Longitude),
                 ImageUrl = s.ImageUrl,
                 IsOpenNow = true
             }).ToList();

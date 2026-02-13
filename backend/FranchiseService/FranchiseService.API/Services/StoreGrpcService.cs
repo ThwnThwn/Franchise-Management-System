@@ -1,8 +1,8 @@
-﻿using FranchiseService.Application.Features.Stores.Queries.CheckStoreAvailability;
+﻿using FranchiseService.Application.Features.Stores.Dtos;
+using FranchiseService.Application.Features.Stores.Queries.CheckStoreAvailability;
 using FranchiseService.Application.Features.Stores.Queries.FindNearbyStores;
 using FranchiseService.Application.Features.Stores.Queries.GetStoreDetail;
 using FranchiseService.Application.Features.Stores.Queries.GetStores;
-using FranchiseService.Application.Features.Shifts.Queries.GetUserCurrentShift;
 using Grpc.Core;
 using MediatR;
 
@@ -53,17 +53,7 @@ namespace FranchiseService.API.Services
             };
 
             // Map thủ công DTO -> Proto
-            response.Items.AddRange(stores.Select(s => new StoreDetailResponse
-            {
-                Id = s.Id.ToString(),
-                Name = s.Name,
-                Address = s.Address,
-                Phone = s.Phone ?? "",
-                ImageUrl = s.ImageUrl ?? "",
-                Latitude = s.Latitude,
-                Longitude = s.Longitude,
-                IsOpenNow = s.IsOpenNow
-            }));
+            response.Items.AddRange(stores.Select(s => MapToStoreDetailResponse(s)));
 
             return response;
         }
@@ -93,17 +83,7 @@ namespace FranchiseService.API.Services
             };
 
             // Map List Items
-            response.Items.AddRange(pagedResult.Items.Select(s => new StoreDetailResponse
-            {
-                Id = s.Id.ToString(),
-                Name = s.Name,
-                Address = s.Address,
-                Phone = s.Phone ?? "",
-                ImageUrl = s.ImageUrl ?? "",
-                Latitude = s.Latitude,
-                Longitude = s.Longitude,
-                IsOpenNow = s.IsOpenNow
-            }));
+            response.Items.AddRange(pagedResult.Items.Select(s => MapToStoreDetailResponse(s)));
 
             return response;
         }
@@ -122,17 +102,37 @@ namespace FranchiseService.API.Services
                 throw new RpcException(new Status(StatusCode.NotFound, "Không tìm thấy cửa hàng"));
             }
 
-            return new StoreDetailResponse
+            return MapToStoreDetailResponse(result);
+        }
+
+        private StoreDetailResponse MapToStoreDetailResponse(StoreDto dto)
+        {
+            var res = new StoreDetailResponse
             {
-                Id = result.Id.ToString(),
-                Name = result.Name,
-                Address = result.Address,
-                Phone = result.Phone ?? "",
-                ImageUrl = result.ImageUrl ?? "",
-                Latitude = result.Latitude,
-                Longitude = result.Longitude,
-                IsOpenNow = result.IsOpenNow
+                Id = dto.Id.ToString(),
+                Name = dto.Name,
+                Address = dto.Address,
+                IsOpenNow = dto.IsOpenNow
             };
+
+            if (!string.IsNullOrEmpty(dto.Phone))
+            {
+                res.Phone = dto.Phone;
+            }
+            if (!string.IsNullOrEmpty(dto.ImageUrl))
+            {
+                res.ImageUrl = dto.ImageUrl;
+            }
+            if (dto.Longitude.HasValue)
+            {
+                res.Longitude = dto.Longitude.Value;
+            }
+            if (dto.Latitude.HasValue)
+            {
+                res.Latitude = dto.Latitude.Value;
+            }
+
+            return res;
         }
     }
 }
