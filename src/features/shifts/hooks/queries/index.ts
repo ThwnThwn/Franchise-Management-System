@@ -1,4 +1,4 @@
-export * from "./useMyAttendance"
+export * from "./useMyShifts"
 export * from "./useShiftAssignment"
 export * from "./useShiftAvailability"
 export * from "./useShiftBulk"

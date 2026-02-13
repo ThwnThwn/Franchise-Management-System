@@ -1,1 +1,1 @@
-export * from "./shift-mapper"
+export * from "./shiftMapper"

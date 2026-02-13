@@ -3,6 +3,7 @@
 import React from "react"
 import { ButtonStyled } from "@/components"
 import { LogIn, LogOut, CheckCircle2 } from "lucide-react"
+import { confirmDialog } from "@/hooks"
 
 interface AttendanceActionButtonProps {
     status: "IN" | "OUT" | "DONE"
@@ -24,15 +25,23 @@ export const AttendanceActionButton = ({
 
     const isCheckIn = status === "IN"
 
+    const handleOnPress = async () => {
+        const isConfirmed = await confirmDialog({
+            message: `Bạn muốn ${isCheckIn ? "CHECK-IN" : "CHECK-OUT"} ca làm việc?`,
+            variant: "info"
+        })
+        if (isConfirmed) onPress()
+    }
+
     return (
         <ButtonStyled
             color={isCheckIn ? "primary" : "secondary"}
-            className="w-full h-14 text-lg font-bold shadow-lg"
+            className="w-full shadow-lg"
             isLoading={isLoading}
-            onPress={onPress}
+            onPress={handleOnPress}
             startContent={isCheckIn ? <LogIn size={22} /> : <LogOut size={22} />}
         >
-            {isCheckIn ? "VÀO CA NGAY" : "TAN CA (CHECK-OUT)"}
+            {isCheckIn ? "VÀO CA NGAY (CHECK-IN)" : "TAN CA (CHECK-OUT)"}
         </ButtonStyled>
     )
 }

@@ -9,6 +9,7 @@ import { parseAttributes } from "../../utils/utils"
 import { useTokenStore } from "@/hooks"
 import { useAddToCart } from "@/features/cart/hooks/useCartQuery"
 import { Product, ProductSize } from "../../models/products/respone"
+import { RoleSlug } from "@/constants/enums"
 
 type ProductVariantsModalProps = {
     product: Product | null
@@ -23,6 +24,7 @@ export function ProductVariantsModal({
     onOpenChange,
     storeId
 }: ProductVariantsModalProps) {
+    const isCustomer = useTokenStore((s) => s.roleSlug === RoleSlug.Customer)
     const [selectedSize, setSelectedSize] = useState<ProductSize | null>(null)
     const [quantity, setQuantity] = useState<number>(1)
     const addItem = useCartStore((state) => state.addItem)
@@ -151,7 +153,7 @@ export function ProductVariantsModal({
                                 })}
                         </div>
                     </div>
-                    <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center justify-between gap-4" hidden={!isCustomer}>
                         <p className="text-small text-default-500">Số lượng</p>
                         <NumberInputStyled
                             min={1}
@@ -168,6 +170,7 @@ export function ProductVariantsModal({
                         color="primary"
                         onPress={handleConfirm}
                         className="w-full"
+                        hidden={!isCustomer}
                     >
                         Thêm vào giỏ hàng
                     </ButtonStyled>

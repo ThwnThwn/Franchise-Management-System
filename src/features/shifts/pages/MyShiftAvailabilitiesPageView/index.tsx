@@ -29,8 +29,6 @@ import { DayOfWeekLabel } from "@/constants/labels"
 import { debouncedWrapper } from "@/utils/helpers/axiosHelper"
 import { DayOfWeek } from "@/constants/enums"
 
-dayjs.locale("vi")
-
 export default function MyShiftAvailabilitiesPageView() {
     // --- STATE ---
     const [page, setPage] = useState(1)

@@ -10,5 +10,6 @@ export const LOGO_URL = "/favicon.ico"
 // Date time
 export const DEFAULT_TIMEZONE = "Asia/Ho_Chi_Minh"
 export const DEFAULT_DATE_TIME_FORMAT = "YYYY-MM-DDTHH:mm:ss[Z]"
+export const DEFAULT_DATE_TIME_WITHOUT_TZ_FORMAT = "YYYY-MM-DDTHH:mm:ss"
 export const DATE_TIME_VIEW_FORMAT = "YYYY-MM-DD, HH:mm"
 export const DEFAULT_DATE_FORMAT = "YYYY-MM-DD"

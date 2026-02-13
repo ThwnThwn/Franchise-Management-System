@@ -147,3 +147,8 @@ export interface AttendancePayload {
     longitude?: number
     note?: string
 }
+
+export interface GetAgendaParams {
+    startDate: string // "YYYY-MM-DD"
+    endDate: string // "YYYY-MM-DD"
+}

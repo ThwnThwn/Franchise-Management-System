@@ -1,6 +1,6 @@
 import axiosInstance from "@/utils/axios"
-import { UserCurrentShift } from "@/features/shifts/models/response"
-import { AttendancePayload } from "@/features/shifts/models/request"
+import { StaffShiftAgenda, UserCurrentShift } from "@/features/shifts/models/response"
+import { AttendancePayload, GetAgendaParams } from "@/features/shifts/models/request"
 
 /**
  * MY SHIFT API
@@ -30,5 +30,16 @@ export const myShiftApi = {
      */
     checkOut: async (logId: string, payload: AttendancePayload): Promise<void> => {
         await axiosInstance.put(`/me/shifts/logs/${logId}/check-out`, payload)
+    },
+
+    /**
+     * Lấy danh sách lịch làm việc (Agenda) trong một khoảng thời gian nhất định.
+     * Thường dùng để hiển thị Timeline tuần hoặc Lịch tháng cho nhân viên.
+     * @param params - { startDate: string, endDate: string } Định dạng YYYY-MM-DD
+     * @returns StaffShiftAgenda[] - Danh sách các ca làm, bao gồm thông tin Store và đồng nghiệp làm cùng.
+     */
+    getAgenda: async (params: GetAgendaParams): Promise<StaffShiftAgenda[]> => {
+        const res = await axiosInstance.get("/me/shifts", { params })
+        return res.data
     }
 }

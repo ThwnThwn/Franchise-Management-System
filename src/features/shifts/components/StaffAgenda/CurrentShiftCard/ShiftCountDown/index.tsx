@@ -5,7 +5,7 @@ import { Clock } from "lucide-react"
 import dayjs from "dayjs"
 
 interface ShiftCountDownProps {
-    targetTime: string // ISO string từ server
+    targetTime: dayjs.Dayjs // ISO string từ server
     label: string
 }
 
@@ -15,8 +15,7 @@ export const ShiftCountDown = ({ targetTime, label }: ShiftCountDownProps) => {
     useEffect(() => {
         const timer = setInterval(() => {
             const now = dayjs()
-            const target = dayjs(targetTime)
-            const diff = target.diff(now)
+            const diff = targetTime.diff(now)
 
             if (diff <= 0) {
                 setTimeLeft("00:00:00")
@@ -28,7 +27,7 @@ export const ShiftCountDown = ({ targetTime, label }: ShiftCountDownProps) => {
                 const mins = Math.floor((diff / (1000 * 60)) % 60)
                     .toString()
                     .padStart(2, "0")
-                const secs = Math.floor((diff / 100) % 60)
+                const secs = Math.floor((diff / 1000) % 60)
                     .toString()
                     .padStart(2, "0")
                 setTimeLeft(`${hours}:${mins}:${secs}`)
@@ -39,11 +38,11 @@ export const ShiftCountDown = ({ targetTime, label }: ShiftCountDownProps) => {
     }, [targetTime])
 
     return (
-        <div className="flex flex-col items-center p-3 bg-primary-50 rounded-2xl border border-primary-100">
-            <span className="text-[10px] uppercase tracking-wider text-primary-500 font-bold">
+        <div className="flex flex-col items-center p-3 rounded-2xl border border-secondary">
+            <span className="text-[10px] uppercase tracking-wider text-secondary font-bold">
                 {label}
             </span>
-            <div className="flex items-center gap-2 text-primary-700 font-mono text-xl font-black">
+            <div className="flex items-center gap-2 text-primary font-mono text-xl font-black">
                 <Clock size={18} />
                 {timeLeft}
             </div>

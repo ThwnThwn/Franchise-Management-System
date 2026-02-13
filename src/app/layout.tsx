@@ -7,6 +7,9 @@ import { ClientHydration, Navbar, Modals } from "@/components"
 import Footer from "@/components/shared/Footer"
 import CartDrawer from "@/features/cart/components/CartDrawer"
 import { ScrollToTopButton } from "@/components/shared/ScrollToTopButton"
+import dayjs from "dayjs"
+
+dayjs.locale("vi")
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -29,7 +32,7 @@ export default function RootLayout({
     children: React.ReactNode
 }>) {
     return (
-        <html lang="en" className={`${geistSans.variable} ${geistMono.variable} min-w-xs`}>
+        <html lang="vi" className={`${geistSans.variable} ${geistMono.variable} min-w-xs`}>
             <body
                 className="coffee-theme text-foreground bg-background florage-background antialiased 
                 min-h-screen min-w-xs max-w-screen"

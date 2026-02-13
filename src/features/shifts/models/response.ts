@@ -1,5 +1,6 @@
 import { DayOfWeek } from "@/constants/enums"
 import { ShiftAssignmentStatus, ShiftStatus } from "../constants/enum"
+import { StoreDetailDto } from "@/features/stores"
 
 export interface ShiftAssignment {
     id: string
@@ -176,4 +177,26 @@ export interface UserCurrentShift {
     checkInAt?: string
     checkOutAt?: string
     serverTime: string
+}
+
+export interface CoWorkerDTO {
+    id: string
+    firstName: string
+    lastName?: string
+    avatar?: string
+    phone?: string
+}
+
+export interface StaffShiftAgenda {
+    id: string // assignmentId
+    startTime: string // "HH:mm:ss"
+    endTime: string // "HH:mm:ss"
+    date: string // "YYYY-MM-DD"
+    // store
+    store: StoreDetailDto
+    // Danh sách đồng nghiệp làm cùng trong cùng một ShiftId
+    coWorkers: CoWorkerDTO[]
+    // Trạng thái thực tế
+    checkInAt?: string
+    checkOutAt?: string
 }

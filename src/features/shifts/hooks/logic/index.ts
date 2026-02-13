@@ -1,3 +1,4 @@
+export * from "./useAgendaLogic"
 export * from "./useAttendanceActions"
 export * from "./useAttendanceWatcher"
 export * from "./useScheduleBulkActions"

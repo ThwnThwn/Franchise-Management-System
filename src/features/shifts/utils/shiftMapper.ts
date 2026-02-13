@@ -1,6 +1,7 @@
 // features/shifts/utils/shift-mapper.ts
 import dayjs from "dayjs"
-import { ShiftResponse } from "@/features/shifts/models/response"
+import { ShiftResponse, StaffShiftAgenda } from "@/features/shifts/models/response"
+import { EventInput } from "@fullcalendar/core/index.js"
 
 export const isTimeOnly = (val: string) =>
     val && val.length <= 8 && !val.includes("-") && !val.includes("T")
@@ -36,4 +37,19 @@ export const mapShiftsToEvents = (shifts: ShiftResponse[]) => {
         backgroundColor: "transparent",
         borderColor: "transparent"
     }))
+}
+
+export const mapStaffAgendaToEvents = (agenda: StaffShiftAgenda[]): EventInput[] => {
+    return agenda.map((item) => {
+        return {
+            id: item.id, // assignmentId
+            start: getShiftDateTime(item.date, item.startTime),
+            end: getShiftDateTime(item.date, item.endTime, item.startTime),
+            // Truyền toàn bộ dữ liệu vào extendedProps để hiển thị ở EventCard
+            extendedProps: item,
+            // Màu sắc cố định cho Staff: Xanh dịu mắt
+            backgroundColor: "#3b82f6",
+            borderColor: "transparent"
+        }
+    })
 }

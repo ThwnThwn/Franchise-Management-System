@@ -4,7 +4,7 @@ import { myShiftApi } from "@/features/shifts/services"
 import { addToast } from "@heroui/react"
 import { STRINGS } from "@/constants/strings"
 import { BackendError } from "@/models/common/respone"
-import { AttendancePayload } from "@/features/shifts/models/request"
+import { AttendancePayload, GetAgendaParams } from "@/features/shifts/models/request"
 
 // --- 1. QUERY HOOK: Lấy trạng thái ca làm hiện tại ---
 export const useGetCurrentShift = (enabled = true) => {
@@ -82,5 +82,38 @@ export const useCheckOut = ({ onSuccess }: { onSuccess?: () => void } = {}) => {
                 color: "danger"
             })
         }
+    })
+}
+
+/**
+ * Hook lấy danh sách lịch làm việc của nhân viên theo khoảng ngày.
+ * Tự động kích hoạt lại khi startDate hoặc endDate thay đổi.
+ * @param params - Đối tượng chứa ngày bắt đầu và kết thúc (YYYY-MM-DD)
+ * @param enabled - Flag cho phép/ngăn chặn việc tự động fetch (VD: Chỉ fetch khi đã có Role Staff)
+ */
+export const useGetMyAgenda = (params: GetAgendaParams, enabled = true) => {
+    return useQuery({
+        // Key bao gồm params để TanStack Query tự động phân tách cache theo từng khoảng ngày khác nhau
+        queryKey: [
+            QUERY_KEYS.ME,
+            QUERY_KEYS.SHIFTS,
+            QUERY_KEYS.AGENDA,
+            params.startDate,
+            params.endDate
+        ],
+
+        queryFn: () => myShiftApi.getAgenda(params),
+
+        // Chỉ chạy khi thỏa mãn: Role hợp lệ, có đủ ngày bắt đầu và kết thúc
+        enabled: enabled && !!params.startDate && !!params.endDate,
+
+        /**
+         * Lịch làm việc thường cố định, ít thay đổi đột ngột.
+         * Để staleTime 5 phút giúp tiết kiệm tài nguyên hệ thống, tránh fetch lại khi nhân viên chuyển tab.
+         */
+        staleTime: 1000 * 60 * 5,
+
+        // Giữ lại dữ liệu cũ trong lúc fetch dữ liệu mới để UI không bị giật (Loading skeleton)
+        placeholderData: (previousData) => previousData
     })
 }

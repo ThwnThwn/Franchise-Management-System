@@ -69,6 +69,12 @@ export const DASHBOARD_SIDEBAR_MENU: MenuItem[] = [
         allowedRoles: [RoleSlug.Manager]
     },
     {
+        icon: <CalendarRange className="w-5 h-5" />,
+        label: "Lịch làm việc",
+        href: "/dashboard/agenda",
+        allowedRoles: [RoleSlug.Staff]
+    },
+    {
         icon: <Calendar className="w-5 h-5" />,
         label: "Lịch cá nhân",
         href: "/dashboard/my-schedule",

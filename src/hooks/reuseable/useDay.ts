@@ -161,28 +161,42 @@ export const useDay = ({
      * Format DateTime -> String hiển thị đẹp (Display)
      * Chấp nhận: string, native Date, hoặc HeroUI DateValue
      */
+    /**
+     * Hàm check xem có phải là DateValue của HeroUI/NextUI không
+     */
+    const isHeroUIDate = (date: any): date is DateValue => {
+        return date && typeof date.toDate === "function"
+    }
+
     const formatDateTime = ({
         date,
-        timeZone: tz = timeZone // Múi giờ mặc định từ context/config
+        timeZone: tz = "Asia/Ho_Chi_Minh",
+        format = defaultFormat
     }: {
-        date: DateValue | string | Date | null | undefined // Đã thêm kiểu Date ở đây
+        date: DateValue | dayjs.Dayjs | string | Date | null | undefined
         timeZone?: string
+        format?: string
     }): string => {
         if (!date) return ""
 
-        // 1. Xử lý nếu là string hoặc native Date (Dayjs "vít" được cả 2 thằng này)
-        if (typeof date === "string" || date instanceof Date) {
-            return dayjs(date).format(defaultFormat)
+        let result: dayjs.Dayjs
+
+        // 1. Nếu là Dayjs
+        if (dayjs.isDayjs(date)) {
+            result = date
+        }
+        // 2. Nếu là DateValue (Sử dụng Type Guard để TS tự hiểu)
+        else if (isHeroUIDate(date)) {
+            result = dayjs(date.toDate(tz))
+        }
+        // 3. Các trường hợp còn lại: string | Date
+        else {
+            // Lúc này TS đã biết date KHÔNG THỂ là DateValue hay Dayjs nữa
+            // nên nó sẽ cho phép truyền vào dayjs() mà không cần ép kiểu
+            result = dayjs(date)
         }
 
-        // 2. Xử lý nếu là Object của HeroUI (DateValue)
-        // Kiểm tra xem có method toDate không để tránh lỗi runtime
-        if (typeof (date as any).toDate === "function") {
-            const dateJs = dayjs((date as any).toDate(tz))
-            return dateJs.format(defaultFormat)
-        }
-
-        return ""
+        return result.isValid() ? result.format(format) : ""
     }
 
     // ========================================================================

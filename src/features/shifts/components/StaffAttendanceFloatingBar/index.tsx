@@ -4,7 +4,7 @@ import React, { useMemo } from "react"
 import { Card, Button, useDisclosure } from "@heroui/react"
 import { AlertCircle, Clock, LogIn } from "lucide-react"
 import { useAttendanceWatcher, useAttendanceActions } from "@/features/shifts/hooks"
-import { useGeolocation } from "@/hooks"
+import { confirmDialog, useGeolocation } from "@/hooks"
 import { ExceptionNoteModal } from "@/features/shifts/components"
 
 export const StaffAttendanceFloatingBar = () => {
@@ -27,34 +27,40 @@ export const StaffAttendanceFloatingBar = () => {
         }
     }, [status])
 
-    // 2. Handler xử lý nhanh
-    const handleQuickAction = async () => {
+    const handleOnPress = async () => {
         if (!status) return
-
-        const pos = await getPosition()
-
-        const target = {
-            lat: status.shift.storeLat || 0,
-            lng: status.shift.storeLong || 0
-        }
-
-        if (pos.error || !pos.lat) {
-            onOpen()
-            return
-        }
-
-        await handleAction({
-            type: status.isOngoing ? "OUT" : "IN",
-            id: (status.isOngoing ? status.shift.currentLogId : status.shift.assignmentId) || "",
-            target
+        const isConfirmed = await confirmDialog({
+            message: `Bạn muốn ${!status.isOngoing ? "CHECK-IN" : "CHECK-OUT"} ca làm việc?`,
+            variant: "info"
         })
+        if (isConfirmed) {
+            const pos = await getPosition()
+
+            const target = {
+                lat: status.shift.storeLat || 0,
+                lng: status.shift.storeLong || 0
+            }
+
+            if (pos.error || !pos.lat) {
+                onOpen()
+                return
+            }
+
+            await handleAction({
+                type: status.isOngoing ? "OUT" : "IN",
+                id:
+                    (status.isOngoing ? status.shift.currentLogId : status.shift.assignmentId) ||
+                    "",
+                target
+            })
+        }
     }
 
     if (isWatcherLoading || !status?.shouldWarn || !uiConfig) return null
 
     return (
         <>
-            <div className="fixed w-md bottom-6 left-11 right-0 px-4 z-99 animate-in slide-in-from-bottom-5">
+            <div className="fixed w-md bottom-6 left-11 right-0 px-4 z-50 animate-in slide-in-from-bottom-5">
                 <Card className={`${uiConfig.color} border-white border-2 shadow-2xl`}>
                     <div className="flex items-center justify-between p-3">
                         <div className="flex items-center gap-3">
@@ -71,7 +77,7 @@ export const StaffAttendanceFloatingBar = () => {
                             size="sm"
                             isLoading={isSubmitting || isLocating}
                             className="bg-white text-black font-extrabold px-6"
-                            onPress={handleQuickAction}
+                            onPress={handleOnPress}
                         >
                             {uiConfig.label}
                         </Button>

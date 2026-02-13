@@ -9,3 +9,10 @@ export const ShiftStatusStyles: Record<ShiftStatus, string> = {
 
 // Style đặc biệt cho trường hợp đã Full (thường chỉ áp dụng cho Published)
 export const ShiftFullStyle = "bg-green-100 border-green-500 text-green-800"
+
+export const StaffAgendaStyles = {
+    upcoming: "bg-blue-50 border-blue-400 text-blue-800", // Ca sắp tới (giống Published)
+    ongoing: "bg-emerald-50 border-emerald-500 text-emerald-800", // Đang làm (Xanh lá nhạt)
+    completed: "bg-slate-50 border-slate-300 text-slate-400", // Đã xong (Xám nhạt, ít nổi bật)
+    overtime: "bg-orange-50 border-orange-400 text-orange-800" // Làm quá giờ (nếu cần)
+}

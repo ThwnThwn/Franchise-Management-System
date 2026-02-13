@@ -41,9 +41,13 @@ export const AttendanceStatus = ({
         >
             <Navigation size={14} className={isWithinRange ? "" : "animate-bounce"} />
             <span className="text-tiny font-medium">
-                {distanceM !== null ? `Cách cửa hàng ${distanceM}m` : "Chưa có vị trí"}
+                {distanceM !== null
+                    ? `Cách cửa hàng ${distanceM}m`
+                    : "Không tính được vị trí so với cửa hàng"}
             </span>
-            <span className="text-tiny">{isWithinRange ? "(Hợp lệ)" : "(Quá xa)"}</span>
+            <span className="text-tiny">
+                {isWithinRange ? "(Hợp lệ)" : distanceM === null ? "" : "(Quá xa)"}
+            </span>
         </div>
     )
 }
