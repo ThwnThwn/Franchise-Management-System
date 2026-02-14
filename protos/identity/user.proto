@@ -14,6 +14,7 @@ service UserGrpc {
   rpc AdminCreate(AdminCreateUserRequest) returns (UserResponse);
 
   rpc GetById(GetUserByIdRequest) returns (UserResponse);
+  rpc GetByIds (GetUserByIdsRequest) returns (GetUserByIdsResponse);
   rpc GetAll(GetAllUserOrWithRoleRequest) returns (GetAllUserOrWithRoleResponse);
   rpc GetManager(GetManagerRequest) returns (UserResponse);
 
@@ -39,7 +40,12 @@ message GetAllUserOrWithRoleResponse {
 message GetUserByIdRequest {
   string id = 1;
 }
-
+message GetUserByIdsRequest {
+  repeated string ids = 1;
+}
+message GetUserByIdsResponse {
+  repeated UserResponse users = 1;
+}
 message DeleteUserRequest {
   string id = 1;
 }
