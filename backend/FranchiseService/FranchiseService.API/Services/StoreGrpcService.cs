@@ -5,10 +5,11 @@ using FranchiseService.Application.Features.Stores.Queries.GetStores;
 using FranchiseService.Application.Features.Shifts.Queries.GetUserCurrentShift;
 using Grpc.Core;
 using MediatR;
+using FranchiseService.Grpc;
 
 namespace FranchiseService.API.Services
 {
-    public class StoreGrpcService : API.StoreGrpcService.StoreGrpcServiceBase
+    public class StoreGrpcService : FranchiseService.Grpc.StoreGrpcService.StoreGrpcServiceBase
     {
         private readonly IMediator _mediator;
 
@@ -25,7 +26,7 @@ namespace FranchiseService.API.Services
 
             var result = await _mediator.Send(query);
 
-            return new CheckStoreAvailabilityResponse
+            return new FranchiseService.Grpc.CheckStoreAvailabilityResponse
             {
                 IsAvailable = result.IsAvailable,
                 Message = result.Message ?? ""
@@ -46,14 +47,14 @@ namespace FranchiseService.API.Services
 
             var stores = await _mediator.Send(query);
 
-            var response = new GetStoresResponse
+            var response = new FranchiseService.Grpc.GetStoresResponse
             {
                 TotalCount = stores.Count,
                 TotalPages = 1
             };
 
             // Map thủ công DTO -> Proto
-            response.Items.AddRange(stores.Select(s => new StoreDetailResponse
+            response.Items.AddRange(stores.Select(s => new FranchiseService.Grpc.StoreDetailResponse
             {
                 Id = s.Id.ToString(),
                 Name = s.Name,
@@ -86,14 +87,14 @@ namespace FranchiseService.API.Services
             var pagedResult = await _mediator.Send(query);
 
             // Map MediatR Result -> Proto Response
-            var response = new GetStoresResponse
+            var response = new FranchiseService.Grpc.GetStoresResponse
             {
                 TotalCount = (int)pagedResult.TotalCount,
                 TotalPages = pagedResult.TotalPages
             };
 
             // Map List Items
-            response.Items.AddRange(pagedResult.Items.Select(s => new StoreDetailResponse
+            response.Items.AddRange(pagedResult.Items.Select(s => new FranchiseService.Grpc.StoreDetailResponse
             {
                 Id = s.Id.ToString(),
                 Name = s.Name,
@@ -122,7 +123,7 @@ namespace FranchiseService.API.Services
                 throw new RpcException(new Status(StatusCode.NotFound, "Không tìm thấy cửa hàng"));
             }
 
-            return new StoreDetailResponse
+            return new FranchiseService.Grpc.StoreDetailResponse
             {
                 Id = result.Id.ToString(),
                 Name = result.Name,

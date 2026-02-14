@@ -113,6 +113,9 @@ namespace FranchiseService.API
             // Map gRPC Services
             app.MapGrpcService<Services.StoreGrpcService>();
             app.MapGrpcService<Services.ShiftGrpcService>();
+            app.MapGrpcService<Services.AvailabilityGrpcService>();
+            app.MapGrpcService<Services.ShiftRuleGrpcService>();
+            app.MapGrpcService<Services.ShiftTemplateGrpcService>();
             app.MapGrpcReflectionService();
 
             // Root Endpoint (Health check nhẹ)
