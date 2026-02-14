@@ -110,7 +110,13 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
                 .ToListAsync();
         }
 
-
+        public async Task<IEnumerable<User?>> GetByIds(IReadOnlyList<Guid> ids)
+        {
+            return await _dbContext.Users
+                .Where(u => ids.Contains(u.Id))
+                .Cast<User?>()
+                .ToListAsync();
+        }
         public async Task<PagedResult<User>> GetPagedUsersAsync(string? keyword, Guid? id, string? roleSlug, int pageIndex, int pageSize, CancellationToken cancellationToken)
         {
             var query = _dbContext.Users

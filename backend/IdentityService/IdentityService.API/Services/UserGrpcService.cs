@@ -1,5 +1,4 @@
-﻿using System.Globalization;
-using Google.Protobuf.WellKnownTypes;
+﻿using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using IdentityService.Application.Dtos.User.Request;
 using IdentityService.Application.Dtos.User.Respone;
@@ -11,10 +10,12 @@ using IdentityService.Application.Features.Users.Commands.UpdateUser;
 using IdentityService.Application.Features.Users.Queries.GetAllUser;
 using IdentityService.Application.Features.Users.Queries.GetManager;
 using IdentityService.Application.Features.Users.Queries.GetUserById;
+using IdentityService.Application.Features.Users.Queries.GetUserByIds;
 using IdentityService.Grpc.Protos.Role;
 using IdentityService.Grpc.Protos.User;
 using MediatR;
 using Sprache;
+using System.Globalization;
 
 namespace IdentityService.API.Services;
 
@@ -98,6 +99,31 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
             Console.WriteLine(ex.StackTrace);
             throw new RpcException(new Status(StatusCode.Internal, $"Internal Server Error: {ex.Message}"));
         }
+    }
+
+    public override async Task<GetUserByIdsResponse> GetByIds(GetUserByIdsRequest request,ServerCallContext context)
+    {
+        if (request.Ids == null || request.Ids.Count == 0)
+        {
+            return new GetUserByIdsResponse();
+        }
+
+        var userIds = request.Ids
+            .Select(id => Guid.TryParse(id, out var guid) ? guid : (Guid?)null)
+            .Where(g => g.HasValue)
+            .Select(g => g.Value)
+            .ToList();
+
+        if (userIds.Count == 0)
+        {
+            return new GetUserByIdsResponse();
+        }
+
+        var users = await _mediator.Send(new GetUserByIdsQuery(userIds),context.CancellationToken);
+        var response = new GetUserByIdsResponse();
+        response.Users.AddRange(users.Select(MapUser));
+
+        return response;
     }
 
     public override async Task<GetAllUserOrWithRoleResponse> GetAll(GetAllUserOrWithRoleRequest request, ServerCallContext context)
