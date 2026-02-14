@@ -1,6 +1,9 @@
 package shift
 
-import "api-gateway/internal/domain/models/common"
+import (
+	"api-gateway/internal/domain/constants/enum"
+	"api-gateway/internal/domain/models/common"
+)
 
 // ===============================
 // Shift
@@ -148,4 +151,24 @@ type AttendancePayload struct {
 type GetAgendaParams struct {
 	StartDate string `form:"startDate" json:"startDate" binding:"required"`
 	EndDate   string `form:"endDate" json:"endDate" binding:"required"`
+}
+
+// ===============================
+// Time log
+// ===============================
+type GetTimeLogsParams struct {
+	common.PaginationQuery
+	StoreID   *string             `json:"storeId,omitempty" form:"storeId"`
+	StaffID   *string             `json:"staffId,omitempty" form:"staffId"`
+	StaffName *string             `json:"staffName,omitempty" form:"staffName"`
+	Status    *enum.TimeLogStatus `json:"status,omitempty" form:"status"`
+
+	// Format: YYYY-MM-DD
+	FromDate *string `json:"fromDate,omitempty" form:"fromDate"`
+	ToDate   *string `json:"toDate,omitempty" form:"toDate"`
+}
+
+type UpdateTimeLogRequest struct {
+	Status      enum.TimeLogStatus `json:"status" binding:"required"`
+	ManagerNote *string            `json:"managerNote,omitempty"`
 }

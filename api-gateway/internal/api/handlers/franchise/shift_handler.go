@@ -3,7 +3,13 @@ package franchise
 import (
 	"api-gateway/internal/application/constants/errorcode"
 	"api-gateway/internal/application/gateways/franchise"
+	"api-gateway/internal/application/gateways/identity"
+	"api-gateway/internal/domain/constants/enum"
+	"api-gateway/internal/domain/models/common"
+	"api-gateway/internal/domain/models/errormodel"
 	"api-gateway/internal/domain/models/shift"
+	"api-gateway/internal/domain/models/user"
+	"api-gateway/pkg/mapper"
 	"api-gateway/pkg/utils/validation"
 	"fmt"
 	"net/http"
@@ -14,10 +20,17 @@ import (
 
 type ShiftHandler struct {
 	shiftGW franchise.IShiftService
+	userGW  identity.IUserService
 }
 
-func NewShiftHandler(shiftGW franchise.IShiftService) *ShiftHandler {
-	return &ShiftHandler{shiftGW: shiftGW}
+func NewShiftHandler(
+	shiftGW franchise.IShiftService,
+	userGW identity.IUserService,
+) *ShiftHandler {
+	return &ShiftHandler{
+		shiftGW: shiftGW,
+		userGW:  userGW,
+	}
 }
 
 // =====================
@@ -27,7 +40,7 @@ func NewShiftHandler(shiftGW franchise.IShiftService) *ShiftHandler {
 // GetAll (Lấy danh sách ca làm việc)
 // @Summary      Lấy danh sách ca làm việc
 // @Description  Truy xuất danh sách ca làm việc kèm bộ lọc (Dùng cho Calendar/List view).
-// @Tags         Quản lý Ca làm
+// @Tags         Shifts
 // @Security     BearerAuth
 // @Param        storeId   query     string  true   "ID cửa hàng"
 // @Param        fromDate  query     string  false  "Từ ngày (YYYY-MM-DD)"
@@ -52,7 +65,7 @@ func (h *ShiftHandler) GetAll(c *gin.Context) {
 // GetByID (Lấy chi tiết ca làm)
 // @Summary      Lấy chi tiết một ca làm
 // @Description  Lấy thông tin chi tiết ca làm và danh sách nhân viên đã gán.
-// @Tags         Quản lý Ca làm
+// @Tags         Shifts
 // @Security     BearerAuth
 // @Param        id   path      string  true  "ID ca làm"
 // @Success      200  {object}  shift.ShiftResponse
@@ -74,7 +87,7 @@ func (h *ShiftHandler) GetByID(c *gin.Context) {
 // Create (Tạo ca làm mới)
 // @Summary      Tạo ca làm mới
 // @Description  Tạo một ca làm việc mới cho cửa hàng.
-// @Tags         Quản lý Ca làm
+// @Tags         Shifts
 // @Security     BearerAuth
 // @Param        body body      shift.CreateShiftRequest true "Thông tin ca làm"
 // @Router       /shifts [post]
@@ -94,7 +107,7 @@ func (h *ShiftHandler) Create(c *gin.Context) {
 // Update (Cập nhật ca làm - PATCH)
 // @Summary      Cập nhật ca làm việc
 // @Description  Cập nhật giờ giấc hoặc số lượng nhân viên cần thiết cho ca làm.
-// @Tags         Quản lý Ca làm
+// @Tags         Shifts
 // @Security     BearerAuth
 // @Param        id    path      string                   true  "ID ca làm"
 // @Param        body  body      shift.UpdateShiftRequest true  "Dữ liệu cập nhật"
@@ -121,7 +134,7 @@ func (h *ShiftHandler) Update(c *gin.Context) {
 // Delete (Xóa ca làm)
 // @Summary      Xóa ca làm việc
 // @Description  Xóa ca làm (Chỉ khi ở trạng thái Draft/Planning).
-// @Tags         Quản lý Ca làm
+// @Tags         Shifts
 // @Security     BearerAuth
 // @Param        id   path      string  true  "ID ca làm"
 // @Router       /shifts/{id} [delete]
@@ -141,7 +154,7 @@ func (h *ShiftHandler) Delete(c *gin.Context) {
 // Publish (Xuất bản ca lẻ)
 // @Summary      Xuất bản ca làm
 // @Description  Chuyển trạng thái sang Published để nhân viên thấy được lịch.
-// @Tags         Quản lý Ca làm
+// @Tags         Shifts
 // @Param        id   path      string  true  "ID ca làm"
 // @Router       /shifts/{id}/publish [put]
 func (h *ShiftHandler) Publish(c *gin.Context) {
@@ -160,7 +173,7 @@ func (h *ShiftHandler) Publish(c *gin.Context) {
 // BulkPublish (Xuất bản hàng loạt)
 // @Summary      Xuất bản nhiều ca làm
 // @Description  Công khai danh sách ca làm việc cùng lúc.
-// @Tags         Quản lý Ca làm
+// @Tags         Shifts
 // @Param        body body      object{ids=[]string} true "Danh sách ID ca làm"
 // @Router       /shifts/bulk-publish [post]
 func (h *ShiftHandler) BulkPublish(c *gin.Context) {
@@ -182,7 +195,7 @@ func (h *ShiftHandler) BulkPublish(c *gin.Context) {
 // GetAvailableStaffs (Gợi ý nhân viên)
 // @Summary      Lấy danh sách ứng viên khả dụng
 // @Description  Kiểm tra xung đột lịch và quy định để gợi ý nhân viên cho ca làm.
-// @Tags         Điều phối nhân sự
+// @Tags         Shifts: Assignment
 // @Param        storeId path      string  true  "ID cửa hàng"
 // @Param        shiftId path      string  true  "ID ca làm"
 // @Success      200     {array}   shift.StaffAssignmentCandidate
@@ -205,7 +218,7 @@ func (h *ShiftHandler) GetAvailableStaffs(c *gin.Context) {
 // UpdateAssignments (Cập nhật phân công)
 // @Summary      Cập nhật phân công nhân sự
 // @Description  Thay đổi danh sách nhân viên được gán vào ca làm việc.
-// @Tags         Điều phối nhân sự
+// @Tags         Shifts: Assignment
 // @Param        shiftId path      string    true  "ID ca làm"
 // @Param        body    body      []string  true  "Danh sách User ID"
 // @Router       /shifts/{shiftId}/assign [put]
@@ -224,6 +237,112 @@ func (h *ShiftHandler) UpdateAssignments(c *gin.Context) {
 
 	fmt.Println(shiftID, userIDs)
 	// err := h.shiftGW.UpdateAssignments(c.Request.Context(), shiftID, userIDs)
+
+	c.JSON(http.StatusOK, gin.H{})
+}
+
+// =====================
+// Time Logs (Chấm công)
+// =====================
+
+// GetAllTimeLogs (Lấy danh sách nhật ký chấm công)
+// @Summary      Lấy danh sách chấm công
+// @Description  Manager lấy toàn bộ nhật ký chấm công trong Store kèm bộ lọc.
+// @Tags         Shifts: Time log
+// @Security     BearerAuth
+// @Param        query  query    shift.GetTimeLogsParams  false  "Bộ lọc chấm công"
+// @Router       /shifts/time-logs [get]
+func (h *ShiftHandler) GetAllTimeLogs(c *gin.Context) {
+	var params shift.GetTimeLogsParams
+	// 1. Bind Query Params từ URL
+	if err := c.ShouldBindQuery(&params); err != nil {
+		c.Error(validation.TranslateValidationError(err))
+		return
+	}
+
+	// ctx := c.Request.Context()
+
+	// 2. Gọi sang Franchise Service (qua shiftGW) lấy danh sách Logs
+	// Giả sử trả về: *common.PageResult{ Items: []*shift.TimeLogResponse, Total: int }
+	// logRes, err := h.shiftGW.GetAllTimeLogs(ctx, params)
+	// if err != nil {
+	// 	c.Error(err)
+	// 	return
+	// }
+	logRes := &common.PaginationResult[*shift.TimeLogResponse]{}
+	if len(logRes.Items) == 0 {
+		c.JSON(http.StatusOK, logRes)
+		return
+	}
+
+	// 3. Gom danh sách ID nhân viên (Unique IDs) để chuẩn bị gọi Identity
+	staffIDMap := make(map[string]bool)
+	var staffIDs []string
+	for _, log := range logRes.Items {
+		if log != nil && log.Staff.ID != "" && !staffIDMap[log.Staff.ID] {
+			staffIDMap[log.Staff.ID] = true
+			staffIDs = append(staffIDs, log.Staff.ID)
+		}
+	}
+
+	// 4. Dùng userGW gọi sang Identity Service lấy thông tin User chi tiết
+	// Logic: Gateway nhạc trưởng "alo" cho Identity
+	// users, err := h.userGW.GetUsersByIDs(ctx, staffIDs)
+	users := []*user.UserResponse{}
+	err := errorcode.ErrInvalidId
+	if err != nil {
+		// Ở Gateway, nếu Identity "tèo" nhưng Franchise vẫn có data,
+		// mình vẫn nên trả về logs kèm ID nhân viên thay vì báo lỗi 500 (Graceful Degradation).
+		c.JSON(http.StatusOK, logRes)
+		return
+	}
+
+	// 5. "Vít" Mapper Batch để trộn data từ users vào logRes.Items
+	// Hàm mapper anh em mình vừa viết ở câu trước
+	logRes.Items = mapper.MapStaffToTimeLogsBatch(logRes.Items, users)
+
+	// 6. Trả về kết quả cuối cùng đã được "Enrich" (làm giàu dữ liệu)
+	c.JSON(http.StatusOK, logRes)
+}
+
+// UpdateTimeLog (Duyệt/Cập nhật chấm công)
+// @Summary      Duyệt hoặc cập nhật chấm công
+// @Description  Manager phê duyệt (Valid) hoặc từ chối (Invalid) ca làm thực tế của nhân viên.
+// @Tags         Shifts: Time log
+// @Security     BearerAuth
+// @Param        id    path      string  true  "ID nhật ký chấm công"
+// @Param        body  body      shift.UpdateTimeLogRequest true "Dữ liệu cập nhật"
+// @Success      200   {object}  gin.H
+// @Router       /shifts/time-logs/{id} [patch]
+func (h *ShiftHandler) UpdateTimeLog(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.Error(errorcode.ErrInvalidId)
+		return
+	}
+
+	var req shift.UpdateTimeLogRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.Error(validation.TranslateValidationError(err))
+		return
+	}
+
+	// Nếu status là Invalid (2) thì ManagerNote không được trống
+	if req.Status == enum.TimeLogStatus_INVALID && (req.ManagerNote == nil || *req.ManagerNote == "") {
+		c.Error(&errormodel.BackendError{
+			Status: http.StatusBadRequest,
+			Title:  "Thao tác không thành công",
+			Detail: "Phải nhập lý do khi từ chối chấm công",
+		})
+		return
+	}
+
+	fmt.Printf("Updating TimeLog %s to Status %d with Note: %v\n", id, req.Status, req.ManagerNote)
+	// err := h.shiftGW.UpdateTimeLog(c.Request.Context(), id, req)
+	// if err != nil {
+	// 	c.Error(err)
+	// 	return
+	// }
 
 	c.JSON(http.StatusOK, gin.H{})
 }

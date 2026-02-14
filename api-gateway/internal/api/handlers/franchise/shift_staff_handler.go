@@ -3,7 +3,11 @@ package franchise
 import (
 	"api-gateway/internal/application/constants/errorcode"
 	"api-gateway/internal/application/gateways/franchise"
+	"api-gateway/internal/application/gateways/identity"
+	"api-gateway/internal/domain/models/common"
 	"api-gateway/internal/domain/models/shift"
+	"api-gateway/internal/domain/models/user"
+	"api-gateway/pkg/mapper"
 	"api-gateway/pkg/utils/validation"
 	"fmt"
 	"net/http"
@@ -14,16 +18,23 @@ import (
 
 type ShiftStaffHandler struct {
 	shiftGW franchise.IShiftService
+	userGW  identity.IUserService
 }
 
-func NewShiftStaffHandler(shiftGW franchise.IShiftService) *ShiftStaffHandler {
-	return &ShiftStaffHandler{shiftGW: shiftGW}
+func NewShiftStaffHandler(
+	shiftGW franchise.IShiftService,
+	userGW identity.IUserService,
+) *ShiftStaffHandler {
+	return &ShiftStaffHandler{
+		shiftGW: shiftGW,
+		userGW:  userGW,
+	}
 }
 
 // GetUserCurrentShift
 // @Summary      Get My Current Shift
 // @Description  Retrieve the current active shift for the logged-in user.
-// @Tags         Shifts Staff
+// @Tags         Shifts: Staff
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
@@ -50,7 +61,7 @@ func (h *ShiftStaffHandler) GetUserCurrentShift(c *gin.Context) {
 // CheckIn (Vào ca)
 // @Summary      Staff Check-in
 // @Description  Check-in to a specific shift assignment using GPS location.
-// @Tags         Shifts Staff
+// @Tags         Shifts: Staff
 // @Security     BearerAuth
 // @Param        id   path      string  true  "Assignment ID"
 // @Param        body body      shift.AttendancePayload true "GPS & Note"
@@ -92,7 +103,7 @@ func (h *ShiftStaffHandler) CheckIn(c *gin.Context) {
 // CheckOut (Tan ca)
 // @Summary      Staff Check-out
 // @Description  Check-out from an active shift log.
-// @Tags         Shifts Staff
+// @Tags         Shifts: Staff
 // @Security     BearerAuth
 // @Param        id   path      string  true  "Log ID"
 // @Param        body body      shift.AttendancePayload true "GPS & Note"
@@ -133,7 +144,7 @@ func (h *ShiftStaffHandler) CheckOut(c *gin.Context) {
 // GetAgenda (Lịch cá nhân)
 // @Summary      Get Staff Agenda
 // @Description  Retrieve shift schedule within a date range for the logged-in staff.
-// @Tags         Shifts Staff
+// @Tags         Shifts: Staff
 // @Security     BearerAuth
 // @Param        startDate query     string  true  "Start Date (YYYY-MM-DD)"
 // @Param        endDate   query     string  true  "End Date (YYYY-MM-DD)"
@@ -164,4 +175,55 @@ func (h *ShiftStaffHandler) GetAgenda(c *gin.Context) {
 	res := gin.H{}
 
 	c.JSON(http.StatusOK, res)
+}
+
+// GetMyTimeLogHistory (Lấy lịch sử chấm công cá nhân)
+// @Summary      Lấy lịch sử chấm công cá nhân
+// @Description  Staff xem lại danh sách các bản ghi chấm công của chính mình. Gateway tự động gắn StaffID từ Token.
+// @Tags         Shifts: Staff
+// @Security     BearerAuth
+// @Param        query  query    shift.GetTimeLogsParams  false  "Bộ lọc thời gian, trạng thái"
+// @Router       /me/shifts/time-logs [get]
+func (h *ShiftStaffHandler) GetMyTimeLogHistory(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	uidStr := c.GetString("userId")
+	if uidStr == "" {
+		c.Error(errorcode.ErrInvalidAccessToken)
+		return
+	}
+	userUUID, err := uuid.Parse(uidStr)
+	if err != nil {
+		c.Error(errorcode.ErrInvalidId)
+		return
+	}
+
+	var params shift.GetTimeLogsParams
+	if err := c.ShouldBindQuery(&params); err != nil {
+		c.Error(validation.TranslateValidationError(err))
+		return
+	}
+
+	// 3. SECURITY: Ép staffId phải là của chính mình
+	params.StaffID = &uidStr
+
+	// 4. Gọi sang Franchise Service lấy logs
+	// logRes, err := h.shiftGW.GetAllTimeLogs(ctx, params)
+	// if err != nil {
+	// 	c.Error(err)
+	// 	return
+	// }
+	logRes := &common.PaginationResult[*shift.TimeLogResponse]{}
+	if len(logRes.Items) == 0 {
+		c.JSON(http.StatusOK, logRes)
+		return
+	}
+
+	me, err := h.userGW.GetById(ctx, userUUID)
+	if err == nil {
+		users := []*user.UserResponse{me}
+		logRes.Items = mapper.MapStaffToTimeLogsBatch(logRes.Items, users)
+	}
+
+	c.JSON(http.StatusOK, logRes)
 }

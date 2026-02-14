@@ -1332,7 +1332,7 @@ const docTemplate = `{
                 ],
                 "description": "Truy xuất danh sách lịch rảnh/bận đã đăng ký của nhân viên hiện tại kèm phân trang.",
                 "tags": [
-                    "Lịch rảnh bận"
+                    "Shifts: Availabilities"
                 ],
                 "summary": "Lấy lịch sử đăng ký rảnh/bận của tôi",
                 "parameters": [
@@ -1399,7 +1399,7 @@ const docTemplate = `{
                 ],
                 "description": "Retrieve shift schedule within a date range for the logged-in staff.",
                 "tags": [
-                    "Shifts Staff"
+                    "Shifts: Staff"
                 ],
                 "summary": "Get Staff Agenda",
                 "parameters": [
@@ -1430,7 +1430,7 @@ const docTemplate = `{
                 ],
                 "description": "Check-in to a specific shift assignment using GPS location.",
                 "tags": [
-                    "Shifts Staff"
+                    "Shifts: Staff"
                 ],
                 "summary": "Staff Check-in",
                 "parameters": [
@@ -1469,7 +1469,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Shifts Staff"
+                    "Shifts: Staff"
                 ],
                 "summary": "Get My Current Shift",
                 "responses": {
@@ -1501,7 +1501,7 @@ const docTemplate = `{
                 ],
                 "description": "Check-out from an active shift log.",
                 "tags": [
-                    "Shifts Staff"
+                    "Shifts: Staff"
                 ],
                 "summary": "Staff Check-out",
                 "parameters": [
@@ -1520,6 +1520,84 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/api-gateway_internal_domain_models_shift.AttendancePayload"
                         }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/me/shifts/time-logs": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Staff xem lại danh sách các bản ghi chấm công của chính mình. Gateway tự động gắn StaffID từ Token.",
+                "tags": [
+                    "Shifts: Staff"
+                ],
+                "summary": "Lấy lịch sử chấm công cá nhân",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Format: YYYY-MM-DD",
+                        "name": "fromDate",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "staffId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "staffName",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            0,
+                            1,
+                            2
+                        ],
+                        "type": "integer",
+                        "x-enum-comments": {
+                            "TimeLogStatus_INVALID": "2",
+                            "TimeLogStatus_PROCESSING": "0",
+                            "TimeLogStatus_VALID": "1"
+                        },
+                        "x-enum-descriptions": [
+                            "0",
+                            "1",
+                            "2"
+                        ],
+                        "x-enum-varnames": [
+                            "TimeLogStatus_PROCESSING",
+                            "TimeLogStatus_VALID",
+                            "TimeLogStatus_INVALID"
+                        ],
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "storeId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "toDate",
+                        "in": "query"
                     }
                 ],
                 "responses": {}
@@ -2520,7 +2598,7 @@ const docTemplate = `{
                 ],
                 "description": "Quản lý xem toàn bộ danh sách lịch rảnh/bận của nhân viên để sắp ca làm việc.",
                 "tags": [
-                    "Quản lý Ca làm"
+                    "Shifts: Availabilities"
                 ],
                 "summary": "Quản lý toàn bộ lịch rảnh/bận",
                 "parameters": [
@@ -2585,7 +2663,7 @@ const docTemplate = `{
                 ],
                 "description": "Gửi đơn đăng ký thời gian rảnh hoặc bận để quản lý sắp ca.",
                 "tags": [
-                    "Lịch rảnh bận"
+                    "Shifts: Availabilities"
                 ],
                 "summary": "Đăng ký lịch rảnh/bận mới",
                 "parameters": [
@@ -2611,7 +2689,7 @@ const docTemplate = `{
                 ],
                 "description": "Xóa bỏ đơn đăng ký lịch rảnh/bận đã gửi.",
                 "tags": [
-                    "Lịch rảnh bận"
+                    "Shifts: Availabilities"
                 ],
                 "summary": "Hủy/Xóa lịch rảnh/bận",
                 "parameters": [
@@ -2633,7 +2711,7 @@ const docTemplate = `{
                 ],
                 "description": "Chỉnh sửa đơn đăng ký lịch rảnh/bận đã gửi dựa trên ID.",
                 "tags": [
-                    "Lịch rảnh bận"
+                    "Shifts: Availabilities"
                 ],
                 "summary": "Cập nhật lịch rảnh/bận",
                 "parameters": [
@@ -2666,7 +2744,7 @@ const docTemplate = `{
                 ],
                 "description": "Lấy thông tin cấu hình luật ca làm việc (Global và theo Store) để hiển thị trên trang cài đặt.",
                 "tags": [
-                    "Quản lý Ca làm"
+                    "Shifts: Rule"
                 ],
                 "summary": "Lấy cấu hình quy định ca làm",
                 "parameters": [
@@ -2694,7 +2772,7 @@ const docTemplate = `{
                 ],
                 "description": "Cập nhật hoặc tạo mới các quy định về ca làm việc (Giờ tối đa, thời gian nghỉ...).",
                 "tags": [
-                    "Quản lý Ca làm"
+                    "Shifts: Rule"
                 ],
                 "summary": "Lưu cấu hình quy định ca làm",
                 "parameters": [
@@ -2720,7 +2798,7 @@ const docTemplate = `{
                 ],
                 "description": "Truy xuất toàn bộ danh sách các mẫu ca làm (Sáng, Chiều, Tối...) theo Store.",
                 "tags": [
-                    "Mẫu ca làm"
+                    "Shifts: Template"
                 ],
                 "summary": "Lấy danh sách mẫu ca làm việc",
                 "parameters": [
@@ -2760,7 +2838,7 @@ const docTemplate = `{
                 ],
                 "description": "Định nghĩa một khung giờ làm việc mẫu (mã code, tên, giờ bắt đầu/kết thúc).",
                 "tags": [
-                    "Mẫu ca làm"
+                    "Shifts: Template"
                 ],
                 "summary": "Tạo mẫu ca làm mới",
                 "parameters": [
@@ -2786,7 +2864,7 @@ const docTemplate = `{
                 ],
                 "description": "Lấy thông tin chi tiết cấu hình của một mẫu ca làm việc dựa trên ID.",
                 "tags": [
-                    "Mẫu ca làm"
+                    "Shifts: Template"
                 ],
                 "summary": "Chi tiết mẫu ca làm việc",
                 "parameters": [
@@ -2815,7 +2893,7 @@ const docTemplate = `{
                 ],
                 "description": "Gỡ bỏ hoàn toàn một mẫu ca làm khỏi hệ thống.",
                 "tags": [
-                    "Mẫu ca làm"
+                    "Shifts: Template"
                 ],
                 "summary": "Xóa mẫu ca làm việc",
                 "parameters": [
@@ -2837,7 +2915,7 @@ const docTemplate = `{
                 ],
                 "description": "Chỉnh sửa cấu hình khung giờ hoặc tên của mẫu ca làm việc hiện có.",
                 "tags": [
-                    "Mẫu ca làm"
+                    "Shifts: Template"
                 ],
                 "summary": "Cập nhật mẫu ca làm việc",
                 "parameters": [
@@ -2870,7 +2948,7 @@ const docTemplate = `{
                 ],
                 "description": "Truy xuất danh sách ca làm việc kèm bộ lọc (Dùng cho Calendar/List view).",
                 "tags": [
-                    "Quản lý Ca làm"
+                    "Shifts"
                 ],
                 "summary": "Lấy danh sách ca làm việc",
                 "parameters": [
@@ -2920,7 +2998,7 @@ const docTemplate = `{
                 ],
                 "description": "Tạo một ca làm việc mới cho cửa hàng.",
                 "tags": [
-                    "Quản lý Ca làm"
+                    "Shifts"
                 ],
                 "summary": "Tạo ca làm mới",
                 "parameters": [
@@ -2946,7 +3024,7 @@ const docTemplate = `{
                 ],
                 "description": "Xóa hàng loạt các ca làm việc (Chỉ áp dụng cho các ca đang ở trạng thái Nháp).",
                 "tags": [
-                    "Quản lý Ca làm (Bulk)"
+                    "Shifts: Bulk action"
                 ],
                 "summary": "Xóa hàng loạt ca làm việc",
                 "parameters": [
@@ -2975,7 +3053,7 @@ const docTemplate = `{
                 ],
                 "description": "Tạo nhiều ca làm việc cùng lúc dựa trên khung giờ và các ngày trong tuần được chọn.",
                 "tags": [
-                    "Quản lý Ca làm (Bulk)"
+                    "Shifts: Bulk action"
                 ],
                 "summary": "Tạo ca làm việc thủ công hàng loạt",
                 "parameters": [
@@ -3001,7 +3079,7 @@ const docTemplate = `{
                 ],
                 "description": "Chuyển trạng thái hàng loạt ca làm từ Draft sang Published để nhân viên có thể thấy lịch.",
                 "tags": [
-                    "Quản lý Ca làm (Bulk)"
+                    "Shifts: Bulk action"
                 ],
                 "summary": "Công khai ca làm việc hàng loạt",
                 "parameters": [
@@ -3023,7 +3101,7 @@ const docTemplate = `{
             "post": {
                 "description": "Công khai danh sách ca làm việc cùng lúc.",
                 "tags": [
-                    "Quản lý Ca làm"
+                    "Shifts"
                 ],
                 "summary": "Xuất bản nhiều ca làm",
                 "parameters": [
@@ -3057,7 +3135,7 @@ const docTemplate = `{
                 ],
                 "description": "Tạo hàng loạt ca làm việc trong một khoảng thời gian dựa trên các Shift Template có sẵn.",
                 "tags": [
-                    "Quản lý Ca làm (Bulk)"
+                    "Shifts: Bulk action"
                 ],
                 "summary": "Tạo ca làm việc từ mẫu hàng loạt",
                 "parameters": [
@@ -3074,6 +3152,124 @@ const docTemplate = `{
                 "responses": {}
             }
         },
+        "/shifts/time-logs": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Manager lấy toàn bộ nhật ký chấm công trong Store kèm bộ lọc.",
+                "tags": [
+                    "Shifts: Time log"
+                ],
+                "summary": "Lấy danh sách chấm công",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Format: YYYY-MM-DD",
+                        "name": "fromDate",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "staffId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "staffName",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            0,
+                            1,
+                            2
+                        ],
+                        "type": "integer",
+                        "x-enum-comments": {
+                            "TimeLogStatus_INVALID": "2",
+                            "TimeLogStatus_PROCESSING": "0",
+                            "TimeLogStatus_VALID": "1"
+                        },
+                        "x-enum-descriptions": [
+                            "0",
+                            "1",
+                            "2"
+                        ],
+                        "x-enum-varnames": [
+                            "TimeLogStatus_PROCESSING",
+                            "TimeLogStatus_VALID",
+                            "TimeLogStatus_INVALID"
+                        ],
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "storeId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "toDate",
+                        "in": "query"
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/shifts/time-logs/{id}": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Manager phê duyệt (Valid) hoặc từ chối (Invalid) ca làm thực tế của nhân viên.",
+                "tags": [
+                    "Shifts: Time log"
+                ],
+                "summary": "Duyệt hoặc cập nhật chấm công",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID nhật ký chấm công",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Dữ liệu cập nhật",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_shift.UpdateTimeLogRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    }
+                }
+            }
+        },
         "/shifts/{id}": {
             "get": {
                 "security": [
@@ -3083,7 +3279,7 @@ const docTemplate = `{
                 ],
                 "description": "Lấy thông tin chi tiết ca làm và danh sách nhân viên đã gán.",
                 "tags": [
-                    "Quản lý Ca làm"
+                    "Shifts"
                 ],
                 "summary": "Lấy chi tiết một ca làm",
                 "parameters": [
@@ -3112,7 +3308,7 @@ const docTemplate = `{
                 ],
                 "description": "Xóa ca làm (Chỉ khi ở trạng thái Draft/Planning).",
                 "tags": [
-                    "Quản lý Ca làm"
+                    "Shifts"
                 ],
                 "summary": "Xóa ca làm việc",
                 "parameters": [
@@ -3134,7 +3330,7 @@ const docTemplate = `{
                 ],
                 "description": "Cập nhật giờ giấc hoặc số lượng nhân viên cần thiết cho ca làm.",
                 "tags": [
-                    "Quản lý Ca làm"
+                    "Shifts"
                 ],
                 "summary": "Cập nhật ca làm việc",
                 "parameters": [
@@ -3162,7 +3358,7 @@ const docTemplate = `{
             "put": {
                 "description": "Chuyển trạng thái sang Published để nhân viên thấy được lịch.",
                 "tags": [
-                    "Quản lý Ca làm"
+                    "Shifts"
                 ],
                 "summary": "Xuất bản ca làm",
                 "parameters": [
@@ -3181,7 +3377,7 @@ const docTemplate = `{
             "put": {
                 "description": "Thay đổi danh sách nhân viên được gán vào ca làm việc.",
                 "tags": [
-                    "Điều phối nhân sự"
+                    "Shifts: Assignment"
                 ],
                 "summary": "Cập nhật phân công nhân sự",
                 "parameters": [
@@ -3645,7 +3841,7 @@ const docTemplate = `{
             "get": {
                 "description": "Kiểm tra xung đột lịch và quy định để gợi ý nhân viên cho ca làm.",
                 "tags": [
-                    "Điều phối nhân sự"
+                    "Shifts: Assignment"
                 ],
                 "summary": "Lấy danh sách ứng viên khả dụng",
                 "parameters": [
@@ -4088,6 +4284,29 @@ const docTemplate = `{
             "x-enum-varnames": [
                 "PaymentMethod_CASH",
                 "PaymentMethod_VNPAY"
+            ]
+        },
+        "api-gateway_internal_domain_constants_enum.TimeLogStatus": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2
+            ],
+            "x-enum-comments": {
+                "TimeLogStatus_INVALID": "2",
+                "TimeLogStatus_PROCESSING": "0",
+                "TimeLogStatus_VALID": "1"
+            },
+            "x-enum-descriptions": [
+                "0",
+                "1",
+                "2"
+            ],
+            "x-enum-varnames": [
+                "TimeLogStatus_PROCESSING",
+                "TimeLogStatus_VALID",
+                "TimeLogStatus_INVALID"
             ]
         },
         "api-gateway_internal_domain_models_auth.ConfirmOtpRequest": {
@@ -5036,6 +5255,20 @@ const docTemplate = `{
                 }
             }
         },
+        "api-gateway_internal_domain_models_shift.UpdateTimeLogRequest": {
+            "type": "object",
+            "required": [
+                "status"
+            ],
+            "properties": {
+                "managerNote": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/api-gateway_internal_domain_constants_enum.TimeLogStatus"
+                }
+            }
+        },
         "api-gateway_internal_domain_models_user.ChangePasswordRequest": {
             "type": "object",
             "required": [
@@ -5136,6 +5369,10 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "gin.H": {
+            "type": "object",
+            "additionalProperties": {}
         }
     },
     "securityDefinitions": {

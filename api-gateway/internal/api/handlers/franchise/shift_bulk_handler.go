@@ -22,7 +22,7 @@ func NewShiftBulkHandler(shiftGW franchise.IShiftService) *ShiftBulkHandler {
 // CreateManual
 // @Summary      Tạo ca làm việc thủ công hàng loạt
 // @Description  Tạo nhiều ca làm việc cùng lúc dựa trên khung giờ và các ngày trong tuần được chọn.
-// @Tags         Quản lý Ca làm (Bulk)
+// @Tags         Shifts: Bulk action
 // @Security     BearerAuth
 // @Param        body body shift.BulkCreateManualRequest true "Dữ liệu tạo hàng loạt"
 // @Router       /shifts/bulk-manual [post]
@@ -42,7 +42,7 @@ func (h *ShiftBulkHandler) CreateManual(c *gin.Context) {
 // CreateFromTemplate
 // @Summary      Tạo ca làm việc từ mẫu hàng loạt
 // @Description  Tạo hàng loạt ca làm việc trong một khoảng thời gian dựa trên các Shift Template có sẵn.
-// @Tags         Quản lý Ca làm (Bulk)
+// @Tags         Shifts: Bulk action
 // @Security     BearerAuth
 // @Param        body body shift.BulkCreateFromTemplateRequest true "Dữ liệu tạo từ mẫu"
 // @Router       /shifts/bulk-template [post]
@@ -62,7 +62,7 @@ func (h *ShiftBulkHandler) CreateFromTemplate(c *gin.Context) {
 // Publish
 // @Summary      Công khai ca làm việc hàng loạt
 // @Description  Chuyển trạng thái hàng loạt ca làm từ Draft sang Published để nhân viên có thể thấy lịch.
-// @Tags         Quản lý Ca làm (Bulk)
+// @Tags         Shifts: Bulk action
 // @Security     BearerAuth
 // @Param        body body []string true "Danh sách ID các ca làm cần công khai"
 // @Router       /shifts/bulk-publish [put]
@@ -82,7 +82,7 @@ func (h *ShiftBulkHandler) Publish(c *gin.Context) {
 // Delete
 // @Summary      Xóa hàng loạt ca làm việc
 // @Description  Xóa hàng loạt các ca làm việc (Chỉ áp dụng cho các ca đang ở trạng thái Nháp).
-// @Tags         Quản lý Ca làm (Bulk)
+// @Tags         Shifts: Bulk action
 // @Security     BearerAuth
 // @Param        body body []string true "Danh sách ID các ca làm cần xóa"
 // @Router       /shifts/bulk-delete [delete]

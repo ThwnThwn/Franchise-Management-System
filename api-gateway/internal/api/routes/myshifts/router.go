@@ -35,6 +35,11 @@ func (s *MyShiftsRouter) Init(r *gin.RouterGroup) {
 		myShiftApi.GET("",
 			s.authMW.PermissionCheck("me.agenda"),
 			s.shiftStaffHl.GetAgenda)
+
+		myShiftApi.GET("/time-logs",
+			s.authMW.PermissionCheck("me.time_log_history"),
+			s.shiftStaffHl.GetMyTimeLogHistory,
+		)
 	}
 
 	availabilityApi := meApi.Group("/shift-availabilities")

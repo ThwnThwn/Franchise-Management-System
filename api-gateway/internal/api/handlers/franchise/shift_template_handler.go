@@ -23,7 +23,7 @@ func NewShiftTemplateHandler(shiftGW franchise.IShiftService) *ShiftTemplateHand
 // GetAll
 // @Summary      Lấy danh sách mẫu ca làm việc
 // @Description  Truy xuất toàn bộ danh sách các mẫu ca làm (Sáng, Chiều, Tối...) theo Store.
-// @Tags         Mẫu ca làm
+// @Tags         Shifts: Template
 // @Security     BearerAuth
 // @Param        query query shift.GetShiftTemplatesParams false "Bộ lọc tìm kiếm mẫu ca"
 // @Success      200 {array} shift.ShiftTemplateResponse "Danh sách mẫu ca"
@@ -45,7 +45,7 @@ func (h *ShiftTemplateHandler) GetAll(c *gin.Context) {
 // GetByID
 // @Summary      Chi tiết mẫu ca làm việc
 // @Description  Lấy thông tin chi tiết cấu hình của một mẫu ca làm việc dựa trên ID.
-// @Tags         Mẫu ca làm
+// @Tags         Shifts: Template
 // @Security     BearerAuth
 // @Param        id path string true "ID mẫu ca"
 // @Success      200 {object} shift.ShiftTemplateResponse
@@ -67,7 +67,7 @@ func (h *ShiftTemplateHandler) GetByID(c *gin.Context) {
 // Create
 // @Summary      Tạo mẫu ca làm mới
 // @Description  Định nghĩa một khung giờ làm việc mẫu (mã code, tên, giờ bắt đầu/kết thúc).
-// @Tags         Mẫu ca làm
+// @Tags         Shifts: Template
 // @Security     BearerAuth
 // @Param        body body shift.CreateShiftTemplateRequest true "Thông tin mẫu ca"
 // @Router       /shift-templates [post]
@@ -87,7 +87,7 @@ func (h *ShiftTemplateHandler) Create(c *gin.Context) {
 // Update
 // @Summary      Cập nhật mẫu ca làm việc
 // @Description  Chỉnh sửa cấu hình khung giờ hoặc tên của mẫu ca làm việc hiện có.
-// @Tags         Mẫu ca làm
+// @Tags         Shifts: Template
 // @Security     BearerAuth
 // @Param        id path string true "ID mẫu ca"
 // @Param        body body shift.UpdateShiftTemplateRequest true "Dữ liệu cập nhật"
@@ -114,7 +114,7 @@ func (h *ShiftTemplateHandler) Update(c *gin.Context) {
 // Delete
 // @Summary      Xóa mẫu ca làm việc
 // @Description  Gỡ bỏ hoàn toàn một mẫu ca làm khỏi hệ thống.
-// @Tags         Mẫu ca làm
+// @Tags         Shifts: Template
 // @Security     BearerAuth
 // @Param        id path string true "ID mẫu ca"
 // @Router       /shift-templates/{id} [delete]

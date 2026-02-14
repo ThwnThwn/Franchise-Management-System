@@ -50,6 +50,24 @@ func (s *ShiftsRouter) Init(r *gin.RouterGroup) {
 	}
 
 	// ==========================================
+	// NHÓM NHẬT KÝ CHẤM CÔNG (TIME LOGS)
+	// ==========================================
+	timeLogApi := shiftApi.Group("/time-logs")
+	{
+		// 1. Lấy toàn bộ nhật ký chấm công (kèm bộ lọc: store, staff, status, date)
+		timeLogApi.GET("",
+			s.authMW.PermissionCheck("shift.time_log.read"),
+			s.shiftHl.GetAllTimeLogs,
+		)
+
+		// 2. Duyệt hoặc cập nhật trạng thái chấm công (Valid/Invalid + Note)
+		timeLogApi.PATCH("/:id",
+			s.authMW.PermissionCheck("shift.time_log.write"),
+			s.shiftHl.UpdateTimeLog,
+		)
+	}
+
+	// ==========================================
 	// NHÓM MẪU CA LÀM (SHIFT TEMPLATES)
 	// ==========================================
 	templateApi := r.Group("/shift-templates")

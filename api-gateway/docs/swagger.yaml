@@ -24,6 +24,24 @@ definitions:
     x-enum-varnames:
     - PaymentMethod_CASH
     - PaymentMethod_VNPAY
+  api-gateway_internal_domain_constants_enum.TimeLogStatus:
+    enum:
+    - 0
+    - 1
+    - 2
+    type: integer
+    x-enum-comments:
+      TimeLogStatus_INVALID: "2"
+      TimeLogStatus_PROCESSING: "0"
+      TimeLogStatus_VALID: "1"
+    x-enum-descriptions:
+    - "0"
+    - "1"
+    - "2"
+    x-enum-varnames:
+    - TimeLogStatus_PROCESSING
+    - TimeLogStatus_VALID
+    - TimeLogStatus_INVALID
   api-gateway_internal_domain_models_auth.ConfirmOtpRequest:
     properties:
       email:
@@ -655,6 +673,15 @@ definitions:
       startTime:
         type: string
     type: object
+  api-gateway_internal_domain_models_shift.UpdateTimeLogRequest:
+    properties:
+      managerNote:
+        type: string
+      status:
+        $ref: '#/definitions/api-gateway_internal_domain_constants_enum.TimeLogStatus'
+    required:
+    - status
+    type: object
   api-gateway_internal_domain_models_user.ChangePasswordRequest:
     properties:
       confirmNewPassword:
@@ -723,6 +750,9 @@ definitions:
         type: string
     required:
     - roleSlug
+    type: object
+  gin.H:
+    additionalProperties: {}
     type: object
 host: localhost:8080
 info:
@@ -1626,7 +1656,7 @@ paths:
       - BearerAuth: []
       summary: Lấy lịch sử đăng ký rảnh/bận của tôi
       tags:
-      - Lịch rảnh bận
+      - 'Shifts: Availabilities'
   /me/shifts:
     get:
       description: Retrieve shift schedule within a date range for the logged-in staff.
@@ -1646,7 +1676,7 @@ paths:
       - BearerAuth: []
       summary: Get Staff Agenda
       tags:
-      - Shifts Staff
+      - 'Shifts: Staff'
   /me/shifts/assignments/{id}/check-in:
     put:
       description: Check-in to a specific shift assignment using GPS location.
@@ -1667,7 +1697,7 @@ paths:
       - BearerAuth: []
       summary: Staff Check-in
       tags:
-      - Shifts Staff
+      - 'Shifts: Staff'
   /me/shifts/current:
     get:
       consumes:
@@ -1691,7 +1721,7 @@ paths:
       - BearerAuth: []
       summary: Get My Current Shift
       tags:
-      - Shifts Staff
+      - 'Shifts: Staff'
   /me/shifts/logs/{id}/check-out:
     put:
       description: Check-out from an active shift log.
@@ -1712,7 +1742,59 @@ paths:
       - BearerAuth: []
       summary: Staff Check-out
       tags:
-      - Shifts Staff
+      - 'Shifts: Staff'
+  /me/shifts/time-logs:
+    get:
+      description: Staff xem lại danh sách các bản ghi chấm công của chính mình. Gateway
+        tự động gắn StaffID từ Token.
+      parameters:
+      - description: 'Format: YYYY-MM-DD'
+        in: query
+        name: fromDate
+        type: string
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      - in: query
+        name: staffId
+        type: string
+      - in: query
+        name: staffName
+        type: string
+      - enum:
+        - 0
+        - 1
+        - 2
+        in: query
+        name: status
+        type: integer
+        x-enum-comments:
+          TimeLogStatus_INVALID: "2"
+          TimeLogStatus_PROCESSING: "0"
+          TimeLogStatus_VALID: "1"
+        x-enum-descriptions:
+        - "0"
+        - "1"
+        - "2"
+        x-enum-varnames:
+        - TimeLogStatus_PROCESSING
+        - TimeLogStatus_VALID
+        - TimeLogStatus_INVALID
+      - in: query
+        name: storeId
+        type: string
+      - in: query
+        name: toDate
+        type: string
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Lấy lịch sử chấm công cá nhân
+      tags:
+      - 'Shifts: Staff'
   /orders:
     post:
       consumes:
@@ -2393,7 +2475,7 @@ paths:
       - BearerAuth: []
       summary: Quản lý toàn bộ lịch rảnh/bận
       tags:
-      - Quản lý Ca làm
+      - 'Shifts: Availabilities'
     post:
       description: Gửi đơn đăng ký thời gian rảnh hoặc bận để quản lý sắp ca.
       parameters:
@@ -2408,7 +2490,7 @@ paths:
       - BearerAuth: []
       summary: Đăng ký lịch rảnh/bận mới
       tags:
-      - Lịch rảnh bận
+      - 'Shifts: Availabilities'
   /shift-availabilities/{id}:
     delete:
       description: Xóa bỏ đơn đăng ký lịch rảnh/bận đã gửi.
@@ -2423,7 +2505,7 @@ paths:
       - BearerAuth: []
       summary: Hủy/Xóa lịch rảnh/bận
       tags:
-      - Lịch rảnh bận
+      - 'Shifts: Availabilities'
     patch:
       description: Chỉnh sửa đơn đăng ký lịch rảnh/bận đã gửi dựa trên ID.
       parameters:
@@ -2443,7 +2525,7 @@ paths:
       - BearerAuth: []
       summary: Cập nhật lịch rảnh/bận
       tags:
-      - Lịch rảnh bận
+      - 'Shifts: Availabilities'
   /shift-rules:
     get:
       description: Lấy thông tin cấu hình luật ca làm việc (Global và theo Store)
@@ -2462,7 +2544,7 @@ paths:
       - BearerAuth: []
       summary: Lấy cấu hình quy định ca làm
       tags:
-      - Quản lý Ca làm
+      - 'Shifts: Rule'
     put:
       description: Cập nhật hoặc tạo mới các quy định về ca làm việc (Giờ tối đa,
         thời gian nghỉ...).
@@ -2478,7 +2560,7 @@ paths:
       - BearerAuth: []
       summary: Lưu cấu hình quy định ca làm
       tags:
-      - Quản lý Ca làm
+      - 'Shifts: Rule'
   /shift-templates:
     get:
       description: Truy xuất toàn bộ danh sách các mẫu ca làm (Sáng, Chiều, Tối...)
@@ -2504,7 +2586,7 @@ paths:
       - BearerAuth: []
       summary: Lấy danh sách mẫu ca làm việc
       tags:
-      - Mẫu ca làm
+      - 'Shifts: Template'
     post:
       description: Định nghĩa một khung giờ làm việc mẫu (mã code, tên, giờ bắt đầu/kết
         thúc).
@@ -2520,7 +2602,7 @@ paths:
       - BearerAuth: []
       summary: Tạo mẫu ca làm mới
       tags:
-      - Mẫu ca làm
+      - 'Shifts: Template'
   /shift-templates/{id}:
     delete:
       description: Gỡ bỏ hoàn toàn một mẫu ca làm khỏi hệ thống.
@@ -2535,7 +2617,7 @@ paths:
       - BearerAuth: []
       summary: Xóa mẫu ca làm việc
       tags:
-      - Mẫu ca làm
+      - 'Shifts: Template'
     get:
       description: Lấy thông tin chi tiết cấu hình của một mẫu ca làm việc dựa trên
         ID.
@@ -2554,7 +2636,7 @@ paths:
       - BearerAuth: []
       summary: Chi tiết mẫu ca làm việc
       tags:
-      - Mẫu ca làm
+      - 'Shifts: Template'
     patch:
       description: Chỉnh sửa cấu hình khung giờ hoặc tên của mẫu ca làm việc hiện
         có.
@@ -2575,7 +2657,7 @@ paths:
       - BearerAuth: []
       summary: Cập nhật mẫu ca làm việc
       tags:
-      - Mẫu ca làm
+      - 'Shifts: Template'
   /shifts:
     get:
       description: Truy xuất danh sách ca làm việc kèm bộ lọc (Dùng cho Calendar/List
@@ -2609,7 +2691,7 @@ paths:
       - BearerAuth: []
       summary: Lấy danh sách ca làm việc
       tags:
-      - Quản lý Ca làm
+      - Shifts
     post:
       description: Tạo một ca làm việc mới cho cửa hàng.
       parameters:
@@ -2624,7 +2706,7 @@ paths:
       - BearerAuth: []
       summary: Tạo ca làm mới
       tags:
-      - Quản lý Ca làm
+      - Shifts
   /shifts/{id}:
     delete:
       description: Xóa ca làm (Chỉ khi ở trạng thái Draft/Planning).
@@ -2639,7 +2721,7 @@ paths:
       - BearerAuth: []
       summary: Xóa ca làm việc
       tags:
-      - Quản lý Ca làm
+      - Shifts
     get:
       description: Lấy thông tin chi tiết ca làm và danh sách nhân viên đã gán.
       parameters:
@@ -2657,7 +2739,7 @@ paths:
       - BearerAuth: []
       summary: Lấy chi tiết một ca làm
       tags:
-      - Quản lý Ca làm
+      - Shifts
     patch:
       description: Cập nhật giờ giấc hoặc số lượng nhân viên cần thiết cho ca làm.
       parameters:
@@ -2677,7 +2759,7 @@ paths:
       - BearerAuth: []
       summary: Cập nhật ca làm việc
       tags:
-      - Quản lý Ca làm
+      - Shifts
   /shifts/{id}/publish:
     put:
       description: Chuyển trạng thái sang Published để nhân viên thấy được lịch.
@@ -2690,7 +2772,7 @@ paths:
       responses: {}
       summary: Xuất bản ca làm
       tags:
-      - Quản lý Ca làm
+      - Shifts
   /shifts/{shiftId}/assign:
     put:
       description: Thay đổi danh sách nhân viên được gán vào ca làm việc.
@@ -2711,7 +2793,7 @@ paths:
       responses: {}
       summary: Cập nhật phân công nhân sự
       tags:
-      - Điều phối nhân sự
+      - 'Shifts: Assignment'
   /shifts/bulk-delete:
     delete:
       description: Xóa hàng loạt các ca làm việc (Chỉ áp dụng cho các ca đang ở trạng
@@ -2730,7 +2812,7 @@ paths:
       - BearerAuth: []
       summary: Xóa hàng loạt ca làm việc
       tags:
-      - Quản lý Ca làm (Bulk)
+      - 'Shifts: Bulk action'
   /shifts/bulk-manual:
     post:
       description: Tạo nhiều ca làm việc cùng lúc dựa trên khung giờ và các ngày trong
@@ -2747,7 +2829,7 @@ paths:
       - BearerAuth: []
       summary: Tạo ca làm việc thủ công hàng loạt
       tags:
-      - Quản lý Ca làm (Bulk)
+      - 'Shifts: Bulk action'
   /shifts/bulk-publish:
     post:
       description: Công khai danh sách ca làm việc cùng lúc.
@@ -2766,7 +2848,7 @@ paths:
       responses: {}
       summary: Xuất bản nhiều ca làm
       tags:
-      - Quản lý Ca làm
+      - Shifts
     put:
       description: Chuyển trạng thái hàng loạt ca làm từ Draft sang Published để nhân
         viên có thể thấy lịch.
@@ -2784,7 +2866,7 @@ paths:
       - BearerAuth: []
       summary: Công khai ca làm việc hàng loạt
       tags:
-      - Quản lý Ca làm (Bulk)
+      - 'Shifts: Bulk action'
   /shifts/bulk-template:
     post:
       description: Tạo hàng loạt ca làm việc trong một khoảng thời gian dựa trên các
@@ -2801,7 +2883,84 @@ paths:
       - BearerAuth: []
       summary: Tạo ca làm việc từ mẫu hàng loạt
       tags:
-      - Quản lý Ca làm (Bulk)
+      - 'Shifts: Bulk action'
+  /shifts/time-logs:
+    get:
+      description: Manager lấy toàn bộ nhật ký chấm công trong Store kèm bộ lọc.
+      parameters:
+      - description: 'Format: YYYY-MM-DD'
+        in: query
+        name: fromDate
+        type: string
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      - in: query
+        name: staffId
+        type: string
+      - in: query
+        name: staffName
+        type: string
+      - enum:
+        - 0
+        - 1
+        - 2
+        in: query
+        name: status
+        type: integer
+        x-enum-comments:
+          TimeLogStatus_INVALID: "2"
+          TimeLogStatus_PROCESSING: "0"
+          TimeLogStatus_VALID: "1"
+        x-enum-descriptions:
+        - "0"
+        - "1"
+        - "2"
+        x-enum-varnames:
+        - TimeLogStatus_PROCESSING
+        - TimeLogStatus_VALID
+        - TimeLogStatus_INVALID
+      - in: query
+        name: storeId
+        type: string
+      - in: query
+        name: toDate
+        type: string
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Lấy danh sách chấm công
+      tags:
+      - 'Shifts: Time log'
+  /shifts/time-logs/{id}:
+    patch:
+      description: Manager phê duyệt (Valid) hoặc từ chối (Invalid) ca làm thực tế
+        của nhân viên.
+      parameters:
+      - description: ID nhật ký chấm công
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Dữ liệu cập nhật
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_shift.UpdateTimeLogRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BearerAuth: []
+      summary: Duyệt hoặc cập nhật chấm công
+      tags:
+      - 'Shifts: Time log'
   /stores:
     get:
       consumes:
@@ -3022,7 +3181,7 @@ paths:
             type: array
       summary: Lấy danh sách ứng viên khả dụng
       tags:
-      - Điều phối nhân sự
+      - 'Shifts: Assignment'
   /stores/nearby:
     get:
       consumes:

@@ -1,6 +1,9 @@
 package shift
 
-import "api-gateway/internal/domain/models/store"
+import (
+	"api-gateway/internal/domain/constants/enum"
+	"api-gateway/internal/domain/models/store"
+)
 
 // ===============================
 // Shift assignment
@@ -162,4 +165,42 @@ type StaffShiftAgenda struct {
 	CoWorkers  []CoWorkerDTO             `json:"coWorkers"`
 	CheckInAt  *string                   `json:"checkInAt,omitempty"`
 	CheckOutAt *string                   `json:"checkOutAt,omitempty"`
+}
+
+// ===============================
+// Time log
+// ===============================
+type TimeLogResponse struct {
+	ID                string `json:"id"`
+	ShiftAssignmentID string `json:"shiftAssignmentId"`
+
+	// Check-in info (Optional)
+	CheckInAt       *string  `json:"checkInAt,omitempty"`
+	CheckInImageURL *string  `json:"checkInImageUrl,omitempty"`
+	CheckInLat      *float64 `json:"checkInLat,omitempty"`
+	CheckInLong     *float64 `json:"checkInLong,omitempty"`
+
+	// Check-out info (Optional)
+	CheckOutAt       *string  `json:"checkOutAt,omitempty"`
+	CheckOutImageURL *string  `json:"checkOutImageUrl,omitempty"`
+	CheckOutLat      *float64 `json:"checkOutLat,omitempty"`
+	CheckOutLong     *float64 `json:"checkOutLong,omitempty"`
+
+	TotalWorkMinutes *int               `json:"totalWorkMinutes,omitempty"`
+	Status           enum.TimeLogStatus `json:"status"`
+	ManagerNote      *string            `json:"managerNote,omitempty"`
+
+	CreatedAt string `json:"createdAt"`
+	UpdatedAt string `json:"updatedAt"`
+
+	// Staff info
+	Staff struct {
+		ID        string  `json:"id"`
+		FirstName *string `json:"firstName,omitempty"`
+		LastName  *string `json:"lastName,omitempty"`
+		AvatarUrl *string `json:"avatarUrl,omitempty"`
+		Email     *string `json:"email,omitempty"`
+	} `json:"staff"`
+
+	ShiftNote *string `json:"shiftNote,omitempty"`
 }

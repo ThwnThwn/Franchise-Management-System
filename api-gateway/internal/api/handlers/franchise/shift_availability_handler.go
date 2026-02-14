@@ -28,7 +28,7 @@ func NewShiftAvailabilityHandler(shiftGW franchise.IShiftService) *ShiftAvailabi
 // GetMyHistory
 // @Summary      Lấy lịch sử đăng ký rảnh/bận của tôi
 // @Description  Truy xuất danh sách lịch rảnh/bận đã đăng ký của nhân viên hiện tại kèm phân trang.
-// @Tags         Lịch rảnh bận
+// @Tags         Shifts: Availabilities
 // @Security     BearerAuth
 // @Param        query query shift.GetAvailabilityParams false "Bộ lọc tìm kiếm"
 // @Router       /me/shift-availabilities [get]
@@ -54,7 +54,7 @@ func (h *ShiftAvailabilityHandler) GetMyHistory(c *gin.Context) {
 // Create
 // @Summary      Đăng ký lịch rảnh/bận mới
 // @Description  Gửi đơn đăng ký thời gian rảnh hoặc bận để quản lý sắp ca.
-// @Tags         Lịch rảnh bận
+// @Tags         Shifts: Availabilities
 // @Security     BearerAuth
 // @Param        body body shift.CreateShiftAvailabilityRequest true "Dữ liệu đăng ký"
 // @Router       /shift-availabilities [post]
@@ -80,7 +80,7 @@ func (h *ShiftAvailabilityHandler) Create(c *gin.Context) {
 // Update
 // @Summary      Cập nhật lịch rảnh/bận
 // @Description  Chỉnh sửa đơn đăng ký lịch rảnh/bận đã gửi dựa trên ID.
-// @Tags         Lịch rảnh bận
+// @Tags         Shifts: Availabilities
 // @Security     BearerAuth
 // @Param        id   path string true "ID lịch đăng ký"
 // @Param        body body shift.UpdateShiftAvailabilityRequest true "Dữ liệu cập nhật"
@@ -107,7 +107,7 @@ func (h *ShiftAvailabilityHandler) Update(c *gin.Context) {
 // Delete
 // @Summary      Hủy/Xóa lịch rảnh/bận
 // @Description  Xóa bỏ đơn đăng ký lịch rảnh/bận đã gửi.
-// @Tags         Lịch rảnh bận
+// @Tags         Shifts: Availabilities
 // @Security     BearerAuth
 // @Param        id path string true "ID lịch đăng ký"
 // @Router       /shift-availabilities/{id} [delete]
@@ -131,7 +131,7 @@ func (h *ShiftAvailabilityHandler) Delete(c *gin.Context) {
 // GetAll
 // @Summary      Quản lý toàn bộ lịch rảnh/bận
 // @Description  Quản lý xem toàn bộ danh sách lịch rảnh/bận của nhân viên để sắp ca làm việc.
-// @Tags         Quản lý Ca làm
+// @Tags         Shifts: Availabilities
 // @Security     BearerAuth
 // @Param        query query shift.GetAvailabilityParams false "Bộ lọc tìm kiếm (Store, User, Date...)"
 // @Router       /shift-availabilities [get]

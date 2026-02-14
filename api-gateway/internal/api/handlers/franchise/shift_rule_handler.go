@@ -21,7 +21,7 @@ func NewShiftRuleHandler(shiftGW franchise.IShiftService) *ShiftRuleHandler {
 // GetSettings
 // @Summary      Lấy cấu hình quy định ca làm
 // @Description  Lấy thông tin cấu hình luật ca làm việc (Global và theo Store) để hiển thị trên trang cài đặt.
-// @Tags         Quản lý Ca làm
+// @Tags         Shifts: Rule
 // @Security     BearerAuth
 // @Param        storeId query string false "ID cửa hàng (Nếu muốn lọc theo store cụ thể)"
 // @Success      200 {object} shift.ShiftRuleSettingsResponse "Dữ liệu cấu hình"
@@ -48,7 +48,7 @@ func (h *ShiftRuleHandler) GetSettings(c *gin.Context) {
 // Save
 // @Summary      Lưu cấu hình quy định ca làm
 // @Description  Cập nhật hoặc tạo mới các quy định về ca làm việc (Giờ tối đa, thời gian nghỉ...).
-// @Tags         Quản lý Ca làm
+// @Tags         Shifts: Rule
 // @Security     BearerAuth
 // @Param        payload body shift.SaveShiftRuleRequest true "Dữ liệu quy định cần lưu"
 // @Router       /shift-rules [put]
