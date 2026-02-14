@@ -1,0 +1,111 @@
+syntax = "proto3";
+
+option csharp_namespace = "FranchiseService.Grpc";
+option go_package = "api-gateway/pkg/pb/franchise";
+
+package franchise;
+
+service ShiftAvailabilityGrpcService {
+  // Lấy lịch rảnh/bận của chính mình (User ID lấy từ Token)
+  rpc GetMyAvailability (GetAvailabilityParams) returns (StaffAvailabilityListResponse);
+
+  // Lấy lịch rảnh/bận của nhân viên (Cho Manager)
+  rpc GetStaffAvailabilities (GetAvailabilityParams) returns (StaffAvailabilityListResponse);
+
+  // Đăng ký lịch rảnh/bận mới
+  rpc CreateAvailability (CreateStaffAvailabilityRequest) returns (CreateAvailabilityResponse);
+
+  // Cập nhật lịch rảnh/bận
+  rpc UpdateAvailability (UpdateStaffAvailabilityRequest) returns (UpdateAvailabilityResponse);
+
+  // Xóa lịch rảnh/bận
+  rpc DeleteAvailability (DeleteAvailabilityRequest) returns (DeleteAvailabilityResponse);
+}
+
+// ----------------------------------------------------
+// MESSAGES DEFINITION
+// ----------------------------------------------------
+
+message GetAvailabilityParams {
+  string from_date = 1;        // "YYYY-MM-DD"
+  string to_date = 2;          // "YYYY-MM-DD"
+  
+  bool has_is_available = 3;   // Helper to detect null
+  bool is_available = 4;
+  
+  bool has_is_recurring = 5;
+  bool is_recurring = 6;
+  
+  bool has_day_of_week = 7;
+  int32 day_of_week = 8;       // 0=Sunday, 1=Monday...
+  
+  string store_id = 9;         // Optional
+  string user_id = 10;         // Optional (Required for GetStaffAvailabilities)
+  string keyword = 11;
+}
+
+message StaffAvailabilityListResponse {
+  repeated StaffAvailabilityResponse data = 1;
+}
+
+message StaffAvailabilityResponse {
+  string id = 1;
+  string user_id = 2;
+  bool is_available = 3;
+  bool is_recurring = 4;
+  string specific_date = 5;    // "YYYY-MM-DD"
+  int32 day_of_week = 6;       // Nullable logic handled by value 
+  string start_time = 7;       // "HH:mm"
+  string end_time = 8;         // "HH:mm"
+  string note = 9;
+  string created_at = 10;
+}
+
+message CreateStaffAvailabilityRequest {
+  bool is_available = 1;
+  bool is_recurring = 2;
+  string specific_date = 3;    // "YYYY-MM-DD"
+  int32 day_of_week = 4;
+  string start_time = 5;       // "HH:mm"
+  string end_time = 6;         // "HH:mm"
+  string note = 7;
+  string user_id = 8;          // Explicitly passed or from Context
+}
+
+message CreateAvailabilityResponse {
+  string id = 1;
+}
+
+message UpdateStaffAvailabilityRequest {
+  string id = 1;
+  
+  bool has_is_available = 2;
+  bool is_available = 3;
+  
+  bool has_is_recurring = 4;
+  bool is_recurring = 5;
+  
+  string specific_date = 6;    // "YYYY-MM-DD"
+  
+  bool has_day_of_week = 7;
+  int32 day_of_week = 8;
+
+  string start_time = 9;
+  string end_time = 10;
+  string note = 11;
+  
+  string user_id = 12;         // For permission check
+}
+
+message UpdateAvailabilityResponse {
+  bool success = 1;
+}
+
+message DeleteAvailabilityRequest {
+  string id = 1;
+  string user_id = 2;          // For permission check
+}
+
+message DeleteAvailabilityResponse {
+  bool success = 1;
+}

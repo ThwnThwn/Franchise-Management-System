@@ -1,0 +1,79 @@
+syntax = "proto3";
+
+option csharp_namespace = "FranchiseService.Grpc";
+option go_package = "api-gateway/pkg/pb/franchise";
+
+package franchise;
+
+service ShiftTemplateGrpcService {
+  rpc GetShiftTemplates (GetShiftTemplatesRequest) returns (GetShiftTemplatesResponse);
+  rpc GetShiftTemplateById (GetShiftTemplateByIdRequest) returns (ShiftTemplateResponse);
+  rpc CreateShiftTemplate (CreateShiftTemplateRequest) returns (CreateShiftTemplateResponse);
+  rpc UpdateShiftTemplate (UpdateShiftTemplateRequest) returns (UpdateShiftTemplateResponse);
+  rpc DeleteShiftTemplate (DeleteShiftTemplateRequest) returns (DeleteShiftTemplateResponse);
+}
+
+// ----------------------------------------------------
+// MESSAGES DEFINITION
+// ----------------------------------------------------
+
+message GetShiftTemplatesRequest {
+  string store_id = 1; // Optional
+  string keyword = 2; // Optional
+  optional bool is_active = 3; // Optional filter
+}
+
+message GetShiftTemplatesResponse {
+  repeated ShiftTemplateResponse items = 1;
+}
+
+message GetShiftTemplateByIdRequest {
+  string id = 1;
+}
+
+message ShiftTemplateResponse {
+  string id = 1;
+  string store_id = 2; // Nullable
+  string code = 3;
+  string name = 4;
+  string start_time = 5; // HH:mm
+  string end_time = 6; // HH:mm
+  int32 break_duration_minutes = 7;
+  bool is_active = 8;
+  string created_at = 9;
+}
+
+message CreateShiftTemplateRequest {
+  string store_id = 1; // Optional (Null -> Global?)
+  string code = 2;
+  string name = 3;
+  string start_time = 4; // HH:mm
+  string end_time = 5; // HH:mm
+  int32 break_duration_minutes = 6;
+}
+
+message CreateShiftTemplateResponse {
+  string id = 1;
+}
+
+message UpdateShiftTemplateRequest {
+  string id = 1;
+  optional string code = 2;
+  optional string name = 3;
+  optional string start_time = 4;
+  optional string end_time = 5;
+  optional int32 break_duration_minutes = 6;
+  optional bool is_active = 7;
+}
+
+message UpdateShiftTemplateResponse {
+  bool success = 1;
+}
+
+message DeleteShiftTemplateRequest {
+  string id = 1;
+}
+
+message DeleteShiftTemplateResponse {
+  bool success = 1;
+}

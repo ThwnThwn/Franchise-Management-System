@@ -1,20 +1,46 @@
 syntax = "proto3";
 
-option csharp_namespace = "FranchiseService.API";
+option csharp_namespace = "FranchiseService.Grpc";
 option go_package = "api-gateway/pkg/pb/franchise";
 
 package franchise;
 
 service ShiftGrpcService {
-  // Lấy lịch làm việc hôm nay của nhân viên (Để App biết đang làm ở Store nào)
+  // --- EXISTING RPC ---
+  // Lấy lịch làm việc hôm nay của nhân viên
   rpc GetUserCurrentShift (GetUserCurrentShiftRequest) returns (GetUserCurrentShiftResponse);
+
+  // --- NEW RPCs FOR SHIFT MANAGEMENT ---
+  
+  // Lấy danh sách ca làm việc (Filter)
+  rpc GetShifts (GetShiftsRequest) returns (GetShiftsResponse);
+
+  // Lấy chi tiết 1 ca
+  rpc GetShiftById (GetShiftByIdRequest) returns (ShiftResponse);
+
+  // Tạo ca mới
+  rpc CreateShift (CreateShiftRequest) returns (CreateShiftResponse);
+
+  // Cập nhật ca (Partial Update)
+  rpc UpdateShift (UpdateShiftRequest) returns (UpdateShiftResponse);
+
+  // Xóa ca (Soft Delete)
+  rpc DeleteShift (DeleteShiftRequest) returns (DeleteShiftResponse);
+
+  // Publish ca (Chuyển trạng thái sang Published)
+  rpc PublishShift (PublishShiftRequest) returns (PublishShiftResponse);
+
+  // Phân công nhân viên (Sync List - PUT logic)
+  rpc AssignStaff (AssignStaffRequest) returns (AssignStaffResponse);
+
+  // Lấy danh sách ứng viên khả dụng (kèm validation)
+  rpc GetAvailableStaffs (GetAvailableStaffsRequest) returns (GetAvailableStaffsResponse);
 }
 
 // ----------------------------------------------------
 // MESSAGES DEFINITION
 // ----------------------------------------------------
 
-// --- QUAN TRỌNG CHO APP NHÂN VIÊN/CHẤM CÔNG ---
 message GetUserCurrentShiftRequest {
   string user_id = 1;
 }
@@ -47,4 +73,154 @@ message GetUserCurrentShiftResponse {
   optional string check_in_at = 14;
   optional string check_out_at = 15;
   string server_time = 16;
+}
+
+// --- SHIFT CORE MESSAGES ---
+
+message ShiftResponse {
+  string id = 1;
+  string store_id = 2;
+  string shift_date = 3;        // Format: "YYYY-MM-DD"
+  string start_time = 4;        // Format: "HH:mm"
+  string end_time = 5;          // Format: "HH:mm"
+  int32 required_staff_count = 6;
+  int32 break_duration_minutes = 7;
+  string shift_template_id = 8; // Optional
+  int32 status = 9;             // 0:Draft, 1:Published, 2:Completed, 3:Cancelled
+  string note = 10;
+  int32 assigned_staff_count = 11;
+  repeated ShiftAssignmentResponse assignments = 12;
+}
+
+message ShiftAssignmentResponse {
+  string id = 1;
+  string user_id = 2;
+  string staff_name = 3;
+  string avatar_url = 4;
+  int32 status = 5;
+  string created_at = 6;
+}
+
+// --- GET LIST ---
+
+message GetShiftsRequest {
+  string store_id = 1;           // Optional 
+  string from_date = 2;          // "YYYY-MM-DD"
+  string to_date = 3;            // "YYYY-MM-DD"
+  int32 status = 4;              // Optional filter
+  int32 page = 5;
+  int32 page_size = 6;
+}
+
+message GetShiftsResponse {
+  repeated ShiftResponse data = 1;
+}
+
+// --- GET BY ID ---
+
+message GetShiftByIdRequest {
+  string id = 1;
+}
+
+// --- CREATE ---
+
+message CreateShiftRequest {
+  string store_id = 1;
+  string shift_template_id = 2; // Optional
+  string shift_date = 3;        // "YYYY-MM-DD"
+  string start_time = 4;        // "HH:mm"
+  string end_time = 5;          // "HH:mm"
+  int32 required_staff_count = 6;
+  string note = 7;
+  int32 break_duration_minutes = 8; // Optional
+  string created_by = 9;        // User ID performing action
+}
+
+message CreateShiftResponse {
+  string id = 1;
+}
+
+// --- UPDATE ---
+
+message UpdateShiftRequest {
+  string id = 1;
+  string store_id = 2;          // Optional
+  string shift_template_id = 3; // Optional
+  string shift_date = 4;
+  string start_time = 5;
+  string end_time = 6;
+  int32 required_staff_count = 7; 
+  string note = 8;
+  int32 break_duration_minutes = 9;
+  int32 status = 10;
+  int32 lock_version = 11;      // Optimistic Locking
+  string updated_by = 12;
+  
+}
+
+message UpdateShiftResponse {
+  bool success = 1;
+}
+
+// --- DELETE ---
+
+message DeleteShiftRequest {
+  string id = 1;
+}
+
+message DeleteShiftResponse {
+  bool success = 1;
+}
+
+// --- PUBLISH ---
+
+message PublishShiftRequest {
+  string id = 1;
+}
+
+message PublishShiftResponse {
+  bool success = 1;
+}
+
+// --- ASSIGN STAFF (SYNC) ---
+
+message AssignStaffRequest {
+  string shift_id = 1;
+  repeated string user_ids = 2; // List of User IDs to sync
+}
+
+message AssignStaffResponse {
+  bool success = 1;
+}
+
+// --- GET AVAILABLE STAFFS (CANDIDATES) ---
+
+message GetAvailableStaffsRequest {
+  string shift_id = 1;
+  string store_id = 2;
+}
+
+message GetAvailableStaffsResponse {
+  repeated StaffCandidateDto data = 1;
+}
+
+message StaffCandidateDto {
+  string id = 1;
+  string first_name = 2;
+  string last_name = 3;
+  string avatar_url = 4;
+  double current_hourly_wage = 5;
+  bool is_available = 6;
+  string note = 7;
+  bool is_assigned = 8;
+  bool is_conflict = 9;
+  CandidateValidationDto validation = 10;
+}
+
+message CandidateValidationDto {
+  bool is_rest_time_invalid = 1;
+  double rest_hours = 2;
+  bool is_over_limit = 3;
+  double weekly_hours = 4;
+  bool is_shuttle_invalid = 5;
 }

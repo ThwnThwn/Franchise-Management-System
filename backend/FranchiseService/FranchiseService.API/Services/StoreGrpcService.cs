@@ -5,10 +5,11 @@ using FranchiseService.Application.Features.Stores.Queries.GetStoreDetail;
 using FranchiseService.Application.Features.Stores.Queries.GetStores;
 using Grpc.Core;
 using MediatR;
+using FranchiseService.Grpc;
 
 namespace FranchiseService.API.Services
 {
-    public class StoreGrpcService : API.StoreGrpcService.StoreGrpcServiceBase
+    public class StoreGrpcService : FranchiseService.Grpc.StoreGrpcService.StoreGrpcServiceBase
     {
         private readonly IMediator _mediator;
 
@@ -25,7 +26,7 @@ namespace FranchiseService.API.Services
 
             var result = await _mediator.Send(query);
 
-            return new CheckStoreAvailabilityResponse
+            return new FranchiseService.Grpc.CheckStoreAvailabilityResponse
             {
                 IsAvailable = result.IsAvailable,
                 Message = result.Message ?? ""
@@ -46,7 +47,7 @@ namespace FranchiseService.API.Services
 
             var stores = await _mediator.Send(query);
 
-            var response = new GetStoresResponse
+            var response = new FranchiseService.Grpc.GetStoresResponse
             {
                 TotalCount = stores.Count,
                 TotalPages = 1
@@ -76,7 +77,7 @@ namespace FranchiseService.API.Services
             var pagedResult = await _mediator.Send(query);
 
             // Map MediatR Result -> Proto Response
-            var response = new GetStoresResponse
+            var response = new FranchiseService.Grpc.GetStoresResponse
             {
                 TotalCount = (int)pagedResult.TotalCount,
                 TotalPages = pagedResult.TotalPages
