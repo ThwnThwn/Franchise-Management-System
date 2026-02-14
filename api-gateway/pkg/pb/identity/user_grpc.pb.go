@@ -25,6 +25,7 @@ type UserGrpcClient interface {
 	CustomerCreate(ctx context.Context, in *CustomerCreateUserRequest, opts ...grpc.CallOption) (*UserResponse, error)
 	AdminCreate(ctx context.Context, in *AdminCreateUserRequest, opts ...grpc.CallOption) (*UserResponse, error)
 	GetById(ctx context.Context, in *GetUserByIdRequest, opts ...grpc.CallOption) (*UserResponse, error)
+	GetByIds(ctx context.Context, in *GetUserByIdsRequest, opts ...grpc.CallOption) (*GetUserByIdsResponse, error)
 	GetAll(ctx context.Context, in *GetAllUserOrWithRoleRequest, opts ...grpc.CallOption) (*GetAllUserOrWithRoleResponse, error)
 	GetManager(ctx context.Context, in *GetManagerRequest, opts ...grpc.CallOption) (*UserResponse, error)
 	Update(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*UserResponse, error)
@@ -61,6 +62,15 @@ func (c *userGrpcClient) AdminCreate(ctx context.Context, in *AdminCreateUserReq
 func (c *userGrpcClient) GetById(ctx context.Context, in *GetUserByIdRequest, opts ...grpc.CallOption) (*UserResponse, error) {
 	out := new(UserResponse)
 	err := c.cc.Invoke(ctx, "/identity.user.UserGrpc/GetById", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userGrpcClient) GetByIds(ctx context.Context, in *GetUserByIdsRequest, opts ...grpc.CallOption) (*GetUserByIdsResponse, error) {
+	out := new(GetUserByIdsResponse)
+	err := c.cc.Invoke(ctx, "/identity.user.UserGrpc/GetByIds", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -119,6 +129,7 @@ type UserGrpcServer interface {
 	CustomerCreate(context.Context, *CustomerCreateUserRequest) (*UserResponse, error)
 	AdminCreate(context.Context, *AdminCreateUserRequest) (*UserResponse, error)
 	GetById(context.Context, *GetUserByIdRequest) (*UserResponse, error)
+	GetByIds(context.Context, *GetUserByIdsRequest) (*GetUserByIdsResponse, error)
 	GetAll(context.Context, *GetAllUserOrWithRoleRequest) (*GetAllUserOrWithRoleResponse, error)
 	GetManager(context.Context, *GetManagerRequest) (*UserResponse, error)
 	Update(context.Context, *UpdateUserRequest) (*UserResponse, error)
@@ -139,6 +150,9 @@ func (UnimplementedUserGrpcServer) AdminCreate(context.Context, *AdminCreateUser
 }
 func (UnimplementedUserGrpcServer) GetById(context.Context, *GetUserByIdRequest) (*UserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetById not implemented")
+}
+func (UnimplementedUserGrpcServer) GetByIds(context.Context, *GetUserByIdsRequest) (*GetUserByIdsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetByIds not implemented")
 }
 func (UnimplementedUserGrpcServer) GetAll(context.Context, *GetAllUserOrWithRoleRequest) (*GetAllUserOrWithRoleResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAll not implemented")
@@ -218,6 +232,24 @@ func _UserGrpc_GetById_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(UserGrpcServer).GetById(ctx, req.(*GetUserByIdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserGrpc_GetByIds_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserByIdsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserGrpcServer).GetByIds(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/identity.user.UserGrpc/GetByIds",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserGrpcServer).GetByIds(ctx, req.(*GetUserByIdsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -330,6 +362,10 @@ var UserGrpc_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetById",
 			Handler:    _UserGrpc_GetById_Handler,
+		},
+		{
+			MethodName: "GetByIds",
+			Handler:    _UserGrpc_GetByIds_Handler,
 		},
 		{
 			MethodName: "GetAll",

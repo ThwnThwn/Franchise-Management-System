@@ -53,6 +53,22 @@ func (u *UserGrpcClient) GetById(ctx context.Context, id uuid.UUID) (*user.UserR
 	return mapper.MapUserPbToUserModel(res), nil
 }
 
+// GetByIds implements identity.IUserService.
+func (u *UserGrpcClient) GetByIds(ctx context.Context, ids []string) ([]*user.UserResponse, error) {
+	res, err := u.client.GetByIds(ctx, &idenPb.GetUserByIdsRequest{
+		Ids: ids,
+	})
+	if err != nil {
+		return []*user.UserResponse{}, err
+	}
+
+	users := make([]*user.UserResponse, 0, len(res.Users))
+	for _, item := range res.Users {
+		users = append(users, mapper.MapUserPbToUserModel(item))
+	}
+	return users, nil
+}
+
 // Create implements identity.IUserService.
 func (u *UserGrpcClient) Create(ctx context.Context, req *user.CreateUserRequest) (*user.UserResponse, error) {
 	res, err := u.client.AdminCreate(ctx, &idenPb.AdminCreateUserRequest{
