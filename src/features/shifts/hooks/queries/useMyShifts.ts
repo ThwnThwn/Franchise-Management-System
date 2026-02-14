@@ -3,9 +3,15 @@ import { QUERY_KEYS } from "@/constants/queryKeys"
 import { addToast } from "@heroui/react"
 import { STRINGS } from "@/constants/strings"
 import dayjs from "dayjs"
-import { AttendancePayload, GetAgendaParams } from "@/features/shifts/models/request"
+import {
+    AttendancePayload,
+    GetAgendaParams,
+    GetTimeLogsParams
+} from "@/features/shifts/models/request"
 import { StaffShiftAgenda, UserCurrentShift } from "@/features/shifts/models/response"
 import isBetween from "dayjs/plugin/isBetween"
+import { PaginationParams } from "@/models/common/request"
+import { getMockTimeLogs } from "./useShifts"
 
 // --- MOCK DATABASE (Sống tạm trong RAM) ---
 let MOCK_SHIFT_DATA: UserCurrentShift = {
@@ -290,6 +296,24 @@ export const useGetMyAgenda = (params: GetAgendaParams, enabled = true) => {
         staleTime: 1000 * 60 * 5,
 
         // Giữ lại dữ liệu cũ trong lúc fetch dữ liệu mới để UI không bị giật (Loading skeleton)
+        placeholderData: (previousData) => previousData
+    })
+}
+
+export const useGetMyTimeLogHistory = ({
+    query,
+    pagination,
+    enabled
+}: {
+    query: GetTimeLogsParams
+    pagination: PaginationParams
+    enabled: boolean
+}) => {
+    return useQuery({
+        queryKey: [QUERY_KEYS.ME, QUERY_KEYS.SHIFTS, QUERY_KEYS.TIME_LOGS, query, pagination],
+        queryFn: () => getMockTimeLogs({ ...query, staffId: "user-01" }, pagination), // Giả lập user hiện tại là user-01
+        enabled: enabled,
+        staleTime: 1000 * 60 * 5,
         placeholderData: (previousData) => previousData
     })
 }

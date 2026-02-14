@@ -14,5 +14,6 @@ export const QUERY_KEYS = {
     SHIFT_CANDIDATES: "shift-candidates" as const,
     SHIFT_TEMPLATES: "shift-templates" as const,
     SHIFT_RULES: "shift-rules" as const,
-    SHIFT_AVAILABILITIES: "shift-availabilities" as const
+    SHIFT_AVAILABILITIES: "shift-availabilities" as const,
+    TIME_LOGS: "time-logs" as const
 }

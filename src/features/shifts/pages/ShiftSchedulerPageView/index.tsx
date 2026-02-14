@@ -9,7 +9,8 @@ import {
     ShiftCalendar,
     ScheduleStats,
     BulkShiftModal,
-    StaffWorkloadSummary
+    StaffWorkloadSummary,
+    GoToTimeLogLink
 } from "@/features/shifts/components"
 import { ShiftStatus } from "@/features/shifts/constants"
 import {
@@ -77,11 +78,14 @@ export default function ShiftSchedulerPageView() {
     return (
         <div className="max-w-7xl mx-auto min-h-screen p-4 md:p-6 lg:p-8">
             {/* Header */}
-            <DashboardHeader
-                icon={<CalendarRange className="w-6 h-6 text-white" />}
-                title="Xếp Lịch Làm Việc"
-                description="Quản lý ca làm và phân công nhân sự"
-            />
+            <div className="flex flex-col md:flex-row justify-between">
+                <DashboardHeader
+                    icon={<CalendarRange className="w-6 h-6 text-white" />}
+                    title="Xếp Lịch Làm Việc"
+                    description="Quản lý ca làm và phân công nhân sự"
+                />
+                <GoToTimeLogLink />
+            </div>
 
             <div className="space-y-3">
                 {/* Toolbar */}

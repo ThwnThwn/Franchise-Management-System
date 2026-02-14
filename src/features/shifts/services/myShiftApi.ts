@@ -1,6 +1,17 @@
 import axiosInstance from "@/utils/axios"
-import { StaffShiftAgenda, UserCurrentShift } from "@/features/shifts/models/response"
-import { AttendancePayload, GetAgendaParams } from "@/features/shifts/models/request"
+import {
+    StaffShiftAgenda,
+    TimeLogResponse,
+    UserCurrentShift
+} from "@/features/shifts/models/response"
+import {
+    AttendancePayload,
+    GetAgendaParams,
+    GetTimeLogsParams
+} from "@/features/shifts/models/request"
+import { PaginationParams } from "@/models/common/request"
+import { PageResult } from "@/models/common/respone"
+import { buildQueryParams } from "@/utils/helpers/axiosHelper"
 
 /**
  * MY SHIFT API
@@ -40,6 +51,27 @@ export const myShiftApi = {
      */
     getAgenda: async (params: GetAgendaParams): Promise<StaffShiftAgenda[]> => {
         const res = await axiosInstance.get("/me/shifts", { params })
+        return res.data
+    },
+
+    /**
+     * Lấy lịch sử chấm công cá nhân
+     * @endpoint GET /me/shifts/time-logs
+     * @access Staff (Chính chủ)
+     */
+    getTimeLogHistory: async ({
+        query,
+        pagination
+    }: {
+        query: GetTimeLogsParams
+        pagination: PaginationParams
+    }): Promise<PageResult<TimeLogResponse>> => {
+        const params = {
+            ...buildQueryParams(query),
+            ...buildQueryParams(pagination)
+        }
+
+        const res = await axiosInstance.get("/me/shifts/time-logs", { params })
         return res.data
     }
 }

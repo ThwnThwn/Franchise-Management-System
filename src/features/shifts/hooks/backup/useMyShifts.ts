@@ -4,7 +4,12 @@ import { myShiftApi } from "@/features/shifts/services"
 import { addToast } from "@heroui/react"
 import { STRINGS } from "@/constants/strings"
 import { BackendError } from "@/models/common/respone"
-import { AttendancePayload, GetAgendaParams } from "@/features/shifts/models/request"
+import {
+    AttendancePayload,
+    GetAgendaParams,
+    GetTimeLogsParams
+} from "@/features/shifts/models/request"
+import { PaginationParams } from "@/models/common/request"
 
 // --- 1. QUERY HOOK: Lấy trạng thái ca làm hiện tại ---
 export const useGetCurrentShift = (enabled = true) => {
@@ -114,6 +119,29 @@ export const useGetMyAgenda = (params: GetAgendaParams, enabled = true) => {
         staleTime: 1000 * 60 * 5,
 
         // Giữ lại dữ liệu cũ trong lúc fetch dữ liệu mới để UI không bị giật (Loading skeleton)
+        placeholderData: (previousData) => previousData
+    })
+}
+
+/**
+ * Hook lấy lịch sử chấm công của bản thân (Staff)
+ * @param query - Filter (fromDate, toDate, status...)
+ * @param pagination - Phân trang (page, pageSize)
+ */
+export const useGetMyTimeLogHistory = ({
+    query,
+    pagination,
+    enabled
+}: {
+    query: GetTimeLogsParams
+    pagination: PaginationParams
+    enabled: boolean
+}) => {
+    return useQuery({
+        queryKey: [QUERY_KEYS.ME, QUERY_KEYS.SHIFTS, QUERY_KEYS.TIME_LOGS, query, pagination],
+        queryFn: () => myShiftApi.getTimeLogHistory({ query, pagination }),
+        enabled: enabled,
+        staleTime: 1000 * 60 * 2, // 2 phút vì dữ liệu lịch sử ít biến động
         placeholderData: (previousData) => previousData
     })
 }

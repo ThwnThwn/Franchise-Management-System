@@ -12,3 +12,9 @@ export enum ShiftAssignmentStatus {
     Confirmed = 1, // Nhân viên đã xác nhận
     Rejected = 2 // Nhân viên từ chối
 }
+
+export enum TimeLogStatus {
+    Processing = 0, // Vừa check-in (Đang trong ca làm việc)
+    Valid = 1, // Đã check-out và khớp với giờ quy định (Đúng giờ)
+    Invalid = 2 // Đã check-out nhưng sai giờ quy định (Đi muộn/Về sớm)
+}

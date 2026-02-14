@@ -5,12 +5,16 @@ import { STRINGS } from "@/constants/strings"
 import {
     CreateShiftRequest,
     GetShiftsParams,
-    UpdateShiftRequest
+    GetTimeLogsParams,
+    UpdateShiftRequest,
+    UpdateTimeLogRequest
 } from "@/features/shifts/models/request"
-import { ShiftResponse } from "@/features/shifts/models/response"
-import { ShiftStatus, ShiftAssignmentStatus } from "@/features/shifts/constants"
+import { ShiftResponse, TimeLogResponse } from "@/features/shifts/models/response"
+import { ShiftStatus, ShiftAssignmentStatus, TimeLogStatus } from "@/features/shifts/constants"
 import { DEFAULT_DATE_FORMAT } from "@/constants/constants"
 import dayjs from "dayjs"
+import { PaginationParams } from "@/models/common/request"
+import { PageResult } from "@/models/common/respone"
 
 // --- MOCK DATA GENERATOR ---
 const generateMockShifts = (): ShiftResponse[] => {
@@ -95,10 +99,98 @@ const generateMockShifts = (): ShiftResponse[] => {
     ]
 }
 
+export const fakeDelay = (ms = 500) => new Promise((resolve) => setTimeout(resolve, ms))
 // Khởi tạo Mock DB
 export let MOCK_SHIFTS_DB = generateMockShifts()
 
-export const fakeDelay = (ms = 500) => new Promise((resolve) => setTimeout(resolve, ms))
+// --- 1. MOCK DATABASE (Dữ liệu mẫu cho Manager & Staff) ---
+let MOCK_TIME_LOGS: TimeLogResponse[] = [
+    {
+        id: "log-001",
+        shiftAssignmentId: "asg-c1",
+        checkInAt: dayjs().subtract(1, "day").hour(8).minute(5).toISOString(),
+        checkOutAt: dayjs().subtract(1, "day").hour(16).minute(0).toISOString(),
+        totalWorkMinutes: 475,
+        status: TimeLogStatus.Valid,
+        createdAt: dayjs().subtract(1, "day").toISOString(),
+        updatedAt: dayjs().subtract(1, "day").toISOString(),
+        staff: {
+            id: "user-01",
+            firstName: "An",
+            lastName: "Nguyễn",
+            avatarUrl: "https://i.pravatar.cc/150?u=1",
+            email: "an.nguyen@coffee.com"
+        },
+        shiftNote: "Ca sáng Landmark 81"
+    },
+    {
+        id: "log-002",
+        shiftAssignmentId: "asg-c2",
+        checkInAt: dayjs().subtract(2, "day").hour(14).minute(30).toISOString(),
+        checkOutAt: dayjs().subtract(2, "day").hour(22).minute(15).toISOString(),
+        totalWorkMinutes: 465,
+        status: TimeLogStatus.Invalid,
+        managerNote: "Về sớm 15p không xin phép",
+        createdAt: dayjs().subtract(2, "day").toISOString(),
+        updatedAt: dayjs().subtract(2, "day").toISOString(),
+        staff: {
+            id: "user-02",
+            firstName: "Bình",
+            lastName: "Trần",
+            avatarUrl: "https://i.pravatar.cc/150?u=2",
+            email: "binh.tran@coffee.com"
+        },
+        shiftNote: "Ca chiều Phố Đi Bộ"
+    },
+    {
+        id: "log-003",
+        shiftAssignmentId: "asg-c3",
+        checkInAt: dayjs().hour(14).minute(0).toISOString(),
+        // Đang làm việc nên chưa có checkOut và totalWorkMinutes
+        status: TimeLogStatus.Processing,
+        createdAt: dayjs().toISOString(),
+        updatedAt: dayjs().toISOString(),
+        staff: {
+            id: "user-03",
+            firstName: "Cường",
+            lastName: "Lê",
+            avatarUrl: "https://i.pravatar.cc/150?u=3",
+            email: "cuong.le@coffee.com"
+        }
+    }
+]
+
+export const getMockTimeLogs = async (
+    params: GetTimeLogsParams,
+    pagination: PaginationParams
+): Promise<PageResult<TimeLogResponse>> => {
+    await fakeDelay(600)
+    let filtered = [...MOCK_TIME_LOGS]
+    console.log(pagination)
+
+    // Lọc theo Status nếu có
+    if (params.status !== undefined) {
+        filtered = filtered.filter((l) => l.status === params.status)
+    }
+
+    // Lọc theo StaffId (dùng cho /me hoặc lọc manager)
+    if (params.staffId) {
+        filtered = filtered.filter((l) => l.staff.id === params.staffId)
+    }
+
+    // Lọc theo Ngày (check_in_at)
+    if (params.fromDate && params.toDate) {
+        filtered = filtered.filter((l) =>
+            dayjs(l.checkInAt).isBetween(params.fromDate, params.toDate, "day", "[]")
+        )
+    }
+
+    return {
+        items: filtered,
+        totalCount: filtered.length,
+        totalPages: Math.ceil(filtered.length / (pagination.pageSize ?? 10))
+    }
+}
 
 // --- QUERY HOOKS (GET DATA) ---
 
@@ -254,6 +346,63 @@ export const usePublishShift = ({ onSuccess }: { onSuccess?: () => void } = {}) 
         },
         onError: () => {
             addToast({ title: STRINGS.COMMON.ERROR, description: "Lỗi Mock", color: "danger" })
+        }
+    })
+}
+
+/**
+ * Manager xem toàn bộ logs
+ */
+export const useGetAllTimeLogs = ({
+    query,
+    pagination,
+    enabled
+}: {
+    query: GetTimeLogsParams
+    pagination: PaginationParams
+    enabled: boolean
+}) => {
+    return useQuery({
+        queryKey: [QUERY_KEYS.SHIFTS, QUERY_KEYS.TIME_LOGS, query, pagination],
+        queryFn: () => getMockTimeLogs(query, pagination),
+        // storeId sẽ được Gateway tự động xử lý dựa trên Token
+        enabled: enabled,
+        staleTime: 1000 * 30,
+        placeholderData: (previousData) => previousData
+    })
+}
+
+/**
+ * Manager cập nhật log (Duyệt/Ghi chú)
+ */
+export const useUpdateTimeLog = ({ onSuccess }: { onSuccess?: () => void } = {}) => {
+    const queryClient = useQueryClient()
+
+    return useMutation({
+        mutationFn: async ({ id, req }: { id: string; req: UpdateTimeLogRequest }) => {
+            await fakeDelay(1000)
+            const idx = MOCK_TIME_LOGS.findIndex((l) => l.id === id)
+            if (idx !== -1) {
+                MOCK_TIME_LOGS[idx] = {
+                    ...MOCK_TIME_LOGS[idx],
+                    status: req.status,
+                    managerNote: req.managerNote,
+                    updatedAt: dayjs().toISOString()
+                }
+            }
+            return true
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.SHIFTS, QUERY_KEYS.TIME_LOGS],
+                exact: false
+            })
+            addToast({
+                title: STRINGS.COMMON.SUCCESS,
+                description: "Cập nhật bản ghi chấm công thành công!",
+                color: "success"
+            })
+            onSuccess?.()
         }
     })
 }

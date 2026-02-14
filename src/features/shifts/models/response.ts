@@ -1,5 +1,5 @@
 import { DayOfWeek } from "@/constants/enums"
-import { ShiftAssignmentStatus, ShiftStatus } from "../constants/enum"
+import { ShiftAssignmentStatus, ShiftStatus, TimeLogStatus } from "../constants/enum"
 import { StoreDetailDto } from "@/features/stores"
 
 export interface ShiftAssignment {
@@ -199,4 +199,45 @@ export interface StaffShiftAgenda {
     // Trạng thái thực tế
     checkInAt?: string
     checkOutAt?: string
+}
+
+// ===============================
+// Time Logs
+// ===============================
+export interface TimeLogResponse {
+    id: string
+    shiftAssignmentId: string
+
+    // Thông tin Check-in (Sử dụng ?: vì dữ liệu có thể trống nếu chưa thực hiện)
+    checkInAt?: string
+    checkInImageUrl?: string
+    checkInLat?: number
+    checkInLong?: number
+
+    // Thông tin Check-out (Thường undefined khi nhân viên đang trong ca làm)
+    checkOutAt?: string
+    checkOutImageUrl?: string
+    checkOutLat?: number
+    checkOutLong?: number
+
+    /**
+     * Tổng thời gian làm việc thực tế (phút).
+     * Hệ thống tự động tính khi status chuyển sang Valid hoặc Invalid.
+     * Sẽ là undefined nếu đang ở trạng thái Processing.
+     */
+    totalWorkMinutes?: number
+    status: TimeLogStatus
+    managerNote?: string // Manager có thể note thêm nếu cần điều chỉnh thủ công cho Invalid
+
+    createdAt: string
+    updatedAt: string
+
+    staff: {
+        id: string
+        firstName?: string
+        lastName?: string
+        avatarUrl?: string
+        email?: string
+    }
+    shiftNote?: string // Note của ca làm việc gốc để đối chiếu khi cần
 }

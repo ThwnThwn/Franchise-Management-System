@@ -5,7 +5,6 @@ import dayjs from "dayjs"
 import { CalendarDate } from "@internationalized/date"
 
 export type AgendaViewMode = "list" | "calendar"
-// features/shifts/hooks/useAgendaLogic.ts
 
 export const useAgendaLogic = () => {
     const [currentDate, setCurrentDate] = useState(dayjs())
@@ -23,15 +22,13 @@ export const useAgendaLogic = () => {
     // - List mode: Nhảy 1 ngày
     // - Calendar mode: Nhảy 1 tuần
     const handleNext = () => {
-        const step = viewMode === "list" ? 1 : 1
         const unit = viewMode === "list" ? "day" : "week"
-        setCurrentDate((prev) => prev.add(step, unit))
+        setCurrentDate((prev) => prev.add(1, unit))
     }
 
     const handlePrev = () => {
-        const step = viewMode === "list" ? 1 : 1
         const unit = viewMode === "list" ? "day" : "week"
-        setCurrentDate((prev) => prev.subtract(step, unit))
+        setCurrentDate((prev) => prev.subtract(1, unit))
     }
 
     const handleToday = () => setCurrentDate(dayjs())

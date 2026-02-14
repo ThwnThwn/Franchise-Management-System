@@ -38,7 +38,7 @@ export const AgendaListView = ({ shifts, selectedDate }: AgendaListViewProps) =>
     return (
         <div className="flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Header ngày */}
-            <div className="flex items-center gap-3 mb-2">
+            {/* <div className="flex items-center gap-3 mb-2">
                 <div className="h-10 w-1.5 bg-primary rounded-full" />
                 <div>
                     <h2 className="text-xl font-black capitalize">{selectedDate.format("dddd")}</h2>
@@ -46,7 +46,7 @@ export const AgendaListView = ({ shifts, selectedDate }: AgendaListViewProps) =>
                         Ngày {selectedDate.format("DD [Tháng] MM, YYYY")}
                     </p>
                 </div>
-            </div>
+            </div> */}
 
             {/* Danh sách ca làm trong ngày */}
             {dailyShifts.map((item) => (

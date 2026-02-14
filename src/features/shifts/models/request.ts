@@ -1,5 +1,5 @@
 import { DayOfWeek } from "@/constants/enums"
-import { ShiftStatus } from "../constants/enum"
+import { ShiftStatus, TimeLogStatus } from "../constants/enum"
 
 // ===============================
 // Shift
@@ -151,4 +151,27 @@ export interface AttendancePayload {
 export interface GetAgendaParams {
     startDate: string // "YYYY-MM-DD"
     endDate: string // "YYYY-MM-DD"
+}
+
+// ===============================
+// Time Logs
+// ===============================
+export interface GetTimeLogsParams {
+    /**
+     * Logic Filter:
+     * - undefined: Staff đang xem lịch sử của chính mình.
+     * - string ID: Manager đang soi bảng công của một Store nhất định.
+     */
+    storeId?: string
+    staffId?: string
+    status?: TimeLogStatus
+
+    // Mốc thời gian để lọc (Query dựa trên check_in_at của log)
+    fromDate?: string // Định dạng: YYYY-MM-DD
+    toDate?: string // Định dạng: YYYY-MM-DD
+}
+
+export interface UpdateTimeLogRequest {
+    status: TimeLogStatus // Chỉ Manager mới có quyền đổi sang Valid/Invalid
+    managerNote?: string // Bắt buộc nhập khi Invalid
 }
