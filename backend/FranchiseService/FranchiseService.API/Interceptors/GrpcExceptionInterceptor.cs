@@ -43,19 +43,21 @@ public class GrpcExceptionInterceptor : Interceptor
             DirectoryNotFoundException ex => new RpcException(new Status(StatusCode.NotFound, ex.Message)),
             //BusinessException ex => new RpcException(new Status(StatusCode.InvalidArgument, ex.Message)),
             //ConflictDuplicateException ex => new RpcException(new Status(StatusCode.AlreadyExists, ex.Message)),
+            InvalidOperationException ex => new RpcException(new Status(StatusCode.FailedPrecondition, ex.Message)),
 
             // 3. Security / Auth
             //ForbidenException ex => new RpcException(new Status(StatusCode.PermissionDenied, ex.Message)),
             UnauthorizedAccessException ex => new RpcException(new Status(StatusCode.Unauthenticated, ex.Message)),
 
             // 4. Database Error (Có log)
-            //Application.AppExceptions.DbUpdateException ex => LogAndReturn(ex, StatusCode.Aborted, "Database update error"),
+            // 4. Database Error (Có log)
+            DbUpdateException ex => LogAndReturn(ex, StatusCode.FailedPrecondition, $"Database Error: {ex.InnerException?.Message ?? ex.Message}"),
 
             // 5. Nếu đã là RpcException thì ném tiếp (pass-through)
             RpcException ex => ex,
 
             // 6. Default / Unhandled (Có log)
-            _ => LogAndReturn(exception, StatusCode.Internal, "Internal Server Error")
+            _ => LogAndReturn(exception, StatusCode.Internal, $"Internal Server Error: {exception.Message}")
         };
     }
 

@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option csharp_namespace = "FranchiseService.API";
+option csharp_namespace = "FranchiseService.Grpc";
 option go_package = "api-gateway/pkg/pb/franchise";
 
 package franchise;
