@@ -195,12 +195,20 @@ type TimeLogResponse struct {
 
 	// Staff info
 	Staff struct {
-		ID        string  `json:"id"`
+		Id        string  `json:"id"`
 		FirstName *string `json:"firstName,omitempty"`
 		LastName  *string `json:"lastName,omitempty"`
 		AvatarUrl *string `json:"avatarUrl,omitempty"`
 		Email     *string `json:"email,omitempty"`
 	} `json:"staff"`
+
+	Shift struct {
+		Id        string  `json:"id"`
+		ShiftDate string  `json:"shiftDate"`
+		StartTime string  `json:"startTime"`
+		EndTime   string  `json:"endTime"`
+		Note      *string `json:"note"`
+	} `json:"shift"`
 
 	ShiftNote *string `json:"shiftNote,omitempty"`
 }

@@ -27,7 +27,7 @@ func MapStaffToTimeLogsBatch(logs []*shift.TimeLogResponse, users []*user.UserRe
 			continue
 		}
 
-		staffID := log.Staff.ID
+		staffID := log.Staff.Id
 		// Tìm nhân viên trong map dựa trên Staff.ID của log
 		if u, ok := userMap[staffID]; ok {
 			// Vì log và u đều là pointer nên truyền thẳng vào hàm Map lẻ
@@ -44,7 +44,7 @@ func MapStaffToTimeLog(log *shift.TimeLogResponse, u *user.UserResponse) {
 		return
 	}
 
-	log.Staff.ID = u.Id
+	log.Staff.Id = u.Id
 	log.Staff.FirstName = stringutils.ToPtr(u.FirstName)
 	log.Staff.LastName = stringutils.ToPtr(u.LastName)
 	log.Staff.Email = stringutils.ToPtr(u.Email)

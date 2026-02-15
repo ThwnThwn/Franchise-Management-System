@@ -278,9 +278,9 @@ func (h *ShiftHandler) GetAllTimeLogs(c *gin.Context) {
 	staffIDMap := make(map[string]bool)
 	var staffIDs []string
 	for _, log := range logRes.Items {
-		if log != nil && log.Staff.ID != "" && !staffIDMap[log.Staff.ID] {
-			staffIDMap[log.Staff.ID] = true
-			staffIDs = append(staffIDs, log.Staff.ID)
+		if log != nil && log.Staff.Id != "" && !staffIDMap[log.Staff.Id] {
+			staffIDMap[log.Staff.Id] = true
+			staffIDs = append(staffIDs, log.Staff.Id)
 		}
 	}
 
