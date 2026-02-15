@@ -30,7 +30,7 @@ interface Props {
 }
 
 export const UpdateTimeLogModal = ({ isOpen, onClose, data }: Props) => {
-    const { formatDateTime } = useDay()
+    const { formatDateTime, formatTime } = useDay()
     const updateMutation = useUpdateTimeLog({ onSuccess: onClose })
 
     // 1. Formik Setup
@@ -73,53 +73,69 @@ export const UpdateTimeLogModal = ({ isOpen, onClose, data }: Props) => {
                 <ModalBody className="py-6 overflow-y-auto max-h-[70vh]">
                     <div className="flex flex-col gap-6">
                         {/* 1. Thông tin nhân viên */}
-                        <div className="flex justify-between items-center bg-default-50 p-4 rounded-2xl border border-divider">
+                        <div className="flex justify-between items-start bg-default-50 p-4 rounded-2xl border border-divider">
                             <StaffInfoCell staff={data.staff} />
-                            <div className="text-right">
-                                <span className="text-[10px] font-bold text-default-400 uppercase tracking-widest block">
+
+                            {/* HIỂN THỊ CA LÀM GỐC */}
+                            <div className="text-right flex flex-col items-end gap-1">
+                                {/* <span className="text-[10px] font-bold text-default-400 uppercase tracking-widest block">
                                     Ca làm việc
-                                </span>
-                                <span className="text-sm font-bold text-primary">
-                                    {data.shiftNote || "N/A"}
+                                </span> */}
+                                <div className="flex items-center gap-2 bg-primary-50 px-3 py-1 rounded-full border border-primary-100">
+                                    <Clock size={14} className="text-primary" />
+                                    <span className="text-sm font-black text-primary tabular-nums">
+                                        {formatTime(data.shift.startTime, false)} -{" "}
+                                        {formatTime(data.shift.endTime, false)}
+                                    </span>
+                                </div>
+                                <span className="px-3 text-[10px] font-medium text-default-500 italic max-w-50 truncate">
+                                    {data.shift.note || "Không có ghi chú ca"}
                                 </span>
                             </div>
                         </div>
 
                         {/* 2. Đối chiếu thời gian thực tế */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="p-4 rounded-2xl bg-success-50 border border-success-100">
-                                <div className="flex items-center gap-2 mb-2 text-success-600 font-bold text-xs uppercase">
-                                    <Clock size={14} /> Check-in Thực Tế
+                            {/* Check-in thực tế */}
+                            <div className="p-4 rounded-2xl bg-success-50 border border-success-100 relative overflow-hidden">
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center gap-2 text-success-600 font-bold text-xs uppercase">
+                                        <Clock size={14} /> Check-in Thực Tế
+                                    </div>
+                                    <span className="text-[9px] font-bold bg-success-200 text-success-700 px-1.5 py-0.5 rounded uppercase">
+                                        Dự kiến: {formatTime(data.shift.startTime, false)}
+                                    </span>
                                 </div>
-                                <p className="text-xl font-black tabular-nums text-success-700">
+                                <p className="text-2xl font-black tabular-nums text-success-700">
                                     {formatDateTime({ date: data.checkInAt, format: "HH:mm" })}
                                 </p>
-                                <span className="text-tiny text-success-500">
-                                    {formatDateTime({
-                                        date: data.checkInAt,
-                                        format: "DD/MM/YYYY"
-                                    })}
+                                <span className="text-tiny text-success-500 font-medium">
+                                    {formatDateTime({ date: data.checkInAt, format: "DD/MM/YYYY" })}
                                 </span>
                             </div>
-                            <div className="p-4 rounded-2xl bg-secondary-50 border border-secondary-100">
-                                <div className="flex items-center gap-2 mb-2 text-secondary-600 font-bold text-xs uppercase">
-                                    <Clock size={14} /> Check-out Thực Tế
+
+                            {/* Check-out thực tế */}
+                            <div className="p-4 rounded-2xl bg-secondary-50 border border-secondary-100 relative overflow-hidden">
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center gap-2 text-secondary-600 font-bold text-xs uppercase">
+                                        <Clock size={14} /> Check-out Thực Tế
+                                    </div>
+                                    <span className="text-[9px] font-bold bg-secondary-200 text-secondary-700 px-1.5 py-0.5 rounded uppercase">
+                                        Dự kiến: {formatTime(data.shift.endTime, false)}
+                                    </span>
                                 </div>
-                                <p className="text-xl font-black tabular-nums text-secondary-700">
+                                <p className="text-2xl font-black tabular-nums text-secondary-700">
                                     {data.checkOutAt
-                                        ? formatDateTime({
-                                              date: data.checkOutAt,
-                                              format: "HH:mm"
-                                          })
+                                        ? formatDateTime({ date: data.checkOutAt, format: "HH:mm" })
                                         : "--:--"}
                                 </p>
-                                <span className="text-tiny text-secondary-500">
+                                <span className="text-tiny text-secondary-500 font-medium">
                                     {data.checkOutAt
                                         ? formatDateTime({
                                               date: data.checkOutAt,
                                               format: "DD/MM/YYYY"
                                           })
-                                        : "Chưa tan ca"}
+                                        : "Nhân viên chưa bấm Tan ca"}
                                 </span>
                             </div>
                         </div>

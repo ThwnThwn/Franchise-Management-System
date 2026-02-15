@@ -12,7 +12,7 @@ import {
     Tooltip,
     Spinner
 } from "@heroui/react"
-import { Pencil } from "lucide-react"
+import { Clock, Pencil } from "lucide-react"
 import dayjs from "dayjs"
 
 import {
@@ -22,6 +22,7 @@ import {
     EmptyTimeLogState
 } from "@/features/shifts/components"
 import { TimeLogResponse } from "@/features/shifts/models/response"
+import { useDay } from "@/hooks"
 
 interface Props {
     data: TimeLogResponse[]
@@ -32,6 +33,8 @@ interface Props {
 }
 
 export const TimeLogTable = ({ data, selectedDate, isLoading, isManager, onEditClick }: Props) => {
+    const { formatTime } = useDay()
+
     // 1. Logic tự lọc: Chỉ lấy các bản ghi có ngày Check-in trùng với selectedDate
     const filteredLogs = useMemo(() => {
         return data.filter(
@@ -67,9 +70,10 @@ export const TimeLogTable = ({ data, selectedDate, isLoading, isManager, onEditC
                 }}
             >
                 <TableHeader>
-                    <TableColumn className="w-[40%]">NHÂN VIÊN</TableColumn>
-                    <TableColumn className="w-[25%]">THỜI GIAN THỰC TẾ</TableColumn>
-                    <TableColumn align="center" className="w-[20%]">
+                    <TableColumn className="w-[30%]">NHÂN VIÊN</TableColumn>
+                    <TableColumn className="w-[18%]">CA LÀM</TableColumn>
+                    <TableColumn className="w-[22%]">THỜI GIAN THỰC TẾ</TableColumn>
+                    <TableColumn align="center" className="w-[18%]">
                         TRẠNG THÁI
                     </TableColumn>
 
@@ -91,6 +95,22 @@ export const TimeLogTable = ({ data, selectedDate, isLoading, isManager, onEditC
                         <TableRow key={item.id} className="hover:bg-default-50 transition-colors">
                             <TableCell>
                                 <StaffInfoCell staff={item.staff} />
+                            </TableCell>
+                            <TableCell>
+                                <div className="flex flex-col gap-1">
+                                    <div className="flex items-center gap-1.5 text-default-600">
+                                        <Clock size={12} className="text-default-400" />
+                                        <span className="text-small font-bold tracking-tight">
+                                            {formatTime(item.shift.startTime, false)} -{" "}
+                                            {formatTime(item.shift.endTime, false)}
+                                        </span>
+                                    </div>
+                                    {item.shift.note && (
+                                        <span className="text-[10px] text-default-400 truncate max-w-37.5">
+                                            {item.shift.note}
+                                        </span>
+                                    )}
+                                </div>
                             </TableCell>
                             <TableCell>
                                 <TimeRangeDisplay

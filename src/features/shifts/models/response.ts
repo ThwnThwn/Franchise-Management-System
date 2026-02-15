@@ -239,5 +239,11 @@ export interface TimeLogResponse {
         avatarUrl?: string
         email?: string
     }
-    shiftNote?: string // Note của ca làm việc gốc để đối chiếu khi cần
+    shift: {
+        id: string
+        shiftDate: string // YYYY-MM-DD
+        startTime: string // HH:mm:ss
+        endTime: string // HH:mm:ss
+        note?: string
+    }
 }

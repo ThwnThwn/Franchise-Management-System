@@ -20,6 +20,33 @@ button {
     cursor: pointer;
 }
 
+/* Time log module */
+.event-striped-bg {
+    position: relative;
+    z-index: 0;
+    overflow: hidden;
+}
+
+.event-striped-bg::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    /* Dùng màu đen cực mờ (0.05) để tạo sọc đổ bóng trên nền slate-50 */
+    background-image: linear-gradient(
+        45deg,
+        rgba(15, 23, 42, 0.05) 25%,
+        transparent 25%,
+        transparent 50%,
+        rgba(15, 23, 42, 0.05) 50%,
+        rgba(15, 23, 42, 0.05) 75%,
+        transparent 75%,
+        transparent
+    );
+    background-size: 12px 12px;
+    pointer-events: none;
+    z-index: 1; /* Cho lên trên background nhưng dưới text (text để z-10) */
+}
+
 /* --- COMPONENTS --- */
 @layer components {
     /* --- Interactive scale effect --- */

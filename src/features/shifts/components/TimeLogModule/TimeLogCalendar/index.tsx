@@ -8,6 +8,7 @@ import interactionPlugin from "@fullcalendar/interaction"
 import dayjs from "dayjs"
 import { TimeLogResponse } from "@/features/shifts/models/response"
 import { TimeLogEventCard } from "./TimeLogEventCard"
+import { ATTENDANCE_CONFIG } from "@/features/shifts/constants/config"
 
 interface Props {
     logs: TimeLogResponse[]
@@ -34,13 +35,35 @@ export const TimeLogCalendar = ({ logs, currentDate, isLoading, onEventClick }: 
 
     // Map TimeLog sang Event của FullCalendar
     const events = useMemo(() => {
-        return logs.map((log) => ({
-            id: log.id,
-            // Nếu đang làm (Processing) thì end time là "hiện tại" để thanh lịch kéo dài ra
-            start: log.checkInAt,
-            end: log.checkOutAt || dayjs().toISOString(),
-            extendedProps: log
-        }))
+        const now = dayjs()
+        const { CHECK_OUT_BUFFER_HOURS } = ATTENDANCE_CONFIG
+
+        return logs.map((log) => {
+            const { shiftDate, startTime, endTime } = log.shift
+
+            // 1. Logic thời gian (vẫn cần để FullCalendar biết đặt card ở đâu)
+            // const expStart = dayjs(`${shiftDate}T${startTime}`)
+            let expEnd = dayjs(`${shiftDate}T${endTime}`)
+            if (endTime < startTime) expEnd = expEnd.add(1, "day")
+
+            let displayEnd
+            if (log.checkOutAt) {
+                displayEnd = log.checkOutAt
+            } else {
+                const bufferDeadline = expEnd.add(CHECK_OUT_BUFFER_HOURS, "hour")
+                displayEnd = now.isBefore(bufferDeadline) ? now.toISOString() : expEnd.toISOString()
+            }
+
+            // 2. Trả về object tối giản
+            return {
+                id: log.id,
+                start: log.checkInAt,
+                end: displayEnd,
+                // 🚩 Xóa sạch backgroundColor, borderColor, title...
+                // Chỉ truyền data gốc vào extendedProps
+                extendedProps: log
+            }
+        })
     }, [logs])
 
     return (

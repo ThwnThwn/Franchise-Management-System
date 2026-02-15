@@ -96,24 +96,35 @@ export const useDay = ({
      * Format Time Object -> String "HH:mm:ss" (Gửi API)
      */
     const formatTime = (
-        time: Time | CalendarDateTime | ZonedDateTime | null | undefined,
+        time: Time | CalendarDateTime | ZonedDateTime | string | null | undefined,
         withSecond: boolean = true
     ): string => {
-        if (!time || !("hour" in time)) return ""
+        // 1. Handle Null/Undefined/Empty
+        if (!time) return ""
 
-        // 2. Format giờ và phút
-        const hour = time.hour.toString().padStart(2, "0")
-        const minute = time.minute.toString().padStart(2, "0")
-        let result = `${hour}:${minute}`
+        let hour: string = "00"
+        let minute: string = "00"
+        let second: string = "00"
 
-        // 3. Nếu cần giây, lấy giá trị second thực tế (ép kiểu để lấy thuộc tính)
-        if (withSecond) {
-            // Trong @internationalized/date, second thường mặc định là 0 nếu không có
-            const second = time.second?.toString().padStart(2, "0") || "00"
-            result += `:${second}`
+        // 2. Nếu là String (HH:mm:ss hoặc HH:mm)
+        if (typeof time === "string") {
+            const parts = time.split(":")
+            hour = parts[0]?.padStart(2, "0") || "00"
+            minute = parts[1]?.padStart(2, "0") || "00"
+            second = parts[2]?.padStart(2, "0") || "00"
+        }
+        // 3. Nếu là Object (@internationalized/date)
+        else if ("hour" in time) {
+            hour = time.hour.toString().padStart(2, "0")
+            minute = time.minute.toString().padStart(2, "0")
+            // @ts-ignore - lấy second nếu có
+            second = (time.second ?? 0).toString().padStart(2, "0")
+        } else {
+            return ""
         }
 
-        return result
+        // 4. Build kết quả dựa trên withSecond
+        return withSecond ? `${hour}:${minute}:${second}` : `${hour}:${minute}`
     }
 
     /**

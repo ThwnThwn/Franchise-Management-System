@@ -114,48 +114,65 @@ let MOCK_TIME_LOGS: TimeLogResponse[] = [
         status: TimeLogStatus.Valid,
         createdAt: dayjs().subtract(1, "day").toISOString(),
         updatedAt: dayjs().subtract(1, "day").toISOString(),
-        staff: {
-            id: "user-01",
-            firstName: "An",
-            lastName: "Nguyễn",
-            avatarUrl: "https://i.pravatar.cc/150?u=1",
-            email: "an.nguyen@coffee.com"
-        },
-        shiftNote: "Ca sáng Landmark 81"
+        staff: { id: "user-01", firstName: "An", lastName: "Nguyễn" },
+        shift: {
+            id: "shift-01",
+            shiftDate: dayjs().subtract(1, "day").format("YYYY-MM-DD"),
+            startTime: "08:00:00",
+            endTime: "16:00:00", // Ca thường trong ngày
+            note: "Ca sáng Landmark 81"
+        }
     },
     {
         id: "log-002",
         shiftAssignmentId: "asg-c2",
-        checkInAt: dayjs().subtract(2, "day").hour(14).minute(30).toISOString(),
-        checkOutAt: dayjs().subtract(2, "day").hour(22).minute(15).toISOString(),
-        totalWorkMinutes: 465,
-        status: TimeLogStatus.Invalid,
-        managerNote: "Về sớm 15p không xin phép",
-        createdAt: dayjs().subtract(2, "day").toISOString(),
-        updatedAt: dayjs().subtract(2, "day").toISOString(),
-        staff: {
-            id: "user-02",
-            firstName: "Bình",
-            lastName: "Trần",
-            avatarUrl: "https://i.pravatar.cc/150?u=2",
-            email: "binh.tran@coffee.com"
-        },
-        shiftNote: "Ca chiều Phố Đi Bộ"
+        // Case ca đêm: Check-in 22h tối hôm trước, Check-out 6h sáng hôm sau
+        checkInAt: dayjs().subtract(1, "day").hour(22).minute(5).toISOString(),
+        checkOutAt: dayjs().hour(6).minute(0).toISOString(),
+        totalWorkMinutes: 475,
+        status: TimeLogStatus.Valid,
+        createdAt: dayjs().toISOString(),
+        updatedAt: dayjs().toISOString(),
+        staff: { id: "user-02", firstName: "Bình", lastName: "Trần" },
+        shift: {
+            id: "shift-02",
+            shiftDate: dayjs().subtract(1, "day").format("YYYY-MM-DD"),
+            startTime: "22:00:00",
+            endTime: "06:00:00", // 🚩 CA ĐÊM: start > end -> Qua ngày hôm sau
+            note: "Ca đêm Phố Đi Bộ"
+        }
     },
     {
         id: "log-003",
         shiftAssignmentId: "asg-c3",
         checkInAt: dayjs().hour(14).minute(0).toISOString(),
-        // Đang làm việc nên chưa có checkOut và totalWorkMinutes
         status: TimeLogStatus.Processing,
         createdAt: dayjs().toISOString(),
         updatedAt: dayjs().toISOString(),
-        staff: {
-            id: "user-03",
-            firstName: "Cường",
-            lastName: "Lê",
-            avatarUrl: "https://i.pravatar.cc/150?u=3",
-            email: "cuong.le@coffee.com"
+        staff: { id: "user-03", firstName: "Cường", lastName: "Lê" },
+        shift: {
+            id: "shift-03",
+            shiftDate: dayjs().format("YYYY-MM-DD"),
+            startTime: "14:00:00",
+            endTime: "22:00:00",
+            note: "Ca chiều Bitexco"
+        }
+    },
+    {
+        id: "log-004",
+        shiftAssignmentId: "asg-c4",
+        // Case quên checkout ca đêm: Hết ca lúc 6h sáng nhưng giờ (8h) vẫn chưa thấy đâu
+        checkInAt: dayjs().subtract(1, "day").hour(22).minute(0).toISOString(),
+        status: TimeLogStatus.Processing,
+        createdAt: dayjs().subtract(1, "day").toISOString(),
+        updatedAt: dayjs().subtract(1, "day").toISOString(),
+        staff: { id: "user-04", firstName: "Dũng", lastName: "Phạm" },
+        shift: {
+            id: "shift-04",
+            shiftDate: dayjs().subtract(1, "day").format("YYYY-MM-DD"),
+            startTime: "22:00:00",
+            endTime: "06:00:00",
+            note: "Ca đêm Landmark"
         }
     }
 ]
