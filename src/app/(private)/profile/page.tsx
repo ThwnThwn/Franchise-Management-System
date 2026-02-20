@@ -1,22 +1,16 @@
 "use client"
 
-import {
-    ButtonIconStyled,
-    ButtonStyled,
-    DatePickerStyled,
-    InputStyled
-} from "@/components"
+import { ButtonStyled, DatePickerStyled, InputStyled } from "@/components"
 import { Gender } from "@/constants/enums"
 import { GenderLabels } from "@/constants/labels"
 import { NAME_REGEX, PHONE_REGEX } from "@/constants/regexs"
 import { AUTH_ERRORS } from "@/features"
 import { useGetMe, useUpdateMe } from "@/features/profile/hooks/useProfile"
 import { UserUpdateReq } from "@/features/profile/models/request"
-import { useDay } from "@/hooks"
 import { useUserHelper } from "@/hooks/reuseable/useUserHelper"
 import { EnumPicker } from "@/components/modules/EnumPicker"
 import { useFormik } from "formik"
-import { Camera, Coffee, Mail, MapPin, Phone, User, CalendarDays, Pencil, Save, X } from "lucide-react"
+import { Camera, Coffee, Mail, MapPin, Phone, User, Pencil, Save, X } from "lucide-react"
 import React, { useCallback, useState } from "react"
 import * as Yup from "yup"
 import { Avatar } from "@heroui/react"
@@ -28,7 +22,7 @@ export default function ProfilePage() {
     const updateMeMutation = useUpdateMe({ onSuccess: undefined })
     const { toFullName } = useUserHelper()
     const { data: user } = useGetMe()
-    const { toDate, formatDateTime } = useDay({ defaultFormat: "YYYY-MM-DD" })
+    // const { toDate, formatDateTime } = useDay({ defaultFormat: "YYYY-MM-DD" })
 
     const handleUpdateMe = useCallback(
         async (values: UserUpdateReq) => {
@@ -96,7 +90,7 @@ export default function ProfilePage() {
                             <h2 className="mt-4 text-2xl font-bold text-gray-800">
                                 {toFullName({ firstName: user.firstName, lastName: user.lastName })}
                             </h2>
-                            <p className="text-amber-600 font-medium">@{user.userName}</p>
+                            <p className="text-amber-600 font-medium">@{user.username}</p>
 
                             <div className="mt-4 flex gap-2">
                                 <span className="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-semibold uppercase tracking-wider">
@@ -119,7 +113,9 @@ export default function ProfilePage() {
                                 </div>
                                 <div className="overflow-hidden">
                                     <p className="text-xs text-gray-500">Email</p>
-                                    <p className="text-sm font-medium text-gray-800 truncate">{user.email}</p>
+                                    <p className="text-sm font-medium text-gray-800 truncate">
+                                        {user.email}
+                                    </p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-3 p-3 bg-amber-50/50 rounded-xl hover:bg-amber-50 transition-colors">
@@ -128,7 +124,9 @@ export default function ProfilePage() {
                                 </div>
                                 <div>
                                     <p className="text-xs text-gray-500">Điện thoại</p>
-                                    <p className="text-sm font-medium text-gray-800">{user.phone || "Chưa cập nhật"}</p>
+                                    <p className="text-sm font-medium text-gray-800">
+                                        {user.phone || "Chưa cập nhật"}
+                                    </p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-3 p-3 bg-amber-50/50 rounded-xl hover:bg-amber-50 transition-colors">
@@ -137,7 +135,9 @@ export default function ProfilePage() {
                                 </div>
                                 <div>
                                     <p className="text-xs text-gray-500">Địa chỉ</p>
-                                    <p className="text-sm font-medium text-gray-800 truncate max-w-[200px]">{user.address || "Chưa cập nhật"}</p>
+                                    <p className="text-sm font-medium text-gray-800 truncate max-w-[200px]">
+                                        {user.address || "Chưa cập nhật"}
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -155,7 +155,9 @@ export default function ProfilePage() {
                         <div className="flex justify-between items-center mb-8 border-b border-gray-100 pb-4">
                             <div>
                                 <h1 className="text-2xl font-bold text-gray-800">Hồ Sơ Cá Nhân</h1>
-                                <p className="text-gray-500 mt-1">Quản lý thông tin đầy đủ của bạn</p>
+                                <p className="text-gray-500 mt-1">
+                                    Quản lý thông tin đầy đủ của bạn
+                                </p>
                             </div>
                             {!editable ? (
                                 <ButtonStyled
@@ -196,7 +198,7 @@ export default function ProfilePage() {
                                 <InputStyled
                                     isReadOnly
                                     label="Tên đăng nhập"
-                                    value={user.userName}
+                                    value={user.username}
                                     variant="faded"
                                     startContent={<User className="text-gray-400" size={18} />}
                                     className="opacity-70 pointer-events-none"
@@ -222,8 +224,15 @@ export default function ProfilePage() {
                                 placeholder="Nhập họ..."
                                 variant={editable ? "bordered" : "flat"}
                                 value={updateMeFormik.values.lastName}
-                                onValueChange={(val) => updateMeFormik.setFieldValue("lastName", val)}
-                                isInvalid={!!(updateMeFormik.touched.lastName && updateMeFormik.errors.lastName)}
+                                onValueChange={(val) =>
+                                    updateMeFormik.setFieldValue("lastName", val)
+                                }
+                                isInvalid={
+                                    !!(
+                                        updateMeFormik.touched.lastName &&
+                                        updateMeFormik.errors.lastName
+                                    )
+                                }
                                 errorMessage={updateMeFormik.errors.lastName}
                             />
                             <InputStyled
@@ -232,8 +241,15 @@ export default function ProfilePage() {
                                 placeholder="Nhập tên..."
                                 variant={editable ? "bordered" : "flat"}
                                 value={updateMeFormik.values.firstName}
-                                onValueChange={(val) => updateMeFormik.setFieldValue("firstName", val)}
-                                isInvalid={!!(updateMeFormik.touched.firstName && updateMeFormik.errors.firstName)}
+                                onValueChange={(val) =>
+                                    updateMeFormik.setFieldValue("firstName", val)
+                                }
+                                isInvalid={
+                                    !!(
+                                        updateMeFormik.touched.firstName &&
+                                        updateMeFormik.errors.firstName
+                                    )
+                                }
                                 errorMessage={updateMeFormik.errors.firstName}
                             />
 
@@ -244,7 +260,9 @@ export default function ProfilePage() {
                                 variant={editable ? "bordered" : "flat"}
                                 value={updateMeFormik.values.phone}
                                 onValueChange={(val) => updateMeFormik.setFieldValue("phone", val)}
-                                isInvalid={!!(updateMeFormik.touched.phone && updateMeFormik.errors.phone)}
+                                isInvalid={
+                                    !!(updateMeFormik.touched.phone && updateMeFormik.errors.phone)
+                                }
                                 errorMessage={updateMeFormik.errors.phone}
                                 startContent={<Phone className="text-gray-400" size={18} />}
                             />
@@ -264,15 +282,25 @@ export default function ProfilePage() {
                                     label="Ngày sinh"
                                     value={
                                         updateMeFormik.values.dateOfBirth
-                                            ? parseDate(updateMeFormik.values.dateOfBirth.split("T")[0])
+                                            ? parseDate(
+                                                  updateMeFormik.values.dateOfBirth.split("T")[0]
+                                              )
                                             : undefined
                                     }
                                     onChange={(date) => {
                                         if (date) {
-                                            updateMeFormik.setFieldValue("dateOfBirth", date.toString())
+                                            updateMeFormik.setFieldValue(
+                                                "dateOfBirth",
+                                                date.toString()
+                                            )
                                         }
                                     }}
-                                    isInvalid={!!(updateMeFormik.touched.dateOfBirth && updateMeFormik.errors.dateOfBirth)}
+                                    isInvalid={
+                                        !!(
+                                            updateMeFormik.touched.dateOfBirth &&
+                                            updateMeFormik.errors.dateOfBirth
+                                        )
+                                    }
                                     errorMessage={updateMeFormik.errors.dateOfBirth as string}
                                 />
                             </div>
@@ -284,8 +312,15 @@ export default function ProfilePage() {
                                     placeholder="Nhập địa chỉ của bạn..."
                                     variant={editable ? "bordered" : "flat"}
                                     value={updateMeFormik.values.address}
-                                    onValueChange={(val) => updateMeFormik.setFieldValue("address", val)}
-                                    isInvalid={!!(updateMeFormik.touched.address && updateMeFormik.errors.address)}
+                                    onValueChange={(val) =>
+                                        updateMeFormik.setFieldValue("address", val)
+                                    }
+                                    isInvalid={
+                                        !!(
+                                            updateMeFormik.touched.address &&
+                                            updateMeFormik.errors.address
+                                        )
+                                    }
                                     errorMessage={updateMeFormik.errors.address}
                                     startContent={<MapPin className="text-gray-400" size={18} />}
                                 />
@@ -298,7 +333,10 @@ export default function ProfilePage() {
                         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
                         <div className="relative z-10">
                             <h3 className="text-2xl font-bold mb-2">Thành Viên Thân Thiết</h3>
-                            <p className="text-amber-100 max-w-md">Cập nhật đầy đủ thông tin để nhận thêm ưu đãi đặc biệt từ Cà phê Của Bạn.</p>
+                            <p className="text-amber-100 max-w-md">
+                                Cập nhật đầy đủ thông tin để nhận thêm ưu đãi đặc biệt từ Cà phê Của
+                                Bạn.
+                            </p>
                         </div>
                         <div className="hidden md:flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl border border-white/30">
                             <Coffee size={32} className="text-amber-100" />

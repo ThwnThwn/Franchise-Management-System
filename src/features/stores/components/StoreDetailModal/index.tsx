@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import React, { useCallback, useEffect } from "react"
 import { useCartStore } from "@/features/cart"
 import { ButtonStyled } from "@/components"
+import { formatPhoneNumber } from "@/utils/helpers/stringHelper"
 
 type StoreDetailModalProps = {
     store: StoreDetailDto | null
@@ -175,7 +176,9 @@ export default function StoreDetailModal({ store, isOpen, onClose }: StoreDetail
                                         <p className="text-sm font-medium text-gray-500 mb-1">
                                             Số điện thoại
                                         </p>
-                                        <p className="text-gray-900 font-medium">{store.phone}</p>
+                                        <p className="text-gray-900 font-medium">
+                                            {formatPhoneNumber(store.phone)}
+                                        </p>
                                     </div>
                                 </div>
 

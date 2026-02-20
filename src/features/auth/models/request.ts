@@ -2,13 +2,13 @@ import { Gender } from "@/constants/enums"
 
 export type UserRegisterReq = {
     email: string
-    userName: string
-    password: string
-    confirmPassword: string
-    dateOfBirth: string
+    username: string
     firstName: string
     lastName?: string
-    gender: Gender
-    address?: string
+    password: string
+    confirmPassword: string
     phone: string
+    address?: string
+    gender: Gender
+    dateOfBirth: string
 }

@@ -36,7 +36,7 @@ export function Register({ email, setEmail, onSuccess }: RegisterInfoProps) {
     const formik = useFormik({
         initialValues: {
             email: email,
-            userName: "",
+            username: "",
             lastName: "",
             firstName: "",
             password: "",
@@ -50,7 +50,7 @@ export function Register({ email, setEmail, onSuccess }: RegisterInfoProps) {
             email: Yup.string()
                 .required(AUTH_ERRORS.AUTH.EMAIL_REQUIRED)
                 .matches(EMAIL_REGEX, AUTH_ERRORS.AUTH.INVALID_EMAIL),
-            userName: Yup.string().required(AUTH_ERRORS.AUTH.USER_NAME_REQUIRED),
+            username: Yup.string().required(AUTH_ERRORS.AUTH.USER_NAME_REQUIRED),
             lastName: Yup.string()
                 // .required(AUTH_ERRORS.AUTH.LAST_NAME_REQUIRED)
                 .matches(NAME_REGEX, AUTH_ERRORS.AUTH.INVALID_LAST_NAME),
@@ -93,6 +93,7 @@ export function Register({ email, setEmail, onSuccess }: RegisterInfoProps) {
                     onBlur={() => {
                         formik.setFieldTouched("email")
                     }}
+                    isRequired
                 />
             </div>
 
@@ -101,13 +102,14 @@ export function Register({ email, setEmail, onSuccess }: RegisterInfoProps) {
                     // className="my-3"
                     variant="bordered"
                     label={AUTH_TEXT.TITLES.USERNAME}
-                    value={formik.values.userName}
-                    onValueChange={(value) => formik.setFieldValue("userName", value)}
-                    isInvalid={!!(formik.touched.userName && formik.errors.userName)}
-                    errorMessage={formik.errors.userName}
+                    value={formik.values.username}
+                    onValueChange={(value) => formik.setFieldValue("username", value)}
+                    isInvalid={!!(formik.touched.username && formik.errors.username)}
+                    errorMessage={formik.errors.username}
                     onBlur={() => {
-                        formik.setFieldTouched("userName")
+                        formik.setFieldTouched("username")
                     }}
+                    isRequired
                 />
             </div>
 
@@ -122,6 +124,7 @@ export function Register({ email, setEmail, onSuccess }: RegisterInfoProps) {
                     onBlur={() => {
                         formik.setFieldTouched("firstName")
                     }}
+                    isRequired
                 />
 
                 <InputStyled
@@ -155,6 +158,7 @@ export function Register({ email, setEmail, onSuccess }: RegisterInfoProps) {
                             toggleVisibility={toggleVisibility}
                         />
                     }
+                    isRequired
                 />
 
                 <InputStyled
@@ -174,6 +178,7 @@ export function Register({ email, setEmail, onSuccess }: RegisterInfoProps) {
                             toggleVisibility={toggleConFirmVisibility}
                         />
                     }
+                    isRequired
                 />
                 <div className="w-full mx-auto space-y-2">
                     <InputStyled
@@ -204,6 +209,7 @@ export function Register({ email, setEmail, onSuccess }: RegisterInfoProps) {
                     onBlur={() => {
                         formik.setFieldTouched("phone")
                     }}
+                    isRequired
                 />
             </div>
 
@@ -213,6 +219,8 @@ export function Register({ email, setEmail, onSuccess }: RegisterInfoProps) {
                     labels={GenderLabels}
                     value={formik.values.gender}
                     onChange={(val) => formik.setFieldValue("gender", val)}
+                    isClearable={false}
+                    isRequired
                 />
                 <DatePickerStyled
                     label={AUTH_TEXT.TITLES.DATE_OF_BIRTH}
@@ -227,6 +235,7 @@ export function Register({ email, setEmail, onSuccess }: RegisterInfoProps) {
                         const dob = formatDate(value)
                         formik.setFieldValue("dateOfBirth", dob)
                     }}
+                    isRequired
                 />
             </div>
 

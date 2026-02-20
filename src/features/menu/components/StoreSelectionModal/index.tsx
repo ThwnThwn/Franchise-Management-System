@@ -34,7 +34,7 @@ export default function StoreSelectionModal({
             limit: LIMIT,
             radiusKm: RADIUS_KM
         },
-        enabled: isOpen
+        enabled: isOpen && latitude !== null && longitude !== null
     })
 
     // Fallback: Get all stores if GPS is disabled or not found

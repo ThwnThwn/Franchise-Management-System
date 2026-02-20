@@ -1,6 +1,6 @@
 import axiosInstance from "@/utils/axios"
-import { UserProfileViewRes } from "../models/respone"
 import { UserUpdateReq } from "../models/request"
+import { User } from "@/models/user"
 
 /**
  * PROFILE API
@@ -9,7 +9,7 @@ import { UserUpdateReq } from "../models/request"
  */
 export const profileApi = {
     // Lấy thông tin cá nhân của người dùng hiện tại
-    getMe: async (): Promise<UserProfileViewRes> => {
+    getMe: async (): Promise<User> => {
         const res = await axiosInstance.get("/users/me")
         return res.data
     },

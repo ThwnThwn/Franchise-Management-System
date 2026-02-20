@@ -3,10 +3,10 @@ import { useTokenStore } from "@/hooks"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { profileApi } from "../service"
 import { UserUpdateReq } from "../models/request"
-import { UserProfileViewRes } from "../models/respone"
 import { addToast } from "@heroui/react"
 import { STRINGS } from "@/constants/strings"
 import { BackendError } from "@/models/common/respone"
+import { User } from "@/models/user"
 
 export const useGetMe = () => {
     const isLogined = useTokenStore((s) => !!s.accessToken)
@@ -34,7 +34,7 @@ export const useUpdateMe = ({
             return req
         },
         onSuccess: (data) => {
-            queryClient.setQueryData<UserProfileViewRes>([QUERY_KEYS.ME], (prev) => {
+            queryClient.setQueryData<User>([QUERY_KEYS.ME], (prev) => {
                 if (!prev) return prev
                 return {
                     ...prev,

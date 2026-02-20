@@ -85,6 +85,7 @@ export function LoginForm({ onSuccess }: { onSuccess?: () => void }) {
                             onBlur={() => {
                                 formik.setFieldTouched("emailOrUsername")
                             }}
+                            isRequired
                         />
                         <InputStyled
                             variant="bordered"
@@ -103,6 +104,7 @@ export function LoginForm({ onSuccess }: { onSuccess?: () => void }) {
                                     toggleVisibility={toggleVisibility}
                                 />
                             }
+                            isRequired
                         />
                     </div>
 
