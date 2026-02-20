@@ -17,10 +17,11 @@ type UserResponse struct {
 	DateOfBirth *time.Time `json:"dateOfBirth"`
 
 	AvatarUrl *string `json:"avatarUrl"`
+	IsBlocked bool    `json:"isBlocked"`
 
-	CreatedAt   *time.Time             `json:"createdAt"`
-	UpdatedAt   *time.Time             `json:"updatedAt"`
-	IsBlocked   bool                   `json:"isBlocked"`
 	HomeStoreID *string                `json:"homeStoreId"`
 	Role        *role.RoleUserResponse `json:"role"`
+
+	CreatedAt *time.Time `json:"createdAt"`
+	UpdatedAt *time.Time `json:"updatedAt"`
 }

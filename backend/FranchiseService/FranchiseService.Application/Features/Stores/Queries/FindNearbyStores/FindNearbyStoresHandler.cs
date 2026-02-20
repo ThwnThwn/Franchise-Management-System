@@ -1,5 +1,6 @@
 ﻿using FranchiseService.Application.Features.Stores.Dtos;
 using FranchiseService.Application.Repositories;
+using FranchiseService.Domain.Enums;
 using MediatR;
 
 namespace FranchiseService.Application.Features.Stores.Queries.FindNearbyStores
@@ -27,10 +28,11 @@ namespace FranchiseService.Application.Features.Stores.Queries.FindNearbyStores
                 Id = s.Id,
                 Name = s.Name,
                 Address = s.Address,
-                Latitude = (double?)(s.Latitude),
-                Longitude = (double?)(s.Longitude),
+                Phone = s.Phone,
                 ImageUrl = s.ImageUrl,
-                IsOpenNow = true
+                Latitude = (double?)s.Latitude,
+                Longitude = (double?)s.Longitude,
+                IsOpenNow = s.Status == (int)StoreStatus.Open
             }).ToList();
         }
     }

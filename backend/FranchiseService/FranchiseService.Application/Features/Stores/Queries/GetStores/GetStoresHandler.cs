@@ -30,8 +30,8 @@ namespace FranchiseService.Application.Features.Stores.Queries.GetStores
                 Address = s.Address,
                 Phone = s.Phone,
                 ImageUrl = s.ImageUrl,
-                Latitude = (double?)(s.Latitude),
-                Longitude = (double?)(s.Longitude),
+                Latitude = (double?)s.Latitude,
+                Longitude = (double?)s.Longitude,
                 IsOpenNow = s.Status == (int)StoreStatus.Open
             }).ToList();
 

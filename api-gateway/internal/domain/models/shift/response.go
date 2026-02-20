@@ -209,6 +209,4 @@ type TimeLogResponse struct {
 		EndTime   string  `json:"endTime"`
 		Note      *string `json:"note"`
 	} `json:"shift"`
-
-	ShiftNote *string `json:"shiftNote,omitempty"`
 }
