@@ -18,6 +18,7 @@ import { useGetAllTimeLogs, useGetMyTimeLogHistory } from "@/features/shifts/hoo
 
 // Shared components & Dashboard
 import { DashboardHeader } from "@/features/dashboard"
+import { useScrollSnap } from "@/hooks"
 
 export default function TimeLogManagementPageView() {
     // 1. Lấy "Bộ não" điều hướng
@@ -54,6 +55,12 @@ export default function TimeLogManagementPageView() {
 
     const { data, isLoading } = isManager ? managerQuery : staffQuery
     const logs = data?.items || []
+
+    const calendarSnapRef = useScrollSnap({
+        isActive: viewMode === "calendar",
+        thresholdTop: -30,
+        offset: 100
+    })
 
     return (
         <div className="max-w-7xl mx-auto min-h-screen p-4 md:p-6 lg:p-8 space-y-3">
@@ -106,7 +113,10 @@ export default function TimeLogManagementPageView() {
                                 onEditClick={modal.onOpen} // Manager click bút chì
                             />
                         ) : (
-                            <div className="bg-white p-2 rounded-3xl shadow-sm border border-divider">
+                            <div
+                                ref={calendarSnapRef}
+                                className="bg-white p-2 rounded-3xl shadow-sm border border-divider"
+                            >
                                 <TimeLogCalendar
                                     logs={logs}
                                     currentDate={currentDate}

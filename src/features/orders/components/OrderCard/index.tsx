@@ -1,11 +1,10 @@
 import React from "react"
 import { CardHeader, CardBody, CardFooter, Chip, Divider } from "@heroui/react"
 import { Order } from "@/features/orders/models/response"
-import { getOrderStatusColor } from "@/features/orders/"
 import { Calendar } from "lucide-react"
 import { formatCurrencyWithSymbol } from "@/utils/helpers/currency"
 import { CardStyled } from "@/components"
-import { ORDER_TEXT, OrderStatusLabels } from "@/features/orders/constants"
+import { ORDER_TEXT, OrderStatusColors, OrderStatusLabels } from "@/features/orders/constants"
 import { useDay } from "@/hooks"
 import { DEFAULT_DATE_FORMAT } from "@/constants/constants"
 
@@ -17,6 +16,7 @@ interface OrderCardProps {
 
 export const OrderCard = ({ order, onClick, isLatest }: OrderCardProps) => {
     const { formatDateTime } = useDay({ defaultFormat: DEFAULT_DATE_FORMAT })
+
     return (
         <CardStyled
             isPressable
@@ -37,7 +37,7 @@ export const OrderCard = ({ order, onClick, isLatest }: OrderCardProps) => {
                     </p>
                     <h4 className="text-start text-black font-bold text-large">{order.code}</h4>
                 </div>
-                <Chip color={getOrderStatusColor(order.status)} variant="bordered" size="sm">
+                <Chip color={OrderStatusColors[order.status]} variant="bordered" size="sm">
                     {OrderStatusLabels[order.status]}
                 </Chip>
             </CardHeader>

@@ -151,7 +151,7 @@ export default function CartDrawer() {
             }
 
             // Xử lý khi đặt hàng thành công hoàn toàn
-            router.push(isCustomer ? "/orders" : "/")
+            router.push(isCustomer ? `/orders/${res.orderId}` : "/")
             onClose()
 
             // Dọn dẹp các sản phẩm đã mua khỏi giỏ hàng server

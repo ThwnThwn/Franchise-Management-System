@@ -10,17 +10,17 @@ import {
     Spinner,
     addToast
 } from "@heroui/react"
-import { getOrderStatusColor } from "@/features/orders/utils"
-import { AlertModal, ButtonStyled, EnumPicker, ModalStyled } from "@/components"
-import { OrderDetail } from "./OrderDetail"
+import { ButtonStyled, EnumPicker, ModalStyled } from "@/components"
+import { OrderDetail } from "../OrderDetail"
 import {
     ORDER_TEXT,
     OrderStatus,
+    OrderStatusColors,
     OrderStatusLabels,
     PaymentMethod,
     PaymentMethodLabels
 } from "@/features/orders/constants"
-import { useDay } from "@/hooks"
+import { confirmDialog, useDay } from "@/hooks"
 import { DEFAULT_DATE_FORMAT } from "@/constants/constants"
 import { useGetOrderById, usePayment, useUpdateOrderStatus } from "@/features/orders/hooks"
 import { STRINGS } from "@/constants/strings"
@@ -44,7 +44,6 @@ export const OrderDetailModal = ({
     const router = useRouter()
     const { data: order, isLoading, error } = useGetOrderById({ id: orderId, enabled: isOpen })
     const { formatDateTime } = useDay({ defaultFormat: DEFAULT_DATE_FORMAT })
-    const [isCancelModalOpen, setIsCancelModalOpen] = useState(false)
 
     const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | undefined>(undefined)
     const { mutate: payment, isPending: isPaymentPending } = usePayment({
@@ -55,14 +54,14 @@ export const OrderDetailModal = ({
             } else {
                 addToast({
                     title: STRINGS.COMMON.SUCCESS,
-                    description: "Thanh toán thành công",
+                    description: "Thành công! Đang chờ nhà hàng xác nhận đơn...",
                     color: "success"
                 })
             }
         }
     })
     const handlePayment = () => {
-        if (!paymentMethod) return
+        if (paymentMethod === undefined) return
 
         payment({
             paymentMethod: paymentMethod
@@ -71,12 +70,25 @@ export const OrderDetailModal = ({
 
     const updateStatus = useUpdateOrderStatus({
         id: orderId,
-        onSuccess: () => {
-            setIsCancelModalOpen(false)
-            onClose()
-        }
+        onSuccess: onClose
     })
-    const handleCancel = () => updateStatus.mutate(OrderStatus.Cancel)
+
+    const handleCancel = async () => {
+        if (!order) return
+
+        const isConfirmed = await confirmDialog({
+            title: "Xác nhận huỷ",
+            message: (
+                <div className="text-slate-600">
+                    Bạn có chắc chắn muốn huỷ đơn hàng <br />
+                    <span className="font-bold text-slate-900 text-lg">{order.code}</span> không?
+                </div>
+            ),
+            confirmText: "Đồng ý huỷ",
+            variant: "danger"
+        })
+        if (isConfirmed) updateStatus.mutate(OrderStatus.Cancel)
+    }
 
     useEffect(() => {
         if (error) {
@@ -104,7 +116,7 @@ export const OrderDetailModal = ({
                                         {ORDER_TEXT.labels.ORDER_DETAIL_TITLE} #{order.code}
                                     </span>
                                     <Chip
-                                        color={getOrderStatusColor(order.status)}
+                                        color={OrderStatusColors[order.status]}
                                         variant="bordered"
                                     >
                                         {OrderStatusLabels[order.status]}
@@ -126,7 +138,7 @@ export const OrderDetailModal = ({
                                         {order.status === OrderStatus.PaymentPending && (
                                             <ButtonStyled
                                                 variant="bordered"
-                                                onPress={() => setIsCancelModalOpen(true)}
+                                                onPress={handleCancel}
                                                 isLoading={updateStatus.isPending}
                                                 isDisabled={
                                                     order.status !== OrderStatus.PaymentPending
@@ -153,7 +165,7 @@ export const OrderDetailModal = ({
                                             color="primary"
                                             onPress={handlePayment}
                                             isLoading={isPaymentPending}
-                                            isDisabled={!paymentMethod}
+                                            isDisabled={paymentMethod === undefined}
                                         >
                                             {ORDER_TEXT.labels.PAY}
                                         </ButtonStyled>
@@ -164,22 +176,6 @@ export const OrderDetailModal = ({
                     )}
                 </ModalContent>
             </ModalStyled>
-            <AlertModal
-                isOpen={isCancelModalOpen}
-                onClose={() => setIsCancelModalOpen(false)}
-                onConfirm={handleCancel}
-                header="Xác nhận huỷ"
-                variant="danger"
-                isLoading={updateStatus.isPending}
-                confirmText="Đồng ý huỷ"
-                body={
-                    <div className="text-slate-600">
-                        Bạn có chắc chắn muốn huỷ đơn hàng <br />
-                        <span className="font-bold text-slate-900 text-lg">{order.code}</span>{" "}
-                        không?
-                    </div>
-                }
-            />
         </>
     )
 }

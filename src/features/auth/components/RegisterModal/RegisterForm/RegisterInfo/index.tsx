@@ -1,6 +1,5 @@
 "use client"
 import { ButtonStyled, ButtonToggleVisibility, DatePickerStyled, InputStyled } from "@/components"
-import { DEFAULT_DATE_FORMAT } from "@/constants/constants"
 import { Gender } from "@/constants/enums"
 import { GenderLabels } from "@/constants/labels"
 import { EMAIL_REGEX, NAME_REGEX, PHONE_REGEX } from "@/constants/regexs"
@@ -19,7 +18,7 @@ interface RegisterInfoProps {
     onSuccess?: () => void
 }
 export function Register({ email, setEmail, onSuccess }: RegisterInfoProps) {
-    const { formatDateTime } = useDay({ defaultFormat: DEFAULT_DATE_FORMAT })
+    const { formatDate } = useDay()
     const registerMutation = useRegister({ onSuccess })
 
     const [isVisible, setIsVisible] = useState(false)
@@ -225,7 +224,7 @@ export function Register({ email, setEmail, onSuccess }: RegisterInfoProps) {
                             return
                         }
 
-                        const dob = formatDateTime({ date: value })
+                        const dob = formatDate(value)
                         formik.setFieldValue("dateOfBirth", dob)
                     }}
                 />

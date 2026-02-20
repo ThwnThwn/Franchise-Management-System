@@ -207,7 +207,7 @@ export const useDay = ({
             result = dayjs(date)
         }
 
-        return result.isValid() ? result.format(format) : ""
+        return result.isValid() ? result.tz(tz).format(format) : ""
     }
 
     // ========================================================================

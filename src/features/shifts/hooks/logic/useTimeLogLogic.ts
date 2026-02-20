@@ -31,7 +31,7 @@ export const useTimeLogLogic = () => {
     const [selectedLog, setSelectedLog] = useState<TimeLogResponse | null>(null)
 
     // 5. Tính toán Date Range để gọi API
-    // "Vít" logic: Nếu xem List thì lấy theo ngày, xem Calendar thì lấy theo tháng/tuần
+    // logic: Nếu xem List thì lấy theo ngày, xem Calendar thì lấy theo tháng/tuần
     const dateRange = useMemo(() => {
         return {
             fromDate: currentDate.startOf("month").format("YYYY-MM-DD"),

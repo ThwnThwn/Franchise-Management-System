@@ -10,7 +10,7 @@ export const ORDER_TEXT = {
         UPDATE_SUCCESS: "Cập nhật đơn thành công",
 
         ORDER_DETAIL_TITLE: "Chi tiết đơn hàng",
-        ORDER_DATE: "Ngày đặt:",
+        ORDER_DATE: "Ngày đặt",
         CLOSE: "Đóng",
         PAY: "Thanh toán",
         INVOICE_FEATURE_ALERT: "Tính năng in hóa đơn đang phát triển",

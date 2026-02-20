@@ -23,19 +23,17 @@ export function CreateUserForm({
     createRoleSlug,
     createMutation
 }: CreateUserFormProps) {
-    const { formatDateTime } = useDay()
+    const { formatDate } = useDay()
 
     const handleSubmit = useCallback(
         async (value: CreateUserRequest) => {
-            console.log(formatDateTime({ date: value.dateOfBirth }))
-
             await createMutation.mutateAsync({
                 ...value,
                 gender: Number(value.gender),
-                dateOfBirth: formatDateTime({ date: value.dateOfBirth })
+                dateOfBirth: formatDate(value.dateOfBirth)
             })
         },
-        [createMutation, formatDateTime]
+        [createMutation, formatDate]
     )
 
     // Schema Validation - Đã sửa message thành tiếng Việt
@@ -192,7 +190,7 @@ export function CreateUserForm({
                         formik.setFieldValue("dateOfBirth", "")
                         return
                     }
-                    const dob = formatDateTime({ date: value })
+                    const dob = formatDate(value)
                     formik.setFieldValue("dateOfBirth", dob)
                 }}
             />

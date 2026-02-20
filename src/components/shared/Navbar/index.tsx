@@ -119,7 +119,7 @@ export function Navbar() {
             if (y >= 0 && y < 10) {
                 nextScrollState = "default"
                 // nextHidden = false
-            } else if (y >= 10 && y < 400) {
+            } else if (y >= 10 && y < 250) {
                 nextScrollState = "top"
                 // nextHidden = false
             } else {
@@ -132,7 +132,7 @@ export function Navbar() {
             //     prev === nextHidden ? prev : nextHidden
             // )
 
-            if (y < 400) {
+            if (y < 250) {
                 setIsHiddenNavbar(false)
             } else {
                 if (y > lastScrollY) {

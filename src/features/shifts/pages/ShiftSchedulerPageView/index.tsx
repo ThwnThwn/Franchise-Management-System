@@ -21,7 +21,7 @@ import {
 } from "@/features/shifts/hooks"
 
 import { DashboardHeader } from "@/features/dashboard"
-import { useTokenStore } from "@/hooks"
+import { useScrollSnap, useTokenStore } from "@/hooks"
 import { useDisclosure } from "@heroui/react"
 import { CalendarRange } from "lucide-react"
 
@@ -75,6 +75,11 @@ export default function ShiftSchedulerPageView() {
     const { handleBulkPublish, handleBulkDelete, isProcessing } =
         useScheduleBulkActions(draftShiftIds)
 
+    const calendarSnapRef = useScrollSnap({
+        thresholdTop: -30,
+        offset: 100
+    })
+
     return (
         <div className="max-w-7xl mx-auto min-h-screen p-4 md:p-6 lg:p-8">
             {/* Header */}
@@ -112,7 +117,10 @@ export default function ShiftSchedulerPageView() {
                 <StaffWorkloadSummary shifts={shiftsData || []} storeId={storeId!} />
 
                 {/* Main Calendar Area */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 overflow-hidden">
+                <div
+                    ref={calendarSnapRef}
+                    className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 overflow-hidden"
+                >
                     <ShiftCalendar
                         shifts={shiftsData || []}
                         isLoading={isLoading}

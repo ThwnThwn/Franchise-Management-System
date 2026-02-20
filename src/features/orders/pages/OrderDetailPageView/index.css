@@ -1,0 +1,28 @@
+@media print {
+    /* 1. Ẩn tất cả mọi thứ trên trang */
+    body * {
+        visibility: hidden;
+    }
+
+    /* 2. Chỉ hiển thị duy nhất vùng Hóa đơn */
+    #invoice-card,
+    #invoice-card * {
+        visibility: visible;
+    }
+
+    /* 3. Đưa vùng hóa đơn lên trên cùng bên trái */
+    #invoice-card {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* 4. Loại bỏ tiêu đề/chân trang mặc định của trình duyệt (URL, Date) */
+    @page {
+        margin: 0.5cm;
+        size: auto;
+    }
+}

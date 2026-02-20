@@ -185,6 +185,8 @@ export const getMockTimeLogs = async (
     let filtered = [...MOCK_TIME_LOGS]
     console.log(pagination)
 
+    // console.log(filtered)
+
     // Lọc theo Status nếu có
     if (params.status !== undefined) {
         filtered = filtered.filter((l) => l.status === params.status)

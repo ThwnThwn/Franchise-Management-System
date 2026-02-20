@@ -9,6 +9,8 @@ import dayjs from "dayjs"
 import { TimeLogResponse } from "@/features/shifts/models/response"
 import { TimeLogEventCard } from "./TimeLogEventCard"
 import { ATTENDANCE_CONFIG } from "@/features/shifts/constants/config"
+import { DEFAULT_TIMEZONE } from "@/constants/constants"
+import { useDay } from "@/hooks"
 
 interface Props {
     logs: TimeLogResponse[]
@@ -19,6 +21,7 @@ interface Props {
 
 export const TimeLogCalendar = ({ logs, currentDate, isLoading, onEventClick }: Props) => {
     const calendarRef = useRef<FullCalendar>(null)
+    const { formatDateTime } = useDay()
 
     // Đồng bộ ngày khi Toolbar thay đổi
     useEffect(() => {
@@ -41,8 +44,6 @@ export const TimeLogCalendar = ({ logs, currentDate, isLoading, onEventClick }: 
         return logs.map((log) => {
             const { shiftDate, startTime, endTime } = log.shift
 
-            // 1. Logic thời gian (vẫn cần để FullCalendar biết đặt card ở đâu)
-            // const expStart = dayjs(`${shiftDate}T${startTime}`)
             let expEnd = dayjs(`${shiftDate}T${endTime}`)
             if (endTime < startTime) expEnd = expEnd.add(1, "day")
 
@@ -57,14 +58,12 @@ export const TimeLogCalendar = ({ logs, currentDate, isLoading, onEventClick }: 
             // 2. Trả về object tối giản
             return {
                 id: log.id,
-                start: log.checkInAt,
-                end: displayEnd,
-                // 🚩 Xóa sạch backgroundColor, borderColor, title...
-                // Chỉ truyền data gốc vào extendedProps
+                start: formatDateTime({ date: log.checkInAt }),
+                end: formatDateTime({ date: displayEnd }),
                 extendedProps: log
             }
         })
-    }, [logs])
+    }, [formatDateTime, logs])
 
     return (
         <div
@@ -74,6 +73,7 @@ export const TimeLogCalendar = ({ logs, currentDate, isLoading, onEventClick }: 
                 ref={calendarRef}
                 plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
                 initialView="timeGridWeek"
+                timeZone={DEFAULT_TIMEZONE}
                 headerToolbar={false}
                 events={events}
                 locale="vi"

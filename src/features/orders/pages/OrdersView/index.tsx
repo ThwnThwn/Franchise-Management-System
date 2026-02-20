@@ -1,25 +1,27 @@
 "use client"
 
-import React, { useEffect, useState } from "react"
-import { addToast, useDisclosure } from "@heroui/react"
-import { OrderCard, OrderDetailModal } from "@/features/orders/components/"
+import React, { useEffect } from "react"
+import { addToast } from "@heroui/react"
+import { OrderCard } from "@/features/orders/components/"
 import { OrderSummary } from "@/features/orders/models/response"
 import { ORDER_TEXT } from "@/features/orders/constants"
-import { mockOrders } from "./mock-data"
 import { useGetMyOrders } from "@/features/orders/hooks"
 import { SpinnerStyled } from "@/components"
 import { BackendError } from "@/models/common/respone"
 import { STRINGS } from "@/constants/strings"
+import { useRouter } from "next/navigation"
 
 export default function OrdersView() {
-    const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure()
-    const [selectedOrder, setSelectedOrder] = useState<OrderSummary | undefined>(undefined)
+    const router = useRouter()
+    // const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure()
+    // const [selectedOrder, setSelectedOrder] = useState<OrderSummary | undefined>(undefined)
 
     const { data: ordes, isLoading, error } = useGetMyOrders()
 
     const handleOpenDetail = (order: OrderSummary) => {
-        setSelectedOrder(order)
-        onOpen()
+        // setSelectedOrder(order)
+        // onOpen()
+        router.push(`/orders/${order.id}`)
     }
 
     useEffect(() => {
@@ -36,14 +38,14 @@ export default function OrdersView() {
     if (isLoading) return <SpinnerStyled />
 
     return (
-        <div className="p-8 w-fit mx-auto">
+        <div className="p-8 w-fit mx-auto min-h-[80vh]">
             <h1 className="text-center text-2xl font-bold mb-6">
                 {ORDER_TEXT.labels.ORDER_HISTORY}
             </h1>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                 {(() => {
-                    const orderList = ordes || mockOrders
+                    const orderList = ordes || []
                     // Find the latest order by createdAt date
                     const latestOrderId =
                         orderList.length > 0
@@ -65,14 +67,14 @@ export default function OrdersView() {
                 })()}
             </div>
 
-            {selectedOrder && (
+            {/* {selectedOrder && (
                 <OrderDetailModal
                     isOpen={isOpen}
                     onOpenChange={onOpenChange}
                     onClose={onClose}
                     orderId={selectedOrder.id}
                 />
-            )}
+            )} */}
         </div>
     )
 }
