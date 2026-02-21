@@ -23,6 +23,9 @@ service UserGrpc {
   rpc ChangePassword(ChangePasswordRequest) returns (UserResponse);
 
   rpc Delete(DeleteUserRequest) returns (DeleteUserResponse);
+
+  rpc UploadAvatar(UploadAvatarRequest) returns (UserResponse);
+  rpc DeleteAvatar(google.protobuf.Empty) returns (DeleteAvatarResponse);
 }
 
 message GetAllUserOrWithRoleRequest{
@@ -126,8 +129,17 @@ message UserResponse {
   google.protobuf.Timestamp createdAt = 13;
   google.protobuf.Timestamp updatedAt = 14;
   optional double current_hourly_wage = 15;
+  string avatar_url = 16;
 }
 
 message GetManagerRequest{
   string id = 1;
+}
+
+message UploadAvatarRequest {
+  bytes image_data = 1;
+}
+
+message DeleteAvatarResponse {
+  string message = 1;
 }
