@@ -11,6 +11,8 @@ using IdentityService.Application.Features.Users.Queries.GetAllUser;
 using IdentityService.Application.Features.Users.Queries.GetManager;
 using IdentityService.Application.Features.Users.Queries.GetUserById;
 using IdentityService.Application.Features.Users.Queries.GetUserByIds;
+using IdentityService.Application.Features.Users.Commands.UploadAvatar;
+using IdentityService.Application.Features.Users.Commands.DeleteAvatar;
 using IdentityService.Grpc.Protos.Role;
 using IdentityService.Grpc.Protos.User;
 using MediatR;
@@ -101,7 +103,7 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
         }
     }
 
-    public override async Task<GetUserByIdsResponse> GetByIds(GetUserByIdsRequest request,ServerCallContext context)
+    public override async Task<GetUserByIdsResponse> GetByIds(GetUserByIdsRequest request, ServerCallContext context)
     {
         if (request.Ids == null || request.Ids.Count == 0)
         {
@@ -119,7 +121,7 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
             return new GetUserByIdsResponse();
         }
 
-        var users = await _mediator.Send(new GetUserByIdsQuery(userIds),context.CancellationToken);
+        var users = await _mediator.Send(new GetUserByIdsQuery(userIds), context.CancellationToken);
         var response = new GetUserByIdsResponse();
         response.Users.AddRange(users.Select(MapUser));
 
@@ -247,6 +249,37 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
         return new DeleteUserResponse { Success = ok };
     }
 
+    public override async Task<UserResponse> UploadAvatar(UploadAvatarRequest request, ServerCallContext context)
+    {
+        var userEntry = context.RequestHeaders.FirstOrDefault(h =>
+           h.Key.Equals("x-user-id", StringComparison.OrdinalIgnoreCase));
+        if (userEntry == null)
+        {
+            throw new RpcException(new Status(StatusCode.Unauthenticated, "Missing x-user-id in request headers"));
+        }
+
+        var rep = await _mediator.Send(new UploadAvatarCommand(
+            UserId: Guid.Parse(userEntry.Value),
+            ImageData: request.ImageData.ToByteArray()
+        ));
+
+        return MapUser(rep);
+    }
+
+    public override async Task<DeleteAvatarResponse> DeleteAvatar(Empty request, ServerCallContext context)
+    {
+        var userEntry = context.RequestHeaders.FirstOrDefault(h =>
+           h.Key.Equals("x-user-id", StringComparison.OrdinalIgnoreCase));
+        if (userEntry == null)
+        {
+            throw new RpcException(new Status(StatusCode.Unauthenticated, "Missing x-user-id in request headers"));
+        }
+
+        var message = await _mediator.Send(new DeleteAvatarCommand(Guid.Parse(userEntry.Value)));
+
+        return new DeleteAvatarResponse { Message = message };
+    }
+
     private static UserResponse MapUser(UserRep user)
     {
         return new UserResponse
@@ -274,7 +307,8 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
                     Id = user.Role.Id.ToString(),
                     Name = user.Role.Name ?? "",
                     Slug = user.Role.Slug ?? ""
-                }
+                },
+            AvatarUrl = user.AvatarUrl ?? ""
         };
     }
 }

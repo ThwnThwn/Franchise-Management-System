@@ -8,6 +8,7 @@ using IdentityService.Application.DependencyInjection;
 using IdentityService.Application.Persistences.Caches;
 using IdentityService.Infrastructure.DependencyInjection;
 using IdentityService.Infrastructure.Persistences.Cache;
+using IdentityService.Infrastructure.Settings;
 
 namespace IdentityService.API
 {
@@ -58,6 +59,14 @@ namespace IdentityService.API
             //    opt.Configuration = redisConn + ",defaultDatabase=1";
             //    opt.InstanceName = "chb_redis";
             //});
+
+            // Cloudinary configuration
+            builder.Services.Configure<CloudinarySettings>(options =>
+            {
+                options.CloudName = builder.Configuration["CLOUDINARY_CLOUD_NAME"] ?? string.Empty;
+                options.ApiKey = builder.Configuration["CLOUDINARY_API_KEY"] ?? string.Empty;
+                options.ApiSecret = builder.Configuration["CLOUDINARY_API_SECRET"] ?? string.Empty;
+            });
 
             // KAFKA - Override for local development
             var kafkaBootstrap = Environment.GetEnvironmentVariable("KAFKA_BOOTSTRAP_SERVERS") ?? "localhost:9092";

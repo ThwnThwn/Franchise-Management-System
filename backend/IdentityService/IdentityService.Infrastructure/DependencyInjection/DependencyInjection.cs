@@ -48,6 +48,7 @@ public static class DependencyInjection
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<IOtpStore, OtpStore>();
         services.AddScoped<IEmailService, EmailService>();
+        services.AddScoped<ICloudinaryService, CloudinaryService>();
 
         services.AddScoped<IRoleRepository, RoleRepository>();
         services.AddScoped<IPermissionRepository, PermissionRepository>();
