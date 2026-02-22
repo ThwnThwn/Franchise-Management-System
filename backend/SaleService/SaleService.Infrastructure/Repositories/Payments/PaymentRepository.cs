@@ -3,6 +3,7 @@ using BuildingBlocks.Core.Pagination;
 using Microsoft.EntityFrameworkCore;
 using SalesService.Application.Interfaces.Payments;
 using SalesService.Domain.Entities;
+using SalesService.Domain.Enums;
 using SalesService.Infrastructure.ApplicationDbContext;
 
 namespace SalesService.Infrastructure.Repositories.Payments;
@@ -37,7 +38,13 @@ public sealed class PaymentRepository : IPaymentRepository
                 .ThenInclude(o => o.OrderItems)
             .FirstOrDefaultAsync(p => p.Id == paymentId, cancellationToken);
     }
-
+    public async Task<Payment?> GetNewestByOrderIdAndStatusAsync(Guid orderId, PaymentStatus status,CancellationToken cancellationToken = default)
+    {
+        return await _db.Payments
+            .Where(p => p.OrderId == orderId && p.Status == (int)status)
+            .OrderByDescending(p => p.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
     public async Task AddEventAsync(PaymentEvent paymentEvent, CancellationToken cancellationToken = default)
     {
         await _db.PaymentEvents.AddAsync(paymentEvent, cancellationToken);
