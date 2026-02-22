@@ -3,7 +3,7 @@
 import React from "react"
 import { Card, CardBody, CardFooter, Image } from "@heroui/react"
 import { formatCurrencyWithSymbol } from "@/utils/helpers/currency"
-import { Product } from "../../models/products/respone"
+import { Product } from "@/features/products/models/products/respone"
 import { motion } from "framer-motion"
 
 // Simple SVG Icons for Cup Sizes

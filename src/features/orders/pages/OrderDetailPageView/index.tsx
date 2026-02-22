@@ -13,7 +13,7 @@ import {
     PaymentMethod,
     PaymentMethodLabels
 } from "@/features/orders/constants"
-import { confirmDialog, useDay } from "@/hooks"
+import { confirmDialog, useDay, useTokenStore } from "@/hooks"
 import { CHB, DATE_TIME_VIEW_FORMAT } from "@/constants/constants"
 import { useGetOrderById, usePayment, useUpdateOrderStatus } from "@/features/orders/hooks"
 import { STRINGS } from "@/constants/strings"
@@ -22,10 +22,36 @@ import { useRouter } from "next/navigation"
 import { omitRecord } from "@/utils/helpers/uiHelper"
 import { OrderDetail } from "@/features/orders/components"
 import { Printer } from "lucide-react"
+import { RoleSlug } from "@/constants/enums"
+import { useGetRecipes } from "@/features/products/hooks/useRecipe"
 
 export default function OrderDetailPageView({ orderId }: { orderId: string }) {
+    // const isCustomer = false
+    const isCustomer = useTokenStore((s) => s.roleSlug === RoleSlug.Customer)
+
     const router = useRouter()
+
     const { data: order, isLoading, error } = useGetOrderById({ id: orderId, enabled: !!orderId })
+    const {
+        data: recipes,
+        isLoading: isRecipeLoading,
+        error: recipeError
+    } = useGetRecipes({
+        req: {
+            variantIds: order?.items.map((item) => item.variantId) || []
+        },
+        enabled: !isCustomer && !!order
+    })
+
+    // const recipes = React.useMemo(() => {
+    //     if (!order) return []
+    //     const ids = order.items.map((item) => item.variantId)
+    //     return generateMockRecipes(ids)
+    // }, [order])
+
+    // const isRecipeLoading = false
+    // const recipeError = null
+
     const { formatDateTime } = useDay({ defaultFormat: DATE_TIME_VIEW_FORMAT })
     const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | undefined>(undefined)
 
@@ -68,17 +94,17 @@ export default function OrderDetailPageView({ orderId }: { orderId: string }) {
     }
 
     useEffect(() => {
-        if (error) {
-            const backendErr = error as BackendError
+        if (error || recipeError) {
+            const backendErr = (error || recipeError) as BackendError
             addToast({
                 title: STRINGS.COMMON.ERROR,
                 description: backendErr.detail,
                 color: "danger"
             })
         }
-    }, [error])
+    }, [error, recipeError])
 
-    if (isLoading || !order) {
+    if (isLoading || isRecipeLoading || !order) {
         return (
             <div className="flex h-[80vh] items-center justify-center">
                 <Spinner label="Đang tải hoá đơn..." />
@@ -175,7 +201,12 @@ export default function OrderDetailPageView({ orderId }: { orderId: string }) {
                 <CardBody className="p-8 md:p-12">
                     {/* Chỗ này sẽ hiển thị chi tiết món ăn, số lượng, giá tiền */}
                     <div className="min-h-50">
-                        <OrderDetail key={order.id} order={order} />
+                        <OrderDetail
+                            key={order.id}
+                            order={order}
+                            recipes={recipes}
+                            isCustomer={isCustomer}
+                        />
                     </div>
                 </CardBody>
 

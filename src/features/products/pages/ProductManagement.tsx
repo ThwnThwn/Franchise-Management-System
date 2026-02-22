@@ -14,13 +14,13 @@ import {
     PaginationStyled,
     SpinnerStyled
 } from "@/components"
-import { GetAllProductParams } from "../models/products/request"
+import { GetAllProductParams } from "@/features/products/models/products/request"
 import { debouncedWrapper } from "@/utils/helpers/axiosHelper"
 import { PaginationParams } from "@/models/common/request"
 import { DashboardHeader } from "@/features/dashboard/components/general/DashboardHeader"
-import { ProductTable } from "../components/ProductTable"
+import { ProductTable } from "@/features/products/components"
 import { useRouter } from "next/navigation"
-import { PRODUCTS_ROUTES } from "../constants/routes"
+import { PRODUCTS_ROUTES } from "@/features/products/constants/routes"
 
 // Import Components & Hooks
 

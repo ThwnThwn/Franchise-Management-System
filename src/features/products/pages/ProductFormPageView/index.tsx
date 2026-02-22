@@ -20,7 +20,7 @@ import {
 import { CreateProductRequest, UpdateProductRequest } from "../../models/products/request"
 import { parseAttributes } from "../../utils/utils"
 import { ProductFormValues } from "../../types"
-import { VariantItem } from "../../components/VariantItem"
+import { VariantItem } from "../../components/variantModule/VariantItem"
 import { ProductImageUploader } from "../../components"
 import { PRODUCTS_ROUTES } from "../../constants/routes"
 

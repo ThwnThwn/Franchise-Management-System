@@ -16,7 +16,7 @@ import {
     TableHeader,
     TableColumn
 } from "@heroui/react"
-import { Product, ProductSize } from "../../models/products/respone"
+import { Product, ProductSize } from "@/features/products/models/products/respone"
 
 type ProductTableProps = {
     products: Product[]

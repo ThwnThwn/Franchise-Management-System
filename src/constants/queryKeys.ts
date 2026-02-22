@@ -3,6 +3,7 @@ export const QUERY_KEYS = {
     CURRENT: "current" as const,
     CATEGORIES: "categories" as const,
     PRODUCTS: "products" as const,
+    RECIPES: "recipes" as const,
     ORDERS: "orders" as const,
     USERS: "users" as const,
     STORES: "stores" as const,

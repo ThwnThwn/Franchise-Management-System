@@ -5,10 +5,10 @@ import { ModalBody, ModalContent, ModalHeader } from "@heroui/react"
 import { ModalStyled, ImageStyled, ButtonStyled, NumberInputStyled } from "@/components"
 import { formatCurrencyWithSymbol } from "@/utils/helpers/currency"
 import { useCartStore } from "@/features/cart/store"
-import { parseAttributes } from "../../utils/utils"
+import { parseAttributes } from "@/features/products/utils/utils"
 import { useTokenStore } from "@/hooks"
 import { useAddToCart } from "@/features/cart/hooks/useCartQuery"
-import { Product, ProductSize } from "../../models/products/respone"
+import { Product, ProductSize } from "@/features/products/models/products/respone"
 import { RoleSlug } from "@/constants/enums"
 
 type ProductVariantsModalProps = {

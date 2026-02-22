@@ -15,12 +15,15 @@ import { useFormik, FieldArray, FormikProvider } from "formik"
 import * as Yup from "yup"
 import { Plus } from "lucide-react"
 import { InputStyled, ButtonStyled, ModalStyled, AutocompleteStyled } from "@/components"
-import { useCreateProduct, useUpdateProduct, useGetAllCategories } from "../../hooks"
-import { CreateProductRequest, UpdateProductRequest } from "../../models/products/request"
-import { Product } from "../../models/products/respone"
-import { ProductFormValues } from "../../types"
-import { parseAttributes } from "../../utils/utils"
-import { VariantItem } from "../VariantItem"
+import { useCreateProduct, useUpdateProduct, useGetAllCategories } from "@/features/products/hooks"
+import {
+    CreateProductRequest,
+    UpdateProductRequest
+} from "@/features/products/models/products/request"
+import { Product } from "@/features/products/models/products/respone"
+import { ProductFormValues } from "@/features/products/types"
+import { parseAttributes } from "@/features/products/utils/utils"
+import { VariantItem } from "@/features/products/components/variantModule"
 
 // --- 3. COMPONENT CHÍNH ---
 export function ProductFormModal({

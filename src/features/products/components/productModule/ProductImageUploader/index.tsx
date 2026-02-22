@@ -2,7 +2,7 @@
 
 import React from "react"
 import { useImageUploadModal } from "@/hooks"
-import { useUploadProductImage } from "../../hooks"
+import { useUploadProductImage } from "@/features/products/hooks"
 import { DropdownStyled, ImagePreviewModal, ImageStyled, ImageUploaderModal } from "@/components"
 import { Camera, Eye } from "lucide-react"
 import { DropdownItem, DropdownMenu, DropdownTrigger, useDisclosure } from "@heroui/react"

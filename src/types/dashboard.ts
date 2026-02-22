@@ -1,3 +1,5 @@
+import React from "react"
+
 export interface DashboardStats {
     totalRevenue: number
     totalOrders: number

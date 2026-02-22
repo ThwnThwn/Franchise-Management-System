@@ -1,13 +1,30 @@
 "use client"
 
-import React from "react"
-import { Divider } from "@heroui/react"
+import React, { useMemo } from "react"
+import { Accordion, AccordionItem, Divider } from "@heroui/react"
 import { Order } from "@/features/orders/models/response"
 import { formatCurrencyWithSymbol } from "@/utils/helpers/currency"
-import { ORDER_TEXT, PaymentMethodLabels } from "@/features/orders/constants"
-import { ImageStyled } from "@/components"
+import { ORDER_TEXT, OrderStatus, PaymentMethodLabels } from "@/features/orders/constants"
+import { RecipeViewRes } from "@/features/products/models/recipes/response"
+import { RecipeIngredientList } from "@/features/products"
+import { OrderItemRow } from "./OrderItemRow"
 
-export const OrderDetail = ({ order }: { order: Order; isCustomer?: boolean }) => {
+export const OrderDetail = ({
+    order,
+    recipes = [],
+    isCustomer
+}: {
+    order: Order
+    recipes?: RecipeViewRes[]
+    isCustomer?: boolean
+}) => {
+    const defaultKeys = useMemo(() => {
+        if (order.status === OrderStatus.Preparing) {
+            return order.items.map((item) => item.id)
+        }
+        return []
+    }, [order])
+
     return (
         <div className="space-y-8">
             {/* 1. Thông tin khách hàng & Thanh toán - Bố cục ngang thoáng đạt */}
@@ -44,8 +61,8 @@ export const OrderDetail = ({ order }: { order: Order; isCustomer?: boolean }) =
 
             {/* 2. Danh sách sản phẩm dạng bảng (Table-like Grid) */}
             <div className="space-y-4">
-                {/* Header của bảng */}
-                <div className="grid grid-cols-12 px-2 pb-2">
+                {/* Header của bảng (Giữ nguyên) */}
+                <div className="grid grid-cols-12 px-2 pb-2 mb-0">
                     <div className="col-span-6 text-[10px] uppercase font-black text-default-400">
                         Sản phẩm
                     </div>
@@ -60,47 +77,49 @@ export const OrderDetail = ({ order }: { order: Order; isCustomer?: boolean }) =
                     </div>
                 </div>
 
-                <Divider />
+                <Divider className="mb-0" />
 
-                <div className="flex flex-col gap-6 pt-2">
-                    {order.items.map((item) => (
-                        <div key={item.id} className="grid grid-cols-12 items-center px-2 group">
-                            {/* Cột Sản phẩm */}
-                            <div className="col-span-6 flex gap-4 items-center">
-                                <div className="w-14 h-14 bg-default-100 rounded-xl shrink-0 border border-default-200 overflow-hidden group-hover:scale-105 transition-transform">
-                                    <ImageStyled
-                                        src={item.imageUrl}
-                                        alt={item.productName}
-                                        className="h-full w-full object-cover"
-                                    />
-                                </div>
-                                <div className="flex flex-col">
-                                    <span className="font-bold text-sm text-slate-800 line-clamp-1">
-                                        {item.productName}
-                                    </span>
-                                    <span className="text-[10px] font-mono text-default-400 uppercase tracking-tighter">
-                                        {item.sku}
-                                    </span>
-                                </div>
+                {isCustomer ? (
+                    // 🛡️ VIEW KHÁCH HÀNG: Danh sách tĩnh, không hover, không click
+                    <div className="flex flex-col">
+                        {order.items.map((item) => (
+                            <div
+                                key={item.id}
+                                className="px-2 py-4 border-b border-default-100 last:border-none transition-none"
+                            >
+                                <OrderItemRow item={item} />
                             </div>
-
-                            {/* Cột Đơn giá */}
-                            <div className="col-span-2 text-center text-sm font-medium text-slate-600">
-                                {formatCurrencyWithSymbol(item.unitPrice)}
-                            </div>
-
-                            {/* Cột Số lượng */}
-                            <div className="col-span-2 text-center text-sm font-bold text-slate-800">
-                                {item.quantity}
-                            </div>
-
-                            {/* Cột Thành tiền */}
-                            <div className="col-span-2 text-right font-black text-sm text-slate-900">
-                                {formatCurrencyWithSymbol(item.unitPrice * item.quantity)}
-                            </div>
-                        </div>
-                    ))}
-                </div>
+                        ))}
+                    </div>
+                ) : (
+                    // 🛠️ VIEW STAFF: Accordion xịn sò, có thể click mở công thức
+                    <Accordion
+                        selectionMode="multiple"
+                        variant="light"
+                        className="px-0"
+                        defaultExpandedKeys={defaultKeys}
+                        hideIndicator
+                        itemClasses={{
+                            base: "border-b border-default-100 last:border-none",
+                            title: "p-0",
+                            trigger: "px-2 py-4 rounded-xl hover:bg-default-50 transition-colors",
+                            content: "px-4 pt-0"
+                        }}
+                    >
+                        {order.items.map((item) => (
+                            <AccordionItem
+                                key={item.id}
+                                aria-label={item.productName}
+                                title={<OrderItemRow item={item} />}
+                            >
+                                <RecipeIngredientList
+                                    variantId={item.variantId}
+                                    recipes={recipes}
+                                />
+                            </AccordionItem>
+                        ))}
+                    </Accordion>
+                )}
             </div>
 
             {/* 3. Phần tổng kết (Summary) - Căn lề phải cực đẹp */}
