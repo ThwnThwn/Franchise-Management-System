@@ -17,5 +17,16 @@ export const profileApi = {
     // Cập nhật thông tin cá nhân (Họ tên, số điện thoại, avatar...)
     updateMe: async (req: UserUpdateReq): Promise<void> => {
         await axiosInstance.patch("/users/me", req)
+    },
+
+    uploadAvatar: async (formData: FormData): Promise<string> => {
+        const res = await axiosInstance.put("/users/me/avatar", formData, {
+            headers: { "Content-Type": "multipart/form-data" }
+        })
+        return res.data
+    },
+
+    deleteAvatar: async (): Promise<void> => {
+        await axiosInstance.delete("/users/me/avatar")
     }
 }

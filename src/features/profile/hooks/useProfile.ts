@@ -45,7 +45,7 @@ export const useUpdateMe = ({
             if (showToast) {
                 addToast({
                     title: STRINGS.NOTIFICATION.SUCCESS,
-                    description: "success.update",
+                    description: "Cập nhật thành công",
                     color: "success"
                 })
             }
@@ -53,6 +53,60 @@ export const useUpdateMe = ({
         onError: (error: BackendError) => {
             addToast({
                 title: error.title || STRINGS.NOTIFICATION.ERROR,
+                description: error.detail,
+                color: "danger"
+            })
+        }
+    })
+}
+
+export const useUploadMyAvatar = ({ onSuccess }: { onSuccess?: () => void }) => {
+    const queryClient = useQueryClient()
+    const key = [QUERY_KEYS.ME]
+
+    return useMutation({
+        mutationFn: async (formData: FormData) => {
+            return await profileApi.uploadAvatar(formData)
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: key, exact: false })
+            addToast({
+                title: STRINGS.COMMON.SUCCESS,
+                description: "Cập nhật ảnh thành công",
+                color: "success"
+            })
+            onSuccess?.()
+        },
+        onError: (error: BackendError) => {
+            addToast({
+                title: error.title || STRINGS.COMMON.ERROR,
+                description: error.detail,
+                color: "danger"
+            })
+        }
+    })
+}
+
+export const useDeleteMyAvatar = ({ onSuccess }: { onSuccess?: () => void }) => {
+    const queryClient = useQueryClient()
+    const key = [QUERY_KEYS.ME]
+
+    return useMutation({
+        mutationFn: async () => {
+            await profileApi.deleteAvatar()
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: key, exact: false })
+            addToast({
+                title: STRINGS.COMMON.SUCCESS,
+                description: "Xoá ảnh thành công",
+                color: "success"
+            })
+            onSuccess?.()
+        },
+        onError: (error: BackendError) => {
+            addToast({
+                title: error.title || STRINGS.COMMON.ERROR,
                 description: error.detail,
                 color: "danger"
             })

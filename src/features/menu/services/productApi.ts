@@ -52,7 +52,7 @@ export const productApi = {
 
     // Upload hình ảnh sản phẩm (Xử lý FormData)
     uploadImage: async ({ id, formData }: { id: string; formData: FormData }): Promise<string> => {
-        const res = await axiosInstance.post(`/products/${id}/images`, formData, {
+        const res = await axiosInstance.put(`/products/${id}/images`, formData, {
             headers: { "Content-Type": "multipart/form-data" }
         })
         return res.data

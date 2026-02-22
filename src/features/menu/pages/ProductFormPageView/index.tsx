@@ -267,7 +267,6 @@ export default function ProductFormPageView({ productId }: { productId?: string 
                                 <ProductImageUploader
                                     productId={productId}
                                     currentImageUrl={product?.imageUrl}
-                                    onSuccess={() => {}}
                                 />
                             </CardBody>
                         </Card>

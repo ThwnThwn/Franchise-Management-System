@@ -3,17 +3,9 @@
 import React from "react"
 import { useImageUploadModal } from "@/hooks"
 import { useUploadProductImage } from "../../hooks"
-import { DropdownStyled, ImageStyled, ImageUploaderModal, ModalStyled } from "@/components"
+import { DropdownStyled, ImagePreviewModal, ImageStyled, ImageUploaderModal } from "@/components"
 import { Camera, Eye } from "lucide-react"
-import {
-    DropdownItem,
-    DropdownMenu,
-    DropdownTrigger,
-    ModalBody,
-    ModalContent,
-    useDisclosure
-} from "@heroui/react"
-import Image from "next/image"
+import { DropdownItem, DropdownMenu, DropdownTrigger, useDisclosure } from "@heroui/react"
 
 type Props = {
     productId: string
@@ -89,32 +81,13 @@ export function ProductImageUploader({ productId, currentImageUrl, onSuccess }: 
 
             {/* Modal Preview Ảnh Lớn */}
             {currentImageUrl && (
-                <ModalStyled
+                <ImagePreviewModal
                     isOpen={isPreviewOpen}
                     onOpenChange={onPreviewChange}
-                    size="3xl"
-                    placement="center"
-                    classNames={{
-                        body: "p-0",
-                        backdrop: "bg-black/80", // Nền tối hơn cho giống chế độ xem ảnh
-                        base: "bg-transparent shadow-none" // Bỏ khung trắng của modal
-                    }}
-                    isDismissable
-                    hideCloseButton
-                >
-                    <ModalContent>
-                        <ModalBody className="flex items-center justify-center w-full">
-                            {/* Dùng fill + object-contain để ảnh tự co giãn vừa khung hình */}
-                            <Image
-                                src={currentImageUrl}
-                                alt="Full Preview"
-                                className="object-contain rounded-md"
-                                width={400}
-                                height={300}
-                            />
-                        </ModalBody>
-                    </ModalContent>
-                </ModalStyled>
+                    imgUrl={currentImageUrl}
+                    width={400}
+                    height={300}
+                />
             )}
 
             {/* Modal Upload */}
