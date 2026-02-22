@@ -97,7 +97,7 @@ public sealed class CreateOrderHandler
             Items = listItemCheck.ToList()
         };
         var reserveRes = await _inventoryServiceClient.ReserveStockAsync(reserveReq);
-        if(!reserveRes.IsEnough)
+        if (!reserveRes.IsEnough)
         {
             return Result.Success(new CreateOrderResponseDto
             {
@@ -207,7 +207,7 @@ public sealed class CreateOrderHandler
         }
 
         //Remove orderd items in cartItem
-        await _cartItemRepository.RemoveItemsAsync(order.CustomerId, skus, cancellationToken) ;
+        await _cartItemRepository.RemoveItemsAsync(order.CustomerId, skus, cancellationToken);
 
         // 2. Save Order (and OutboxMessage) in one transaction (implicitly handled by CreateAsync -> SaveChanges)
         var createdOrder = await _orderRepository.CreateAsync(order, cancellationToken);
