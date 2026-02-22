@@ -1,4 +1,4 @@
-import ProductFormPageView from "@/features/menu/pages/ProductFormPageView"
+import ProductFormPageView from "@/features/products/pages/ProductFormPageView"
 import React from "react"
 
 export default function CreateProductPage() {

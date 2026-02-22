@@ -14,7 +14,7 @@ type StoreSelectionModalProps = {
     onStoreSelect: (store: StoreDetailDto) => void
 }
 
-export default function StoreSelectionModal({
+export function StoreSelectionModal({
     isOpen,
     onOpenChange,
     onStoreSelect

@@ -7,7 +7,7 @@ import { formatCurrencyWithSymbol } from "@/utils/helpers/currency"
 import { ORDER_TEXT, PaymentMethodLabels } from "@/features/orders/constants"
 import { ImageStyled } from "@/components"
 
-export const OrderDetail = ({ order }: { order: Order }) => {
+export const OrderDetail = ({ order }: { order: Order; isCustomer?: boolean }) => {
     return (
         <div className="space-y-8">
             {/* 1. Thông tin khách hàng & Thanh toán - Bố cục ngang thoáng đạt */}

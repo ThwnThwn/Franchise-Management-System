@@ -3,7 +3,7 @@ import {
     CreateProductRequest,
     GetAllProductParams,
     UpdateProductRequest
-} from "@/features/menu/models/products/request"
+} from "@/features/products/models/products/request"
 import axiosInstance from "@/utils/axios"
 import { Product } from "../models/products/respone"
 import { PaginationParams } from "@/models/common/request"

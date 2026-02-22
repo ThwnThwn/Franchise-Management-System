@@ -1,4 +1,4 @@
-import MenuPage from "@/features/menu/pages/MenuPage"
+import MenuPage from "@/features/products/pages/MenuPage"
 import React from "react"
 
 export default function Menu() {

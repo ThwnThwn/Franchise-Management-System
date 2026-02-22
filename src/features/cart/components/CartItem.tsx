@@ -3,7 +3,7 @@ import { CardBody } from "@heroui/react"
 import { Minus, Plus, Trash2 } from "lucide-react"
 import { CartItem as CartItemType } from "../models/types"
 import { ButtonIconStyled, CardStyled, ImageStyled } from "@/components"
-import { parseAttributes } from "@/features/menu/utils/utils"
+import { parseAttributes } from "@/features/products/utils/utils"
 import { formatCurrency, formatCurrencyWithSymbol } from "@/utils/helpers/currency"
 
 interface CartItemProps {

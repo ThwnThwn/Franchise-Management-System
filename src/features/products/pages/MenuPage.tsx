@@ -3,18 +3,20 @@ import React, { useState, useCallback, useMemo, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useInView } from "react-intersection-observer"
 
-import { MENU_ERRORS } from "../constants"
-import { Product } from "../models/products/respone"
-import { useGetAllCategories, useGetInfiniteProducts } from "../hooks"
+import { MENU_ERRORS } from "@/features/products/constants"
+import { GetAllProductParams } from "@/features/products/models/products/request"
+import { Product } from "@/features/products/models/products/respone"
+import { useGetAllCategories, useGetInfiniteProducts } from "@/features/products/hooks"
+import { ProductCard, ProductVariantsModal } from "@/features/products/components"
+
 import { AutocompleteStyled, InputStyled } from "@/components"
 import { useLoginDiscloresureSingleton, useTokenStore } from "@/hooks"
 import { useDisclosure, AutocompleteItem, Spinner } from "@heroui/react"
 import { MapPin, Search } from "lucide-react"
+import { debouncedWrapper } from "@/utils/helpers/axiosHelper"
 
 import { useCartStore } from "@/features/cart/store"
-import { GetAllProductParams } from "../models/products/request"
-import { debouncedWrapper } from "@/utils/helpers/axiosHelper"
-import { ProductCard, ProductVariantsModal, StoreSelectionModal } from "../components"
+import { StoreSelectionModal } from "@/features/stores/components"
 
 export default function MenuPage() {
     const { onOpen: onOpenLogin } = useLoginDiscloresureSingleton()

@@ -3,13 +3,14 @@
 import React, { useEffect, useState } from "react"
 import Link from "next/link"
 import { motion } from "framer-motion"
-import { productApi } from "@/features/menu/services/productApi"
-import { Product } from "@/features/menu/models/products/respone"
-import { ProductCard, ProductVariantsModal, StoreSelectionModal } from "@/features/menu/components"
+import { productApi } from "@/features/products/services/productApi"
+import { Product } from "@/features/products/models/products/respone"
+import { ProductCard, ProductVariantsModal } from "@/features/products/components"
 import { useDisclosure } from "@heroui/react"
 import { useLoginDiscloresureSingleton, useTokenStore } from "@/hooks"
 import { StoreDetailDto } from "@/features/stores/models/schema/response"
 import { useCartStore } from "@/features/cart/store"
+import { StoreSelectionModal } from "@/features/stores/components"
 
 export default function FeaturedSection() {
     const [featuredItems, setFeaturedItems] = useState<Product[]>([])
