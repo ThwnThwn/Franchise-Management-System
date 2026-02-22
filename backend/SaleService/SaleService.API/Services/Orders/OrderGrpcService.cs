@@ -8,6 +8,7 @@ using SalesService.Application.Features.Orders.Commands.Update;
 using SalesService.Application.Features.Orders.Commands.UpdateOrderStatus;
 using SalesService.Application.Features.Orders.GetById;
 using SalesService.Application.Features.Orders.Queries.GetMyOrders;
+using SalesService.Application.Features.Orders.Queries.GetOrders;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
 using System;
@@ -306,5 +307,63 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
         return reply;
     }
 
+    public override async Task<GetOrdersReply> GetOrders(GetOrdersRequest request, ServerCallContext context)
+    {
+        var storeId = string.IsNullOrEmpty(request.StoreId) ? (Guid?)null : Guid.Parse(request.StoreId);
+        var fromDate = string.IsNullOrEmpty(request.FromDate) ? (DateOnly?)null : DateOnly.Parse(request.FromDate);
+        var toDate = string.IsNullOrEmpty(request.ToDate) ? (DateOnly?)null : DateOnly.Parse(request.ToDate);
+        var status = request.HasStatus ? (Domain.Enums.OrderStatus?)request.Status : null;
+        var paymentMethod = request.HasPaymentMethod ? (Domain.Enums.PaymentMethod?)request.PaymentMethod : null;
 
+        var query = new GetOrdersQuery(
+            storeId,
+            request.Code,
+            fromDate,
+            toDate,
+            status,
+            paymentMethod,
+            request.Page > 0 ? request.Page : 1,
+            request.PageSize > 0 ? request.PageSize : 10
+        );
+
+        var result = await _mediator.Send(query, context.CancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            throw new RpcException(new Status(StatusCode.Internal, result.Errors.FirstOrDefault() ?? "Failed to get orders"));
+        }
+
+        var reply = new GetOrdersReply
+        {
+            TotalCount = result.Value.TotalCount
+        };
+
+        foreach (var order in result.Value.Orders)
+        {
+            var summary = new OrderSummary
+            {
+                Id = order.Id.ToString(),
+                Code = order.Code,
+                Subtotal = (double)order.Subtotal,
+                TotalAmount = (double)order.TotalAmount,
+                Status = order.Status,
+                PaidAt = order.PaidAt.ToString("O"),
+                CreatedAt = order.CreatedAt.ToString("O"), 
+                UpdatedAt = order.UpdatedAt.ToString("O"),
+                CustomerId = order.CustomerId?.ToString() ?? "",
+                Tax = order.Tax.HasValue ? (double)order.Tax.Value : -1,
+                PaidAmount = order.PaidAmount.HasValue ? (double)order.PaidAmount.Value : -1,
+                PaymentMethod = order.PaymentMethod ?? -1
+            };
+
+            if (!string.IsNullOrEmpty(order.Notes))
+            {
+                summary.Notes = order.Notes;
+            }
+
+            reply.Orders.Add(summary);
+        }
+
+        return reply;
+    }
 }
