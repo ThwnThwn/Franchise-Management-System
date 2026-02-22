@@ -68,9 +68,9 @@ public sealed class CreatePaymentHandler : IRequestHandler<CreatePaymentCommand,
             Amount = order.TotalAmount,
             Currency = "VND",
             Method = (int)request.PaymentMethod,// 0 = Cash | 1 = VNPay
-            Status = request.PaymentMethod == PaymentMethod.Cash
+            Status = request.PaymentMethod == PaymentMethod.VNPay
                         ? (int)PaymentStatus.Paid
-                        : (int)PaymentStatus.Pending,      // 0 = Pending | 1 = Paid
+                        : (int)PaymentStatus.Pending,      // if VNPay then Paid Else Pending
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             IsDeleted = false
@@ -81,9 +81,8 @@ public sealed class CreatePaymentHandler : IRequestHandler<CreatePaymentCommand,
         {
             //Mark Order as Paid
             order.PaidAmount = order.TotalAmount;
-            order.PaidAt = DateTime.UtcNow;
             order.PaymentMethod = (int)PaymentMethod.Cash;
-            order.Status = OrderStatus.Completed;
+            order.Status = OrderStatus.ConfirmationPending;
             order.UpdatedAt = DateTime.UtcNow;
 
             // PUBLISH OrderPaidEvent via Outbox

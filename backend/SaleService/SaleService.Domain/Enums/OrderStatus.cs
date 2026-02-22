@@ -3,8 +3,11 @@ namespace SalesService.Domain.Enums;
 public enum OrderStatus
 {
     PaymentPending = 0,
-    Preparing = 1,
-    Ready = 2,
-    Completed = 3,
-    Cancel = 4
+    ConfirmationPending = 1,
+    Confirmed = 2,
+    Preparing = 3,
+    ReadyForPickup = 4,
+    Delivering = 5,
+    Completed = 6,
+    Cancelled = 7
 }
