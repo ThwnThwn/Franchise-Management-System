@@ -22,8 +22,25 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ShiftGrpcServiceClient interface {
-	// Lấy lịch làm việc hôm nay của nhân viên (Để App biết đang làm ở Store nào)
+	// --- EXISTING RPC ---
+	// Lấy lịch làm việc hôm nay của nhân viên
 	GetUserCurrentShift(ctx context.Context, in *GetUserCurrentShiftRequest, opts ...grpc.CallOption) (*GetUserCurrentShiftResponse, error)
+	// Lấy danh sách ca làm việc (Filter)
+	GetShifts(ctx context.Context, in *GetShiftsRequest, opts ...grpc.CallOption) (*GetShiftsResponse, error)
+	// Lấy chi tiết 1 ca
+	GetShiftById(ctx context.Context, in *GetShiftByIdRequest, opts ...grpc.CallOption) (*ShiftResponse, error)
+	// Tạo ca mới
+	CreateShift(ctx context.Context, in *CreateShiftRequest, opts ...grpc.CallOption) (*CreateShiftResponse, error)
+	// Cập nhật ca (Partial Update)
+	UpdateShift(ctx context.Context, in *UpdateShiftRequest, opts ...grpc.CallOption) (*UpdateShiftResponse, error)
+	// Xóa ca (Soft Delete)
+	DeleteShift(ctx context.Context, in *DeleteShiftRequest, opts ...grpc.CallOption) (*DeleteShiftResponse, error)
+	// Publish ca (Chuyển trạng thái sang Published)
+	PublishShift(ctx context.Context, in *PublishShiftRequest, opts ...grpc.CallOption) (*PublishShiftResponse, error)
+	// Phân công nhân viên (Sync List - PUT logic)
+	AssignStaff(ctx context.Context, in *AssignStaffRequest, opts ...grpc.CallOption) (*AssignStaffResponse, error)
+	// Lấy danh sách ứng viên khả dụng (kèm validation)
+	GetAvailableStaffs(ctx context.Context, in *GetAvailableStaffsRequest, opts ...grpc.CallOption) (*GetAvailableStaffsResponse, error)
 }
 
 type shiftGrpcServiceClient struct {
@@ -43,12 +60,101 @@ func (c *shiftGrpcServiceClient) GetUserCurrentShift(ctx context.Context, in *Ge
 	return out, nil
 }
 
+func (c *shiftGrpcServiceClient) GetShifts(ctx context.Context, in *GetShiftsRequest, opts ...grpc.CallOption) (*GetShiftsResponse, error) {
+	out := new(GetShiftsResponse)
+	err := c.cc.Invoke(ctx, "/franchise.ShiftGrpcService/GetShifts", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shiftGrpcServiceClient) GetShiftById(ctx context.Context, in *GetShiftByIdRequest, opts ...grpc.CallOption) (*ShiftResponse, error) {
+	out := new(ShiftResponse)
+	err := c.cc.Invoke(ctx, "/franchise.ShiftGrpcService/GetShiftById", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shiftGrpcServiceClient) CreateShift(ctx context.Context, in *CreateShiftRequest, opts ...grpc.CallOption) (*CreateShiftResponse, error) {
+	out := new(CreateShiftResponse)
+	err := c.cc.Invoke(ctx, "/franchise.ShiftGrpcService/CreateShift", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shiftGrpcServiceClient) UpdateShift(ctx context.Context, in *UpdateShiftRequest, opts ...grpc.CallOption) (*UpdateShiftResponse, error) {
+	out := new(UpdateShiftResponse)
+	err := c.cc.Invoke(ctx, "/franchise.ShiftGrpcService/UpdateShift", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shiftGrpcServiceClient) DeleteShift(ctx context.Context, in *DeleteShiftRequest, opts ...grpc.CallOption) (*DeleteShiftResponse, error) {
+	out := new(DeleteShiftResponse)
+	err := c.cc.Invoke(ctx, "/franchise.ShiftGrpcService/DeleteShift", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shiftGrpcServiceClient) PublishShift(ctx context.Context, in *PublishShiftRequest, opts ...grpc.CallOption) (*PublishShiftResponse, error) {
+	out := new(PublishShiftResponse)
+	err := c.cc.Invoke(ctx, "/franchise.ShiftGrpcService/PublishShift", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shiftGrpcServiceClient) AssignStaff(ctx context.Context, in *AssignStaffRequest, opts ...grpc.CallOption) (*AssignStaffResponse, error) {
+	out := new(AssignStaffResponse)
+	err := c.cc.Invoke(ctx, "/franchise.ShiftGrpcService/AssignStaff", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shiftGrpcServiceClient) GetAvailableStaffs(ctx context.Context, in *GetAvailableStaffsRequest, opts ...grpc.CallOption) (*GetAvailableStaffsResponse, error) {
+	out := new(GetAvailableStaffsResponse)
+	err := c.cc.Invoke(ctx, "/franchise.ShiftGrpcService/GetAvailableStaffs", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ShiftGrpcServiceServer is the server API for ShiftGrpcService service.
 // All implementations must embed UnimplementedShiftGrpcServiceServer
 // for forward compatibility
 type ShiftGrpcServiceServer interface {
-	// Lấy lịch làm việc hôm nay của nhân viên (Để App biết đang làm ở Store nào)
+	// --- EXISTING RPC ---
+	// Lấy lịch làm việc hôm nay của nhân viên
 	GetUserCurrentShift(context.Context, *GetUserCurrentShiftRequest) (*GetUserCurrentShiftResponse, error)
+	// Lấy danh sách ca làm việc (Filter)
+	GetShifts(context.Context, *GetShiftsRequest) (*GetShiftsResponse, error)
+	// Lấy chi tiết 1 ca
+	GetShiftById(context.Context, *GetShiftByIdRequest) (*ShiftResponse, error)
+	// Tạo ca mới
+	CreateShift(context.Context, *CreateShiftRequest) (*CreateShiftResponse, error)
+	// Cập nhật ca (Partial Update)
+	UpdateShift(context.Context, *UpdateShiftRequest) (*UpdateShiftResponse, error)
+	// Xóa ca (Soft Delete)
+	DeleteShift(context.Context, *DeleteShiftRequest) (*DeleteShiftResponse, error)
+	// Publish ca (Chuyển trạng thái sang Published)
+	PublishShift(context.Context, *PublishShiftRequest) (*PublishShiftResponse, error)
+	// Phân công nhân viên (Sync List - PUT logic)
+	AssignStaff(context.Context, *AssignStaffRequest) (*AssignStaffResponse, error)
+	// Lấy danh sách ứng viên khả dụng (kèm validation)
+	GetAvailableStaffs(context.Context, *GetAvailableStaffsRequest) (*GetAvailableStaffsResponse, error)
 	mustEmbedUnimplementedShiftGrpcServiceServer()
 }
 
@@ -58,6 +164,30 @@ type UnimplementedShiftGrpcServiceServer struct {
 
 func (UnimplementedShiftGrpcServiceServer) GetUserCurrentShift(context.Context, *GetUserCurrentShiftRequest) (*GetUserCurrentShiftResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserCurrentShift not implemented")
+}
+func (UnimplementedShiftGrpcServiceServer) GetShifts(context.Context, *GetShiftsRequest) (*GetShiftsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetShifts not implemented")
+}
+func (UnimplementedShiftGrpcServiceServer) GetShiftById(context.Context, *GetShiftByIdRequest) (*ShiftResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetShiftById not implemented")
+}
+func (UnimplementedShiftGrpcServiceServer) CreateShift(context.Context, *CreateShiftRequest) (*CreateShiftResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateShift not implemented")
+}
+func (UnimplementedShiftGrpcServiceServer) UpdateShift(context.Context, *UpdateShiftRequest) (*UpdateShiftResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateShift not implemented")
+}
+func (UnimplementedShiftGrpcServiceServer) DeleteShift(context.Context, *DeleteShiftRequest) (*DeleteShiftResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteShift not implemented")
+}
+func (UnimplementedShiftGrpcServiceServer) PublishShift(context.Context, *PublishShiftRequest) (*PublishShiftResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PublishShift not implemented")
+}
+func (UnimplementedShiftGrpcServiceServer) AssignStaff(context.Context, *AssignStaffRequest) (*AssignStaffResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AssignStaff not implemented")
+}
+func (UnimplementedShiftGrpcServiceServer) GetAvailableStaffs(context.Context, *GetAvailableStaffsRequest) (*GetAvailableStaffsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAvailableStaffs not implemented")
 }
 func (UnimplementedShiftGrpcServiceServer) mustEmbedUnimplementedShiftGrpcServiceServer() {}
 
@@ -90,6 +220,150 @@ func _ShiftGrpcService_GetUserCurrentShift_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ShiftGrpcService_GetShifts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetShiftsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShiftGrpcServiceServer).GetShifts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/franchise.ShiftGrpcService/GetShifts",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShiftGrpcServiceServer).GetShifts(ctx, req.(*GetShiftsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShiftGrpcService_GetShiftById_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetShiftByIdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShiftGrpcServiceServer).GetShiftById(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/franchise.ShiftGrpcService/GetShiftById",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShiftGrpcServiceServer).GetShiftById(ctx, req.(*GetShiftByIdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShiftGrpcService_CreateShift_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateShiftRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShiftGrpcServiceServer).CreateShift(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/franchise.ShiftGrpcService/CreateShift",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShiftGrpcServiceServer).CreateShift(ctx, req.(*CreateShiftRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShiftGrpcService_UpdateShift_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateShiftRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShiftGrpcServiceServer).UpdateShift(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/franchise.ShiftGrpcService/UpdateShift",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShiftGrpcServiceServer).UpdateShift(ctx, req.(*UpdateShiftRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShiftGrpcService_DeleteShift_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteShiftRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShiftGrpcServiceServer).DeleteShift(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/franchise.ShiftGrpcService/DeleteShift",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShiftGrpcServiceServer).DeleteShift(ctx, req.(*DeleteShiftRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShiftGrpcService_PublishShift_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PublishShiftRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShiftGrpcServiceServer).PublishShift(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/franchise.ShiftGrpcService/PublishShift",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShiftGrpcServiceServer).PublishShift(ctx, req.(*PublishShiftRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShiftGrpcService_AssignStaff_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AssignStaffRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShiftGrpcServiceServer).AssignStaff(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/franchise.ShiftGrpcService/AssignStaff",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShiftGrpcServiceServer).AssignStaff(ctx, req.(*AssignStaffRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShiftGrpcService_GetAvailableStaffs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAvailableStaffsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShiftGrpcServiceServer).GetAvailableStaffs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/franchise.ShiftGrpcService/GetAvailableStaffs",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShiftGrpcServiceServer).GetAvailableStaffs(ctx, req.(*GetAvailableStaffsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ShiftGrpcService_ServiceDesc is the grpc.ServiceDesc for ShiftGrpcService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -100,6 +374,38 @@ var ShiftGrpcService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUserCurrentShift",
 			Handler:    _ShiftGrpcService_GetUserCurrentShift_Handler,
+		},
+		{
+			MethodName: "GetShifts",
+			Handler:    _ShiftGrpcService_GetShifts_Handler,
+		},
+		{
+			MethodName: "GetShiftById",
+			Handler:    _ShiftGrpcService_GetShiftById_Handler,
+		},
+		{
+			MethodName: "CreateShift",
+			Handler:    _ShiftGrpcService_CreateShift_Handler,
+		},
+		{
+			MethodName: "UpdateShift",
+			Handler:    _ShiftGrpcService_UpdateShift_Handler,
+		},
+		{
+			MethodName: "DeleteShift",
+			Handler:    _ShiftGrpcService_DeleteShift_Handler,
+		},
+		{
+			MethodName: "PublishShift",
+			Handler:    _ShiftGrpcService_PublishShift_Handler,
+		},
+		{
+			MethodName: "AssignStaff",
+			Handler:    _ShiftGrpcService_AssignStaff_Handler,
+		},
+		{
+			MethodName: "GetAvailableStaffs",
+			Handler:    _ShiftGrpcService_GetAvailableStaffs_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

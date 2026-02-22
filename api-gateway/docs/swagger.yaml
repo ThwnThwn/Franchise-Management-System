@@ -2199,7 +2199,7 @@ paths:
       tags:
       - Products
   /products/{id}/images:
-    post:
+    put:
       consumes:
       - multipart/form-data
       description: Upload an image for a specific product. Supports JPG, PNG, and
@@ -3467,6 +3467,80 @@ paths:
       security:
       - BearerAuth: []
       summary: Update My Profile
+      tags:
+      - Profile
+  /users/me/avatar:
+    delete:
+      consumes:
+      - application/json
+      description: Delete my avatar.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete My Avatar
+      tags:
+      - Profile
+    put:
+      consumes:
+      - multipart/form-data
+      description: Upload my avatar. Supports JPG, PNG, and WebP formats. Max file
+        size is 10MB.
+      parameters:
+      - description: Image file to upload
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "413":
+          description: Request entity too large
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Upload My Avatar
       tags:
       - Profile
   /variants/{id}/recipes:

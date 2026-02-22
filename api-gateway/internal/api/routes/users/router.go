@@ -12,6 +12,8 @@ func (u *UserRouter) Init(r *gin.RouterGroup) {
 	{
 		privateApi.GET("/me", u.userHl.GetMe)
 		privateApi.PATCH("/me", u.userHl.UpdateMe)
+		privateApi.PUT("/me/avatar", u.userHl.UploadMyAvatar)
+		privateApi.DELETE("/me/avatar", u.userHl.DeleteMyAvatar)
 	}
 
 	{

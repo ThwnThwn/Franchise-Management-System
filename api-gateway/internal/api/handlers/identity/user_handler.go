@@ -6,6 +6,7 @@ import (
 	"api-gateway/internal/domain/models/user"
 	"api-gateway/pkg/utils/grpcutils"
 	"api-gateway/pkg/utils/validation"
+	"io"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -100,6 +101,91 @@ func (h *UserHandler) UpdateMe(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, res)
+}
+
+// UploadMyAvatar
+// @Summary      Upload My Avatar
+// @Description  Upload my avatar. Supports JPG, PNG, and WebP formats. Max file size is 10MB.
+// @Tags         Profile
+// @Accept       multipart/form-data
+// @Produce      json
+// @Security     BearerAuth
+// @Param        image      formData  file    true   "Image file to upload"
+// @Success      200        {object}  map[string]string
+// @Failure      401  		{object}  map[string]string "Unauthorized"
+// @Failure      413        {object}  map[string]string "Request entity too large"
+// @Failure      500        {object}  map[string]string "Internal server error"
+// @Router       /users/me/avatar [put]
+func (h *UserHandler) UploadMyAvatar(c *gin.Context) {
+	// 1. Lấy file từ form-data (key là "image")
+	file, _, err := c.Request.FormFile("image")
+	if err != nil {
+		c.Error(errorcode.ErrImageRequired)
+		return
+	}
+	defer file.Close()
+
+	// 2. Đọc file vào byte slice
+	fileBytes, err := io.ReadAll(file)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	// 3. Validation: Kiểm tra xem có thực sự là ảnh không (Magic Bytes)
+	contentType := http.DetectContentType(fileBytes)
+	allowedTypes := map[string]bool{
+		"image/jpeg": true,
+		"image/png":  true,
+		"image/webp": true,
+	}
+	if !allowedTypes[contentType] {
+		c.Error(errorcode.ErrInvalidImageFormat)
+		return
+	}
+
+	ctx, err := grpcutils.BuildAuthContext(c)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	// Gọi xuống Client (Gateway)
+	if err := h.userUC.UploadMyAvatar(ctx, fileBytes); err != nil {
+		c.Error(err)
+		return
+	}
+
+	// Trả kết quả
+	c.JSON(http.StatusOK, gin.H{})
+}
+
+// DeleteMyAvatar
+// @Summary      Delete My Avatar
+// @Description  Delete my avatar.
+// @Tags         Profile
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200        {object}  map[string]string
+// @Failure      401  		{object}  map[string]string "Unauthorized"
+// @Failure      500        {object}  map[string]string "Internal server error"
+// @Router       /users/me/avatar [delete]
+func (h *UserHandler) DeleteMyAvatar(c *gin.Context) {
+	ctx, err := grpcutils.BuildAuthContext(c)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	// Gọi xuống Client (Gateway)
+	if err := h.userUC.DeleteMyAvatar(ctx); err != nil {
+		c.Error(err)
+		return
+	}
+
+	// Trả kết quả
+	c.JSON(http.StatusOK, gin.H{})
 }
 
 // --- Admin / User Management Section ---

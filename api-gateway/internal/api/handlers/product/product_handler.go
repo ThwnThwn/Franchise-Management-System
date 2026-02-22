@@ -185,7 +185,7 @@ func (h *ProductHandler) DeleteProduct(c *gin.Context) {
 // @Failure      400        {object}  map[string]string "Invalid ID or unsupported image format"
 // @Failure      413        {object}  map[string]string "Request entity too large"
 // @Failure      500        {object}  map[string]string "Internal server error"
-// @Router       /products/{id}/images [post]
+// @Router       /products/{id}/images [put]
 func (h *ProductHandler) UploadImage(c *gin.Context) {
 	id := c.Param("id")
 	productId, err := uuid.Parse(id)

@@ -9,6 +9,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type UserGrpcClient struct {
@@ -123,4 +124,18 @@ func (u *UserGrpcClient) ChangePassword(ctx context.Context, accessToken string,
 	}
 
 	return mapper.MapUserPbToUserModel(res), nil
+}
+
+// UploadMyAvatar implements identity.IUserService.
+func (u *UserGrpcClient) UploadMyAvatar(ctx context.Context, imageData []byte) error {
+	_, err := u.client.UploadAvatar(ctx, &idenPb.UploadAvatarRequest{
+		ImageData: imageData,
+	})
+	return err
+}
+
+// DeleteMyAvatar implements identity.IUserService.
+func (u *UserGrpcClient) DeleteMyAvatar(ctx context.Context) error {
+	_, err := u.client.DeleteAvatar(ctx, &emptypb.Empty{})
+	return err
 }
