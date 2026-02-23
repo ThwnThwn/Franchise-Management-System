@@ -1,9 +1,5 @@
-<<<<<<< HEAD
-﻿using Ardalis.Result;
-=======
-using System.Text.Json;
+
 using Ardalis.Result;
->>>>>>> main
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -32,7 +28,7 @@ public sealed class VnPayReturnHandler
     private readonly IKafkaProducer _kafkaProducer;
 
     public VnPayReturnHandler(
-        IPaymentRepository paymentRepository, 
+        IPaymentRepository paymentRepository,
         IConfiguration config,
         IOutboxRepository outboxRepository,
         IOutboxSignal outboxSignal,
@@ -192,29 +188,29 @@ public sealed class VnPayReturnHandler
 
             if (payment.Order != null)
             {
-                 // PUBLISH OrderCancelledEvent (release reservation)
-                 var cancelledEvent = new SharedKernel.Events.OrderCancelledEvent
-                 {
-                     OrderId = payment.Order.Id,
-                     CancelledAt = DateTimeOffset.UtcNow,
-                     Reason = $"Payment Failed: {responseCode}"
-                 };
+                // PUBLISH OrderCancelledEvent (release reservation)
+                var cancelledEvent = new SharedKernel.Events.OrderCancelledEvent
+                {
+                    OrderId = payment.Order.Id,
+                    CancelledAt = DateTimeOffset.UtcNow,
+                    Reason = $"Payment Failed: {responseCode}"
+                };
 
-                 var outbox = new OutboxMessage
-                 {
-                     Id = Guid.NewGuid(),
-                     Type = KafkaTopics.OrderCancelled,
-                     Content = JsonSerializer.Serialize(cancelledEvent),
-                     OccurredOn = DateTimeOffset.UtcNow
-                 };
-                 _outboxRepository.Add(outbox);
+                var outbox = new OutboxMessage
+                {
+                    Id = Guid.NewGuid(),
+                    Type = KafkaTopics.OrderCancelled,
+                    Content = JsonSerializer.Serialize(cancelledEvent),
+                    OccurredOn = DateTimeOffset.UtcNow
+                };
+                _outboxRepository.Add(outbox);
             }
 
             await AddPaymentEvent(payment.Id, "VNPAY_CALLBACK_FAILED", query, cancellationToken);
         }
 
         await _paymentRepository.SaveChangesAsync(cancellationToken);
-        
+
         // Pulse Outbox Worker
         _outboxSignal.Pulse();
 
