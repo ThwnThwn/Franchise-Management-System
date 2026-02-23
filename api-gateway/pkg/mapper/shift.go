@@ -3,6 +3,7 @@ package mapper
 import (
 	"api-gateway/internal/domain/models/shift"
 	"api-gateway/internal/domain/models/user"
+	"api-gateway/pkg/pb/franchise"
 	"api-gateway/pkg/utils/stringutils"
 )
 
@@ -48,4 +49,36 @@ func MapStaffToTimeLog(log *shift.TimeLogResponse, u *user.UserResponse) {
 	log.Staff.FirstName = stringutils.ToPtr(u.FirstName)
 	log.Staff.LastName = stringutils.ToPtr(u.LastName)
 	log.Staff.Email = stringutils.ToPtr(u.Email)
+}
+
+func MapShiftPbToModel(shiftPb *franchise.ShiftResponse) *shift.ShiftResponse {
+	assignments := make([]*shift.ShiftAssignment, 0, len(shiftPb.Assignments))
+	for _, item := range shiftPb.Assignments {
+		assignments = append(assignments, &shift.ShiftAssignment{
+			ID:         item.Id,
+			ShiftID:    item.ShiftId,
+			UserID:     item.UserId,
+			Status:     int(item.Status),
+			HourlyWage: item.HourlyWage,
+
+			FirstName: item.FirstName,
+			LastName:  item.LastName,
+			AvatarURL: item.AvatarUrl,
+			Email:     &item.Email,
+		})
+	}
+
+	return &shift.ShiftResponse{
+		ID:                   shiftPb.Id,
+		StoreID:              shiftPb.StoreId,
+		ShiftDate:            shiftPb.ShiftDate,
+		StartTime:            shiftPb.StartTime,
+		EndTime:              shiftPb.EndTime,
+		RequiredStaffCount:   int(shiftPb.RequiredStaffCount),
+		BreakDurationMinutes: int(shiftPb.BreakDurationMinutes),
+		ShiftTemplateID:      shiftPb.ShiftTemplateId,
+		Status:               int(shiftPb.Status),
+		Note:                 shiftPb.Note,
+		AssignedStaffCount:   int(shiftPb.AssignedStaffCount),
+	}
 }

@@ -32,7 +32,7 @@ namespace FranchiseService.API.Services
 
         // 3. GetUserCurrentShift
         public override async Task<GetUserCurrentShiftResponse> GetUserCurrentShift(
-    GetUserCurrentShiftRequest request, ServerCallContext context)
+            GetUserCurrentShiftRequest request, ServerCallContext context)
         {
             // Parse User ID from request (or context if needed)
             if (!Guid.TryParse(request.UserId, out var userId))
@@ -91,32 +91,31 @@ namespace FranchiseService.API.Services
         {
             DateOnly? from = null;
             DateOnly? to = null;
-            
+
             if (DateOnly.TryParse(request.FromDate, out var f)) from = f;
             if (DateOnly.TryParse(request.ToDate, out var t)) to = t;
 
             if (!Guid.TryParse(request.StoreId, out var storeId))
             {
-               throw new RpcException(new Status(StatusCode.InvalidArgument, "StoreId is required"));
+                throw new RpcException(new Status(StatusCode.InvalidArgument, "StoreId is required"));
             }
 
-            int page = request.Page <= 0 ? 1 : request.Page;
-            int pageSize = request.PageSize <= 0 ? 100 : request.PageSize;
             int? status = request.Status == 0 ? null : request.Status;
 
-            var query = new GetShiftsQuery(storeId, from, to, page, pageSize, status);
+            var query = new GetShiftsQuery(storeId, from, to, status);
             var result = await _mediator.Send(query);
 
             var response = new FranchiseService.Grpc.GetShiftsResponse();
-            response.Data.AddRange(result.Items.Select(s => new FranchiseService.Grpc.ShiftResponse
+            response.Data.AddRange(result.Select(s => new FranchiseService.Grpc.ShiftResponse
             {
                 Id = s.Id.ToString(),
                 StoreId = s.StoreId.ToString(),
                 ShiftDate = s.ShiftDate.ToString("yyyy-MM-dd"),
-                StartTime = s.StartTime.ToString("HH:mm"),
-                EndTime = s.EndTime.ToString("HH:mm"),
+                StartTime = s.StartTime.ToString("HH:mm:ss"),
+                EndTime = s.EndTime.ToString("HH:mm:ss"),
                 RequiredStaffCount = s.RequiredStaffCount,
                 BreakDurationMinutes = s.BreakDurationMinutes,
+
                 ShiftTemplateId = s.ShiftTemplateId?.ToString() ?? "",
                 Status = s.Status,
                 Note = s.Note ?? "",
@@ -124,12 +123,16 @@ namespace FranchiseService.API.Services
                 Assignments = { s.Assignments.Select(a => new FranchiseService.Grpc.ShiftAssignmentResponse
                 {
                     Id = a.Id.ToString(),
+                    ShiftId = a.ShiftId.ToString(),
                     UserId = a.UserId.ToString(),
-                    StaffName = a.StaffName ?? "",
-                    AvatarUrl = a.StaffAvatarUrl ?? "",
                     Status = a.Status == 0 ? 1 : 0, // Mapping simple status
-                    CreatedAt = "" 
-                }) }
+                    HourlyWage = a.HourlyWage.HasValue ? (double)a.HourlyWage.Value : 0,
+
+                    FirstName = a.FirstName,
+                    LastName = a.LastName,
+                    AvatarUrl = a.AvatarUrl,
+                    Email = a.Email
+                })}
             }));
 
             return response;
@@ -154,10 +157,11 @@ namespace FranchiseService.API.Services
                 Id = result.Id.ToString(),
                 StoreId = result.StoreId.ToString(),
                 ShiftDate = result.ShiftDate.ToString("yyyy-MM-dd"),
-                StartTime = result.StartTime.ToString("HH:mm"),
-                EndTime = result.EndTime.ToString("HH:mm"),
+                StartTime = result.StartTime.ToString("HH:mm:ss"),
+                EndTime = result.EndTime.ToString("HH:mm:ss"),
                 RequiredStaffCount = result.RequiredStaffCount,
                 BreakDurationMinutes = result.BreakDurationMinutes,
+
                 ShiftTemplateId = result.ShiftTemplateId?.ToString() ?? "",
                 Status = result.Status,
                 Note = result.Note ?? "",
@@ -165,11 +169,16 @@ namespace FranchiseService.API.Services
                 Assignments = { result.Assignments.Select(a => new FranchiseService.Grpc.ShiftAssignmentResponse
                 {
                     Id = a.Id.ToString(),
+                    ShiftId = a.ShiftId.ToString(),
                     UserId = a.UserId.ToString(),
-                    StaffName = a.StaffName ?? "",
-                    AvatarUrl = a.StaffAvatarUrl ?? "",
-                    Status = a.Status == 0 ? 1 : 0, // 0:Assigned -> Active(1)
-                }) }
+                    Status = a.Status == 0 ? 1 : 0, // Mapping simple status
+                    HourlyWage = a.HourlyWage.HasValue ? (double)a.HourlyWage.Value : 0,
+
+                    FirstName = a.FirstName,
+                    LastName = a.LastName,
+                    AvatarUrl = a.AvatarUrl,
+                    Email = a.Email
+                })}
             };
         }
 
@@ -184,41 +193,41 @@ namespace FranchiseService.API.Services
             Guid? templateId = null;
             if (!string.IsNullOrEmpty(request.ShiftTemplateId))
             {
-                 if (!Guid.TryParse(request.ShiftTemplateId, out var tId))
+                if (!Guid.TryParse(request.ShiftTemplateId, out var tId))
                     throw new RpcException(new Status(StatusCode.InvalidArgument, $"Invalid ShiftTemplateId format: '{request.ShiftTemplateId}'"));
-                 templateId = tId;
+                templateId = tId;
             }
 
             if (!DateOnly.TryParse(request.ShiftDate, out var shiftDate))
             {
-                 throw new RpcException(new Status(StatusCode.InvalidArgument, $"Invalid ShiftDate format: '{request.ShiftDate}'"));
+                throw new RpcException(new Status(StatusCode.InvalidArgument, $"Invalid ShiftDate format: '{request.ShiftDate}'"));
             }
 
             TimeOnly? start = null;
             if (!string.IsNullOrEmpty(request.StartTime))
             {
                 if (!TimeOnly.TryParse(request.StartTime, out var s))
-                     throw new RpcException(new Status(StatusCode.InvalidArgument, $"Invalid StartTime format: '{request.StartTime}'"));
+                    throw new RpcException(new Status(StatusCode.InvalidArgument, $"Invalid StartTime format: '{request.StartTime}'"));
                 start = s;
             }
 
             TimeOnly? end = null;
             if (!string.IsNullOrEmpty(request.EndTime))
             {
-                 if (!TimeOnly.TryParse(request.EndTime, out var e))
-                     throw new RpcException(new Status(StatusCode.InvalidArgument, $"Invalid EndTime format: '{request.EndTime}'"));
-                 end = e;
+                if (!TimeOnly.TryParse(request.EndTime, out var e))
+                    throw new RpcException(new Status(StatusCode.InvalidArgument, $"Invalid EndTime format: '{request.EndTime}'"));
+                end = e;
             }
 
             Guid createdBy = Guid.Empty;
             if (!string.IsNullOrEmpty(request.CreatedBy))
             {
-                 if (!Guid.TryParse(request.CreatedBy, out var cBy))
-                      createdBy = Guid.Empty; // Fail safe or throw? Let's keep strict for inputs but safe for optional context
-                 else 
-                      createdBy = cBy;
+                if (!Guid.TryParse(request.CreatedBy, out var cBy))
+                    createdBy = Guid.Empty; // Fail safe or throw? Let's keep strict for inputs but safe for optional context
+                else
+                    createdBy = cBy;
             }
-            
+
             var command = new CreateShiftCommand
             {
                 StoreId = storeId,
@@ -259,25 +268,25 @@ namespace FranchiseService.API.Services
             return new UpdateShiftResponse { Success = true };
         }
 
-        // DELETE 
+        // DELETE
         public override async Task<DeleteShiftResponse> DeleteShift(DeleteShiftRequest request, ServerCallContext context)
         {
             await _mediator.Send(new DeleteShiftCommand(Guid.Parse(request.Id)));
             return new DeleteShiftResponse { Success = true };
         }
 
-        //  PUBLISH 
+        //  PUBLISH
         public override async Task<PublishShiftResponse> PublishShift(PublishShiftRequest request, ServerCallContext context)
         {
-             await _mediator.Send(new PublishShiftCommand(Guid.Parse(request.Id)));
-             return new PublishShiftResponse { Success = true };
+            await _mediator.Send(new PublishShiftCommand(Guid.Parse(request.Id)));
+            return new PublishShiftResponse { Success = true };
         }
 
-        // ASSIGN STAFF (SYNC) 
+        // ASSIGN STAFF (SYNC)
         public override async Task<AssignStaffResponse> AssignStaff(AssignStaffRequest request, ServerCallContext context)
         {
             var userIds = request.UserIds.Select(Guid.Parse).ToList();
-            
+
             var command = new UpdateShiftAssignmentCommand
             {
                 ShiftId = Guid.Parse(request.ShiftId),
@@ -399,7 +408,7 @@ namespace FranchiseService.API.Services
             }
         }
 
-        // GET TIME LOGS 
+        // GET TIME LOGS
         public override async Task<GetTimeLogsResponse> GetTimeLogs(
             GetTimeLogsRequest request, ServerCallContext context)
         {
@@ -449,7 +458,7 @@ namespace FranchiseService.API.Services
             }
         }
 
-        // UPDATE TIME LOG 
+        // UPDATE TIME LOG
         public override async Task<UpdateTimeLogResponse> UpdateTimeLog(
             UpdateTimeLogRequest request, ServerCallContext context)
         {

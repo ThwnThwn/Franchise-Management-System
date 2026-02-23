@@ -96,20 +96,28 @@ message ShiftResponse {
   string end_time = 5;          // Format: "HH:mm"
   int32 required_staff_count = 6;
   int32 break_duration_minutes = 7;
-  string shift_template_id = 8; // Optional
+  optional string shift_template_id = 8; // Optional
   int32 status = 9;             // 0:Draft, 1:Published, 2:Completed, 3:Cancelled
-  string note = 10;
+  optional string note = 10;
   int32 assigned_staff_count = 11;
   repeated ShiftAssignmentResponse assignments = 12;
 }
 
 message ShiftAssignmentResponse {
   string id = 1;
-  string user_id = 2;
-  string staff_name = 3;
-  string avatar_url = 4;
-  int32 status = 5;
-  string created_at = 6;
+  string shift_id = 2;
+  string user_id = 3;
+  int32 status = 4;
+  optional double hourly_wage = 5;
+
+  string first_name = 6;
+  optional string last_name = 7;
+  optional string avatar_url = 8;
+  string email = 9;
+
+  // string user_id = 2;
+  // string staff_name = 3;
+  // string created_at = 6;
 }
 
 // --- GET LIST ---
@@ -119,8 +127,8 @@ message GetShiftsRequest {
   string from_date = 2;          // "YYYY-MM-DD"
   string to_date = 3;            // "YYYY-MM-DD"
   int32 status = 4;              // Optional filter
-  int32 page = 5;
-  int32 page_size = 6;
+  // int32 page = 5;
+  // int32 page_size = 6;
 }
 
 message GetShiftsResponse {

@@ -19,7 +19,7 @@ namespace FranchiseService.Application.Features.Shifts.Queries.GetShiftById
         public async Task<ShiftResponse> Handle(GetShiftByIdQuery request, CancellationToken cancellationToken)
         {
             var shift = await _shiftRepo.GetShiftByIdWithAssignmentsAsync(request.Id, cancellationToken);
-            
+
             if (shift == null)
             {
                 throw new KeyNotFoundException($"Không tìm thấy ca làm việc {request.Id}");
@@ -32,10 +32,12 @@ namespace FranchiseService.Application.Features.Shifts.Queries.GetShiftById
         {
             var assignmentDtos = new List<ShiftAssignmentDto>();
 
+            // Map Assignments & Fetch Staff Info via gRPC
             if (s.ShiftAssignments != null)
             {
                 foreach (var a in s.ShiftAssignments)
                 {
+                    // Call Identity Service to get User Info
                     var userInfo = await _identityClient.GetUserByIdAsync(a.UserId);
 
                     assignmentDtos.Add(new ShiftAssignmentDto
@@ -43,10 +45,14 @@ namespace FranchiseService.Application.Features.Shifts.Queries.GetShiftById
                         Id = a.Id,
                         ShiftId = a.ShiftId,
                         UserId = a.UserId,
-                        StaffName = userInfo?.Username,
-                        StaffEmail = userInfo?.Email,
                         Status = a.Status,
                         HourlyWage = a.HourlyWage,
+
+                        FirstName = userInfo?.FirstName ?? "",
+                        LastName = userInfo?.LastName,
+                        AvatarUrl = userInfo?.AvatarUrl,
+                        Email = userInfo?.Email,
+
                         TimeLogs = a.TimeLogs.Select(tl => new TimeLogDto
                         {
                             Id = tl.Id,
@@ -62,15 +68,16 @@ namespace FranchiseService.Application.Features.Shifts.Queries.GetShiftById
             {
                 Id = s.Id,
                 StoreId = s.StoreId,
-                ShiftTemplateId = s.ShiftTemplateId,
                 ShiftDate = s.ShiftDate,
                 StartTime = s.StartTime,
                 EndTime = s.EndTime,
                 RequiredStaffCount = s.RequiredStaffCount,
-                AssignedStaffCount = assignmentDtos.Count,
                 BreakDurationMinutes = s.BreakDurationMinutes,
+
+                ShiftTemplateId = s.ShiftTemplateId,
                 Status = s.Status,
                 Note = s.Note,
+                AssignedStaffCount = assignmentDtos.Count,
                 Assignments = assignmentDtos
             };
         }

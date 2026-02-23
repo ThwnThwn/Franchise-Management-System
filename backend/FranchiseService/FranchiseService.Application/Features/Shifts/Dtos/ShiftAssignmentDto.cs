@@ -33,17 +33,19 @@ namespace FranchiseService.Application.Features.Shifts.DTOs
         /// <summary>
         /// Tên nhân viên (lấy từ Identity Service qua gRPC)
         /// </summary>
-        public string? StaffName { get; set; }
+        public string FirstName { get; set; } = null!;
+
+        public string? LastName { get; set; }
 
         /// <summary>
         /// Avatar URL (lấy từ Identity Service)
         /// </summary>
-        public string? StaffAvatarUrl { get; set; }
+        public string? AvatarUrl { get; set; }
 
         /// <summary>
         /// Email nhân viên (lấy từ Identity Service)
         /// </summary>
-        public string? StaffEmail { get; set; }
+        public string? Email { get; set; }
 
         public List<TimeLogDto> TimeLogs { get; set; } = new();
     }
