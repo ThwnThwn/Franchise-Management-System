@@ -11,6 +11,9 @@ namespace FranchiseService.Application.ClientInterfaces
         // Lay danh sach tat ca user (co the filter theo role)
         // Dung cho GetAvailableStaffs de lay danh sach nhan vien cua store
         Task<List<UserInfo>> GetAllUsersAsync(string? roleSlug = null);
+
+        // Lay nhieu user bang 1 request (tranh N cong 1)
+        Task<List<UserInfo>> GetUsersByIdsAsync(IEnumerable<Guid> userIds);
     }
 
     // DTO chua thong tin user tu IdentityService

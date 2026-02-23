@@ -35,16 +35,31 @@ public sealed class UpdateOrderStatusCommandHandler
         {
             return $"Order with id '{request.OrderId}' not found.";
         }
-        // Rule: Only allow Completed if payment is paid
+        if (!OrderStatusTransitionPolicy.CanTransition(order.Status, request.Status))
+        {
+            return $"Invalid order status transition from {order.Status} to {request.Status}";
+        }
         if (request.Status == OrderStatus.Completed)
         {
-            var payments = await _paymentRepository.GetByOrderIdAsync(request.OrderId, cancellationToken);
-
-            bool paidExists = payments.Any(p => p.Status == (int)PaymentStatus.Paid);
-
-            if (!paidExists)
+           
+            if (order.PaymentMethod == PaymentMethod.VNPay)
             {
-                return "Order cannot be completed because payment is not paid.";
+                var payment = await _paymentRepository.GetNewestByOrderIdAndStatusAsync(request.OrderId,PaymentStatus.Paid ,cancellationToken);
+                if (payment == null)
+                {
+                    return "Order cannot be completed because payment is not paid.";
+                }
+            }
+            else
+            {
+                var payment = await _paymentRepository.GetNewestByOrderIdAndStatusAsync(request.OrderId, PaymentStatus.Pending, cancellationToken);
+                if (payment == null)
+                {
+                    return "No pending payment found for this order.";
+                }
+                payment.Status =(int)PaymentStatus.Paid;
+                payment.UpdatedAt = DateTime.UtcNow;
+                await _paymentRepository.SaveChangesAsync();
             }
         }
 

@@ -179,5 +179,63 @@ namespace FranchiseService.Infrastructure.Repositories
 
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
+
+        /// <summary>
+        /// Lấy danh sách lịch sử chấm công theo bộ lọc và phân trang.
+        /// Cần Include ShiftAssignment và Shift để lấy thông tin ngày tháng bắt đầu ca.
+        /// </summary>
+        public async Task<(IEnumerable<TimeLog> Items, int TotalCount)> GetTimeLogsAsync(
+            Guid? storeId,
+            Guid? staffId,
+            int? status,
+            DateOnly fromDate,
+            DateOnly toDate,
+            int page,
+            int pageSize,
+            CancellationToken cancellationToken)
+        {
+            // Query TimeLogs thay vì Shift
+            var query = _dbContext.Set<TimeLog>()
+                .Include(tl => tl.ShiftAssignment)
+                    .ThenInclude(sa => sa.Shift)
+                .AsNoTracking()
+                .Where(tl => !tl.IsDeleted && !tl.ShiftAssignment.IsDeleted && !tl.ShiftAssignment.Shift.IsDeleted);
+
+            // 1. Lọc theo khoảng ngày (dựa trên thông tin ca làm việc)
+            query = query.Where(tl => 
+                tl.ShiftAssignment.Shift.ShiftDate >= fromDate && 
+                tl.ShiftAssignment.Shift.ShiftDate <= toDate);
+
+            // 2. Lọc theo StoreId (Dành cho Manager)
+            if (storeId.HasValue)
+            {
+                query = query.Where(tl => tl.ShiftAssignment.Shift.StoreId == storeId.Value);
+            }
+
+            // 3. Lọc theo StaffId (Dành cho Manager lọc riêng hoặc Staff xem của mình)
+            if (staffId.HasValue)
+            {
+                query = query.Where(tl => tl.ShiftAssignment.UserId == staffId.Value);
+            }
+
+            // 4. Lọc theo Status
+            if (status.HasValue)
+            {
+                query = query.Where(tl => tl.Status == status.Value);
+            }
+
+            // 5. Đếm tổng số bản ghi (trước khi phân trang)
+            var totalCount = await query.CountAsync(cancellationToken);
+
+            // 6. Phân trang và sắp xếp (ưu tiên ca làm việc mới nhất)
+            var items = await query
+                .OrderByDescending(tl => tl.ShiftAssignment.Shift.ShiftDate)
+                .ThenByDescending(tl => tl.ShiftAssignment.Shift.StartTime)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(cancellationToken);
+
+            return (items, totalCount);
+        }
     }
 }

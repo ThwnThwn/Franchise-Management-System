@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using Ardalis.Result;
 using MediatR;
 using Microsoft.Extensions.Configuration;
@@ -134,7 +134,7 @@ public sealed class VnPayReturnHandler
 
             if (payment.Order != null)
             {
-                payment.Order.Status = OrderStatus.Completed;
+                payment.Order.Status = OrderStatus.ConfirmationPending;
                 payment.Order.PaidAt = DateTimeOffset.UtcNow;
                 payment.Order.PaidAmount = payment.Amount;
                 payment.Order.PaymentMethod = PaymentMethod.VNPay;
