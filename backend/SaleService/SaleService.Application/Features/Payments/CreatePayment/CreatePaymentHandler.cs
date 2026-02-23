@@ -3,11 +3,15 @@ using MediatR;
 using Microsoft.Extensions.Configuration;
 using SalesService.Application.Helpers;
 using SalesService.Application.Interfaces.Payments;
+using SalesService.Application.Mapping.Orders;
 using SalesService.Application.Persisitences.Orders;
 using SalesService.Application.Persisitences.Outbox;
 using SalesService.Application.Signals;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
+using SharedKernel.Constants;
+using SharedKernel.Events;
+using SharedKernel.Infrastructure.Kafka;
 namespace SalesService.Application.Features.Payments.CreatePayment;
 
 public sealed class CreatePaymentHandler : IRequestHandler<CreatePaymentCommand, Result<CreatePaymentRes>>
@@ -17,19 +21,22 @@ public sealed class CreatePaymentHandler : IRequestHandler<CreatePaymentCommand,
     private readonly IConfiguration _config;
     private readonly IOutboxRepository _outboxRepository;
     private readonly IOutboxSignal _outboxSignal;
+    private readonly IKafkaProducer _kafkaProducer;
 
     public CreatePaymentHandler(
         IOrderRepository orderRepository,
         IPaymentRepository paymentRepository,
         IConfiguration config,
         IOutboxRepository outboxRepository,
-        IOutboxSignal outboxSignal)
+        IOutboxSignal outboxSignal,
+        IKafkaProducer kafkaProducer)
     {
         _orderRepository = orderRepository;
         _paymentRepository = paymentRepository;
         _config = config;
         _outboxRepository = outboxRepository;
         _outboxSignal = outboxSignal;
+        _kafkaProducer = kafkaProducer;
     }
 
     public async Task<Result<CreatePaymentRes>> Handle(
@@ -88,26 +95,32 @@ public sealed class CreatePaymentHandler : IRequestHandler<CreatePaymentCommand,
             // PUBLISH OrderPaidEvent via Outbox
             if (order.OrderItems != null && order.OrderItems.Any())
             {
-                var paidEvent = new SharedKernel.Events.OrderPaidEvent
+                // Create OrderStatusEvent
+                var orderEvent = new OrderStatusEvent
                 {
                     OrderId = order.Id,
-                    StoreId = order.StoreId ?? Guid.Empty,
-                    PaidAt = DateTimeOffset.UtcNow,
-                    Items = order.OrderItems.Select(oi => new SharedKernel.Events.OrderPaidItem
-                    {
-                        VariantId = oi.VariantId,
-                        Quantity = oi.Quantity
-                    }).ToList()
+                    OrderCode = order.Code,
+                    CustomerId = order.CustomerId,
+                    CustomerEmail = string.Empty, // Will be fetched by Consumer
+                    NewOrderStatus = OrderToKafka.MapOrderStatus(order.Status),
+                    Items = OrderToKafka.MapOrderItems(order.OrderItems),
+                    OrderSummary = $"Order {order.Code} created with {order.OrderItems.Count} items",
+                    Tax = order.Tax,
+                    TotalAmount = order.TotalAmount,
+                    CreatedAt = DateTimeOffset.UtcNow
                 };
 
                 var outbox = new OutboxMessage
                 {
                     Id = Guid.NewGuid(),
-                    Type = SharedKernel.Constants.KafkaTopics.OrderPaid,
-                    Content = System.Text.Json.JsonSerializer.Serialize(paidEvent),
+                    Type = SharedKernel.Constants.KafkaTopics.OrderNotifications,
+                    Content = System.Text.Json.JsonSerializer.Serialize(orderEvent),
                     OccurredOn = DateTimeOffset.UtcNow
                 };
                 _outboxRepository.Add(outbox);
+
+                // Publish order notification event to Kafka
+                await _kafkaProducer.PublishAsync(KafkaTopics.OrderNotifications, orderEvent);
             }
 
             await _orderRepository.UpdateAsync(order, cancellationToken);

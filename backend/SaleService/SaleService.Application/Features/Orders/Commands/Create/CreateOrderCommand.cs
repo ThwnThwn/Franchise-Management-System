@@ -19,16 +19,24 @@ public sealed class CartItemDto
 {
     public string Sku { get; set; } = default!;
     public int Quantity { get; set; }
+
 }
 
 public sealed class CreateOrderResponseDto
 {
     public Guid? OrderId { get; set; }
     public string? OrderCode { get; set; } = default!;
+    public List<OrderItemDto> Items { get; set; } = new();
     public decimal? TotalAmount { get; set; }
     public CheckEnoughStockRes CheckEnoughStockRes { get; set; } = new();
 }
+public sealed class OrderItemDto
+{
+    public string Sku { get; set; } = default!;
+    public int Quantity { get; set; }
+    public decimal? UnitPrice { get; set; }
 
+}
 
 
 

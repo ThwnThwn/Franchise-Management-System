@@ -45,7 +45,7 @@ builder.Services.AddScoped<IIdentityServiceClient, NotificationService.Infrastru
 builder.Services.AddKafkaConsumer(config =>
 {
     config.Register<SharedKernel.Events.OtpRequestedEvent>(SharedKernel.Constants.KafkaTopics.OtpNotifications, typeof(NotificationService.Application.EventHandlers.OtpNotificationHandler));
-    config.Register<SharedKernel.Events.OrderCreatedEvent>(SharedKernel.Constants.KafkaTopics.OrderNotifications, typeof(NotificationService.Application.EventHandlers.OrderCreatedHandler));
+    config.Register<SharedKernel.Events.OrderStatusEvent>(SharedKernel.Constants.KafkaTopics.OrderNotifications, typeof(NotificationService.Application.EventHandlers.OrderStatusHandler));
     config.Register<SharedKernel.Events.LowStockEvent>(SharedKernel.Constants.KafkaTopics.LowStockNotifications, typeof(NotificationService.Application.EventHandlers.LowStockHandler));
     config.Register<SharedKernel.Events.PasswordResetRequestedEvent>(SharedKernel.Constants.KafkaTopics.PasswordResetNotifications, typeof(NotificationService.Application.EventHandlers.PasswordResetHandler));
 });
