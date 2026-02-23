@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using SalesService.Application.Features.Reports.Queries.GetRevenueReport;
 using SalesService.Application.Persisitences.Orders;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
@@ -118,9 +119,50 @@ public class OrderRepository : IOrderRepository
 
         return (items, totalCount);
     }
-
     public async Task SaveAsync(CancellationToken cancellationToken = default)
     {
         await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<List<RevenueItemDto>> GetRevenueReportAsync(
+        DateOnly? fromDate,
+        DateOnly? toDate,
+        List<string>? skus,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _context.OrderItems
+            .Include(oi => oi.Order)
+            .Where(oi => oi.Order != null && oi.Order.Status == OrderStatus.Completed && !oi.IsDeleted && !oi.Order.IsDeleted).AsNoTracking();
+
+        if (fromDate.HasValue)
+        {
+            var fromDateTime = new DateTimeOffset(fromDate.Value.ToDateTime(TimeOnly.MinValue), TimeSpan.FromHours(7)).ToUniversalTime();
+            query = query.Where(oi => oi.Order!.CreatedAt >= fromDateTime);
+        }
+
+        if (toDate.HasValue)
+        {
+            var toDateTime = new DateTimeOffset(toDate.Value.ToDateTime(TimeOnly.MaxValue), TimeSpan.FromHours(7)).ToUniversalTime();
+            query = query.Where(oi => oi.Order!.CreatedAt <= toDateTime);
+        }
+
+        if (skus != null)
+        {
+            query = query.Where(oi => skus.Contains(oi.Sku));
+        }
+
+        var aggregatedResult = await query
+            .GroupBy(oi => new { oi.Sku, oi.ProductName })
+            .Select(g => new RevenueItemDto
+            {
+                Sku = g.Key.Sku,
+                ProductName = g.Key.ProductName,
+                QuantitySold = g.Sum(oi => oi.Quantity),
+                UnitPrice = g.Max(oi => oi.UnitPrice),
+                TotalRevenue = g.Sum(oi => oi.Quantity * oi.UnitPrice)
+            })
+            .ToListAsync(cancellationToken);
+
+        return aggregatedResult;
     }
 }

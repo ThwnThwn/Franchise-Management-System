@@ -67,7 +67,7 @@ func (s *stockGrpcClient) GetAllStock(ctx context.Context, req *ingredient.GetAl
 				BaseUnit:   ingre.BaseUnit,
 				CategoryId: ingre.CategoryId,
 			},
-			Quantity:     s.MinThreshold,
+			Quantity:     s.Quantity,
 			MinThreshold: s.MinThreshold,
 			StockStatus:  s.StockStatus,
 		})
@@ -107,7 +107,7 @@ func (s *stockGrpcClient) GetStockByStoreId(ctx context.Context, id uuid.UUID, r
 				BaseUnit:   ingre.BaseUnit,
 				CategoryId: ingre.CategoryId,
 			},
-			Quantity:     s.MinThreshold,
+			Quantity:     s.Quantity,
 			MinThreshold: s.MinThreshold,
 			StockStatus:  s.StockStatus,
 		})

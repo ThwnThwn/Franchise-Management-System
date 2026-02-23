@@ -179,5 +179,96 @@ namespace FranchiseService.Infrastructure.Repositories
 
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
+
+        /// <summary>
+        /// Lấy danh sách lịch sử chấm công theo bộ lọc và phân trang.
+        /// Cần Include ShiftAssignment và Shift để lấy thông tin ngày tháng bắt đầu ca.
+        /// </summary>
+        public async Task<(IEnumerable<TimeLog> Items, int TotalCount)> GetTimeLogsAsync(
+            Guid? storeId,
+            Guid? staffId,
+            int? status,
+            DateOnly fromDate,
+            DateOnly toDate,
+            int page,
+            int pageSize,
+            CancellationToken cancellationToken)
+        {
+            // Query TimeLogs thay vì Shift
+            var query = _dbContext.Set<TimeLog>()
+                .Include(tl => tl.ShiftAssignment)
+                    .ThenInclude(sa => sa.Shift)
+                .AsNoTracking()
+                .Where(tl => !tl.IsDeleted && !tl.ShiftAssignment.IsDeleted && !tl.ShiftAssignment.Shift.IsDeleted);
+
+            // 1. Lọc theo khoảng ngày (dựa trên thông tin ca làm việc)
+            query = query.Where(tl => 
+                tl.ShiftAssignment.Shift.ShiftDate >= fromDate && 
+                tl.ShiftAssignment.Shift.ShiftDate <= toDate);
+
+            // 2. Lọc theo StoreId (Dành cho Manager)
+            if (storeId.HasValue)
+            {
+                query = query.Where(tl => tl.ShiftAssignment.Shift.StoreId == storeId.Value);
+            }
+
+            // 3. Lọc theo StaffId (Dành cho Manager lọc riêng hoặc Staff xem của mình)
+            if (staffId.HasValue)
+            {
+                query = query.Where(tl => tl.ShiftAssignment.UserId == staffId.Value);
+            }
+
+            // 4. Lọc theo Status
+            if (status.HasValue)
+            {
+                query = query.Where(tl => tl.Status == status.Value);
+            }
+
+            // 5. Đếm tổng số bản ghi (trước khi phân trang)
+            var totalCount = await query.CountAsync(cancellationToken);
+
+            // 6. Phân trang và sắp xếp (ưu tiên ca làm việc mới nhất)
+            var items = await query
+                .OrderByDescending(tl => tl.ShiftAssignment.Shift.ShiftDate)
+                .ThenByDescending(tl => tl.ShiftAssignment.Shift.StartTime)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(cancellationToken);
+
+            return (items, totalCount);
+        }
+
+        // Lay lich ca nhan gom day du: Ca, Cua hang, Gio mo cua, va Cham cong
+        public async Task<List<ShiftAssignment>> GetAgendaByUserAsync(
+            Guid userId, DateOnly fromDate, DateOnly toDate,
+            CancellationToken cancellationToken)
+        {
+            return await _dbContext.ShiftAssignments
+                .AsNoTracking()
+                .Include(a => a.Shift)
+                    .ThenInclude(s => s.Store)
+                        .ThenInclude(st => st.StoreHours)
+                .Include(a => a.TimeLogs)
+                .Where(a => a.UserId == userId
+                         && a.Shift.ShiftDate >= fromDate
+                         && a.Shift.ShiftDate <= toDate
+                         && a.Shift.Status == (int)ShiftStatus.Published
+                         && a.IsDeleted == false
+                         && a.Shift.IsDeleted == false)
+                .OrderBy(a => a.Shift.ShiftDate)
+                    .ThenBy(a => a.Shift.StartTime)
+                .ToListAsync(cancellationToken);
+        }
+
+        // Lay danh sach phan cong cua nhieu ca, dung de tim dong nghiep
+        public async Task<List<ShiftAssignment>> GetAssignmentsByShiftIdsAsync(
+            List<Guid> shiftIds, CancellationToken cancellationToken)
+        {
+            return await _dbContext.ShiftAssignments
+                .AsNoTracking()
+                .Where(a => shiftIds.Contains(a.ShiftId)
+                         && a.IsDeleted == false)
+                .ToListAsync(cancellationToken);
+        }
     }
 }

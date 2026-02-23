@@ -94,7 +94,31 @@ namespace FranchiseService.Infrastructure.Clients.Identity
             }
         }
 
-        // === PRIVATE METHODS ===
+        // Lay thong tin cua nhieu user cung luc thong qua 1 request gRPC
+        public async Task<List<UserInfo>> GetUsersByIdsAsync(IEnumerable<Guid> userIds)
+        {
+            var idsList = userIds.ToList();
+            if (idsList.Count == 0) return new List<UserInfo>();
+
+            try
+            {
+                var request = new GetUserByIdsRequest();
+                request.Ids.AddRange(idsList.Select(id => id.ToString()));
+
+                var response = await _client.GetByIdsAsync(request);
+
+                if (response == null || response.Users == null)
+                    return new List<UserInfo>();
+
+                return response.Users.Select(MapToUserInfo).ToList();
+            }
+            catch (RpcException ex) when (ex.StatusCode == StatusCode.NotFound)
+            {
+                return new List<UserInfo>();
+            }
+        }
+
+        // PRIVATE METHODS
 
         // Tao gRPC Metadata chua x-user-id tu HTTP request hien tai
         // IdentityService dung header nay de xac thuc va filter data
@@ -141,6 +165,7 @@ namespace FranchiseService.Infrastructure.Clients.Identity
                 Phone = response.Phone,
                 FirstName = response.FirstName,
                 LastName = response.LastName,
+                AvatarUrl = response.AvatarUrl,
                 CurrentHourlyWage = response.HasCurrentHourlyWage ? (decimal)response.CurrentHourlyWage : null,
                 HomeStoreId = !string.IsNullOrEmpty(response.HomeStoreId) ? Guid.Parse(response.HomeStoreId) : null
             };
