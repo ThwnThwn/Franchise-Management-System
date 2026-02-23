@@ -43,6 +43,9 @@ service ShiftGrpcService {
   // --- TIME LOGS ---
   rpc GetTimeLogs (GetTimeLogsRequest) returns (GetTimeLogsResponse);
   rpc UpdateTimeLog (UpdateTimeLogRequest) returns (UpdateTimeLogResponse);
+
+  // --- AGENDA Lich ca nhan ---
+  rpc GetMyAgenda (GetAgendaRequest) returns (GetAgendaResponse);
 }
 
 // ----------------------------------------------------
@@ -322,4 +325,45 @@ message UpdateTimeLogRequest {
 
 message UpdateTimeLogResponse {
   bool success = 1;
+}
+
+// Lich ca nhan
+message GetAgendaRequest {
+  string user_id = 1;
+  string start_date = 2;
+  string end_date = 3;
+}
+
+message GetAgendaResponse {
+  repeated AgendaItemDto data = 1;
+}
+
+message AgendaItemDto {
+  string id = 1;
+  string start_time = 2;
+  string end_time = 3;
+  string date = 4;
+  AgendaStoreInfo store = 5;
+  repeated AgendaCoWorkerDto co_workers = 6;
+  optional string check_in_at = 7;
+  optional string check_out_at = 8;
+}
+
+message AgendaStoreInfo {
+  string id = 1;
+  string name = 2;
+  string address = 3;
+  string phone = 4;
+  string image_url = 5;
+  optional double latitude = 6;
+  optional double longitude = 7;
+  bool is_open_now = 8;
+}
+
+message AgendaCoWorkerDto {
+  string id = 1;
+  string first_name = 2;
+  string last_name = 3;
+  string avatar = 4;
+  string phone = 5;
 }

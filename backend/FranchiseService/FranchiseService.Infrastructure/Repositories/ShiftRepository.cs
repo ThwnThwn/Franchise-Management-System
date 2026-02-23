@@ -237,5 +237,38 @@ namespace FranchiseService.Infrastructure.Repositories
 
             return (items, totalCount);
         }
+
+        // Lay lich ca nhan gom day du: Ca, Cua hang, Gio mo cua, va Cham cong
+        public async Task<List<ShiftAssignment>> GetAgendaByUserAsync(
+            Guid userId, DateOnly fromDate, DateOnly toDate,
+            CancellationToken cancellationToken)
+        {
+            return await _dbContext.ShiftAssignments
+                .AsNoTracking()
+                .Include(a => a.Shift)
+                    .ThenInclude(s => s.Store)
+                        .ThenInclude(st => st.StoreHours)
+                .Include(a => a.TimeLogs)
+                .Where(a => a.UserId == userId
+                         && a.Shift.ShiftDate >= fromDate
+                         && a.Shift.ShiftDate <= toDate
+                         && a.Shift.Status == (int)ShiftStatus.Published
+                         && a.IsDeleted == false
+                         && a.Shift.IsDeleted == false)
+                .OrderBy(a => a.Shift.ShiftDate)
+                    .ThenBy(a => a.Shift.StartTime)
+                .ToListAsync(cancellationToken);
+        }
+
+        // Lay danh sach phan cong cua nhieu ca, dung de tim dong nghiep
+        public async Task<List<ShiftAssignment>> GetAssignmentsByShiftIdsAsync(
+            List<Guid> shiftIds, CancellationToken cancellationToken)
+        {
+            return await _dbContext.ShiftAssignments
+                .AsNoTracking()
+                .Where(a => shiftIds.Contains(a.ShiftId)
+                         && a.IsDeleted == false)
+                .ToListAsync(cancellationToken);
+        }
     }
 }

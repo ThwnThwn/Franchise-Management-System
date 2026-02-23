@@ -165,6 +165,7 @@ namespace FranchiseService.Infrastructure.Clients.Identity
                 Phone = response.Phone,
                 FirstName = response.FirstName,
                 LastName = response.LastName,
+                AvatarUrl = response.AvatarUrl,
                 CurrentHourlyWage = response.HasCurrentHourlyWage ? (decimal)response.CurrentHourlyWage : null,
                 HomeStoreId = !string.IsNullOrEmpty(response.HomeStoreId) ? Guid.Parse(response.HomeStoreId) : null
             };
