@@ -16,7 +16,7 @@ namespace SalesService.Application.Features.Orders.Commands.UpdateOrderStatus
                 [OrderStatus.ConfirmationPending] = new[]
                 {
                     OrderStatus.Confirmed,
-                    OrderStatus.Cancelled
+                    //OrderStatus.Cancelled Mốt thêm vào sau khi có wallet
                 },
 
                 [OrderStatus.Confirmed] = new[]

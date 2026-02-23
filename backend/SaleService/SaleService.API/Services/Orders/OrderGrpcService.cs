@@ -402,7 +402,10 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             ? (Guid?)null
             : Guid.Parse(request.CategoryId);
 
-        var query = new GetRevenueReportQuery(fromDate, toDate, categoryId);
+        Guid? storeId = string.IsNullOrEmpty(request.StoreId)
+            ? (Guid?)null
+            : Guid.Parse(request.StoreId);
+        var query = new GetRevenueReportQuery(fromDate, toDate, categoryId, storeId);
         var result = await _mediator.Send(query, context.CancellationToken);
 
         if (!result.IsSuccess)
