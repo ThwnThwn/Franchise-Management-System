@@ -23,6 +23,9 @@ service OrderGrpc {
 
   // Lấy danh sách đơn hàng với bộ lọc và phân trang
   rpc GetOrders (GetOrdersRequest) returns (GetOrdersReply);
+
+  // Lấy báo cáo doanh thu
+  rpc GetRevenueReport (GetRevenueReportRequest) returns (GetRevenueReportReply);
 }
 
 message CreateOrderRequest {
@@ -168,4 +171,26 @@ message GetOrdersRequest {
 message GetOrdersReply {
   repeated OrderSummary orders = 1;
   int32 total_count = 2;
+}
+
+message GetRevenueReportRequest {
+  optional string from_date = 1; // ISO 8601 string
+  optional string to_date = 2;   // ISO 8601 string
+  optional string category_id = 3;
+}
+
+message GetRevenueReportReply {
+  string from_date = 1;
+  string to_date = 2;
+  string category_id = 3;
+  repeated RevenueItem items = 4;
+  double overall_total_revenue = 5;
+}
+
+message RevenueItem {
+  string product_name = 1;
+  string sku = 2;
+  int32 quantity_sold = 3;
+  double unit_price = 4;
+  double total_revenue = 5;
 }

@@ -8,6 +8,12 @@ using FranchiseService.Application.Features.Shifts.Queries.GetAvailableStaffs;
 using FranchiseService.Application.Features.Shifts.Queries.GetShiftById;
 using FranchiseService.Application.Features.Shifts.Queries.GetShifts;
 using FranchiseService.Application.Features.Shifts.Queries.GetUserCurrentShift;
+using FranchiseService.Application.Features.Shifts.Commands.CheckIn;
+using FranchiseService.Application.Features.Shifts.Commands.CheckOut;
+using FranchiseService.Application.Features.Shifts.Commands.UpdateTimeLog;
+using FranchiseService.Application.Features.Shifts.Queries.GetTimeLogs;
+using FranchiseService.Application.Features.Shifts.Queries.GetMyAgenda;
+using Dtos = FranchiseService.Application.Features.Shifts.DTOs;
 using Grpc.Core;
 using MediatR;
 
@@ -51,7 +57,7 @@ namespace FranchiseService.API.Services
                 ServerTime = result.ServerTime
             };
 
-            // --- MAPPING CÁC TRƯỜNG OPTIONAL (NULLABLE) ---
+            // MAPPING CÁC TRƯỜNG OPTIONAL (NULLABLE)
 
             // 1. Mapping IDs (Guid? -> string)
             if (result.AssignmentId.HasValue)
@@ -80,7 +86,7 @@ namespace FranchiseService.API.Services
             return response;
         }
 
-        // --- GET LIST ---
+        // GET LIST
         public override async Task<GetShiftsResponse> GetShifts(GetShiftsRequest request, ServerCallContext context)
         {
             DateOnly? from = null;
@@ -129,7 +135,7 @@ namespace FranchiseService.API.Services
             return response;
         }
 
-        // --- GET BY ID ---
+        // GET BY ID
         public override async Task<ShiftResponse> GetShiftById(GetShiftByIdRequest request, ServerCallContext context)
         {
             if (!Guid.TryParse(request.Id, out var id))
@@ -167,7 +173,7 @@ namespace FranchiseService.API.Services
             };
         }
 
-        // --- CREATE ---
+        // CREATE
         public override async Task<CreateShiftResponse> CreateShift(CreateShiftRequest request, ServerCallContext context)
         {
             if (!Guid.TryParse(request.StoreId, out var storeId))
@@ -230,7 +236,7 @@ namespace FranchiseService.API.Services
             return new CreateShiftResponse { Id = id.ToString() };
         }
 
-        // --- UPDATE ---
+        // UPDATE
         public override async Task<UpdateShiftResponse> UpdateShift(UpdateShiftRequest request, ServerCallContext context)
         {
             var command = new UpdateShiftCommand
@@ -253,21 +259,21 @@ namespace FranchiseService.API.Services
             return new UpdateShiftResponse { Success = true };
         }
 
-        // --- DELETE ---
+        // DELETE 
         public override async Task<DeleteShiftResponse> DeleteShift(DeleteShiftRequest request, ServerCallContext context)
         {
             await _mediator.Send(new DeleteShiftCommand(Guid.Parse(request.Id)));
             return new DeleteShiftResponse { Success = true };
         }
 
-        // --- PUBLISH ---
+        //  PUBLISH 
         public override async Task<PublishShiftResponse> PublishShift(PublishShiftRequest request, ServerCallContext context)
         {
              await _mediator.Send(new PublishShiftCommand(Guid.Parse(request.Id)));
              return new PublishShiftResponse { Success = true };
         }
 
-        // --- ASSIGN STAFF (SYNC) ---
+        // ASSIGN STAFF (SYNC) 
         public override async Task<AssignStaffResponse> AssignStaff(AssignStaffRequest request, ServerCallContext context)
         {
             var userIds = request.UserIds.Select(Guid.Parse).ToList();
@@ -282,7 +288,7 @@ namespace FranchiseService.API.Services
             return new AssignStaffResponse { Success = true };
         }
 
-        // --- GET AVAILABLE STAFFS ---
+        // GET AVAILABLE STAFFS
         public override async Task<GetAvailableStaffsResponse> GetAvailableStaffs(GetAvailableStaffsRequest request, ServerCallContext context)
         {
             var query = new GetAvailableStaffsQuery(Guid.Parse(request.StoreId), Guid.Parse(request.ShiftId));
@@ -311,6 +317,293 @@ namespace FranchiseService.API.Services
             }));
 
             return response;
+        }
+
+        // CHECK-IN
+        public override async Task<CheckInResponse> CheckIn(
+            CheckInRequest request, ServerCallContext context)
+        {
+            try
+            {
+                var command = new CheckInCommand
+                {
+                    AssignmentId = Guid.Parse(request.AssignmentId),
+                    UserId = Guid.Parse(request.UserId),
+                    Latitude = request.HasLatitude ? (decimal)request.Latitude : null,
+                    Longitude = request.HasLongitude ? (decimal)request.Longitude : null,
+                    Note = request.Note
+                };
+
+                var logId = await _mediator.Send(command);
+                return new CheckInResponse { LogId = logId.ToString() };
+            }
+            catch (KeyNotFoundException ex)
+            {
+                throw new RpcException(new Status(StatusCode.NotFound, ex.Message));
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                throw new RpcException(new Status(StatusCode.PermissionDenied, ex.Message));
+            }
+            catch (InvalidOperationException ex)
+            {
+                throw new RpcException(new Status(StatusCode.FailedPrecondition, ex.Message));
+            }
+            catch (ArgumentException ex)
+            {
+                throw new RpcException(new Status(StatusCode.InvalidArgument, ex.Message));
+            }
+            catch (FormatException ex)
+            {
+                throw new RpcException(new Status(StatusCode.InvalidArgument, $"Định dạng dữ liệu không hợp lệ: {ex.Message}"));
+            }
+        }
+
+        // CHECK-OUT
+        public override async Task<CheckOutResponse> CheckOut(
+            CheckOutRequest request, ServerCallContext context)
+        {
+            try
+            {
+                var command = new CheckOutCommand
+                {
+                    LogId = Guid.Parse(request.LogId),
+                    UserId = Guid.Parse(request.UserId),
+                    Latitude = request.HasLatitude ? (decimal)request.Latitude : null,
+                    Longitude = request.HasLongitude ? (decimal)request.Longitude : null,
+                    Note = request.Note
+                };
+
+                await _mediator.Send(command);
+                return new CheckOutResponse { Success = true };
+            }
+            catch (KeyNotFoundException ex)
+            {
+                throw new RpcException(new Status(StatusCode.NotFound, ex.Message));
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                throw new RpcException(new Status(StatusCode.PermissionDenied, ex.Message));
+            }
+            catch (InvalidOperationException ex)
+            {
+                throw new RpcException(new Status(StatusCode.FailedPrecondition, ex.Message));
+            }
+            catch (ArgumentException ex)
+            {
+                throw new RpcException(new Status(StatusCode.InvalidArgument, ex.Message));
+            }
+            catch (FormatException ex)
+            {
+                throw new RpcException(new Status(StatusCode.InvalidArgument, $"Định dạng dữ liệu không hợp lệ: {ex.Message}"));
+            }
+        }
+
+        // GET TIME LOGS 
+        public override async Task<GetTimeLogsResponse> GetTimeLogs(
+            GetTimeLogsRequest request, ServerCallContext context)
+        {
+            try
+            {
+                var query = new GetTimeLogsQuery
+                {
+                    StoreId = string.IsNullOrEmpty(request.StoreId) ? null : Guid.Parse(request.StoreId),
+                    StaffId = string.IsNullOrEmpty(request.StaffId) ? null : Guid.Parse(request.StaffId),
+                    Status = request.Status == 0 ? null : request.Status,
+                    FromDate = DateOnly.TryParse(request.FromDate, out var f) ? f : null,
+                    ToDate = DateOnly.TryParse(request.ToDate, out var t) ? t : null,
+                    PageNumber = request.Page <= 0 ? 1 : request.Page,
+                    PageSize = request.PageSize <= 0 ? 10 : request.PageSize
+                };
+
+                var result = await _mediator.Send(query);
+
+                var response = new GetTimeLogsResponse
+                {
+                    TotalCount = (int)result.TotalCount,
+                    TotalPages = result.TotalPages
+                };
+
+                response.Data.AddRange(result.Items.Select(MapToProtoTimeLog));
+                return response;
+            }
+            catch (KeyNotFoundException ex)
+            {
+                throw new RpcException(new Status(StatusCode.NotFound, ex.Message));
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                throw new RpcException(new Status(StatusCode.PermissionDenied, ex.Message));
+            }
+            catch (InvalidOperationException ex)
+            {
+                throw new RpcException(new Status(StatusCode.FailedPrecondition, ex.Message));
+            }
+            catch (ArgumentException ex)
+            {
+                throw new RpcException(new Status(StatusCode.InvalidArgument, ex.Message));
+            }
+            catch (FormatException ex)
+            {
+                throw new RpcException(new Status(StatusCode.InvalidArgument, $"Định dạng dữ liệu không hợp lệ: {ex.Message}"));
+            }
+        }
+
+        // UPDATE TIME LOG 
+        public override async Task<UpdateTimeLogResponse> UpdateTimeLog(
+            UpdateTimeLogRequest request, ServerCallContext context)
+        {
+            try
+            {
+                var command = new UpdateTimeLogCommand
+                {
+                    Id = Guid.Parse(request.Id),
+                    Status = request.Status,
+                    ManagerNote = request.HasManagerNote ? request.ManagerNote : null,
+                    UserId = Guid.Parse(request.UserId)
+                };
+
+                await _mediator.Send(command);
+                return new UpdateTimeLogResponse { Success = true };
+            }
+            catch (KeyNotFoundException ex)
+            {
+                throw new RpcException(new Status(StatusCode.NotFound, ex.Message));
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                throw new RpcException(new Status(StatusCode.PermissionDenied, ex.Message));
+            }
+            catch (InvalidOperationException ex)
+            {
+                throw new RpcException(new Status(StatusCode.FailedPrecondition, ex.Message));
+            }
+            catch (ArgumentException ex)
+            {
+                throw new RpcException(new Status(StatusCode.InvalidArgument, ex.Message));
+            }
+            catch (FormatException ex)
+            {
+                throw new RpcException(new Status(StatusCode.InvalidArgument, $"Định dạng dữ liệu không hợp lệ: {ex.Message}"));
+            }
+        }
+
+        // LAY LICH CA NHAN CUA NHAN VIEN
+        public override async Task<GetAgendaResponse> GetMyAgenda(
+            GetAgendaRequest request, ServerCallContext context)
+        {
+            try
+            {
+                var query = new GetMyAgendaQuery
+                {
+                    UserId = Guid.Parse(request.UserId),
+                    StartDate = DateOnly.Parse(request.StartDate),
+                    EndDate = DateOnly.Parse(request.EndDate)
+                };
+
+                var items = await _mediator.Send(query);
+                var response = new GetAgendaResponse();
+
+                foreach (var item in items)
+                {
+                    var dto = new AgendaItemDto
+                    {
+                        Id = item.Id.ToString(),
+                        Date = item.Date.ToString("yyyy-MM-dd"),
+                        StartTime = item.StartTime.ToString("HH:mm:ss"),
+                        EndTime = item.EndTime.ToString("HH:mm:ss")
+                    };
+
+                    // Map thong tin cua hang
+                    dto.Store = new AgendaStoreInfo
+                    {
+                        Id = item.Store.Id.ToString(),
+                        Name = item.Store.Name ?? "",
+                        Address = item.Store.Address ?? "",
+                        Phone = item.Store.Phone ?? "",
+                        ImageUrl = item.Store.ImageUrl ?? "",
+                        IsOpenNow = item.Store.IsOpenNow
+                    };
+                    if (item.Store.Latitude.HasValue)
+                        dto.Store.Latitude = (double)item.Store.Latitude.Value;
+                    if (item.Store.Longitude.HasValue)
+                        dto.Store.Longitude = (double)item.Store.Longitude.Value;
+
+                    // Map dong nghiep cung ca
+                    foreach (var cw in item.CoWorkers)
+                    {
+                        dto.CoWorkers.Add(new AgendaCoWorkerDto
+                        {
+                            Id = cw.Id.ToString(),
+                            FirstName = cw.FirstName ?? "",
+                            LastName = cw.LastName ?? "",
+                            Avatar = cw.AvatarUrl ?? "",
+                            Phone = cw.Phone ?? ""
+                        });
+                    }
+
+                    // Map trang thai cham cong
+                    if (item.CheckInAt.HasValue)
+                        dto.CheckInAt = item.CheckInAt.Value.ToString("o");
+                    if (item.CheckOutAt.HasValue)
+                        dto.CheckOutAt = item.CheckOutAt.Value.ToString("o");
+
+                    response.Data.Add(dto);
+                }
+
+                return response;
+            }
+            catch (KeyNotFoundException ex)
+            {
+                throw new RpcException(new Status(StatusCode.NotFound, ex.Message));
+            }
+            catch (FormatException ex)
+            {
+                throw new RpcException(new Status(StatusCode.InvalidArgument,
+                    $"Dinh dang du lieu khong hop le: {ex.Message}"));
+            }
+        }
+
+        // PRIVATE MAPPER
+        private static TimeLogDetailDto MapToProtoTimeLog(Dtos.TimeLogDto dto)
+        {
+            var proto = new TimeLogDetailDto
+            {
+                Id = dto.Id.ToString(),
+                ShiftAssignmentId = dto.ShiftAssignmentId.ToString(),
+                Status = dto.Status,
+                CreatedAt = dto.CreatedAt.ToString("o"),
+                UpdatedAt = dto.UpdatedAt.ToString("o"),
+                Staff = new TimeLogStaffInfo
+                {
+                    Id = dto.Staff.Id.ToString(),
+                    FirstName = dto.Staff.FirstName ?? "",
+                    LastName = dto.Staff.LastName ?? "",
+                    AvatarUrl = dto.Staff.AvatarUrl ?? "",
+                    Email = dto.Staff.Email ?? ""
+                },
+                Shift = new TimeLogShiftInfo
+                {
+                    Id = dto.Shift.Id.ToString(),
+                    ShiftDate = dto.Shift.ShiftDate.ToString("yyyy-MM-dd"),
+                    StartTime = dto.Shift.StartTime.ToString("HH:mm:ss"),
+                    EndTime = dto.Shift.EndTime.ToString("HH:mm:ss"),
+                    Note = dto.Shift.Note ?? ""
+                }
+            };
+
+            if (dto.CheckInAt.HasValue) proto.CheckInAt = dto.CheckInAt.Value.ToString("o");
+            if (dto.CheckOutAt.HasValue) proto.CheckOutAt = dto.CheckOutAt.Value.ToString("o");
+            if (dto.CheckInImageUrl != null) proto.CheckInImageUrl = dto.CheckInImageUrl;
+            if (dto.CheckOutImageUrl != null) proto.CheckOutImageUrl = dto.CheckOutImageUrl;
+            if (dto.CheckInLat.HasValue) proto.CheckInLat = (double)dto.CheckInLat.Value;
+            if (dto.CheckInLong.HasValue) proto.CheckInLong = (double)dto.CheckInLong.Value;
+            if (dto.CheckOutLat.HasValue) proto.CheckOutLat = (double)dto.CheckOutLat.Value;
+            if (dto.CheckOutLong.HasValue) proto.CheckOutLong = (double)dto.CheckOutLong.Value;
+            if (dto.TotalWorkMinutes.HasValue) proto.TotalWorkMinutes = dto.TotalWorkMinutes.Value;
+            if (dto.ManagerNote != null) proto.ManagerNote = dto.ManagerNote;
+
+            return proto;
         }
     }
 }
