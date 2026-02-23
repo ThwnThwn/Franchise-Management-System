@@ -101,4 +101,20 @@ public class ProductServiceClient : IProductServiceClient
             throw;
         }
     }
+
+    public async Task<List<string>> GetSkusByCategoryAsync(Guid categoryId)
+    {
+        try
+        {
+            var request = new GetSkusByCategoryRequest { CategoryId = categoryId.ToString() };
+            var response = await _client.GetSkusByCategoryAsync(request);
+
+            return response.Skus.ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error calling ProductService for category skus ({_productServiceUrl}): {ex.Message}");
+            throw;
+        }
+    }
 }

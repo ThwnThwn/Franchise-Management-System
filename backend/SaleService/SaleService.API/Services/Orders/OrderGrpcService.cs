@@ -9,9 +9,12 @@ using SalesService.Application.Features.Orders.Commands.UpdateOrderStatus;
 using SalesService.Application.Features.Orders.GetById;
 using SalesService.Application.Features.Orders.Queries.GetMyOrders;
 using SalesService.Application.Features.Orders.Queries.GetOrders;
-using SalesService.Domain.Entities;
-using SalesService.Domain.Enums;
+using SalesService.Application.Features.Reports.Queries.GetRevenueReport;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace SalesService.API.Services.Orders;
 
@@ -125,8 +128,8 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             Subtotal = (double)dto.Subtotal,
             TotalAmount = (double)dto.TotalAmount,
             //dùng -1 cho NULL (chưa thanh toán)
-            Tax = dto.Tax.HasValue ? (double)dto.Tax :-1,
-            PaidAmount = dto.PaidAmount.HasValue? (double)dto.PaidAmount.Value: -1,
+            Tax = dto.Tax.HasValue ? (double)dto.Tax : -1,
+            PaidAmount = dto.PaidAmount.HasValue ? (double)dto.PaidAmount.Value : -1,
             PaymentMethod = dto.PaymentMethod ?? -1,
             Status = dto.Status,
             PaidAt = dto.PaidAt.ToString("O"),
@@ -134,7 +137,7 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             CreatedAt = dto.CreatedAt.ToString("O"),
             UpdatedAt = dto.UpdatedAt.ToString("O"),
             CustomerId = dto.CustomerId.ToString(),
-            
+
         };
 
         orderMessage.Items.AddRange(dto.Items.Select(i => new OrderItem
@@ -215,12 +218,12 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
         return reply;
     }
 
-    public override async Task<UpdateOrderStatusReply> UpdateOrderStatus(UpdateOrderStatusRequest request,ServerCallContext context)
+    public override async Task<UpdateOrderStatusReply> UpdateOrderStatus(UpdateOrderStatusRequest request, ServerCallContext context)
     {
         //Validate orderId
         if (!Guid.TryParse(request.OrderId, out var orderId))
         {
-            throw new RpcException(new Status(StatusCode.InvalidArgument,"Invalid OrderId"));
+            throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid OrderId"));
         }
 
         //Validate status enum
@@ -276,7 +279,7 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             }).ToList(),
             UserId = Guid.Parse(userIdEntry.Value),
             RoleSlug = roleSlug.Value
-            
+
         });
         var result = await _mediator.Send(command);
         var reply = new OrderReply
@@ -307,6 +310,14 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
         return reply;
     }
 
+
+    /// <summary>
+    /// Lấy danh sách đơn hàng với các bộ lọc: theo cửa hàng, theo mã đơn hàng, theo khoảng thời gian, theo trạng thái, theo phương thức thanh toán
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="context"></param>
+    /// <returns></returns>
+    /// <exception cref="RpcException"></exception>
     public override async Task<GetOrdersReply> GetOrders(GetOrdersRequest request, ServerCallContext context)
     {
         var storeId = string.IsNullOrEmpty(request.StoreId) ? (Guid?)null : Guid.Parse(request.StoreId);
@@ -348,7 +359,7 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
                 TotalAmount = (double)order.TotalAmount,
                 Status = order.Status,
                 PaidAt = order.PaidAt.ToString("O"),
-                CreatedAt = order.CreatedAt.ToString("O"), 
+                CreatedAt = order.CreatedAt.ToString("O"),
                 UpdatedAt = order.UpdatedAt.ToString("O"),
                 CustomerId = order.CustomerId?.ToString() ?? "",
                 Tax = order.Tax.HasValue ? (double)order.Tax.Value : -1,
@@ -363,6 +374,60 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
 
             reply.Orders.Add(summary);
         }
+
+        return reply;
+    }
+
+
+    /// <summary>
+    /// Báo cáo doanh thu theo khoảng thời gian và danh mục sản phẩm (nếu có)
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="context"></param>
+    /// <returns></returns>
+    /// <exception cref="RpcException"></exception>
+    public override async Task<GetRevenueReportReply> GetRevenueReport(
+        GetRevenueReportRequest request,
+        ServerCallContext context)
+    {
+        DateOnly? fromDate = string.IsNullOrEmpty(request.FromDate)
+            ? (DateOnly?)null
+            : DateOnly.Parse(request.FromDate);
+
+        DateOnly? toDate = string.IsNullOrEmpty(request.ToDate)
+            ? (DateOnly?)null
+            : DateOnly.Parse(request.ToDate);
+
+        Guid? categoryId = string.IsNullOrEmpty(request.CategoryId)
+            ? (Guid?)null
+            : Guid.Parse(request.CategoryId);
+
+        var query = new GetRevenueReportQuery(fromDate, toDate, categoryId);
+        var result = await _mediator.Send(query, context.CancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            throw new RpcException(new Status(
+                StatusCode.Internal,
+                result.Errors.FirstOrDefault() ?? "Failed to get revenue report"));
+        }
+
+        var reply = new GetRevenueReportReply
+        {
+            FromDate = result.Value.FromDate?.ToString("O") ?? string.Empty,
+            ToDate = result.Value.ToDate?.ToString("O") ?? string.Empty,
+            CategoryId = result.Value.CategoryId?.ToString() ?? string.Empty,
+            OverallTotalRevenue = (double)result.Value.OverallTotalRevenue
+        };
+
+        reply.Items.AddRange(result.Value.Items.Select(i => new RevenueItem
+        {
+            ProductName = i.ProductName,
+            Sku = i.Sku,
+            QuantitySold = i.QuantitySold,
+            UnitPrice = (double)i.UnitPrice,
+            TotalRevenue = (double)i.TotalRevenue
+        }));
 
         return reply;
     }

@@ -34,6 +34,9 @@ service ProductGrpc {
 
   // Get multiple product variants by list of SKUs
   rpc GetProductsBySkus (GetProductsBySkusRequest) returns (GetProductsBySkusReply);
+
+  // Get SKUs by Category ID
+  rpc GetSkusByCategory (GetSkusByCategoryRequest) returns (GetSkusByCategoryReply);
 }
 
 // ── GetProductBySku ──
@@ -67,6 +70,15 @@ message ProductVariantDetail {
   string sku = 4;
   double base_price = 5;
   string image_url = 6;
+}
+
+// ── GetSkusByCategory ──
+message GetSkusByCategoryRequest {
+  string category_id = 1;
+}
+
+message GetSkusByCategoryReply {
+  repeated string skus = 1;
 }
 
 message GetProductsRequest {
