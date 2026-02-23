@@ -9,6 +9,7 @@ public class RevenueReportResponse
     public DateOnly? ToDate { get; set; }
     public Guid? CategoryId { get; set; }
 
+    public Guid? StoreId { get; set; }
     public List<RevenueItemDto> Items { get; set; } = new();
     
     public decimal OverallTotalRevenue { get; set; }

@@ -13,6 +13,10 @@ using FranchiseService.Application.Features.Shifts.Commands.CheckOut;
 using FranchiseService.Application.Features.Shifts.Commands.UpdateTimeLog;
 using FranchiseService.Application.Features.Shifts.Queries.GetTimeLogs;
 using FranchiseService.Application.Features.Shifts.Queries.GetMyAgenda;
+using FranchiseService.Application.Features.Shifts.Commands.BulkCreateManual;
+using FranchiseService.Application.Features.Shifts.Commands.BulkCreateFromTemplate;
+using FranchiseService.Application.Features.Shifts.Commands.BulkPublish;
+using FranchiseService.Application.Features.Shifts.Commands.BulkDelete;
 using Dtos = FranchiseService.Application.Features.Shifts.DTOs;
 using Grpc.Core;
 using MediatR;
@@ -565,6 +569,144 @@ namespace FranchiseService.API.Services
             catch (KeyNotFoundException ex)
             {
                 throw new RpcException(new Status(StatusCode.NotFound, ex.Message));
+            }
+            catch (FormatException ex)
+            {
+                throw new RpcException(new Status(StatusCode.InvalidArgument,
+                    $"Dinh dang du lieu khong hop le: {ex.Message}"));
+            }
+        }
+
+        // Tao ca hang loat thu cong theo khung gio va cac ngay trong tuan
+        public override async Task<BulkCreateResponse> BulkCreateManual(
+            BulkCreateManualRequest request, ServerCallContext context)
+        {
+            try
+            {
+                var command = new BulkCreateManualCommand
+                {
+                    StoreId = Guid.Parse(request.StoreId),
+                    StartTime = TimeOnly.Parse(request.StartTime),
+                    EndTime = TimeOnly.Parse(request.EndTime),
+                    DaysOfWeek = request.DaysOfWeek.ToList(),
+                    StartDate = DateOnly.Parse(request.StartDate),
+                    EndDate = DateOnly.Parse(request.EndDate),
+                    RequiredStaffCount = request.RequiredStaffCount,
+                    BreakDurationMinutes = request.BreakDurationMinutes,
+                    Note = request.Note,
+                    CreatedBy = Guid.Parse(request.CreatedBy)
+                };
+
+                var count = await _mediator.Send(command);
+                return new BulkCreateResponse { CreatedCount = count };
+            }
+            catch (KeyNotFoundException ex)
+            {
+                throw new RpcException(new Status(StatusCode.NotFound, ex.Message));
+            }
+            catch (InvalidOperationException ex)
+            {
+                throw new RpcException(new Status(StatusCode.FailedPrecondition, ex.Message));
+            }
+            catch (ArgumentException ex)
+            {
+                throw new RpcException(new Status(StatusCode.InvalidArgument, ex.Message));
+            }
+            catch (FormatException ex)
+            {
+                throw new RpcException(new Status(StatusCode.InvalidArgument,
+                    $"Dinh dang du lieu khong hop le: {ex.Message}"));
+            }
+        }
+
+        // Tao ca hang loat tu Template co san (Ca Sang/Chieu/Toi)
+        public override async Task<BulkCreateResponse> BulkCreateFromTemplate(
+            BulkCreateFromTemplateRequest request, ServerCallContext context)
+        {
+            try
+            {
+                var command = new BulkCreateFromTemplateCommand
+                {
+                    StoreId = Guid.Parse(request.StoreId),
+                    TemplateId = Guid.Parse(request.TemplateId),
+                    StartDate = DateOnly.Parse(request.StartDate),
+                    EndDate = DateOnly.Parse(request.EndDate),
+                    RequiredStaffCount = request.RequiredStaffCount,
+                    CreatedBy = Guid.Parse(request.CreatedBy)
+                };
+
+                var count = await _mediator.Send(command);
+                return new BulkCreateResponse { CreatedCount = count };
+            }
+            catch (KeyNotFoundException ex)
+            {
+                throw new RpcException(new Status(StatusCode.NotFound, ex.Message));
+            }
+            catch (InvalidOperationException ex)
+            {
+                throw new RpcException(new Status(StatusCode.FailedPrecondition, ex.Message));
+            }
+            catch (ArgumentException ex)
+            {
+                throw new RpcException(new Status(StatusCode.InvalidArgument, ex.Message));
+            }
+            catch (FormatException ex)
+            {
+                throw new RpcException(new Status(StatusCode.InvalidArgument,
+                    $"Dinh dang du lieu khong hop le: {ex.Message}"));
+            }
+        }
+
+        // Publish hang loat ca lam viec (Draft -> Published)
+        public override async Task<BulkActionResponse> BulkPublish(
+            BulkPublishRequest request, ServerCallContext context)
+        {
+            try
+            {
+                var command = new BulkPublishCommand
+                {
+                    ShiftIds = request.Ids.Select(Guid.Parse).ToList()
+                };
+
+                var count = await _mediator.Send(command);
+                return new BulkActionResponse { Success = true, AffectedCount = count };
+            }
+            catch (InvalidOperationException ex)
+            {
+                throw new RpcException(new Status(StatusCode.FailedPrecondition, ex.Message));
+            }
+            catch (ArgumentException ex)
+            {
+                throw new RpcException(new Status(StatusCode.InvalidArgument, ex.Message));
+            }
+            catch (FormatException ex)
+            {
+                throw new RpcException(new Status(StatusCode.InvalidArgument,
+                    $"Dinh dang du lieu khong hop le: {ex.Message}"));
+            }
+        }
+
+        // Xoa hang loat ca lam viec (chi xoa ca Draft)
+        public override async Task<BulkActionResponse> BulkDelete(
+            BulkDeleteRequest request, ServerCallContext context)
+        {
+            try
+            {
+                var command = new BulkDeleteCommand
+                {
+                    ShiftIds = request.Ids.Select(Guid.Parse).ToList()
+                };
+
+                var count = await _mediator.Send(command);
+                return new BulkActionResponse { Success = true, AffectedCount = count };
+            }
+            catch (InvalidOperationException ex)
+            {
+                throw new RpcException(new Status(StatusCode.FailedPrecondition, ex.Message));
+            }
+            catch (ArgumentException ex)
+            {
+                throw new RpcException(new Status(StatusCode.InvalidArgument, ex.Message));
             }
             catch (FormatException ex)
             {

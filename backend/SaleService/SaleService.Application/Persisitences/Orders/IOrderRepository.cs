@@ -32,5 +32,6 @@ public interface IOrderRepository
         DateOnly? fromDate,
         DateOnly? toDate,
         List<string>? skus,
+        Guid? storeId,
         CancellationToken cancellationToken = default);
 }

@@ -178,14 +178,16 @@ message GetRevenueReportRequest {
   optional string from_date = 1; // ISO 8601 string
   optional string to_date = 2;   // ISO 8601 string
   optional string category_id = 3;
+  optional string store_id = 4;
 }
 
 message GetRevenueReportReply {
   string from_date = 1;
   string to_date = 2;
   string category_id = 3;
-  repeated RevenueItem items = 4;
-  double overall_total_revenue = 5;
+  optional string store_id = 4;
+  repeated RevenueItem items = 5;
+  double overall_total_revenue = 6;
 }
 
 message RevenueItem {

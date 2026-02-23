@@ -128,11 +128,16 @@ public class OrderRepository : IOrderRepository
         DateOnly? fromDate,
         DateOnly? toDate,
         List<string>? skus,
+        Guid? storedId,
         CancellationToken cancellationToken = default)
     {
         var query = _context.OrderItems
-            .Include(oi => oi.Order)
-            .Where(oi => oi.Order != null && oi.Order.Status == OrderStatus.Completed && !oi.IsDeleted && !oi.Order.IsDeleted).AsNoTracking();
+        .Include(oi => oi.Order)
+        .Where(oi => oi.Order != null
+            && oi.Order.Status == OrderStatus.Completed
+            && !oi.IsDeleted
+            && !oi.Order.IsDeleted)
+        .AsNoTracking();
 
         if (fromDate.HasValue)
         {
@@ -149,6 +154,11 @@ public class OrderRepository : IOrderRepository
         if (skus != null)
         {
             query = query.Where(oi => skus.Contains(oi.Sku));
+        }
+
+        if (storedId.HasValue)
+        {
+            query = query.Where(oi => oi.Order!.StoreId == storedId.Value);
         }
 
         var aggregatedResult = await query
