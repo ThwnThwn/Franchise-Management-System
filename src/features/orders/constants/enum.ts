@@ -13,12 +13,31 @@ export enum PaymentMethod {
 // }
 
 export enum OrderStatus {
+    // Auto
     PaymentPending = 0,
+
+    // Manual
     ConfirmationPending = 1, // Thanh toán xong qua đây
     Confirmed = 2, // Nhà hàng confirm nhận đơn, nếu thanh toán online thì cần phải xem thanh toán chưa, nếu paid thì cũng ko tự chuyển sang, này là bước chủ động hoàn toàn
     Preparing = 3, // Nhà hàng chủ động chuyển
     ReadyForPickup = 4,
     Delivering = 5, // Đang đi giao
+
+    // Terminal
     Completed = 6, // Đã hoàn thành đơn
     Cancelled = 7
+}
+
+/**
+ * Định nghĩa các bước chuyển trạng thái hợp lệ
+ */
+export const ORDER_STATUS_TRANSITION_POLICY: Record<OrderStatus, OrderStatus[]> = {
+    [OrderStatus.PaymentPending]: [OrderStatus.ConfirmationPending, OrderStatus.Cancelled],
+    [OrderStatus.ConfirmationPending]: [OrderStatus.Confirmed, OrderStatus.Cancelled],
+    [OrderStatus.Confirmed]: [OrderStatus.Preparing],
+    [OrderStatus.Preparing]: [OrderStatus.ReadyForPickup],
+    [OrderStatus.ReadyForPickup]: [OrderStatus.Delivering, OrderStatus.Completed],
+    [OrderStatus.Delivering]: [OrderStatus.Completed],
+    [OrderStatus.Completed]: [],
+    [OrderStatus.Cancelled]: []
 }

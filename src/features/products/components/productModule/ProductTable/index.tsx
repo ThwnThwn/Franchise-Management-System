@@ -178,7 +178,7 @@ export function ProductTable({
                             color="secondary"
                             className="cursor-pointer"
                         >
-                            {item.sizes.length} phân loại
+                            {(item.sizes || []).length} phân loại
                         </Chip>
                     </Tooltip>
                 </TableCell>

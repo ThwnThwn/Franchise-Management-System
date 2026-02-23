@@ -1,28 +1,74 @@
 @media print {
-    /* 1. Ẩn tất cả mọi thứ trên trang */
-    body * {
-        visibility: hidden;
+    /* 1. RESET TOÀN CỤC: Phá bỏ mọi giới hạn chiều cao và cuộn */
+    html,
+    body {
+        height: auto !important;
+        overflow: visible !important;
+        background: white !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
 
-    /* 2. Chỉ hiển thị duy nhất vùng Hóa đơn */
-    #invoice-card,
-    #invoice-card * {
-        visibility: visible;
+    /* 2. TRỰC DIỆN DASHBOARD LAYOUT: Biến Flex thành Block */
+    /* Đây là thẻ <div> chứa Sidebar và Children trong DashboardLayout của bro */
+    .flex.justify-between.overflow-hidden {
+        display: block !important; /* Phá flex để không chia cột với Sidebar */
+        overflow: visible !important; /* Để in được nhiều trang */
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+        background: transparent !important;
     }
 
-    /* 3. Đưa vùng hóa đơn lên trên cùng bên trái */
+    /* 3. TIÊU DIỆT TẬN GỐC: Ẩn các thành phần không liên quan */
+    /* Ẩn Sidebar, Nút In, Link quay lại, và các nút bấm Action */
+    aside,
+    nav,
+    footer,
+    [class*="DashboardSidebar"],
+    .print-hidden,
+    .no-print,
+    button,
+    .flex.justify-between.items-center.px-2 {
+        /* Selector cho header chứa nút Printer */
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* 4. GIẢI PHÓNG VÙNG CONTENT: Xóa border-l của Dashboard */
+    .w-full.border-l.border-divider {
+        border: none !important;
+        width: 100% !important;
+        padding: 0 !important;
+    }
+
+    /* 5. Đảm bảo Card chiếm trọn trang */
     #invoice-card {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        margin: 0;
-        padding: 0;
+        display: block !important;
+        width: 100% !important;
+        position: static !important; /* Không dùng absolute để tránh lỗi chia trang */
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
     }
 
-    /* 4. Loại bỏ tiêu đề/chân trang mặc định của trình duyệt (URL, Date) */
+    /* 6. ÉP MÀU: Để in ra đúng màu Chip/Status */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* 7. LỀ TRANG */
     @page {
-        margin: 0.5cm;
+        margin: 0cm;
         size: auto;
     }
 }
