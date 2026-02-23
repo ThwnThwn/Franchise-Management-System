@@ -46,6 +46,12 @@ service ShiftGrpcService {
 
   // --- AGENDA Lich ca nhan ---
   rpc GetMyAgenda (GetAgendaRequest) returns (GetAgendaResponse);
+
+  // --- BULK OPERATIONS Thao tac hang loat ---
+  rpc BulkCreateManual (BulkCreateManualRequest) returns (BulkCreateResponse);
+  rpc BulkCreateFromTemplate (BulkCreateFromTemplateRequest) returns (BulkCreateResponse);
+  rpc BulkPublish (BulkPublishRequest) returns (BulkActionResponse);
+  rpc BulkDelete (BulkDeleteRequest) returns (BulkActionResponse);
 }
 
 // ----------------------------------------------------
@@ -366,4 +372,45 @@ message AgendaCoWorkerDto {
   string last_name = 3;
   string avatar = 4;
   string phone = 5;
+}
+
+// BULK OPERATIONS Messages
+
+message BulkCreateManualRequest {
+  string store_id = 1;
+  string start_time = 2;
+  string end_time = 3;
+  repeated int32 days_of_week = 4;
+  string start_date = 5;
+  string end_date = 6;
+  int32 required_staff_count = 7;
+  int32 break_duration_minutes = 8;
+  string note = 9;
+  string created_by = 10;
+}
+
+message BulkCreateFromTemplateRequest {
+  string store_id = 1;
+  string template_id = 2;
+  string start_date = 3;
+  string end_date = 4;
+  int32 required_staff_count = 5;
+  string created_by = 6;
+}
+
+message BulkCreateResponse {
+  int32 created_count = 1;
+}
+
+message BulkPublishRequest {
+  repeated string ids = 1;
+}
+
+message BulkDeleteRequest {
+  repeated string ids = 1;
+}
+
+message BulkActionResponse {
+  bool success = 1;
+  int32 affected_count = 2;
 }
