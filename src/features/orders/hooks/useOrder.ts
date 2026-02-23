@@ -4,16 +4,42 @@ import { ordersApi } from "@/features/orders/services"
 import { addToast } from "@heroui/react"
 import { STRINGS } from "@/constants/strings"
 import { ORDER_TEXT, OrderStatus } from "@/features/orders/constants"
-import { BackendError } from "@/models/common/respone"
+import { BackendError, PageResult } from "@/models/common/respone"
 import { useTokenStore } from "@/hooks"
 import { RoleSlug } from "@/constants/enums"
-import { OrderReply } from "../models/response"
-import { CreatePaymentRequest, UpdateOrderItem } from "../models/request"
+import { OrderReply, OrderSummary } from "@/features/orders/models/response"
+import { CreatePaymentRequest, GetOrdersQuery, UpdateOrderItem } from "../models/request"
+import { PaginationParams } from "@/models/common/request"
 
 export const useGetMyOrders = () => {
     return useQuery({
         queryKey: [QUERY_KEYS.ORDERS, QUERY_KEYS.ME],
         queryFn: ordersApi.getMyOrders
+    })
+}
+
+export const useGetOrders = ({
+    params,
+    pagination = {},
+    enabled = true
+}: {
+    params: GetOrdersQuery
+    pagination: PaginationParams
+    enabled?: boolean
+}) => {
+    const queryClient = useQueryClient()
+
+    return useQuery({
+        queryKey: [QUERY_KEYS.PRODUCTS, params],
+        queryFn: () => ordersApi.getAll({ query: params, pagination }),
+        initialData: () => {
+            return queryClient.getQueryData<PageResult<OrderSummary>>([
+                QUERY_KEYS.USERS,
+                params,
+                pagination
+            ])
+        },
+        enabled
     })
 }
 

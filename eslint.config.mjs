@@ -27,6 +27,8 @@ export default [
             // React
             ...pluginReact.configs.flat.recommended.rules,
             ...pluginReactHooks.configs.recommended.rules,
+            "react/react-in-jsx-scope": "off",
+            "react/jsx-uses-react": "off",
 
             // Next.js
             ...pluginNext.configs.recommended.rules,
