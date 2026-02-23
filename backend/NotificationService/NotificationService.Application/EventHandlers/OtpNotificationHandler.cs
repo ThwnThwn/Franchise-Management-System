@@ -30,6 +30,7 @@ public class OtpNotificationHandler : IIntegrationEventHandler<OtpRequestedEvent
 
     public async Task Handle(OtpRequestedEvent @event)
     {
+
         var log = new NotificationLog
         {
             Id = Guid.NewGuid(),
