@@ -1,10 +1,43 @@
 import { QUERY_KEYS } from "@/constants/queryKeys"
 import { FindNearbyStoresParams, GetStoresParams } from "../models/schema/request"
-import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query"
 import { storeApi } from "../services"
 import { PaginationParams } from "@/models/common/request"
 import { PageResult } from "@/models/common/respone"
 import { StoreDetailDto } from "../models/schema/response"
+
+export const useGetInfiniteStores = ({
+    params,
+    pageSize = 4,
+    enabled = true
+}: {
+    params: GetStoresParams
+    pageSize?: number
+    enabled?: boolean
+}) => {
+    return useInfiniteQuery({
+        queryKey: [QUERY_KEYS.STORES, params],
+        queryFn: async ({ pageParam = 1 }) => {
+            const response = await storeApi.getAll({
+                pagination: {
+                    page: pageParam,
+                    pageSize: pageSize
+                },
+                query: params
+            })
+            return response
+        },
+        initialPageParam: 1,
+        getNextPageParam: (lastPage, allPages) => {
+            // allPages.length chính là số trang hiện tại đã load thành công
+            const currentPage = allPages?.length ?? 0
+
+            // Nếu trang hiện tại vẫn nhỏ hơn tổng số trang backend báo về
+            return currentPage < lastPage.totalPages ? currentPage + 1 : undefined
+        },
+        enabled: enabled
+    })
+}
 
 export const useGetStores = ({
     pagination,

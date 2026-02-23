@@ -3,15 +3,34 @@ import axiosInstance from "@/utils/axios"
 import {
     CreateOrderRequest,
     CreatePaymentRequest,
+    GetOrdersQuery,
     UpdateOrderItem
 } from "@/features/orders/models/request"
 import { OrderStatus } from "../constants"
+import { PaginationParams } from "@/models/common/request"
+import { PageResult } from "@/models/common/respone"
+import { buildQueryParams } from "@/utils/helpers/axiosHelper"
 
 /**
  * ORDERS API
  * Quản lý đơn hàng và thanh toán.
  */
 export const ordersApi = {
+    getAll: async ({
+        query,
+        pagination
+    }: {
+        query: GetOrdersQuery
+        pagination: PaginationParams
+    }): Promise<PageResult<OrderSummary>> => {
+        const params = {
+            ...buildQueryParams(query),
+            ...buildQueryParams(pagination)
+        }
+        const res = await axiosInstance.get("/orders", { params })
+        return res.data
+    },
+
     // Lấy chi tiết đơn hàng
     getById: async ({ id }: { id: string }): Promise<Order> => {
         const res = await axiosInstance.get(`/orders/${id}`)

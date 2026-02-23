@@ -9,7 +9,8 @@ import {
     ShieldUser,
     Package,
     Settings,
-    Calendar
+    Calendar,
+    ShoppingBag
 } from "lucide-react"
 
 export interface MenuItem {
@@ -25,6 +26,12 @@ export const DASHBOARD_SIDEBAR_MENU: MenuItem[] = [
         label: "Tổng quan",
         href: "/dashboard",
         allowedRoles: [RoleSlug.Admin, RoleSlug.Manager]
+    },
+    {
+        icon: <ShoppingBag className="w-5 h-5" />,
+        label: "Đơn hàng",
+        href: "/dashboard/orders",
+        allowedRoles: [RoleSlug.Admin, RoleSlug.Manager, RoleSlug.Staff]
     },
     {
         icon: <CalendarCog className="w-5 h-5" />,

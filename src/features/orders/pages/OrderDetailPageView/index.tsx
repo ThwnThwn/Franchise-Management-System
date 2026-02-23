@@ -90,7 +90,7 @@ export default function OrderDetailPageView({ orderId }: { orderId: string }) {
             confirmText: "Đồng ý huỷ",
             variant: "danger"
         })
-        if (isConfirmed) updateStatus.mutate(OrderStatus.Cancel)
+        if (isConfirmed) updateStatus.mutate(OrderStatus.Cancelled)
     }
 
     useEffect(() => {
@@ -118,7 +118,7 @@ export default function OrderDetailPageView({ orderId }: { orderId: string }) {
             {/* Header ngoài Card: Điều hướng & Hành động nhanh */}
             <div className="flex justify-between items-center px-2">
                 <BackLink
-                    href="/orders"
+                    href={isCustomer ? "/orders" : "/dashboard/orders"}
                     label="Danh sách đơn hàng"
                     className="text-default-500 hover:text-primary"
                 />
@@ -211,11 +211,11 @@ export default function OrderDetailPageView({ orderId }: { orderId: string }) {
                 </CardBody>
 
                 {/* Footer Hóa đơn */}
-                <div className="px-8 md:px-12">
+                <div className="print:hidden px-8 md:px-12">
                     <div className="my-4 border-t-2 border-dashed border-default-500 w-full relative"></div>
                 </div>
 
-                <CardFooter className="flex flex-col p-8 md:p-12 gap-8 bg-slate-50/30">
+                <CardFooter className="print:hidden flex flex-col p-8 md:p-12 gap-8 bg-slate-50/30">
                     {order.status === OrderStatus.PaymentPending ? (
                         <div className="w-full space-y-6">
                             <div className="flex flex-col items-center gap-2">
@@ -248,18 +248,20 @@ export default function OrderDetailPageView({ orderId }: { orderId: string }) {
                                 </ButtonStyled>
                             </div>
 
-                            <center>
-                                <ButtonStyled
-                                    variant="light"
-                                    color="danger"
-                                    size="sm"
-                                    className="font-bold opacity-40 hover:opacity-100 transition-all"
-                                    onPress={handleCancel}
-                                    isLoading={updateStatus.isPending}
-                                >
-                                    Tôi muốn huỷ đơn hàng này
-                                </ButtonStyled>
-                            </center>
+                            {isCustomer && (
+                                <center>
+                                    <ButtonStyled
+                                        variant="light"
+                                        color="danger"
+                                        size="sm"
+                                        className="font-bold opacity-40 hover:opacity-100 transition-all"
+                                        onPress={handleCancel}
+                                        isLoading={updateStatus.isPending}
+                                    >
+                                        Tôi muốn huỷ đơn hàng này
+                                    </ButtonStyled>
+                                </center>
+                            )}
                         </div>
                     ) : (
                         <div className="w-full text-center space-y-2 py-4">

@@ -83,7 +83,7 @@ export default function UserView() {
             {/* --- Filter Section --- */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-3 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
                 <InputStyled
-                    placeholder="Tìm kiếm sản phẩm..."
+                    placeholder="Tìm kiếm theo tên, email, số điện thoại..."
                     startContent={<Search size={18} className="text-slate-400" />}
                     variant="bordered"
                     className="w-full"

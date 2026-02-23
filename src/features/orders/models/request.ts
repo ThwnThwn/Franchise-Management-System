@@ -1,4 +1,4 @@
-import { PaymentMethod } from "../constants"
+import { OrderStatus, PaymentMethod } from "@/features/orders/constants"
 
 export interface CartItemCreateRequest {
     sku: string
@@ -21,4 +21,13 @@ export interface CreatePaymentRequest {
 export interface UpdateOrderItem {
     sku: string
     quantity: number
+}
+
+export interface GetOrdersQuery {
+    storeId?: string
+    code?: string
+    status?: OrderStatus
+    paymentMethod?: number
+    fromDate?: string
+    toDate?: string
 }
