@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using Ardalis.Result;
 using MediatR;
 using Microsoft.Extensions.Configuration;
