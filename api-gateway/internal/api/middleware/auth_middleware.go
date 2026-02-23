@@ -115,6 +115,9 @@ func (a *AuthMiddleware) ValidateToken(secret []byte) gin.HandlerFunc {
 		c.Set("userID", userID)
 		c.Set("accessToken", token)
 		c.Set("roleSlug", claims.RoleSlug)
+		if claims.StoreId != nil {
+			c.Set("storeId", *claims.StoreId)
+		}
 		c.Next()
 	}
 }

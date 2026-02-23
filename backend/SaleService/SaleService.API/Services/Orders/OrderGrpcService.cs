@@ -125,8 +125,8 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             Subtotal = (double)dto.Subtotal,
             TotalAmount = (double)dto.TotalAmount,
             //dùng -1 cho NULL (chưa thanh toán)
-            Tax = dto.Tax.HasValue ? (double)dto.Tax :-1,
-            PaidAmount = dto.PaidAmount.HasValue? (double)dto.PaidAmount.Value: -1,
+            Tax = dto.Tax.HasValue ? (double)dto.Tax : -1,
+            PaidAmount = dto.PaidAmount.HasValue ? (double)dto.PaidAmount.Value : -1,
             PaymentMethod = dto.PaymentMethod ?? -1,
             Status = dto.Status,
             PaidAt = dto.PaidAt.ToString("O"),
@@ -134,7 +134,6 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             CreatedAt = dto.CreatedAt.ToString("O"),
             UpdatedAt = dto.UpdatedAt.ToString("O"),
             CustomerId = dto.CustomerId.ToString(),
-            
         };
 
         orderMessage.Items.AddRange(dto.Items.Select(i => new OrderItem
@@ -215,12 +214,12 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
         return reply;
     }
 
-    public override async Task<UpdateOrderStatusReply> UpdateOrderStatus(UpdateOrderStatusRequest request,ServerCallContext context)
+    public override async Task<UpdateOrderStatusReply> UpdateOrderStatus(UpdateOrderStatusRequest request, ServerCallContext context)
     {
         //Validate orderId
         if (!Guid.TryParse(request.OrderId, out var orderId))
         {
-            throw new RpcException(new Status(StatusCode.InvalidArgument,"Invalid OrderId"));
+            throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid OrderId"));
         }
 
         //Validate status enum
@@ -248,6 +247,7 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             Message = resultMessage
         };
     }
+
     public override async Task<OrderReply> UpdateOrder(UpdateOrderRequest request, ServerCallContext context)
     {
         var userIdEntry = context.RequestHeaders.FirstOrDefault(h =>
@@ -276,7 +276,6 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             }).ToList(),
             UserId = Guid.Parse(userIdEntry.Value),
             RoleSlug = roleSlug.Value
-            
         });
         var result = await _mediator.Send(command);
         var reply = new OrderReply
@@ -335,10 +334,11 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
 
         var reply = new GetOrdersReply
         {
-            TotalCount = result.Value.TotalCount
+            TotalCount = Convert.ToInt32(result.Value.PageResult.TotalCount),
+            TotalPages = result.Value.PageResult.TotalPages
         };
 
-        foreach (var order in result.Value.Orders)
+        foreach (var order in result.Value.PageResult.Items)
         {
             var summary = new OrderSummary
             {
@@ -348,7 +348,7 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
                 TotalAmount = (double)order.TotalAmount,
                 Status = order.Status,
                 PaidAt = order.PaidAt.ToString("O"),
-                CreatedAt = order.CreatedAt.ToString("O"), 
+                CreatedAt = order.CreatedAt.ToString("O"),
                 UpdatedAt = order.UpdatedAt.ToString("O"),
                 CustomerId = order.CustomerId?.ToString() ?? "",
                 Tax = order.Tax.HasValue ? (double)order.Tax.Value : -1,

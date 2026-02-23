@@ -162,4 +162,5 @@ message GetOrdersRequest {
 message GetOrdersReply {
   repeated OrderSummary orders = 1;
   int32 total_count = 2;
+  int32 total_pages = 3;
 }

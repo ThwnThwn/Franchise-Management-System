@@ -43,6 +43,11 @@ public class GetOrdersQueryHandler : IRequestHandler<GetOrdersQuery, Result<GetO
             o.CustomerId
         )).ToList();
 
-        return Result.Success(new GetOrdersResponse(orderDtos, totalCount));
+        //return Result.Success(new GetOrdersResponse(orderDtos, totalCount));
+        return Result.Success(new GetOrdersResponse
+        (
+            new BuildingBlocks.Core.Pagination.PagedResult<OrderSummaryDto>(
+                orderDtos, totalCount, request.Page, request.PageSize
+        )));
     }
 }

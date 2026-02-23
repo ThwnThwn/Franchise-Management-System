@@ -5,11 +5,13 @@ import (
 	"api-gateway/internal/domain/constants/jwttype"
 
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/google/uuid"
 )
 
 type CustomClaims struct {
-	RoleSlug string `json:"role_slug"`
-	Type     string `json:"type"`
+	RoleSlug string     `json:"role_slug"`
+	Type     string     `json:"type"`
+	StoreId  *uuid.UUID `json:"store_id"`
 	jwt.RegisteredClaims
 }
 

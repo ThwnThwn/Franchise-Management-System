@@ -1,6 +1,6 @@
+using Ardalis.Result;
 using MediatR;
 using SalesService.Domain.Enums;
-using Ardalis.Result;
 
 namespace SalesService.Application.Features.Orders.Queries.GetOrders;
 

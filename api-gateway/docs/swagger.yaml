@@ -1796,6 +1796,54 @@ paths:
       tags:
       - 'Shifts: Staff'
   /orders:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of orders placed with optional filtering.
+      parameters:
+      - in: query
+        name: code
+        type: string
+      - in: query
+        name: fromDate
+        type: string
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      - in: query
+        name: paymentMethod
+        type: integer
+      - in: query
+        name: status
+        type: integer
+      - in: query
+        name: storeId
+        type: string
+      - in: query
+        name: toDate
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of orders
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get Orders History
+      tags:
+      - Orders
     post:
       consumes:
       - application/json

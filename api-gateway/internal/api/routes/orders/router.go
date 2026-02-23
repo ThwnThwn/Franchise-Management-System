@@ -10,6 +10,7 @@ func (o *OrderRouter) Init(r *gin.RouterGroup) {
 	privateApi := orderApi.Group("")
 	privateApi.Use(o.authMW.ValidateToken([]byte(o.cfg.JwtSecret)))
 	{
+		privateApi.GET("", o.orderHl.GetOrders)
 		privateApi.POST("", o.orderHl.CreateOrder)
 
 		privateApi.GET("/:id", o.orderHl.GetOrderById)

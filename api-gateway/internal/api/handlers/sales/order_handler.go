@@ -3,8 +3,11 @@ package sales
 import (
 	"api-gateway/internal/application/constants/errorcode"
 	"api-gateway/internal/application/gateways/sales"
+	"api-gateway/internal/domain/constants/roleslug"
 	"api-gateway/internal/domain/models/order"
+	"api-gateway/pkg/utils/contextutils"
 	"api-gateway/pkg/utils/grpcutils"
+	"api-gateway/pkg/utils/stringutils"
 	"api-gateway/pkg/utils/validation"
 	"net/http"
 
@@ -18,6 +21,55 @@ type OrderHandler struct {
 
 func NewOrderHandler(orderGW sales.IOrderService) *OrderHandler {
 	return &OrderHandler{orderGW: orderGW}
+}
+
+// GetOrders
+// @Summary      Get Orders History
+// @Description  Retrieve a list of orders placed with optional filtering.
+// @Tags         Orders
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        query  query     order.GetOrdersRequest  false  "Filter params (page, status, etc.)"
+// @Success      200    {object}  map[string]interface{}    "List of orders"
+// @Failure      401    {object}  map[string]string         "Unauthorized"
+// @Router       /orders [get]
+func (h *OrderHandler) GetOrders(c *gin.Context) {
+	var req order.GetOrdersRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		c.Error(err)
+		return
+	}
+
+	ctx, err := grpcutils.BuildAuthContext(c)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	roleSlug, err := contextutils.GetRoleSlug(c)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	storeId, err := contextutils.GetStoreID(c)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	if roleSlug == string(roleslug.Manager) || roleSlug == string(roleslug.Staff) {
+		req.StoreId = stringutils.ToPtr(storeId.String())
+	}
+
+	res, err := h.orderGW.GetOrders(ctx, &req)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, res)
 }
 
 // GetOrderById
