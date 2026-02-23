@@ -12,6 +12,7 @@ using FranchiseService.Application.Features.Shifts.Commands.CheckIn;
 using FranchiseService.Application.Features.Shifts.Commands.CheckOut;
 using FranchiseService.Application.Features.Shifts.Commands.UpdateTimeLog;
 using FranchiseService.Application.Features.Shifts.Queries.GetTimeLogs;
+using FranchiseService.Application.Features.Shifts.Queries.GetMyAgenda;
 using Dtos = FranchiseService.Application.Features.Shifts.DTOs;
 using Grpc.Core;
 using MediatR;
@@ -484,6 +485,82 @@ namespace FranchiseService.API.Services
             catch (FormatException ex)
             {
                 throw new RpcException(new Status(StatusCode.InvalidArgument, $"Định dạng dữ liệu không hợp lệ: {ex.Message}"));
+            }
+        }
+
+        // LAY LICH CA NHAN CUA NHAN VIEN
+        public override async Task<GetAgendaResponse> GetMyAgenda(
+            GetAgendaRequest request, ServerCallContext context)
+        {
+            try
+            {
+                var query = new GetMyAgendaQuery
+                {
+                    UserId = Guid.Parse(request.UserId),
+                    StartDate = DateOnly.Parse(request.StartDate),
+                    EndDate = DateOnly.Parse(request.EndDate)
+                };
+
+                var items = await _mediator.Send(query);
+                var response = new GetAgendaResponse();
+
+                foreach (var item in items)
+                {
+                    var dto = new AgendaItemDto
+                    {
+                        Id = item.Id.ToString(),
+                        Date = item.Date.ToString("yyyy-MM-dd"),
+                        StartTime = item.StartTime.ToString("HH:mm:ss"),
+                        EndTime = item.EndTime.ToString("HH:mm:ss")
+                    };
+
+                    // Map thong tin cua hang
+                    dto.Store = new AgendaStoreInfo
+                    {
+                        Id = item.Store.Id.ToString(),
+                        Name = item.Store.Name ?? "",
+                        Address = item.Store.Address ?? "",
+                        Phone = item.Store.Phone ?? "",
+                        ImageUrl = item.Store.ImageUrl ?? "",
+                        IsOpenNow = item.Store.IsOpenNow
+                    };
+                    if (item.Store.Latitude.HasValue)
+                        dto.Store.Latitude = (double)item.Store.Latitude.Value;
+                    if (item.Store.Longitude.HasValue)
+                        dto.Store.Longitude = (double)item.Store.Longitude.Value;
+
+                    // Map dong nghiep cung ca
+                    foreach (var cw in item.CoWorkers)
+                    {
+                        dto.CoWorkers.Add(new AgendaCoWorkerDto
+                        {
+                            Id = cw.Id.ToString(),
+                            FirstName = cw.FirstName ?? "",
+                            LastName = cw.LastName ?? "",
+                            Avatar = cw.AvatarUrl ?? "",
+                            Phone = cw.Phone ?? ""
+                        });
+                    }
+
+                    // Map trang thai cham cong
+                    if (item.CheckInAt.HasValue)
+                        dto.CheckInAt = item.CheckInAt.Value.ToString("o");
+                    if (item.CheckOutAt.HasValue)
+                        dto.CheckOutAt = item.CheckOutAt.Value.ToString("o");
+
+                    response.Data.Add(dto);
+                }
+
+                return response;
+            }
+            catch (KeyNotFoundException ex)
+            {
+                throw new RpcException(new Status(StatusCode.NotFound, ex.Message));
+            }
+            catch (FormatException ex)
+            {
+                throw new RpcException(new Status(StatusCode.InvalidArgument,
+                    $"Dinh dang du lieu khong hop le: {ex.Message}"));
             }
         }
 
