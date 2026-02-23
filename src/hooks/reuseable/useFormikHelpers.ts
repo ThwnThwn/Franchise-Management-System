@@ -13,6 +13,7 @@ export const useFormikHelpers = <T>(formik: FormikProps<T>) => {
      */
     const getErrorMessage = (field: keyof T): string | undefined => {
         return isInvalid(field) ? (formik.errors[field] as string) : undefined
+
     }
 
     return {

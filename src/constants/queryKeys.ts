@@ -10,6 +10,8 @@ export const QUERY_KEYS = {
     ROLES: "roles" as const,
     PERMISSIONS: "permissions" as const,
     INVENTORY: "inventories" as const,
+    INGREDIENTS: "ingredients" as const,
+    INGREDIENT_CATEGORIES: "ingredient-categories" as const,
     SHIFTS: "shifts" as const,
     AGENDA: "agenda" as const,
     SHIFT_CANDIDATES: "shift-candidates" as const,

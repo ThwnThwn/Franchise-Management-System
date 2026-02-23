@@ -14,9 +14,11 @@ import {
     Spinner
 } from "@heroui/react"
 import { StockItem } from "../../models/response"
+import { StoreDetailDto } from "@/features/stores/models/schema/response"
 
 type InventoryTableProps = {
     stocks: StockItem[]
+    stores?: StoreDetailDto[]
     isLoading?: boolean
     emptyMessage?: string
     onIncrease?: (stock: StockItem) => void
@@ -26,6 +28,7 @@ type InventoryTableProps = {
 
 export function InventoryTable({
     stocks,
+    stores = [],
     isLoading = false,
     emptyMessage,
     onIncrease,
@@ -44,6 +47,14 @@ export function InventoryTable({
             default:
                 return { color: "default" as const, label: "Không xác định" }
         }
+    }
+
+    // Helper: format quantity string từ BE (có thể là "10", "10.5", "0", "")
+    const formatQty = (raw: string): string => {
+        const n = parseFloat(raw)
+        if (isNaN(n)) return "—"
+        // Bỏ trailing zeros: 10.50 → "10.5", 10.00 → "10"
+        return n % 1 === 0 ? n.toString() : n.toString()
     }
 
     // Render table body
@@ -72,41 +83,51 @@ export function InventoryTable({
             const status = getStockStatus(item.stockStatus)
             return (
                 <TableRow
-                    key={`${item.storeId}-${item.ingredient.id}`}
+                    key={`${item.storeId}-${item.ingredientViewRes.id}`}
                     className="border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors"
                 >
                     {/* Cột 1: Nguyên liệu */}
                     <TableCell>
                         <div>
                             <div className="font-semibold text-slate-900">
-                                {item.ingredient.name}
+                                {item.ingredientViewRes.name}
                             </div>
                             <div className="text-xs text-slate-500">
-                                {item.ingredient.categoryId}
+                                {item.ingredientViewRes.categoryId}
                             </div>
                         </div>
                     </TableCell>
 
                     {/* Cột 2: Cửa hàng */}
                     <TableCell className="text-sm text-slate-700">
-                        {item.storeId}
+                        {(() => {
+                            const store = stores.find((s) => s.id === item.storeId)
+                            return store ? (
+                                <div className="flex flex-col">
+                                    <span className="font-medium">{store.name}</span>
+                                    <span className="text-xs text-slate-400">{store.address}</span>
+                                </div>
+                            ) : (
+                                <span className="text-xs text-slate-400 font-mono">{item.storeId}</span>
+                            )
+                        })()}
                     </TableCell>
 
                     {/* Cột 3: Số lượng tồn */}
                     <TableCell>
                         <div className="flex flex-col">
                             <span className="font-semibold text-slate-900">
-                                {parseFloat(item.quantity).toFixed(2)}
+                                {formatQty(item.quantity)}
                             </span>
                             <span className="text-xs text-slate-500">
-                                {item.ingredient.baseUnit}
+                                {item.ingredientViewRes.baseUnit}
                             </span>
                         </div>
                     </TableCell>
 
                     {/* Cột 4: Ngưỡng tối thiểu */}
                     <TableCell className="text-sm text-slate-600">
-                        {parseFloat(item.minThreshold).toFixed(2)} {item.ingredient.baseUnit}
+                        {formatQty(item.minThreshold)} {item.ingredientViewRes.baseUnit}
                     </TableCell>
 
                     {/* Cột 5: Trạng thái */}

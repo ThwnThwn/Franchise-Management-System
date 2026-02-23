@@ -76,38 +76,38 @@ export default function CartDrawer() {
     // --- CÁC HÀM XỬ LÝ SỰ KIỆN ---
 
     // Cập nhật số lượng sản phẩm: Hiển thị ngay lập tức và gọi API sau 1 giây nếu không có thay đổi thêm
-    const handleUpdateQuantity = (sku: string, newQuantity: number) => {
-        setOptimisticQuantities((prev) => ({ ...prev, [sku]: newQuantity }))
+    const handleUpdateQuantity = (variantId: string, sku: string, newQuantity: number) => {
+        setOptimisticQuantities((prev) => ({ ...prev, [variantId]: newQuantity }))
 
         // Xóa trạng thái báo lỗi thiếu kho của sản phẩm này khi người dùng bắt đầu chỉnh sửa số lượng
-        if (shortageMap[sku]) {
+        if (shortageMap[variantId]) {
             const nextMap = { ...shortageMap }
-            delete nextMap[sku]
+            delete nextMap[variantId]
             setShortageMap(nextMap)
         }
 
-        // Tạo hàm debounce cho SKU này nếu chưa có
-        if (!debounceMapRef.current[sku]) {
-            debounceMapRef.current[sku] = debouncedWrapper(async (q: number) => {
+        // Tạo hàm debounce cho variantId này nếu chưa có
+        if (!debounceMapRef.current[variantId]) {
+            debounceMapRef.current[variantId] = debouncedWrapper(async (q: number) => {
                 await updateCartItemMutation.mutateAsync({ sku, quantity: q })
             }, 1000)
         }
-        debounceMapRef.current[sku](newQuantity)
+        debounceMapRef.current[variantId](newQuantity)
     }
 
     // Xóa một sản phẩm khỏi giỏ hàng và cập nhật lại danh sách lựa chọn
-    const handleRemoveItem = (sku: string) => {
+    const handleRemoveItem = (variantId: string, sku: string) => {
         deleteListCartItemMutation.mutate({ skus: [sku] })
-        if (selectedKeys.has(sku)) {
+        if (selectedKeys.has(variantId)) {
             const nextKeys = new Set(selectedKeys)
-            nextKeys.delete(sku)
+            nextKeys.delete(variantId)
             setSelectedKeys(nextKeys)
         }
     }
 
     // Xử lý chọn hoặc bỏ chọn toàn bộ sản phẩm
     const handleSelectAll = (isSelected: boolean) => {
-        setSelectedKeys(isSelected ? new Set(items.map((item) => item.sku)) : new Set())
+        setSelectedKeys(isSelected ? new Set(items.map((item) => item.variantId)) : new Set())
     }
 
     // Xử lý chọn hoặc bỏ chọn từng sản phẩm đơn lẻ
@@ -195,7 +195,7 @@ export default function CartDrawer() {
         await createOrderMutation.mutateAsync({
             items: selectedItems.map((item) => ({
                 sku: item.sku,
-                quantity: optimisticQuantities[item.sku] ?? item.quantity
+                quantity: optimisticQuantities[item.variantId] ?? item.quantity
             })),
             // tax,
             // paymentMethod: paymentMethod,
@@ -205,7 +205,7 @@ export default function CartDrawer() {
     }
 
     // Kiểm tra xem có bất kỳ sản phẩm nào đang được chọn bị dính lỗi kho hay không
-    const hasShortageError = selectedItems.some((item) => shortageMap[item.sku] !== undefined)
+    const hasShortageError = selectedItems.some((item) => shortageMap[item.variantId] !== undefined)
 
     return (
         <>
@@ -260,36 +260,38 @@ export default function CartDrawer() {
                                             className="flex flex-col gap-2 mb-0"
                                         >
                                             <div
-                                                className={`flex items-center gap-2 p-2 rounded-2xl transition-all border-2 ${
-                                                    isShortage
-                                                        ? "bg-danger-50 border-danger-200"
-                                                        : "border-transparent"
-                                                }`}
+                                                className={`flex items-center gap-2 p-2 rounded-2xl transition-all border-2 ${isShortage
+                                                    ? "bg-danger-50 border-danger-200"
+                                                    : "border-transparent"
+                                                    }`}
                                                 onClick={() => handleSelectItem(item.variantId)} // Dùng variantId
                                             >
-                                                <CheckboxStyled
-                                                    isSelected={selectedKeys.has(item.variantId)} // Dùng variantId
-                                                    onValueChange={() =>
-                                                        handleSelectItem(item.variantId)
-                                                    }
-                                                />
+                                                <div onClick={(e) => e.stopPropagation()}>
+                                                    <CheckboxStyled
+                                                        isSelected={selectedKeys.has(item.variantId)}
+                                                        onValueChange={() =>
+                                                            handleSelectItem(item.variantId)
+                                                        }
+                                                    />
+                                                </div>
                                                 <div className="flex-1">
                                                     <CartItem
                                                         item={{
                                                             ...item,
                                                             quantity:
                                                                 optimisticQuantities[
-                                                                    item.variantId
+                                                                item.variantId
                                                                 ] ?? item.quantity
                                                         }}
-                                                        onUpdateQuantity={(id, qty) =>
+                                                        onUpdateQuantity={(_, qty) =>
                                                             handleUpdateQuantity(
                                                                 item.variantId,
+                                                                item.sku,
                                                                 qty
                                                             )
                                                         }
                                                         onRemove={() =>
-                                                            handleRemoveItem(item.variantId)
+                                                            handleRemoveItem(item.variantId, item.sku)
                                                         }
                                                     />
                                                 </div>
@@ -326,6 +328,7 @@ export default function CartDrawer() {
                                                                     e.stopPropagation()
                                                                     handleUpdateQuantity(
                                                                         item.variantId,
+                                                                        item.sku,
                                                                         maxAvailable
                                                                     )
                                                                 }}

@@ -9,7 +9,9 @@ import {
     ShieldUser,
     Package,
     Settings,
-    Calendar
+    Calendar,
+    FlaskConical,
+    Tag
 } from "lucide-react"
 
 export interface MenuItem {
@@ -39,6 +41,12 @@ export const DASHBOARD_SIDEBAR_MENU: MenuItem[] = [
         allowedRoles: [RoleSlug.Admin]
     },
     {
+        icon: <Tag className="w-5 h-5" />,
+        label: "Danh mục",
+        href: "/dashboard/categories",
+        allowedRoles: [RoleSlug.Admin]
+    },
+    {
         icon: <Users className="w-5 h-5" />,
         label: "Người dùng",
         href: "/dashboard/users",
@@ -52,9 +60,22 @@ export const DASHBOARD_SIDEBAR_MENU: MenuItem[] = [
     },
     {
         icon: <Package className="w-5 h-5" />,
+        label: "Sản phẩm",
+        href: "/dashboard/products",
+        allowedRoles: [RoleSlug.Admin, RoleSlug.Manager]
+    },
+    {
+        icon: <Package className="w-5 h-5" />,
         label: "Kho",
         href: "/dashboard/inventory",
-        allowedRoles: [RoleSlug.Admin]
+        allowedRoles: [RoleSlug.Admin, RoleSlug.Manager]
+    },
+
+    {
+        icon: <FlaskConical className="w-5 h-5" />,
+        label: "Nguyên liệu",
+        href: "/dashboard/inventory/ingredients",
+        allowedRoles: [RoleSlug.Admin, RoleSlug.Manager]
     },
     {
         icon: <Settings className="w-5 h-5" />,
