@@ -35,6 +35,14 @@ service ShiftGrpcService {
 
   // Lấy danh sách ứng viên khả dụng (kèm validation)
   rpc GetAvailableStaffs (GetAvailableStaffsRequest) returns (GetAvailableStaffsResponse);
+
+  // --- ATTENDANCE ---
+  rpc CheckIn (CheckInRequest) returns (CheckInResponse);
+  rpc CheckOut (CheckOutRequest) returns (CheckOutResponse);
+
+  // --- TIME LOGS ---
+  rpc GetTimeLogs (GetTimeLogsRequest) returns (GetTimeLogsResponse);
+  rpc UpdateTimeLog (UpdateTimeLogRequest) returns (UpdateTimeLogResponse);
 }
 
 // ----------------------------------------------------
@@ -223,4 +231,95 @@ message CandidateValidationDto {
   bool is_over_limit = 3;
   double weekly_hours = 4;
   bool is_shuttle_invalid = 5;
+}
+
+// ========== ATTENDANCE ==========
+
+message CheckInRequest {
+  string assignment_id = 1;
+  string user_id = 2;
+  optional double latitude = 3;
+  optional double longitude = 4;
+  string note = 5;
+}
+
+message CheckInResponse {
+  string log_id = 1;
+}
+
+message CheckOutRequest {
+  string log_id = 1;
+  string user_id = 2;
+  optional double latitude = 3;
+  optional double longitude = 4;
+  string note = 5;
+}
+
+message CheckOutResponse {
+  bool success = 1;
+}
+
+// ========== TIME LOGS ==========
+
+message GetTimeLogsRequest {
+  string store_id = 1;
+  string staff_id = 2;
+  int32 status = 3;
+  string from_date = 4;
+  string to_date = 5;
+  int32 page = 6;
+  int32 page_size = 7;
+}
+
+message GetTimeLogsResponse {
+  repeated TimeLogDetailDto data = 1;
+  int32 total_count = 2;
+  int32 total_pages = 3;
+}
+
+message TimeLogDetailDto {
+  string id = 1;
+  string shift_assignment_id = 2;
+  optional string check_in_at = 3;
+  optional string check_in_image_url = 4;
+  optional double check_in_lat = 5;
+  optional double check_in_long = 6;
+  optional string check_out_at = 7;
+  optional string check_out_image_url = 8;
+  optional double check_out_lat = 9;
+  optional double check_out_long = 10;
+  optional int32 total_work_minutes = 11;
+  int32 status = 12;
+  optional string manager_note = 13;
+  string created_at = 14;
+  string updated_at = 15;
+  TimeLogStaffInfo staff = 16;
+  TimeLogShiftInfo shift = 17;
+}
+
+message TimeLogStaffInfo {
+  string id = 1;
+  optional string first_name = 2;
+  optional string last_name = 3;
+  optional string avatar_url = 4;
+  optional string email = 5;
+}
+
+message TimeLogShiftInfo {
+  string id = 1;
+  string shift_date = 2;
+  string start_time = 3;
+  string end_time = 4;
+  optional string note = 5;
+}
+
+message UpdateTimeLogRequest {
+  string id = 1;
+  int32 status = 2;
+  optional string manager_note = 3;
+  string user_id = 4;
+}
+
+message UpdateTimeLogResponse {
+  bool success = 1;
 }

@@ -57,5 +57,20 @@ namespace FranchiseService.Application.Repositories
         /// Bypass Global Query Filter để tìm và update entity.
         /// </summary>
         Task RestoreAssignmentAsync(ShiftAssignment assignment, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Lấy danh sách lịch sử chấm công (Time Logs) kèm thông tin phân công và ca làm việc.
+        /// Dùng cho cả Staff xem lịch sử của mình và Manager xem lịch sử của cửa hàng.
+        /// Có hỗ trợ bộ lọc và phân trang.
+        /// </summary>
+        Task<(IEnumerable<TimeLog> Items, int TotalCount)> GetTimeLogsAsync(
+            Guid? storeId, 
+            Guid? staffId, 
+            int? status,
+            DateOnly fromDate, 
+            DateOnly toDate,
+            int page, 
+            int pageSize,
+            CancellationToken cancellationToken);
     }
 }
