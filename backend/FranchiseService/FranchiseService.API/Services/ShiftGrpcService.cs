@@ -104,7 +104,7 @@ namespace FranchiseService.API.Services
                 throw new RpcException(new Status(StatusCode.InvalidArgument, "StoreId is required"));
             }
 
-            int? status = request.Status == 0 ? null : request.Status;
+            int? status = request.Status == -1 ? null : request.Status;
 
             var query = new GetShiftsQuery(storeId, from, to, status);
             var result = await _mediator.Send(query);
@@ -263,8 +263,8 @@ namespace FranchiseService.API.Services
                 RequiredStaffCount = request.RequiredStaffCount == 0 ? null : request.RequiredStaffCount, // Logic check
                 Note = request.Note,
                 BreakDurationMinutes = request.BreakDurationMinutes == 0 ? null : request.BreakDurationMinutes,
-                Status = request.Status == 0 ? null : request.Status, // Mapping status
-                LockVersion = request.LockVersion,
+                Status = request.Status == -1 ? null : request.Status, // Mapping status
+                //LockVersion = request.LockVersion,
                 UpdatedBy = string.IsNullOrEmpty(request.UpdatedBy) ? Guid.Empty : Guid.Parse(request.UpdatedBy)
             };
 
@@ -422,7 +422,7 @@ namespace FranchiseService.API.Services
                 {
                     StoreId = string.IsNullOrEmpty(request.StoreId) ? null : Guid.Parse(request.StoreId),
                     StaffId = string.IsNullOrEmpty(request.StaffId) ? null : Guid.Parse(request.StaffId),
-                    Status = request.Status == 0 ? null : request.Status,
+                    Status = request.Status == -1 ? null : request.Status,
                     FromDate = DateOnly.TryParse(request.FromDate, out var f) ? f : null,
                     ToDate = DateOnly.TryParse(request.ToDate, out var t) ? t : null,
                     PageNumber = request.Page <= 0 ? 1 : request.Page,
@@ -473,7 +473,7 @@ namespace FranchiseService.API.Services
                     Id = Guid.Parse(request.Id),
                     Status = request.Status,
                     ManagerNote = request.HasManagerNote ? request.ManagerNote : null,
-                    UserId = Guid.Parse(request.UserId)
+                    //UserId = Guid.Parse(request.UserId)
                 };
 
                 await _mediator.Send(command);

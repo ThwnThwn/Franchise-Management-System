@@ -47,10 +47,10 @@ namespace FranchiseService.Application.Features.Shifts.Commands.UpdateShift
                 throw new InvalidOperationException("Không thể chỉnh sửa ca đã hủy.");
 
             // 3. Optimistic Concurrency Check
-            if (shift.LockVersion != request.LockVersion)
-            {
-                throw new InvalidOperationException("Dữ liệu đã bị thay đổi bởi người khác. Vui lòng tải lại trang.");
-            }
+            //if (shift.LockVersion != request.LockVersion)
+            //{
+            //    throw new InvalidOperationException("Dữ liệu đã bị thay đổi bởi người khác. Vui lòng tải lại trang.");
+            //}
 
             // 4. Nếu đổi ShiftTemplateId -> Fetch template mới và áp dụng giờ giấc
             if (request.ShiftTemplateId.HasValue && request.ShiftTemplateId.Value != shift.ShiftTemplateId)
@@ -104,7 +104,7 @@ namespace FranchiseService.Application.Features.Shifts.Commands.UpdateShift
             }
 
             shift.UpdatedAt = DateTimeOffset.UtcNow;
-            shift.LockVersion++; // Increment Version
+            //shift.LockVersion++; // Increment Version
 
             // 7. Save to DB
             await _shiftRepository.UpdateAsync(shift);

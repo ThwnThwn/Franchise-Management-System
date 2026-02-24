@@ -67,7 +67,7 @@ func (h *ShiftBulkHandler) CreateFromTemplate(c *gin.Context) {
 // @Param        body body []string true "Danh sách ID các ca làm cần công khai"
 // @Router       /shifts/bulk-publish [put]
 func (h *ShiftBulkHandler) Publish(c *gin.Context) {
-	var ids []uuid.UUID
+	var ids []string
 	if err := c.ShouldBindJSON(&ids); err != nil {
 		c.Error(validation.TranslateValidationError(err))
 		return

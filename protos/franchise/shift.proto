@@ -130,8 +130,8 @@ message ShiftAssignmentResponse {
 
 message GetShiftsRequest {
   string store_id = 1;           // Optional 
-  string from_date = 2;          // "YYYY-MM-DD"
-  string to_date = 3;            // "YYYY-MM-DD"
+  optional string from_date = 2;          // "YYYY-MM-DD"
+  optional string to_date = 3;            // "YYYY-MM-DD"
   int32 status = 4;              // Optional filter
   // int32 page = 5;
   // int32 page_size = 6;
@@ -151,7 +151,7 @@ message GetShiftByIdRequest {
 
 message CreateShiftRequest {
   string store_id = 1;
-  string shift_template_id = 2; // Optional
+  optional string shift_template_id = 2; // Optional
   string shift_date = 3;        // "YYYY-MM-DD"
   string start_time = 4;        // "HH:mm"
   string end_time = 5;          // "HH:mm"
@@ -169,18 +169,17 @@ message CreateShiftResponse {
 
 message UpdateShiftRequest {
   string id = 1;
-  string store_id = 2;          // Optional
-  string shift_template_id = 3; // Optional
-  string shift_date = 4;
-  string start_time = 5;
-  string end_time = 6;
-  int32 required_staff_count = 7; 
-  string note = 8;
-  int32 break_duration_minutes = 9;
+  optional string store_id = 2;          // Optional
+  optional string shift_template_id = 3; // Optional
+  optional string shift_date = 4;
+  optional string start_time = 5;
+  optional string end_time = 6;
+  optional int32 required_staff_count = 7; 
+  optional string note = 8;
+  optional int32 break_duration_minutes = 9;
   int32 status = 10;
   int32 lock_version = 11;      // Optimistic Locking
   string updated_by = 12;
-  
 }
 
 message UpdateShiftResponse {
@@ -334,7 +333,7 @@ message UpdateTimeLogRequest {
   string id = 1;
   int32 status = 2;
   optional string manager_note = 3;
-  string user_id = 4;
+  // string user_id = 4;
 }
 
 message UpdateTimeLogResponse {

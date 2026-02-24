@@ -1,7 +1,6 @@
 package shift
 
 import (
-	"api-gateway/internal/domain/constants/enum"
 	"api-gateway/internal/domain/models/store"
 )
 
@@ -93,8 +92,8 @@ type ShiftRuleResponse struct {
 }
 
 type ShiftRuleSettingsResponse struct {
-	Global ShiftRuleResponse   `json:"global"`
-	Stores []ShiftRuleResponse `json:"stores"`
+	Global *ShiftRuleResponse   `json:"global"`
+	Stores []*ShiftRuleResponse `json:"stores"`
 }
 
 // ===============================
@@ -186,27 +185,31 @@ type TimeLogResponse struct {
 	CheckOutLat      *float64 `json:"checkOutLat,omitempty"`
 	CheckOutLong     *float64 `json:"checkOutLong,omitempty"`
 
-	TotalWorkMinutes *int               `json:"totalWorkMinutes,omitempty"`
-	Status           enum.TimeLogStatus `json:"status"`
-	ManagerNote      *string            `json:"managerNote,omitempty"`
+	TotalWorkMinutes *int32  `json:"totalWorkMinutes,omitempty"`
+	Status           int32   `json:"status"`
+	ManagerNote      *string `json:"managerNote,omitempty"`
 
 	CreatedAt string `json:"createdAt"`
 	UpdatedAt string `json:"updatedAt"`
 
 	// Staff info
-	Staff struct {
-		Id        string  `json:"id"`
-		FirstName *string `json:"firstName,omitempty"`
-		LastName  *string `json:"lastName,omitempty"`
-		AvatarUrl *string `json:"avatarUrl,omitempty"`
-		Email     *string `json:"email,omitempty"`
-	} `json:"staff"`
+	Staff StaffTimeLogRes `json:"staff"`
 
-	Shift struct {
-		Id        string  `json:"id"`
-		ShiftDate string  `json:"shiftDate"`
-		StartTime string  `json:"startTime"`
-		EndTime   string  `json:"endTime"`
-		Note      *string `json:"note"`
-	} `json:"shift"`
+	Shift ShiftTimeLogRes `json:"shift"`
+}
+
+type StaffTimeLogRes struct {
+	Id        string  `json:"id"`
+	FirstName *string `json:"firstName,omitempty"`
+	LastName  *string `json:"lastName,omitempty"`
+	AvatarUrl *string `json:"avatarUrl,omitempty"`
+	Email     *string `json:"email,omitempty"`
+}
+
+type ShiftTimeLogRes struct {
+	Id        string  `json:"id"`
+	ShiftDate string  `json:"shiftDate"`
+	StartTime string  `json:"startTime"`
+	EndTime   string  `json:"endTime"`
+	Note      *string `json:"note"`
 }

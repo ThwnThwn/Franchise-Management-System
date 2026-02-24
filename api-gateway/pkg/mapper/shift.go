@@ -80,5 +80,6 @@ func MapShiftPbToModel(shiftPb *franchise.ShiftResponse) *shift.ShiftResponse {
 		Status:               int(shiftPb.Status),
 		Note:                 shiftPb.Note,
 		AssignedStaffCount:   int(shiftPb.AssignedStaffCount),
+		Assignments:          assignments,
 	}
 }

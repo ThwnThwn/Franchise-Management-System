@@ -49,6 +49,11 @@ type ShiftGrpcServiceClient interface {
 	UpdateTimeLog(ctx context.Context, in *UpdateTimeLogRequest, opts ...grpc.CallOption) (*UpdateTimeLogResponse, error)
 	// --- AGENDA Lich ca nhan ---
 	GetMyAgenda(ctx context.Context, in *GetAgendaRequest, opts ...grpc.CallOption) (*GetAgendaResponse, error)
+	// --- BULK OPERATIONS Thao tac hang loat ---
+	BulkCreateManual(ctx context.Context, in *BulkCreateManualRequest, opts ...grpc.CallOption) (*BulkCreateResponse, error)
+	BulkCreateFromTemplate(ctx context.Context, in *BulkCreateFromTemplateRequest, opts ...grpc.CallOption) (*BulkCreateResponse, error)
+	BulkPublish(ctx context.Context, in *BulkPublishRequest, opts ...grpc.CallOption) (*BulkActionResponse, error)
+	BulkDelete(ctx context.Context, in *BulkDeleteRequest, opts ...grpc.CallOption) (*BulkActionResponse, error)
 }
 
 type shiftGrpcServiceClient struct {
@@ -185,6 +190,42 @@ func (c *shiftGrpcServiceClient) GetMyAgenda(ctx context.Context, in *GetAgendaR
 	return out, nil
 }
 
+func (c *shiftGrpcServiceClient) BulkCreateManual(ctx context.Context, in *BulkCreateManualRequest, opts ...grpc.CallOption) (*BulkCreateResponse, error) {
+	out := new(BulkCreateResponse)
+	err := c.cc.Invoke(ctx, "/franchise.ShiftGrpcService/BulkCreateManual", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shiftGrpcServiceClient) BulkCreateFromTemplate(ctx context.Context, in *BulkCreateFromTemplateRequest, opts ...grpc.CallOption) (*BulkCreateResponse, error) {
+	out := new(BulkCreateResponse)
+	err := c.cc.Invoke(ctx, "/franchise.ShiftGrpcService/BulkCreateFromTemplate", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shiftGrpcServiceClient) BulkPublish(ctx context.Context, in *BulkPublishRequest, opts ...grpc.CallOption) (*BulkActionResponse, error) {
+	out := new(BulkActionResponse)
+	err := c.cc.Invoke(ctx, "/franchise.ShiftGrpcService/BulkPublish", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shiftGrpcServiceClient) BulkDelete(ctx context.Context, in *BulkDeleteRequest, opts ...grpc.CallOption) (*BulkActionResponse, error) {
+	out := new(BulkActionResponse)
+	err := c.cc.Invoke(ctx, "/franchise.ShiftGrpcService/BulkDelete", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ShiftGrpcServiceServer is the server API for ShiftGrpcService service.
 // All implementations must embed UnimplementedShiftGrpcServiceServer
 // for forward compatibility
@@ -216,6 +257,11 @@ type ShiftGrpcServiceServer interface {
 	UpdateTimeLog(context.Context, *UpdateTimeLogRequest) (*UpdateTimeLogResponse, error)
 	// --- AGENDA Lich ca nhan ---
 	GetMyAgenda(context.Context, *GetAgendaRequest) (*GetAgendaResponse, error)
+	// --- BULK OPERATIONS Thao tac hang loat ---
+	BulkCreateManual(context.Context, *BulkCreateManualRequest) (*BulkCreateResponse, error)
+	BulkCreateFromTemplate(context.Context, *BulkCreateFromTemplateRequest) (*BulkCreateResponse, error)
+	BulkPublish(context.Context, *BulkPublishRequest) (*BulkActionResponse, error)
+	BulkDelete(context.Context, *BulkDeleteRequest) (*BulkActionResponse, error)
 	mustEmbedUnimplementedShiftGrpcServiceServer()
 }
 
@@ -264,6 +310,18 @@ func (UnimplementedShiftGrpcServiceServer) UpdateTimeLog(context.Context, *Updat
 }
 func (UnimplementedShiftGrpcServiceServer) GetMyAgenda(context.Context, *GetAgendaRequest) (*GetAgendaResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMyAgenda not implemented")
+}
+func (UnimplementedShiftGrpcServiceServer) BulkCreateManual(context.Context, *BulkCreateManualRequest) (*BulkCreateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BulkCreateManual not implemented")
+}
+func (UnimplementedShiftGrpcServiceServer) BulkCreateFromTemplate(context.Context, *BulkCreateFromTemplateRequest) (*BulkCreateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BulkCreateFromTemplate not implemented")
+}
+func (UnimplementedShiftGrpcServiceServer) BulkPublish(context.Context, *BulkPublishRequest) (*BulkActionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BulkPublish not implemented")
+}
+func (UnimplementedShiftGrpcServiceServer) BulkDelete(context.Context, *BulkDeleteRequest) (*BulkActionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BulkDelete not implemented")
 }
 func (UnimplementedShiftGrpcServiceServer) mustEmbedUnimplementedShiftGrpcServiceServer() {}
 
@@ -530,6 +588,78 @@ func _ShiftGrpcService_GetMyAgenda_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ShiftGrpcService_BulkCreateManual_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BulkCreateManualRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShiftGrpcServiceServer).BulkCreateManual(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/franchise.ShiftGrpcService/BulkCreateManual",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShiftGrpcServiceServer).BulkCreateManual(ctx, req.(*BulkCreateManualRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShiftGrpcService_BulkCreateFromTemplate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BulkCreateFromTemplateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShiftGrpcServiceServer).BulkCreateFromTemplate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/franchise.ShiftGrpcService/BulkCreateFromTemplate",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShiftGrpcServiceServer).BulkCreateFromTemplate(ctx, req.(*BulkCreateFromTemplateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShiftGrpcService_BulkPublish_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BulkPublishRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShiftGrpcServiceServer).BulkPublish(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/franchise.ShiftGrpcService/BulkPublish",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShiftGrpcServiceServer).BulkPublish(ctx, req.(*BulkPublishRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShiftGrpcService_BulkDelete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BulkDeleteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShiftGrpcServiceServer).BulkDelete(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/franchise.ShiftGrpcService/BulkDelete",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShiftGrpcServiceServer).BulkDelete(ctx, req.(*BulkDeleteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ShiftGrpcService_ServiceDesc is the grpc.ServiceDesc for ShiftGrpcService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -592,6 +722,22 @@ var ShiftGrpcService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetMyAgenda",
 			Handler:    _ShiftGrpcService_GetMyAgenda_Handler,
+		},
+		{
+			MethodName: "BulkCreateManual",
+			Handler:    _ShiftGrpcService_BulkCreateManual_Handler,
+		},
+		{
+			MethodName: "BulkCreateFromTemplate",
+			Handler:    _ShiftGrpcService_BulkCreateFromTemplate_Handler,
+		},
+		{
+			MethodName: "BulkPublish",
+			Handler:    _ShiftGrpcService_BulkPublish_Handler,
+		},
+		{
+			MethodName: "BulkDelete",
+			Handler:    _ShiftGrpcService_BulkDelete_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

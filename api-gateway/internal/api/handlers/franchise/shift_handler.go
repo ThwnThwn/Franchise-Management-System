@@ -8,7 +8,6 @@ import (
 	"api-gateway/internal/domain/models/common"
 	"api-gateway/internal/domain/models/errormodel"
 	"api-gateway/internal/domain/models/shift"
-	"api-gateway/pkg/mapper"
 	"api-gateway/pkg/utils/validation"
 	"fmt"
 	"net/http"
@@ -259,7 +258,7 @@ func (h *ShiftHandler) GetAllTimeLogs(c *gin.Context) {
 		return
 	}
 
-	ctx := c.Request.Context()
+	// ctx := c.Request.Context()
 
 	// 2. Gọi sang Franchise Service (qua shiftGW) lấy danh sách Logs
 	// Giả sử trả về: *common.PageResult{ Items: []*shift.TimeLogResponse, Total: int }
@@ -268,7 +267,7 @@ func (h *ShiftHandler) GetAllTimeLogs(c *gin.Context) {
 	// 	c.Error(err)
 	// 	return
 	// }
-	logRes := &common.PaginationResult[*shift.TimeLogResponse]{}
+	logRes := common.PaginationResult[*shift.TimeLogResponse]{}
 	if len(logRes.Items) == 0 {
 		c.JSON(http.StatusOK, logRes)
 		return
@@ -285,17 +284,17 @@ func (h *ShiftHandler) GetAllTimeLogs(c *gin.Context) {
 	}
 
 	// 4. Dùng userGW gọi sang Identity Service lấy thông tin User chi tiết
-	users, err := h.userGW.GetByIds(ctx, staffIDs)
-	if err != nil {
-		// Ở Gateway, nếu Identity "tèo" nhưng Franchise vẫn có data,
-		// mình vẫn nên trả về logs kèm ID nhân viên thay vì báo lỗi 500 (Graceful Degradation).
-		c.JSON(http.StatusOK, logRes)
-		return
-	}
+	// users, err := h.userGW.GetByIds(ctx, staffIDs)
+	// if err != nil {
+	// 	// Ở Gateway, nếu Identity "die" nhưng Franchise vẫn có data,
+	// 	// mình vẫn nên trả về logs kèm ID nhân viên thay vì báo lỗi 500 (Graceful Degradation).
+	// 	c.JSON(http.StatusOK, logRes)
+	// 	return
+	// }
 
 	// 5. Mapper Batch để trộn data từ users vào logRes.Items
 	// Hàm mapper anh em mình vừa viết ở câu trước
-	logRes.Items = mapper.MapStaffToTimeLogsBatch(logRes.Items, users)
+	// logRes.Items = mapper.MapStaffToTimeLogsBatch(logRes.Items, users)
 
 	// 6. Trả về kết quả cuối cùng đã được "Enrich" (làm giàu dữ liệu)
 	c.JSON(http.StatusOK, logRes)

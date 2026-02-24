@@ -13,3 +13,19 @@ func GetFloat64(p *float64) float64 {
 	}
 	return *p
 }
+
+func IntToInt32Ptr(i *int) *int32 {
+	if i == nil {
+		return nil
+	}
+	v := int32(*i)
+	return &v
+}
+
+func Int32ToIntPtr(i *int32) *int {
+	if i == nil {
+		return nil
+	}
+	v := int(*i)
+	return &v
+}

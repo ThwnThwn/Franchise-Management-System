@@ -158,14 +158,13 @@ type GetAgendaParams struct {
 // ===============================
 type GetTimeLogsParams struct {
 	common.PaginationQuery
-	StoreID   *string             `json:"storeId,omitempty" form:"storeId"`
-	StaffID   *string             `json:"staffId,omitempty" form:"staffId"`
-	StaffName *string             `json:"staffName,omitempty" form:"staffName"`
-	Status    *enum.TimeLogStatus `json:"status,omitempty" form:"status"`
+	StoreID *string             `json:"storeId,omitempty" form:"storeId"`
+	StaffID *string             `json:"staffId,omitempty" form:"staffId"`
+	Status  *enum.TimeLogStatus `json:"status,omitempty" form:"status"`
 
 	// Format: YYYY-MM-DD
-	FromDate *string `json:"fromDate,omitempty" form:"fromDate"`
-	ToDate   *string `json:"toDate,omitempty" form:"toDate"`
+	FromDate string `json:"fromDate,omitempty" form:"fromDate"`
+	ToDate   string `json:"toDate,omitempty" form:"toDate"`
 }
 
 type UpdateTimeLogRequest struct {

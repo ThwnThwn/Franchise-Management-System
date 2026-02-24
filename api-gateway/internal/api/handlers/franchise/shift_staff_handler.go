@@ -141,7 +141,7 @@ func (h *ShiftStaffHandler) CheckOut(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
 
-// GetAgenda (Lịch cá nhân)
+// GetMyAgenda (Lịch cá nhân)
 // @Summary      Get Staff Agenda
 // @Description  Retrieve shift schedule within a date range for the logged-in staff.
 // @Tags         Shifts: Staff
@@ -149,7 +149,7 @@ func (h *ShiftStaffHandler) CheckOut(c *gin.Context) {
 // @Param        startDate query     string  true  "Start Date (YYYY-MM-DD)"
 // @Param        endDate   query     string  true  "End Date (YYYY-MM-DD)"
 // @Router       /me/shifts [get]
-func (h *ShiftStaffHandler) GetAgenda(c *gin.Context) {
+func (h *ShiftStaffHandler) GetMyAgenda(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
 		c.Error(errorcode.ErrInvalidToken)
@@ -166,7 +166,7 @@ func (h *ShiftStaffHandler) GetAgenda(c *gin.Context) {
 	fmt.Println(userID)
 
 	// ctx := c.Request.Context()
-	// res, err := h.shiftGW.GetAgenda(ctx, userID.(uuid.UUID), params)
+	// res, err := h.shiftGW.GetMyAgenda(ctx, userID.(uuid.UUID), params)
 	// if err != nil {
 	// 	c.Error(err)
 	// 	return
@@ -213,7 +213,7 @@ func (h *ShiftStaffHandler) GetMyTimeLogHistory(c *gin.Context) {
 	// 	c.Error(err)
 	// 	return
 	// }
-	logRes := &common.PaginationResult[*shift.TimeLogResponse]{}
+	logRes := common.PaginationResult[*shift.TimeLogResponse]{}
 	if len(logRes.Items) == 0 {
 		c.JSON(http.StatusOK, logRes)
 		return

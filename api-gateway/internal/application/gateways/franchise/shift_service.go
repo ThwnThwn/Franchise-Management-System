@@ -1,6 +1,7 @@
 package franchise
 
 import (
+	"api-gateway/internal/domain/models/common"
 	"api-gateway/internal/domain/models/shift"
 	"context"
 
@@ -14,8 +15,8 @@ type IShiftService interface {
 
 	GetShifts(ctx context.Context, req *shift.GetShiftsParams) ([]*shift.ShiftResponse, error)
 	GetById(ctx context.Context, id uuid.UUID) (*shift.ShiftResponse, error)
-	Create(ctx context.Context, req *shift.CreateShiftRequest) error
-	Update(ctx context.Context, id uuid.UUID, req *shift.UpdateShiftRequest) error
+	Create(ctx context.Context, creatorId uuid.UUID, req *shift.CreateShiftRequest) error
+	Update(ctx context.Context, id, userId uuid.UUID, req *shift.UpdateShiftRequest) error
 	Delete(ctx context.Context, id uuid.UUID) error
 
 	Publish(ctx context.Context, id uuid.UUID) error
@@ -25,5 +26,14 @@ type IShiftService interface {
 	CheckIn(ctx context.Context, userId, assignmentId uuid.UUID, req *shift.AttendancePayload) error
 	CheckOut(ctx context.Context, userId, logId uuid.UUID, req *shift.AttendancePayload) error
 
-	GetTimeLogs(ctx context.Context, req *shift.GetTimeLogsParams)
+	GetTimeLogs(ctx context.Context, req *shift.GetTimeLogsParams) (
+		common.PaginationResult[*shift.TimeLogResponse], error)
+	UpdateTimeLog(ctx context.Context, id uuid.UUID, req *shift.UpdateTimeLogRequest) error
+
+	GetMyAgenda(ctx context.Context, userId uuid.UUID, req *shift.GetAgendaParams) ([]*shift.StaffShiftAgenda, error)
+
+	BulkCreateManual(ctx context.Context, creatorId uuid.UUID, req *shift.BulkCreateManualRequest) error
+	BulkCreateFromTemplate(ctx context.Context, creatorId uuid.UUID, req *shift.BulkCreateFromTemplateRequest) error
+	BulkDelete(ctx context.Context, shiftIds []string) error
+	BulkPublish(ctx context.Context, shiftIds []string) error
 }

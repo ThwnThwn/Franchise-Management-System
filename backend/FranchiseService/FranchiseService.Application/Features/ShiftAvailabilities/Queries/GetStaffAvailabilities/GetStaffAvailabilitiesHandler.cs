@@ -59,7 +59,7 @@ public class GetStaffAvailabilitiesHandler : IRequestHandler<GetStaffAvailabilit
 
         // 2. Fetch from DB
         IEnumerable<StaffAvailability> allRecords;
-        
+
         if (targetUserIds != null)
         {
             // Predicate: UserId IN targetUserIds
@@ -80,6 +80,9 @@ public class GetStaffAvailabilitiesHandler : IRequestHandler<GetStaffAvailabilit
 
         if (request.IsRecurring.HasValue)
             query = query.Where(x => x.IsRecurring == request.IsRecurring.Value);
+
+        if (request.DayOfWeek.HasValue)
+            query = query.Where(x => x.DayOfWeek == (short)request.DayOfWeek.Value);
 
         if (!string.IsNullOrEmpty(request.Keyword))
         {
