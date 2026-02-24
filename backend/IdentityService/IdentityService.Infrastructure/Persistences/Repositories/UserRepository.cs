@@ -40,11 +40,11 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
             if (string.IsNullOrEmpty(email))
                 return null;
 
-            var user = await _dbContext.Users
+            // Sử dụng EF.Functions.Like hoặc so sánh trực tiếp nếu DB đã set case-insensitive
+            return await _dbContext.Users
                 .Include(u => u.Role)
-                .Where(u => u.Email.ToLower() == email.ToLower())
-                .FirstOrDefaultAsync();
-            return user;
+                .FirstOrDefaultAsync(u => u.Email != null && u.Email.ToLower() == email.ToLower());
+            //.FirstOrDefaultAsync(u => u.Email == email);
         }
 
         public async Task<User?> GetByUsernameAsync(string? username)
@@ -145,11 +145,17 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
             return await query.ToPagedListAsync(pageIndex, pageSize, cancellationToken);
         }
 
-        public Task<User?> GetByPhoneAsync(string? phone)
+        public async Task<User?> GetByPhoneAsync(string? phone)
         {
-            return _dbContext.Users
-                .Where(u => u.Phone == phone)
-                .FirstOrDefaultAsync();
+            // 1. Kiểm tra đầu vào sớm để tránh truy vấn vô ích
+            if (string.IsNullOrWhiteSpace(phone))
+                return null;
+
+            // 2. Thực hiện truy vấn an toàn
+            var customer =  await _dbContext.Users
+                .AsNoTracking() 
+                .FirstOrDefaultAsync(u => u.Phone != null && u.Phone == phone);
+            return customer;
         }
     }
 }

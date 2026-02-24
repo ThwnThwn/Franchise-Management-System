@@ -21,7 +21,7 @@ namespace IdentityService.Application.Features.Users.Queries.GetByEmail
             var user = await _userRepository.GetByEmailAsync(request.Email);
 
             if(user == null)
-                throw new Exception("Không tìm thấy người dùng");
+                throw new DirectoryNotFoundException("Không tìm thấy người dùng");
 
             return user;
         }

@@ -23,7 +23,7 @@ namespace IdentityService.Application.Features.Users.Queries.GetByPhone
             var user = await _userRepository.GetByPhoneAsync(request.PhoneNumber);
             
             if(user == null)
-                throw new Exception("Không tìm thấy người dùng");
+                throw new DirectoryNotFoundException("Không tìm thấy người dùng");
 
             return user;
         }

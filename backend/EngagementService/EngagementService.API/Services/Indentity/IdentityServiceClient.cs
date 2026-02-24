@@ -1,8 +1,9 @@
-﻿using EngagementService.API.Protos.user;
+﻿
 using EngagementService.Application.ClientInterface;
 using EngagementService.Application.Dtos.Indentity;
 using Grpc.Core;
 using Grpc.Net.Client;
+using IdentityService.Grpc.Protos.User;
 using MediatR;
 
 namespace InventoryService.API.Services.Identity
@@ -39,13 +40,13 @@ namespace InventoryService.API.Services.Identity
 
         public async Task<UserIdRep> GetUserIdByEmail(EngagementService.Application.Dtos.Indentity.GetUserIdByEmailRequest request)
         {
-            var response = await _client.GetUserIdByEmailAsync(new EngagementService.API.Protos.user.GetUserIdByEmailRequest { Email = request.Email });
+            var response = await _client.GetUserIdByEmailAsync(new IdentityService.Grpc.Protos.User.GetUserIdByEmailRequest { Email = request.Email });
             return new UserIdRep { UserId = Guid.Parse(response.Id) };
         }
 
         public async Task<UserIdRep> GetUserIdByPhone(EngagementService.Application.Dtos.Indentity.GetUserIdByPhoneRequest request)
         {
-            var response = await _client.GetUserIdByPhoneAsync(new EngagementService.API.Protos.user.GetUserIdByPhoneRequest { Phone = request.PhoneNumber     });
+            var response = await _client.GetUserIdByPhoneAsync(new IdentityService.Grpc.Protos.User.GetUserIdByPhoneRequest { Phone = request.PhoneNumber });
             return new UserIdRep { UserId = Guid.Parse(response.Id) };
         }
     }
