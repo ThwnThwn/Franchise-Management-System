@@ -63,6 +63,9 @@ CREATE TABLE IF NOT EXISTS users (
     -- Định danh nhân viên này thuộc biên chế cửa hàng nào
     home_store_id UUID,
 
+    avatar_url VARCHAR(500),
+    avatar_public_id VARCHAR(255),
+
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     is_deleted BOOLEAN DEFAULT FALSE,

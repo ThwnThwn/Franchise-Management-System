@@ -12,13 +12,8 @@ func (u *UserRouter) Init(r *gin.RouterGroup) {
 	{
 		privateApi.GET("/me", u.userHl.GetMe)
 		privateApi.PATCH("/me", u.userHl.UpdateMe)
-	}
-
-	myShiftApi := privateApi.Group("/me/shifts")
-	{
-		// Staff láy thông tin ca làm hiện tại
-		myShiftApi.GET("/current",
-			u.authMW.PermissionCheck("me.current_shift"), u.shiftHl.GetUserCurrentShift)
+		privateApi.PUT("/me/avatar", u.userHl.UploadMyAvatar)
+		privateApi.DELETE("/me/avatar", u.userHl.DeleteMyAvatar)
 	}
 
 	{

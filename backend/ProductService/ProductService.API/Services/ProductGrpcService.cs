@@ -556,6 +556,33 @@ public class ProductGrpcService : ProductGrpc.ProductGrpcBase
         }
         return reply;
     }
+
+    // GetSkusByCategory
+    public override async Task<GetSkusByCategoryReply> GetSkusByCategory(
+        GetSkusByCategoryRequest request,
+        ServerCallContext context)
+    {
+        if (!Guid.TryParse(request.CategoryId, out var categoryId))
+        {
+            throw new RpcException(
+                new Status(StatusCode.InvalidArgument, "Invalid categoryId"));
+        }
+
+        var products = await _productRepository.GetAllProductsAsync(categoryId);
+
+        var reply = new GetSkusByCategoryReply();
+        
+        var skus = products
+            .SelectMany(p => p.ProductVariants)
+            .Where(v => !string.IsNullOrWhiteSpace(v.Sku))
+            .Select(v => v.Sku!)
+            .Distinct()
+            .ToList();
+
+        reply.Skus.AddRange(skus);
+
+        return reply;
+    }
 }
 
 

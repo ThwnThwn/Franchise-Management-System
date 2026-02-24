@@ -208,6 +208,9 @@ public partial class IdentityDbContext : DbContext, IIdentityDbContext
                 .HasPrecision(18, 2)
                 .HasColumnName("current_hourly_wage");
 
+            entity.Property(e => e.AvatarUrl).HasColumnName("avatar_url");
+            entity.Property(e => e.AvatarPublicId).HasColumnName("avatar_public_id");
+
             entity.HasOne(d => d.Role).WithMany(p => p.Users)
                 .HasForeignKey(d => d.RoleId)
                 .OnDelete(DeleteBehavior.SetNull)

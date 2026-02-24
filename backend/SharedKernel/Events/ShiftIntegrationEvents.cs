@@ -57,3 +57,14 @@ public class ShiftAssignedEvent
     public decimal? HourlyWage { get; set; }
     public string Action { get; set; } = "ShiftAssigned";
 }
+
+// Su kien khi go nhan vien khoi ca (dung trong logic Sync cua UpdateAssignments)
+public class ShiftUnassignedEvent
+{
+    public Guid AssignmentId { get; set; }
+    public Guid ShiftId { get; set; }
+    public Guid UserId { get; set; }
+    public Guid StoreId { get; set; }
+    public DateOnly ShiftDate { get; set; }
+    public string Action { get; set; } = "ShiftUnassigned";
+}

@@ -50,6 +50,13 @@ func GetString(in *string) string {
 	return *in
 }
 
+func ToPtr(s string) *string {
+	if s == "" {
+		return nil
+	}
+	return &s
+}
+
 func SanitizeFileName(fileName string, salt *string) string {
 	// 1. Chỉ lấy phần tên file, bỏ đường dẫn (Chống Path Traversal)
 	name := filepath.Base(fileName)

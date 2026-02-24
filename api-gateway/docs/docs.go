@@ -1323,7 +1323,365 @@ const docTemplate = `{
                 }
             }
         },
+        "/me/shift-availabilities": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Truy xuất danh sách lịch rảnh/bận đã đăng ký của nhân viên hiện tại kèm phân trang.",
+                "tags": [
+                    "Shifts: Availabilities"
+                ],
+                "summary": "Lấy lịch sử đăng ký rảnh/bận của tôi",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "dayOfWeek",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "fromDate",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "name": "isAvailable",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "name": "isRecurring",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "keyword",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "storeId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "toDate",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "userId",
+                        "in": "query"
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/me/shifts": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve shift schedule within a date range for the logged-in staff.",
+                "tags": [
+                    "Shifts: Staff"
+                ],
+                "summary": "Get Staff Agenda",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Start Date (YYYY-MM-DD)",
+                        "name": "startDate",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "End Date (YYYY-MM-DD)",
+                        "name": "endDate",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/me/shifts/assignments/{id}/check-in": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Check-in to a specific shift assignment using GPS location.",
+                "tags": [
+                    "Shifts: Staff"
+                ],
+                "summary": "Staff Check-in",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Assignment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "GPS \u0026 Note",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_shift.AttendancePayload"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/me/shifts/current": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve the current active shift for the logged-in user.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shifts: Staff"
+                ],
+                "summary": "Get My Current Shift",
+                "responses": {
+                    "200": {
+                        "description": "Current shift details",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/me/shifts/logs/{id}/check-out": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Check-out from an active shift log.",
+                "tags": [
+                    "Shifts: Staff"
+                ],
+                "summary": "Staff Check-out",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Log ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "GPS \u0026 Note",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_shift.AttendancePayload"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/me/shifts/time-logs": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Staff xem lại danh sách các bản ghi chấm công của chính mình. Gateway tự động gắn StaffID từ Token.",
+                "tags": [
+                    "Shifts: Staff"
+                ],
+                "summary": "Lấy lịch sử chấm công cá nhân",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Format: YYYY-MM-DD",
+                        "name": "fromDate",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "staffId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "staffName",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            0,
+                            1,
+                            2
+                        ],
+                        "type": "integer",
+                        "x-enum-comments": {
+                            "TimeLogStatus_INVALID": "2",
+                            "TimeLogStatus_PROCESSING": "0",
+                            "TimeLogStatus_VALID": "1"
+                        },
+                        "x-enum-descriptions": [
+                            "0",
+                            "1",
+                            "2"
+                        ],
+                        "x-enum-varnames": [
+                            "TimeLogStatus_PROCESSING",
+                            "TimeLogStatus_VALID",
+                            "TimeLogStatus_INVALID"
+                        ],
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "storeId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "toDate",
+                        "in": "query"
+                    }
+                ],
+                "responses": {}
+            }
+        },
         "/orders": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve a list of orders placed with optional filtering.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Get Orders History",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "code",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "fromDate",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "paymentMethod",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "storeId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "toDate",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of orders",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
@@ -1944,7 +2302,7 @@ const docTemplate = `{
             }
         },
         "/products/{id}/images": {
-            "post": {
+            "put": {
                 "security": [
                     {
                         "BearerAuth": []
@@ -2307,6 +2665,821 @@ const docTemplate = `{
                         }
                     }
                 }
+            }
+        },
+        "/shift-availabilities": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Quản lý xem toàn bộ danh sách lịch rảnh/bận của nhân viên để sắp ca làm việc.",
+                "tags": [
+                    "Shifts: Availabilities"
+                ],
+                "summary": "Quản lý toàn bộ lịch rảnh/bận",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "dayOfWeek",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "fromDate",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "name": "isAvailable",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "name": "isRecurring",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "keyword",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "storeId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "toDate",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "userId",
+                        "in": "query"
+                    }
+                ],
+                "responses": {}
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Gửi đơn đăng ký thời gian rảnh hoặc bận để quản lý sắp ca.",
+                "tags": [
+                    "Shifts: Availabilities"
+                ],
+                "summary": "Đăng ký lịch rảnh/bận mới",
+                "parameters": [
+                    {
+                        "description": "Dữ liệu đăng ký",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_shift.CreateShiftAvailabilityRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/shift-availabilities/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Xóa bỏ đơn đăng ký lịch rảnh/bận đã gửi.",
+                "tags": [
+                    "Shifts: Availabilities"
+                ],
+                "summary": "Hủy/Xóa lịch rảnh/bận",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID lịch đăng ký",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Chỉnh sửa đơn đăng ký lịch rảnh/bận đã gửi dựa trên ID.",
+                "tags": [
+                    "Shifts: Availabilities"
+                ],
+                "summary": "Cập nhật lịch rảnh/bận",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID lịch đăng ký",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Dữ liệu cập nhật",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_shift.UpdateShiftAvailabilityRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/shift-rules": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lấy thông tin cấu hình luật ca làm việc (Global và theo Store) để hiển thị trên trang cài đặt.",
+                "tags": [
+                    "Shifts: Rule"
+                ],
+                "summary": "Lấy cấu hình quy định ca làm",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID cửa hàng (Nếu muốn lọc theo store cụ thể)",
+                        "name": "storeId",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Dữ liệu cấu hình",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_shift.ShiftRuleSettingsResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Cập nhật hoặc tạo mới các quy định về ca làm việc (Giờ tối đa, thời gian nghỉ...).",
+                "tags": [
+                    "Shifts: Rule"
+                ],
+                "summary": "Lưu cấu hình quy định ca làm",
+                "parameters": [
+                    {
+                        "description": "Dữ liệu quy định cần lưu",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_shift.SaveShiftRuleRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/shift-templates": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Truy xuất toàn bộ danh sách các mẫu ca làm (Sáng, Chiều, Tối...) theo Store.",
+                "tags": [
+                    "Shifts: Template"
+                ],
+                "summary": "Lấy danh sách mẫu ca làm việc",
+                "parameters": [
+                    {
+                        "type": "boolean",
+                        "name": "isActive",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "keyword",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "storeId",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Danh sách mẫu ca",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/api-gateway_internal_domain_models_shift.ShiftTemplateResponse"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Định nghĩa một khung giờ làm việc mẫu (mã code, tên, giờ bắt đầu/kết thúc).",
+                "tags": [
+                    "Shifts: Template"
+                ],
+                "summary": "Tạo mẫu ca làm mới",
+                "parameters": [
+                    {
+                        "description": "Thông tin mẫu ca",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_shift.CreateShiftTemplateRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/shift-templates/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lấy thông tin chi tiết cấu hình của một mẫu ca làm việc dựa trên ID.",
+                "tags": [
+                    "Shifts: Template"
+                ],
+                "summary": "Chi tiết mẫu ca làm việc",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID mẫu ca",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_shift.ShiftTemplateResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Gỡ bỏ hoàn toàn một mẫu ca làm khỏi hệ thống.",
+                "tags": [
+                    "Shifts: Template"
+                ],
+                "summary": "Xóa mẫu ca làm việc",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID mẫu ca",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Chỉnh sửa cấu hình khung giờ hoặc tên của mẫu ca làm việc hiện có.",
+                "tags": [
+                    "Shifts: Template"
+                ],
+                "summary": "Cập nhật mẫu ca làm việc",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID mẫu ca",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Dữ liệu cập nhật",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_shift.UpdateShiftTemplateRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/shifts": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Truy xuất danh sách ca làm việc kèm bộ lọc (Dùng cho Calendar/List view).",
+                "tags": [
+                    "Shifts"
+                ],
+                "summary": "Lấy danh sách ca làm việc",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID cửa hàng",
+                        "name": "storeId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Từ ngày (YYYY-MM-DD)",
+                        "name": "fromDate",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Đến ngày (YYYY-MM-DD)",
+                        "name": "toDate",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Trạng thái ca",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/api-gateway_internal_domain_models_shift.ShiftResponse"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Tạo một ca làm việc mới cho cửa hàng.",
+                "tags": [
+                    "Shifts"
+                ],
+                "summary": "Tạo ca làm mới",
+                "parameters": [
+                    {
+                        "description": "Thông tin ca làm",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_shift.CreateShiftRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/shifts/bulk-delete": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Xóa hàng loạt các ca làm việc (Chỉ áp dụng cho các ca đang ở trạng thái Nháp).",
+                "tags": [
+                    "Shifts: Bulk action"
+                ],
+                "summary": "Xóa hàng loạt ca làm việc",
+                "parameters": [
+                    {
+                        "description": "Danh sách ID các ca làm cần xóa",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/shifts/bulk-manual": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Tạo nhiều ca làm việc cùng lúc dựa trên khung giờ và các ngày trong tuần được chọn.",
+                "tags": [
+                    "Shifts: Bulk action"
+                ],
+                "summary": "Tạo ca làm việc thủ công hàng loạt",
+                "parameters": [
+                    {
+                        "description": "Dữ liệu tạo hàng loạt",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_shift.BulkCreateManualRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/shifts/bulk-publish": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Chuyển trạng thái hàng loạt ca làm từ Draft sang Published để nhân viên có thể thấy lịch.",
+                "tags": [
+                    "Shifts: Bulk action"
+                ],
+                "summary": "Công khai ca làm việc hàng loạt",
+                "parameters": [
+                    {
+                        "description": "Danh sách ID các ca làm cần công khai",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                ],
+                "responses": {}
+            },
+            "post": {
+                "description": "Công khai danh sách ca làm việc cùng lúc.",
+                "tags": [
+                    "Shifts"
+                ],
+                "summary": "Xuất bản nhiều ca làm",
+                "parameters": [
+                    {
+                        "description": "Danh sách ID ca làm",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "ids": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/shifts/bulk-template": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Tạo hàng loạt ca làm việc trong một khoảng thời gian dựa trên các Shift Template có sẵn.",
+                "tags": [
+                    "Shifts: Bulk action"
+                ],
+                "summary": "Tạo ca làm việc từ mẫu hàng loạt",
+                "parameters": [
+                    {
+                        "description": "Dữ liệu tạo từ mẫu",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_shift.BulkCreateFromTemplateRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/shifts/time-logs": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Manager lấy toàn bộ nhật ký chấm công trong Store kèm bộ lọc.",
+                "tags": [
+                    "Shifts: Time log"
+                ],
+                "summary": "Lấy danh sách chấm công",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Format: YYYY-MM-DD",
+                        "name": "fromDate",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "staffId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "staffName",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            0,
+                            1,
+                            2
+                        ],
+                        "type": "integer",
+                        "x-enum-comments": {
+                            "TimeLogStatus_INVALID": "2",
+                            "TimeLogStatus_PROCESSING": "0",
+                            "TimeLogStatus_VALID": "1"
+                        },
+                        "x-enum-descriptions": [
+                            "0",
+                            "1",
+                            "2"
+                        ],
+                        "x-enum-varnames": [
+                            "TimeLogStatus_PROCESSING",
+                            "TimeLogStatus_VALID",
+                            "TimeLogStatus_INVALID"
+                        ],
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "storeId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "toDate",
+                        "in": "query"
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/shifts/time-logs/{id}": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Manager phê duyệt (Valid) hoặc từ chối (Invalid) ca làm thực tế của nhân viên.",
+                "tags": [
+                    "Shifts: Time log"
+                ],
+                "summary": "Duyệt hoặc cập nhật chấm công",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID nhật ký chấm công",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Dữ liệu cập nhật",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_shift.UpdateTimeLogRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    }
+                }
+            }
+        },
+        "/shifts/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lấy thông tin chi tiết ca làm và danh sách nhân viên đã gán.",
+                "tags": [
+                    "Shifts"
+                ],
+                "summary": "Lấy chi tiết một ca làm",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID ca làm",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_shift.ShiftResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Xóa ca làm (Chỉ khi ở trạng thái Draft/Planning).",
+                "tags": [
+                    "Shifts"
+                ],
+                "summary": "Xóa ca làm việc",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID ca làm",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Cập nhật giờ giấc hoặc số lượng nhân viên cần thiết cho ca làm.",
+                "tags": [
+                    "Shifts"
+                ],
+                "summary": "Cập nhật ca làm việc",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID ca làm",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Dữ liệu cập nhật",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_shift.UpdateShiftRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/shifts/{id}/publish": {
+            "put": {
+                "description": "Chuyển trạng thái sang Published để nhân viên thấy được lịch.",
+                "tags": [
+                    "Shifts"
+                ],
+                "summary": "Xuất bản ca làm",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID ca làm",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/shifts/{shiftId}/assign": {
+            "put": {
+                "description": "Thay đổi danh sách nhân viên được gán vào ca làm việc.",
+                "tags": [
+                    "Shifts: Assignment"
+                ],
+                "summary": "Cập nhật phân công nhân sự",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID ca làm",
+                        "name": "shiftId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Danh sách User ID",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                ],
+                "responses": {}
             }
         },
         "/stores": {
@@ -2742,6 +3915,42 @@ const docTemplate = `{
                 }
             }
         },
+        "/stores/{storeId}/shifts/{shiftId}/candidates": {
+            "get": {
+                "description": "Kiểm tra xung đột lịch và quy định để gợi ý nhân viên cho ca làm.",
+                "tags": [
+                    "Shifts: Assignment"
+                ],
+                "summary": "Lấy danh sách ứng viên khả dụng",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID cửa hàng",
+                        "name": "storeId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "ID ca làm",
+                        "name": "shiftId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/api-gateway_internal_domain_models_shift.StaffAssignmentCandidate"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/users": {
             "get": {
                 "security": [
@@ -2943,30 +4152,41 @@ const docTemplate = `{
                 }
             }
         },
-        "/users/me/shifts/current": {
-            "get": {
+        "/users/me/avatar": {
+            "put": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retrieve the current active shift for the logged-in user.",
+                "description": "Upload my avatar. Supports JPG, PNG, and WebP formats. Max file size is 10MB.",
                 "consumes": [
-                    "application/json"
+                    "multipart/form-data"
                 ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Shifts"
+                    "Profile"
                 ],
-                "summary": "Get My Current Shift",
+                "summary": "Upload My Avatar",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "Image file to upload",
+                        "name": "image",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "Current shift details",
+                        "description": "OK",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": true
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     },
                     "401": {
@@ -2978,8 +4198,64 @@ const docTemplate = `{
                             }
                         }
                     },
-                    "404": {
-                        "description": "No active shift found",
+                    "413": {
+                        "description": "Request entity too large",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Delete my avatar.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Delete My Avatar",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -3200,6 +4476,29 @@ const docTemplate = `{
             "x-enum-varnames": [
                 "PaymentMethod_CASH",
                 "PaymentMethod_VNPAY"
+            ]
+        },
+        "api-gateway_internal_domain_constants_enum.TimeLogStatus": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2
+            ],
+            "x-enum-comments": {
+                "TimeLogStatus_INVALID": "2",
+                "TimeLogStatus_PROCESSING": "0",
+                "TimeLogStatus_VALID": "1"
+            },
+            "x-enum-descriptions": [
+                "0",
+                "1",
+                "2"
+            ],
+            "x-enum-varnames": [
+                "TimeLogStatus_PROCESSING",
+                "TimeLogStatus_VALID",
+                "TimeLogStatus_INVALID"
             ]
         },
         "api-gateway_internal_domain_models_auth.ConfirmOtpRequest": {
@@ -3660,6 +4959,508 @@ const docTemplate = `{
                 }
             }
         },
+        "api-gateway_internal_domain_models_shift.AttendancePayload": {
+            "type": "object",
+            "properties": {
+                "latitude": {
+                    "type": "number"
+                },
+                "longitude": {
+                    "type": "number"
+                },
+                "note": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_shift.BulkCreateFromTemplateRequest": {
+            "type": "object",
+            "required": [
+                "endDate",
+                "startDate",
+                "storeId",
+                "templateId"
+            ],
+            "properties": {
+                "endDate": {
+                    "type": "string"
+                },
+                "requiredStaffCount": {
+                    "type": "integer"
+                },
+                "startDate": {
+                    "type": "string"
+                },
+                "storeId": {
+                    "type": "string"
+                },
+                "templateId": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_shift.BulkCreateManualRequest": {
+            "type": "object",
+            "required": [
+                "daysOfWeek",
+                "endDate",
+                "endTime",
+                "startDate",
+                "startTime",
+                "storeId"
+            ],
+            "properties": {
+                "breakDurationMinutes": {
+                    "type": "integer"
+                },
+                "daysOfWeek": {
+                    "description": "[1, 3, 5]",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "endDate": {
+                    "type": "string"
+                },
+                "endTime": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "requiredStaffCount": {
+                    "type": "integer"
+                },
+                "startDate": {
+                    "description": "YYYY-MM-DD",
+                    "type": "string"
+                },
+                "startTime": {
+                    "description": "HH:mm",
+                    "type": "string"
+                },
+                "storeId": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_shift.CandidateValidation": {
+            "type": "object",
+            "properties": {
+                "isOverLimit": {
+                    "type": "boolean"
+                },
+                "isRestTimeInvalid": {
+                    "type": "boolean"
+                },
+                "isShuttleInvalid": {
+                    "type": "boolean"
+                },
+                "restHours": {
+                    "type": "number"
+                },
+                "weeklyHours": {
+                    "type": "number"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_shift.CreateShiftAvailabilityRequest": {
+            "type": "object",
+            "required": [
+                "endTime",
+                "startTime"
+            ],
+            "properties": {
+                "dayOfWeek": {
+                    "type": "integer"
+                },
+                "endTime": {
+                    "type": "string"
+                },
+                "isAvailable": {
+                    "type": "boolean"
+                },
+                "isRecurring": {
+                    "type": "boolean"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "specificDate": {
+                    "type": "string"
+                },
+                "startTime": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_shift.CreateShiftRequest": {
+            "type": "object",
+            "required": [
+                "endTime",
+                "requiredStaffCount",
+                "shiftDate",
+                "startTime",
+                "storeId"
+            ],
+            "properties": {
+                "breakDurationMinutes": {
+                    "type": "integer"
+                },
+                "endTime": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "requiredStaffCount": {
+                    "type": "integer"
+                },
+                "shiftDate": {
+                    "description": "YYYY-MM-DD",
+                    "type": "string"
+                },
+                "shiftTemplateId": {
+                    "type": "string"
+                },
+                "startTime": {
+                    "description": "HH:mm",
+                    "type": "string"
+                },
+                "storeId": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_shift.CreateShiftTemplateRequest": {
+            "type": "object",
+            "required": [
+                "code",
+                "endTime",
+                "name",
+                "startTime"
+            ],
+            "properties": {
+                "breakDurationMinutes": {
+                    "type": "integer"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "endTime": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "startTime": {
+                    "type": "string"
+                },
+                "storeId": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_shift.SaveShiftRuleRequest": {
+            "type": "object",
+            "properties": {
+                "allowShiftSwap": {
+                    "type": "boolean"
+                },
+                "allowShuttle": {
+                    "type": "boolean"
+                },
+                "maxHoursPerWeek": {
+                    "type": "integer"
+                },
+                "minHoursBetweenShifts": {
+                    "type": "integer"
+                },
+                "storeId": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_shift.ShiftAssignment": {
+            "type": "object",
+            "properties": {
+                "avatarUrl": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "firstName": {
+                    "type": "string"
+                },
+                "hourlyWage": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "lastName": {
+                    "type": "string"
+                },
+                "shiftId": {
+                    "type": "string"
+                },
+                "status": {
+                    "description": "ShiftAssignmentStatus enum",
+                    "type": "integer"
+                },
+                "userId": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_shift.ShiftResponse": {
+            "type": "object",
+            "properties": {
+                "assignedStaffCount": {
+                    "type": "integer"
+                },
+                "assignments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api-gateway_internal_domain_models_shift.ShiftAssignment"
+                    }
+                },
+                "breakDurationMinutes": {
+                    "type": "integer"
+                },
+                "endTime": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "requiredStaffCount": {
+                    "type": "integer"
+                },
+                "shiftDate": {
+                    "description": "YYYY-MM-DD",
+                    "type": "string"
+                },
+                "shiftTemplateId": {
+                    "type": "string"
+                },
+                "startTime": {
+                    "description": "HH:mm:ss",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "ShiftStatus enum",
+                    "type": "integer"
+                },
+                "storeId": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_shift.ShiftRuleResponse": {
+            "type": "object",
+            "properties": {
+                "allowShiftSwap": {
+                    "type": "boolean"
+                },
+                "allowShuttle": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "maxHoursPerWeek": {
+                    "type": "integer"
+                },
+                "minHoursBetweenShifts": {
+                    "type": "integer"
+                },
+                "storeId": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_shift.ShiftRuleSettingsResponse": {
+            "type": "object",
+            "properties": {
+                "global": {
+                    "$ref": "#/definitions/api-gateway_internal_domain_models_shift.ShiftRuleResponse"
+                },
+                "stores": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api-gateway_internal_domain_models_shift.ShiftRuleResponse"
+                    }
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_shift.ShiftTemplateResponse": {
+            "type": "object",
+            "properties": {
+                "breakDurationMinutes": {
+                    "type": "integer"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "endTime": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "isActive": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "startTime": {
+                    "type": "string"
+                },
+                "storeId": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_shift.StaffAssignmentCandidate": {
+            "type": "object",
+            "properties": {
+                "avatarUrl": {
+                    "type": "string"
+                },
+                "currentHourlyWage": {
+                    "type": "number"
+                },
+                "firstName": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "isAssigned": {
+                    "type": "boolean"
+                },
+                "isAvailable": {
+                    "type": "boolean"
+                },
+                "isConflict": {
+                    "type": "boolean"
+                },
+                "lastName": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "validation": {
+                    "$ref": "#/definitions/api-gateway_internal_domain_models_shift.CandidateValidation"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_shift.UpdateShiftAvailabilityRequest": {
+            "type": "object",
+            "properties": {
+                "dayOfWeek": {
+                    "type": "integer"
+                },
+                "endTime": {
+                    "type": "string"
+                },
+                "isAvailable": {
+                    "type": "boolean"
+                },
+                "isRecurring": {
+                    "type": "boolean"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "specificDate": {
+                    "type": "string"
+                },
+                "startTime": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_shift.UpdateShiftRequest": {
+            "type": "object",
+            "properties": {
+                "breakDurationMinutes": {
+                    "type": "integer"
+                },
+                "endTime": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "requiredStaffCount": {
+                    "type": "integer"
+                },
+                "shiftDate": {
+                    "type": "string"
+                },
+                "shiftTemplateId": {
+                    "type": "string"
+                },
+                "startTime": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_shift.UpdateShiftTemplateRequest": {
+            "type": "object",
+            "properties": {
+                "breakDurationMinutes": {
+                    "type": "integer"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "endTime": {
+                    "type": "string"
+                },
+                "isActive": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "startTime": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_shift.UpdateTimeLogRequest": {
+            "type": "object",
+            "required": [
+                "status"
+            ],
+            "properties": {
+                "managerNote": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/api-gateway_internal_domain_constants_enum.TimeLogStatus"
+                }
+            }
+        },
         "api-gateway_internal_domain_models_user.ChangePasswordRequest": {
             "type": "object",
             "required": [
@@ -3760,6 +5561,10 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "gin.H": {
+            "type": "object",
+            "additionalProperties": {}
         }
     },
     "securityDefinitions": {

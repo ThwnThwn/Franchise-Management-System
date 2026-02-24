@@ -6,6 +6,7 @@ import (
 	"api-gateway/internal/api/routes/categories"
 	"api-gateway/internal/api/routes/ingredients"
 	ingreCate "api-gateway/internal/api/routes/ingredients/categories"
+	"api-gateway/internal/api/routes/myshifts"
 	"api-gateway/internal/api/routes/orders"
 	"api-gateway/internal/api/routes/permissions"
 	"api-gateway/internal/api/routes/products"
@@ -22,6 +23,7 @@ import (
 type AppRouter struct {
 	// Franchise
 	*stores.StoreRouter
+	*myshifts.MyShiftsRouter
 
 	// Identity
 	*auth.AuthRouter
@@ -46,6 +48,7 @@ type AppRouter struct {
 var RouterSet = wire.NewSet(
 	// Franchise
 	stores.NewRouter,
+	myshifts.NewRouter,
 
 	// Identity
 	auth.NewRouter,

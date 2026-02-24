@@ -11,6 +11,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -25,11 +26,14 @@ type UserGrpcClient interface {
 	CustomerCreate(ctx context.Context, in *CustomerCreateUserRequest, opts ...grpc.CallOption) (*UserResponse, error)
 	AdminCreate(ctx context.Context, in *AdminCreateUserRequest, opts ...grpc.CallOption) (*UserResponse, error)
 	GetById(ctx context.Context, in *GetUserByIdRequest, opts ...grpc.CallOption) (*UserResponse, error)
+	GetByIds(ctx context.Context, in *GetUserByIdsRequest, opts ...grpc.CallOption) (*GetUserByIdsResponse, error)
 	GetAll(ctx context.Context, in *GetAllUserOrWithRoleRequest, opts ...grpc.CallOption) (*GetAllUserOrWithRoleResponse, error)
 	GetManager(ctx context.Context, in *GetManagerRequest, opts ...grpc.CallOption) (*UserResponse, error)
 	Update(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*UserResponse, error)
 	ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*UserResponse, error)
 	Delete(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error)
+	UploadAvatar(ctx context.Context, in *UploadAvatarRequest, opts ...grpc.CallOption) (*UserResponse, error)
+	DeleteAvatar(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*DeleteAvatarResponse, error)
 }
 
 type userGrpcClient struct {
@@ -61,6 +65,15 @@ func (c *userGrpcClient) AdminCreate(ctx context.Context, in *AdminCreateUserReq
 func (c *userGrpcClient) GetById(ctx context.Context, in *GetUserByIdRequest, opts ...grpc.CallOption) (*UserResponse, error) {
 	out := new(UserResponse)
 	err := c.cc.Invoke(ctx, "/identity.user.UserGrpc/GetById", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userGrpcClient) GetByIds(ctx context.Context, in *GetUserByIdsRequest, opts ...grpc.CallOption) (*GetUserByIdsResponse, error) {
+	out := new(GetUserByIdsResponse)
+	err := c.cc.Invoke(ctx, "/identity.user.UserGrpc/GetByIds", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -112,6 +125,24 @@ func (c *userGrpcClient) Delete(ctx context.Context, in *DeleteUserRequest, opts
 	return out, nil
 }
 
+func (c *userGrpcClient) UploadAvatar(ctx context.Context, in *UploadAvatarRequest, opts ...grpc.CallOption) (*UserResponse, error) {
+	out := new(UserResponse)
+	err := c.cc.Invoke(ctx, "/identity.user.UserGrpc/UploadAvatar", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userGrpcClient) DeleteAvatar(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*DeleteAvatarResponse, error) {
+	out := new(DeleteAvatarResponse)
+	err := c.cc.Invoke(ctx, "/identity.user.UserGrpc/DeleteAvatar", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserGrpcServer is the server API for UserGrpc service.
 // All implementations must embed UnimplementedUserGrpcServer
 // for forward compatibility
@@ -119,11 +150,14 @@ type UserGrpcServer interface {
 	CustomerCreate(context.Context, *CustomerCreateUserRequest) (*UserResponse, error)
 	AdminCreate(context.Context, *AdminCreateUserRequest) (*UserResponse, error)
 	GetById(context.Context, *GetUserByIdRequest) (*UserResponse, error)
+	GetByIds(context.Context, *GetUserByIdsRequest) (*GetUserByIdsResponse, error)
 	GetAll(context.Context, *GetAllUserOrWithRoleRequest) (*GetAllUserOrWithRoleResponse, error)
 	GetManager(context.Context, *GetManagerRequest) (*UserResponse, error)
 	Update(context.Context, *UpdateUserRequest) (*UserResponse, error)
 	ChangePassword(context.Context, *ChangePasswordRequest) (*UserResponse, error)
 	Delete(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error)
+	UploadAvatar(context.Context, *UploadAvatarRequest) (*UserResponse, error)
+	DeleteAvatar(context.Context, *emptypb.Empty) (*DeleteAvatarResponse, error)
 	mustEmbedUnimplementedUserGrpcServer()
 }
 
@@ -140,6 +174,9 @@ func (UnimplementedUserGrpcServer) AdminCreate(context.Context, *AdminCreateUser
 func (UnimplementedUserGrpcServer) GetById(context.Context, *GetUserByIdRequest) (*UserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetById not implemented")
 }
+func (UnimplementedUserGrpcServer) GetByIds(context.Context, *GetUserByIdsRequest) (*GetUserByIdsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetByIds not implemented")
+}
 func (UnimplementedUserGrpcServer) GetAll(context.Context, *GetAllUserOrWithRoleRequest) (*GetAllUserOrWithRoleResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
@@ -154,6 +191,12 @@ func (UnimplementedUserGrpcServer) ChangePassword(context.Context, *ChangePasswo
 }
 func (UnimplementedUserGrpcServer) Delete(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedUserGrpcServer) UploadAvatar(context.Context, *UploadAvatarRequest) (*UserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UploadAvatar not implemented")
+}
+func (UnimplementedUserGrpcServer) DeleteAvatar(context.Context, *emptypb.Empty) (*DeleteAvatarResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteAvatar not implemented")
 }
 func (UnimplementedUserGrpcServer) mustEmbedUnimplementedUserGrpcServer() {}
 
@@ -218,6 +261,24 @@ func _UserGrpc_GetById_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(UserGrpcServer).GetById(ctx, req.(*GetUserByIdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserGrpc_GetByIds_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserByIdsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserGrpcServer).GetByIds(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/identity.user.UserGrpc/GetByIds",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserGrpcServer).GetByIds(ctx, req.(*GetUserByIdsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -312,6 +373,42 @@ func _UserGrpc_Delete_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserGrpc_UploadAvatar_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UploadAvatarRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserGrpcServer).UploadAvatar(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/identity.user.UserGrpc/UploadAvatar",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserGrpcServer).UploadAvatar(ctx, req.(*UploadAvatarRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserGrpc_DeleteAvatar_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserGrpcServer).DeleteAvatar(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/identity.user.UserGrpc/DeleteAvatar",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserGrpcServer).DeleteAvatar(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserGrpc_ServiceDesc is the grpc.ServiceDesc for UserGrpc service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -332,6 +429,10 @@ var UserGrpc_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _UserGrpc_GetById_Handler,
 		},
 		{
+			MethodName: "GetByIds",
+			Handler:    _UserGrpc_GetByIds_Handler,
+		},
+		{
 			MethodName: "GetAll",
 			Handler:    _UserGrpc_GetAll_Handler,
 		},
@@ -350,6 +451,14 @@ var UserGrpc_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Delete",
 			Handler:    _UserGrpc_Delete_Handler,
+		},
+		{
+			MethodName: "UploadAvatar",
+			Handler:    _UserGrpc_UploadAvatar_Handler,
+		},
+		{
+			MethodName: "DeleteAvatar",
+			Handler:    _UserGrpc_DeleteAvatar_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

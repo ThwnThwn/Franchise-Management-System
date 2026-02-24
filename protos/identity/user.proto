@@ -14,6 +14,7 @@ service UserGrpc {
   rpc AdminCreate(AdminCreateUserRequest) returns (UserResponse);
 
   rpc GetById(GetUserByIdRequest) returns (UserResponse);
+  rpc GetByIds (GetUserByIdsRequest) returns (GetUserByIdsResponse);
   rpc GetAll(GetAllUserOrWithRoleRequest) returns (GetAllUserOrWithRoleResponse);
   rpc GetManager(GetManagerRequest) returns (UserResponse);
   rpc GetUserIdByPhone(GetUserIdByPhoneRequest) returns (UserIdResponse);
@@ -23,6 +24,9 @@ service UserGrpc {
   rpc ChangePassword(ChangePasswordRequest) returns (UserResponse);
 
   rpc Delete(DeleteUserRequest) returns (DeleteUserResponse);
+
+  rpc UploadAvatar(UploadAvatarRequest) returns (UserResponse);
+  rpc DeleteAvatar(google.protobuf.Empty) returns (DeleteAvatarResponse);
 }
 
 message GetAllUserOrWithRoleRequest{
@@ -40,7 +44,12 @@ message GetAllUserOrWithRoleResponse {
 message GetUserByIdRequest {
   string id = 1;
 }
-
+message GetUserByIdsRequest {
+  repeated string ids = 1;
+}
+message GetUserByIdsResponse {
+  repeated UserResponse users = 1;
+}
 message DeleteUserRequest {
   string id = 1;
 }
@@ -121,6 +130,7 @@ message UserResponse {
   google.protobuf.Timestamp createdAt = 13;
   google.protobuf.Timestamp updatedAt = 14;
   optional double current_hourly_wage = 15;
+  string avatar_url = 16;
 }
 
 message GetManagerRequest{
@@ -137,4 +147,11 @@ message UserIdResponse {
 
 message GetUserIdByEmailRequest {
   string email = 1;
+}
+message UploadAvatarRequest {
+  bytes image_data = 1;
+}
+
+message DeleteAvatarResponse {
+  string message = 1;
 }

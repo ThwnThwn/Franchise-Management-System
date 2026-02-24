@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using NotificationService.Application.Abstractions;
 using NotificationService.Domain.Entities;
+using NotificationService.Domain.Enums;
 using NotificationService.Infrastructure.Data;
+using static SharedKernel.Events.OrderStatusEvent;
 namespace NotificationService.Infrastructure.Repositories;
 public class NotificationRepository : INotificationRepository
 {
@@ -33,9 +35,12 @@ public class NotificationRepository : INotificationRepository
             .ToListAsync();
     }
 
-    public async Task<bool> HasProcessedAsync(string referenceId)
+    public async Task<bool> HasProcessedAsync(string referenceId, NotificationType type)
     {
-        return await _context.NotificationLogs
-            .AnyAsync(n => n.ReferenceId == referenceId && n.Status == Domain.Enums.NotificationStatus.Sent);
+        return await _context.NotificationLogs.AnyAsync(x =>
+            x.ReferenceId == referenceId &&
+            x.Type == type &&
+            x.Status == NotificationStatus.Sent
+        );
     }
 }

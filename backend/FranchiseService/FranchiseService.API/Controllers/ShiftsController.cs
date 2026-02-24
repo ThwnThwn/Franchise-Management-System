@@ -1,13 +1,12 @@
 using BuildingBlocks.Core.Extensions;
 using FranchiseService.Application.ClientInterfaces;
-using FranchiseService.Application.Features.Shifts.Commands.AssignStaff;
 using FranchiseService.Application.Features.Shifts.Commands.CreateShift;
 using FranchiseService.Application.Features.Shifts.Commands.DeleteShift;
 using FranchiseService.Application.Features.Shifts.Commands.PublishShift;
-using FranchiseService.Application.Features.Shifts.Commands.RemoveStaff;
 using FranchiseService.Application.Features.Shifts.Commands.UpdateShift;
+using FranchiseService.Application.Features.Shifts.Commands.UpdateShiftAssignment;
 using FranchiseService.Application.Features.Shifts.DTOs;
-using FranchiseService.Application.Repositories;
+using FranchiseService.Application.Features.Shifts.Queries.GetAvailableStaffs;
 using FranchiseService.Application.Features.Shifts.Queries.GetShifts;
 using FranchiseService.Application.Features.Shifts.Queries.GetShiftById;
 using MediatR;
@@ -15,10 +14,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FranchiseService.API.Controllers
 {
-    /// <summary>
-    /// Controller quản lý Ca làm việc (Shifts).
-    /// Các endpoint khớp với FE shiftApi.ts.
-    /// </summary>
+    // Controller quan ly Ca lam viec (Shifts)
+    // Cac endpoint khop voi FE shiftApi.ts
     [Route("api/v1/[controller]")]
     [ApiController]
     public class ShiftsController : ControllerBase
@@ -30,11 +27,8 @@ namespace FranchiseService.API.Controllers
             _mediator = mediator;
         }
 
-        /// <summary>
-        /// Lấy danh sách ca làm việc (có phân trang, filter status).
-        /// FE: shiftApi.getAll({ query: GetShiftsParams })
-        /// Response: PageResult&lt;ShiftResponse&gt;
-        /// </summary>
+        // Lay danh sach ca lam viec (co phan trang, filter status)
+        // FE: shiftApi.getAll({ query: GetShiftsParams })
         [HttpGet]
         public async Task<IActionResult> GetShifts(
             [FromQuery] Guid storeId,
@@ -45,15 +39,13 @@ namespace FranchiseService.API.Controllers
             [FromQuery] int pageSize = 10,
             CancellationToken cancellationToken = default)
         {
-            var query = new GetShiftsQuery(storeId, fromDate, toDate, page, pageSize, status);
+            var query = new GetShiftsQuery(storeId, fromDate, toDate, status);
             var result = await _mediator.Send(query, cancellationToken);
             return Ok(result);
         }
 
-        /// <summary>
-        /// Lấy chi tiết 1 ca làm việc kèm danh sách phân công.
-        /// FE: shiftApi.getById({ id })
-        /// </summary>
+        // Lay chi tiet 1 ca lam viec kem danh sach phan cong
+        // FE: shiftApi.getById({ id })
         [HttpGet("{id}")]
         public async Task<IActionResult> GetShiftById(Guid id, CancellationToken cancellationToken)
         {
@@ -62,22 +54,17 @@ namespace FranchiseService.API.Controllers
             return Ok(result);
         }
 
-        /// <summary>
-        /// Tạo ca làm việc mới (Draft).
-        /// FE: shiftApi.create(req) → void
-        /// </summary>
+        // Tao ca lam viec moi (Draft)
+        // FE: shiftApi.create(req)
         [HttpPost]
         public async Task<IActionResult> CreateShift([FromBody] CreateShiftCommand command)
         {
-            //command.CreatedBy = lấy từ JWT Token
             var id = await _mediator.Send(command);
             return CreatedAtAction(nameof(GetShiftById), new { id }, new { Id = id });
         }
 
-        /// <summary>
-        /// Cập nhật ca làm việc (Partial Update).
-        /// FE: shiftApi.update({ id, req }) → PATCH
-        /// </summary>
+        // Cap nhat ca lam viec (Partial Update)
+        // FE: shiftApi.update({ id, req }) -> PATCH
         [HttpPatch("{id}")]
         public async Task<IActionResult> UpdateShift(Guid id, [FromBody] UpdateShiftCommand command)
         {
@@ -86,10 +73,8 @@ namespace FranchiseService.API.Controllers
             return NoContent();
         }
 
-        /// <summary>
-        /// Xóa ca làm việc (Soft Delete).
-        /// FE: shiftApi.delete({ id }) → void
-        /// </summary>
+        // Xoa ca lam viec (Soft Delete)
+        // FE: shiftApi.delete({ id })
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteShift(Guid id)
         {
@@ -98,38 +83,34 @@ namespace FranchiseService.API.Controllers
             return NoContent();
         }
 
-        /// <summary>
-        /// Gán nhân viên vào ca làm việc.
-        /// FE: shiftApi.assignStaff({ id, userIds }) → void
-        /// </summary>
-        [HttpPost("{id}/assign")]
-        public async Task<IActionResult> AssignStaff(Guid id, [FromBody] AssignStaffCommand command)
+        // Dong bo danh sach nhan vien trong ca (Sync Logic)
+        // FE: shiftApi.updateAssignments({ shiftId, userIds }) -> PUT
+        // BE se tu diff: ai can them, ai can xoa, ai giu nguyen
+        [HttpPut("{id}/assign")]
+        public async Task<IActionResult> UpdateAssignments(Guid id, [FromBody] List<Guid> userIds)
         {
-            command.ShiftId = id;
-            await _mediator.Send(command);
-            return NoContent();
-        }
-
-        /// <summary>
-        /// Xóa nhân viên khỏi ca làm việc.
-        /// FE: shiftApi.removeStaff({ id, userId }) → void
-        /// </summary>
-        [HttpDelete("{id}/assign/{userId}")]
-        public async Task<IActionResult> RemoveStaff(Guid id, Guid userId)
-        {
-            var command = new RemoveStaffCommand
+            var command = new UpdateShiftAssignmentCommand
             {
                 ShiftId = id,
-                UserId = userId
+                UserIds = userIds
             };
             await _mediator.Send(command);
             return NoContent();
         }
 
-        /// <summary>
-        /// Publish ca làm việc (Draft → Published).
-        /// FE: shiftApi.publish({ id }) → void
-        /// </summary>
+        // Lay danh sach nhan vien kha dung cho ca lam (kem validation)
+        // FE: shiftApi.getAvailableStaffs({ storeId, shiftId })
+        // URL: GET /stores/{storeId}/shifts/{shiftId}/candidates
+        [HttpGet("/api/v1/stores/{storeId}/shifts/{shiftId}/candidates")]
+        public async Task<IActionResult> GetAvailableStaffs(Guid storeId, Guid shiftId)
+        {
+            var query = new GetAvailableStaffsQuery(storeId, shiftId);
+            var result = await _mediator.Send(query);
+            return Ok(result);
+        }
+
+        // Publish ca lam viec (Draft -> Published)
+        // FE: shiftApi.publish({ id })
         [HttpPost("{id}/publish")]
         public async Task<IActionResult> PublishShift(Guid id)
         {

@@ -38,7 +38,7 @@ func (c *ProductGrpcClient) GetProducts(ctx context.Context, req *product.GetPro
 }
 
 // GetAllWithPagingBy implements product.IProductService.
-func (c *ProductGrpcClient) GetAllWithPagingBy(ctx context.Context, req *product.GetProductsByKeywordRequest) (*common.PaginationResult[*product.Product], error) {
+func (c *ProductGrpcClient) GetAllWithPagingBy(ctx context.Context, req *product.GetProductsByKeywordRequest) (common.PaginationResult[*product.Product], error) {
 	res, err := c.client.GetProductsByKeyword(ctx, &productPb.GetProductsByKeywordRequest{
 		Keyword:    req.Keyword,
 		CategoryId: req.CategoryId,
@@ -46,14 +46,14 @@ func (c *ProductGrpcClient) GetAllWithPagingBy(ctx context.Context, req *product
 		PageSize:   req.PageSize,
 	})
 	if err != nil {
-		return nil, err
+		return common.PaginationResult[*product.Product]{}, err
 	}
 
 	prods := make([]*product.Product, 0, len(res.Products))
 	for _, p := range res.Products {
 		prods = append(prods, mapper.MapProductPbToProductModel(p))
 	}
-	return &common.PaginationResult[*product.Product]{
+	return common.PaginationResult[*product.Product]{
 		Items:      prods,
 		TotalCount: res.TotalCount,
 		TotalPages: res.TotalPages,

@@ -34,6 +34,7 @@ namespace IdentityService.Application.Dtos.User.Respone
         public decimal? CurrentHourlyWage { get; set; }
 
         public RoleUserRep? Role { get; set; }
+        public string? AvatarUrl { get; set; }
 
         public DateTimeOffset CreatedAt { get; set; }
 

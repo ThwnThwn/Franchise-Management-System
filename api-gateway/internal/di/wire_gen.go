@@ -8,7 +8,11 @@ package di
 
 import (
 	"api-gateway/config"
-	"api-gateway/internal/api/handlers"
+	franchise2 "api-gateway/internal/api/handlers/franchise"
+	identity2 "api-gateway/internal/api/handlers/identity"
+	inventory2 "api-gateway/internal/api/handlers/inventory"
+	product2 "api-gateway/internal/api/handlers/product"
+	sales2 "api-gateway/internal/api/handlers/sales"
 	"api-gateway/internal/api/middleware"
 	"api-gateway/internal/api/routes"
 	"api-gateway/internal/api/routes/auth"
@@ -16,6 +20,7 @@ import (
 	categories2 "api-gateway/internal/api/routes/categories"
 	"api-gateway/internal/api/routes/ingredients"
 	"api-gateway/internal/api/routes/ingredients/categories"
+	"api-gateway/internal/api/routes/myshifts"
 	"api-gateway/internal/api/routes/orders"
 	"api-gateway/internal/api/routes/permissions"
 	"api-gateway/internal/api/routes/products"
@@ -46,7 +51,7 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, erro
 		return nil, err
 	}
 	iStoreService := franchise.ProvideStoreClient(clientFactory)
-	storeHandler := handlers.NewStoreHandler(iStoreService)
+	storeHandler := franchise2.NewStoreHandler(iStoreService)
 	redis := &cfg.Redis
 	iPermCache := cache.NewPermCache(redis, l)
 	identityServiceUrl := cfg.IdentityServiceUrl
@@ -64,30 +69,32 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, erro
 		return nil, err
 	}
 	iStockService := inventory.ProvideStoreIngredientClient(inventoryClientFactory)
-	stockHandler := handlers.NewStockHandler(iStockService)
+	stockHandler := inventory2.NewStockHandler(iStockService)
 	stockRouter := stock.NewRouter(cfg, authMiddleware, stockHandler)
 	storeRouter := stores.NewRouter(cfg, storeHandler, stockRouter)
-	iAuthService := identity.ProvideAuthClient(identityClientFactory)
-	iUserService := identity.ProvideUserClient(identityClientFactory)
-	authHandler := handlers.NewAuthHandler(iAuthService, iUserService)
-	authRouter := auth.NewRouter(cfg, authMiddleware, authHandler)
-	userHandler := handlers.NewUserHandler(iUserService)
 	iShiftService := franchise.ProvideShiftClient(clientFactory)
-	shiftHandler := handlers.NewShiftHandler(iShiftService)
-	userRouter := users.NewRouter(cfg, authMiddleware, userHandler, shiftHandler)
+	iUserService := identity.ProvideUserClient(identityClientFactory)
+	shiftStaffHandler := franchise2.NewShiftStaffHandler(iShiftService, iUserService)
+	shiftAvailabilityHandler := franchise2.NewShiftAvailabilityHandler(iShiftService)
+	myShiftsRouter := myshifts.NewRouter(cfg, authMiddleware, shiftStaffHandler, shiftAvailabilityHandler)
+	iAuthService := identity.ProvideAuthClient(identityClientFactory)
+	authHandler := identity2.NewAuthHandler(iAuthService, iUserService)
+	authRouter := auth.NewRouter(cfg, authMiddleware, authHandler)
+	userHandler := identity2.NewUserHandler(iUserService)
+	userRouter := users.NewRouter(cfg, authMiddleware, userHandler)
 	iRoleService := identity.ProvideRoleClient(identityClientFactory)
-	roleHandler := handlers.NewRoleHandler(iRoleService, iRolePermissionService)
+	roleHandler := identity2.NewRoleHandler(iRoleService, iRolePermissionService)
 	roleRouter := roles.NewRouter(cfg, authMiddleware, roleHandler)
-	permHandler := handlers.NewPermHandler(iRolePermissionService)
+	permHandler := identity2.NewPermHandler(iRolePermissionService)
 	permissionRouter := permissions.NewRouter(cfg, authMiddleware, permHandler)
 	iIngredientService := inventory.ProvideIngredientClient(inventoryClientFactory)
-	ingredientHandler := handlers.NewIngredientHandler(iIngredientService)
+	ingredientHandler := inventory2.NewIngredientHandler(iIngredientService)
 	iIngredientCategoryService := inventory.ProvideIngredientCategoryClient(inventoryClientFactory)
-	ingredientCategoryHandler := handlers.NewIngredientCategoryHandler(iIngredientCategoryService)
+	ingredientCategoryHandler := inventory2.NewIngredientCategoryHandler(iIngredientCategoryService)
 	ingredientCategoryRouter := categories.NewRouter(cfg, authMiddleware, ingredientCategoryHandler)
 	ingredientRouter := ingredients.NewRouter(cfg, authMiddleware, ingredientHandler, ingredientCategoryRouter)
 	iRecipeService := inventory.ProvideRecipeClient(inventoryClientFactory)
-	recipeHandler := handlers.NewRecipeHandler(iRecipeService)
+	recipeHandler := inventory2.NewRecipeHandler(iRecipeService)
 	recipeRouter := recipes.NewRouter(cfg, authMiddleware, recipeHandler)
 	productServiceUrl := cfg.ProductServiceUrl
 	productClientFactory, err := product.NewProductClientFactory(productServiceUrl)
@@ -95,10 +102,10 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, erro
 		return nil, err
 	}
 	iProductService := product.ProvideProductClient(productClientFactory)
-	productHandler := handlers.NewProductHandler(iProductService)
+	productHandler := product2.NewProductHandler(iProductService)
 	productRouter := products.NewRouter(cfg, authMiddleware, productHandler)
 	iCategoryService := product.ProvideCategoryClient(productClientFactory)
-	categoryHandler := handlers.NewCategoryHandler(iCategoryService)
+	categoryHandler := product2.NewCategoryHandler(iCategoryService)
 	categoryRouter := categories2.NewRouter(cfg, authMiddleware, categoryHandler)
 	variantRouter := variants.NewRouter(cfg, authMiddleware, recipeHandler)
 	salesServiceUrl := cfg.SalesServiceUrl
@@ -107,13 +114,14 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, erro
 		return nil, err
 	}
 	iOrderService := sales.ProvideOrderClient(salesClientFactory)
-	orderHandler := handlers.NewOrderHandler(iOrderService)
+	orderHandler := sales2.NewOrderHandler(iOrderService)
 	orderRouter := orders.NewRouter(cfg, authMiddleware, orderHandler)
 	iCartService := sales.ProvideCartClient(salesClientFactory)
-	cartHandler := handlers.NewCartHandler(iCartService)
+	cartHandler := sales2.NewCartHandler(iCartService)
 	cartRouter := carts.NewRouter(cfg, authMiddleware, cartHandler)
 	appRouter := &routes.AppRouter{
 		StoreRouter:      storeRouter,
+		MyShiftsRouter:   myShiftsRouter,
 		AuthRouter:       authRouter,
 		UserRouter:       userRouter,
 		RoleRouter:       roleRouter,

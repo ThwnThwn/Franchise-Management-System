@@ -32,6 +32,7 @@ using SalesService.Infrastructure.Repositories.Orders;
 using SalesService.Infrastructure.Repositories.Outbox;
 using SalesService.Infrastructure.Repositories.Payments;
 using SalesService.Infrastructure.Signals;
+using SharedKernel.Events;
 using SharedKernel.Infrastructure.Kafka;
 
 namespace SalesService.API;
@@ -148,7 +149,7 @@ public class Program
         // Register Kafka Producer Registry
         builder.Services.AddSingleton<KafkaProducerRegistry>(sp => {
             var registry = new KafkaProducerRegistry();
-            registry.Register<SharedKernel.Events.OrderCreatedEvent>(SharedKernel.Constants.KafkaTopics.OrderNotifications, "OrderCreatedEvent");
+            registry.Register<SharedKernel.Events.OrderStatusEvent>(SharedKernel.Constants.KafkaTopics.OrderNotifications, "OrderStatusEvent");
             registry.Register<SharedKernel.Events.OrderPaidEvent>(SharedKernel.Constants.KafkaTopics.OrderPaid, SharedKernel.Constants.KafkaTopics.OrderPaid);
             registry.Register<SharedKernel.Events.OrderCancelledEvent>(SharedKernel.Constants.KafkaTopics.OrderCancelled, SharedKernel.Constants.KafkaTopics.OrderCancelled);
             return registry;

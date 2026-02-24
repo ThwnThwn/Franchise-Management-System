@@ -20,14 +20,14 @@ func ProvideIngredientClient(f *clientFactory) inventoryGW.IIngredientService {
 }
 
 // GetAll implements inventory.IIngredientService.
-func (i *ingredientGrpcClient) GetAll(ctx context.Context, req *ingredient.GetAllIngredientReq) (*common.PaginationResult[*ingredient.IngredientViewRes], error) {
+func (i *ingredientGrpcClient) GetAll(ctx context.Context, req *ingredient.GetAllIngredientReq) (common.PaginationResult[*ingredient.IngredientViewRes], error) {
 	res, err := i.client.GetAllIngredient(ctx, &inventoryPb.GetAllIngredientReq{
 		CategoryId: req.CategoryId,
 		Page:       req.Page,
 		PageSize:   req.PageSize,
 	})
 	if err != nil {
-		return nil, err
+		return common.PaginationResult[*ingredient.IngredientViewRes]{}, err
 	}
 
 	ingres := make([]*ingredient.IngredientViewRes, 0, len(res.IngredientRes))
@@ -39,7 +39,7 @@ func (i *ingredientGrpcClient) GetAll(ctx context.Context, req *ingredient.GetAl
 			CategoryId: item.CategoryId,
 		})
 	}
-	return &common.PaginationResult[*ingredient.IngredientViewRes]{
+	return common.PaginationResult[*ingredient.IngredientViewRes]{
 		Items:      ingres,
 		TotalCount: res.TotalCount,
 		TotalPages: res.TotalPages,

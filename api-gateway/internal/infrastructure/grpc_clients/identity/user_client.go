@@ -9,6 +9,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type UserGrpcClient struct {
@@ -51,6 +52,22 @@ func (u *UserGrpcClient) GetById(ctx context.Context, id uuid.UUID) (*user.UserR
 		return nil, err
 	}
 	return mapper.MapUserPbToUserModel(res), nil
+}
+
+// GetByIds implements identity.IUserService.
+func (u *UserGrpcClient) GetByIds(ctx context.Context, ids []string) ([]*user.UserResponse, error) {
+	res, err := u.client.GetByIds(ctx, &idenPb.GetUserByIdsRequest{
+		Ids: ids,
+	})
+	if err != nil {
+		return []*user.UserResponse{}, err
+	}
+
+	users := make([]*user.UserResponse, 0, len(res.Users))
+	for _, item := range res.Users {
+		users = append(users, mapper.MapUserPbToUserModel(item))
+	}
+	return users, nil
 }
 
 // Create implements identity.IUserService.
@@ -107,4 +124,18 @@ func (u *UserGrpcClient) ChangePassword(ctx context.Context, accessToken string,
 	}
 
 	return mapper.MapUserPbToUserModel(res), nil
+}
+
+// UploadMyAvatar implements identity.IUserService.
+func (u *UserGrpcClient) UploadMyAvatar(ctx context.Context, imageData []byte) error {
+	_, err := u.client.UploadAvatar(ctx, &idenPb.UploadAvatarRequest{
+		ImageData: imageData,
+	})
+	return err
+}
+
+// DeleteMyAvatar implements identity.IUserService.
+func (u *UserGrpcClient) DeleteMyAvatar(ctx context.Context) error {
+	_, err := u.client.DeleteAvatar(ctx, &emptypb.Empty{})
+	return err
 }

@@ -10,7 +10,7 @@ import (
 
 type IIngredientService interface {
 	GetAll(ctx context.Context, req *ingredient.GetAllIngredientReq,
-	) (*common.PaginationResult[*ingredient.IngredientViewRes], error)
+	) (common.PaginationResult[*ingredient.IngredientViewRes], error)
 
 	Create(ctx context.Context, req *ingredient.CreateIngredientReq) error
 	Update(ctx context.Context, id uuid.UUID, req *ingredient.UpdateIngredientReq) error

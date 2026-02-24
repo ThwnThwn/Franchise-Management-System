@@ -2,26 +2,23 @@ package users
 
 import (
 	"api-gateway/config"
-	"api-gateway/internal/api/handlers"
+	"api-gateway/internal/api/handlers/identity"
 	"api-gateway/internal/api/middleware"
 )
 
 type UserRouter struct {
-	cfg     *config.Config
-	authMW  *middleware.AuthMiddleware
-	userHl  *handlers.UserHandler
-	shiftHl *handlers.ShiftHandler
+	cfg    *config.Config
+	authMW *middleware.AuthMiddleware
+	userHl *identity.UserHandler
 }
 
 func NewRouter(cfg *config.Config,
 	authMW *middleware.AuthMiddleware,
-	userHl *handlers.UserHandler,
-	shiftHl *handlers.ShiftHandler,
+	userHl *identity.UserHandler,
 ) *UserRouter {
 	return &UserRouter{
-		cfg:     cfg,
-		authMW:  authMW,
-		userHl:  userHl,
-		shiftHl: shiftHl,
+		cfg:    cfg,
+		authMW: authMW,
+		userHl: userHl,
 	}
 }

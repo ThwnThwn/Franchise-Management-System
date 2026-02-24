@@ -87,7 +87,7 @@ public sealed class CreateOrderHandler
 
         // Generate OrderId and Code early
         var orderId = Guid.NewGuid();
-        var orderCode = $"ORD-{DateTime.UtcNow:yyyyMMdd-HHmmss}";
+        var orderCode = $"ORD-{DateTime.UtcNow:yyyyMMdd-HHmmss}";   
 
         // Reserve Stock
         var reserveReq = new ReserveStockReq
@@ -97,7 +97,7 @@ public sealed class CreateOrderHandler
             Items = listItemCheck.ToList()
         };
         var reserveRes = await _inventoryServiceClient.ReserveStockAsync(reserveReq);
-        if(!reserveRes.IsEnough)
+        if (!reserveRes.IsEnough)
         {
             return Result.Success(new CreateOrderResponseDto
             {
@@ -177,12 +177,16 @@ public sealed class CreateOrderHandler
         // 1. Prepare Outbox Message (BEFORE saving order)
         if (order.CustomerId.HasValue)
         {
-            // Create OrderCreatedEvent
-            var orderEvent = new OrderCreatedEvent
+            // Create OrderStatusEvent
+            var orderEvent = new OrderStatusEvent
             {
                 OrderId = order.Id,
+                OrderCode = order.Code,
                 CustomerId = order.CustomerId,
                 CustomerEmail = string.Empty, // Will be fetched by Consumer
+                NewOrderStatus = MapOrderStatus(order.Status),
+                Items = MapOrderItems(order.OrderItems),
+                Tax = order.Tax,
                 OrderSummary = $"Order {order.Code} created with {order.OrderItems.Count} items",
                 TotalAmount = order.TotalAmount,
                 CreatedAt = DateTimeOffset.UtcNow
@@ -194,7 +198,7 @@ public sealed class CreateOrderHandler
             var outboxMessage = new OutboxMessage
             {
                 Id = Guid.NewGuid(),
-                Type = "OrderCreatedEvent",
+                Type = "OrderStatusEvent",
                 Content = eventJson,
                 OccurredOn = DateTimeOffset.UtcNow,
                 ProcessedOn = null,
@@ -207,7 +211,7 @@ public sealed class CreateOrderHandler
         }
 
         //Remove orderd items in cartItem
-        await _cartItemRepository.RemoveItemsAsync(order.CustomerId, skus, cancellationToken) ;
+        await _cartItemRepository.RemoveItemsAsync(order.CustomerId, skus, cancellationToken);
 
         // 2. Save Order (and OutboxMessage) in one transaction (implicitly handled by CreateAsync -> SaveChanges)
         var createdOrder = await _orderRepository.CreateAsync(order, cancellationToken);
@@ -221,8 +225,56 @@ public sealed class CreateOrderHandler
         {
             OrderId = createdOrder.Id,
             OrderCode = createdOrder.Code,
+            Items = createdOrder.OrderItems.Select(x => new OrderItemDto
+            {
+                Sku = x.Sku,
+                Quantity = x.Quantity,
+                UnitPrice = x.UnitPrice
+            }).ToList(),
             TotalAmount = createdOrder.TotalAmount,
             CheckEnoughStockRes = { IsEnough = true, ShortageItems = { } }
         });
+    }
+    private static OrderStatusEvent.OrderStatus MapOrderStatus(
+    SalesService.Domain.Enums.OrderStatus status)
+    {
+        return status switch
+        {
+            SalesService.Domain.Enums.OrderStatus.PaymentPending
+                => OrderStatusEvent.OrderStatus.PaymentPending,
+
+            SalesService.Domain.Enums.OrderStatus.ConfirmationPending
+                => OrderStatusEvent.OrderStatus.ConfirmationPending,
+
+            SalesService.Domain.Enums.OrderStatus.Confirmed
+                => OrderStatusEvent.OrderStatus.Confirmed,
+
+            SalesService.Domain.Enums.OrderStatus.Preparing
+                => OrderStatusEvent.OrderStatus.Preparing,
+
+            SalesService.Domain.Enums.OrderStatus.ReadyForPickup
+                => OrderStatusEvent.OrderStatus.ReadyForPickup,
+
+            SalesService.Domain.Enums.OrderStatus.Delivering
+                => OrderStatusEvent.OrderStatus.Delivering,
+
+            SalesService.Domain.Enums.OrderStatus.Completed
+                => OrderStatusEvent.OrderStatus.Completed,
+
+            SalesService.Domain.Enums.OrderStatus.Cancelled
+                => OrderStatusEvent.OrderStatus.Cancelled,
+
+            _ => throw new ArgumentOutOfRangeException(nameof(status), status, null)
+        };
+    }
+    private static List<OrderStatusEvent.CartItemDto> MapOrderItems(
+    IEnumerable<SalesService.Domain.Entities.OrderItem> items)
+    {
+        return items.Select(i => new OrderStatusEvent.CartItemDto
+        {
+            Sku = i.Sku,
+            Quantity = i.Quantity,
+            UnitPrice = i.UnitPrice,
+        }).ToList();
     }
 }

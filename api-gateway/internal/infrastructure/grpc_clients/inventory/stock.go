@@ -41,7 +41,7 @@ func (s *stockGrpcClient) IncreaseStock(ctx context.Context, id uuid.UUID, req [
 }
 
 // GetAllStock implements inventory.IStockService.
-func (s *stockGrpcClient) GetAllStock(ctx context.Context, req *ingredient.GetAllStockReq) (*common.PaginationResult[*ingredient.StockViewRes], error) {
+func (s *stockGrpcClient) GetAllStock(ctx context.Context, req *ingredient.GetAllStockReq) (common.PaginationResult[*ingredient.StockViewRes], error) {
 	res, err := s.client.GetAllStock(ctx, &inventoryPb.GetAllStockReq{
 		// StoreIds:      req.StoreIds,
 		CategoryIds:   req.CategoryIds,
@@ -52,7 +52,7 @@ func (s *stockGrpcClient) GetAllStock(ctx context.Context, req *ingredient.GetAl
 	})
 
 	if err != nil {
-		return nil, err
+		return common.PaginationResult[*ingredient.StockViewRes]{}, err
 	}
 
 	stocks := make([]*ingredient.StockViewRes, 0, len(res.StockRes))
@@ -67,13 +67,13 @@ func (s *stockGrpcClient) GetAllStock(ctx context.Context, req *ingredient.GetAl
 				BaseUnit:   ingre.BaseUnit,
 				CategoryId: ingre.CategoryId,
 			},
-			Quantity:     s.MinThreshold,
+			Quantity:     s.Quantity,
 			MinThreshold: s.MinThreshold,
 			StockStatus:  s.StockStatus,
 		})
 	}
 
-	return &common.PaginationResult[*ingredient.StockViewRes]{
+	return common.PaginationResult[*ingredient.StockViewRes]{
 		Items:      stocks,
 		TotalCount: res.TotalCount,
 		TotalPages: res.TotalPages,
@@ -81,7 +81,7 @@ func (s *stockGrpcClient) GetAllStock(ctx context.Context, req *ingredient.GetAl
 }
 
 // GetStockByStoreId implements inventory.IStockService.
-func (s *stockGrpcClient) GetStockByStoreId(ctx context.Context, id uuid.UUID, req *ingredient.GetAllStockReq) (*common.PaginationResult[*ingredient.StockViewRes], error) {
+func (s *stockGrpcClient) GetStockByStoreId(ctx context.Context, id uuid.UUID, req *ingredient.GetAllStockReq) (common.PaginationResult[*ingredient.StockViewRes], error) {
 	res, err := s.client.GetAllStock(ctx, &inventoryPb.GetAllStockReq{
 		StoreIds:      []string{id.String()},
 		CategoryIds:   req.CategoryIds,
@@ -92,7 +92,7 @@ func (s *stockGrpcClient) GetStockByStoreId(ctx context.Context, id uuid.UUID, r
 	})
 
 	if err != nil {
-		return nil, err
+		return common.PaginationResult[*ingredient.StockViewRes]{}, err
 	}
 
 	stocks := make([]*ingredient.StockViewRes, 0, len(res.StockRes))
@@ -107,13 +107,13 @@ func (s *stockGrpcClient) GetStockByStoreId(ctx context.Context, id uuid.UUID, r
 				BaseUnit:   ingre.BaseUnit,
 				CategoryId: ingre.CategoryId,
 			},
-			Quantity:     s.MinThreshold,
+			Quantity:     s.Quantity,
 			MinThreshold: s.MinThreshold,
 			StockStatus:  s.StockStatus,
 		})
 	}
 
-	return &common.PaginationResult[*ingredient.StockViewRes]{
+	return common.PaginationResult[*ingredient.StockViewRes]{
 		Items:      stocks,
 		TotalCount: res.TotalCount,
 		TotalPages: res.TotalPages,
