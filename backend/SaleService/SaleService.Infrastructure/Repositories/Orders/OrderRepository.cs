@@ -161,15 +161,39 @@ public class OrderRepository : IOrderRepository
             query = query.Where(oi => oi.Order!.StoreId == storedId.Value);
         }
 
-        var aggregatedResult = await query
-            .GroupBy(oi => new { oi.Sku, oi.ProductName })
+        var aggregatedResult = storedId.HasValue
+        ? await query
+            .GroupBy(oi => new
+            {
+                oi.Sku,
+                oi.ProductName
+            })
             .Select(g => new RevenueItemDto
             {
+                StoreId = storedId.Value, // single store
                 Sku = g.Key.Sku,
                 ProductName = g.Key.ProductName,
-                QuantitySold = g.Sum(oi => oi.Quantity),
-                UnitPrice = g.Max(oi => oi.UnitPrice),
-                TotalRevenue = g.Sum(oi => oi.Quantity * oi.UnitPrice)
+                QuantitySold = g.Sum(x => x.Quantity),
+                UnitPrice = g.Max(x => x.UnitPrice),
+                TotalRevenue = g.Sum(x => x.Quantity * x.UnitPrice)
+            })
+            .ToListAsync(cancellationToken)
+
+        : await query
+            .GroupBy(oi => new
+            {
+                oi.Order!.StoreId,
+                oi.Sku,
+                oi.ProductName
+            })
+            .Select(g => new RevenueItemDto
+            {
+                StoreId =g.Key.StoreId, // multi-store
+                Sku = g.Key.Sku,
+                ProductName = g.Key.ProductName,
+                QuantitySold = g.Sum(x => x.Quantity),
+                UnitPrice = g.Max(x => x.UnitPrice),
+                TotalRevenue = g.Sum(x => x.Quantity * x.UnitPrice)
             })
             .ToListAsync(cancellationToken);
 
