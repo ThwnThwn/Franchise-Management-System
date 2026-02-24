@@ -52,6 +52,7 @@ func (o *OrderGrpcClient) CreateOrder(ctx context.Context, req *order.CreateOrde
 		OrderCode:         res.OrderCode,
 		TotalAmount:       res.TotalAmount,
 		CustomerId:        res.CustomerId,
+		StoreId:           res.StoreId,
 		CheckStockRespone: mapper.MapCheckEnoughStockRes(res.CheckStockRespone),
 	}, nil
 }
@@ -79,6 +80,7 @@ func (o *OrderGrpcClient) UpdateOrder(ctx context.Context, id uuid.UUID, items [
 		OrderCode:         res.OrderCode,
 		TotalAmount:       res.TotalAmount,
 		CustomerId:        res.CustomerId,
+		StoreId:           res.StoreId,
 		CheckStockRespone: mapper.MapCheckEnoughStockRes(res.CheckStockRespone),
 	}, nil
 }

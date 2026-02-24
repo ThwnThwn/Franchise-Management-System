@@ -139,6 +139,7 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             CreatedAt = dto.CreatedAt.ToString("O"),
             UpdatedAt = dto.UpdatedAt.ToString("O"),
             CustomerId = dto.CustomerId.ToString(),
+            StoreId = dto.StoreId?.ToString() ?? string.Empty
         };
 
         orderMessage.Items.AddRange(dto.Items.Select(i => new OrderItem
@@ -201,6 +202,8 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
                 CreatedAt = order.CreatedAt.ToString("O"),
                 UpdatedAt = order.UpdatedAt.ToString("O"),
                 CustomerId = order.CustomerId?.ToString() ?? "",
+                StoreId = order.StoreId?.ToString() ?? "",
+                Notes = order.Notes ?? string.Empty,
 
                 //dùng -1 cho NULL (chưa thanh toán)
                 Tax = order.Tax.HasValue ? (double)order.Tax.Value : -1,
@@ -311,7 +314,6 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
         return reply;
     }
 
-
     /// <summary>
     /// Lấy danh sách đơn hàng với các bộ lọc: theo cửa hàng, theo mã đơn hàng, theo khoảng thời gian, theo trạng thái, theo phương thức thanh toán
     /// </summary>
@@ -364,6 +366,8 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
                 CreatedAt = order.CreatedAt.ToString("O"),
                 UpdatedAt = order.UpdatedAt.ToString("O"),
                 CustomerId = order.CustomerId?.ToString() ?? "",
+                StoreId = order.StoreId?.ToString() ?? "",
+                Notes = order.Notes ?? string.Empty,
                 Tax = order.Tax.HasValue ? (double)order.Tax.Value : -1,
                 PaidAmount = order.PaidAmount.HasValue ? (double)order.PaidAmount.Value : -1,
                 PaymentMethod = order.PaymentMethod ?? -1
@@ -379,7 +383,6 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
 
         return reply;
     }
-
 
     /// <summary>
     /// Báo cáo doanh thu theo khoảng thời gian và danh mục sản phẩm (nếu có)
@@ -490,7 +493,7 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
                 CanceledOrder = item.CanceledOrders,
                 CompletedOrder = item.CompletedOrders,
             };
-           
+
             if (item.StoreId.HasValue)
             {
                 order.StoreId = item.StoreId.Value.ToString();

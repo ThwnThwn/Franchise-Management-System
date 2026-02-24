@@ -40,7 +40,8 @@ public class GetOrdersQueryHandler : IRequestHandler<GetOrdersQuery, Result<GetO
             o.Notes,
             o.CreatedAt,
             o.UpdatedAt,
-            o.CustomerId
+            o.CustomerId,
+            o.StoreId
         )).ToList();
 
         //return Result.Success(new GetOrdersResponse(orderDtos, totalCount));

@@ -16,6 +16,8 @@ type IStoreService interface {
 	// Lấy chi tiết 1 cửa hàng (để hiện địa chỉ, hình ảnh)
 	GetStoreDetail(ctx context.Context, id uuid.UUID) (*store.StoreDetailResponse, error)
 
+	GetByIds(ctx context.Context, ids []string) ([]*store.StoreDetailResponse, error)
+
 	// Tìm cửa hàng gần nhất (Dựa trên GPS User gửi lên)
 	FindNearbyStores(ctx context.Context, req *store.FindNearbyStoresRequest) (
 		common.PaginationResult[*store.StoreDetailResponse], error)

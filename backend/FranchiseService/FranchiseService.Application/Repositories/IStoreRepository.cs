@@ -17,5 +17,6 @@ namespace FranchiseService.Application.Repositories
 
         // Lấy chi tiết (đã có GetStoreWithHoursAsync ở bài trước, ta dùng lại hoặc viết mới nếu cần logic khác)
         Task<Store?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
+        Task<IEnumerable<Store>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken);
     }
 }
