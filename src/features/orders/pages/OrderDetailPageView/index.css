@@ -68,7 +68,7 @@
 
     /* 7. LỀ TRANG */
     @page {
-        margin: 0cm;
+        margin: -2.5cm 3cm 0;
         size: auto;
     }
 }

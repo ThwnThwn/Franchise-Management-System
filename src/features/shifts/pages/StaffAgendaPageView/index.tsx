@@ -89,7 +89,11 @@ export default function StaffAgendaPageView() {
                     // Trên mobile luôn hiện List, desktop hiện theo viewMode
                     <div className="block">
                         {viewMode === "list" ? (
-                            <AgendaListView selectedDate={currentDate} shifts={weeklyShifts} />
+                            <AgendaListView
+                                selectedDate={currentDate}
+                                shifts={weeklyShifts}
+                                onEditClick={handleShiftClick}
+                            />
                         ) : (
                             <div className="bg-white p-4 rounded-2xl shadow-sm border">
                                 <StaffShiftCalendar

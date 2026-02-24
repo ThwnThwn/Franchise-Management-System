@@ -1,4 +1,5 @@
 import { OrderStatus, PaymentMethod } from "@/features/orders/constants"
+import { StoreDetailDto } from "@/features/stores"
 
 export interface ShortageItem {
     variantId: string
@@ -15,6 +16,7 @@ export interface OrderReply {
     orderCode: string
     totalAmount: number
     customerId: string
+    storeId: string
     checkStockResponse?: CheckEnoughStockResponse
 }
 
@@ -37,17 +39,18 @@ export interface OrderHeader {
     subtotal: number
     tax: number
     totalAmount: number
-    paidAmount: number | undefined
-    paymentMethod: PaymentMethod | undefined
+    paidAmount?: number
+    paymentMethod?: PaymentMethod
     status: OrderStatus
 
-    paidAt: string | undefined
-    notes: string | undefined
+    paidAt?: string
+    notes?: string
 
     createdAt: string
     updatedAt: string
 
-    customerId: string | undefined
+    customerId?: string
+    store?: StoreDetailDto
 
     items: OrderItem[]
 }

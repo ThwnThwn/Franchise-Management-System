@@ -4,5 +4,10 @@ import React from "react"
 import "./index.css"
 
 export function NavbarStyled(props: NavbarProps) {
-    return <Navbar {...props} className={cn("navbar-no-saturate text-base", props.className)} />
+    return (
+        <Navbar
+            {...(props as any)}
+            className={cn("navbar-no-saturate text-base", props.className)}
+        />
+    )
 }

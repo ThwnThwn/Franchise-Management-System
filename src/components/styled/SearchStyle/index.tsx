@@ -42,7 +42,7 @@ export function SearchStyle({
     )
     return (
         <Input
-            {...props}
+            {...(props as any)}
             variant="bordered"
             size="md"
             radius="lg"

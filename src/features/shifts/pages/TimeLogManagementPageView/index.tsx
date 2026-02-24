@@ -110,7 +110,7 @@ export default function TimeLogManagementPageView() {
                                 data={logs}
                                 isLoading={isLoading}
                                 isManager={isManager}
-                                onEditClick={modal.onOpen} // Manager click bút chì
+                                onEditClick={modal.onOpen}
                             />
                         ) : (
                             <div
@@ -137,6 +137,7 @@ export default function TimeLogManagementPageView() {
                 isOpen={modal.isOpen}
                 onClose={modal.onClose}
                 data={modal.selectedLog}
+                isReadOnly={!isManager}
             />
         </div>
     )

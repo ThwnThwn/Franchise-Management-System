@@ -10,9 +10,10 @@ import { useUserHelper } from "@/hooks"
 interface AgendaListViewProps {
     shifts: StaffShiftAgenda[]
     selectedDate: dayjs.Dayjs // Thêm prop này để lọc theo ngày của Toolbar
+    onEditClick?: (data: StaffShiftAgenda) => void
 }
 
-export const AgendaListView = ({ shifts, selectedDate }: AgendaListViewProps) => {
+export const AgendaListView = ({ shifts, selectedDate, onEditClick }: AgendaListViewProps) => {
     const { toFullName } = useUserHelper()
 
     // 1. Filter: Chỉ lấy những ca thuộc ngày đang chọn
@@ -50,7 +51,12 @@ export const AgendaListView = ({ shifts, selectedDate }: AgendaListViewProps) =>
 
             {/* Danh sách ca làm trong ngày */}
             {dailyShifts.map((item) => (
-                <Card key={item.id} className="border-none shadow-sm hover:scale-[103%]">
+                <Card
+                    key={item.id}
+                    isPressable
+                    onPress={() => onEditClick?.(item)}
+                    className="border-none shadow-sm hover:scale-[103%]"
+                >
                     <CardBody className="p-5">
                         <div className="flex flex-col gap-4">
                             <div className="flex justify-between items-start">
