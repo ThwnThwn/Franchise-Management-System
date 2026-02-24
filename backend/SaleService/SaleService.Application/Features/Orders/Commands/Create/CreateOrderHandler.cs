@@ -10,7 +10,6 @@ using SalesService.Application.Persisitences.Outbox;
 using SalesService.Application.Signals;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
-using SharedKernel.Events;
 
 namespace SalesService.Application.Features.Orders.Commands.Create;
 
@@ -87,7 +86,7 @@ public sealed class CreateOrderHandler
 
         // Generate OrderId and Code early
         var orderId = Guid.NewGuid();
-        var orderCode = $"ORD-{DateTime.UtcNow:yyyyMMdd-HHmmss}";   
+        var orderCode = $"ORD-{DateTime.UtcNow:yyyyMMdd-HHmmss}";
 
         // Reserve Stock
         var reserveReq = new ReserveStockReq
@@ -175,40 +174,10 @@ public sealed class CreateOrderHandler
         }
 
         // 1. Prepare Outbox Message (BEFORE saving order)
-        if (order.CustomerId.HasValue)
-        {
-            // Create OrderStatusEvent
-            var orderEvent = new OrderStatusEvent
-            {
-                OrderId = order.Id,
-                OrderCode = order.Code,
-                CustomerId = order.CustomerId,
-                CustomerEmail = string.Empty, // Will be fetched by Consumer
-                NewOrderStatus = MapOrderStatus(order.Status),
-                Items = MapOrderItems(order.OrderItems),
-                Tax = order.Tax,
-                OrderSummary = $"Order {order.Code} created with {order.OrderItems.Count} items",
-                TotalAmount = order.TotalAmount,
-                CreatedAt = DateTimeOffset.UtcNow
-            };
+        // Outbox: KHÔNG publish OrderStatusEvent khi PaymentPending
+        // → Chỉ notify khách khi đơn hàng đã thanh toán (ConfirmationPending trở đi)
+        _logger.LogInformation("Order {OrderCode} created with status PaymentPending. Notification sẽ gửi sau khi thanh toán.", order.Code);
 
-            // Serialize to JSON
-            var eventJson = System.Text.Json.JsonSerializer.Serialize(orderEvent);
-
-            var outboxMessage = new OutboxMessage
-            {
-                Id = Guid.NewGuid(),
-                Type = "OrderStatusEvent",
-                Content = eventJson,
-                OccurredOn = DateTimeOffset.UtcNow,
-                ProcessedOn = null,
-                Error = null
-            };
-
-            // Add to Outbox Repository
-            _outboxRepository.Add(outboxMessage);
-            _logger.LogInformation("Added OrderCreatedEvent to Outbox for Order {OrderCode}", order.Code);
-        }
 
         //Remove orderd items in cartItem
         await _cartItemRepository.RemoveItemsAsync(order.CustomerId, skus, cancellationToken);
@@ -234,47 +203,5 @@ public sealed class CreateOrderHandler
             TotalAmount = createdOrder.TotalAmount,
             CheckEnoughStockRes = { IsEnough = true, ShortageItems = { } }
         });
-    }
-    private static OrderStatusEvent.OrderStatus MapOrderStatus(
-    SalesService.Domain.Enums.OrderStatus status)
-    {
-        return status switch
-        {
-            SalesService.Domain.Enums.OrderStatus.PaymentPending
-                => OrderStatusEvent.OrderStatus.PaymentPending,
-
-            SalesService.Domain.Enums.OrderStatus.ConfirmationPending
-                => OrderStatusEvent.OrderStatus.ConfirmationPending,
-
-            SalesService.Domain.Enums.OrderStatus.Confirmed
-                => OrderStatusEvent.OrderStatus.Confirmed,
-
-            SalesService.Domain.Enums.OrderStatus.Preparing
-                => OrderStatusEvent.OrderStatus.Preparing,
-
-            SalesService.Domain.Enums.OrderStatus.ReadyForPickup
-                => OrderStatusEvent.OrderStatus.ReadyForPickup,
-
-            SalesService.Domain.Enums.OrderStatus.Delivering
-                => OrderStatusEvent.OrderStatus.Delivering,
-
-            SalesService.Domain.Enums.OrderStatus.Completed
-                => OrderStatusEvent.OrderStatus.Completed,
-
-            SalesService.Domain.Enums.OrderStatus.Cancelled
-                => OrderStatusEvent.OrderStatus.Cancelled,
-
-            _ => throw new ArgumentOutOfRangeException(nameof(status), status, null)
-        };
-    }
-    private static List<OrderStatusEvent.CartItemDto> MapOrderItems(
-    IEnumerable<SalesService.Domain.Entities.OrderItem> items)
-    {
-        return items.Select(i => new OrderStatusEvent.CartItemDto
-        {
-            Sku = i.Sku,
-            Quantity = i.Quantity,
-            UnitPrice = i.UnitPrice,
-        }).ToList();
     }
 }
