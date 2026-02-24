@@ -7,9 +7,9 @@ import { ClientHydration, Navbar, Modals } from "@/components"
 import Footer from "@/components/shared/Footer"
 import CartDrawer from "@/features/cart/components/CartDrawer"
 import { ScrollToTopButton } from "@/components/shared/ScrollToTopButton"
-import dayjs from "dayjs"
+// import dayjs from "dayjs"
 
-dayjs.locale("vi")
+// dayjs.locale("vi")
 
 const geistSans = Geist({
     variable: "--font-geist-sans",

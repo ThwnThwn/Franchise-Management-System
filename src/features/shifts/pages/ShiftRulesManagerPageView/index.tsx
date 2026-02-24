@@ -28,11 +28,13 @@ export default function ShiftRulesManagerPageView() {
     const initialValues: ShiftRuleFormValues = useMemo(
         () => ({
             storeId: storeId || undefined,
-            allowShuttle: currentStoreRule?.allowShuttle ?? data?.global.allowShuttle ?? false,
-            allowShiftSwap: currentStoreRule?.allowShiftSwap ?? data?.global.allowShiftSwap ?? true,
+            allowShuttle: currentStoreRule?.allowShuttle ?? data?.global?.allowShuttle ?? false,
+            allowShiftSwap:
+                currentStoreRule?.allowShiftSwap ?? data?.global?.allowShiftSwap ?? true,
             minHoursBetweenShifts:
-                currentStoreRule?.minHoursBetweenShifts ?? data?.global.minHoursBetweenShifts ?? 8,
-            maxHoursPerWeek: currentStoreRule?.maxHoursPerWeek ?? data?.global.maxHoursPerWeek ?? 48
+                currentStoreRule?.minHoursBetweenShifts ?? data?.global?.minHoursBetweenShifts ?? 8,
+            maxHoursPerWeek:
+                currentStoreRule?.maxHoursPerWeek ?? data?.global?.maxHoursPerWeek ?? 48
         }),
         [data, currentStoreRule, storeId]
     )
@@ -131,7 +133,7 @@ export default function ShiftRulesManagerPageView() {
                                     />
                                 </div>
                                 <SystemDefaultHint
-                                    value={data?.global.allowShiftSwap}
+                                    value={data?.global?.allowShiftSwap}
                                     type="boolean"
                                 />
                             </div>
@@ -157,7 +159,7 @@ export default function ShiftRulesManagerPageView() {
                                     />
                                 </div>
                                 <SystemDefaultHint
-                                    value={data?.global.allowShuttle}
+                                    value={data?.global?.allowShuttle}
                                     type="boolean"
                                 />
                             </div>
@@ -183,7 +185,7 @@ export default function ShiftRulesManagerPageView() {
                                     }
                                     isReadOnly={isSaving}
                                 />
-                                <SystemDefaultHint value={data?.global.minHoursBetweenShifts} />
+                                <SystemDefaultHint value={data?.global?.minHoursBetweenShifts} />
                             </div>
 
                             <div className="space-y-1">
@@ -196,7 +198,7 @@ export default function ShiftRulesManagerPageView() {
                                     }
                                     isReadOnly={isSaving}
                                 />
-                                <SystemDefaultHint value={data?.global.maxHoursPerWeek} />
+                                <SystemDefaultHint value={data?.global?.maxHoursPerWeek} />
                             </div>
                         </div>
                     </CardBody>

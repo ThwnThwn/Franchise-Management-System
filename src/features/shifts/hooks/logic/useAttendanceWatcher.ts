@@ -38,10 +38,10 @@ export const useAttendanceWatcher = () => {
         // Nếu bây giờ là 00:40 và ca làm là 22:00 - 06:00
         // Lúc này 'start' (22:00 hôm nay) đang ở tương lai, nhưng thực tế ca đã bắt đầu từ hôm qua.
         // Điều kiện: Nếu (Bây giờ < End) VÀ (Bây giờ < Start) VÀ (Ca này là ca xuyên đêm)
-        if (now.isBefore(start) && now.isBefore(end) && shift.endTime < shift.startTime) {
-            start = start.subtract(1, "day")
-            end = end.subtract(1, "day")
-        }
+        // if (now.isBefore(start) && now.isBefore(end) && shift.endTime < shift.startTime) {
+        //     start = start.subtract(1, "day")
+        //     end = end.subtract(1, "day")
+        // }
 
         // 3. NGƯỠNG THỜI GIAN
         const checkInThreshold = start.subtract(ATTENDANCE_CONFIG.CHECK_IN_BUFFER_MINUTES, "minute")

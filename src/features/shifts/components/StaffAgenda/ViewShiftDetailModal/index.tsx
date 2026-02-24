@@ -7,6 +7,7 @@ import dayjs from "dayjs"
 import { StaffShiftAgenda } from "@/features/shifts/models/response"
 import { useUserHelper } from "@/hooks"
 import { ModalStyled } from "@/components"
+import { formatPhoneNumber } from "@/utils/helpers/stringHelper"
 
 interface ViewShiftDetailModalProps {
     isOpen: boolean
@@ -72,7 +73,9 @@ export const ViewShiftDetailModal = ({ isOpen, onClose, data }: ViewShiftDetailM
                                 <div className="p-3 bg-default-100 rounded-2xl">
                                     <Phone className="text-default-600" size={20} />
                                 </div>
-                                <span className="font-bold">{data.store.phone}</span>
+                                <span className="font-bold">
+                                    {formatPhoneNumber(data.store.phone)}
+                                </span>
                             </div>
                         )}
                     </div>

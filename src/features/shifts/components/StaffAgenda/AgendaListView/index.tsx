@@ -50,7 +50,7 @@ export const AgendaListView = ({ shifts, selectedDate }: AgendaListViewProps) =>
 
             {/* Danh sách ca làm trong ngày */}
             {dailyShifts.map((item) => (
-                <Card key={item.id} className="border-none shadow-sm interactive-scale">
+                <Card key={item.id} className="border-none shadow-sm hover:scale-[103%]">
                     <CardBody className="p-5">
                         <div className="flex flex-col gap-4">
                             <div className="flex justify-between items-start">

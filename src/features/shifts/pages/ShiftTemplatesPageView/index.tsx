@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useMemo, useState } from "react"
 import {
     Table,
     TableHeader,
@@ -22,6 +22,7 @@ import { RoleSlug } from "@/constants/enums"
 import { DashboardHeader } from "@/features/dashboard/components/general/DashboardHeader"
 import { ButtonStyled } from "@/components"
 import { formatCurrency } from "@/utils/helpers/currency"
+import { useGetStores } from "@/features/stores"
 
 export default function ShiftTemplatesPageView() {
     const storeId = useTokenStore((s) => s.storeId)
@@ -32,11 +33,33 @@ export default function ShiftTemplatesPageView() {
         params: { storeId: storeId || undefined }
     })
 
+    const templates = useMemo(() => {
+        if (!data) return []
+
+        return [...data].sort((a, b) => {
+            const valA = a.storeId
+            const valB = b.storeId
+
+            if (!valA) return -1
+            if (!valB) return 1
+
+            return valA.localeCompare(valB)
+        })
+    }, [data])
+
+    const { data: stores, isLoading: isStoreLoading } = useGetStores({
+        pagination: {
+            page: 1,
+            pageSize: 100
+        },
+        params: {}
+    })
+
     // 2. Modal Logic
     const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure()
-    const [selectedTemplate, setSelectedTemplate] = useState<ShiftTemplateResponse | undefined>(
-        undefined
-    )
+    const [selectedTemplate, setSelectedTemplate] = useState<
+        { template?: ShiftTemplateResponse; storeName?: string } | undefined
+    >(undefined)
 
     const handleCreate = () => {
         setSelectedTemplate(undefined) // Clear selection -> Create mode
@@ -45,8 +68,15 @@ export default function ShiftTemplatesPageView() {
 
     const handleEdit = (template: ShiftTemplateResponse) => {
         // Chỉ cho sửa template của Store mình (StoreId != null)
-        if (!template.storeId) return
-        setSelectedTemplate(template)
+        if (!template.storeId && !isAdmin) return
+
+        const storeName = template.storeId
+            ? (stores?.items.filter((i) => i.id === template.storeId)[0]?.name ?? "")
+            : ""
+        setSelectedTemplate({
+            template: template,
+            storeName: storeName
+        })
         onOpen()
     }
 
@@ -79,6 +109,14 @@ export default function ShiftTemplatesPageView() {
                         )}
                     </div>
                 )
+
+            case "store": {
+                const storeName = template.storeId
+                    ? (stores?.items.filter((i) => i.id === template.storeId)[0]?.name ?? "")
+                    : ""
+                return <span className="text-small">{storeName}</span>
+            }
+
             case "time":
                 return (
                     <Chip startContent={<Clock size={14} />} variant="flat" size="sm">
@@ -89,9 +127,10 @@ export default function ShiftTemplatesPageView() {
                 return <span>{formatCurrency(template.breakDurationMinutes)} phút</span>
             case "actions": {
                 const isSystemTemplate = !template.storeId
-                const isReadOnly = !isAdmin && isSystemTemplate
+                const isManagerReadOnly = !isAdmin && isSystemTemplate
+                const isAdminReadOnly = isAdmin && !isSystemTemplate
 
-                if (isReadOnly) {
+                if (isManagerReadOnly) {
                     return (
                         <div className="flex justify-center">
                             <Chip
@@ -102,6 +141,22 @@ export default function ShiftTemplatesPageView() {
                                 className="text-xs"
                             >
                                 Mẫu hệ thống
+                            </Chip>
+                        </div>
+                    )
+                }
+
+                if (isAdminReadOnly) {
+                    return (
+                        <div className="flex justify-center">
+                            <Chip
+                                size="sm"
+                                variant="flat"
+                                color="warning"
+                                startContent={<Lock size={12} />}
+                                className="text-xs"
+                            >
+                                Không thể sửa
                             </Chip>
                         </div>
                     )
@@ -161,6 +216,7 @@ export default function ShiftTemplatesPageView() {
                 <TableHeader>
                     <TableColumn key="code">MÃ</TableColumn>
                     <TableColumn key="name">TÊN CA</TableColumn>
+                    <TableColumn key="store">CỬA HÀNG</TableColumn>
                     <TableColumn key="time">KHUNG GIỜ</TableColumn>
                     <TableColumn key="break">NGHỈ (PHÚT)</TableColumn>
                     <TableColumn key="actions" align="center">
@@ -168,8 +224,8 @@ export default function ShiftTemplatesPageView() {
                     </TableColumn>
                 </TableHeader>
                 <TableBody
-                    items={data || []}
-                    isLoading={isLoading}
+                    items={templates}
+                    isLoading={isLoading || isStoreLoading}
                     emptyContent={"Chưa có mẫu ca nào. Hãy tạo mới!"}
                 >
                     {(item) => (
@@ -185,7 +241,8 @@ export default function ShiftTemplatesPageView() {
                 isOpen={isOpen}
                 onOpenChange={onOpenChange}
                 onClose={onClose}
-                selectedTemplate={selectedTemplate}
+                selectedTemplate={selectedTemplate?.template}
+                templateStoreName={selectedTemplate?.storeName}
                 storeId={storeId || undefined}
             />
         </div>

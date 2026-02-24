@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+import React, { useMemo } from "react"
 import { Card } from "@heroui/react"
 import { motion } from "framer-motion"
 import { X } from "lucide-react"
@@ -9,6 +9,9 @@ import { LogoStyled } from "@/components"
 import { RoleSlugLabels } from "@/constants/labels"
 import { MenuItem } from "../../../../../../constants/menu/sidebar"
 import { RoleSlug } from "@/constants/enums"
+import { useTokenStore } from "@/hooks"
+import { useGetStoreById } from "@/features/stores"
+import { CHB } from "@/constants/constants"
 
 interface SidebarContentProps {
     isMobile: boolean
@@ -25,6 +28,23 @@ export const SidebarContent = ({
     roleSlug,
     onClose
 }: SidebarContentProps) => {
+    const storeId = useTokenStore((s) => s.storeId)
+    const { data: store, isLoading } = useGetStoreById({ id: storeId || "", enabled: !!storeId })
+
+    const { title, description } = useMemo(() => {
+        if (!store || isLoading) {
+            return {
+                title: CHB,
+                description: "Management"
+            }
+        }
+
+        return {
+            title: store.name,
+            description: store.address
+        }
+    }, [isLoading, store])
+
     return (
         <div className="flex flex-col h-full relative">
             <div className="p-6 flex-1 flex flex-col min-h-0">
@@ -35,8 +55,8 @@ export const SidebarContent = ({
                             <LogoStyled className="w-10 h-10" />
                         </div>
                         <div>
-                            <h1 className="text-xl font-bold text-primary">Coffee Shop</h1>
-                            <p className="text-xs text-foreground/60">Management</p>
+                            <h1 className="text-xl font-bold text-primary">{title}</h1>
+                            <p className="text-xs text-foreground/60">{description}</p>
                         </div>
                     </div>
                     {isMobile && (
@@ -88,7 +108,7 @@ export const SidebarContent = ({
 
             {/* User Profile Sticky Bottom */}
             <div className="mt-auto sticky bottom-0 p-6 bg-background/80 backdrop-blur-md border-t border-divider">
-                <Card className="p-4 bg-linear-to-br from-primary-50 to-primary-100/50 border-none shadow-none">
+                <Card className="space-y-2 p-4 bg-linear-to-br from-primary-50 to-primary-100/50 border-none shadow-none">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-linear-to-br from-primary to-secondary flex items-center justify-center text-white font-bold uppercase shadow-sm">
                             {roleSlug?.charAt(0) || "U"}

@@ -1,75 +1,25 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { QUERY_KEYS } from "@/constants/queryKeys"
+import { shiftTemplateApi } from "@/features/shifts/services/shiftTemplateApi"
 import { addToast } from "@heroui/react"
 import { STRINGS } from "@/constants/strings"
-import {
-    CreateShiftTemplateRequest,
-    GetShiftTemplatesParams,
-    UpdateShiftTemplateRequest
-} from "../models/request"
-import { ShiftTemplateResponse } from "../models/response"
-import { fakeDelay } from "./useShifts"
-
-// --- MOCK DATABASE (Lưu trong RAM để test logic thêm/sửa/xóa) ---
-export let MOCK_TEMPLATES_DB: ShiftTemplateResponse[] = [
-    {
-        id: "tpl-1",
-        storeId: undefined, // Global Template (Admin tạo)
-        code: "CA-SANG-HANH-CHINH",
-        name: "Ca Hành Chính",
-        startTime: "08:00:00",
-        endTime: "16:00:00",
-        breakDurationMinutes: 15,
-        isActive: true,
-        createdAt: new Date().toISOString()
-    },
-    {
-        id: "tpl-2",
-        storeId: "b7ac8328-2ca3-470d-80ca-15444eeab2dd", // Template của cửa hàng hiện tại
-        code: "CA-CHIEU",
-        name: "Ca Chiều (Part-time)",
-        startTime: "13:00:00",
-        endTime: "21:00:00",
-        breakDurationMinutes: 60,
-        isActive: true,
-        createdAt: new Date().toISOString()
-    },
-    {
-        id: "tpl-3",
-        storeId: "b7ac8328-2ca3-470d-80ca-15444eeab2dd",
-        code: "CA-TOI",
-        name: "Ca Tối (Đông khách)",
-        startTime: "18:00:00",
-        endTime: "03:00:00",
-        breakDurationMinutes: 20,
-        isActive: true,
-        createdAt: new Date().toISOString()
-    }
-]
-export // Hàm delay giả lập mạng lag (500ms)
-// const fakeDelay = (ms = 500) => new Promise((resolve) => setTimeout(resolve, ms))
+import { BackendError } from "@/models/common/respone"
+import { GetShiftTemplatesParams } from "@/features/shifts/models/request"
 
 // --- QUERY HOOKS ---
 
-const useGetShiftTemplates = ({
+export const useGetShiftTemplates = ({
     params,
+    // pagination,
     enabled = true
 }: {
     params: GetShiftTemplatesParams
+    // pagination?: PaginationParams
     enabled?: boolean
 }) => {
     return useQuery({
         queryKey: [QUERY_KEYS.SHIFT_TEMPLATES, params],
-        queryFn: async () => {
-            await fakeDelay()
-
-            // Giả lập lọc dữ liệu theo storeId và Global
-            const filtered = MOCK_TEMPLATES_DB.filter(
-                (t) => t.storeId === params.storeId || t.storeId === undefined
-            )
-
-            return filtered
-        },
+        queryFn: () => shiftTemplateApi.getAll({ query: params }),
         enabled
     })
 }
@@ -83,12 +33,7 @@ export const useGetShiftTemplateById = ({
 }) => {
     return useQuery({
         queryKey: [QUERY_KEYS.SHIFT_TEMPLATES, id],
-        queryFn: async () => {
-            await fakeDelay()
-            const found = MOCK_TEMPLATES_DB.find((t) => t.id === id)
-            if (!found) throw new Error("Template not found")
-            return found
-        },
+        queryFn: () => shiftTemplateApi.getById({ id }),
         enabled
     })
 }
@@ -99,39 +44,20 @@ export const useCreateShiftTemplate = ({ onSuccess }: { onSuccess?: () => void }
     const queryClient = useQueryClient()
 
     return useMutation({
-        mutationFn: async (req: CreateShiftTemplateRequest) => {
-            await fakeDelay(800) // Giả vờ xử lý lâu tí
-
-            console.log(req)
-
-            const newItem: ShiftTemplateResponse = {
-                id: `tpl-${Date.now()}`, // Fake ID
-                storeId: req.storeId,
-                code: req.code,
-                name: req.name,
-                startTime: req.startTime,
-                endTime: req.endTime,
-                breakDurationMinutes: req.breakDurationMinutes,
-                isActive: true,
-                createdAt: new Date().toISOString()
-            }
-
-            MOCK_TEMPLATES_DB.push(newItem) // Lưu vào Mock DB
-            return newItem
-        },
+        mutationFn: shiftTemplateApi.create,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SHIFT_TEMPLATES] })
             addToast({
                 title: STRINGS.COMMON.SUCCESS,
-                description: "Tạo mẫu ca làm việc thành công (MOCK)",
+                description: "Tạo mẫu ca làm việc thành công",
                 color: "success"
             })
             onSuccess?.()
         },
-        onError: () => {
+        onError: (error: BackendError) => {
             addToast({
-                title: STRINGS.COMMON.ERROR,
-                description: "Lỗi giả lập: Không thể tạo",
+                title: error.title || STRINGS.COMMON.ERROR,
+                description: error.detail,
                 color: "danger"
             })
         }
@@ -142,38 +68,20 @@ export const useUpdateShiftTemplate = ({ onSuccess }: { onSuccess?: () => void }
     const queryClient = useQueryClient()
 
     return useMutation({
-        mutationFn: async ({ id, req }: { id: string; req: UpdateShiftTemplateRequest }) => {
-            await fakeDelay(600)
-
-            const index = MOCK_TEMPLATES_DB.findIndex((t) => t.id === id)
-            if (index === -1) throw new Error("Not found")
-
-            // Merge data cũ với data mới
-            MOCK_TEMPLATES_DB[index] = {
-                ...MOCK_TEMPLATES_DB[index],
-                ...req,
-                // Giữ lại các field không có trong req
-                code: req.code || MOCK_TEMPLATES_DB[index].code,
-                name: req.name || MOCK_TEMPLATES_DB[index].name,
-                startTime: req.startTime || MOCK_TEMPLATES_DB[index].startTime,
-                endTime: req.endTime || MOCK_TEMPLATES_DB[index].endTime,
-                breakDurationMinutes:
-                    req.breakDurationMinutes ?? MOCK_TEMPLATES_DB[index].breakDurationMinutes
-            }
-        },
+        mutationFn: shiftTemplateApi.update,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SHIFT_TEMPLATES] })
             addToast({
                 title: STRINGS.COMMON.SUCCESS,
-                description: "Cập nhật mẫu ca thành công (MOCK)",
+                description: "Cập nhật mẫu ca thành công",
                 color: "success"
             })
             onSuccess?.()
         },
-        onError: () => {
+        onError: (error: BackendError) => {
             addToast({
-                title: STRINGS.COMMON.ERROR,
-                description: "Lỗi giả lập: Không thể cập nhật",
+                title: error.title || STRINGS.COMMON.ERROR,
+                description: error.detail,
                 color: "danger"
             })
         }
@@ -184,25 +92,20 @@ export const useDeleteShiftTemplate = ({ onSuccess }: { onSuccess?: () => void }
     const queryClient = useQueryClient()
 
     return useMutation({
-        mutationFn: async ({ id }: { id: string }) => {
-            await fakeDelay(600)
-
-            // Lọc bỏ item có id tương ứng
-            MOCK_TEMPLATES_DB = MOCK_TEMPLATES_DB.filter((t) => t.id !== id)
-        },
+        mutationFn: shiftTemplateApi.delete,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SHIFT_TEMPLATES] })
             addToast({
                 title: STRINGS.COMMON.SUCCESS,
-                description: "Đã xoá mẫu ca làm việc (MOCK)",
+                description: "Đã xoá mẫu ca làm việc",
                 color: "success"
             })
             onSuccess?.()
         },
-        onError: () => {
+        onError: (error: BackendError) => {
             addToast({
-                title: STRINGS.COMMON.ERROR,
-                description: "Lỗi giả lập: Không thể xóa",
+                title: error.title || STRINGS.COMMON.ERROR,
+                description: error.detail,
                 color: "danger"
             })
         }

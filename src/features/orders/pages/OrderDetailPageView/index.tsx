@@ -89,6 +89,8 @@ export default function OrderDetailPageView({ orderId }: { orderId: string }) {
             confirmText: "Xác nhận",
             variant: "info"
         })
+        console.log(status)
+
         if (isConfirmed) updateStatus.mutate(status)
     }
 
@@ -247,7 +249,6 @@ export default function OrderDetailPageView({ orderId }: { orderId: string }) {
                                         </p>
                                         <div className="h-1 w-12 bg-primary/20 rounded-full" />
                                     </div>
-
                                     <div className="flex flex-col md:flex-row justify-center items-center gap-4 max-w-2xl mx-auto w-full">
                                         <EnumPicker
                                             placeholder="Phương thức thanh toán"
@@ -272,7 +273,6 @@ export default function OrderDetailPageView({ orderId }: { orderId: string }) {
                                             {ORDER_TEXT.labels.PAY}
                                         </ButtonStyled>
                                     </div>
-
                                     {canCancel && (
                                         <center>
                                             <ButtonStyled
@@ -287,16 +287,6 @@ export default function OrderDetailPageView({ orderId }: { orderId: string }) {
                                             </ButtonStyled>
                                         </center>
                                     )}
-
-                                    {isStaff && (
-                                        <center>
-                                            <OrderStatusActions
-                                                currentStatus={order.status}
-                                                onUpdate={handleUpdate}
-                                                isLoading={isLoading}
-                                            />
-                                        </center>
-                                    )}
                                 </div>
                             ) : (
                                 <div className="w-full text-center space-y-2 py-4">
@@ -307,6 +297,15 @@ export default function OrderDetailPageView({ orderId }: { orderId: string }) {
                                         Bản sao hóa đơn điện tử • {order.id}
                                     </p>
                                 </div>
+                            )}
+                            {isStaff && (
+                                <center>
+                                    <OrderStatusActions
+                                        currentStatus={order.status}
+                                        onUpdate={handleUpdate}
+                                        isLoading={isLoading}
+                                    />
+                                </center>
                             )}
                         </CardFooter>
                     </>
