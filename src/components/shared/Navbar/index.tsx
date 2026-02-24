@@ -19,6 +19,7 @@ import { STRINGS } from "@/constants/strings"
 import { CHB, CHB_SHORT } from "@/constants/constants"
 import { CartButton, useCartStore } from "@/features/cart"
 import { RoleSlug } from "@/constants/enums"
+import { useGetStoreById } from "@/features/stores"
 
 type MenuKey = "home" | "stores" | "menu" | "about" | "contact" | undefined
 type MenuItem = { key: Exclude<MenuKey, undefined>; label: string }
@@ -27,8 +28,27 @@ export function Navbar() {
     const pathname = usePathname()
     // handle when login
     const isLoggedIn = useTokenStore((s) => !!s.accessToken)
-    const isCustomer = useTokenStore((s) => s.roleSlug === RoleSlug.Customer)
-    const store = useCartStore((s) => s.currentStore)
+    const roleSlug = useTokenStore((s) => s.roleSlug)
+    const storeId = useTokenStore((s) => s.storeId)
+
+    const isStoreDisplay =
+        roleSlug === RoleSlug.Customer ||
+        roleSlug === RoleSlug.Staff ||
+        roleSlug === RoleSlug.Manager
+    const storeFromCart = useCartStore((s) => s.currentStore)
+    const { data: storeFromApi } = useGetStoreById({
+        id: storeId || "",
+        enabled: roleSlug === RoleSlug.Staff || roleSlug === RoleSlug.Manager
+    })
+
+    const store = useMemo(() => {
+        if (roleSlug === RoleSlug.Customer) return storeFromCart
+
+        if (roleSlug === RoleSlug.Admin) return undefined
+
+        return storeFromApi
+    }, [roleSlug, storeFromApi, storeFromCart])
+
     const { onOpen: onOpenLogin } = useLoginDiscloresureSingleton()
     const { onOpen: onCartDrawerOpen } = useCartDrawerDiscloresureSingleton()
 
@@ -243,7 +263,7 @@ export function Navbar() {
 
                 {store && <StoreChip storeName={store.name} className="hover:cursor-auto" />}
 
-                {isCustomer && (
+                {isStoreDisplay && (
                     <div className="items-center">
                         <CartButton onPress={onCartDrawerOpen} />
                     </div>

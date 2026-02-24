@@ -27,9 +27,10 @@ interface Props {
     isOpen: boolean
     onClose: () => void
     data: TimeLogResponse | null // Record đang được chọn để edit
+    isReadOnly: boolean
 }
 
-export const UpdateTimeLogModal = ({ isOpen, onClose, data }: Props) => {
+export const UpdateTimeLogModal = ({ isOpen, onClose, data, isReadOnly }: Props) => {
     const { formatDateTime, formatTime } = useDay()
     const updateMutation = useUpdateTimeLog({ onSuccess: onClose })
 
@@ -42,7 +43,7 @@ export const UpdateTimeLogModal = ({ isOpen, onClose, data }: Props) => {
         enableReinitialize: true, // Quan trọng: Để form cập nhật khi data thay đổi
         validationSchema: updateTimeLogSchema,
         onSubmit: (values) => {
-            if (!data) return
+            if (!data || isReadOnly) return
             updateMutation.mutate({
                 id: data.id,
                 req: {
@@ -177,6 +178,7 @@ export const UpdateTimeLogModal = ({ isOpen, onClose, data }: Props) => {
                                 onChange={(val) => formik.setFieldValue("status", val)}
                                 isClearable={false}
                                 isInvalid={!!formik.errors.status}
+                                isReadOnly={isReadOnly}
                             />
 
                             <div className="relative">
@@ -193,6 +195,7 @@ export const UpdateTimeLogModal = ({ isOpen, onClose, data }: Props) => {
                                     isInvalid={!!formik.errors.managerNote}
                                     errorMessage={formik.errors.managerNote}
                                     variant="bordered"
+                                    isReadOnly={isReadOnly}
                                 />
                                 {formik.values.status === TimeLogStatus.Invalid &&
                                     !formik.values.managerNote && (
@@ -210,15 +213,17 @@ export const UpdateTimeLogModal = ({ isOpen, onClose, data }: Props) => {
                     <Button variant="light" onPress={onClose} isDisabled={isSubmitting}>
                         Hủy
                     </Button>
-                    <ButtonStyled
-                        color="primary"
-                        isLoading={isSubmitting}
-                        isDisabled={!formik.dirty}
-                        onPress={() => formik.handleSubmit()}
-                        className="px-8"
-                    >
-                        Lưu thay đổi
-                    </ButtonStyled>
+                    {!isReadOnly && (
+                        <ButtonStyled
+                            color="primary"
+                            isLoading={isSubmitting}
+                            isDisabled={!formik.dirty}
+                            onPress={() => formik.handleSubmit()}
+                            className="px-8"
+                        >
+                            Lưu thay đổi
+                        </ButtonStyled>
+                    )}
                 </ModalFooter>
             </ModalContent>
         </ModalStyled>

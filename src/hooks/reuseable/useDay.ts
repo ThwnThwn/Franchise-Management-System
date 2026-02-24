@@ -96,24 +96,30 @@ export const useDay = ({
      * Format Time Object -> String "HH:mm:ss" (Gửi API)
      */
     const formatTime = (
-        time: Time | CalendarDateTime | ZonedDateTime | string | null | undefined,
+        time: Time | CalendarDateTime | ZonedDateTime | Date | string | null | undefined,
         withSecond: boolean = true
     ): string => {
-        // 1. Handle Null/Undefined/Empty
+        // Handle Null/Undefined/Empty
         if (!time) return ""
 
         let hour: string = "00"
         let minute: string = "00"
         let second: string = "00"
 
-        // 2. Nếu là String (HH:mm:ss hoặc HH:mm)
+        // Nếu là String (HH:mm:ss hoặc HH:mm)
         if (typeof time === "string") {
             const parts = time.split(":")
             hour = parts[0]?.padStart(2, "0") || "00"
             minute = parts[1]?.padStart(2, "0") || "00"
             second = parts[2]?.padStart(2, "0") || "00"
         }
-        // 3. Nếu là Object (@internationalized/date)
+        // Nếu là Native JS Date
+        else if (time instanceof Date) {
+            hour = time.getHours().toString().padStart(2, "0")
+            minute = time.getMinutes().toString().padStart(2, "0")
+            second = time.getSeconds().toString().padStart(2, "0")
+        }
+        // Nếu là Object (@internationalized/date)
         else if ("hour" in time) {
             hour = time.hour.toString().padStart(2, "0")
             minute = time.minute.toString().padStart(2, "0")
@@ -123,7 +129,7 @@ export const useDay = ({
             return ""
         }
 
-        // 4. Build kết quả dựa trên withSecond
+        // Build kết quả dựa trên withSecond
         return withSecond ? `${hour}:${minute}:${second}` : `${hour}:${minute}`
     }
 

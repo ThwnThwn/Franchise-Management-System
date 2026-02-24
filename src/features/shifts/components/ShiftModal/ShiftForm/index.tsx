@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect } from "react"
+import React, { useCallback } from "react"
 import { Select, SelectItem } from "@heroui/react"
 import { useFormik } from "formik"
 import { ShiftFormValues } from "./schema"
@@ -38,18 +38,38 @@ export const ShiftForm = ({ formik, isSubmitable }: ShiftFormProps) => {
     const { isInvalid, getErrorMessage } = useFormikHelpers(formik)
 
     // Lắng nghe templateId thay đổi
-    useEffect(() => {
-        const templateId = formik.values.shiftTemplateId
-        if (templateId && templates) {
-            const template = templates.find((t) => t.id === templateId)
+    // useEffect(() => {
+    //     const templateId = formik.values.shiftTemplateId
+    //     if (templateId && templates) {
+    //         const template = templates.find((t) => t.id === templateId)
+    //         if (template) {
+    //             formik.setFieldValue("startTime", template.startTime.slice(0, 5))
+    //             formik.setFieldValue("endTime", template.endTime.slice(0, 5))
+    //             formik.setFieldValue("breakDurationMinutes", template.breakDurationMinutes)
+    //         }
+    //     }
+    //     // eslint-disable-next-line react-hooks/exhaustive-deps
+    // }, [formik.values.shiftTemplateId, templates])
+
+    const handleTemplateChange = useCallback(
+        (id: string | null) => {
+            // 1. Cập nhật ID vào Formik trước
+            formik.setFieldValue("shiftTemplateId", id)
+
+            // 2. Nếu không có ID (user clear chọn), có thể reset field hoặc dừng lại
+            if (!id || !templates) return
+
+            // 3. Tìm template và "vít" data vào các field liên quan
+            const template = templates.find((t) => t.id === id)
             if (template) {
                 formik.setFieldValue("startTime", template.startTime.slice(0, 5))
                 formik.setFieldValue("endTime", template.endTime.slice(0, 5))
                 formik.setFieldValue("breakDurationMinutes", template.breakDurationMinutes)
             }
-        }
+        },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [formik.values.shiftTemplateId, templates])
+        [templates, formik.setFieldValue]
+    )
 
     const handleFieldChange = (field: string, value: any) => {
         formik.setFieldValue(field, value)
@@ -71,9 +91,10 @@ export const ShiftForm = ({ formik, isSubmitable }: ShiftFormProps) => {
                 selectedKeys={formik.values.shiftTemplateId ? [formik.values.shiftTemplateId] : []}
                 onChange={(e) => {
                     // e.target.value có thể rỗng nếu user bỏ chọn, cần handle
-                    formik.setFieldValue("shiftTemplateId", e.target.value || null)
+                    handleTemplateChange(e.target.value || null)
                 }}
                 isDisabled={!isSubmitable}
+                isClearable
             >
                 {(item) => (
                     <SelectItem key={item.id} textValue={item.name}>

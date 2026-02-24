@@ -13,7 +13,7 @@ export function SectionStyled({
     children: React.ReactNode
     sectionClassName?: string
     childrenClassName?: string
-    icon?: React.ElementType
+    icon?: React.ComponentType<{ size?: number; className?: string }>
 }) {
     return (
         <div className={cn("mb-10", sectionClassName)}>

@@ -33,7 +33,7 @@ export enum OrderStatus {
  */
 export const ORDER_STATUS_TRANSITION_POLICY: Record<OrderStatus, OrderStatus[]> = {
     [OrderStatus.PaymentPending]: [OrderStatus.ConfirmationPending, OrderStatus.Cancelled],
-    [OrderStatus.ConfirmationPending]: [OrderStatus.Confirmed, OrderStatus.Cancelled],
+    [OrderStatus.ConfirmationPending]: [OrderStatus.Confirmed],
     [OrderStatus.Confirmed]: [OrderStatus.Preparing],
     [OrderStatus.Preparing]: [OrderStatus.ReadyForPickup],
     [OrderStatus.ReadyForPickup]: [OrderStatus.Delivering, OrderStatus.Completed],

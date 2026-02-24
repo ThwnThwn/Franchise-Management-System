@@ -103,7 +103,7 @@ export const useTimeLogLogic = () => {
 
         // Modal helpers
         modal: {
-            isOpen: isOpen && isManager,
+            isOpen: isOpen,
             onOpen: handleEditClick, // Mở kèm data
             onClose: handleCloseModal,
             selectedLog

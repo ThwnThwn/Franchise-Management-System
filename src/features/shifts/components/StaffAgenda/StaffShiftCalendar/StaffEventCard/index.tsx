@@ -19,11 +19,13 @@ export const StaffEventCard = memo(
 
             // Trường hợp chưa có hành động chấm công
             if (now.isBefore(start)) return "UPCOMING"
-            if (now.isBetween(start, end)) return "ONGOING" // Đang trong giờ làm nhưng chưa bấm nút
+            const isWorkingHours =
+                (now.isAfter(start) || now.isSame(start)) && (now.isBefore(end) || now.isSame(end))
+            if (isWorkingHours) return "ONGOING" // Đang trong giờ làm nhưng chưa bấm nút
             return "MISSED" // Đã quá giờ mà chưa thấy check-in
         }, [data])
 
-        // 2. Map Style theo Status (Dùng đúng bảng màu Pastel bro thích)
+        // 2. Map Style theo Status
         const configs = {
             UPCOMING: {
                 classes: "bg-blue-50 border-blue-400 text-blue-800",
@@ -36,7 +38,7 @@ export const StaffEventCard = memo(
                 icon: <PlayCircle size={12} className="text-emerald-600 animate-pulse" />
             },
             COMPLETED: {
-                classes: "bg-slate-50 border-slate-300 text-slate-400 opacity-80",
+                classes: "bg-slate-50 border-slate-300 text-slate-700 opacity-90",
                 label: "Hoàn thành",
                 icon: <CheckCircle2 size={12} className="text-slate-400" />
             },

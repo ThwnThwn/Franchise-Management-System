@@ -87,7 +87,7 @@ export const OrderDetailModal = ({
             confirmText: "Đồng ý huỷ",
             variant: "danger"
         })
-        if (isConfirmed) updateStatus.mutate(OrderStatus.Cancel)
+        if (isConfirmed) updateStatus.mutate(OrderStatus.Cancelled)
     }
 
     useEffect(() => {

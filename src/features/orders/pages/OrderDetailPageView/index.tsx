@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react"
 import "./index.css"
 import { Chip, Spinner, addToast, Card, CardHeader, CardBody, CardFooter } from "@heroui/react"
-import { BackLink, ButtonStyled, EnumPicker } from "@/components"
+import { BackLink, ButtonStyled, EnumPicker, LogoStyled } from "@/components"
 import {
     ORDER_TEXT,
     OrderStatus,
@@ -25,7 +25,7 @@ import { Printer } from "lucide-react"
 import { RoleSlug } from "@/constants/enums"
 import { useGetRecipes } from "@/features/products/hooks/useRecipe"
 import { OrderStatusActions } from "@/features/orders/components/OrderStatusActions"
-import { canCancelFrom } from "../../utils"
+import { canCancelFrom } from "@/features/orders/utils"
 
 export default function OrderDetailPageView({ orderId }: { orderId: string }) {
     // const isCustomer = false
@@ -89,6 +89,8 @@ export default function OrderDetailPageView({ orderId }: { orderId: string }) {
             confirmText: "Xác nhận",
             variant: "info"
         })
+        console.log(status)
+
         if (isConfirmed) updateStatus.mutate(status)
     }
 
@@ -158,13 +160,18 @@ export default function OrderDetailPageView({ orderId }: { orderId: string }) {
                 <CardHeader className="flex flex-col p-8 md:p-12 pb-0! space-y-8">
                     {/* Phần hiển thị khi IN (CHB Coffee Shop) */}
                     <div className="hidden print:flex flex-col items-center text-center">
-                        <h2 className="text-xl font-black uppercase">{CHB} COFFEE SHOP</h2>
-                        <div className="border-b border-black w-full my-4" />
+                        <LogoStyled className="w-12 h-12" />
                     </div>
 
                     <div className="flex flex-col gap-1 w-full mb-0">
                         <div className="space-y-4">
-                            {/* Tăng gap lên 4 để thoáng hơn */}
+                            <center>
+                                <h2 className="mb-0 text-xl font-black uppercase">
+                                    {order.store?.name ?? `${CHB} COFFEE SHOP`}
+                                </h2>
+                                <p className="text-default-400">{order.store?.address ?? ""}</p>
+                                <div className="border-b border-black w-full my-4" />
+                            </center>
                             <div className="flex justify-between items-start gap-3">
                                 <div className="space-y-1">
                                     <h1 className="text-3xl md:text-4xl font-black tracking-tighter text-slate-900 leading-none">
@@ -173,7 +180,7 @@ export default function OrderDetailPageView({ orderId }: { orderId: string }) {
                                 </div>
 
                                 <div className="flex flex-col items-end gap-2">
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-1">
                                         <p className="hidden print:block text-[10px] font-mono text-default-400 tracking-widest uppercase font-bold">
                                             Trạng thái:
                                         </p>
@@ -247,7 +254,6 @@ export default function OrderDetailPageView({ orderId }: { orderId: string }) {
                                         </p>
                                         <div className="h-1 w-12 bg-primary/20 rounded-full" />
                                     </div>
-
                                     <div className="flex flex-col md:flex-row justify-center items-center gap-4 max-w-2xl mx-auto w-full">
                                         <EnumPicker
                                             placeholder="Phương thức thanh toán"
@@ -272,7 +278,6 @@ export default function OrderDetailPageView({ orderId }: { orderId: string }) {
                                             {ORDER_TEXT.labels.PAY}
                                         </ButtonStyled>
                                     </div>
-
                                     {canCancel && (
                                         <center>
                                             <ButtonStyled
@@ -287,16 +292,6 @@ export default function OrderDetailPageView({ orderId }: { orderId: string }) {
                                             </ButtonStyled>
                                         </center>
                                     )}
-
-                                    {isStaff && (
-                                        <center>
-                                            <OrderStatusActions
-                                                currentStatus={order.status}
-                                                onUpdate={handleUpdate}
-                                                isLoading={isLoading}
-                                            />
-                                        </center>
-                                    )}
                                 </div>
                             ) : (
                                 <div className="w-full text-center space-y-2 py-4">
@@ -307,6 +302,15 @@ export default function OrderDetailPageView({ orderId }: { orderId: string }) {
                                         Bản sao hóa đơn điện tử • {order.id}
                                     </p>
                                 </div>
+                            )}
+                            {isStaff && (
+                                <center>
+                                    <OrderStatusActions
+                                        currentStatus={order.status}
+                                        onUpdate={handleUpdate}
+                                        isLoading={isLoading}
+                                    />
+                                </center>
                             )}
                         </CardFooter>
                     </>

@@ -31,12 +31,19 @@ export default function StaffAgendaPageView() {
     const { data: allMonthShifts, isLoading } = useGetMyAgenda(dateRange)
     const weeklyShifts = useMemo(() => {
         if (!allMonthShifts) return []
+
+        // Đảm bảo đã extend isoWeek để dùng startOf("isoWeek")
         const startOfWeek = currentDate.startOf("isoWeek")
         const endOfWeek = currentDate.endOf("isoWeek")
 
-        return allMonthShifts.filter((s) =>
-            dayjs(s.date).isBetween(startOfWeek, endOfWeek, "day", "[]")
-        )
+        return allMonthShifts.filter((s) => {
+            const shiftDate = dayjs(s.date)
+            // Check: shiftDate >= start AND shiftDate <= end
+            return (
+                (shiftDate.isAfter(startOfWeek, "day") || shiftDate.isSame(startOfWeek, "day")) &&
+                (shiftDate.isBefore(endOfWeek, "day") || shiftDate.isSame(endOfWeek, "day"))
+            )
+        })
     }, [allMonthShifts, currentDate])
 
     // Xử lý khi click vào bất kỳ đâu (Card trong List hoặc Event trong Calendar)
@@ -82,7 +89,11 @@ export default function StaffAgendaPageView() {
                     // Trên mobile luôn hiện List, desktop hiện theo viewMode
                     <div className="block">
                         {viewMode === "list" ? (
-                            <AgendaListView selectedDate={currentDate} shifts={weeklyShifts} />
+                            <AgendaListView
+                                selectedDate={currentDate}
+                                shifts={weeklyShifts}
+                                onEditClick={handleShiftClick}
+                            />
                         ) : (
                             <div className="bg-white p-4 rounded-2xl shadow-sm border">
                                 <StaffShiftCalendar

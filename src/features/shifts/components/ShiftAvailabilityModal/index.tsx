@@ -178,6 +178,8 @@ export const ShiftAvailabilityModal = ({
                                 onChange={(t) =>
                                     formik.setFieldValue("startTime", formatTime(t, false))
                                 }
+                                isInvalid={isInvalid("startTime")}
+                                errorMessage={getErrorMessage("startTime")}
                             />
                             <TimeInputStyled
                                 label="Kết thúc lúc"
@@ -185,6 +187,8 @@ export const ShiftAvailabilityModal = ({
                                 onChange={(t) =>
                                     formik.setFieldValue("endTime", formatTime(t, false))
                                 }
+                                isInvalid={isInvalid("endTime")}
+                                errorMessage={getErrorMessage("endTime")}
                             />
                         </div>
                         {isOvernight && (
@@ -200,6 +204,8 @@ export const ShiftAvailabilityModal = ({
                             name="note"
                             value={formik.values.note}
                             onChange={formik.handleChange}
+                            isInvalid={isInvalid("note")}
+                            errorMessage={getErrorMessage("note")}
                         />
                     </ModalBody>
 

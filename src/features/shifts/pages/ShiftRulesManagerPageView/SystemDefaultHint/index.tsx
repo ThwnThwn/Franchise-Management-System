@@ -17,6 +17,8 @@ export const SystemDefaultHint = ({
                 : "Đang tắt"
             : `${value} ${type === "number" ? "giờ" : ""}`
 
+    if (value === undefined || value === null) return null
+
     return (
         <div className="flex items-center gap-1.5 mt-2 px-2.5 py-1.5 bg-default-50 rounded-lg border border-default-100 w-fit">
             <Globe size={12} className="text-default-400" />

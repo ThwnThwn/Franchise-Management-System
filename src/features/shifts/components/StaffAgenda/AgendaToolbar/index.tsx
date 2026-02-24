@@ -62,6 +62,7 @@ export const AgendaToolbar = ({
                             aria-label="Jump to date"
                             value={toDate(currentDate) || undefined}
                             onChange={onJump}
+                            showMonthAndYearPickers
                         />
                     </PopoverContent>
                 </Popover>
