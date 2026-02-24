@@ -1,4 +1,5 @@
 using AutoMapper;
+using Google.Protobuf;
 using Grpc.Core;
 using InventoryService.Grpc.Protos.Inventory.Internal;
 using MediatR;
@@ -9,6 +10,7 @@ using SalesService.Application.Features.Orders.Commands.UpdateOrderStatus;
 using SalesService.Application.Features.Orders.GetById;
 using SalesService.Application.Features.Orders.Queries.GetMyOrders;
 using SalesService.Application.Features.Orders.Queries.GetOrders;
+using SalesService.Application.Features.Orders.Queries.GetOrderVolume;
 using SalesService.Application.Features.Reports.Queries.GetRevenueReport;
 using System;
 using System.Collections.Generic;
@@ -437,10 +439,76 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
         if (request.IncludeCsv)
         {
             var csvBytes = RevenueReportCsvExporter.Export(report);
-            reply.CsvFile = Google.Protobuf.ByteString.CopyFrom(csvBytes);
-            reply.CsvFileName = $"revenue-report-{DateTime.UtcNow:yyyyMMddHHmmss}.csv";
+            reply.CsvFile = new CsvFile
+            {
+                CsvRaw = ByteString.CopyFrom(csvBytes),
+                CsvFileName = $"revenue-report-{DateTime.UtcNow:yyyyMMddHHmmss}.csv"
+            };
         }
 
+        return reply;
+    }
+
+    public override async Task<GetOrderVolumeReply> GetOrderVolume(
+    GetOrderVolumeRequest request,
+    ServerCallContext context)
+    {
+        var fromDate = DateOnly.Parse(request.FromDate);
+        var toDate = DateOnly.Parse(request.ToDate);
+
+        Guid? storeId = string.IsNullOrEmpty(request.StoreId)
+            ? null
+            : Guid.Parse(request.StoreId);
+
+        SalesService.Domain.Enums.OrderStatus? domainStatus = null;
+        if (request.HasStatus)
+        {
+            domainStatus =
+                (SalesService.Domain.Enums.OrderStatus)(int)request.Status;
+        }
+
+        var result = await _mediator.Send(
+            new GetOrderVolumeQuery(
+                new Application.Features.Orders.Queries.GetOrderVolume.GetOrderVolumeRequest
+                {
+                    FromDate = fromDate,
+                    ToDate = toDate,
+                    StoreId = storeId,
+                    Status = domainStatus,
+                    Include_csv = request.IncludeCsv
+                }),
+            context.CancellationToken);
+
+        var reply = new GetOrderVolumeReply();
+
+        foreach (var item in result.Orders)
+        {
+            var order = new OrderVolumeADay
+            {
+                Date = item.Date.ToString("yyyy-MM-dd"),
+                TotalOrders = item.TotalOrders,
+                CanceledOrder = item.CanceledOrders,
+                CompletedOrder = item.CompletedOrders,
+            };
+           
+            if (item.StoreId.HasValue)
+            {
+                order.StoreId = item.StoreId.Value.ToString();
+            }
+            foreach (var statusGroup in item.StatusCounts)
+            {
+                order.StatusCounts[statusGroup.Key.ToString()] = statusGroup.Value;
+            }
+            reply.Orders.Add(order);
+        }
+        if (result.CsvFile != null)
+        {
+            reply.CsvFile = new CsvFile
+            {
+                CsvRaw = ByteString.CopyFrom(result.CsvFile),
+                CsvFileName = result.CsvFileName!
+            };
+        }
         return reply;
     }
 }

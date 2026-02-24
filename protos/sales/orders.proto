@@ -26,6 +26,9 @@ service OrderGrpc {
 
   // Lấy báo cáo doanh thu
   rpc GetRevenueReport (GetRevenueReportRequest) returns (GetRevenueReportReply);
+
+  // Lấy danh sách đơn hàng
+  rpc GetOrderVolume (GetOrderVolumeRequest) returns (GetOrderVolumeReply);
 }
 
 message CreateOrderRequest {
@@ -189,8 +192,7 @@ message GetRevenueReportReply {
   repeated RevenueItem items = 4;
   double overall_total_revenue = 5;
 
-  optional bytes csv_file = 6;
-  optional string csv_file_name = 7;
+  optional CsvFile csv_file = 6;
 }
 
 message RevenueItem {
@@ -200,4 +202,32 @@ message RevenueItem {
   int32 quantity_sold = 4;
   double unit_price = 5;
   double total_revenue = 6;
+}
+
+message GetOrderVolumeRequest{
+  string from_date = 1; // YYYY-MM-DD
+  string to_date = 2; // YYYY-MM-DD
+  optional string store_id = 3;
+  optional OrderStatus status = 4; //
+  optional bool include_csv = 5;
+}
+
+message GetOrderVolumeReply{
+  repeated OrderVolumeADay orders = 1;
+  optional CsvFile csv_file = 6;
+}
+message OrderVolumeADay{
+  string date = 1; // YYYY-MM-DD
+  int32 total_orders = 2;
+  int32 canceled_order = 3;
+  int32 completed_order = 4;
+  optional string store_id = 5;
+  map<string, int32> status_counts = 6;
+
+  optional CsvFile csv_file = 7;
+}
+
+message CsvFile{
+  bytes csv_raw = 1;
+  string csv_file_name = 2;
 }
