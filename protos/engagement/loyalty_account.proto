@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+option csharp_namespace = "EngagementService.Infrastructure.Protos";
+
+package engagement;
+// Import thư viện Empty của Google để định nghĩa hàm không trả về gì
+import "google/protobuf/empty.proto";
+
+// Service định nghĩa các hành động liên quan đến Loyalty
+service LoyaltyAccountGrpc {
+  // Hàm xử lý phần thưởng sau đơn hàng, không trả về dữ liệu (google.protobuf.Empty)
+  rpc ProcessOrderReward (ProcessOrderRewardRequest) returns (google.protobuf.Empty);
+}
+
+// Định nghĩa Request
+message ProcessOrderRewardRequest {
+  string id = 1;           // Đại diện cho Guid Id
+  string order_amount = 2; // Đại diện cho decimal OrderAmount (Dùng string để bảo toàn độ chính xác)
+}
+
