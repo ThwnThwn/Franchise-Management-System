@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\EngagementService\EngagementService.API\EngagementService.API.csproj" />
     <ProjectReference Include="..\FranchiseService\FranchiseService.API\FranchiseService.API.csproj" />
     <ProjectReference Include="..\IdentityService\IdentityService.API\IdentityService.API.csproj" />
     <ProjectReference Include="..\InventoryService\InventoryService.API\InventoryService.API.csproj" />

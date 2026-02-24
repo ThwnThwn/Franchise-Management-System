@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+option csharp_namespace = "EngagementService.Infrastructure.Protos";
+
+package engagement;
+// Import thư viện Empty của Google để định nghĩa hàm không trả về gì
+import "google/protobuf/empty.proto";
+
+// Service định nghĩa các hành động liên quan đến Loyalty
+service LoyaltyAccountGrpc {
+  // Hàm xử lý phần thưởng sau đơn hàng, không trả về dữ liệu (google.protobuf.Empty)
+  rpc ProcessOrderReward (ProcessOrderRewardRequest) returns (google.protobuf.Empty);
+
+  // Hàm lấy thông tin tài khoản qua số điện thoại
+  rpc GetByUserPhoneOrEmail (GetByUserPhoneOrEmailRequest) returns (LoyaltyAccountResponse);
+}
+
+// Định nghĩa Request
+message ProcessOrderRewardRequest {
+  string id = 1;           // Đại diện cho Guid Id
+  string order_amount = 2; // Đại diện cho decimal OrderAmount (Dùng string để bảo toàn độ chính xác)
+}
+
+// Request lấy thông tin theo số điện thoại
+message GetByUserPhoneOrEmailRequest {
+  string phone_number = 1;
+  string email = 2;
+}
+
+// Thông tin hạng thành viên
+message MembershipTierResponse {
+  string id = 1;   // Đại diện Guid
+  string name = 2;
+}
+
+// Thông tin tài khoản Loyalty trả về
+message LoyaltyAccountResponse {
+  string id = 1;               // Đại diện Guid
+  string available_points = 2; // Đại diện decimal
+  string total_spent = 3;      // Đại diện decimal
+  MembershipTierResponse current_tier = 4;
+}
