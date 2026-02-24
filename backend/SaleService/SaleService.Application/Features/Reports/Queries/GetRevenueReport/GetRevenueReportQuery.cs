@@ -10,6 +10,7 @@ public class GetRevenueReportQuery : IRequest<Result<RevenueReportResponse>>
     public DateOnly? ToDate { get; set; }
     public Guid? CategoryId { get; set; }
     public Guid? StoreId { get; set; }
+    public bool? Include_csv { get; set; }
 
     public GetRevenueReportQuery(DateOnly? fromDate, DateOnly? toDate, Guid? categoryId, Guid? storeId)
     {

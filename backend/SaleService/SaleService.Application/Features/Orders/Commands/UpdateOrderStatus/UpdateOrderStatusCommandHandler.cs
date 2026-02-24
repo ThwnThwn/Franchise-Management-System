@@ -37,7 +37,7 @@ public sealed class UpdateOrderStatusCommandHandler
     {
         var request = commnad.Request;
 
-        //Validate OrderId
+        //Validate OrderIdw
         if (request.OrderId == Guid.Empty)
         {
             return "OrderId is required.";

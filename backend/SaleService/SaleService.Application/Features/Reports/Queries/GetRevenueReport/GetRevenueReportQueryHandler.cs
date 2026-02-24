@@ -44,7 +44,6 @@ public class GetRevenueReportQueryHandler : IRequestHandler<GetRevenueReportQuer
                     FromDate = request.FromDate,
                     ToDate = request.ToDate,
                     CategoryId = request.CategoryId,
-                    StoreId = request.StoreId,
                     Items = new List<RevenueItemDto>(),
                     OverallTotalRevenue = 0
                 });

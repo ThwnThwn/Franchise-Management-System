@@ -414,13 +414,14 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
                 StatusCode.Internal,
                 result.Errors.FirstOrDefault() ?? "Failed to get revenue report"));
         }
+        var report = result.Value;
 
         var reply = new GetRevenueReportReply
         {
             FromDate = result.Value.FromDate?.ToString("O") ?? string.Empty,
             ToDate = result.Value.ToDate?.ToString("O") ?? string.Empty,
             CategoryId = result.Value.CategoryId?.ToString() ?? string.Empty,
-            OverallTotalRevenue = (double)result.Value.OverallTotalRevenue
+            OverallTotalRevenue = (double)result.Value.OverallTotalRevenue,
         };
 
         reply.Items.AddRange(result.Value.Items.Select(i => new RevenueItem
@@ -429,8 +430,16 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             Sku = i.Sku,
             QuantitySold = i.QuantitySold,
             UnitPrice = (double)i.UnitPrice,
-            TotalRevenue = (double)i.TotalRevenue
+            TotalRevenue = (double)i.TotalRevenue,
+            StoreId = i.StoreId?.ToString() ?? string.Empty,
         }));
+
+        if (request.IncludeCsv)
+        {
+            var csvBytes = RevenueReportCsvExporter.Export(report);
+            reply.CsvFile = Google.Protobuf.ByteString.CopyFrom(csvBytes);
+            reply.CsvFileName = $"revenue-report-{DateTime.UtcNow:yyyyMMddHHmmss}.csv";
+        }
 
         return reply;
     }
