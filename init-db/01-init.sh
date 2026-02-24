@@ -63,9 +63,11 @@ run_sql_script "engagement_db" "/docker-entrypoint-initdb.d/schemas/08-engagemen
 # run_sql_script "inventory_db" "/docker-entrypoint-initdb.d/seeding/999-seeding-inventory-test.sql"
 # run_sql_script "product_db" "/docker-entrypoint-initdb.d/seeding/998-seeding-product-test.sql"
 
-# seed test chưa release
-run_sql_script "inventory_db" "/docker-entrypoint-initdb.d/seeding/test-init-inventory.sql"
-run_sql_script "product_db" "/docker-entrypoint-initdb.d/seeding/test-init-product.sql"
-run_sql_script "identity_db" "/docker-entrypoint-initdb.d/seeding/test-init-identity.sql"
-run_sql_script "franchise_db" "/docker-entrypoint-initdb.d/seeding/test-init-franchise.sql"
+# seed test release
+run_sql_script "inventory_db" "/docker-entrypoint-initdb.d/seeding/realease-init-inventory.sql"
+run_sql_script "product_db" "/docker-entrypoint-initdb.d/seeding/realease-init-product.sql"
+run_sql_script "identity_db" "/docker-entrypoint-initdb.d/seeding/realease-init-identity.sql"
+run_sql_script "franchise_db" "/docker-entrypoint-initdb.d/seeding/realease-init-franchise.sql"
+run_sql_script "engagement_db" "/docker-entrypoint-initdb.d/seeding/realease-init-engagement.sql"
+
 echo "Database initialization process finished!"

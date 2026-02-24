@@ -1,5 +1,4 @@
-﻿using System.Globalization;
-using Google.Protobuf.WellKnownTypes;
+﻿using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using IdentityService.Application.Dtos.User.Request;
 using IdentityService.Application.Dtos.User.Respone;
@@ -9,12 +8,15 @@ using IdentityService.Application.Features.Users.Commands.CustomerCreateUser;
 using IdentityService.Application.Features.Users.Commands.DeleteUser;
 using IdentityService.Application.Features.Users.Commands.UpdateUser;
 using IdentityService.Application.Features.Users.Queries.GetAllUser;
+using IdentityService.Application.Features.Users.Queries.GetByEmail;
+using IdentityService.Application.Features.Users.Queries.GetByPhone;
 using IdentityService.Application.Features.Users.Queries.GetManager;
 using IdentityService.Application.Features.Users.Queries.GetUserById;
 using IdentityService.Grpc.Protos.Role;
 using IdentityService.Grpc.Protos.User;
 using MediatR;
 using Sprache;
+using System.Globalization;
 
 namespace IdentityService.API.Services;
 
@@ -250,5 +252,18 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
                     Slug = user.Role.Slug ?? ""
                 }
         };
+    }
+    public override async Task<UserIdResponse> GetUserIdByPhone(GetUserIdByPhoneRequest request, ServerCallContext context)
+    {
+        var req = new GetUserByPhoneQuery(PhoneNumber: request.Phone);
+        var user = await _mediator.Send(req);
+        return new UserIdResponse { Id = user.Id.ToString() };
+    }
+
+    public override async Task<UserIdResponse> GetUserIdByEmail(GetUserIdByEmailRequest request, ServerCallContext context)
+    {
+        var req = new GetByEmailQuery(Email: request.Email);
+        var user = await _mediator.Send(req);
+        return new UserIdResponse { Id = user.Id.ToString() };
     }
 }

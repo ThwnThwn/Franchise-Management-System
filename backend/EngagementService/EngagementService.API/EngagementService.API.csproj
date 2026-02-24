@@ -33,12 +33,12 @@
 		<Protobuf Include="..\..\..\protos\engagement\*.proto" GrpcServices="Server" ProtoRoot="..\..\..\protos" />
 	</ItemGroup>
 	<ItemGroup>
+		<Protobuf Include="Protos\user.proto" GrpcServices="Client" />
+	</ItemGroup>
+	<ItemGroup>
 		<None Update=".env">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-	</ItemGroup>
-	<ItemGroup>
-	  <Folder Include="Protos\" />
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\EngagementService.Infrastucture\EngagementService.Infrastucture.csproj" />

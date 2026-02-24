@@ -9,5 +9,6 @@ namespace EngagementService.Application.Persistences.Repository
 {
     public interface ILoyaltyAccountRepository : IGenericRepository<LoyaltyAccount>
     {
+        Task<LoyaltyAccount?> GetByUserIdAsync(Guid userId);
     }
 }

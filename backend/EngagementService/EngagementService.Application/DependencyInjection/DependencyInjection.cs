@@ -3,6 +3,7 @@ using EngagementService.Application.Behaviors;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using EngagementService.Application.Abstraction;
+using EngagementService.Application.ClientInterface;
 
 namespace EngagementService.Application.DependencyInjection;
 

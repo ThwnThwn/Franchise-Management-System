@@ -1,13 +1,16 @@
 ﻿
 
 using DotNetEnv;
+using EngagementService.API.Services.LoyaltyAccount;
 using EngagementService.Application.Abstraction;
+using EngagementService.Application.ClientInterface;
 using EngagementService.Application.DependencyInjection;
 using EngagementService.Application.Persistences;
 using EngagementService.Infrastucture.AppDbContext;
 using EngagementService.Infrastucture.DependencyInjection;
 using EngagementService.Infrastucture.Interceptor;
 using EngagementService.Infrastucture.Persistences;
+using InventoryService.API.Services.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace EngagementService.API;
@@ -84,7 +87,9 @@ public class Program
             });
         });
 
-       
+
+        //Client service
+        builder.Services.AddScoped<IIdentityServiceClient, IdentityServiceClient>();
 
         var app = builder.Build();
 
@@ -93,7 +98,7 @@ public class Program
         app.UseCors();
         app.UseAuthorization();
         app.MapGrpcReflectionService(); // Enable gRPC Server Reflection endpoint
-
+        app.MapGrpcService<LoyaltyAccountGrpcService>();
         using (var scope = app.Services.CreateScope())
         {
             var services = scope.ServiceProvider;

@@ -18,7 +18,7 @@ namespace EngagementService.API.Services.LoyaltyAccount
         public override async Task<Empty> ProcessOrderReward(ProcessOrderRewardRequest request, Grpc.Core.ServerCallContext context)
         {
             var id = Guid.Parse(request.Id);
-            var checkReq = new GetByIdQuery(Id : id);
+            var checkReq = new GetByIdQuery(Id: id);
 
             var account = await _mediator.Send(checkReq);
             var upsertRequest = new Application.Dtos.LoyaltyAccount.UpSertReqest
@@ -38,6 +38,34 @@ namespace EngagementService.API.Services.LoyaltyAccount
                (upsertRequest);
             await _mediator.Send(processCommand);
             return new Empty();
+        }
+
+        public async override Task<LoyaltyAccountResponse> GetByUserPhoneOrEmail(GetByUserPhoneOrEmailRequest request, Grpc.Core.ServerCallContext context)
+        {
+            //giả định lấy ra được id từ phone
+            var req = new Application.Dtos.LoyaltyAccount.GetByUserPhoneOrEmailRequest() {
+                Email = request.Email,
+                PhoneNumber = request.PhoneNumber
+            };
+
+            var account = await _mediator.Send(new GetByPhoneOrEmailQuery(req));
+
+            if (account == null) throw new DirectoryNotFoundException("Không tìm thấy tài khoản");
+
+            var tierRep = new MembershipTierResponse()
+            {
+                Id = account.CurrentTier.Id.ToString(),
+                Name = account.CurrentTier.Name
+            };
+            var response = new LoyaltyAccountResponse
+            {
+                Id = account.Id.ToString(),
+                AvailablePoints = account.AvailablePoints.ToString(),
+                TotalSpent = account.TotalSpent.ToString(),
+                CurrentTier = tierRep
+            };
+
+            return response;
         }
     }
 }

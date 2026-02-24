@@ -138,5 +138,12 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
             query = query.OrderByDescending(u => u.CreatedAt);
             return await query.ToPagedListAsync(pageIndex, pageSize, cancellationToken);
         }
+
+        public Task<User?> GetByPhoneAsync(string? phone)
+        {
+            return _dbContext.Users
+                .Where(u => u.Phone == phone)
+                .FirstOrDefaultAsync();
+        }
     }
 }

@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+option csharp_namespace = "EngagementService.API.Protos.user";
+
+package engagementService.identity.user;
+
+service UserGrpc {
+	rpc GetUserIdByPhone(GetUserIdByPhoneRequest) returns (UserIdResponse);
+   rpc GetUserIdByEmail(GetUserIdByEmailRequest) returns (UserIdResponse);
+}
+
+message GetUserIdByPhoneRequest {
+  string phone = 1;
+}
+
+message UserIdResponse {
+  string id = 1;
+}
+
+message GetUserIdByEmailRequest {
+  string email = 1;
+}
