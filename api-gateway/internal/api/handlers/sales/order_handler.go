@@ -53,7 +53,7 @@ func (h *OrderHandler) GetOrders(c *gin.Context) {
 		return
 	}
 
-	storeId, err := contextutils.GetStoreID(c)
+	storeId, err := contextutils.GetStoreId(c)
 	if err != nil {
 		c.Error(err)
 		return

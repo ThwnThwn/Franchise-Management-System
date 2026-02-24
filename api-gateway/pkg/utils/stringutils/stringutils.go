@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 	"unicode"
+
+	"github.com/google/uuid"
 )
 
 // pascal case / camel case -> snake case
@@ -48,6 +50,13 @@ func GetString(in *string) string {
 		return ""
 	}
 	return *in
+}
+
+func UuidPtrToStr(in *uuid.UUID) string {
+	if in == nil {
+		return ""
+	}
+	return in.String()
 }
 
 func ToPtr(s string) *string {

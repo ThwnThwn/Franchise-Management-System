@@ -3,12 +3,12 @@ package franchise
 import (
 	"api-gateway/internal/application/gateways/franchise"
 	"api-gateway/internal/domain/models/shift"
+	"api-gateway/pkg/utils/contextutils"
+	"api-gateway/pkg/utils/grpcutils"
 	"api-gateway/pkg/utils/validation"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 type ShiftBulkHandler struct {
@@ -33,8 +33,22 @@ func (h *ShiftBulkHandler) CreateManual(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(req)
-	// err := h.shiftGW.BulkCreateManual(c.Request.Context(), req)
+	ctx, err := grpcutils.BuildAuthContext(c)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	userId, err := contextutils.GetUserId(c)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	if err := h.shiftGW.BulkCreateManual(ctx, userId, &req); err != nil {
+		c.Error(err)
+		return
+	}
 
 	c.JSON(http.StatusCreated, gin.H{})
 }
@@ -53,8 +67,22 @@ func (h *ShiftBulkHandler) CreateFromTemplate(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(req)
-	// err := h.shiftGW.BulkCreateFromTemplate(c.Request.Context(), req)
+	ctx, err := grpcutils.BuildAuthContext(c)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	userId, err := contextutils.GetUserId(c)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	err = h.shiftGW.BulkCreateFromTemplate(ctx, userId, &req)
+	if err != nil {
+		c.Error(err)
+		return
+	}
 
 	c.JSON(http.StatusCreated, gin.H{})
 }
@@ -73,8 +101,17 @@ func (h *ShiftBulkHandler) Publish(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(ids)
-	// err := h.shiftGW.BulkPublish(c.Request.Context(), ids)
+	ctx, err := grpcutils.BuildAuthContext(c)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	err = h.shiftGW.BulkPublish(ctx, ids)
+	if err != nil {
+		c.Error(err)
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{})
 }
@@ -87,14 +124,23 @@ func (h *ShiftBulkHandler) Publish(c *gin.Context) {
 // @Param        body body []string true "Danh sách ID các ca làm cần xóa"
 // @Router       /shifts/bulk-delete [delete]
 func (h *ShiftBulkHandler) Delete(c *gin.Context) {
-	var ids []uuid.UUID
+	var ids []string
 	if err := c.ShouldBindJSON(&ids); err != nil {
 		c.Error(validation.TranslateValidationError(err))
 		return
 	}
 
-	fmt.Println(ids)
-	// err := h.shiftGW.BulkDelete(c.Request.Context(), ids)
+	ctx, err := grpcutils.BuildAuthContext(c)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	err = h.shiftGW.BulkDelete(ctx, ids)
+	if err != nil {
+		c.Error(err)
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{})
 }

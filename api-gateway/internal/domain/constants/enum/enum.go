@@ -11,8 +11,11 @@ type OrderStatus int32
 
 const (
 	OrderStatus_PAYMENT_PENDING OrderStatus = iota
+	OrderStatus_CONFIRMATION_PENDING
+	OrderStatus_CONFIRMED
 	OrderStatus_PREPARING
-	OrderStatus_READY
+	OrderStatus_READY_FOR_PICKUP
+	OrderStatus_DELIVERING
 	OrderStatus_COMPLETED
 	OrderStatus_CANCEL
 )

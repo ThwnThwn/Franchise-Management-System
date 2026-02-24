@@ -1761,9 +1761,6 @@ paths:
       - in: query
         name: staffId
         type: string
-      - in: query
-        name: staffName
-        type: string
       - enum:
         - 0
         - 1
@@ -2879,24 +2876,6 @@ paths:
       tags:
       - 'Shifts: Bulk action'
   /shifts/bulk-publish:
-    post:
-      description: Công khai danh sách ca làm việc cùng lúc.
-      parameters:
-      - description: Danh sách ID ca làm
-        in: body
-        name: body
-        required: true
-        schema:
-          properties:
-            ids:
-              items:
-                type: string
-              type: array
-          type: object
-      responses: {}
-      summary: Xuất bản nhiều ca làm
-      tags:
-      - Shifts
     put:
       description: Chuyển trạng thái hàng loạt ca làm từ Draft sang Published để nhân
         viên có thể thấy lịch.
@@ -2948,9 +2927,6 @@ paths:
         type: integer
       - in: query
         name: staffId
-        type: string
-      - in: query
-        name: staffName
         type: string
       - enum:
         - 0

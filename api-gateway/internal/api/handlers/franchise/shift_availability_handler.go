@@ -5,8 +5,9 @@ import (
 	"api-gateway/internal/application/gateways/franchise"
 	"api-gateway/internal/domain/models/shift"
 	"api-gateway/pkg/utils/contextutils"
+	"api-gateway/pkg/utils/grpcutils"
+	"api-gateway/pkg/utils/stringutils"
 	"api-gateway/pkg/utils/validation"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -14,10 +15,10 @@ import (
 )
 
 type ShiftAvailabilityHandler struct {
-	shiftGW franchise.IShiftService
+	shiftGW franchise.IShiftAvailabilityService
 }
 
-func NewShiftAvailabilityHandler(shiftGW franchise.IShiftService) *ShiftAvailabilityHandler {
+func NewShiftAvailabilityHandler(shiftGW franchise.IShiftAvailabilityService) *ShiftAvailabilityHandler {
 	return &ShiftAvailabilityHandler{shiftGW: shiftGW}
 }
 
@@ -33,7 +34,7 @@ func NewShiftAvailabilityHandler(shiftGW franchise.IShiftService) *ShiftAvailabi
 // @Param        query query shift.GetAvailabilityParams false "Bộ lọc tìm kiếm"
 // @Router       /me/shift-availabilities [get]
 func (h *ShiftAvailabilityHandler) GetMyHistory(c *gin.Context) {
-	userID, err := contextutils.GetUserID(c)
+	userID, err := contextutils.GetUserId(c)
 	if err != nil {
 		c.Error(err)
 		return
@@ -45,9 +46,13 @@ func (h *ShiftAvailabilityHandler) GetMyHistory(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(userID, params)
-	// res, err := h.shiftGW.GetAvailability(c.Request.Context(), &userID, params)
-	res := gin.H{}
+	params.UserID = stringutils.ToPtr(userID.String())
+	res, err := h.shiftGW.GetAll(c.Request.Context(), &params)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
 	c.JSON(http.StatusOK, res)
 }
 
@@ -59,7 +64,7 @@ func (h *ShiftAvailabilityHandler) GetMyHistory(c *gin.Context) {
 // @Param        body body shift.CreateShiftAvailabilityRequest true "Dữ liệu đăng ký"
 // @Router       /shift-availabilities [post]
 func (h *ShiftAvailabilityHandler) Create(c *gin.Context) {
-	userID, err := contextutils.GetUserID(c)
+	userID, err := contextutils.GetUserId(c)
 	if err != nil {
 		c.Error(err)
 		return
@@ -71,8 +76,17 @@ func (h *ShiftAvailabilityHandler) Create(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(userID, req)
-	// err = h.shiftGW.CreateAvailability(c.Request.Context(), userID, req)
+	ctx, err := grpcutils.BuildAuthContext(c)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	err = h.shiftGW.Create(ctx, userID, &req)
+	if err != nil {
+		c.Error(err)
+		return
+	}
 
 	c.JSON(http.StatusCreated, gin.H{})
 }
@@ -98,8 +112,23 @@ func (h *ShiftAvailabilityHandler) Update(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(id, req)
-	// err = h.shiftGW.UpdateAvailability(c.Request.Context(), id, req)
+	ctx, err := grpcutils.BuildAuthContext(c)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	userId, err := contextutils.GetUserId(c)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	err = h.shiftGW.Update(ctx, id, userId, &req)
+	if err != nil {
+		c.Error(err)
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{})
 }
@@ -118,8 +147,23 @@ func (h *ShiftAvailabilityHandler) Delete(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(id)
-	// err = h.shiftGW.DeleteAvailability(c.Request.Context(), id)
+	ctx, err := grpcutils.BuildAuthContext(c)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	userId, err := contextutils.GetUserId(c)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	err = h.shiftGW.Delete(ctx, id, userId)
+	if err != nil {
+		c.Error(err)
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{})
 }
@@ -142,9 +186,11 @@ func (h *ShiftAvailabilityHandler) GetAll(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(params)
-	// res, err := h.shiftGW.GetAllAvailability(c.Request.Context(), params)
-	res := gin.H{}
+	res, err := h.shiftGW.GetAll(c.Request.Context(), &params)
+	if err != nil {
+		c.Error(err)
+		return
+	}
 
 	c.JSON(http.StatusOK, res)
 }

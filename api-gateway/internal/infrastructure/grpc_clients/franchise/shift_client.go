@@ -8,7 +8,6 @@ import (
 
 	"api-gateway/pkg/mapper"
 	franchisePb "api-gateway/pkg/pb/franchise"
-	"api-gateway/pkg/utils/numberutils"
 	"api-gateway/pkg/utils/stringutils"
 
 	"github.com/google/uuid"
@@ -127,8 +126,8 @@ func (s *shiftGrpcClient) Update(ctx context.Context, id, userId uuid.UUID, req 
 		ShiftDate:            req.ShiftDate,
 		StartTime:            req.StartTime,
 		EndTime:              req.EndTime,
-		RequiredStaffCount:   numberutils.IntToInt32Ptr(req.RequiredStaffCount),
-		BreakDurationMinutes: numberutils.IntToInt32Ptr(req.BreakDurationMinutes),
+		RequiredStaffCount:   req.RequiredStaffCount,
+		BreakDurationMinutes: req.BreakDurationMinutes,
 		Note:                 req.Note,
 		Status:               statusValue,
 		UpdatedBy:            userId.String(),
@@ -205,7 +204,7 @@ func (s *shiftGrpcClient) GetAvailableStaffs(ctx context.Context, storeId uuid.U
 func (s *shiftGrpcClient) CheckIn(ctx context.Context, userId uuid.UUID, assignmentId uuid.UUID, req *shift.AttendancePayload) error {
 	_, err := s.client.CheckIn(ctx, &franchisePb.CheckInRequest{
 		AssignmentId: assignmentId.String(),
-		UserId:       uuid.NewString(),
+		UserId:       userId.String(),
 		Latitude:     req.Latitude,
 		Longitude:    req.Longitude,
 		Note:         stringutils.GetString(req.Note),
@@ -295,30 +294,97 @@ func (s *shiftGrpcClient) GetTimeLogs(ctx context.Context, req *shift.GetTimeLog
 
 // UpdateTimeLog implements franchise.IShiftService.
 func (s *shiftGrpcClient) UpdateTimeLog(ctx context.Context, id uuid.UUID, req *shift.UpdateTimeLogRequest) error {
-	panic("unimplemented")
+	_, err := s.client.UpdateTimeLog(ctx, &franchisePb.UpdateTimeLogRequest{
+		Id:          id.String(),
+		Status:      int32(req.Status),
+		ManagerNote: req.ManagerNote,
+	})
+	return err
 }
 
 // GetMyAgenda implements franchise.IShiftService.
 func (s *shiftGrpcClient) GetMyAgenda(ctx context.Context, userId uuid.UUID, req *shift.GetAgendaParams) ([]*shift.StaffShiftAgenda, error) {
-	panic("unimplemented")
+	res, err := s.client.GetMyAgenda(ctx, &franchisePb.GetAgendaRequest{
+		UserId:    userId.String(),
+		StartDate: req.StartDate,
+		EndDate:   req.EndDate,
+	})
+	if err != nil {
+		return []*shift.StaffShiftAgenda{}, err
+	}
+
+	shifts := make([]*shift.StaffShiftAgenda, 0, len(res.Data))
+	for _, item := range res.Data {
+		coWorkers := make([]shift.CoWorkerDTO, 0, len(item.CoWorkers))
+		for _, cw := range item.CoWorkers {
+			coWorkers = append(coWorkers, shift.CoWorkerDTO{
+				ID:        cw.Id,
+				FirstName: cw.FirstName,
+				LastName:  stringutils.ToPtr(cw.LastName),
+				Avatar:    stringutils.ToPtr(cw.Avatar),
+				Phone:     stringutils.ToPtr(cw.Phone),
+			})
+		}
+
+		shifts = append(shifts, &shift.StaffShiftAgenda{
+			ID:        item.Id,
+			StartTime: item.StartTime,
+			EndTime:   item.EndTime,
+			Date:      item.Date,
+			Store:     *mapper.MapAgendaStorePbToModel(item.Store),
+
+			CheckInAt:  item.CheckInAt,
+			CheckOutAt: item.CheckOutAt,
+
+			CoWorkers: coWorkers,
+		})
+	}
+
+	return shifts, nil
 }
 
 // BulkCreateManual implements franchise.IShiftService.
 func (s *shiftGrpcClient) BulkCreateManual(ctx context.Context, creatorId uuid.UUID, req *shift.BulkCreateManualRequest) error {
-	panic("unimplemented")
+	_, err := s.client.BulkCreateManual(ctx, &franchisePb.BulkCreateManualRequest{
+		StoreId:              req.StoreID,
+		StartTime:            req.StartTime,
+		EndTime:              req.EndTime,
+		DaysOfWeek:           req.DaysOfWeek,
+		StartDate:            req.StartDate,
+		EndDate:              req.EndDate,
+		RequiredStaffCount:   req.RequiredStaffCount,
+		BreakDurationMinutes: req.BreakDurationMinutes,
+		Note:                 stringutils.GetString(req.Note),
+		CreatedBy:            creatorId.String(),
+	})
+	return err
 }
 
 // BulkCreateFromTemplate implements franchise.IShiftService.
 func (s *shiftGrpcClient) BulkCreateFromTemplate(ctx context.Context, creatorId uuid.UUID, req *shift.BulkCreateFromTemplateRequest) error {
-	panic("unimplemented")
+	_, err := s.client.BulkCreateFromTemplate(ctx, &franchisePb.BulkCreateFromTemplateRequest{
+		StoreId:            req.StoreID,
+		TemplateId:         req.TemplateID,
+		StartDate:          req.StartDate,
+		EndDate:            req.EndDate,
+		RequiredStaffCount: req.RequiredStaffCount,
+		CreatedBy:          creatorId.String(),
+	})
+	return err
 }
 
 // BulkDelete implements franchise.IShiftService.
 func (s *shiftGrpcClient) BulkDelete(ctx context.Context, shiftIds []string) error {
-	panic("unimplemented")
+	_, err := s.client.BulkDelete(ctx, &franchisePb.BulkDeleteRequest{
+		Ids: shiftIds,
+	})
+	return err
 }
 
 // BulkPublish implements franchise.IShiftService.
 func (s *shiftGrpcClient) BulkPublish(ctx context.Context, shiftIds []string) error {
-	panic("unimplemented")
+	_, err := s.client.BulkPublish(ctx, &franchisePb.BulkPublishRequest{
+		Ids: shiftIds,
+	})
+	return err
 }

@@ -12,7 +12,7 @@ type ShiftAssignment struct {
 	ID         string   `json:"id"`
 	ShiftID    string   `json:"shiftId"`
 	UserID     string   `json:"userId"`
-	Status     int      `json:"status"` // ShiftAssignmentStatus enum
+	Status     int32    `json:"status"` // ShiftAssignmentStatus enum
 	HourlyWage *float64 `json:"hourlyWage"`
 
 	FirstName string  `json:"firstName"`
@@ -27,12 +27,12 @@ type ShiftResponse struct {
 	ShiftDate            string             `json:"shiftDate"` // YYYY-MM-DD
 	StartTime            string             `json:"startTime"` // HH:mm:ss
 	EndTime              string             `json:"endTime"`
-	RequiredStaffCount   int                `json:"requiredStaffCount"`
-	BreakDurationMinutes int                `json:"breakDurationMinutes"`
+	RequiredStaffCount   int32              `json:"requiredStaffCount"`
+	BreakDurationMinutes int32              `json:"breakDurationMinutes"`
 	ShiftTemplateID      *string            `json:"shiftTemplateId,omitempty"`
-	Status               int                `json:"status"` // ShiftStatus enum
+	Status               int32              `json:"status"` // ShiftStatus enum
 	Note                 *string            `json:"note,omitempty"`
-	AssignedStaffCount   int                `json:"assignedStaffCount"`
+	AssignedStaffCount   int32              `json:"assignedStaffCount"`
 	Assignments          []*ShiftAssignment `json:"assignments"`
 }
 
@@ -47,7 +47,7 @@ type ShiftTemplateResponse struct {
 	Name                 string  `json:"name"`
 	StartTime            string  `json:"startTime"`
 	EndTime              string  `json:"endTime"`
-	BreakDurationMinutes int     `json:"breakDurationMinutes"`
+	BreakDurationMinutes int32   `json:"breakDurationMinutes"`
 	IsActive             bool    `json:"isActive"`
 	CreatedAt            string  `json:"createdAt"`
 }
@@ -86,8 +86,8 @@ type ShiftRuleResponse struct {
 	StoreID               *string `json:"storeId,omitempty"`
 	AllowShuttle          bool    `json:"allowShuttle"`
 	AllowShiftSwap        bool    `json:"allowShiftSwap"`
-	MinHoursBetweenShifts int     `json:"minHoursBetweenShifts"`
-	MaxHoursPerWeek       int     `json:"maxHoursPerWeek"`
+	MinHoursBetweenShifts int32   `json:"minHoursBetweenShifts"`
+	MaxHoursPerWeek       int32   `json:"maxHoursPerWeek"`
 	UpdatedAt             string  `json:"updatedAt"`
 }
 
@@ -106,7 +106,7 @@ type ShiftAvailabilityResponse struct {
 	IsAvailable  bool    `json:"isAvailable"`
 	IsRecurring  bool    `json:"isRecurring"`
 	SpecificDate *string `json:"specificDate,omitempty"`
-	DayOfWeek    *int    `json:"dayOfWeek,omitempty"` // 0-6
+	DayOfWeek    *int32  `json:"dayOfWeek,omitempty"` // 0-6
 	StartTime    string  `json:"startTime"`
 	EndTime      string  `json:"endTime"`
 	Note         *string `json:"note,omitempty"`

@@ -7,8 +7,8 @@ import (
 	"github.com/google/uuid"
 )
 
-// GetUserID lấy userID từ context
-func GetUserID(c *gin.Context) (uuid.UUID, error) {
+// GetUserId lấy userID từ context
+func GetUserId(c *gin.Context) (uuid.UUID, error) {
 	val, exists := c.Get("userID")
 	if !exists {
 		return uuid.Nil, errorcode.ErrInvalidToken
@@ -37,8 +37,8 @@ func GetRoleSlug(c *gin.Context) (string, error) {
 	return role, nil
 }
 
-// GetStoreID lấy storeID từ context (Dành cho Manager/Staff bị giới hạn theo Store)
-func GetStoreID(c *gin.Context) (uuid.UUID, error) {
+// GetStoreId lấy storeID từ context (Dành cho Manager/Staff bị giới hạn theo Store)
+func GetStoreId(c *gin.Context) (uuid.UUID, error) {
 	val, exists := c.Get("storeId")
 	if !exists {
 		return uuid.Nil, nil

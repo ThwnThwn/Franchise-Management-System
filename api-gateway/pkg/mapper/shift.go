@@ -52,13 +52,16 @@ func MapStaffToTimeLog(log *shift.TimeLogResponse, u *user.UserResponse) {
 }
 
 func MapShiftPbToModel(shiftPb *franchise.ShiftResponse) *shift.ShiftResponse {
+	if shiftPb == nil {
+		return nil
+	}
 	assignments := make([]*shift.ShiftAssignment, 0, len(shiftPb.Assignments))
 	for _, item := range shiftPb.Assignments {
 		assignments = append(assignments, &shift.ShiftAssignment{
 			ID:         item.Id,
 			ShiftID:    item.ShiftId,
 			UserID:     item.UserId,
-			Status:     int(item.Status),
+			Status:     item.Status,
 			HourlyWage: item.HourlyWage,
 
 			FirstName: item.FirstName,
@@ -74,12 +77,44 @@ func MapShiftPbToModel(shiftPb *franchise.ShiftResponse) *shift.ShiftResponse {
 		ShiftDate:            shiftPb.ShiftDate,
 		StartTime:            shiftPb.StartTime,
 		EndTime:              shiftPb.EndTime,
-		RequiredStaffCount:   int(shiftPb.RequiredStaffCount),
-		BreakDurationMinutes: int(shiftPb.BreakDurationMinutes),
+		RequiredStaffCount:   shiftPb.RequiredStaffCount,
+		BreakDurationMinutes: shiftPb.BreakDurationMinutes,
 		ShiftTemplateID:      shiftPb.ShiftTemplateId,
-		Status:               int(shiftPb.Status),
+		Status:               shiftPb.Status,
 		Note:                 shiftPb.Note,
-		AssignedStaffCount:   int(shiftPb.AssignedStaffCount),
+		AssignedStaffCount:   shiftPb.AssignedStaffCount,
 		Assignments:          assignments,
+	}
+}
+
+func MapShiftRulePbToModel(rulePb *franchise.ShiftRuleResponse) *shift.ShiftRuleResponse {
+	if rulePb == nil {
+		return nil
+	}
+	return &shift.ShiftRuleResponse{
+		ID:                    rulePb.Id,
+		StoreID:               stringutils.ToPtr(rulePb.StoreId),
+		AllowShuttle:          rulePb.AllowShuttle,
+		AllowShiftSwap:        rulePb.AllowShiftSwap,
+		MinHoursBetweenShifts: rulePb.MinHoursBetweenShifts,
+		MaxHoursPerWeek:       rulePb.MaxHoursPerWeek,
+		UpdatedAt:             rulePb.UpdatedAt,
+	}
+}
+
+func MapShiftTemplatePbToModel(templPb *franchise.ShiftTemplateResponse) *shift.ShiftTemplateResponse {
+	if templPb == nil {
+		return nil
+	}
+	return &shift.ShiftTemplateResponse{
+		ID:                   templPb.Id,
+		Code:                 templPb.Code,
+		StoreID:              stringutils.ToPtr(templPb.StoreId),
+		Name:                 templPb.Name,
+		StartTime:            templPb.StartTime,
+		EndTime:              templPb.EndTime,
+		BreakDurationMinutes: templPb.BreakDurationMinutes,
+		IsActive:             templPb.IsActive,
+		CreatedAt:            templPb.CreatedAt,
 	}
 }

@@ -8,6 +8,6 @@ import (
 )
 
 type IShiftRuleService interface {
-	GetSettings(ctx context.Context, storeId *uuid.UUID) (shift.ShiftRuleSettingsResponse, error)
+	GetSettings(ctx context.Context, storeId string) (shift.ShiftRuleSettingsResponse, error)
 	Save(ctx context.Context, userId uuid.UUID, req *shift.SaveShiftRuleRequest) error
 }

@@ -2,19 +2,22 @@ package franchise
 
 import (
 	"api-gateway/internal/application/gateways/franchise"
+	"api-gateway/internal/domain/constants/roleslug"
 	"api-gateway/internal/domain/models/shift"
+	"api-gateway/pkg/utils/contextutils"
+	"api-gateway/pkg/utils/grpcutils"
+	"api-gateway/pkg/utils/stringutils"
 	"api-gateway/pkg/utils/validation"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 type ShiftRuleHandler struct {
-	shiftGW franchise.IShiftService
+	shiftGW franchise.IShiftRuleService
 }
 
-func NewShiftRuleHandler(shiftGW franchise.IShiftService) *ShiftRuleHandler {
+func NewShiftRuleHandler(shiftGW franchise.IShiftRuleService) *ShiftRuleHandler {
 	return &ShiftRuleHandler{shiftGW: shiftGW}
 }
 
@@ -37,11 +40,12 @@ func (h *ShiftRuleHandler) GetSettings(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(params.StoreID)
-	// res, err := h.shiftGW.GetRuleSettings(c.Request.Context(), params.StoreID)
+	res, err := h.shiftGW.GetSettings(c.Request.Context(), params.StoreID)
+	if err != nil {
+		c.Error(err)
+		return
+	}
 
-	// Mock response dựa theo ShiftRuleSettingsResponse đã định nghĩa
-	res := gin.H{}
 	c.JSON(http.StatusOK, res)
 }
 
@@ -59,8 +63,40 @@ func (h *ShiftRuleHandler) Save(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(req)
-	// err := h.shiftGW.SaveRule(c.Request.Context(), req)
+	ctx, err := grpcutils.BuildAuthContext(c)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	userId, err := contextutils.GetUserId(c)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	roleSlug, err := contextutils.GetRoleSlug(c)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	if roleSlug == string(roleslug.Manager) {
+		storeId, err := contextutils.GetStoreId(c)
+		if err != nil {
+			c.Error(err)
+			return
+		}
+		req.StoreID = stringutils.ToPtr(storeId.String())
+	} else {
+		req.StoreID = nil
+	}
+
+	err = h.shiftGW.Save(ctx, userId, &req)
+	if err != nil {
+		c.Error(err)
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{})
 }

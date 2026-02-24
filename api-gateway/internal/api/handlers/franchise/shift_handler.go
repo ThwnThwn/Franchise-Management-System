@@ -5,11 +5,11 @@ import (
 	"api-gateway/internal/application/gateways/franchise"
 	"api-gateway/internal/application/gateways/identity"
 	"api-gateway/internal/domain/constants/enum"
-	"api-gateway/internal/domain/models/common"
 	"api-gateway/internal/domain/models/errormodel"
 	"api-gateway/internal/domain/models/shift"
+	"api-gateway/pkg/utils/contextutils"
+	"api-gateway/pkg/utils/grpcutils"
 	"api-gateway/pkg/utils/validation"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -53,10 +53,12 @@ func (h *ShiftHandler) GetAll(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(params)
-	// res, err := h.shiftGW.GetAll(c.Request.Context(), params)
+	res, err := h.shiftGW.GetShifts(c.Request.Context(), &params)
+	if err != nil {
+		c.Error(err)
+		return
+	}
 
-	res := []shift.ShiftResponse{}
 	c.JSON(http.StatusOK, res)
 }
 
@@ -75,10 +77,12 @@ func (h *ShiftHandler) GetByID(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(id)
-	// res, err := h.shiftGW.GetByID(c.Request.Context(), id)
+	res, err := h.shiftGW.GetById(c.Request.Context(), id)
+	if err != nil {
+		c.Error(err)
+		return
+	}
 
-	res := shift.ShiftResponse{}
 	c.JSON(http.StatusOK, res)
 }
 
@@ -96,8 +100,23 @@ func (h *ShiftHandler) Create(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(req)
-	// err := h.shiftGW.Create(c.Request.Context(), req)
+	ctx, err := grpcutils.BuildAuthContext(c)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	userId, err := contextutils.GetUserId(c)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	err = h.shiftGW.Create(ctx, userId, &req)
+	if err != nil {
+		c.Error(err)
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{})
 }
@@ -123,8 +142,23 @@ func (h *ShiftHandler) Update(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(id, req)
-	// err := h.shiftGW.Update(c.Request.Context(), id, req)
+	ctx, err := grpcutils.BuildAuthContext(c)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	userId, err := contextutils.GetUserId(c)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	err = h.shiftGW.Update(ctx, id, userId, &req)
+	if err != nil {
+		c.Error(err)
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{})
 }
@@ -143,8 +177,11 @@ func (h *ShiftHandler) Delete(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(id)
-	// err := h.shiftGW.Delete(c.Request.Context(), id)
+	err = h.shiftGW.Delete(c.Request.Context(), id)
+	if err != nil {
+		c.Error(err)
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{})
 }
@@ -162,30 +199,11 @@ func (h *ShiftHandler) Publish(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(id)
-	// err := h.shiftGW.Publish(c.Request.Context(), id)
-
-	c.JSON(http.StatusOK, gin.H{})
-}
-
-// BulkPublish (Xuất bản hàng loạt)
-// @Summary      Xuất bản nhiều ca làm
-// @Description  Công khai danh sách ca làm việc cùng lúc.
-// @Tags         Shifts
-// @Param        body body      object{ids=[]string} true "Danh sách ID ca làm"
-// @Router       /shifts/bulk-publish [post]
-func (h *ShiftHandler) BulkPublish(c *gin.Context) {
-	var req struct {
-		IDs []uuid.UUID `json:"ids" binding:"required"`
-	}
-
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(validation.TranslateValidationError(err))
+	err = h.shiftGW.Publish(c.Request.Context(), id)
+	if err != nil {
+		c.Error(err)
 		return
 	}
-
-	fmt.Println(req.IDs)
-	// err := h.shiftGW.BulkPublish(c.Request.Context(), req.IDs)
 
 	c.JSON(http.StatusOK, gin.H{})
 }
@@ -194,22 +212,24 @@ func (h *ShiftHandler) BulkPublish(c *gin.Context) {
 // @Summary      Lấy danh sách ứng viên khả dụng
 // @Description  Kiểm tra xung đột lịch và quy định để gợi ý nhân viên cho ca làm.
 // @Tags         Shifts: Assignment
-// @Param        storeId path      string  true  "ID cửa hàng"
+// @Param        id      path      string  true  "ID cửa hàng"
 // @Param        shiftId path      string  true  "ID ca làm"
 // @Success      200     {array}   shift.StaffAssignmentCandidate
 // @Router       /stores/{storeId}/shifts/{shiftId}/candidates [get]
 func (h *ShiftHandler) GetAvailableStaffs(c *gin.Context) {
-	storeID, err1 := uuid.Parse(c.Param("storeId"))
+	storeID, err1 := uuid.Parse(c.Param("id"))
 	shiftID, err2 := uuid.Parse(c.Param("shiftId"))
 	if err1 != nil || err2 != nil {
 		c.Error(errorcode.ErrInvalidId)
 		return
 	}
 
-	fmt.Println(storeID, shiftID)
-	// res, err := h.shiftGW.GetAvailableStaffs(c.Request.Context(), storeID, shiftID)
+	res, err := h.shiftGW.GetAvailableStaffs(c.Request.Context(), storeID, shiftID)
+	if err != nil {
+		c.Error(err)
+		return
+	}
 
-	res := []shift.StaffAssignmentCandidate{}
 	c.JSON(http.StatusOK, res)
 }
 
@@ -233,8 +253,11 @@ func (h *ShiftHandler) UpdateAssignments(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(shiftID, userIDs)
-	// err := h.shiftGW.UpdateAssignments(c.Request.Context(), shiftID, userIDs)
+	err = h.shiftGW.UpdateAssignments(c.Request.Context(), shiftID, userIDs)
+	if err != nil {
+		c.Error(err)
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{})
 }
@@ -258,30 +281,30 @@ func (h *ShiftHandler) GetAllTimeLogs(c *gin.Context) {
 		return
 	}
 
-	// ctx := c.Request.Context()
+	ctx := c.Request.Context()
 
 	// 2. Gọi sang Franchise Service (qua shiftGW) lấy danh sách Logs
 	// Giả sử trả về: *common.PageResult{ Items: []*shift.TimeLogResponse, Total: int }
-	// logRes, err := h.shiftGW.GetAllTimeLogs(ctx, params)
-	// if err != nil {
-	// 	c.Error(err)
-	// 	return
-	// }
-	logRes := common.PaginationResult[*shift.TimeLogResponse]{}
-	if len(logRes.Items) == 0 {
-		c.JSON(http.StatusOK, logRes)
+	logRes, err := h.shiftGW.GetTimeLogs(ctx, &params)
+	if err != nil {
+		c.Error(err)
 		return
 	}
 
+	// if len(logRes.Items) == 0 {
+	// 	c.JSON(http.StatusOK, logRes)
+	// 	return
+	// }
+
 	// 3. Gom danh sách ID nhân viên (Unique IDs) để chuẩn bị gọi Identity
-	staffIDMap := make(map[string]bool)
-	var staffIDs []string
-	for _, log := range logRes.Items {
-		if log != nil && log.Staff.Id != "" && !staffIDMap[log.Staff.Id] {
-			staffIDMap[log.Staff.Id] = true
-			staffIDs = append(staffIDs, log.Staff.Id)
-		}
-	}
+	// staffIDMap := make(map[string]bool)
+	// var staffIDs []string
+	// for _, log := range logRes.Items {
+	// 	if log != nil && log.Staff.Id != "" && !staffIDMap[log.Staff.Id] {
+	// 		staffIDMap[log.Staff.Id] = true
+	// 		staffIDs = append(staffIDs, log.Staff.Id)
+	// 	}
+	// }
 
 	// 4. Dùng userGW gọi sang Identity Service lấy thông tin User chi tiết
 	// users, err := h.userGW.GetByIds(ctx, staffIDs)
@@ -296,7 +319,6 @@ func (h *ShiftHandler) GetAllTimeLogs(c *gin.Context) {
 	// Hàm mapper anh em mình vừa viết ở câu trước
 	// logRes.Items = mapper.MapStaffToTimeLogsBatch(logRes.Items, users)
 
-	// 6. Trả về kết quả cuối cùng đã được "Enrich" (làm giàu dữ liệu)
 	c.JSON(http.StatusOK, logRes)
 }
 
@@ -332,12 +354,11 @@ func (h *ShiftHandler) UpdateTimeLog(c *gin.Context) {
 		return
 	}
 
-	fmt.Printf("Updating TimeLog %s to Status %d with Note: %v\n", id, req.Status, req.ManagerNote)
-	// err := h.shiftGW.UpdateTimeLog(c.Request.Context(), id, req)
-	// if err != nil {
-	// 	c.Error(err)
-	// 	return
-	// }
+	err = h.shiftGW.UpdateTimeLog(c.Request.Context(), id, &req)
+	if err != nil {
+		c.Error(err)
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{})
 }

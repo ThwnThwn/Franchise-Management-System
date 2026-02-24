@@ -1560,11 +1560,6 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
-                        "type": "string",
-                        "name": "staffName",
-                        "in": "query"
-                    },
-                    {
                         "enum": [
                             0,
                             1,
@@ -3175,33 +3170,6 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {}
-            },
-            "post": {
-                "description": "Công khai danh sách ca làm việc cùng lúc.",
-                "tags": [
-                    "Shifts"
-                ],
-                "summary": "Xuất bản nhiều ca làm",
-                "parameters": [
-                    {
-                        "description": "Danh sách ID ca làm",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "ids": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                ],
-                "responses": {}
             }
         },
         "/shifts/bulk-template": {
@@ -3262,11 +3230,6 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "name": "staffId",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "name": "staffName",
                         "in": "query"
                     },
                     {

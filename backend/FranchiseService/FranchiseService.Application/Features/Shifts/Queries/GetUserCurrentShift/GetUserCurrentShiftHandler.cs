@@ -21,11 +21,13 @@ namespace FranchiseService.Application.Features.Shifts.Queries.GetUserCurrentShi
                 throw new UnauthorizedAccessException("Invalid UserId");
 
             var now = DateTime.UtcNow;
+            var vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+            var vnNow = TimeZoneInfo.ConvertTimeFromUtc(now, vnTimeZone);
 
             // 2. Gọi Repo bốc ca "khả dụng" dựa trên "Cửa sổ chấm công"
             var activeAssignment = await _shiftRepo.GetActiveShiftAssignmentAsync(
                 userGuid,
-                now,
+                vnNow,
                 AttendanceConstants.CheckInBufferMinutes,
                 AttendanceConstants.CheckOutBufferHours
             );

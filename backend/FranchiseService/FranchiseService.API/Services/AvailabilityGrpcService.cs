@@ -83,7 +83,7 @@ namespace FranchiseService.API.Services
                 IsAvailable = request.IsAvailable,
                 IsRecurring = request.IsRecurring,
                 SpecificDate = string.IsNullOrEmpty(request.SpecificDate) ? null : DateOnly.Parse(request.SpecificDate),
-                DayOfWeek = request.DayOfWeek == 0 ? null : (DayOfWeek)request.DayOfWeek, // 0 is Sunday usually, assuming valid input
+                DayOfWeek = request.DayOfWeek == -1 ? null : (DayOfWeek)request.DayOfWeek, // 0 is Sunday usually, assuming valid input
                 StartTime = TimeOnly.Parse(request.StartTime),
                 EndTime = TimeOnly.Parse(request.EndTime),
                 Note = request.Note
@@ -157,7 +157,7 @@ namespace FranchiseService.API.Services
                 IsAvailable = x.IsAvailable,
                 IsRecurring = x.IsRecurring,
                 SpecificDate = x.SpecificDate?.ToString("yyyy-MM-dd") ?? "",
-                DayOfWeek = x.DayOfWeek.HasValue ? (int)x.DayOfWeek.Value : 0, // Need to handle 0 carefully if Enum 0 is Sunday
+                DayOfWeek = x.DayOfWeek.HasValue ? (int)x.DayOfWeek.Value : -1, // Need to handle 0 carefully if Enum 0 is Sunday
                 StartTime = x.StartTime.ToString("HH:mm"),
                 EndTime = x.EndTime.ToString("HH:mm"),
                 Note = x.Note ?? "",

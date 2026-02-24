@@ -26,6 +26,7 @@ import (
 	"api-gateway/internal/api/routes/products"
 	"api-gateway/internal/api/routes/recipes"
 	"api-gateway/internal/api/routes/roles"
+	"api-gateway/internal/api/routes/shifts"
 	"api-gateway/internal/api/routes/stores"
 	"api-gateway/internal/api/routes/stores/stock"
 	"api-gateway/internal/api/routes/users"
@@ -75,8 +76,16 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, erro
 	iShiftService := franchise.ProvideShiftClient(clientFactory)
 	iUserService := identity.ProvideUserClient(identityClientFactory)
 	shiftStaffHandler := franchise2.NewShiftStaffHandler(iShiftService, iUserService)
-	shiftAvailabilityHandler := franchise2.NewShiftAvailabilityHandler(iShiftService)
+	iShiftAvailabilityService := franchise.ProvideShiftAvailabilityClient(clientFactory)
+	shiftAvailabilityHandler := franchise2.NewShiftAvailabilityHandler(iShiftAvailabilityService)
 	myShiftsRouter := myshifts.NewRouter(cfg, authMiddleware, shiftStaffHandler, shiftAvailabilityHandler)
+	shiftHandler := franchise2.NewShiftHandler(iShiftService, iUserService)
+	shiftBulkHandler := franchise2.NewShiftBulkHandler(iShiftService)
+	iShiftRuleService := franchise.ProvideShiftRuleClient(clientFactory)
+	shiftRuleHandler := franchise2.NewShiftRuleHandler(iShiftRuleService)
+	iShiftTemplateService := franchise.ProvideShiftTemplateClient(clientFactory)
+	shiftTemplateHandler := franchise2.NewShiftTemplateHandler(iShiftTemplateService)
+	shiftsRouter := shifts.NewRouter(cfg, authMiddleware, shiftHandler, shiftAvailabilityHandler, shiftBulkHandler, shiftRuleHandler, shiftTemplateHandler)
 	iAuthService := identity.ProvideAuthClient(identityClientFactory)
 	authHandler := identity2.NewAuthHandler(iAuthService, iUserService)
 	authRouter := auth.NewRouter(cfg, authMiddleware, authHandler)
@@ -122,6 +131,7 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, erro
 	appRouter := &routes.AppRouter{
 		StoreRouter:      storeRouter,
 		MyShiftsRouter:   myShiftsRouter,
+		ShiftsRouter:     shiftsRouter,
 		AuthRouter:       authRouter,
 		UserRouter:       userRouter,
 		RoleRouter:       roleRouter,
