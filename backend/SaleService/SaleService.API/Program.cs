@@ -32,6 +32,7 @@ using SalesService.Infrastructure.Repositories.Orders;
 using SalesService.Infrastructure.Repositories.Outbox;
 using SalesService.Infrastructure.Repositories.Payments;
 using SalesService.Infrastructure.Signals;
+using SharedKernel.Constants;
 using SharedKernel.Events;
 using SharedKernel.Infrastructure.Kafka;
 
@@ -147,11 +148,12 @@ public class Program
         builder.Services.AddSingleton<IIdentityServiceClient, IdentityServiceClient>();
 
         // Register Kafka Producer Registry
-        builder.Services.AddSingleton<KafkaProducerRegistry>(sp => {
+        builder.Services.AddSingleton<KafkaProducerRegistry>(sp =>
+        {
             var registry = new KafkaProducerRegistry();
-            registry.Register<SharedKernel.Events.OrderStatusEvent>(SharedKernel.Constants.KafkaTopics.OrderNotifications, "OrderStatusEvent");
-            registry.Register<SharedKernel.Events.OrderPaidEvent>(SharedKernel.Constants.KafkaTopics.OrderPaid, SharedKernel.Constants.KafkaTopics.OrderPaid);
-            registry.Register<SharedKernel.Events.OrderCancelledEvent>(SharedKernel.Constants.KafkaTopics.OrderCancelled, SharedKernel.Constants.KafkaTopics.OrderCancelled);
+            registry.Register<OrderStatusEvent>(KafkaTopics.OrderNotifications, KafkaTopics.OrderNotifications);
+            registry.Register<OrderPaidEvent>(KafkaTopics.OrderPaid, KafkaTopics.OrderPaid);
+            registry.Register<OrderCancelledEvent>(KafkaTopics.OrderCancelled, KafkaTopics.OrderCancelled);
             return registry;
         });
 

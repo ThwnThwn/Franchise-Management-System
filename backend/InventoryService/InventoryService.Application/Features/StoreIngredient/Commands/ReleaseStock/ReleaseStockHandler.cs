@@ -4,6 +4,11 @@ using MediatR;
 
 namespace InventoryService.Application.Features.StoreIngredient.Commands.ReleaseStock;
 
+
+/// <summary>
+/// Handler xử lý giải phóng hàng đã giữ (Release Stock).
+/// Xóa Queue giữ chỗ mà không trừ kho thật (vì chưa thanh toán → kho chưa bị trừ).
+/// </summary>
 public sealed class ReleaseStockHandler
     : IRequestHandler<ReleaseStockCommand, ReleaseStockRes>
 {
@@ -20,7 +25,7 @@ public sealed class ReleaseStockHandler
     {
         var request = command.Request;
 
-        // 1. Load all queue items reserved for this Order
+        // 1. Kiểm tra queue có tồn tại không
         var queueItems = await _storeIngredientRepo
             .GetQueueByOrderIdAsync(request.OrderId, cancellationToken);
 
@@ -33,19 +38,10 @@ public sealed class ReleaseStockHandler
             };
         }
 
-        // 2. Convert queue → IngredientStockItem list
-        var restoreItems = queueItems.Select(x => new IngredientStockItem
-        {
-            IngredientId = x.IngredientId,
-            Quantity = x.Amount
-        }).ToList();
-
-        // 3. Restore stock back into StoreIngredients
-        //await _storeIngredientRepo.IncreaseStockAsync(request.StoreId, restoreItems); // thằng ngu phát code cái này, tao sẽ để đây
-
-        // 4. Remove queue records after releasing stock
+        // 2. Xóa queue (giải phóng giữ chỗ)
+        // không cần IncreaseStock vì kho thật chưa bị trừ ở bước Reserve.
+        // Reserve chỉ ghi vào queue, kho thật chỉ bị trừ khi ConfirmStockReservation.
         await _storeIngredientRepo.RemoveQueueByOrderIdAsync(request.OrderId);
-
         return new ReleaseStockRes
         {
             Success = true,
