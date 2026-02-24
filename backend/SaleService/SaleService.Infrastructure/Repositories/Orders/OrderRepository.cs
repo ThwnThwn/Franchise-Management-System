@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using SalesService.Application.Features.Orders.Queries.GetOrderVolume;
 using SalesService.Application.Features.Reports.Queries.GetRevenueReport;
 using SalesService.Application.Persisitences.Orders;
 using SalesService.Domain.Entities;
@@ -188,7 +189,7 @@ public class OrderRepository : IOrderRepository
             })
             .Select(g => new RevenueItemDto
             {
-                StoreId =g.Key.StoreId, // multi-store
+                StoreId = g.Key.StoreId, // multi-store
                 Sku = g.Key.Sku,
                 ProductName = g.Key.ProductName,
                 QuantitySold = g.Sum(x => x.Quantity),
@@ -198,5 +199,67 @@ public class OrderRepository : IOrderRepository
             .ToListAsync(cancellationToken);
 
         return aggregatedResult;
+    }
+    public async Task<List<OrderVolumePerDayDto>> GetOrderVolumeAsync(
+        DateOnly fromDate,
+        DateOnly toDate,
+        Guid? storeId,
+        OrderStatus? status,
+        CancellationToken cancellationToken)
+    {
+        var fromUtc = new DateTimeOffset(
+            fromDate.ToDateTime(TimeOnly.MinValue),
+            TimeSpan.Zero);
+
+        var toUtc = new DateTimeOffset(
+            toDate.ToDateTime(TimeOnly.MaxValue),
+            TimeSpan.Zero);
+
+        var query = _context.Orders
+            .AsNoTracking()
+            .Where(oi => oi.CreatedAt >= fromUtc && oi.CreatedAt <= toUtc);
+
+        if (storeId.HasValue)
+        {
+            query = query.Where(oi => oi.StoreId == storeId.Value);
+        }
+
+        if (status.HasValue)
+        {
+            query = query.Where(oi => oi.Status == status.Value);
+        }
+        var data = await query
+            .GroupBy(o => new { o.CreatedAt.Date, o.StoreId })
+            .Select(g => new
+            {
+                Date = g.Key.Date,
+                StoreId = g.Key.StoreId,
+                TotalOrders = g.Count(),
+                CanceledOrders = g.Count(o => o.Status == OrderStatus.Cancelled),
+                CompletedOrders = g.Count(o => o.Status == OrderStatus.Completed),
+                StatusGroups = g
+                    .GroupBy(o => o.Status)
+                    .Select(sg => new
+                    {
+                        Status = sg.Key,
+                        Count = sg.Count()
+                    })
+                    .ToList()
+            })
+            .ToListAsync(cancellationToken);
+
+        return data.Select(x => new OrderVolumePerDayDto
+        {
+            Date = DateOnly.FromDateTime(x.Date),
+            StoreId = x.StoreId,
+            TotalOrders = x.TotalOrders,
+            CanceledOrders = x.CanceledOrders,
+            CompletedOrders = x.CompletedOrders,
+            StatusCounts = x.StatusGroups
+            .ToDictionary(
+                s => s.Status,
+                s => s.Count
+            )
+        }).ToList();
     }
 }

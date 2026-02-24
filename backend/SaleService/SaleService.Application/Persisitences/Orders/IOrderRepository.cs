@@ -1,3 +1,4 @@
+using SalesService.Application.Features.Orders.Queries.GetOrderVolume;
 using SalesService.Application.Features.Reports.Queries.GetRevenueReport;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
@@ -34,4 +35,11 @@ public interface IOrderRepository
         List<string>? skus,
         Guid? storeId,
         CancellationToken cancellationToken = default);
+
+    Task<List<OrderVolumePerDayDto>> GetOrderVolumeAsync(
+        DateOnly fromDate,
+        DateOnly toDate,
+        Guid? storeId,
+        OrderStatus? status,
+        CancellationToken cancellationToken);
 }
