@@ -9,7 +9,6 @@ import (
 	"api-gateway/pkg/mapper"
 	salesPb "api-gateway/pkg/pb/sales"
 	"context"
-	"fmt"
 
 	"github.com/google/uuid"
 )
@@ -52,6 +51,7 @@ func (o *OrderGrpcClient) CreateOrder(ctx context.Context, req *order.CreateOrde
 		OrderCode:         res.OrderCode,
 		TotalAmount:       res.TotalAmount,
 		CustomerId:        res.CustomerId,
+		StoreId:           res.StoreId,
 		CheckStockRespone: mapper.MapCheckEnoughStockRes(res.CheckStockRespone),
 	}, nil
 }
@@ -79,6 +79,7 @@ func (o *OrderGrpcClient) UpdateOrder(ctx context.Context, id uuid.UUID, items [
 		OrderCode:         res.OrderCode,
 		TotalAmount:       res.TotalAmount,
 		CustomerId:        res.CustomerId,
+		StoreId:           res.StoreId,
 		CheckStockRespone: mapper.MapCheckEnoughStockRes(res.CheckStockRespone),
 	}, nil
 }
@@ -163,7 +164,6 @@ func (o *OrderGrpcClient) UpdateStatus(ctx context.Context, id uuid.UUID, status
 		OrderId: id.String(),
 		Status:  salesPb.OrderStatus(status),
 	})
-	fmt.Println(status)
 
 	return err
 }

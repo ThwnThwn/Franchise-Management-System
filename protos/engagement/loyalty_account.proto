@@ -1,10 +1,13 @@
 syntax = "proto3";
 
 option csharp_namespace = "EngagementService.Infrastructure.Protos";
-import "engagement/membership_tier.proto";
+
+option go_package = "api-gateway/pkg/pb/engagement";
+
 package engagement;
 // Import thư viện Empty của Google để định nghĩa hàm không trả về gì
 import "google/protobuf/empty.proto";
+import "engagement/membership_tier.proto";
 
 // Service định nghĩa các hành động liên quan đến Loyalty
 service LoyaltyAccountGrpc {

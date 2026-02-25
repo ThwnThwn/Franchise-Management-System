@@ -1,4 +1,4 @@
-using FranchiseService.Application.ClientInterfaces;
+﻿using FranchiseService.Application.ClientInterfaces;
 using FranchiseService.Application.Features.Shifts.DTOs;
 using FranchiseService.Application.Persistences.Repositories;
 using FranchiseService.Application.Repositories;
@@ -36,160 +36,104 @@ namespace FranchiseService.Application.Features.Shifts.Queries.GetAvailableStaff
         }
 
         public async Task<List<StaffAssignmentCandidateDto>> Handle(
-            GetAvailableStaffsQuery request, CancellationToken cancellationToken)
+    GetAvailableStaffsQuery request, CancellationToken cancellationToken)
         {
-            // Load thong tin ca lam viec
+            // 1. Load thông tin ca làm việc
             var shift = await _shiftGenericRepo.GetByIdAsync(request.ShiftId)
                 ?? throw new KeyNotFoundException($"Khong tim thay Ca lam viec {request.ShiftId}");
 
-            // Load quy tac cua Store (neu co) 
-            var rules = await _ruleRepo.GetAllAsync(predicate: r => r.StoreId == request.StoreId);
-            var storeRule = rules.FirstOrDefault();
+            // 2. Load tất cả Rules (Dùng cách này để check 2 đầu Shuttle mà không tốn nhiều query)
+            var allRules = (await _ruleRepo.GetAllAsync()).ToList();
+            var globalRule = allRules.FirstOrDefault(r => r.StoreId == null);
+            var currentStoreRule = allRules.FirstOrDefault(r => r.StoreId == request.StoreId) ?? globalRule;
 
-            int maxHoursPerWeek = storeRule?.MaxHoursPerWeek ?? 48;
-            int minHoursBreak = storeRule?.MinHoursBetweenShifts ?? 8;
-            bool allowShuttle = storeRule?.AllowShuttle ?? false;
+            int maxHoursPerWeek = currentStoreRule?.MaxHoursPerWeek ?? 48;
+            int minHoursBreak = currentStoreRule?.MinHoursBetweenShifts ?? 8;
+            bool currentStoreAllowsIn = currentStoreRule?.AllowShuttle ?? false;
 
-            // Lay danh sach nhan vien tu IdentityService
-            // Lay tat ca user co role "staff" (hoac theo role_slug phu hop)
+            // 3. Lấy danh sách nhân viên
             var allUsers = await _identityClient.GetAllUsersAsync("staff");
 
-            // Load danh sach assignment hien tai cua ca nay
-            var currentAssignments = (await _assignmentRepo.GetAllAsync(
-                predicate: a => a.ShiftId == request.ShiftId)).ToList();
-            var assignedUserIds = currentAssignments.Select(a => a.UserId).ToHashSet();
-
-            // Load thong tin Availability cua tat ca user lien quan trong ngay do
-            // Loc theo: (SpecificDate == shiftDate OR (IsRecurring == true AND DayOfWeek == shiftDayOfWeek))
-            // Co lay du ca ngay, sau do check overlap gio sau
-            var shiftDate = shift.ShiftDate;
-            var dayOfWeek = (short)shift.ShiftDate.DayOfWeek;
-            
-            var availabilities = await _availabilityRepo.GetAllAsync(
-                predicate: a => (a.IsRecurring == false && a.SpecificDate == shiftDate) || 
-                                (a.IsRecurring == true && a.DayOfWeek == dayOfWeek)
-            );
-            
-            // Group by User cho de query memory
-            var availabilityMap = availabilities.GroupBy(a => a.UserId).ToDictionary(g => g.Key, g => g.ToList());
-
-            // --- BATCH FETCHING ASSIGNMENTS (Fix N+1) ---
-            // 1. Calculate Date Range (Cover overlap, rest time, weekly hours)
+            // 4. Chuẩn bị dữ liệu để tính Weekly Hours và Overlap (Batch Fetching)
             int daysSinceMonday = (int)shift.ShiftDate.DayOfWeek - (int)DayOfWeek.Monday;
             if (daysSinceMonday < 0) daysSinceMonday += 7;
-
-            // Tuan hien tai
             var startOfWeek = shift.ShiftDate.AddDays(-daysSinceMonday);
             var endOfWeek = startOfWeek.AddDays(6);
 
-            // Range can fetch: Tuan hien tai + 1 ngay truoc/sau de check Rest Time (neu ca o bien tuan)
-            var fetchFromDate = startOfWeek.AddDays(-1);
-            var fetchToDate = endOfWeek.AddDays(1);
+            var assignmentMap = (await _shiftRepository.GetAssignmentsByUsersAsync(
+                    allUsers.Select(u => u.Id).ToList(),
+                    startOfWeek.AddDays(-1), endOfWeek.AddDays(1), cancellationToken))
+                .GroupBy(a => a.UserId).ToDictionary(g => g.Key, g => g.ToList());
 
-            // 2. Fetch all assignments for all candidate users
-            var candidateIds = allUsers.Select(u => u.Id).ToList();
-            var allAssignmentsRequest = await _shiftRepository.GetAssignmentsByUsersAsync(
-                candidateIds, fetchFromDate, fetchToDate, cancellationToken);
-            
-            var assignmentMap = allAssignmentsRequest.GroupBy(a => a.UserId)
-                .ToDictionary(g => g.Key, g => g.ToList());
-            // ---------------------------------------------
+            var availabilityMap = (await _availabilityRepo.GetAllAsync(
+                    predicate: a => (a.IsRecurring == false && a.SpecificDate == shift.ShiftDate) ||
+                                    (a.IsRecurring == true && (short)a.DayOfWeek == (short)shift.ShiftDate.DayOfWeek))
+                ).GroupBy(a => a.UserId).ToDictionary(g => g.Key, g => g.ToList());
 
-            // Xu ly tung nhan vien, tinh toan validation
+            var assignedUserIds = (await _assignmentRepo.GetAllAsync(predicate: a => a.ShiftId == request.ShiftId))
+                .Select(a => a.UserId).ToHashSet();
+
+            // 5. Xử lý logic từng nhân viên
             var result = new List<StaffAssignmentCandidateDto>();
 
             foreach (var user in allUsers)
             {
-                var candidate = new StaffAssignmentCandidateDto
-                {
-                    Id = user.Id,
-                    FirstName = user.FirstName,
-                    LastName = user.LastName,
-                    AvatarUrl = user.AvatarUrl,
-                    CurrentHourlyWage = user.CurrentHourlyWage ?? 0,
-                    IsAssigned = assignedUserIds.Contains(user.Id),
-                    IsAvailable = true, // Default true
-                    Note = null
-                };
+                bool isInternal = user.HomeStoreId == request.StoreId;
+                var validation = new CandidateValidationDto();
+                bool isAvailable = true;
+                string? note = null;
 
-                // Get user assignments from memory
-                var userAssignments = assignmentMap.GetValueOrDefault(user.Id) ?? new List<ShiftAssignment>();
-
-                // CHECK AVAILABILITY (Lich ranh/ban)
+                // A. Check Availability
                 if (availabilityMap.TryGetValue(user.Id, out var userAvails))
                 {
-                    // Tim nhung rule overlap voi gio lam viec cua ca
-                    var overlappingRules = userAvails.Where(a => 
-                        IsOverlap(shift.StartTime, shift.EndTime, a.StartTime, a.EndTime)).ToList();
-
-                    if (overlappingRules.Any())
-                    {
-                        // Logic: Neu co bat ky rule nao la BUSY (IsAvailable=false) -> Candidate la Busy
-                        var busyRule = overlappingRules.FirstOrDefault(a => !a.IsAvailable);
-                        if (busyRule != null)
-                        {
-                            candidate.IsAvailable = false;
-                            candidate.Note = busyRule.Note; // Lay note cua rule ban
-                        }
-                        else 
-                        {
-                            // Neu tat ca rules deu la Available=true (Dang ky ranh) -> Van la true
-                            // Lay note cua rule dau tien (neu co)
-                            candidate.Note = overlappingRules.First().Note;
-                        }
-                    }
+                    var overlapping = userAvails.Where(a => IsOverlap(shift.StartTime, shift.EndTime, a.StartTime, a.EndTime)).ToList();
+                    var busyRule = overlapping.FirstOrDefault(a => !a.IsAvailable);
+                    if (busyRule != null) { isAvailable = false; note = busyRule.Note; }
+                    else if (overlapping.Any()) { note = overlapping.First()?.Note; }
                 }
 
-                // CHECK TRUNG GIO (OVERLAP) - Use Memory Data
-                // Filter for current shift date
-                var checkOverlapAssignments = userAssignments
-                    .Where(a => a.Shift.ShiftDate == shiftDate)
-                    .ToList();
-                
-                // Loc bo assignment cua chinh ca hien tai (tranh tu trung)
-                var otherAssignments = checkOverlapAssignments
-                    .Where(a => a.ShiftId != request.ShiftId)
-                    .ToList();
+                // B. Check Overlap & Rest Time & Weekly Hours
+                var userAssignments = assignmentMap.GetValueOrDefault(user.Id) ?? [];
 
-                candidate.IsConflict = otherAssignments.Any(a =>
-                    IsOverlap(shift.StartTime, shift.EndTime, a.Shift.StartTime, a.Shift.EndTime));
+                bool isConflict = userAssignments.Any(a => a.Shift.ShiftDate == shift.ShiftDate && a.ShiftId != shift.Id
+                                    && IsOverlap(shift.StartTime, shift.EndTime, a.Shift.StartTime, a.Shift.EndTime));
 
-                // CHECK REST TIME va WEEKLY CAP 
-                var validation = new CandidateValidationDto();
-
-                // Check khoang nghi toi thieu
-                // Rest Time check range: [Date - 1, Date + 1]
-                var restCheckStart = shiftDate.AddDays(-1);
-                var restCheckEnd = shiftDate.AddDays(1);
-                
-                var nearbyAssignments = userAssignments
-                    .Where(a => a.Shift.ShiftDate >= restCheckStart 
-                             && a.Shift.ShiftDate <= restCheckEnd
-                             && a.ShiftId != request.ShiftId)
-                    .ToList();
-
-                var restResult = CalculateMinRestHours(shift, nearbyAssignments);
+                var restResult = CalculateMinRestHours(shift, userAssignments.Where(a => a.ShiftId != shift.Id).ToList());
                 validation.IsRestTimeInvalid = restResult.minGap < minHoursBreak;
                 validation.RestHours = restResult.minGap;
 
-                // Check gioi han gio tuan - Use Memory Data
-                var weeklyAssignments = userAssignments
-                    .Where(a => a.Shift.ShiftDate >= startOfWeek && a.Shift.ShiftDate <= endOfWeek)
-                    .ToList();
+                double weeklyHours = CalculateWeeklyHours(shift, userAssignments);
+                double newShiftHours = CalculateNetHours(shift.StartTime, shift.EndTime, shift.BreakDurationMinutes);
+                validation.IsOverLimit = (weeklyHours + newShiftHours) > maxHoursPerWeek;
+                validation.WeeklyHours = weeklyHours;
 
-                var weeklyResult = CalculateWeeklyHours(shift, weeklyAssignments);
-                var newShiftHours = CalculateNetHours(shift.StartTime, shift.EndTime, shift.BreakDurationMinutes);
-                validation.IsOverLimit = (weeklyResult + newShiftHours) > maxHoursPerWeek;
-                validation.WeeklyHours = weeklyResult;
+                // C. Check Shuttle (2 đầu)
+                if (!isInternal)
+                {
+                    var homeStoreRule = allRules.FirstOrDefault(r => r.StoreId == user.HomeStoreId) ?? globalRule;
+                    bool homeStoreAllowsOut = homeStoreRule?.AllowShuttle ?? false;
+                    validation.IsShuttleInvalid = !currentStoreAllowsIn || !homeStoreAllowsOut;
+                }
 
-                // CHECK SHUTTLE (DIEU CHUYEN) 
-                // Neu nhan vien thuoc Store khac va Store hien tai khong cho phep Shuttle
-                validation.IsShuttleInvalid = user.HomeStoreId.HasValue
-                    && user.HomeStoreId.Value != request.StoreId
-                    && !allowShuttle;
+                // D. Lọc kết quả
+                bool isValidGlobal = isAvailable && !isConflict && !validation.IsRestTimeInvalid && !validation.IsOverLimit && !validation.IsShuttleInvalid;
 
-                candidate.Validation = validation;
-                result.Add(candidate);
+                if (isInternal || isValidGlobal)
+                {
+                    result.Add(new StaffAssignmentCandidateDto
+                    {
+                        Id = user.Id,
+                        FirstName = user.FirstName,
+                        LastName = user.LastName,
+                        AvatarUrl = user.AvatarUrl,
+                        CurrentHourlyWage = user.CurrentHourlyWage ?? 0,
+                        IsAssigned = assignedUserIds.Contains(user.Id),
+                        IsAvailable = isAvailable,
+                        IsConflict = isConflict,
+                        Note = note,
+                        Validation = validation
+                    });
+                }
             }
 
             return result;

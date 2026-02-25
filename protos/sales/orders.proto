@@ -47,9 +47,12 @@ message OrderReply {
   string order_code = 2;
   double total_amount = 3;
   string customer_id = 4;
-  repeated OrderItemReply items = 5;
-  CheckEnoughStockResponse check_stock_respone = 6;
+  string store_id = 5;
+
+  repeated OrderItemReply items = 6;
+  CheckEnoughStockResponse check_stock_respone = 7;
 }
+
 message OrderItemReply {
   string sku = 1;
   int32 quantity = 2;
@@ -78,7 +81,8 @@ message Order {
   string created_at = 11;
   string updated_at = 12;
   string customer_id = 13;
-  repeated OrderItem items = 14;
+  string store_id = 14;
+  repeated OrderItem items = 15;
 }
 
 
@@ -117,6 +121,7 @@ message OrderSummary {
   string created_at = 11;
   string updated_at = 12;
   string customer_id = 13;
+  string store_id = 14;
 }
 
 
@@ -127,8 +132,10 @@ message CheckEnoughStockResponse {
 
 message ShortageItem {
   string variant_id = 1;
-  int32 max_feasible_quantity = 2;
+  string sku = 2;
+  int32 max_feasible_quantity = 3;
 }
+
 enum OrderStatus{
   PaymentPending = 0;
   ConfirmationPending = 1; 
@@ -150,12 +157,11 @@ message UpdateOrderStatusReply {
 }
 
 message UpdateOrderItem {
-
   string sku = 1;
   int32 quantity = 2;
 }
-message UpdateOrderRequest {
 
+message UpdateOrderRequest {
   string order_id = 1;
   repeated UpdateOrderItem items = 2;
 }
@@ -216,6 +222,7 @@ message GetOrderVolumeReply{
   repeated OrderVolumeADay orders = 1;
   optional CsvFile csv_file = 6;
 }
+
 message OrderVolumeADay{
   string date = 1; // YYYY-MM-DD
   int32 total_orders = 2;

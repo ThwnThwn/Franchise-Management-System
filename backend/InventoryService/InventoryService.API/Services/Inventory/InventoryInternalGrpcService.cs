@@ -12,43 +12,47 @@ namespace InventoryService.API.Services.Inventory
     public class InventoryInternalService : InventoryInternalGrpc.InventoryInternalGrpcBase
     {
         public readonly IMediator _mediator;
+
         public InventoryInternalService(IMediator mediator)
         {
             _mediator = mediator;
         }
+
         public override async Task<CheckEnoughStockResponse> CheckEnoughStock(CheckEnoughStockRequest request, ServerCallContext context)
         {
-            //ktra phải manager của kho 
+            //ktra phải manager của kho
 
-                var rep = await _mediator.Send(new CheckEnoughStockCommand(new ()
+            var rep = await _mediator.Send(new CheckEnoughStockCommand(new()
+            {
+                StoreId = Guid.Parse(request.StoreId),
+                CheckItem = request.CheckItems.Select(x => new Application.Dtos.StoreIngredient.AmountVariant
                 {
-                    StoreId = Guid.Parse(request.StoreId),
-                    CheckItem = request.CheckItems.Select(x => new Application.Dtos.StoreIngredient.AmountVariant
-                    {
-                        VariantId = Guid.Parse(x.VariantId),
-                        Amount = x.Amount
-                    }).ToList()
-                }));
+                    VariantId = Guid.Parse(x.VariantId),
+                    Sku = x.Sku,
+                    Amount = x.Amount
+                }).ToList()
+            }));
 
-                // 1. Khởi tạo đối tượng Response của gRPC
-                var response = new CheckEnoughStockResponse
+            // 1. Khởi tạo đối tượng Response của gRPC
+            var response = new CheckEnoughStockResponse
+            {
+                IsEnough = rep.IsEnough
+            };
+
+            // 2. Chuyển đổi từ DTO sang class ShortageItem của gRPC và thêm vào danh sách
+            if (rep.ShortageItems != null)
+            {
+                var grpcItems = rep.ShortageItems.Select(x => new AmountVariant
                 {
-                    IsEnough = rep.IsEnough
-                };
+                    VariantId = x.VariantId.ToString(),
+                    Sku = x.Sku,
+                    Amount = x.Amount
+                });
 
-                // 2. Chuyển đổi từ DTO sang class ShortageItem của gRPC và thêm vào danh sách
-                if (rep.ShortageItems != null)
-                {
-                    var grpcItems = rep.ShortageItems.Select(x => new AmountVariant
-                    {
-                        VariantId = x.VariantId.ToString(),
-                        Amount = x.Amount
-                    });
+                response.ShortageItems.AddRange(grpcItems); // Dùng AddRange thay vì gán dấu "="
+            }
 
-                    response.ShortageItems.AddRange(grpcItems); // Dùng AddRange thay vì gán dấu "="
-                }
-
-                return response;
+            return response;
         }
 
         public async override Task<DecreaseStockByOrderResponse> DecreaseStockByOrder(DecreaseStockByOrderRequest request, ServerCallContext context)
@@ -75,6 +79,7 @@ namespace InventoryService.API.Services.Inventory
                 Items = request.Items.Select(x => new Application.Dtos.StoreIngredient.AmountVariant
                 {
                     VariantId = Guid.Parse(x.VariantId),
+                    Sku = x.Sku,
                     Amount = x.Amount
                 }).ToList()
             };
@@ -98,6 +103,7 @@ namespace InventoryService.API.Services.Inventory
                 var grpcItems = rep.ShortageItems.Select(x => new AmountVariant
                 {
                     VariantId = x.VariantId.ToString(),
+                    Sku = x.Sku,
                     Amount = x.Amount
                 });
 
@@ -106,7 +112,8 @@ namespace InventoryService.API.Services.Inventory
 
             return response;
         }
-        public override async Task<ReleaseStockResponse> ReleaseStock(ReleaseStockRequest request,ServerCallContext context)
+
+        public override async Task<ReleaseStockResponse> ReleaseStock(ReleaseStockRequest request, ServerCallContext context)
         {
             var command = new ReleaseStockCommand(new()
             {

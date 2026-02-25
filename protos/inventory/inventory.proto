@@ -19,6 +19,7 @@ message IncreaseStockRequest {
 message IngredientStockItem {
   string ingredient_id = 1;
   double quantity = 2;
+  optional double min_threshold = 3;
 }
 
 message IncreaseStockResponse {

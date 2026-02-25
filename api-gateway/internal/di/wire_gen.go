@@ -123,7 +123,7 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, erro
 		return nil, err
 	}
 	iOrderService := sales.ProvideOrderClient(salesClientFactory)
-	orderHandler := sales2.NewOrderHandler(iOrderService)
+	orderHandler := sales2.NewOrderHandler(iOrderService, iStoreService)
 	orderRouter := orders.NewRouter(cfg, authMiddleware, orderHandler)
 	iCartService := sales.ProvideCartClient(salesClientFactory)
 	cartHandler := sales2.NewCartHandler(iCartService)

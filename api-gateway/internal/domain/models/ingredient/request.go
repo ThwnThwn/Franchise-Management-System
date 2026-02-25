@@ -4,8 +4,9 @@ import "api-gateway/internal/domain/models/common"
 
 // stock
 type IngredientStockItem struct {
-	IngredientId string  `json:"ingredientId"`
-	Quantity     float64 `json:"quantity"`
+	IngredientId string   `json:"ingredientId"`
+	Quantity     float64  `json:"quantity"`
+	MinThreshold *float64 `json:"minThreshold,omitempty"`
 }
 
 type GetAllStockReq struct {

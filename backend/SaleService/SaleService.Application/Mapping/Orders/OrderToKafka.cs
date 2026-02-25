@@ -39,5 +39,44 @@ namespace SalesService.Application.Mapping.Orders
                 UnitPrice = i.UnitPrice,
             }).ToList();
         }
+
+
+        /// <summary>
+        /// Map Order → OrderPaidEvent để publish lên Kafka cho InventoryService trừ kho.
+        /// </summary>
+        public static OrderPaidEvent MapToOrderPaidEvent(SalesService.Domain.Entities.Order order)
+        {
+            return new OrderPaidEvent
+            {
+                OrderId = order.Id,
+                StoreId = order.StoreId ?? Guid.Empty,
+                PaidAt = DateTimeOffset.UtcNow,
+                Items = order.OrderItems?.Select(oi => new OrderPaidItem
+                {
+                    VariantId = oi.VariantId,
+                    Quantity = oi.Quantity
+                }).ToList() ?? new List<OrderPaidItem>()
+            };
+        }
+
+        /// <summary>
+        /// Map Order → OrderStatusEvent cho NotificationService (thông báo).
+        /// </summary>
+        public static OrderStatusEvent MapToOrderStatusEvent(SalesService.Domain.Entities.Order order)
+        {
+            return new OrderStatusEvent
+            {
+                OrderId = order.Id,
+                OrderCode = order.Code,
+                CustomerId = order.CustomerId,
+                CustomerEmail = string.Empty,
+                NewOrderStatus = MapOrderStatus(order.Status),
+                Items = MapOrderItems(order.OrderItems ?? []),
+                OrderSummary = $"Order {order.Code} created with {order.OrderItems?.Count ?? 0} items",
+                Tax = order.Tax,
+                TotalAmount = order.TotalAmount,
+                CreatedAt = DateTimeOffset.UtcNow
+            };
+        }
     }
 }

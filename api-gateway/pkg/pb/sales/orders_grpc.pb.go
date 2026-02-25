@@ -36,6 +36,8 @@ type OrderGrpcClient interface {
 	GetOrders(ctx context.Context, in *GetOrdersRequest, opts ...grpc.CallOption) (*GetOrdersReply, error)
 	// Lấy báo cáo doanh thu
 	GetRevenueReport(ctx context.Context, in *GetRevenueReportRequest, opts ...grpc.CallOption) (*GetRevenueReportReply, error)
+	// Lấy danh sách đơn hàng
+	GetOrderVolume(ctx context.Context, in *GetOrderVolumeRequest, opts ...grpc.CallOption) (*GetOrderVolumeReply, error)
 }
 
 type orderGrpcClient struct {
@@ -109,6 +111,15 @@ func (c *orderGrpcClient) GetRevenueReport(ctx context.Context, in *GetRevenueRe
 	return out, nil
 }
 
+func (c *orderGrpcClient) GetOrderVolume(ctx context.Context, in *GetOrderVolumeRequest, opts ...grpc.CallOption) (*GetOrderVolumeReply, error) {
+	out := new(GetOrderVolumeReply)
+	err := c.cc.Invoke(ctx, "/order.OrderGrpc/GetOrderVolume", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // OrderGrpcServer is the server API for OrderGrpc service.
 // All implementations must embed UnimplementedOrderGrpcServer
 // for forward compatibility
@@ -127,6 +138,8 @@ type OrderGrpcServer interface {
 	GetOrders(context.Context, *GetOrdersRequest) (*GetOrdersReply, error)
 	// Lấy báo cáo doanh thu
 	GetRevenueReport(context.Context, *GetRevenueReportRequest) (*GetRevenueReportReply, error)
+	// Lấy danh sách đơn hàng
+	GetOrderVolume(context.Context, *GetOrderVolumeRequest) (*GetOrderVolumeReply, error)
 	mustEmbedUnimplementedOrderGrpcServer()
 }
 
@@ -154,6 +167,9 @@ func (UnimplementedOrderGrpcServer) GetOrders(context.Context, *GetOrdersRequest
 }
 func (UnimplementedOrderGrpcServer) GetRevenueReport(context.Context, *GetRevenueReportRequest) (*GetRevenueReportReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetRevenueReport not implemented")
+}
+func (UnimplementedOrderGrpcServer) GetOrderVolume(context.Context, *GetOrderVolumeRequest) (*GetOrderVolumeReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOrderVolume not implemented")
 }
 func (UnimplementedOrderGrpcServer) mustEmbedUnimplementedOrderGrpcServer() {}
 
@@ -294,6 +310,24 @@ func _OrderGrpc_GetRevenueReport_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OrderGrpc_GetOrderVolume_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetOrderVolumeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderGrpcServer).GetOrderVolume(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/order.OrderGrpc/GetOrderVolume",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderGrpcServer).GetOrderVolume(ctx, req.(*GetOrderVolumeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // OrderGrpc_ServiceDesc is the grpc.ServiceDesc for OrderGrpc service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -328,6 +362,10 @@ var OrderGrpc_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetRevenueReport",
 			Handler:    _OrderGrpc_GetRevenueReport_Handler,
+		},
+		{
+			MethodName: "GetOrderVolume",
+			Handler:    _OrderGrpc_GetOrderVolume_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -16,11 +16,14 @@ func GlobalErrorHandler() gin.HandlerFunc {
 
 			status, title, detail := errorutils.MapErrorToProblem(err)
 
-			c.JSON(status, errormodel.BackendError{
-				Title:  title,
-				Status: status,
-				Detail: detail,
-			})
+			if !c.Writer.Written() {
+				c.JSON(status, errormodel.BackendError{
+					Title:  title,
+					Status: status,
+					Detail: detail,
+				})
+			}
+
 			c.Abort()
 		}
 	}

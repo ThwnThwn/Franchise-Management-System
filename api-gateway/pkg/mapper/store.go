@@ -7,6 +7,10 @@ import (
 )
 
 func MapStorePbToStoreModel(s *franchise.StoreDetailResponse) *store.StoreDetailResponse {
+	if s == nil {
+		return nil
+	}
+
 	return &store.StoreDetailResponse{
 		Id:        s.Id,
 		Name:      s.Name,
@@ -20,6 +24,10 @@ func MapStorePbToStoreModel(s *franchise.StoreDetailResponse) *store.StoreDetail
 }
 
 func MapAgendaStorePbToModel(s *franchise.AgendaStoreInfo) *store.StoreDetailResponse {
+	if s == nil {
+		return nil
+	}
+
 	return &store.StoreDetailResponse{
 		Id:        s.Id,
 		Name:      s.Name,

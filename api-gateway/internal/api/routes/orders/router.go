@@ -1,6 +1,8 @@
 package orders
 
 import (
+	"api-gateway/internal/api"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -10,10 +12,10 @@ func (o *OrderRouter) Init(r *gin.RouterGroup) {
 	privateApi := orderApi.Group("")
 	privateApi.Use(o.authMW.ValidateToken([]byte(o.cfg.JwtSecret)))
 	{
-		privateApi.GET("", o.orderHl.GetOrders)
+		privateApi.GET("", api.WrapHandler(o.orderHl.GetOrders))
 		privateApi.POST("", o.orderHl.CreateOrder)
 
-		privateApi.GET("/:id", o.orderHl.GetOrderById)
+		privateApi.GET("/:id", api.WrapHandler(o.orderHl.GetOrderById))
 		privateApi.PUT("/:id", o.orderHl.UpdateOrder)
 		privateApi.PATCH("/:id/status", o.orderHl.UpdateOrderStatus)
 		privateApi.POST("/:id/payment", o.orderHl.CreatePaymentUrl)
@@ -22,6 +24,6 @@ func (o *OrderRouter) Init(r *gin.RouterGroup) {
 	myOrderApi := r.Group("/me/orders")
 	myOrderApi.Use(o.authMW.ValidateToken([]byte(o.cfg.JwtSecret)))
 	{
-		myOrderApi.GET("", o.orderHl.GetMyOrders)
+		myOrderApi.GET("", api.WrapHandler(o.orderHl.GetMyOrders))
 	}
 }

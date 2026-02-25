@@ -70,6 +70,23 @@ func (s *storeGrpcClient) GetStoreDetail(ctx context.Context, id uuid.UUID) (*st
 	return mapper.MapStorePbToStoreModel(res), nil
 }
 
+// GetByIds implements franchise.IStoreService.
+func (s *storeGrpcClient) GetByIds(ctx context.Context, ids []string) ([]*store.StoreDetailResponse, error) {
+	res, err := s.client.GetStoresByIds(ctx, &franchisePb.GetStoresByIdsRequest{
+		Ids: ids,
+	})
+	if err != nil {
+		return []*store.StoreDetailResponse{}, err
+	}
+
+	stores := make([]*store.StoreDetailResponse, 0, len(res.Stores))
+	for _, item := range res.Stores {
+		stores = append(stores, mapper.MapStorePbToStoreModel(item))
+	}
+
+	return stores, nil
+}
+
 // GetStores implements franchise.IStoreService.
 func (s *storeGrpcClient) GetStores(ctx context.Context, req *store.GetStoresRequest) (common.PaginationResult[*store.StoreDetailResponse], error) {
 	res, err := s.client.GetStores(ctx, &franchisePb.GetStoresRequest{

@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using NotificationService.Application.Abstractions;
 using NotificationService.Application.Model;
@@ -5,7 +6,6 @@ using NotificationService.Domain.Entities;
 using NotificationService.Domain.Enums;
 using SharedKernel.Events;
 using SharedKernel.Infrastructure.Kafka;
-using System.Text.Json;
 using static SharedKernel.Events.OrderStatusEvent;
 
 namespace NotificationService.Application.EventHandlers;
@@ -42,7 +42,14 @@ public class OrderStatusHandler : IIntegrationEventHandler<OrderStatusEvent>
     /// </summary>
     public async Task Handle(OrderStatusEvent @event)
     {
-        // 0. Check dno resend same email (idempotency)
+        // Skip notification cho đơn hàng chưa thanh toán
+        if (@event.NewOrderStatus == OrderStatus.PaymentPending)
+        {
+            _logger.LogInformation("Skip notification for PaymentPending order {OrderId}", @event.OrderId);
+            return;
+        }
+
+        // Check dno resend same email (idempotency)
         var referenceId = @event.OrderId.ToString();
         var notificationType = MapNotificationType(@event.NewOrderStatus);
 
@@ -145,6 +152,9 @@ public class OrderStatusHandler : IIntegrationEventHandler<OrderStatusEvent>
     {
         return status switch
         {
+            // PaymentPending: đơn chưa thanh toán, không nên nhận event này
+            // nhưng handle defensive để tránh poison message
+            OrderStatus.PaymentPending => NotificationType.OrderCreated,
             OrderStatus.ConfirmationPending => NotificationType.OrderCreated,
             OrderStatus.Confirmed => NotificationType.OrderConfirmed,
             OrderStatus.Preparing => NotificationType.OrderPreparing,

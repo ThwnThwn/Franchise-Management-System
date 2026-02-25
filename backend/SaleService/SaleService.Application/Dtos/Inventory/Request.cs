@@ -15,6 +15,7 @@ namespace SalesService.Application.Dtos.Inventory
     public class AmountVariant
     {
         public Guid VariantId { get; set; }
+        public string Sku { get; set; } = default!;
         public int Amount { get; set; }
     }
 
