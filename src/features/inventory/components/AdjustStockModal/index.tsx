@@ -1,18 +1,8 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-import {
-    ModalStyled,
-    InputStyled,
-    ButtonStyled
-} from "@/components"
-import {
-    ModalContent,
-    ModalHeader,
-    ModalBody,
-    ModalFooter,
-    Button
-} from "@heroui/react"
+import { ModalStyled, InputStyled, ButtonStyled } from "@/components"
+import { ModalContent, ModalHeader, ModalBody, ModalFooter, Button } from "@heroui/react"
 import { StockItem } from "../../models/response"
 
 type AdjustStockModalProps = {
@@ -37,6 +27,7 @@ export function AdjustStockModal({
 
     useEffect(() => {
         if (isOpen) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setQuantity("")
             setError("")
         }
@@ -66,7 +57,9 @@ export function AdjustStockModal({
 
     const currentQty = parseFloat(stock.quantity)
     const adjustedQty =
-        type === "increase" ? currentQty + parseFloat(quantity || "0") : currentQty - parseFloat(quantity || "0")
+        type === "increase"
+            ? currentQty + parseFloat(quantity || "0")
+            : currentQty - parseFloat(quantity || "0")
 
     return (
         <ModalStyled isOpen={isOpen} onClose={onClose} size="md">
@@ -79,15 +72,19 @@ export function AdjustStockModal({
                         {/* Nguyên liệu info */}
                         <div className="bg-slate-50 p-4 rounded-lg">
                             <div className="text-sm text-slate-600 mb-1">Nguyên liệu</div>
-                            <div className="font-semibold text-slate-900">{stock.ingredient.name}</div>
-                            <div className="text-xs text-slate-500 mt-1">Đơn vị: {stock.ingredient.baseUnit}</div>
+                            <div className="font-semibold text-slate-900">
+                                {stock.ingredientViewRes.name}
+                            </div>
+                            <div className="text-xs text-slate-500 mt-1">
+                                Đơn vị: {stock.ingredientViewRes.baseUnit}
+                            </div>
                         </div>
 
                         {/* Số lượng hiện tại */}
                         <div className="flex justify-between items-center">
                             <span className="text-sm text-slate-600">Số lượng hiện tại:</span>
                             <span className="font-semibold">
-                                {currentQty.toFixed(2)} {stock.ingredient.baseUnit}
+                                {currentQty.toFixed(2)} {stock.ingredientViewRes.baseUnit}
                             </span>
                         </div>
 
@@ -106,16 +103,20 @@ export function AdjustStockModal({
                             isInvalid={!!error}
                             errorMessage={error}
                             endContent={
-                                <div className="text-xs text-slate-400">{stock.ingredient.baseUnit}</div>
+                                <div className="text-xs text-slate-400">
+                                    {stock.ingredientViewRes.baseUnit}
+                                </div>
                             }
                         />
 
                         {/* Số lượng sau điều chỉnh */}
                         {quantity && !error && (
                             <div className="flex justify-between items-center bg-blue-50 p-3 rounded-lg">
-                                <span className="text-sm text-blue-900">Số lượng sau điều chỉnh:</span>
+                                <span className="text-sm text-blue-900">
+                                    Số lượng sau điều chỉnh:
+                                </span>
                                 <span className="font-bold text-blue-900">
-                                    {adjustedQty.toFixed(2)} {stock.ingredient.baseUnit}
+                                    {adjustedQty.toFixed(2)} {stock.ingredientViewRes.baseUnit}
                                 </span>
                             </div>
                         )}

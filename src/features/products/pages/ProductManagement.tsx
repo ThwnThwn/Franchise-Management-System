@@ -33,8 +33,7 @@ export default function ProductManagementPage() {
     const [pagination, setPagination] = useState<PaginationParams>({ page: 1, pageSize: 10 })
     const { data, isLoading, isRefetching } = useGetAllProducts({
         params: filter,
-        pagination,
-        enabled: true
+        pagination
     })
     const products = data?.items ?? []
 

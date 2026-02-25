@@ -10,6 +10,7 @@ import { RoleResponse } from "../../models/respone"
 import { CreateRoleRequest, UpdateRoleRequest } from "../../models/request"
 import { useRouter } from "next/navigation"
 import { Shield } from "lucide-react"
+import { RoleSlug } from "@/constants/enums"
 
 interface RoleFormModalProps {
     isOpen: boolean
@@ -134,7 +135,7 @@ export function RoleFormModal({ isOpen, onOpenChange, role }: RoleFormModalProps
                         </ModalBody>
 
                         <ModalFooter>
-                            {isEditMode ? (
+                            {isEditMode && role.slug !== RoleSlug.Admin ? (
                                 <ButtonStyled
                                     variant="bordered"
                                     startContent={<Shield size={18} />}

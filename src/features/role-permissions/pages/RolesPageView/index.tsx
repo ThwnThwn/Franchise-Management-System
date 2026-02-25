@@ -84,24 +84,28 @@ export default function RolesPageView() {
                         }}
                         isCompact
                     >
-                        {(permissions ?? []).map((group) => (
-                            <AccordionItem
-                                key={group.resource}
-                                aria-label={group.resource}
-                                title={`${group.resource} (${group.permissions.length})`}
-                                startContent={
-                                    <div className="p-2 bg-primary-50 rounded-lg text-primary">
-                                        <ChevronRight size={18} />
+                        {(permissions ?? [])
+                            .sort((a, b) => a.resource.localeCompare(b.resource))
+                            .map((group) => (
+                                <AccordionItem
+                                    key={group.resource}
+                                    aria-label={group.resource}
+                                    title={`${group.resource} (${group.permissions.length})`}
+                                    startContent={
+                                        <div className="p-2 bg-primary-50 rounded-lg text-primary">
+                                            <ChevronRight size={18} />
+                                        </div>
+                                    }
+                                >
+                                    <div className="flex flex-col gap-1">
+                                        {group.permissions
+                                            .sort((a, b) => a.name.localeCompare(b.name))
+                                            .map((p) => (
+                                                <PermissionRow key={p.id} permission={p} canEdit />
+                                            ))}
                                     </div>
-                                }
-                            >
-                                <div className="flex flex-col gap-1">
-                                    {group.permissions.map((p) => (
-                                        <PermissionRow key={p.id} permission={p} canEdit />
-                                    ))}
-                                </div>
-                            </AccordionItem>
-                        ))}
+                                </AccordionItem>
+                            ))}
                     </Accordion>
                 )}
             </section>

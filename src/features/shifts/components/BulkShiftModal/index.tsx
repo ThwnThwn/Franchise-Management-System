@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useMemo } from "react"
+import React, { useCallback, useMemo } from "react"
 import {
     ModalContent,
     ModalHeader,
@@ -34,6 +34,7 @@ import {
 import { DayOfWeekLabel } from "@/constants/labels"
 import { DayOfWeek } from "@/constants/enums"
 import { useDay } from "@/hooks"
+import { enumToValues } from "@/utils/helpers/arrayHelper"
 
 interface BulkShiftModalProps {
     isOpen: boolean
@@ -58,7 +59,7 @@ export const BulkShiftModal = ({ isOpen, onClose, storeId }: BulkShiftModalProps
             endDate: "",
             startTime: "08:00",
             endTime: "16:00",
-            daysOfWeek: [DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY],
+            daysOfWeek: enumToValues(DayOfWeek),
             templateId: "",
             requiredStaffCount: 1,
             breakDurationMinutes: 0,
@@ -100,6 +101,26 @@ export const BulkShiftModal = ({ isOpen, onClose, storeId }: BulkShiftModalProps
         })
         return obj
     }, [templates])
+
+    const handleTemplateChange = useCallback(
+        (id: string | undefined) => {
+            // 1. Cập nhật ID vào Formik trước
+            formik.setFieldValue("templateId", id)
+
+            // 2. Nếu không có ID (user clear chọn), có thể reset field hoặc dừng lại
+            if (!id || !templates) return
+
+            // 3. Tìm template và set data vào các field liên quan
+            const template = templates.find((t) => t.id === id)
+            if (template) {
+                // formik.setFieldValue("startTime", template.startTime.slice(0, 5))
+                // formik.setFieldValue("endTime", template.endTime.slice(0, 5))
+                formik.setFieldValue("breakDurationMinutes", template.breakDurationMinutes)
+            }
+        },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [templates, formik.setFieldValue]
+    )
 
     const isSubmitting = createManual.isPending || createTemplate.isPending
 
@@ -148,6 +169,7 @@ export const BulkShiftModal = ({ isOpen, onClose, storeId }: BulkShiftModalProps
                                 }}
                                 isInvalid={!!formik.errors.endDate}
                                 errorMessage={formik.errors.endDate}
+                                minValue={toDate(minDateStr)}
                             />
                         </div>
 
@@ -207,7 +229,7 @@ export const BulkShiftModal = ({ isOpen, onClose, storeId }: BulkShiftModalProps
                                     placeholder="Tìm mẫu ca đã lưu..."
                                     labels={templateLabels}
                                     value={formik.values.templateId}
-                                    onChange={(val) => formik.setFieldValue("templateId", val)}
+                                    onChange={handleTemplateChange}
                                     isInvalid={!!formik.errors.templateId}
                                     errorMessage={formik.errors.templateId}
                                 />
@@ -234,6 +256,7 @@ export const BulkShiftModal = ({ isOpen, onClose, storeId }: BulkShiftModalProps
                                 }
                                 isInvalid={!!formik.errors.breakDurationMinutes}
                                 errorMessage={formik.errors.breakDurationMinutes}
+                                isDisabled={formik.values.type === "template"}
                             />
                         </div>
 

@@ -4,13 +4,13 @@ import { CartItem } from "@/features/cart/models/types"
 import { StoreDetailDto } from "@/features/stores"
 
 export interface CartState {
-    items: CartItem[]
+    items: Omit<CartItem, "id" | "customerId">[]
     total: number
     count: number
     // currentStoreId: string | null
     currentStore: StoreDetailDto | null
 
-    addItem: (item: Omit<CartItem, "quantity"> & { quantity?: number }) => void
+    addItem: (item: Omit<CartItem, "id" | "customerId"> & { quantity?: number }) => void
     removeItem: (sku: string) => void
     updateQuantity: (sku: string, quantity: number) => void
     clearCart: () => void
@@ -18,7 +18,7 @@ export interface CartState {
     setStore: (store: StoreDetailDto | null) => void
 }
 
-const calculateSummary = (items: CartItem[]) => {
+const calculateSummary = (items: Omit<CartItem, "id" | "customerId">[]) => {
     const total = items.reduce((sum, item) => sum + item.basePrice * item.quantity, 0)
     const count = items.reduce((sum, item) => sum + item.quantity, 0)
     return { total, count }
@@ -51,25 +51,25 @@ export const useCartStore = create<CartState>()(
             },
 
             addItem: (item) => {
-                const currentItems = get().items
+                // const currentItems = get().items
 
-                if (
-                    currentItems.length > 0 &&
-                    item.store &&
-                    currentItems[0].store &&
-                    item.store !== currentItems[0].store
-                ) {
-                    set({ items: [], total: 0, count: 0 })
-                }
+                // if (
+                //     currentItems.length > 0 &&
+                //     item.store &&
+                //     currentItems[0].store &&
+                //     item.store !== currentItems[0].store
+                // ) {
+                //     set({ items: [], total: 0, count: 0 })
+                // }
 
-                if (item.store) {
-                    set({ currentStore: item.store })
-                }
+                // if (item.store) {
+                //     set({ currentStore: item.store })
+                // }
 
                 const freshItems = get().items
                 const existingItemIndex = freshItems.findIndex((i) => i.sku === item.sku)
 
-                let newItems: CartItem[]
+                let newItems: Omit<CartItem, "id" | "customerId">[]
 
                 if (existingItemIndex > -1) {
                     newItems = freshItems.map((i, index) =>

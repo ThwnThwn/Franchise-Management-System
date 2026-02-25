@@ -20,7 +20,6 @@ import { useGetStores } from "@/features/stores/hooks/useStore"
 import { IngredientItem } from "../models/response"
 import { GetIngredientsParams } from "../models/request"
 
-
 export default function IngredientsPage() {
     // ── Filter state ──────────────────────────────────────────────
     const [filter, setFilter] = useState<GetIngredientsParams>({
@@ -30,11 +29,7 @@ export default function IngredientsPage() {
     const [search, setSearch] = useState("")
 
     // ── Data fetching ─────────────────────────────────────────────
-    const {
-        data: ingredientsData,
-        isLoading,
-        isRefetching
-    } = useGetIngredients({ params: filter })
+    const { data: ingredientsData, isLoading, isRefetching } = useGetIngredients({ params: filter })
 
     const { data: categories = [] } = useGetIngredientCategories()
 
@@ -100,11 +95,13 @@ export default function IngredientsPage() {
     }) => {
         addStockMutation.mutate({
             storeId: params.storeId,
-            items: [{
-                ingredientId: params.ingredientId,
-                quantity: params.quantity,
-                minThreshold: params.minThreshold
-            }]
+            items: [
+                {
+                    ingredientId: params.ingredientId,
+                    quantity: params.quantity,
+                    minThreshold: params.minThreshold
+                }
+            ]
         })
     }
 
@@ -163,8 +160,7 @@ export default function IngredientsPage() {
             {/* ── COUNT ── */}
             <div className="mb-4 flex items-center justify-between">
                 <div className="text-sm text-slate-600">
-                    Tổng số:{" "}
-                    <span className="font-semibold text-slate-900">{totalCount}</span>{" "}
+                    Tổng số: <span className="font-semibold text-slate-900">{totalCount}</span>{" "}
                     nguyên liệu
                 </div>
             </div>
@@ -183,17 +179,20 @@ export default function IngredientsPage() {
             </div>
 
             {/* ── ADD STOCK MODAL ── */}
-            <AddIngredientStockModal
-                isOpen={isAddStockOpen}
-                onClose={() => {
-                    setIsAddStockOpen(false)
-                    setSelectedIngredient(null)
-                }}
-                ingredients={ingredients}
-                stores={stores}
-                onSubmit={handleAddStockSubmit}
-                isLoading={addStockMutation.isPending}
-            />
+            {selectedIngredient && (
+                <AddIngredientStockModal
+                    isOpen={isAddStockOpen}
+                    onClose={() => {
+                        setIsAddStockOpen(false)
+                        setSelectedIngredient(null)
+                    }}
+                    initIngre={selectedIngredient}
+                    ingredients={ingredients}
+                    stores={stores}
+                    onSubmit={handleAddStockSubmit}
+                    isLoading={addStockMutation.isPending}
+                />
+            )}
 
             {/* ── CREATE INGREDIENT MODAL ── */}
             <CreateIngredientModal

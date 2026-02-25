@@ -59,13 +59,13 @@ export function ProductVariantsModal({
             // Add to cart using local cart store
             addItem({
                 sku: selectedSize.sku,
-                productId: product.id,
-                variantId: selectedSize.id,
+                // productId: product.id,
+                // variantId: selectedSize.id,
                 productName: product.name,
-                sizeName: selectedSize.name,
-                attributes: selectedSize.attributes,
-                basePrice: selectedSize.basePrice,
                 imageUrl: product.imageUrl,
+                attributes: selectedSize.attributes,
+                // sizeName: selectedSize.name,
+                basePrice: selectedSize.basePrice,
                 quantity: safeQty
                 // storeId: storeId
             })

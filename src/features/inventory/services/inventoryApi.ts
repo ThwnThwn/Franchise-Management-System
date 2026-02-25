@@ -27,7 +27,10 @@ export const inventoryApi = {
     },
 
     /** Lấy tồn kho theo 1 cửa hàng cụ thể — GET /stores/:storeId/stock */
-    getStockByStoreId: async (storeId: string, params?: GetAllStockParams): Promise<GetAllStockResult> => {
+    getStockByStoreId: async (
+        storeId: string,
+        params?: GetAllStockParams
+    ): Promise<GetAllStockResult> => {
         const queryParams = buildQueryParams(params ?? {})
         const res = await axiosInstance.get(`/stores/${storeId}/stock`, { params: queryParams })
         return res.data
@@ -35,17 +38,15 @@ export const inventoryApi = {
 
     /** Điều chỉnh kho (legacy) */
     adjustStock: async (req: AdjustStockRequest): Promise<void> => {
-        await axiosInstance.post("/inventory/adjustments", req)
+        await axiosInstance.put(`/stores/${req.storeId}/stock`, req.items)
+        // await axiosInstance.post("/inventory/adjustments", req)
     },
 
     /**
      * Nhập kho nguyên liệu cho một store cụ thể
      * PUT /stores/:storeId/stock — body: IngredientStockItem[]
      */
-    increaseStoreStock: async (
-        storeId: string,
-        items: AddIngredientStockItem[]
-    ): Promise<void> => {
+    increaseStoreStock: async (storeId: string, items: AddIngredientStockItem[]): Promise<void> => {
         await axiosInstance.put(`/stores/${storeId}/stock`, items)
     },
 

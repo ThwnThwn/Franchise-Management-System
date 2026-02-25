@@ -50,13 +50,16 @@ export default function RolePermissionPageView({ roleId }: { roleId: string }) {
         return mergedGroups
             .map((group) => ({
                 ...group,
-                permissions: group.permissions.filter(
-                    (p) =>
-                        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                        p.slug.toLowerCase().includes(searchQuery.toLowerCase())
-                )
+                permissions: group.permissions
+                    .filter(
+                        (p) =>
+                            p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            p.slug.toLowerCase().includes(searchQuery.toLowerCase())
+                    )
+                    .sort((a, b) => a.name.localeCompare(b.name))
             }))
             .filter((group) => group.permissions.length > 0)
+            .sort((a, b) => a.resource.localeCompare(b.resource))
     }, [mergedGroups, searchQuery])
 
     // 2. Tính toán Grant/Revoke dựa trên SLUG

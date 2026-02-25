@@ -11,10 +11,13 @@ import { StockItem } from "../models/response"
 import { GetAllStockParams } from "../models/request"
 import { DashboardHeader } from "@/features/dashboard/components/general/DashboardHeader"
 import { Select, SelectItem, Chip, Pagination } from "@heroui/react"
+import { useTokenStore } from "@/hooks"
 
 export default function InventoryManagementPage() {
+    const storeId = useTokenStore((s) => s.storeId)
+
     // ── Store filter ─────────────────────────────────────────
-    const [selectedStoreId, setSelectedStoreId] = useState<string>("")
+    const [selectedStoreId, setSelectedStoreId] = useState<string>(storeId || "")
 
     const { data: storesData } = useGetStores({
         pagination: { page: 1, pageSize: 100 },
@@ -23,7 +26,11 @@ export default function InventoryManagementPage() {
     const stores = storesData?.items ?? []
 
     // ── Stock filter ─────────────────────────────────────────
-    const [filter, setFilter] = useState<GetAllStockParams>({ page: 1, pageSize: 50 })
+    const [filter, setFilter] = useState<GetAllStockParams>({
+        storeIds: storeId ? [storeId] : [],
+        page: 1,
+        pageSize: 50
+    })
 
     // Reset to page 1 when store changes
     const handleStoreChange = (storeId: string) => {
@@ -79,7 +86,7 @@ export default function InventoryManagementPage() {
     const handleAdjustSubmit = (quantity: number) => {
         if (!selectedStock) return
         adjustMutation.mutate({
-            storeId: selectedStock.storeId,
+            storeId: storeId || selectedStock.storeId,
             items: [
                 {
                     ingredientId: selectedStock.ingredientViewRes.id,
@@ -119,7 +126,7 @@ export default function InventoryManagementPage() {
                     </div>
 
                     {/* Store filter */}
-                    <div className="w-full sm:w-72">
+                    <div className="w-full sm:w-72" hidden={!!storeId}>
                         <Select
                             placeholder="Tất cả cửa hàng"
                             selectedKeys={selectedStoreId ? [selectedStoreId] : []}
@@ -134,7 +141,9 @@ export default function InventoryManagementPage() {
                                 <SelectItem key={store.id} textValue={store.name}>
                                     <div className="flex flex-col">
                                         <span className="font-medium">{store.name}</span>
-                                        <span className="text-xs text-slate-400">{store.address}</span>
+                                        <span className="text-xs text-slate-400">
+                                            {store.address}
+                                        </span>
                                     </div>
                                 </SelectItem>
                             ))}
@@ -148,7 +157,8 @@ export default function InventoryManagementPage() {
                                 color="primary"
                                 variant="flat"
                                 size="sm"
-                                onClose={() => handleStoreChange("")}
+                                isCloseable={!storeId}
+                                onClose={!storeId ? () => handleStoreChange("") : undefined}
                                 classNames={{ base: "h-9 px-3" }}
                             >
                                 {selectedStore.name}
@@ -164,13 +174,17 @@ export default function InventoryManagementPage() {
                     {selectedStore ? (
                         <>
                             Kho của{" "}
-                            <span className="font-semibold text-primary-600">{selectedStore.name}</span>
+                            <span className="font-semibold text-primary-600">
+                                {selectedStore.name}
+                            </span>
                             {" — "}
                         </>
                     ) : (
                         "Tất cả cửa hàng — "
                     )}
-                    <span className="font-semibold text-slate-900">{stocksData?.totalCount || 0}</span>{" "}
+                    <span className="font-semibold text-slate-900">
+                        {stocksData?.totalCount || 0}
+                    </span>{" "}
                     mục
                 </div>
             </div>

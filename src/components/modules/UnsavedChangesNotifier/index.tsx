@@ -36,7 +36,7 @@ export function UnsavedChangesNotifier({
                     className="fixed bottom-8 left-1/2 z-51 bg-slate-900 border border-slate-700 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-6 min-w-[320px] max-w-[90vw]"
                 >
                     <div className="flex flex-col">
-                        <span className="text-sm font-bold text-success">{title}</span>
+                        <span className="text-sm font-bold text-warning">{title}</span>
                         <span className="text-xs text-slate-400 font-medium">{message}</span>
                     </div>
 
@@ -55,7 +55,7 @@ export function UnsavedChangesNotifier({
 
                         <ButtonIconStyled
                             size="sm"
-                            color="success"
+                            color="warning"
                             onPress={onSave}
                             isLoading={isLoading}
                             title="Lưu thay đổi"

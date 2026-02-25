@@ -15,7 +15,6 @@ import {
     ShoppingBag
 } from "lucide-react"
 
-
 export interface MenuItem {
     icon: React.ReactNode
     label: string
@@ -34,7 +33,7 @@ export const DASHBOARD_SIDEBAR_MENU: MenuItem[] = [
         icon: <ShoppingBag className="w-5 h-5" />,
         label: "Đơn hàng",
         href: "/dashboard/orders",
-        allowedRoles: [RoleSlug.Admin, RoleSlug.Manager, RoleSlug.Staff]
+        allowedRoles: [RoleSlug.Manager, RoleSlug.Staff]
     },
     {
         icon: <CalendarCog className="w-5 h-5" />,
@@ -43,16 +42,34 @@ export const DASHBOARD_SIDEBAR_MENU: MenuItem[] = [
         allowedRoles: [RoleSlug.Admin, RoleSlug.Manager]
     },
     {
+        icon: <CalendarRange className="w-5 h-5" />,
+        label: "Quản lý ca làm",
+        href: "/dashboard/shifts",
+        allowedRoles: [RoleSlug.Manager, RoleSlug.Staff]
+    },
+    {
         icon: <Coffee className="w-5 h-5" />,
         label: "Sản phẩm",
         href: "/dashboard/products",
-        allowedRoles: [RoleSlug.Admin]
+        allowedRoles: [RoleSlug.Admin, RoleSlug.Manager]
     },
     {
         icon: <Tag className="w-5 h-5" />,
         label: "Danh mục",
         href: "/dashboard/categories",
         allowedRoles: [RoleSlug.Admin]
+    },
+    {
+        icon: <FlaskConical className="w-5 h-5" />,
+        label: "Nguyên liệu",
+        href: "/dashboard/ingredients",
+        allowedRoles: [RoleSlug.Admin]
+    },
+    {
+        icon: <Package className="w-5 h-5" />,
+        label: "Kho",
+        href: "/dashboard/inventory",
+        allowedRoles: [RoleSlug.Manager]
     },
     {
         icon: <Users className="w-5 h-5" />,
@@ -66,36 +83,17 @@ export const DASHBOARD_SIDEBAR_MENU: MenuItem[] = [
         href: "/dashboard/roles",
         allowedRoles: [RoleSlug.Admin]
     },
-    {
-        icon: <Package className="w-5 h-5" />,
-        label: "Sản phẩm",
-        href: "/dashboard/products",
-        allowedRoles: [RoleSlug.Admin, RoleSlug.Manager]
-    },
-    {
-        icon: <Package className="w-5 h-5" />,
-        label: "Kho",
-        href: "/dashboard/inventory",
-        allowedRoles: [RoleSlug.Admin, RoleSlug.Manager]
-    },
-
-    {
-        icon: <FlaskConical className="w-5 h-5" />,
-        label: "Nguyên liệu",
-        href: "/dashboard/inventory/ingredients",
-        allowedRoles: [RoleSlug.Admin, RoleSlug.Manager]
-    },
+    // {
+    //     icon: <Package className="w-5 h-5" />,
+    //     label: "Sản phẩm",
+    //     href: "/dashboard/products",
+    //     allowedRoles: [RoleSlug.Admin, RoleSlug.Manager]
+    // },
     {
         icon: <Settings className="w-5 h-5" />,
         label: "Cài đặt",
         href: "/dashboard/settings",
         allowedRoles: [RoleSlug.Admin]
-    },
-    {
-        icon: <CalendarRange className="w-5 h-5" />,
-        label: "Quản lý ca làm",
-        href: "/dashboard/shifts",
-        allowedRoles: [RoleSlug.Manager, RoleSlug.Staff]
     },
     {
         icon: <Calendar className="w-5 h-5" />,

@@ -59,7 +59,7 @@ export const ShiftForm = ({ formik, isSubmitable }: ShiftFormProps) => {
             // 2. Nếu không có ID (user clear chọn), có thể reset field hoặc dừng lại
             if (!id || !templates) return
 
-            // 3. Tìm template và "vít" data vào các field liên quan
+            // 3. Tìm template và set data vào các field liên quan
             const template = templates.find((t) => t.id === id)
             if (template) {
                 formik.setFieldValue("startTime", template.startTime.slice(0, 5))

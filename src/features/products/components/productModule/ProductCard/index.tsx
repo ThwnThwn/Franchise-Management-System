@@ -38,7 +38,7 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
         product.sizes.length > 0 ? Math.min(...product.sizes.map((s) => s.basePrice)) : 0
 
     return (
-        <div className="pt-12 mb-4 w-full max-w-70 group">
+        <div className="pt-12 mb-4 w-full max-w-56 group">
             <Card
                 className="mx-auto overflow-hidden bg-linear-to-b from-[#8D6E63] to-[#4E342E] rounded-[2.5rem] shadow-xl border-none min-h-80"
                 shadow="sm"
@@ -56,7 +56,7 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
 
                         <Image
                             alt={product.name}
-                            className="object-cover h-56 w-56 drop-shadow-2xl z-20"
+                            className="object-cover rounded-b-none h-56 w-56 drop-shadow-2xl z-20"
                             src={product.imageUrl === "" ? undefined : product.imageUrl}
                             removeWrapper
                         />

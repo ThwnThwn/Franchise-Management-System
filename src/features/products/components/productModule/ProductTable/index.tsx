@@ -2,7 +2,7 @@
 
 import React from "react"
 
-import { PencilIcon } from "lucide-react"
+import { Eye } from "lucide-react"
 import { TableStyled, ButtonIconStyled, TitleSkeleton } from "@/components"
 import { formatCurrencyWithSymbol } from "@/utils/helpers/currency"
 import {
@@ -201,14 +201,14 @@ export function ProductTable({
                 {/* Cột 6: Thao tác */}
                 <TableCell>
                     <div className="flex items-center gap-1 justify-center">
-                        <Tooltip content="Chỉnh sửa chi tiết">
+                        <Tooltip content="Xem chi tiết">
                             <ButtonIconStyled
                                 variant="light"
                                 color="primary"
                                 className="opacity-70 hover:opacity-100"
                                 onPress={() => onEdit?.(item.id)}
                             >
-                                <PencilIcon size={18} />
+                                <Eye size={18} />
                             </ButtonIconStyled>
                         </Tooltip>
 

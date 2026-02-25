@@ -59,6 +59,7 @@ export function EditIngredientModal({
     // Pre-fill form whenever ingredient changes or modal opens
     useEffect(() => {
         if (isOpen && ingredient) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setForm({
                 name: ingredient.name,
                 baseUnit: ingredient.baseUnit,
@@ -122,7 +123,7 @@ export function EditIngredientModal({
                                 selectedKeys={form.baseUnit ? [form.baseUnit] : []}
                                 isInvalid={!!errors.baseUnit}
                                 errorMessage={errors.baseUnit}
-                                onChange={(e) => handleChange("baseUnit", e.target.value)}
+                                isDisabled
                                 variant="bordered"
                                 classNames={{
                                     trigger: "border-slate-200 hover:border-warning-400 h-12"
@@ -140,7 +141,9 @@ export function EditIngredientModal({
                         <div className="flex flex-col gap-1">
                             <label className="text-sm font-medium text-slate-700">
                                 Danh mục{" "}
-                                <span className="text-slate-400 font-normal text-xs">(tuỳ chọn)</span>
+                                <span className="text-slate-400 font-normal text-xs">
+                                    (tuỳ chọn)
+                                </span>
                             </label>
                             <Select
                                 placeholder="Chọn danh mục nguyên liệu"

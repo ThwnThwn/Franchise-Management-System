@@ -179,21 +179,22 @@ export default function OrderDetailPageView({ orderId }: { orderId: string }) {
                                     </h1>
                                 </div>
 
-                                <div className="flex flex-col items-end gap-2">
-                                    <div className="flex items-center gap-1">
-                                        <p className="hidden print:block text-[10px] font-mono text-default-400 tracking-widest uppercase font-bold">
-                                            Trạng thái:
-                                        </p>
-                                        <Chip
-                                            color={OrderStatusColors[order.status]}
-                                            variant="flat"
-                                            size="lg"
-                                            className="font-black border-none px-4"
-                                        >
-                                            {OrderStatusLabels[order.status]}
-                                        </Chip>
-                                    </div>
+                                {/* <div className="flex flex-col items-end gap-2"> */}
+                                <div className="flex items-center gap-1">
+                                    {/* <p className="hidden print:block text-[10px] font-mono text-default-400 tracking-widest uppercase font-bold">
+                                        Trạng thái:
+                                    </p> */}
+
+                                    <Chip
+                                        color={OrderStatusColors[order.status]}
+                                        variant="flat"
+                                        size="lg"
+                                        className="font-black border-none px-4"
+                                    >
+                                        {OrderStatusLabels[order.status]}
+                                    </Chip>
                                 </div>
+                                {/* </div> */}
                             </div>
                             {/* Mã đơn hàng nằm gọn dưới tiêu đề */}
                             <p className="text-sm mb-1 font-mono text-default-400 tracking-widest uppercase">

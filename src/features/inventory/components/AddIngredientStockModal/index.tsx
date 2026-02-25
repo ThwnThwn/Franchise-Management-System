@@ -1,12 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-import {
-    ModalStyled,
-    InputStyled,
-    ButtonStyled,
-    DatePickerStyled
-} from "@/components"
+import { ModalStyled, InputStyled, ButtonStyled } from "@/components"
 import {
     ModalContent,
     ModalHeader,
@@ -21,7 +16,7 @@ import {
 import { PackagePlus, Truck, Store } from "lucide-react"
 import { IngredientItem } from "../../models/response"
 import { StoreDetailDto } from "@/features/stores/models/schema/response"
-import { parseDate } from "@internationalized/date"
+import { useTokenStore } from "@/hooks"
 
 // ===========================================================
 // CONSTANTS
@@ -74,6 +69,7 @@ type FormErrors = {
 type AddIngredientStockModalProps = {
     isOpen: boolean
     onClose: () => void
+    initIngre: IngredientItem
     ingredients: IngredientItem[]
     stores: StoreDetailDto[]
     onSubmit: (params: {
@@ -96,20 +92,30 @@ type AddIngredientStockModalProps = {
 export function AddIngredientStockModal({
     isOpen,
     onClose,
+    initIngre,
     ingredients,
     stores,
     onSubmit,
     isLoading = false
 }: AddIngredientStockModalProps) {
+    const storeId = useTokenStore((s) => s.storeId)
+
     const [form, setForm] = useState<FormState>(INITIAL_FORM)
     const [errors, setErrors] = useState<FormErrors>({})
 
     useEffect(() => {
         if (isOpen) {
-            setForm(INITIAL_FORM)
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setForm({
+                ...INITIAL_FORM,
+                unit: initIngre.baseUnit,
+                storeId: storeId || "",
+                ingredientId: initIngre.id,
+                ingredientName: initIngre.name
+            })
             setErrors({})
         }
-    }, [isOpen])
+    }, [initIngre, isOpen, storeId])
 
     const handleIngredientSelect = (id: string) => {
         const found = ingredients.find((i) => i.id === id)
@@ -152,7 +158,7 @@ export function AddIngredientStockModal({
     const handleSubmit = () => {
         if (!validate()) return
         onSubmit({
-            storeId: form.storeId,
+            storeId: storeId || form.storeId,
             ingredientId: form.ingredientId,
             quantity: parseFloat(form.quantity),
             minThreshold: form.minThreshold ? parseFloat(form.minThreshold) : undefined,
@@ -173,13 +179,14 @@ export function AddIngredientStockModal({
 
                 <ModalBody>
                     <div className="space-y-4">
-
                         {/* ── Reason (fixed) ── */}
                         <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 px-4 py-3 rounded-xl">
                             <Truck className="w-4 h-4 text-amber-600 shrink-0" />
                             <div>
                                 <p className="text-xs text-amber-600 font-medium">Lý do nhập kho</p>
-                                <p className="text-sm font-semibold text-amber-800">Supplier delivery</p>
+                                <p className="text-sm font-semibold text-amber-800">
+                                    Supplier delivery
+                                </p>
                             </div>
                         </div>
 
@@ -199,12 +206,15 @@ export function AddIngredientStockModal({
                                 classNames={{
                                     trigger: "border-slate-200 hover:border-primary-400 h-12"
                                 }}
+                                isDisabled={!!storeId}
                             >
                                 {stores.map((store) => (
                                     <SelectItem key={store.id} textValue={store.name}>
                                         <div className="flex flex-col">
                                             <span className="font-medium">{store.name}</span>
-                                            <span className="text-xs text-slate-400">{store.address}</span>
+                                            <span className="text-xs text-slate-400">
+                                                {store.address}
+                                            </span>
                                         </div>
                                     </SelectItem>
                                 ))}
@@ -218,6 +228,7 @@ export function AddIngredientStockModal({
                             isRequired
                             isInvalid={!!errors.ingredientId}
                             errorMessage={errors.ingredientId}
+                            selectedKey={form.ingredientId}
                             onSelectionChange={(key) => {
                                 if (key) handleIngredientSelect(String(key))
                             }}
@@ -234,7 +245,9 @@ export function AddIngredientStockModal({
                                 <AutocompleteItem key={item.id} textValue={item.name}>
                                     <div className="flex flex-col">
                                         <span className="text-sm">{item.name}</span>
-                                        <span className="text-xs text-slate-400">{item.baseUnit}</span>
+                                        <span className="text-xs text-slate-400">
+                                            {item.baseUnit}
+                                        </span>
                                     </div>
                                 </AutocompleteItem>
                             )}
@@ -263,10 +276,11 @@ export function AddIngredientStockModal({
                             />
 
                             <div className="flex flex-col gap-1">
-                                <label className="text-sm font-medium text-slate-700">
+                                {/* <label className="text-sm font-medium text-slate-700">
                                     Unit of Measure <span className="text-danger">*</span>
-                                </label>
+                                </label> */}
                                 <Select
+                                    label="Unit of Measure"
                                     placeholder="Chọn đơn vị"
                                     selectedKeys={form.unit ? [form.unit] : []}
                                     isInvalid={!!errors.unit}
@@ -277,6 +291,8 @@ export function AddIngredientStockModal({
                                         trigger: "border-slate-200 hover:border-primary-400 h-12",
                                         popoverContent: "z-50"
                                     }}
+                                    isRequired
+                                    isDisabled
                                 >
                                     {UNITS_OF_MEASURE.map((u) => (
                                         <SelectItem key={u.value} textValue={u.label}>
@@ -288,7 +304,7 @@ export function AddIngredientStockModal({
                         </div>
 
                         {/* ── Min Threshold ── */}
-                        <InputStyled
+                        {/* <InputStyled
                             type="number"
                             label="Ngưỡng tối thiểu (Min Threshold)"
                             placeholder="Ví dụ: 5 (tùy chọn)"
@@ -306,18 +322,19 @@ export function AddIngredientStockModal({
                                 ) : undefined
                             }
                             description="Hệ thống cảnh báo khi số lượng tồn xuống dưới mức này"
-                        />
+                            isDisabled
+                        /> */}
 
                         {/* ── Supplier Info ── */}
-                        <InputStyled
+                        {/* <InputStyled
                             label="Supplier Info"
                             placeholder="Tên nhà cung cấp, mã đơn hàng… (tuỳ chọn)"
                             value={form.supplierInfo}
                             onChange={(e) => handleChange("supplierInfo", e.target.value)}
-                        />
+                        /> */}
 
                         {/* ── Expiration Date ── */}
-                        <DatePickerStyled
+                        {/* <DatePickerStyled
                             label="Expiration Date (optional)"
                             placeholderValue={parseDate("2025-01-01")}
                             onChange={(date) =>
@@ -329,8 +346,7 @@ export function AddIngredientStockModal({
                                 )
                             }
                             minValue={parseDate(new Date().toISOString().split("T")[0])}
-                        />
-
+                        /> */}
                     </div>
                 </ModalBody>
 

@@ -1,11 +1,12 @@
 "use client"
 
 import React from "react"
-import { useImageUploadModal } from "@/hooks"
+import { useImageUploadModal, useTokenStore } from "@/hooks"
 import { useUploadProductImage } from "@/features/products/hooks"
 import { DropdownStyled, ImagePreviewModal, ImageStyled, ImageUploaderModal } from "@/components"
 import { Camera, Eye } from "lucide-react"
 import { DropdownItem, DropdownMenu, DropdownTrigger, useDisclosure } from "@heroui/react"
+import { RoleSlug } from "@/constants/enums"
 
 type Props = {
     productId: string
@@ -14,6 +15,8 @@ type Props = {
 }
 
 export function ProductImageUploader({ productId, currentImageUrl, onSuccess }: Props) {
+    const isReadOnly = useTokenStore((s) => s.roleSlug !== RoleSlug.Admin)
+
     const {
         isOpen: isPreviewOpen,
         onOpen: onOpenPreview,
@@ -60,7 +63,7 @@ export function ProductImageUploader({ productId, currentImageUrl, onSuccess }: 
                         if (key === "upload") onOpen()
                     }}
                     // Fix lỗi type cho disabledKeys: Phải là mảng (Iterable)
-                    disabledKeys={!currentImageUrl ? ["view"] : []}
+                    disabledKeys={isReadOnly ? ["upload"] : !currentImageUrl ? ["view"] : []}
                 >
                     <DropdownItem
                         key="view"
@@ -86,7 +89,7 @@ export function ProductImageUploader({ productId, currentImageUrl, onSuccess }: 
                     onOpenChange={onPreviewChange}
                     imgUrl={currentImageUrl}
                     width={400}
-                    height={300}
+                    height={400}
                 />
             )}
 
@@ -102,7 +105,7 @@ export function ProductImageUploader({ productId, currentImageUrl, onSuccess }: 
                 label="Cập nhật ảnh sản phẩm"
                 // aspect={4 / 3}
                 cropShape="rect"
-                cropSize={{ width: 400, height: 300 }}
+                cropSize={{ width: 400, height: 400 }}
             />
         </div>
     )

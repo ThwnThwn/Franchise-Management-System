@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useMemo } from "react"
+import React, { useEffect, useMemo } from "react"
 import { Button, Divider, Switch, AutocompleteItem, Card, CardBody, Spinner } from "@heroui/react"
 import { useFormik, FieldArray, FormikProvider } from "formik"
 import * as Yup from "yup"
@@ -8,7 +8,7 @@ import { Plus, ArrowLeft } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 // Components
-import { InputStyled, AutocompleteStyled, UnsavedChangesNotifier } from "@/components"
+import { InputStyled, AutocompleteStyled, UnsavedChangesNotifier, AlertStyled } from "@/components"
 
 // Hooks & Utils
 import {
@@ -24,9 +24,12 @@ import { ProductFormValues } from "../../types"
 import { VariantItem } from "../../components/variantModule/VariantItem"
 import { ProductImageUploader } from "../../components"
 import { PRODUCTS_ROUTES } from "../../constants/routes"
+import { useTokenStore } from "@/hooks"
+import { RoleSlug } from "@/constants/enums"
 
 export default function ProductFormPageView({ productId }: { productId?: string }) {
     const router = useRouter()
+    const isReadOnly = useTokenStore((s) => s.roleSlug !== RoleSlug.Admin)
     const isEditMode = !!productId
 
     // 1. Fetch Data
@@ -92,7 +95,12 @@ export default function ProductFormPageView({ productId }: { productId?: string 
                 Yup.object({
                     sku: Yup.string().required("Bắt buộc"),
                     name: Yup.string().required("Bắt buộc"),
-                    basePrice: Yup.number().min(0).required("Nhập giá")
+                    basePrice: Yup.number()
+                        .min(1000, "Phải lớn hơn hoặc bằng 1000")
+                        .required("Nhập giá"),
+                    cost: Yup.number()
+                        .min(1000, "Phải lớn hơn hoặc bằng 1000")
+                        .required("Nhập cost")
                 })
             )
             .min(1)
@@ -131,6 +139,17 @@ export default function ProductFormPageView({ productId }: { productId?: string 
         }
     })
 
+    useEffect(() => {
+        const variants = formik.values.variants
+        const hasActiveVariant = variants.length > 0 && variants.some((v) => v.isActive)
+
+        // Nếu không có biến thể nào active mà sản phẩm đang để active -> Tự động tắt
+        if (!hasActiveVariant && formik.values.isActive) {
+            formik.setFieldValue("isActive", false)
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [formik.values.variants, formik.values.isActive, formik.setFieldValue])
+
     if (isEditMode && isFetchingProduct) {
         return (
             <div className="flex justify-center items-center h-[50vh]">
@@ -147,6 +166,7 @@ export default function ProductFormPageView({ productId }: { productId?: string 
                     isIconOnly
                     variant="light"
                     onPress={() => router.push(PRODUCTS_ROUTES.LIST)}
+                    isDisabled={isReadOnly}
                 >
                     <ArrowLeft size={20} />
                 </Button>
@@ -165,6 +185,7 @@ export default function ProductFormPageView({ productId }: { productId?: string 
                         onValueChange={(val) => formik.setFieldValue("isActive", val)}
                         color="success"
                         size="sm"
+                        isReadOnly={isReadOnly}
                     />
                     <span
                         className={`text-sm ${formik.values.isActive ? "text-success-600 font-medium" : "text-slate-400"}`}
@@ -187,6 +208,7 @@ export default function ProductFormPageView({ productId }: { productId?: string 
                                     {...formik.getFieldProps("name")}
                                     isInvalid={!!(formik.touched.name && formik.errors.name)}
                                     errorMessage={formik.errors.name}
+                                    isReadOnly={isReadOnly}
                                 />
                                 <AutocompleteStyled
                                     label={"Danh mục"}
@@ -195,8 +217,13 @@ export default function ProductFormPageView({ productId }: { productId?: string 
                                     onSelectionChange={(id) =>
                                         formik.setFieldValue("categoryId", id)
                                     }
+                                    isInvalid={
+                                        !!(formik.touched.categoryId && formik.errors.categoryId)
+                                    }
+                                    errorMessage={formik.errors.categoryId}
                                     isRequired
                                     isClearable={false}
+                                    isReadOnly={isReadOnly}
                                 >
                                     {(categories ?? []).map((item) => (
                                         <AutocompleteItem key={item.id}>
@@ -208,7 +235,23 @@ export default function ProductFormPageView({ productId }: { productId?: string 
                                     label="Mô tả sản phẩm"
                                     {...formik.getFieldProps("description")}
                                     className="col-span-1 md:col-span-2"
+                                    isReadOnly={isReadOnly}
                                 />
+                                {(!formik.values.variants ||
+                                    !formik.values.variants.some((v) => v.isActive)) && (
+                                    <AlertStyled
+                                        color="warning"
+                                        className="col-span-2"
+                                        title="Tự động ngưng kinh doanh"
+                                        description={
+                                            <p>
+                                                Sản phẩm này hiện không có biến thể nào đang hoạt
+                                                động. Vui lòng kích hoạt ít nhất một biến thể bên
+                                                dưới để có thể kinh doanh sản phẩm này.
+                                            </p>
+                                        }
+                                    />
+                                )}
                             </div>
                         </CardBody>
                     </Card>
@@ -233,6 +276,7 @@ export default function ProductFormPageView({ productId }: { productId?: string 
                                                         variant={variant}
                                                         formik={formik}
                                                         isDeleteAble={
+                                                            !isReadOnly &&
                                                             formik.values.variants.length > 1
                                                         }
                                                         remove={() => variantHelpers.remove(index)}
@@ -259,6 +303,7 @@ export default function ProductFormPageView({ productId }: { productId?: string 
                                                             attributes: []
                                                         })
                                                     }
+                                                    isDisabled={isReadOnly}
                                                 >
                                                     Thêm phân loại mới
                                                 </Button>
@@ -285,30 +330,6 @@ export default function ProductFormPageView({ productId }: { productId?: string 
                             </CardBody>
                         </Card>
                     )}
-
-                    {/* Action Buttons (Sticky) */}
-                    {/* <Card className="sticky top-6">
-                        <CardBody className="p-4 flex flex-col gap-3">
-                            <ButtonStyled
-                                color="primary"
-                                onPress={() => formik.handleSubmit()}
-                                isLoading={isSubmitting}
-                                className="w-full font-semibold shadow-md"
-                                isDisabled={!formik.dirty}
-                            >
-                                {isEditMode ? "Lưu thay đổi" : "Tạo sản phẩm"}
-                            </ButtonStyled>
-
-                            <Button
-                                variant="flat"
-                                color="default"
-                                onPress={() => router.back()}
-                                isDisabled={isSubmitting}
-                            >
-                                Hủy bỏ
-                            </Button>
-                        </CardBody>
-                    </Card> */}
                 </div>
             </div>
 

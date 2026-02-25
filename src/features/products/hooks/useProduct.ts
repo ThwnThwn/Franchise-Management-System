@@ -16,7 +16,7 @@ export const useGetInfiniteProducts = ({
     pageSize?: number
 }) => {
     return useInfiniteQuery({
-        queryKey: [QUERY_KEYS.PRODUCTS, params],
+        queryKey: [QUERY_KEYS.PRODUCTS, params, "infinite"],
         queryFn: async ({ pageParam = 1 }) => {
             const response = await productApi.getAll({
                 pagination: {

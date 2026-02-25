@@ -9,6 +9,7 @@ import { FormikProps } from "formik"
 import { ProductFormValues, VariantUI } from "@/features/products/types"
 import { RecipeEditModal } from "../RecipeEditModal"
 import { RecipeViewRes } from "@/features/products/models/recipes/response"
+import { useFormikHelpers } from "@/hooks"
 
 interface VariantItemProps {
     index: number
@@ -31,12 +32,17 @@ export const VariantItem = React.memo(function VariantItem({
     variantId,
     recipes = []
 }: VariantItemProps) {
-    const { isOpen: isRecipeOpen, onOpen: onRecipeOpen, onOpenChange: onRecipeOpenChange } = useDisclosure()
+    const {
+        isOpen: isRecipeOpen,
+        onOpen: onRecipeOpen,
+        onOpenChange: onRecipeOpenChange
+    } = useDisclosure()
     const [recipeBtnHover, setRecipeBtnHover] = useState(false)
 
-    const hasRecipes = variantId
-        ? recipes.some((r) => r.variantId === variantId)
-        : false
+    const hasRecipes = variantId ? recipes.some((r) => r.variantId === variantId) : false
+
+    const { isInvalid, getErrorMessage } = useFormikHelpers(formik)
+    const getVariantPath = (field: string) => `variants.${index}.${field}`
 
     return (
         <div className="border border-gray-200 rounded-xl p-4 bg-gray-50/50 relative group">
@@ -100,6 +106,8 @@ export const VariantItem = React.memo(function VariantItem({
                         size="sm"
                         isRequired
                         {...formik.getFieldProps(`variants.${index}.name`)}
+                        isInvalid={isInvalid(getVariantPath("name"))}
+                        errorMessage={getErrorMessage(getVariantPath("name"))}
                     />
                 </div>
                 <div className="md:col-span-4">
@@ -108,6 +116,8 @@ export const VariantItem = React.memo(function VariantItem({
                         size="sm"
                         isRequired
                         {...formik.getFieldProps(`variants.${index}.sku`)}
+                        isInvalid={isInvalid(getVariantPath("sku"))}
+                        errorMessage={getErrorMessage(getVariantPath("sku"))}
                     />
                 </div>
                 <div className="md:col-span-2">
@@ -117,6 +127,8 @@ export const VariantItem = React.memo(function VariantItem({
                         size="sm"
                         isRequired
                         {...formik.getFieldProps(`variants.${index}.basePrice`)}
+                        isInvalid={isInvalid(getVariantPath("basePrice"))}
+                        errorMessage={getErrorMessage(getVariantPath("basePrice"))}
                     />
                 </div>
                 <div className="md:col-span-2">
@@ -124,7 +136,10 @@ export const VariantItem = React.memo(function VariantItem({
                         label="Giá vốn"
                         type="number"
                         size="sm"
+                        isRequired
                         {...formik.getFieldProps(`variants.${index}.cost`)}
+                        isInvalid={isInvalid(getVariantPath("cost"))}
+                        errorMessage={getErrorMessage(getVariantPath("cost"))}
                     />
                 </div>
             </div>
@@ -165,10 +180,7 @@ export const VariantItem = React.memo(function VariantItem({
                         <FlaskConical size={11} />
                         Công thức nguyên liệu
                     </p>
-                    <RecipeIngredientList
-                        variantId={variantId}
-                        recipes={recipes}
-                    />
+                    <RecipeIngredientList variantId={variantId} recipes={recipes} />
                 </div>
             )}
 
