@@ -72,8 +72,8 @@ public sealed class CreatePaymentHandler : IRequestHandler<CreatePaymentCommand,
             Currency = "VND",
             Method = (int)request.PaymentMethod,// 0 = Cash | 1 = VNPay
             Status = request.PaymentMethod == PaymentMethod.VNPay
-                        ? (int)PaymentStatus.Paid
-                        : (int)PaymentStatus.Pending,      // if VNPay then Paid Else Pending
+                        ? (int)PaymentStatus.Pending
+                        : (int)PaymentStatus.Paid,      // if VNPay then Paid Else Pending
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             IsDeleted = false
