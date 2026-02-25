@@ -190,6 +190,7 @@ public partial class EngagementDbContext : DbContext, IEngagementDbContext
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").HasColumnName("created_at");
             entity.Property(e => e.CurrentQuantity).HasDefaultValue(0).HasColumnName("current_quantity");
             entity.Property(e => e.DiscountValue).HasPrecision(15, 3).HasColumnName("discount_value");
+            entity.Property(e => e.MaxDiscountValue).HasPrecision(15, 3).HasColumnName("max_discount_value");
             entity.Property(e => e.EndDate).HasColumnName("end_date");
             entity.Property(e => e.InitQuantity).HasDefaultValue(0).HasColumnName("init_quantity");
             entity.Property(e => e.IsActive).HasDefaultValue(true).HasColumnName("is_active");

@@ -58,6 +58,7 @@ CREATE TABLE "vouchers" (
     "category" voucher_category NOT NULL,
     "type" voucher_discount_type,
     "discount_value" DECIMAL(15, 3) CHECK ("discount_value" >= 0),
+    "max_discount_value" DECIMAL(15, 3) CHECK ("max_discount_value" >= 0),
     "min_order_value" DECIMAL(15, 3) DEFAULT 0 CHECK ("min_order_value" >= 0),
     "point_cost" DECIMAL(15, 3) DEFAULT 0 CHECK ("point_cost" >= 0),
     "init_quantity" INT DEFAULT 0 CHECK ("init_quantity" >= 0),
