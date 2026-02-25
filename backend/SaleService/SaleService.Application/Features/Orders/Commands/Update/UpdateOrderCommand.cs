@@ -24,6 +24,7 @@ namespace SalesService.Application.Features.Orders.Commands.Update
     public sealed class UpdateOrderRes
     {
         public Guid? OrderId { get; set; }
+        public Guid? StoreId { get; set; }
         public Guid? CustomerId { get; set; }
         public string? OrderCode { get; set; } = default!;
         public List<OrderItemDto> Items { get; set; } = new();

@@ -69,6 +69,7 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
         var reply = new OrderReply
         {
             OrderId = result.Value.OrderId.ToString(),
+            StoreId = result.Value.StoreId.ToString(),
             OrderCode = result.Value.OrderCode ?? string.Empty, // Tránh lỗi null cũ
             TotalAmount = (double)result.Value.TotalAmount,
             CustomerId = customerId.ToString(),
@@ -297,6 +298,7 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
         {
             OrderId = result.OrderId.ToString(),
             OrderCode = result.OrderCode ?? "",
+            StoreId = result.StoreId.ToString(),
             TotalAmount = (double)(result.TotalAmount ?? 0),
             CustomerId = result.CustomerId.ToString(),
             CheckStockRespone = new CheckEnoughStockResponse
