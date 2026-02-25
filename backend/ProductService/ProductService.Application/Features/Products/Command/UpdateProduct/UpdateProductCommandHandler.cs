@@ -45,12 +45,20 @@ namespace ProductService.Application.Features.Products.Command.UpdateProduct
                 Id = request.ProductId,
                 Name = request.Request.Name ?? "",
                 Description = request.Request.Description,
-                ImageUrl = request.Request.ImageUrl,
-                ImagePublicId = request.Request.ImagePublicId,
                 IsActive = request.Request.IsActive,
-                CategoryId = request.Request.CategoryId
+                CategoryId = request.Request.CategoryId,
+                ProductVariants = request.Request.Variants?.Select(v => new Domain.Entities.ProductVariant
+                {
+                    Sku = v.Sku ?? "",
+                    Name = v.Name ?? "",
+                    Attributes = v.Attributes,
+                    BasePrice = v.BasePrice ?? 0,
+                    Cost = v.Cost ?? 0,
+                    IsActive = v.IsActive ?? true
+                }).ToList() ?? new List<Domain.Entities.ProductVariant>()
             };
-            await _productRepository.UpdateAsync(product);
+
+            await _productRepository.UpdateWithVariantsAsync(product);
             return Result.Success(_mapper.Map<UpdateProductCommandResponse>(product));
         }
     }

@@ -24,4 +24,5 @@ public interface IProductRepository : IGenericRepository<Product>
     /// Get multiple products by variant SKUs, including Category and active Variants.
     /// </summary>
     Task<List<Product>> GetProductsBySkusAsync(List<string> skus);
+    Task UpdateWithVariantsAsync(Product updatedProduct);
 }

@@ -10,6 +10,8 @@ func MapCartItemReplyPbToModel(c *sales.CartItemReply) *cart.CartItemReply {
 		Id:          c.Id,
 		Sku:         c.Sku,
 		ProductName: c.ProductName,
+		ImageUrl:    c.ImageUrl,
+		Attributes:  c.Attributes,
 		CustomerId:  c.CustomerId,
 		Quantity:    c.Quantity,
 		BasePrice:   c.BasePrice,
