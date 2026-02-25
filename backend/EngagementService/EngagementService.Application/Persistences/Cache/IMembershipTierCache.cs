@@ -14,5 +14,6 @@ namespace EngagementService.Application.Persistences.Cache
         Task<bool> IsMembershipTierLoadedAsync(Guid tierId);
         Task RemoveMembershipTierAsync(Guid tierId);
         Task ClearAllMembershipTierCacheAsync();
+        Task<List<MembershipTier>> GetOrSetAllAsync(Func<Task<List<MembershipTier>>> getAllFromDb);
     }
 }

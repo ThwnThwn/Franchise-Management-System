@@ -19,7 +19,7 @@ namespace InventoryService.API.Services.Identity
         {
             _configuration = configuration;
 
-            var rawUrl = configuration[Common.IDENTITY_SERVICE_URL] ?? "https://localhost:5001";
+            var rawUrl = configuration["IDENTITY_SERVICE_URL"] ?? "https://localhost:5001";
             // Allow env var values like "localhost:5002" by normalizing to an absolute URI.
             _identityServiceUrl = rawUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
                                  rawUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
@@ -45,11 +45,11 @@ namespace InventoryService.API.Services.Identity
             {
                 Id = command.StoreId.ToString()
             };
-            var respone = await _client.GetManagerAsync(request);
+            var response = await _client.GetManagerAsync(request);
 
-            if (respone == null) throw new RpcException(new Status(StatusCode.NotFound, Message.User.NotFound));
+            if (response == null) throw new RpcException(new Status(StatusCode.NotFound, Message.User.NotFound));
 
-            return respone.ToEntity();
+            return response.ToEntity();
 
         }
     }

@@ -55,7 +55,11 @@ namespace EngagementService.API.Services.LoyaltyAccount
             var tierRep = new MembershipTierResponse()
             {
                 Id = account.CurrentTier.Id.ToString(),
-                Name = account.CurrentTier.Name
+                Name = account.CurrentTier.Name,
+                MinSpendRequired = account.CurrentTier.MinSpendRequired.ToString(), // Chuyển decimal sang string để gRPC hiểu
+                DiscountRate = account.CurrentTier.DiscountRate,
+                ValuePerPoint = account.CurrentTier.ValuePerPoint.ToString(),
+                AmountPerPoint = account.CurrentTier.AmountPerPoint.ToString()
             };
             var response = new LoyaltyAccountResponse
             {
