@@ -23,10 +23,14 @@ func ProvideStoreIngredientClient(f *clientFactory) inventoryGW.IStockService {
 func (s *stockGrpcClient) IncreaseStock(ctx context.Context, id uuid.UUID, req []*ingredient.IngredientStockItem) error {
 	items := make([]*inventoryPb.IngredientStockItem, 0, len(req))
 	for _, item := range req {
-		items = append(items, &inventoryPb.IngredientStockItem{
+		pbItem := &inventoryPb.IngredientStockItem{
 			IngredientId: item.IngredientId,
 			Quantity:     item.Quantity,
-		})
+		}
+		if item.MinThreshold != nil {
+			pbItem.MinThreshold = item.MinThreshold
+		}
+		items = append(items, pbItem)
 	}
 
 	_, err := s.client.IncreaseStock(ctx, &inventoryPb.IncreaseStockRequest{

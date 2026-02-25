@@ -69,13 +69,14 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
         var reply = new OrderReply
         {
             OrderId = result.Value.OrderId.ToString(),
+            StoreId = result.Value.StoreId.ToString(),
             OrderCode = result.Value.OrderCode ?? string.Empty, // Tránh lỗi null cũ
             TotalAmount = (double)result.Value.TotalAmount,
             CustomerId = customerId.ToString(),
             CheckStockRespone = new CheckEnoughStockResponse
             {
                 IsEnough = result.Value.CheckEnoughStockRes.IsEnough
-            }
+            },
         };
 
         // Sử dụng AddRange để đẩy dữ liệu vào list read-only
@@ -93,7 +94,14 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
                 })
             );
         }
-
+        reply.Items.AddRange(
+            result.Value.Items.Select(i => new OrderItemReply
+            {
+                Sku = i.Sku,
+                Quantity = i.Quantity,
+                UnitPrice = (double)i.UnitPrice
+            })
+            );
         return reply;
     }
 
@@ -291,6 +299,7 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
         {
             OrderId = result.OrderId.ToString(),
             OrderCode = result.OrderCode ?? "",
+            StoreId = result.StoreId.ToString(),
             TotalAmount = (double)(result.TotalAmount ?? 0),
             CustomerId = result.CustomerId.ToString(),
             CheckStockRespone = new CheckEnoughStockResponse
@@ -312,7 +321,14 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
                     })
             );
         }
-
+        reply.Items.AddRange(
+            result.Items.Select(i => new OrderItemReply
+            {
+                Sku = i.Sku,
+                Quantity = i.Quantity,
+                UnitPrice = (double)i.UnitPrice
+            })
+            );
         return reply;
     }
 

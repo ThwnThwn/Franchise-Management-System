@@ -1,10 +1,12 @@
 ﻿using Ardalis.Result;
+using DocumentFormat.OpenXml.VariantTypes;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using SalesService.Application.AppExceptions;
 using SalesService.Application.ClientInterface.Inventory;
 using SalesService.Application.ClientInterface.Products;
 using SalesService.Application.Dtos.Inventory;
+using SalesService.Application.Features.Orders.Commands.Create;
 using SalesService.Application.Persisitences.Orders;
 using SalesService.Application.Persisitences.Outbox;
 using SalesService.Application.Signals;
@@ -103,7 +105,13 @@ namespace SalesService.Application.Features.Orders.Commands.Update
 
             if (!reserveRes.IsEnough)
                 //throw new BusinessException($"Stock update failed: {reserveRes.Message}");
-                throw new BusinessException($"Stock update faile");
+                return Result.Success(new UpdateOrderRes
+                {
+                    OrderId = Guid.Empty,
+                    OrderCode = "Failed",
+                    TotalAmount = 0,
+                    CheckEnoughStockRes = reserveRes
+                });
 
             // Remove orderItem - save change order
             decimal subtotal = 0;
@@ -116,6 +124,9 @@ namespace SalesService.Application.Features.Orders.Commands.Update
                 {
                     // Update quantity
                     existing.Quantity = item.Quantity;
+                    var variant = variants.First(v => v.Sku == item.Sku);
+                    decimal unitPrice = variant.BasePrice.Value;
+                    subtotal += unitPrice * item.Quantity;
                 }
                 else
                 {
@@ -156,6 +167,12 @@ namespace SalesService.Application.Features.Orders.Commands.Update
                 OrderId = order.Id,
                 CustomerId = order.CustomerId,
                 OrderCode = order.Code,
+                Items = order.OrderItems.Select(x => new OrderItemDto
+                {
+                    Sku = x.Sku,
+                    Quantity = x.Quantity,
+                    UnitPrice = x.UnitPrice
+                }).ToList(),
                 TotalAmount = order.TotalAmount,
                 CheckEnoughStockRes = new CheckEnoughStockRes
                 {

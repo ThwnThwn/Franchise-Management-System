@@ -1,14 +1,16 @@
 ﻿using MediatR;
 using Microsoft.Extensions.Logging;
+using SalesService.Application.ClientInterface.Inventory;
 using SalesService.Application.Interfaces.Payments;
-using SalesService.Application.Persisitences.Orders;
 using SalesService.Application.Mapping.Orders;
+using SalesService.Application.Persisitences.Orders;
 using SalesService.Application.Persisitences.Outbox;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
-using SharedKernel.Events;
-using SharedKernel.Infrastructure.Kafka;
 using SharedKernel.Constants;
+using SharedKernel.Events;
+using SharedKernel.Infrastructure.Extensions;
+using SharedKernel.Infrastructure.Kafka;
 
 namespace SalesService.Application.Features.Orders.Commands.UpdateOrderStatus;
 
@@ -20,17 +22,19 @@ public sealed class UpdateOrderStatusCommandHandler
     private readonly IKafkaProducer _kafkaProducer;
     private readonly IOutboxRepository _outboxRepository;
     private readonly ILogger<UpdateOrderStatusCommandHandler> _logger;
+    private readonly IInventoryServiceClient _inventoryServiceClient;
 
     public UpdateOrderStatusCommandHandler(IOrderRepository orderRepository, IPaymentRepository paymentRepository,
         IOutboxRepository outboxRepository,
         ILogger<UpdateOrderStatusCommandHandler> logger,
-        IKafkaProducer kafkaProducer)
+        IKafkaProducer kafkaProducer, IInventoryServiceClient inventoryServiceClient)
     {
         _orderRepository = orderRepository;
         _paymentRepository = paymentRepository;
         _outboxRepository = outboxRepository;
         _logger = logger;
         _kafkaProducer = kafkaProducer;
+        _inventoryServiceClient = inventoryServiceClient;
     }
 
     public async Task<string> Handle(UpdateOrderStatusCommand commnad, CancellationToken cancellationToken)
@@ -54,6 +58,18 @@ public sealed class UpdateOrderStatusCommandHandler
         {
             return $"Invalid order status transition from {order.Status} to {request.Status}";
         }
+
+        // Đơn hàng hủy thì xóa queue 
+        if(request.Status == OrderStatus.Cancelled)
+        {
+            await _inventoryServiceClient.ReleaseStockAsync(new ReleaseStockReq
+            {
+                OrderId = order.Id,
+                StoreId = order.StoreId!.Value
+            });
+        }
+
+        // Đơn hàng hoàn thành
         if (request.Status == OrderStatus.Completed)
         {
 
@@ -73,6 +89,11 @@ public sealed class UpdateOrderStatusCommandHandler
                     return "No pending payment found for this order.";
                 }
                 payment.Status = (int)PaymentStatus.Paid;
+
+                //OrderPaidEvent → InventoryService (trừ kho)
+                var orderPaidEvent = OrderToKafka.MapToOrderPaidEvent(payment.Order);
+                _outboxRepository.AddEvent(orderPaidEvent, KafkaTopics.OrderPaid);
+
                 payment.UpdatedAt = DateTime.UtcNow;
                 await _paymentRepository.SaveChangesAsync();
             }
