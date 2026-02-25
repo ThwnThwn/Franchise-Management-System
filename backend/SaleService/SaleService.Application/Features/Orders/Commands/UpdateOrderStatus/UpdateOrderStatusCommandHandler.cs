@@ -9,6 +9,7 @@ using SalesService.Domain.Enums;
 using SharedKernel.Events;
 using SharedKernel.Infrastructure.Kafka;
 using SharedKernel.Constants;
+using SharedKernel.Infrastructure.Extensions;
 
 namespace SalesService.Application.Features.Orders.Commands.UpdateOrderStatus;
 
@@ -73,6 +74,11 @@ public sealed class UpdateOrderStatusCommandHandler
                     return "No pending payment found for this order.";
                 }
                 payment.Status = (int)PaymentStatus.Paid;
+
+                //OrderPaidEvent → InventoryService (trừ kho)
+                var orderPaidEvent = OrderToKafka.MapToOrderPaidEvent(payment.Order);
+                _outboxRepository.AddEvent(orderPaidEvent, KafkaTopics.OrderPaid);
+
                 payment.UpdatedAt = DateTime.UtcNow;
                 await _paymentRepository.SaveChangesAsync();
             }
