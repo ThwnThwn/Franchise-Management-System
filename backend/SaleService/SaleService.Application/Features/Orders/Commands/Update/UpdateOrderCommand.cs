@@ -34,7 +34,7 @@ namespace SalesService.Application.Features.Orders.Commands.Update
     {
         public string Sku { get; set; } = default!;
         public int Quantity { get; set; }
-        public decimal? UnitPrice { get; set; }
+        public decimal UnitPrice { get; set; }
 
     }
 }

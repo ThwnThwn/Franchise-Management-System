@@ -75,7 +75,7 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             CheckStockRespone = new CheckEnoughStockResponse
             {
                 IsEnough = result.Value.CheckEnoughStockRes.IsEnough
-            }
+            },
         };
 
         // Sử dụng AddRange để đẩy dữ liệu vào list read-only
@@ -92,7 +92,14 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
                 })
             );
         }
-
+        reply.Items.AddRange(
+            result.Value.Items.Select(i => new OrderItemReply
+            {
+                Sku = i.Sku,
+                Quantity = i.Quantity,
+                UnitPrice = (double)i.UnitPrice
+            })
+            );
         return reply;
     }
 
@@ -310,7 +317,14 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
                     })
             );
         }
-
+        reply.Items.AddRange(
+            result.Items.Select(i => new OrderItemReply
+            {
+                Sku = i.Sku,
+                Quantity = i.Quantity,
+                UnitPrice = (double)i.UnitPrice
+            })
+            );
         return reply;
     }
 
