@@ -25,6 +25,60 @@ service ProductGrpc {
     returns (GetProductsByKeywordReply);
 
   rpc UploadImage (UploadImageRequest) returns (UploadImageReply);
+
+  // Upload image and assign to a specific product
+  rpc UploadProductImage (UploadProductImageRequest) returns (UploadProductImageReply);
+
+  // Get product variant info by SKU
+  rpc GetProductBySku (GetProductBySkuRequest) returns (GetProductBySkuReply);
+
+  // Get multiple product variants by list of SKUs
+  rpc GetProductsBySkus (GetProductsBySkusRequest) returns (GetProductsBySkusReply);
+
+  // Get SKUs by Category ID
+  rpc GetSkusByCategory (GetSkusByCategoryRequest) returns (GetSkusByCategoryReply);
+}
+
+// ── GetProductBySku ──
+message GetProductBySkuRequest {
+  string sku = 1;
+}
+
+message GetProductBySkuReply {
+  bool found = 1;
+  string product_id = 2;
+  string variant_id = 3;
+  string product_name = 4;
+  string sku = 5;
+  double base_price = 6;
+  string image_url = 7;
+}
+
+// ── GetProductsBySkus ──
+message GetProductsBySkusRequest {
+  repeated string skus = 1;
+}
+
+message GetProductsBySkusReply {
+  repeated ProductVariantDetail variants = 1;
+}
+
+message ProductVariantDetail {
+  string product_id = 1;
+  string variant_id = 2;
+  string product_name = 3;
+  string sku = 4;
+  double base_price = 5;
+  string image_url = 6;
+}
+
+// ── GetSkusByCategory ──
+message GetSkusByCategoryRequest {
+  string category_id = 1;
+}
+
+message GetSkusByCategoryReply {
+  repeated string skus = 1;
 }
 
 message GetProductsRequest {
@@ -172,4 +226,17 @@ message UploadImageRequest {
 message UploadImageReply {
   string url = 1;
   string public_id = 2;
+}
+
+message UploadProductImageRequest {
+  string product_id = 1;
+  bytes image_data = 2;
+  string file_name = 3;
+  string content_type = 4;
+}
+
+message UploadProductImageReply {
+  string product_id = 1;
+  string image_url = 2;
+  string image_public_id = 3;
 }

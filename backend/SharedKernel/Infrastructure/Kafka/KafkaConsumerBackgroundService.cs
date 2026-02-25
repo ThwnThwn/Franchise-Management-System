@@ -1,7 +1,4 @@
-using System;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using Confluent.Kafka;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -112,8 +109,7 @@ public class KafkaConsumerBackgroundService : BackgroundService
         }
         catch (Exception ex)
         {
-             _logger.LogError(ex, "Error processing business logic for topic {Topic}", topic);
-             throw; // Re-throw to prevent commit if business logic fails (depending on requirement)
+            _logger.LogError(ex, "Error processing business logic for topic {Topic}", topic);
         }
     }
 }

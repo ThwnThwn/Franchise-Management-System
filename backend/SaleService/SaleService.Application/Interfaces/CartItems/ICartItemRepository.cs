@@ -10,7 +10,7 @@ namespace SalesService.Application.Interfaces.CartItems
         Task<CartItem?> GetByCustomerAndSkuAsync(Guid customerId,string sku, CancellationToken cancellationToken = default);
         Task UpdateAsync(CartItem cartItem, CancellationToken cancellationToken = default);
         Task DeleteAsync(CartItem cartItem, CancellationToken cancellationToken = default);
-        Task RemoveItemsAsync(Guid customerId,List<string> skus, CancellationToken cancellationToken = default);
+        Task RemoveItemsAsync(Guid? customerId,List<string> skus, CancellationToken cancellationToken = default);
         Task ClearCartAsync(Guid customerId, CancellationToken cancellationToken = default);
     }
 }

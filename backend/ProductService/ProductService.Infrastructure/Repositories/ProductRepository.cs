@@ -1,4 +1,3 @@
-
 using BuildingBlocks.Core.Extensions;
 using BuildingBlocks.Core.Pagination;
 using Microsoft.EntityFrameworkCore;
@@ -63,7 +62,7 @@ public class ProductRepository : GenericRepository<Product>, IProductRepository
                     (p.Category != null && VietnameseHelper.RemoveVietnameseSigns(p.Category.Name).ToLower().Contains(searchTerm)) ||
                     p.ProductVariants.Any(pv => VietnameseHelper.RemoveVietnameseSigns(pv.Sku).ToLower().Contains(searchTerm))
                 )
-                .OrderByDescending(p => p.CreatedAt); 
+                .OrderByDescending(p => p.CreatedAt);
 
             return filtered.ToPagedList(pageIndex, pageSize);
         }
@@ -72,7 +71,6 @@ public class ProductRepository : GenericRepository<Product>, IProductRepository
         query = query.OrderByDescending(p => p.CreatedAt);
         return await query.ToPagedListAsync(pageIndex, pageSize, cancellationToken);
     }
-
 
     public async Task<Product?> GetProductByIdAsync(Guid id)
     {
@@ -86,7 +84,7 @@ public class ProductRepository : GenericRepository<Product>, IProductRepository
                 p.IsDeleted == false);
     }
 
-    public async Task<Product?> GetProductByNameAsync(string name)
+    public async Task<Product?> GetProductByNameAsync(string name, Guid? excludeId)
     {
         var normalizedSearchName = VietnameseHelper.RemoveVietnameseSigns(name.Trim()).ToLower();
 
@@ -96,6 +94,10 @@ public class ProductRepository : GenericRepository<Product>, IProductRepository
                 p.IsActive == true &&
                 p.IsDeleted == false);
 
+        if (excludeId.HasValue)
+        {
+            query = query.Where(p => p.Id != excludeId.Value);
+        }
 
         var products = await query.ToListAsync();
 
@@ -123,5 +125,40 @@ public class ProductRepository : GenericRepository<Product>, IProductRepository
             .OrderByDescending(p => p.CreatedAt)
             .ToList();
     }
-}
 
+    public async Task<Product?> GetProductBySkuAsync(string sku)
+    {
+        return await _dbContext.Products
+            .Include(p => p.Category)
+            .Include(p => p.ProductVariants
+                .Where(pv => pv.IsActive == true && pv.IsDeleted == false))
+            .Where(p => p.IsActive == true && p.IsDeleted == false 
+                                            && p.Category.IsActive == true 
+                                            && p.Category.IsDeleted == false)
+            .FirstOrDefaultAsync(p =>
+                p.ProductVariants.Any(pv =>
+                    pv.Sku == sku &&
+                    pv.IsActive == true &&
+                    pv.IsDeleted == false));
+    }
+
+    public async Task<List<Product>> GetProductsBySkusAsync(List<string> skus)
+    {
+        var skuSet = new HashSet<string>(skus, StringComparer.OrdinalIgnoreCase);
+
+        return await _dbContext.Products
+            .Include(p => p.Category)
+            .Include(p => p.ProductVariants
+                .Where(pv => pv.IsActive == true && pv.IsDeleted == false))
+            .Where(p =>
+                p.IsActive == true &&
+                p.IsDeleted == false &&
+                p.Category.IsActive == true &&
+                p.Category.IsDeleted == false &&
+                p.ProductVariants.Any(pv =>
+                    skuSet.Contains(pv.Sku) &&
+                    pv.IsActive == true &&
+                    pv.IsDeleted == false))
+            .ToListAsync();
+    }
+}

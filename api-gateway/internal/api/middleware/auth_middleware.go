@@ -74,6 +74,13 @@ func (a *AuthMiddleware) PermissionCheck(permSlug string) gin.HandlerFunc {
 
 func (a *AuthMiddleware) ValidateToken(secret []byte) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// CHECK NHANH: Nếu đã xác thực rồi thì bỏ qua (Skip)
+		// Kiểm tra xem key "userID" đã tồn tại trong context chưa
+		if _, exists := c.Get("userID"); exists {
+			c.Next()
+			return
+		}
+
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
 			abortWithErr(c, errorcode.ErrInvalidAccessToken)
@@ -108,6 +115,9 @@ func (a *AuthMiddleware) ValidateToken(secret []byte) gin.HandlerFunc {
 		c.Set("userID", userID)
 		c.Set("accessToken", token)
 		c.Set("roleSlug", claims.RoleSlug)
+		if claims.StoreId != nil {
+			c.Set("storeId", *claims.StoreId)
+		}
 		c.Next()
 	}
 }

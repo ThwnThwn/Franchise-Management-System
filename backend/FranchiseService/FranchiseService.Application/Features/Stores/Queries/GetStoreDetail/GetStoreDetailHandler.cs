@@ -47,8 +47,8 @@ namespace FranchiseService.Application.Features.Stores.Queries.GetStoreDetail
                 Address = store.Address,
                 Phone = store.Phone,
                 ImageUrl = store.ImageUrl,
-                Latitude = (double)(store.Latitude ?? 0),
-                Longitude = (double)(store.Longitude ?? 0),
+                Latitude = (double?)(store.Latitude),
+                Longitude = (double?)(store.Longitude),
                 IsOpenNow = isOpen
             };
         }

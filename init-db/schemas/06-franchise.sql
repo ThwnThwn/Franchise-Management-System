@@ -1,19 +1,19 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- ========================================================
--- 1. FRANCHISEES (Đối tác nhượng quyền)
+-- 1. FRANCHISEES (Đối tác nhượng quyền) 
 -- ========================================================
 CREATE TABLE IF NOT EXISTS franchisees (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     
     -- Business Info
     name VARCHAR(255) NOT NULL,
-    tax_code VARCHAR(50),             -- Mã số thuế
-    representative_name VARCHAR(100), -- Người đại diện pháp luật
+    tax_code VARCHAR(50),            
+    representative_name VARCHAR(100), 
     phone VARCHAR(20) NOT NULL,
     email VARCHAR(255) NOT NULL,
     
-    -- Financial Info (Để trả tiền hoa hồng/doanh thu)
+    -- Financial Info 
     bank_name VARCHAR(100),
     bank_account_number VARCHAR(50),
     bank_account_holder VARCHAR(100),
@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS franchisees (
     -- Contract Info
     contract_start_date TIMESTAMP WITH TIME ZONE,
     contract_end_date TIMESTAMP WITH TIME ZONE,
-    commission_rate DECIMAL(5,2) DEFAULT 0, -- % Phí trả về HQ
+    commission_rate DECIMAL(5,2) DEFAULT 0, 
     
     is_active BOOLEAN DEFAULT TRUE,
     
@@ -31,17 +31,17 @@ CREATE TABLE IF NOT EXISTS franchisees (
 );
 
 -- ========================================================
--- 2. STORES (Cửa hàng vật lý)
+-- 2. STORES (Cửa hàng vật lý) 
 -- ========================================================
 CREATE TABLE IF NOT EXISTS stores (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     
     -- Display Info
-    code VARCHAR(50) NOT NULL, -- STR-001
+    code VARCHAR(50) NOT NULL, 
     name VARCHAR(255) NOT NULL,
     address TEXT NOT NULL,
     phone VARCHAR(20),
-    email VARCHAR(255), -- Email riêng của cửa hàng (để nhận noti đơn hàng)
+    email VARCHAR(255), 
     image_url VARCHAR(500),
     
     -- Location (Geo-Search)
@@ -61,17 +61,13 @@ CREATE TABLE IF NOT EXISTS stores (
     CONSTRAINT fk_stores_franchisee FOREIGN KEY (franchisee_id) REFERENCES franchisees(id)
 );
 
--- --- INDEXING STRATEGY (STORES) ---
--- 1. Mã cửa hàng là duy nhất
 CREATE UNIQUE INDEX idx_stores_code ON stores(code);
--- 2. Tìm cửa hàng gần nhất (Bounding Box Search)
 CREATE INDEX idx_stores_location ON stores(latitude, longitude);
--- 3. Lọc cửa hàng theo đối tác 
 CREATE INDEX idx_stores_franchisee ON stores(franchisee_id);
 
 
 -- ========================================================
--- 3. STORE HOURS (Giờ hoạt động)
+-- 3. STORE HOURS (Giờ hoạt động) 
 -- ========================================================
 CREATE TABLE IF NOT EXISTS store_hours (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -81,7 +77,7 @@ CREATE TABLE IF NOT EXISTS store_hours (
     open_time TIME NOT NULL,
     close_time TIME NOT NULL,
     
-    is_closed BOOLEAN DEFAULT FALSE, -- Nghỉ định kỳ
+    is_closed BOOLEAN DEFAULT FALSE, 
 
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -89,7 +85,6 @@ CREATE TABLE IF NOT EXISTS store_hours (
     
     CONSTRAINT fk_hours_store FOREIGN KEY (store_id) REFERENCES stores(id) ON DELETE CASCADE
 );
--- Đảm bảo 1 cửa hàng chỉ có 1 cấu hình cho 1 thứ
 CREATE UNIQUE INDEX idx_hours_store_unique ON store_hours(store_id, day_of_week);
 
 
@@ -98,13 +93,13 @@ CREATE UNIQUE INDEX idx_hours_store_unique ON store_hours(store_id, day_of_week)
 -- ========================================================
 CREATE TABLE IF NOT EXISTS shift_templates (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    store_id UUID, -- Nếu NULL thì là mẫu chung toàn hệ thống, có ID thì là mẫu riêng của quán
+    store_id UUID, 
     
     code VARCHAR(50) NOT NULL,  -- MORNING
     name VARCHAR(100) NOT NULL, -- Ca Sáng
     start_time TIME NOT NULL,
     end_time TIME NOT NULL,
-    break_duration_minutes INT DEFAULT 0, -- Nghỉ 30p
+    break_duration_minutes INT DEFAULT 0, 
     
     is_active BOOLEAN DEFAULT TRUE,
     
@@ -113,58 +108,149 @@ CREATE TABLE IF NOT EXISTS shift_templates (
     is_deleted BOOLEAN DEFAULT FALSE
 );
 
-
 -- ========================================================
--- 5. SCHEDULES (Lịch làm việc - Roster)
+-- 5. SHIFTS (Cấu hình ca làm việc)
 -- ========================================================
-CREATE TABLE IF NOT EXISTS schedules (
+CREATE TABLE IF NOT EXISTS shifts (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    store_id UUID NOT NULL,
     
-    -- Relations
-    user_id UUID NOT NULL,  -- Tham chiếu Identity Service
-    store_id UUID NOT NULL, -- Làm ở đâu
-    shift_template_id UUID, -- Áp dụng mẫu nào (có thể null nếu ca custom)
-    
-    -- Timing
     shift_date DATE NOT NULL,
-    start_time TIMESTAMP WITH TIME ZONE NOT NULL, -- 2026-01-29 07:00:00+07
-    end_time TIMESTAMP WITH TIME ZONE NOT NULL,   -- 2026-01-29 12:00:00+07
-    break_duration_minutes INT DEFAULT 0,
+    start_time TIME NOT NULL, 
+    end_time TIME NOT NULL,
     
-    -- Wage Estimation (Dự tính lương - Optional)
-    hourly_wage DECIMAL(10, 2), -- Lương theo giờ dự kiến (lấy tại thời điểm xếp lịch)
+    required_staff_count INT NOT NULL DEFAULT 1,
     
-    -- Meta
-    status INT DEFAULT 1, -- 0: Draft, 1: Published, 2: Cancelled
+    shift_template_id UUID,
+    
+    -- Check status để cho phép Edit/Delete
+    -- 0: Draft/Planning
+    -- 1: Published (Nhân viên thấy được để đăng ký hoặc xem)
+    -- 2: Completed (Đã diễn ra xong)
+    -- 3: Cancelled
+    status INT DEFAULT 0,
+    
     note TEXT,
+    
+    break_duration_minutes INT DEFAULT 0, -- Thời gian nghỉ (phút)
+    lock_version INT DEFAULT 1,           -- Optimistic Locking
     
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     is_deleted BOOLEAN DEFAULT FALSE,
     
-    CONSTRAINT fk_schedules_store FOREIGN KEY (store_id) REFERENCES stores(id)
+    CONSTRAINT fk_shifts_store FOREIGN KEY (store_id) REFERENCES stores(id)
 );
 
--- --- INDEXING STRATEGY (SCHEDULES) ---
--- 1. App Nhân viên: "Lấy lịch làm việc tháng này của tôi"
-CREATE INDEX idx_schedules_user_date ON schedules(user_id, shift_date);
--- 2. App Quản lý: "Xem hôm nay cửa hàng có ai làm?"
-CREATE INDEX idx_schedules_store_date ON schedules(store_id, shift_date);
--- 3. Validation: Check trùng lịch (tránh 1 người làm 2 nơi cùng lúc)
-CREATE INDEX idx_schedules_overlap ON schedules(user_id, start_time, end_time);
+-- Index cho (View Schedule List)
+CREATE INDEX idx_shifts_store_date ON shifts(store_id, shift_date);
 
 
 -- ========================================================
--- 6. TIME LOGS (Chấm công thực tế)
+-- 6. SHIFT ASSIGNMENTS (Phân công nhân viên)
+-- ========================================================
+CREATE TABLE IF NOT EXISTS shift_assignments (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    
+    shift_id UUID NOT NULL,
+    user_id UUID NOT NULL,
+    
+    -- Availability Status có thể check ở bảng khác, nhưng ở đây lưu trạng thái gán
+    -- 0: Assigned (Quản lý gán)
+    -- 1: Confirmed (Nhân viên xác nhận - Optional)
+    -- 2: Rejected (Nhân viên từ chối - Optional)
+    status INT DEFAULT 0,
+    
+    -- Lưu lại wage tại thời điểm gán (snapshot)
+    hourly_wage DECIMAL(10, 2),
+    
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    
+    CONSTRAINT fk_assignments_shift FOREIGN KEY (shift_id) REFERENCES shifts(id),
+    -- Constraint: 1 nhân viên không được gán 2 lần vào cùng 1 ca
+    CONSTRAINT uq_assignment_user_shift UNIQUE (shift_id, user_id)
+);
+
+-- Index để tìm "Lịch làm của tôi"
+CREATE INDEX idx_assignments_user ON shift_assignments(user_id);
+
+
+-- ========================================================
+-- 7. SHIFT RULES (Luật lệ ca làm)
+-- ========================================================
+CREATE TABLE IF NOT EXISTS shift_rules (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    store_id UUID, -- NULL = Global Rule, Có ID = Store Specific Rule
+    
+    -- Story 4: Shuttle & Swap Policies
+    allow_shuttle BOOLEAN DEFAULT FALSE,      -- Cho phép nhân viên chạy nhiều shop
+    allow_shift_swap BOOLEAN DEFAULT TRUE,    -- Cho phép đổi ca
+    
+    -- Các rule mở rộng khác
+    min_hours_between_shifts INT DEFAULT 8,   -- Nghỉ tối thiểu 8h giữa 2 ca
+    max_hours_per_week INT DEFAULT 48,        -- Tối đa giờ làm/tuần
+    
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+CREATE UNIQUE INDEX idx_rules_store_unique ON shift_rules(store_id);
+
+-- ========================================================
+-- 8. STAFF AVAILABILITIES (Lịch của nhân viên)
+-- ========================================================
+CREATE TABLE IF NOT EXISTS staff_availabilities (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL,
+    
+    -- Trạng thái: TRUE (Rảnh), FALSE (Bận)
+    is_available BOOLEAN NOT NULL DEFAULT TRUE,
+
+    -- TRUE: Lặp lại hàng tuần (Thứ 2, 3...) | FALSE: Ngày cụ thể (Việc đột xuất)
+    is_recurring BOOLEAN DEFAULT FALSE,
+
+    -- Dùng khi is_recurring = FALSE (Ví dụ: '2026-02-14')
+    specific_date DATE, 
+
+    -- Dùng khi is_recurring = TRUE (0: Chủ Nhật, ..., 6: Thứ Bảy)
+    day_of_week SMALLINT CHECK (day_of_week BETWEEN 0 AND 6),
+    
+    -- Giờ bắt đầu (Có thể > end_time nếu làm qua đêm)
+    start_time TIME NOT NULL, 
+    -- Giờ kết thúc
+    end_time TIME NOT NULL,
+    
+    -- Lý do bận hoặc ghi chú rảnh (nullable)
+    note VARCHAR(255),
+    
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP, 
+    is_deleted BOOLEAN DEFAULT FALSE,
+
+    -- Ràng buộc logic dữ liệu hybrid
+    CONSTRAINT date_or_day_check CHECK (
+        (is_recurring = FALSE AND specific_date IS NOT NULL) OR 
+        (is_recurring = TRUE AND day_of_week IS NOT NULL)
+    )
+);
+
+CREATE INDEX idx_staff_availability_query 
+ON staff_availabilities(user_id, is_available, specific_date, day_of_week) 
+WHERE is_deleted = FALSE;
+
+-- ========================================================
+-- 9. TIME LOGS (Chấm công thực tế)
 -- ========================================================
 CREATE TABLE IF NOT EXISTS time_logs (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    schedule_id UUID NOT NULL, -- Link với lịch
+    
+    shift_assignment_id UUID NOT NULL, 
     
     -- Check-in
     check_in_at TIMESTAMP WITH TIME ZONE,
-    check_in_image_url VARCHAR(500), -- Ảnh FaceID
-    check_in_lat DECIMAL(10,8),      -- GPS
+    check_in_image_url VARCHAR(500),
+    check_in_lat DECIMAL(10,8),
     check_in_long DECIMAL(11,8),
     
     -- Check-out
@@ -174,20 +260,33 @@ CREATE TABLE IF NOT EXISTS time_logs (
     check_out_long DECIMAL(11,8),
     
     -- Result
-    total_work_minutes INT DEFAULT 0, -- (Out - In) - Break
+    total_work_minutes INT DEFAULT 0,
     
-    -- Trạng thái chấm công (Khác trạng thái lịch nhé)
-    -- 0: Processing (Đang làm/Chưa checkout)
-    -- 1: Valid (Hợp lệ - Đã xong)
-    -- 2: Invalid (Bất thường - Ví dụ: Quên checkout, checkin sai vị trí)
+    -- 0: Processing, 1: Valid, 2: Invalid
     status INT DEFAULT 0,
-    admin_note TEXT,      -- Ghi chú của quản lý nếu sửa công
+    manager_note TEXT,      -- Ghi chú của quản lý (lý do sửa công, duyệt trễ...)
     
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     is_deleted BOOLEAN DEFAULT FALSE,
 
-    CONSTRAINT fk_timelogs_schedule FOREIGN KEY (schedule_id) REFERENCES schedules(id)
+    CONSTRAINT fk_timelogs_assignment FOREIGN KEY (shift_assignment_id) REFERENCES shift_assignments(id)
 );
--- Index tìm log theo lịch
-CREATE INDEX idx_timelogs_schedule ON time_logs(schedule_id);
+CREATE INDEX idx_timelogs_assignment ON time_logs(shift_assignment_id);
+
+-- =======================================================
+-- 10. OUTBOX MESSAGES (Pattern for Reliable Events)
+-- =======================================================
+CREATE TABLE IF NOT EXISTS outbox_messages (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    type TEXT NOT NULL,
+    content TEXT NOT NULL,
+    occurred_on TIMESTAMP WITH TIME ZONE NOT NULL,
+    processed_on TIMESTAMP WITH TIME ZONE NULL,
+    error TEXT NULL,
+
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX ix_outbox_messages_processed_on ON outbox_messages(processed_on) WHERE processed_on IS NULL;

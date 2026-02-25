@@ -16,16 +16,15 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
         public async Task<IEnumerable<Role>> GetAllDetailsAsync()
         {
             return await _dbContext.Roles
-                .Include(r => r.RolePermissions)
-                    .ThenInclude(rp => rp.Permission)
+                .Include(r => r.Permissions)
+                .OrderBy(r => r.CreatedAt)
                 .ToListAsync();
         }
 
         public async Task<Role?> GetByIdDetailsAsync(Guid id)
         {
             var role = await _dbContext.Roles
-                .Include(r => r.RolePermissions)
-                    .ThenInclude(rp => rp.Permission)
+                .Include(r => r.Permissions)
                 .FirstOrDefaultAsync(r => r.Id == id);
             return role;
         }

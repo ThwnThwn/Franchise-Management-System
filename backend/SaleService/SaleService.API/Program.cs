@@ -36,6 +36,8 @@ using SalesService.Infrastructure.Repositories.Orders;
 using SalesService.Infrastructure.Repositories.Outbox;
 using SalesService.Infrastructure.Repositories.Payments;
 using SalesService.Infrastructure.Signals;
+using SalesService.Application.Persisitences.Wallets;
+using SalesService.Infrastructure.Repositories;
 using SharedKernel.Infrastructure.Kafka;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -149,11 +151,12 @@ public class Program
         builder.Services.AddSingleton<IIdentityServiceClient, IdentityServiceClient>();
 
         // Register Kafka Producer Registry
-        builder.Services.AddSingleton<KafkaProducerRegistry>(sp => {
+        builder.Services.AddSingleton<KafkaProducerRegistry>(sp =>
+        {
             var registry = new KafkaProducerRegistry();
-            registry.Register<SharedKernel.Events.OrderCreatedEvent>(SharedKernel.Constants.KafkaTopics.OrderNotifications, "OrderCreatedEvent");
-            registry.Register<SharedKernel.Events.OrderPaidEvent>(SharedKernel.Constants.KafkaTopics.OrderPaid, SharedKernel.Constants.KafkaTopics.OrderPaid);
-            registry.Register<SharedKernel.Events.OrderCancelledEvent>(SharedKernel.Constants.KafkaTopics.OrderCancelled, SharedKernel.Constants.KafkaTopics.OrderCancelled);
+            registry.Register<OrderStatusEvent>(KafkaTopics.OrderNotifications, KafkaTopics.OrderNotifications);
+            registry.Register<OrderPaidEvent>(KafkaTopics.OrderPaid, KafkaTopics.OrderPaid);
+            registry.Register<OrderCancelledEvent>(KafkaTopics.OrderCancelled, KafkaTopics.OrderCancelled);
             return registry;
         });
 
@@ -169,6 +172,9 @@ public class Program
         //Inventory Service Client
         builder.Services.AddScoped<IInventoryServiceClient, InventoryServiceClient>();
 
+        //Wallet 
+        builder.Services.AddScoped<IRefundTicketRepository, RefundTicketRepository>();
+        builder.Services.AddScoped<IWalletTransactionRepository, WalletTransactionRepository>();
         // Signal for Outbox
         builder.Services.AddSingleton<IOutboxSignal, OutboxSignal>();
 

@@ -29,6 +29,15 @@ type ProductGrpcClient interface {
 	UpdateProduct(ctx context.Context, in *UpdateProductRequest, opts ...grpc.CallOption) (*UpdateProductReply, error)
 	DeleteProduct(ctx context.Context, in *DeleteProductRequest, opts ...grpc.CallOption) (*DeleteProductReply, error)
 	GetProductsByKeyword(ctx context.Context, in *GetProductsByKeywordRequest, opts ...grpc.CallOption) (*GetProductsByKeywordReply, error)
+	UploadImage(ctx context.Context, in *UploadImageRequest, opts ...grpc.CallOption) (*UploadImageReply, error)
+	// Upload image and assign to a specific product
+	UploadProductImage(ctx context.Context, in *UploadProductImageRequest, opts ...grpc.CallOption) (*UploadProductImageReply, error)
+	// Get product variant info by SKU
+	GetProductBySku(ctx context.Context, in *GetProductBySkuRequest, opts ...grpc.CallOption) (*GetProductBySkuReply, error)
+	// Get multiple product variants by list of SKUs
+	GetProductsBySkus(ctx context.Context, in *GetProductsBySkusRequest, opts ...grpc.CallOption) (*GetProductsBySkusReply, error)
+	// Get SKUs by Category ID
+	GetSkusByCategory(ctx context.Context, in *GetSkusByCategoryRequest, opts ...grpc.CallOption) (*GetSkusByCategoryReply, error)
 }
 
 type productGrpcClient struct {
@@ -102,6 +111,51 @@ func (c *productGrpcClient) GetProductsByKeyword(ctx context.Context, in *GetPro
 	return out, nil
 }
 
+func (c *productGrpcClient) UploadImage(ctx context.Context, in *UploadImageRequest, opts ...grpc.CallOption) (*UploadImageReply, error) {
+	out := new(UploadImageReply)
+	err := c.cc.Invoke(ctx, "/product.ProductGrpc/UploadImage", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productGrpcClient) UploadProductImage(ctx context.Context, in *UploadProductImageRequest, opts ...grpc.CallOption) (*UploadProductImageReply, error) {
+	out := new(UploadProductImageReply)
+	err := c.cc.Invoke(ctx, "/product.ProductGrpc/UploadProductImage", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productGrpcClient) GetProductBySku(ctx context.Context, in *GetProductBySkuRequest, opts ...grpc.CallOption) (*GetProductBySkuReply, error) {
+	out := new(GetProductBySkuReply)
+	err := c.cc.Invoke(ctx, "/product.ProductGrpc/GetProductBySku", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productGrpcClient) GetProductsBySkus(ctx context.Context, in *GetProductsBySkusRequest, opts ...grpc.CallOption) (*GetProductsBySkusReply, error) {
+	out := new(GetProductsBySkusReply)
+	err := c.cc.Invoke(ctx, "/product.ProductGrpc/GetProductsBySkus", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productGrpcClient) GetSkusByCategory(ctx context.Context, in *GetSkusByCategoryRequest, opts ...grpc.CallOption) (*GetSkusByCategoryReply, error) {
+	out := new(GetSkusByCategoryReply)
+	err := c.cc.Invoke(ctx, "/product.ProductGrpc/GetSkusByCategory", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ProductGrpcServer is the server API for ProductGrpc service.
 // All implementations must embed UnimplementedProductGrpcServer
 // for forward compatibility
@@ -113,6 +167,15 @@ type ProductGrpcServer interface {
 	UpdateProduct(context.Context, *UpdateProductRequest) (*UpdateProductReply, error)
 	DeleteProduct(context.Context, *DeleteProductRequest) (*DeleteProductReply, error)
 	GetProductsByKeyword(context.Context, *GetProductsByKeywordRequest) (*GetProductsByKeywordReply, error)
+	UploadImage(context.Context, *UploadImageRequest) (*UploadImageReply, error)
+	// Upload image and assign to a specific product
+	UploadProductImage(context.Context, *UploadProductImageRequest) (*UploadProductImageReply, error)
+	// Get product variant info by SKU
+	GetProductBySku(context.Context, *GetProductBySkuRequest) (*GetProductBySkuReply, error)
+	// Get multiple product variants by list of SKUs
+	GetProductsBySkus(context.Context, *GetProductsBySkusRequest) (*GetProductsBySkusReply, error)
+	// Get SKUs by Category ID
+	GetSkusByCategory(context.Context, *GetSkusByCategoryRequest) (*GetSkusByCategoryReply, error)
 	mustEmbedUnimplementedProductGrpcServer()
 }
 
@@ -140,6 +203,21 @@ func (UnimplementedProductGrpcServer) DeleteProduct(context.Context, *DeleteProd
 }
 func (UnimplementedProductGrpcServer) GetProductsByKeyword(context.Context, *GetProductsByKeywordRequest) (*GetProductsByKeywordReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProductsByKeyword not implemented")
+}
+func (UnimplementedProductGrpcServer) UploadImage(context.Context, *UploadImageRequest) (*UploadImageReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UploadImage not implemented")
+}
+func (UnimplementedProductGrpcServer) UploadProductImage(context.Context, *UploadProductImageRequest) (*UploadProductImageReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UploadProductImage not implemented")
+}
+func (UnimplementedProductGrpcServer) GetProductBySku(context.Context, *GetProductBySkuRequest) (*GetProductBySkuReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetProductBySku not implemented")
+}
+func (UnimplementedProductGrpcServer) GetProductsBySkus(context.Context, *GetProductsBySkusRequest) (*GetProductsBySkusReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetProductsBySkus not implemented")
+}
+func (UnimplementedProductGrpcServer) GetSkusByCategory(context.Context, *GetSkusByCategoryRequest) (*GetSkusByCategoryReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetSkusByCategory not implemented")
 }
 func (UnimplementedProductGrpcServer) mustEmbedUnimplementedProductGrpcServer() {}
 
@@ -280,6 +358,96 @@ func _ProductGrpc_GetProductsByKeyword_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProductGrpc_UploadImage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UploadImageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductGrpcServer).UploadImage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/product.ProductGrpc/UploadImage",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductGrpcServer).UploadImage(ctx, req.(*UploadImageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductGrpc_UploadProductImage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UploadProductImageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductGrpcServer).UploadProductImage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/product.ProductGrpc/UploadProductImage",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductGrpcServer).UploadProductImage(ctx, req.(*UploadProductImageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductGrpc_GetProductBySku_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetProductBySkuRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductGrpcServer).GetProductBySku(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/product.ProductGrpc/GetProductBySku",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductGrpcServer).GetProductBySku(ctx, req.(*GetProductBySkuRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductGrpc_GetProductsBySkus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetProductsBySkusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductGrpcServer).GetProductsBySkus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/product.ProductGrpc/GetProductsBySkus",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductGrpcServer).GetProductsBySkus(ctx, req.(*GetProductsBySkusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductGrpc_GetSkusByCategory_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSkusByCategoryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductGrpcServer).GetSkusByCategory(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/product.ProductGrpc/GetSkusByCategory",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductGrpcServer).GetSkusByCategory(ctx, req.(*GetSkusByCategoryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ProductGrpc_ServiceDesc is the grpc.ServiceDesc for ProductGrpc service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -314,6 +482,26 @@ var ProductGrpc_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetProductsByKeyword",
 			Handler:    _ProductGrpc_GetProductsByKeyword_Handler,
+		},
+		{
+			MethodName: "UploadImage",
+			Handler:    _ProductGrpc_UploadImage_Handler,
+		},
+		{
+			MethodName: "UploadProductImage",
+			Handler:    _ProductGrpc_UploadProductImage_Handler,
+		},
+		{
+			MethodName: "GetProductBySku",
+			Handler:    _ProductGrpc_GetProductBySku_Handler,
+		},
+		{
+			MethodName: "GetProductsBySkus",
+			Handler:    _ProductGrpc_GetProductsBySkus_Handler,
+		},
+		{
+			MethodName: "GetSkusByCategory",
+			Handler:    _ProductGrpc_GetSkusByCategory_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

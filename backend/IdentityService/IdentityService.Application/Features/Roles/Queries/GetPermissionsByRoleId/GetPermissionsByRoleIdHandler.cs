@@ -18,18 +18,18 @@ namespace IdentityService.Application.Features.Roles.Queries.GetPermissionsByRol
             var role = await _roleRepo.GetByIdDetailsAsync(request.Id)
                 ?? throw new KeyNotFoundException("Không tìm thấy role này");
 
-            var grouped = role.RolePermissions
-                .GroupBy(rp => rp.Permission.Resource)
+            var grouped = role.Permissions
+                .GroupBy(rp => rp.Resource)
                 .Select(rp => new RolePermissionGroupRes
                 {
                     Resource = rp.Key,
                     Permissions = rp.Select(p => new RolePermissionRes
                     {
-                        Id = p.Permission.Id,
-                        Slug = p.Permission.Slug,
-                        Name = p.Permission.Name,
-                        Description = p.Permission.Description ?? "",
-                        IsActived = p.IsActived
+                        Id = p.Id,
+                        Slug = p.Slug,
+                        Name = p.Name,
+                        Description = p.Description ?? "",
+                        //IsActived = p.IsActived
                     }).ToList()
                 })
                 .ToList();

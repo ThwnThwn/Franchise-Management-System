@@ -8,7 +8,7 @@
 
   <ItemGroup>
     <Protobuf Include="..\..\..\protos\franchise\*.proto" GrpcServices="Server" ProtoRoot="..\..\..\protos" />
-	</ItemGroup>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="16.0.0" />

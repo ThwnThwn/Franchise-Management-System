@@ -7,10 +7,11 @@ import (
 
 func MapCartItemReplyPbToModel(c *sales.CartItemReply) *cart.CartItemReply {
 	return &cart.CartItemReply{
-		Id:         c.Id,
-		Sku:        c.Sku,
-		CustomerId: c.CustomerId,
-		Quantity:   c.Quantity,
-		BasePrice:  c.BasePrice,
+		Id:          c.Id,
+		Sku:         c.Sku,
+		ProductName: c.ProductName,
+		CustomerId:  c.CustomerId,
+		Quantity:    c.Quantity,
+		BasePrice:   c.BasePrice,
 	}
 }

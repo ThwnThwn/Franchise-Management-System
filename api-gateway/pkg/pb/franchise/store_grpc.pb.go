@@ -26,6 +26,7 @@ type StoreGrpcServiceClient interface {
 	GetStores(ctx context.Context, in *GetStoresRequest, opts ...grpc.CallOption) (*GetStoresResponse, error)
 	// Lấy chi tiết 1 cửa hàng (để hiện địa chỉ, hình ảnh)
 	GetStoreDetail(ctx context.Context, in *GetStoreDetailRequest, opts ...grpc.CallOption) (*StoreDetailResponse, error)
+	GetStoresByIds(ctx context.Context, in *GetStoresByIdsRequest, opts ...grpc.CallOption) (*GetStoresByIdsResponse, error)
 	// Tìm cửa hàng gần nhất (Dựa trên GPS User gửi lên)
 	FindNearbyStores(ctx context.Context, in *FindNearbyStoresRequest, opts ...grpc.CallOption) (*GetStoresResponse, error)
 	// Kiểm tra cửa hàng có nhận đơn được không? (Mở cửa? Còn hoạt động?)
@@ -58,6 +59,15 @@ func (c *storeGrpcServiceClient) GetStoreDetail(ctx context.Context, in *GetStor
 	return out, nil
 }
 
+func (c *storeGrpcServiceClient) GetStoresByIds(ctx context.Context, in *GetStoresByIdsRequest, opts ...grpc.CallOption) (*GetStoresByIdsResponse, error) {
+	out := new(GetStoresByIdsResponse)
+	err := c.cc.Invoke(ctx, "/franchise.StoreGrpcService/GetStoresByIds", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *storeGrpcServiceClient) FindNearbyStores(ctx context.Context, in *FindNearbyStoresRequest, opts ...grpc.CallOption) (*GetStoresResponse, error) {
 	out := new(GetStoresResponse)
 	err := c.cc.Invoke(ctx, "/franchise.StoreGrpcService/FindNearbyStores", in, out, opts...)
@@ -84,6 +94,7 @@ type StoreGrpcServiceServer interface {
 	GetStores(context.Context, *GetStoresRequest) (*GetStoresResponse, error)
 	// Lấy chi tiết 1 cửa hàng (để hiện địa chỉ, hình ảnh)
 	GetStoreDetail(context.Context, *GetStoreDetailRequest) (*StoreDetailResponse, error)
+	GetStoresByIds(context.Context, *GetStoresByIdsRequest) (*GetStoresByIdsResponse, error)
 	// Tìm cửa hàng gần nhất (Dựa trên GPS User gửi lên)
 	FindNearbyStores(context.Context, *FindNearbyStoresRequest) (*GetStoresResponse, error)
 	// Kiểm tra cửa hàng có nhận đơn được không? (Mở cửa? Còn hoạt động?)
@@ -100,6 +111,9 @@ func (UnimplementedStoreGrpcServiceServer) GetStores(context.Context, *GetStores
 }
 func (UnimplementedStoreGrpcServiceServer) GetStoreDetail(context.Context, *GetStoreDetailRequest) (*StoreDetailResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetStoreDetail not implemented")
+}
+func (UnimplementedStoreGrpcServiceServer) GetStoresByIds(context.Context, *GetStoresByIdsRequest) (*GetStoresByIdsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetStoresByIds not implemented")
 }
 func (UnimplementedStoreGrpcServiceServer) FindNearbyStores(context.Context, *FindNearbyStoresRequest) (*GetStoresResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FindNearbyStores not implemented")
@@ -156,6 +170,24 @@ func _StoreGrpcService_GetStoreDetail_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _StoreGrpcService_GetStoresByIds_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetStoresByIdsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StoreGrpcServiceServer).GetStoresByIds(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/franchise.StoreGrpcService/GetStoresByIds",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StoreGrpcServiceServer).GetStoresByIds(ctx, req.(*GetStoresByIdsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _StoreGrpcService_FindNearbyStores_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(FindNearbyStoresRequest)
 	if err := dec(in); err != nil {
@@ -206,6 +238,10 @@ var StoreGrpcService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetStoreDetail",
 			Handler:    _StoreGrpcService_GetStoreDetail_Handler,
+		},
+		{
+			MethodName: "GetStoresByIds",
+			Handler:    _StoreGrpcService_GetStoresByIds_Handler,
 		},
 		{
 			MethodName: "FindNearbyStores",

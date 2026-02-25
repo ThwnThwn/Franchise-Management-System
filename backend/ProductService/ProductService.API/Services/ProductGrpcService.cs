@@ -2,6 +2,7 @@ using Ardalis.Result;
 using AutoMapper;
 using Grpc.Core;
 using MediatR;
+using ProductService.API.Interceptors;
 using ProductService.Application.Features.Products.Command.CreateProduct;
 using ProductService.Application.Features.Products.Command.DeleteProduct;
 using ProductService.Application.Features.Products.Queries.GetById;
@@ -9,6 +10,7 @@ using ProductService.Application.Features.Products.Queries.GetByKeyword;
 using ProductService.Application.Features.Products.Queries.GetByProductName;
 using ProductService.Application.Features.Products.Queries.GetList;
 using ProductService.Application.Interfaces;
+using ProductService.Application.Repositories;
 using ProductService.Domain.Entities;
 
 namespace ProductService.API.Services;
@@ -18,12 +20,18 @@ public class ProductGrpcService : ProductGrpc.ProductGrpcBase
     private readonly IMediator _mediator;
     private readonly IMapper _mapper;
     private readonly ICloudinaryService _cloudinaryService;
+    private readonly IProductRepository _productRepository;
 
-    public ProductGrpcService(IMediator mediator, IMapper mapper, ICloudinaryService cloudinaryService)
+    public ProductGrpcService(
+        IMediator mediator,
+        IMapper mapper,
+        ICloudinaryService cloudinaryService,
+        IProductRepository productRepository)
     {
         _mediator = mediator;
         _mapper = mapper;
         _cloudinaryService = cloudinaryService;
+        _productRepository = productRepository;
     }
 
     public override async Task<GetProductsReply> GetProducts(
@@ -86,9 +94,33 @@ public class ProductGrpcService : ProductGrpc.ProductGrpcBase
                     result.Errors.FirstOrDefault() ?? "Get product failed"));
         }
 
+        var res = result.Value;
+        var productRes = new Product
+        {
+            Id = res.Id.ToString(),
+            Name = res.Name,
+            Description = res.Description ?? "",
+            ImageUrl = res.ImageUrl ?? "",
+            IsActive = res.IsActive,
+            CategoryId = res.CategoryId.ToString(),
+            CategoryName = res.CategoryName ?? "",
+        };
+
+        productRes.Sizes.AddRange(
+            res.Sizes.Select(v => new ProductSize
+            {
+                Id = v.Id.ToString(),
+                Sku = v.Sku ?? "",
+                Name = v.Name ?? "",
+                Attributes = v.Attributes ?? "",
+                BasePrice = (double)(v.BasePrice),
+                Cost = (double)(v.Cost),
+                IsActive = v.IsActive,
+            }));
+
         return new GetProductByIdReply
         {
-            Product = _mapper.Map<Product>(result.Value)
+            Product = productRes
         };
     }
 
@@ -254,6 +286,7 @@ public class ProductGrpcService : ProductGrpc.ProductGrpcBase
             UpdatedAt = result.Value.UpdatedAt.ToString("O")
         };
     }
+
     public override async Task<DeleteProductReply> DeleteProduct(
         DeleteProductRequest request,
         ServerCallContext context)
@@ -282,10 +315,11 @@ public class ProductGrpcService : ProductGrpc.ProductGrpcBase
 
         return new DeleteProductReply { Success = true };
     }
-    public override async Task<GetProductsByKeywordReply>
-GetProductsByKeyword(
-    GetProductsByKeywordRequest request,
-    ServerCallContext context)
+
+    public override async Task<GetProductsByKeywordReply> GetProductsByKeyword(
+        GetProductsByKeywordRequest request,
+        ServerCallContext context
+    )
     {
         Guid? categoryId = null;
 
@@ -310,12 +344,34 @@ GetProductsByKeyword(
             HasPreviousPage = result.HasPreviousPage
         };
 
-        reply.Products.AddRange(
-            _mapper.Map<List<Product>>(result.Items));
+        foreach (var p in result.Items)
+        {
+            reply.Products.Add(new Product
+            {
+                Id = p.Id.ToString(),
+                Name = p.Name,
+                Description = p.Description ?? "",
+                ImageUrl = p.ImageUrl ?? "",
+                IsActive = p.IsActive ?? true,
+                CategoryId = p.CategoryId.ToString(),
+                CategoryName = p.CategoryName ?? "",
+                Sizes =                 {
+                    p.Variants.Select(v => new ProductSize
+                    {
+                        Id = v.Id.ToString(),
+                        Sku = v.Sku ?? "",
+                        Name = v.Name ?? "",
+                        Attributes = v.Attributes ?? "",
+                        BasePrice = (double)(v.BasePrice ?? 0),
+                        Cost = (double)(v.Cost ?? 0),
+                        IsActive = v.IsActive ?? true,
+                    })
+                },
+            });
+        }
 
         return reply;
     }
-
 
     public override async Task<UploadImageReply> UploadImage(
         UploadImageRequest request,
@@ -354,4 +410,179 @@ GetProductsByKeyword(
                 new Status(StatusCode.Internal, $"Upload image failed: {ex.Message}"));
         }
     }
+
+    public override async Task<UploadProductImageReply> UploadProductImage(
+        UploadProductImageRequest request,
+        ServerCallContext context)
+    {
+        if (!Guid.TryParse(request.ProductId, out var productId))
+        {
+            throw new RpcException(
+                new Status(StatusCode.InvalidArgument, "Invalid productId"));
+        }
+
+        if (request.ImageData == null || request.ImageData.Length == 0)
+        {
+            throw new RpcException(
+                new Status(StatusCode.InvalidArgument, "Image data is required"));
+        }
+
+        if (string.IsNullOrWhiteSpace(request.FileName))
+        {
+            throw new RpcException(
+                new Status(StatusCode.InvalidArgument, "File name is required"));
+        }
+
+        try
+        {
+            var product = await _productRepository.GetByIdAsync(productId);
+            if (product is null)
+            {
+                throw new RpcException(
+                    new Status(StatusCode.NotFound, "Product not found"));
+            }
+
+            // Delete old image if exists
+            if (!string.IsNullOrWhiteSpace(product.ImagePublicId))
+            {
+                await _cloudinaryService.DeleteImageAsync(product.ImagePublicId);
+            }
+
+            // Upload new image from bytes
+            var uploadResult = await _cloudinaryService.UploadImageFromBytesAsync(
+                request.ImageData.ToByteArray(),
+                request.FileName,
+                request.ContentType ?? "image/png");
+
+            product.ImageUrl = uploadResult.Url;
+            product.ImagePublicId = uploadResult.PublicId;
+
+            await _productRepository.UpdateAsync(product);
+
+            return new UploadProductImageReply
+            {
+                ProductId = product.Id.ToString(),
+                ImageUrl = product.ImageUrl ?? string.Empty,
+                ImagePublicId = product.ImagePublicId ?? string.Empty
+            };
+        }
+        catch (RpcException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            throw new RpcException(
+                new Status(StatusCode.Internal, $"Upload product image failed: {ex.Message}"));
+        }
+    }
+
+    // GetProductBySku
+    public override async Task<GetProductBySkuReply> GetProductBySku(
+        GetProductBySkuRequest request,
+        ServerCallContext context)
+    {
+        if (string.IsNullOrWhiteSpace(request.Sku))
+        {
+            throw new RpcException(
+                new Status(StatusCode.InvalidArgument, "SKU is required"));
+        }
+
+        var product = await _productRepository.GetProductBySkuAsync(request.Sku);
+
+        if (product is null)
+        {
+            return new GetProductBySkuReply { Found = false };
+        }
+
+        var variant = product.ProductVariants
+            .FirstOrDefault(v => v.Sku == request.Sku && v.IsActive == true);
+
+        if (variant is null)
+        {
+            return new GetProductBySkuReply { Found = false };
+        }
+
+        return new GetProductBySkuReply
+        {
+            Found = true,
+            ProductId = product.Id.ToString(),
+            VariantId = variant.Id.ToString(),
+            ProductName = product.Name,
+            Sku = variant.Sku,
+            BasePrice = (double)variant.BasePrice,
+            ImageUrl = product.ImageUrl ?? string.Empty
+        };
+    }
+
+    // GetProductsBySkus 
+    public override async Task<GetProductsBySkusReply> GetProductsBySkus(
+        GetProductsBySkusRequest request,
+        ServerCallContext context)
+    {
+        var skus = request.Skus
+            .Where(s => !string.IsNullOrWhiteSpace(s))
+            .Distinct()
+            .ToList();
+
+        if (!skus.Any())
+        {
+            throw new RpcException(
+                new Status(StatusCode.InvalidArgument, "SKUs is required"));
+        }
+
+        var products = await _productRepository.GetProductsBySkusAsync(skus);
+
+        var reply = new GetProductsBySkusReply();
+        var requestedSkuSet = new HashSet<string>(skus, StringComparer.OrdinalIgnoreCase);
+
+        foreach (var product in products)
+        {
+            foreach (var variant in product.ProductVariants)
+            {
+                if (variant.IsActive == true && requestedSkuSet.Contains(variant.Sku))
+                {
+                    reply.Variants.Add(new ProductVariantDetail
+                    {
+                        ProductId = product.Id.ToString(),
+                        VariantId = variant.Id.ToString(),
+                        ProductName = product.Name,
+                        Sku = variant.Sku,
+                        BasePrice = (double)variant.BasePrice,
+                        ImageUrl = product.ImageUrl ?? string.Empty
+                    });
+                }
+            }
+        }
+        return reply;
+    }
+
+    // GetSkusByCategory
+    public override async Task<GetSkusByCategoryReply> GetSkusByCategory(
+        GetSkusByCategoryRequest request,
+        ServerCallContext context)
+    {
+        if (!Guid.TryParse(request.CategoryId, out var categoryId))
+        {
+            throw new RpcException(
+                new Status(StatusCode.InvalidArgument, "Invalid categoryId"));
+        }
+
+        var products = await _productRepository.GetAllProductsAsync(categoryId);
+
+        var reply = new GetSkusByCategoryReply();
+        
+        var skus = products
+            .SelectMany(p => p.ProductVariants)
+            .Where(v => !string.IsNullOrWhiteSpace(v.Sku))
+            .Select(v => v.Sku!)
+            .Distinct()
+            .ToList();
+
+        reply.Skus.AddRange(skus);
+
+        return reply;
+    }
 }
+
+

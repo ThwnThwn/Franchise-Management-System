@@ -13,14 +13,18 @@ import (
 var ClientSet = wire.NewSet(
 	// Franchise Service
 	franchise.NewFranchiseClientFactory,
-	franchise.ProvideStoreClient,
+	franchise.ProvideShiftAvailabilityClient,
 	franchise.ProvideShiftClient,
+	franchise.ProvideShiftRuleClient,
+	franchise.ProvideShiftTemplateClient,
+	franchise.ProvideStoreClient,
 
 	// Identity Service
 	identity.NewIdentityClientFactory,
 	identity.ProvideAuthClient,
 	identity.ProvideUserClient,
-	identity.NewRolePermClient,
+	identity.ProvideRolePermClient,
+	identity.ProvideRoleClient,
 
 	// Product Service
 	product.NewProductClientFactory,
@@ -34,5 +38,8 @@ var ClientSet = wire.NewSet(
 
 	// Inventory Service
 	inventory.NewInventoryClientFactory,
-	inventory.ProvideInventoryClient,
+	inventory.ProvideStoreIngredientClient,
+	inventory.ProvideIngredientClient,
+	inventory.ProvideIngredientCategoryClient,
+	inventory.ProvideRecipeClient,
 )

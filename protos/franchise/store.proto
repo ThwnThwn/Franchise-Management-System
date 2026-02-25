@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option csharp_namespace = "FranchiseService.API";
+option csharp_namespace = "FranchiseService.Grpc";
 option go_package = "api-gateway/pkg/pb/franchise";
 
 package franchise;
@@ -16,6 +16,8 @@ service StoreGrpcService {
   
   // Lấy chi tiết 1 cửa hàng (để hiện địa chỉ, hình ảnh)
   rpc GetStoreDetail (GetStoreDetailRequest) returns (StoreDetailResponse);
+
+  rpc GetStoresByIds (GetStoresByIdsRequest) returns (GetStoresByIdsResponse);
 
   // Tìm cửa hàng gần nhất (Dựa trên GPS User gửi lên)
   rpc FindNearbyStores (FindNearbyStoresRequest) returns (GetStoresResponse);
@@ -46,6 +48,14 @@ message GetStoresResponse {
   int32 total_pages = 3;
 }
 
+message GetStoresByIdsRequest {
+  repeated string ids = 1;
+}
+
+message GetStoresByIdsResponse {
+  repeated StoreDetailResponse stores = 1;
+}
+
 // Tìm quanh đây
 message FindNearbyStoresRequest {
   double user_lat = 1;
@@ -59,10 +69,10 @@ message StoreDetailResponse {
   string id = 1;
   string name = 2;
   string address = 3;
-  string phone = 4;
-  string image_url = 5;
-  double latitude = 6;
-  double longitude = 7;
+  optional string phone = 4;
+  optional string image_url = 5;
+  optional double latitude = 6;
+  optional double longitude = 7;
   bool is_open_now = 8; // Tính toán dựa trên StoreHours ngay lúc gọi
 }
 

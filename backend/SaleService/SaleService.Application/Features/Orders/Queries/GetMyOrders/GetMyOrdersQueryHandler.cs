@@ -6,10 +6,12 @@ namespace SalesService.Application.Features.Orders.Queries.GetMyOrders
     public class GetMyOrdersQueryHandler : IRequestHandler<GetMyOrdersQuery, GetMyOrdersResponse>
     {
         private readonly IOrderRepository _orderRepository;
+
         public GetMyOrdersQueryHandler(IOrderRepository orderRepository)
         {
             _orderRepository = orderRepository;
         }
+
         public async Task<GetMyOrdersResponse> Handle(
             GetMyOrdersQuery request,
             CancellationToken cancellationToken)
@@ -24,7 +26,7 @@ namespace SalesService.Application.Features.Orders.Queries.GetMyOrders
                 request.CustomerId,
                 cancellationToken);
 
-            // Map to DYO
+            // Map to DTO
             var orderDtos = orders.Select(o => new OrderSummaryDto(
                 o.Id,
                 o.Code,
@@ -38,7 +40,8 @@ namespace SalesService.Application.Features.Orders.Queries.GetMyOrders
                 o.Notes,
                 o.CreatedAt,
                 o.UpdatedAt,
-                o.CustomerId
+                o.CustomerId,
+                o.StoreId
             )).ToList();
             return new GetMyOrdersResponse(orderDtos, totalCount);
         }

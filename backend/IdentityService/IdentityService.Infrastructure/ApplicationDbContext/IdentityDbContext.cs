@@ -27,8 +27,6 @@ public partial class IdentityDbContext : DbContext, IIdentityDbContext
 
     public virtual DbSet<Role> Roles { get; set; }
 
-    public virtual DbSet<RolePermission> RolePermissions { get; set; }
-
     public virtual DbSet<User> Users { get; set; }
 
     public DbSet<T> Set<T>() where T : class, IEntity => base.Set<T>();
@@ -57,9 +55,9 @@ public partial class IdentityDbContext : DbContext, IIdentityDbContext
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("created_at");
             entity.Property(e => e.Description).HasColumnName("description");
-            entity.Property(e => e.IsDeleted)
-                .HasDefaultValue(false)
-                .HasColumnName("is_deleted");
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true)
+                .HasColumnName("is_active");
             entity.Property(e => e.Name)
                 .HasMaxLength(100)
                 .HasColumnName("name");
@@ -133,41 +131,24 @@ public partial class IdentityDbContext : DbContext, IIdentityDbContext
             entity.Property(e => e.UpdatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("updated_at");
-        });
 
-        modelBuilder.Entity<RolePermission>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("role_permissions_pkey");
-
-            entity.ToTable("role_permissions");
-
-            entity.HasIndex(e => new { e.RoleId, e.PermissionId }, "uq_role_permission").IsUnique();
-
-            entity.Property(e => e.Id)
-                .HasDefaultValueSql("uuid_generate_v4()")
-                .HasColumnName("id");
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnName("created_at");
-            entity.Property(e => e.IsActived)
-                .HasDefaultValue(true)
-                .HasColumnName("is_actived");
-            entity.Property(e => e.IsDeleted)
-                .HasDefaultValue(false)
-                .HasColumnName("is_deleted");
-            entity.Property(e => e.PermissionId).HasColumnName("permission_id");
-            entity.Property(e => e.RoleId).HasColumnName("role_id");
-            entity.Property(e => e.UpdatedAt)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnName("updated_at");
-
-            entity.HasOne(d => d.Permission).WithMany(p => p.RolePermissions)
-                .HasForeignKey(d => d.PermissionId)
-                .HasConstraintName("fk_rp_permission");
-
-            entity.HasOne(d => d.Role).WithMany(p => p.RolePermissions)
-                .HasForeignKey(d => d.RoleId)
-                .HasConstraintName("fk_rp_role");
+            entity.HasMany(d => d.Permissions).WithMany(p => p.Roles)
+                .UsingEntity<Dictionary<string, object>>(
+                    "RolePermission",
+                    r => r.HasOne<Permission>().WithMany()
+                        .HasForeignKey("PermissionId")
+                        .HasConstraintName("fk_rp_permission"),
+                    l => l.HasOne<Role>().WithMany()
+                        .HasForeignKey("RoleId")
+                        .HasConstraintName("fk_rp_role"),
+                    j =>
+                    {
+                        j.HasKey("RoleId", "PermissionId").HasName("role_permissions_pkey");
+                        j.ToTable("role_permissions");
+                        j.HasIndex(new[] { "PermissionId" }, "idx_rp_permission_id");
+                        j.IndexerProperty<Guid>("RoleId").HasColumnName("role_id");
+                        j.IndexerProperty<Guid>("PermissionId").HasColumnName("permission_id");
+                    });
         });
 
         modelBuilder.Entity<User>(entity =>
@@ -222,6 +203,13 @@ public partial class IdentityDbContext : DbContext, IIdentityDbContext
             entity.Property(e => e.Username)
                 .HasMaxLength(70)
                 .HasColumnName("username");
+            
+            entity.Property(e => e.CurrentHourlyWage)
+                .HasPrecision(18, 2)
+                .HasColumnName("current_hourly_wage");
+
+            entity.Property(e => e.AvatarUrl).HasColumnName("avatar_url");
+            entity.Property(e => e.AvatarPublicId).HasColumnName("avatar_public_id");
 
             entity.HasOne(d => d.Role).WithMany(p => p.Users)
                 .HasForeignKey(d => d.RoleId)

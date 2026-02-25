@@ -8,7 +8,7 @@ namespace FranchiseService.Infrastructure.ApplicationDbContext;
 
 public partial class FranchiseDbContext : DbContext, IFranchiseDbContext
 {
-    private readonly UpdateTimestampInterceptor _updateInterceptor;
+    private readonly UpdateTimestampInterceptor? _updateInterceptor;
 
     public FranchiseDbContext()
     {
@@ -20,11 +20,18 @@ public partial class FranchiseDbContext : DbContext, IFranchiseDbContext
         _updateInterceptor = updateTimestampInterceptor;
     }
 
+    // ... (DbSets)
     public virtual DbSet<Franchisee> Franchisees { get; set; }
 
-    public virtual DbSet<Schedule> Schedules { get; set; }
+    public virtual DbSet<Shift> Shifts { get; set; }
+
+    public virtual DbSet<ShiftAssignment> ShiftAssignments { get; set; }
+
+    public virtual DbSet<ShiftRule> ShiftRules { get; set; }
 
     public virtual DbSet<ShiftTemplate> ShiftTemplates { get; set; }
+
+    public virtual DbSet<StaffAvailability> StaffAvailabilities { get; set; }
 
     public virtual DbSet<Store> Stores { get; set; }
 
@@ -32,11 +39,16 @@ public partial class FranchiseDbContext : DbContext, IFranchiseDbContext
 
     public virtual DbSet<TimeLog> TimeLogs { get; set; }
 
-    public DbSet<T> Set<T>() where T : class, IEntity => base.Set<T>();
+    public virtual DbSet<OutboxMessage> OutboxMessages { get; set; }
+
+    public new DbSet<T> Set<T>() where T : class, IEntity => base.Set<T>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.AddInterceptors(_updateInterceptor);
+        if (_updateInterceptor != null)
+        {
+            optionsBuilder.AddInterceptors(_updateInterceptor);
+        }
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -96,51 +108,121 @@ public partial class FranchiseDbContext : DbContext, IFranchiseDbContext
                 .HasColumnName("updated_at");
         });
 
-        modelBuilder.Entity<Schedule>(entity =>
+        modelBuilder.Entity<Shift>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("schedules_pkey");
+            entity.HasKey(e => e.Id).HasName("shifts_pkey");
 
-            entity.ToTable("schedules");
+            entity.ToTable("shifts");
 
-            entity.HasIndex(e => new { e.UserId, e.StartTime, e.EndTime }, "idx_schedules_overlap");
-
-            entity.HasIndex(e => new { e.StoreId, e.ShiftDate }, "idx_schedules_store_date");
-
-            entity.HasIndex(e => new { e.UserId, e.ShiftDate }, "idx_schedules_user_date");
+            entity.HasIndex(e => new { e.StoreId, e.ShiftDate }, "idx_shifts_store_date");
 
             entity.Property(e => e.Id)
                 .HasDefaultValueSql("uuid_generate_v4()")
                 .HasColumnName("id");
+            
             entity.Property(e => e.BreakDurationMinutes)
                 .HasDefaultValue(0)
                 .HasColumnName("break_duration_minutes");
+
+            entity.Property(e => e.LockVersion)
+                .HasDefaultValue(1)
+                .HasColumnName("lock_version");
+
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("created_at");
             entity.Property(e => e.EndTime).HasColumnName("end_time");
+            entity.Property(e => e.IsDeleted)
+                .HasDefaultValue(false)
+                .HasColumnName("is_deleted");
+            entity.Property(e => e.Note).HasColumnName("note");
+            entity.Property(e => e.RequiredStaffCount)
+                .HasDefaultValue(1)
+                .HasColumnName("required_staff_count");
+            entity.Property(e => e.ShiftDate).HasColumnName("shift_date");
+            entity.Property(e => e.ShiftTemplateId).HasColumnName("shift_template_id");
+            entity.Property(e => e.StartTime).HasColumnName("start_time");
+            entity.Property(e => e.Status)
+                .HasDefaultValue(0)
+                .HasColumnName("status");
+            entity.Property(e => e.StoreId).HasColumnName("store_id");
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("updated_at");
+
+            entity.HasOne(d => d.Store).WithMany(p => p.Shifts)
+                .HasForeignKey(d => d.StoreId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_shifts_store");
+        });
+
+        modelBuilder.Entity<ShiftAssignment>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("shift_assignments_pkey");
+
+            entity.ToTable("shift_assignments");
+
+            entity.HasIndex(e => e.UserId, "idx_assignments_user");
+
+            entity.HasIndex(e => new { e.ShiftId, e.UserId }, "uq_assignment_user_shift").IsUnique();
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasColumnName("id");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_at");
             entity.Property(e => e.HourlyWage)
                 .HasPrecision(10, 2)
                 .HasColumnName("hourly_wage");
             entity.Property(e => e.IsDeleted)
                 .HasDefaultValue(false)
                 .HasColumnName("is_deleted");
-            entity.Property(e => e.Note).HasColumnName("note");
-            entity.Property(e => e.ShiftDate).HasColumnName("shift_date");
-            entity.Property(e => e.ShiftTemplateId).HasColumnName("shift_template_id");
-            entity.Property(e => e.StartTime).HasColumnName("start_time");
+            entity.Property(e => e.ShiftId).HasColumnName("shift_id");
             entity.Property(e => e.Status)
-                .HasDefaultValue(1)
+                .HasDefaultValue(0)
                 .HasColumnName("status");
-            entity.Property(e => e.StoreId).HasColumnName("store_id");
             entity.Property(e => e.UpdatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("updated_at");
             entity.Property(e => e.UserId).HasColumnName("user_id");
 
-            entity.HasOne(d => d.Store).WithMany(p => p.Schedules)
-                .HasForeignKey(d => d.StoreId)
+            entity.HasOne(d => d.Shift).WithMany(p => p.ShiftAssignments)
+                .HasForeignKey(d => d.ShiftId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("fk_schedules_store");
+                .HasConstraintName("fk_assignments_shift");
+        });
+
+        modelBuilder.Entity<ShiftRule>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("shift_rules_pkey");
+
+            entity.ToTable("shift_rules");
+
+            entity.HasIndex(e => e.StoreId, "idx_rules_store_unique").IsUnique();
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasColumnName("id");
+            entity.Property(e => e.AllowShiftSwap)
+                .HasDefaultValue(true)
+                .HasColumnName("allow_shift_swap");
+            entity.Property(e => e.AllowShuttle)
+                .HasDefaultValue(false)
+                .HasColumnName("allow_shuttle");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_at");
+            entity.Property(e => e.MaxHoursPerWeek)
+                .HasDefaultValue(48)
+                .HasColumnName("max_hours_per_week");
+            entity.Property(e => e.MinHoursBetweenShifts)
+                .HasDefaultValue(8)
+                .HasColumnName("min_hours_between_shifts");
+            entity.Property(e => e.StoreId).HasColumnName("store_id");
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("updated_at");
         });
 
         modelBuilder.Entity<ShiftTemplate>(entity =>
@@ -176,6 +258,42 @@ public partial class FranchiseDbContext : DbContext, IFranchiseDbContext
             entity.Property(e => e.UpdatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("updated_at");
+        });
+
+        modelBuilder.Entity<StaffAvailability>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("staff_availabilities_pkey");
+
+            entity.ToTable("staff_availabilities");
+
+            entity.HasIndex(e => new { e.UserId, e.IsAvailable, e.SpecificDate, e.DayOfWeek }, "idx_staff_availability_query").HasFilter("(is_deleted = false)");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasColumnName("id");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_at");
+            entity.Property(e => e.DayOfWeek).HasColumnName("day_of_week");
+            entity.Property(e => e.EndTime).HasColumnName("end_time");
+            entity.Property(e => e.IsAvailable)
+                .HasDefaultValue(true)
+                .HasColumnName("is_available");
+            entity.Property(e => e.IsDeleted)
+                .HasDefaultValue(false)
+                .HasColumnName("is_deleted");
+            entity.Property(e => e.IsRecurring)
+                .HasDefaultValue(false)
+                .HasColumnName("is_recurring");
+            entity.Property(e => e.Note)
+                .HasMaxLength(255)
+                .HasColumnName("note");
+            entity.Property(e => e.SpecificDate).HasColumnName("specific_date");
+            entity.Property(e => e.StartTime).HasColumnName("start_time");
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("updated_at");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
         });
 
         modelBuilder.Entity<Store>(entity =>
@@ -276,12 +394,11 @@ public partial class FranchiseDbContext : DbContext, IFranchiseDbContext
 
             entity.ToTable("time_logs");
 
-            entity.HasIndex(e => e.ScheduleId, "idx_timelogs_schedule");
+            entity.HasIndex(e => e.ShiftAssignmentId, "idx_timelogs_assignment");
 
             entity.Property(e => e.Id)
                 .HasDefaultValueSql("uuid_generate_v4()")
                 .HasColumnName("id");
-            entity.Property(e => e.AdminNote).HasColumnName("admin_note");
             entity.Property(e => e.CheckInAt).HasColumnName("check_in_at");
             entity.Property(e => e.CheckInImageUrl)
                 .HasMaxLength(500)
@@ -308,7 +425,8 @@ public partial class FranchiseDbContext : DbContext, IFranchiseDbContext
             entity.Property(e => e.IsDeleted)
                 .HasDefaultValue(false)
                 .HasColumnName("is_deleted");
-            entity.Property(e => e.ScheduleId).HasColumnName("schedule_id");
+            entity.Property(e => e.ManagerNote).HasColumnName("manager_note");
+            entity.Property(e => e.ShiftAssignmentId).HasColumnName("shift_assignment_id");
             entity.Property(e => e.Status)
                 .HasDefaultValue(0)
                 .HasColumnName("status");
@@ -319,10 +437,10 @@ public partial class FranchiseDbContext : DbContext, IFranchiseDbContext
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("updated_at");
 
-            entity.HasOne(d => d.Schedule).WithMany(p => p.TimeLogs)
-                .HasForeignKey(d => d.ScheduleId)
+            entity.HasOne(d => d.ShiftAssignment).WithMany(p => p.TimeLogs)
+                .HasForeignKey(d => d.ShiftAssignmentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("fk_timelogs_schedule");
+                .HasConstraintName("fk_timelogs_assignment");
         });
 
         foreach (var entity in modelBuilder.Model.GetEntityTypes())
@@ -336,6 +454,33 @@ public partial class FranchiseDbContext : DbContext, IFranchiseDbContext
         }
 
         OnModelCreatingPartial(modelBuilder);
+        
+        modelBuilder.Entity<OutboxMessage>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("outbox_messages_pkey");
+
+            entity.ToTable("outbox_messages");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasColumnName("id");
+            entity.Property(e => e.Content)
+                .HasColumnName("content");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_at");
+            entity.Property(e => e.Error).HasColumnName("error");
+            entity.Property(e => e.OccurredOn).HasColumnName("occurred_on");
+            entity.Property(e => e.ProcessedOn).HasColumnName("processed_on");
+            entity.Property(e => e.Type)
+                .HasColumnName("type");
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("updated_at");
+            
+            entity.HasIndex(e => e.ProcessedOn, "ix_outbox_messages_processed_on")
+                  .HasFilter("processed_on IS NULL");
+        });
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);

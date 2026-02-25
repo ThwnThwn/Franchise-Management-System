@@ -14,14 +14,19 @@ service UserGrpc {
   rpc AdminCreate(AdminCreateUserRequest) returns (UserResponse);
 
   rpc GetById(GetUserByIdRequest) returns (UserResponse);
+  rpc GetByIds (GetUserByIdsRequest) returns (GetUserByIdsResponse);
   rpc GetAll(GetAllUserOrWithRoleRequest) returns (GetAllUserOrWithRoleResponse);
   rpc GetManager(GetManagerRequest) returns (UserResponse);
-
+  rpc GetUserIdByPhone(GetUserIdByPhoneRequest) returns (UserIdResponse);
+  rpc GetUserIdByEmail(GetUserIdByEmailRequest) returns (UserIdResponse);
 
   rpc Update(UpdateUserRequest) returns (UserResponse);
   rpc ChangePassword(ChangePasswordRequest) returns (UserResponse);
 
   rpc Delete(DeleteUserRequest) returns (DeleteUserResponse);
+
+  rpc UploadAvatar(UploadAvatarRequest) returns (UserResponse);
+  rpc DeleteAvatar(google.protobuf.Empty) returns (DeleteAvatarResponse);
 }
 
 message GetAllUserOrWithRoleRequest{
@@ -39,7 +44,12 @@ message GetAllUserOrWithRoleResponse {
 message GetUserByIdRequest {
   string id = 1;
 }
-
+message GetUserByIdsRequest {
+  repeated string ids = 1;
+}
+message GetUserByIdsResponse {
+  repeated UserResponse users = 1;
+}
 message DeleteUserRequest {
   string id = 1;
 }
@@ -115,11 +125,33 @@ message UserResponse {
   int32 gender = 9;
   google.protobuf.Timestamp dateOfBirth = 10;
 
-  identity.role.RoleUserResponse role = 11;
-  google.protobuf.Timestamp createdAt = 12;
-  google.protobuf.Timestamp updatedAt = 13;
+  optional string homeStoreId = 11;
+  identity.role.RoleUserResponse role = 12;
+  google.protobuf.Timestamp createdAt = 13;
+  google.protobuf.Timestamp updatedAt = 14;
+  optional double current_hourly_wage = 15;
+  string avatar_url = 16;
 }
 
 message GetManagerRequest{
   string id = 1;
+}
+
+message GetUserIdByPhoneRequest {
+  string phone = 1;
+}
+
+message UserIdResponse {
+  string id = 1;
+}
+
+message GetUserIdByEmailRequest {
+  string email = 1;
+}
+message UploadAvatarRequest {
+  bytes image_data = 1;
+}
+
+message DeleteAvatarResponse {
+  string message = 1;
 }

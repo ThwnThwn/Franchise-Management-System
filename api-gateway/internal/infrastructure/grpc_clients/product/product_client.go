@@ -1,9 +1,12 @@
 package product
 
 import (
+	"api-gateway/internal/application/constants/errorcode"
 	productGW "api-gateway/internal/application/gateways/product"
 
+	"api-gateway/internal/domain/models/common"
 	"api-gateway/internal/domain/models/product"
+	"api-gateway/pkg/mapper"
 	productPb "api-gateway/pkg/pb/product"
 	"context"
 
@@ -24,34 +27,36 @@ func (c *ProductGrpcClient) GetProducts(ctx context.Context, req *product.GetPro
 		return nil, err
 	}
 
-	products := make([]*product.Product, 0, len(res.Products))
+	prods := make([]*product.Product, 0, len(res.Products))
 	for _, p := range res.Products {
-		sizes := make([]*product.ProductSize, 0, len(p.Sizes))
-		for _, s := range p.Sizes {
-			sizes = append(sizes, &product.ProductSize{
-				Id:         s.Id,
-				Sku:        s.Sku,
-				Name:       s.Name,
-				Attributes: s.Attributes,
-				BasePrice:  s.BasePrice,
-				Cost:       s.Cost,
-				IsActive:   s.IsActive,
-			})
-		}
-		products = append(products, &product.Product{
-			Id:           p.Id,
-			Name:         p.Name,
-			Description:  p.Description,
-			ImageUrl:     p.ImageUrl,
-			IsActive:     p.IsActive,
-			CategoryId:   p.CategoryId,
-			CategoryName: p.CategoryName,
-			Sizes:        sizes,
-		})
+		prods = append(prods, mapper.MapProductPbToProductModel(p))
 	}
 	return &product.GetProductsReply{
-		Products:   products,
+		Products:   prods,
 		TotalCount: res.TotalCount,
+	}, nil
+}
+
+// GetAllWithPagingBy implements product.IProductService.
+func (c *ProductGrpcClient) GetAllWithPagingBy(ctx context.Context, req *product.GetProductsByKeywordRequest) (common.PaginationResult[*product.Product], error) {
+	res, err := c.client.GetProductsByKeyword(ctx, &productPb.GetProductsByKeywordRequest{
+		Keyword:    req.Keyword,
+		CategoryId: req.CategoryId,
+		Page:       req.Page,
+		PageSize:   req.PageSize,
+	})
+	if err != nil {
+		return common.PaginationResult[*product.Product]{}, err
+	}
+
+	prods := make([]*product.Product, 0, len(res.Products))
+	for _, p := range res.Products {
+		prods = append(prods, mapper.MapProductPbToProductModel(p))
+	}
+	return common.PaginationResult[*product.Product]{
+		Items:      prods,
+		TotalCount: res.TotalCount,
+		TotalPages: res.TotalPages,
 	}, nil
 }
 
@@ -61,29 +66,7 @@ func (c *ProductGrpcClient) GetProductById(ctx context.Context, id uuid.UUID) (*
 		return nil, err
 	}
 
-	productRes := res.Product
-	sizes := make([]*product.ProductSize, 0, len(productRes.Sizes))
-	for _, s := range productRes.Sizes {
-		sizes = append(sizes, &product.ProductSize{
-			Id:         s.Id,
-			Sku:        s.Sku,
-			Name:       s.Name,
-			Attributes: s.Attributes,
-			BasePrice:  s.BasePrice,
-			Cost:       s.Cost,
-			IsActive:   s.IsActive,
-		})
-	}
-	return &product.Product{
-		Id:           productRes.Id,
-		Name:         productRes.Name,
-		Description:  productRes.Description,
-		ImageUrl:     productRes.ImageUrl,
-		IsActive:     productRes.IsActive,
-		CategoryId:   productRes.CategoryId,
-		CategoryName: productRes.CategoryName,
-		Sizes:        sizes,
-	}, nil
+	return mapper.MapProductPbToProductModel(res.Product), nil
 }
 
 // CreateProduct implements product.IProductService.
@@ -145,4 +128,23 @@ func (c *ProductGrpcClient) DeleteProduct(ctx context.Context, id uuid.UUID) err
 		return err
 	}
 	return nil
+}
+
+// UploadImage implements product.IProductService.
+func (c *ProductGrpcClient) UploadImage(ctx context.Context, id uuid.UUID, req *common.UploadImageRequest) (*string, error) {
+	if len(req.ImageData) == 0 {
+		return nil, errorcode.ErrImageRequired
+	}
+
+	res, err := c.client.UploadProductImage(ctx, &productPb.UploadProductImageRequest{
+		ProductId:   id.String(),
+		ImageData:   req.ImageData,
+		FileName:    req.FileName,
+		ContentType: req.ContentType,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &res.ImageUrl, nil
 }

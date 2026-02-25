@@ -12,6 +12,7 @@ namespace SalesService.API.Services.Inventory
         private readonly IConfiguration _configuration;
         private readonly string _inventoryServiceUrl;
         private readonly InventoryInternalGrpc.InventoryInternalGrpcClient _client;
+
         public InventoryServiceClient(IMediator mediator, IConfiguration configuration)
         {
             _configuration = configuration;
@@ -81,7 +82,7 @@ namespace SalesService.API.Services.Inventory
             await _client.DecreaseStockByOrderAsync(request);
         }
 
-        public async Task<ReserveStockResponseDto> ReserveStockAsync(ReserveStockReq command)
+        public async Task<CheckEnoughStockRes> ReserveStockAsync(ReserveStockReq command)
         {
             var request = new ReserveStockRequest
             {
@@ -92,6 +93,7 @@ namespace SalesService.API.Services.Inventory
             var items = command.Items.Select(x => new InventoryService.Grpc.Protos.Inventory.Internal.AmountVariant
             {
                 VariantId = x.VariantId.ToString(),
+                Sku = x.Sku,
                 Amount = x.Amount
             });
 
@@ -99,12 +101,17 @@ namespace SalesService.API.Services.Inventory
 
             var response = await _client.ReserveStockAsync(request);
 
-            return new ReserveStockResponseDto
+            return new CheckEnoughStockRes
             {
-                Success = response.Success,
-                Message = response.Message
+                IsEnough = response.IsEnough,
+                ShortageItems = response.ShortageItems.Select(x => new Application.Dtos.Inventory.AmountVariant
+                {
+                    VariantId = Guid.Parse(x.VariantId),
+                    Amount = x.Amount
+                }).ToList()
             };
         }
+
         public async Task<ReleaseStockRes> ReleaseStockAsync(ReleaseStockReq command)
         {
             var request = new ReleaseStockRequest
@@ -121,6 +128,5 @@ namespace SalesService.API.Services.Inventory
                 Message = response.Message
             };
         }
-
     }
 }

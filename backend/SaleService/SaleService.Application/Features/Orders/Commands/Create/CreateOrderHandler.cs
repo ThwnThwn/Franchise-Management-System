@@ -4,12 +4,12 @@ using Microsoft.Extensions.Logging;
 using SalesService.Application.ClientInterface.Inventory;
 using SalesService.Application.ClientInterface.Products;
 using SalesService.Application.Dtos.Inventory;
+using SalesService.Application.Interfaces.CartItems;
 using SalesService.Application.Persisitences.Orders;
 using SalesService.Application.Persisitences.Outbox;
 using SalesService.Application.Signals;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
-using SharedKernel.Events;
 
 namespace SalesService.Application.Features.Orders.Commands.Create;
 
@@ -17,6 +17,7 @@ public sealed class CreateOrderHandler
     : IRequestHandler<CreateOrderCommand, Result<CreateOrderResponseDto>>
 {
     private readonly IOrderRepository _orderRepository;
+    private readonly ICartItemRepository _cartItemRepository;
     private readonly IProductServiceClient _productServiceClient;
     private readonly IInventoryServiceClient _inventoryServiceClient;
     private readonly IOutboxRepository _outboxRepository;
@@ -25,6 +26,7 @@ public sealed class CreateOrderHandler
 
     public CreateOrderHandler(
         IOrderRepository orderRepository,
+        ICartItemRepository cartItemRepository,
         IProductServiceClient productServiceClient,
         IInventoryServiceClient inventoryServiceClient,
         IOutboxRepository outboxRepository,
@@ -32,6 +34,7 @@ public sealed class CreateOrderHandler
         ILogger<CreateOrderHandler> logger)
     {
         _orderRepository = orderRepository;
+        _cartItemRepository = cartItemRepository;
         _productServiceClient = productServiceClient;
         _inventoryServiceClient = inventoryServiceClient;
         _outboxRepository = outboxRepository;
@@ -76,6 +79,7 @@ public sealed class CreateOrderHandler
         IEnumerable<AmountVariant> listItemCheck = variantInfo.Select(v => new AmountVariant
         {
             VariantId = v.VariantId,
+            Sku = v.Sku,
             Amount = request.Request.Items.First(i => i.Sku == v.Sku).Quantity
         });
 
@@ -91,12 +95,21 @@ public sealed class CreateOrderHandler
             Items = listItemCheck.ToList()
         };
         var reserveRes = await _inventoryServiceClient.ReserveStockAsync(reserveReq);
-        if (!reserveRes.Success)
+
+        if (!reserveRes.IsEnough)
         {
-            return Result.Error($"Out of stock: {reserveRes.Message}");
+            foreach (var item in reserveRes.ShortageItems ?? [])
+            {
+                item.Sku = variantInfo.FirstOrDefault(v => v.VariantId == item.VariantId)?.Sku ?? item.Sku;
+            }
+            return Result.Success(new CreateOrderResponseDto
+            {
+                OrderId = Guid.Empty,
+                OrderCode = "Failed",
+                TotalAmount = 0,
+                CheckEnoughStockRes = reserveRes
+            });
         }
-
-
 
         // Gọi ProductService để lấy thông tin sản phẩm từ SKU
         decimal subtotal = 0;
@@ -149,7 +162,7 @@ public sealed class CreateOrderHandler
             TotalAmount = totalAmount,
             StoreId = request.Request.StoreId, // đã validate khác null ở trên
             PaymentMethod = null,
-            Status = OrderStatus.Ordered, // 0 = Ordered
+            Status = OrderStatus.PaymentPending, // 0 = Ordered
             Notes = request.Request.Notes,
             CustomerId = request.Request.CustomerId,
             IsDeleted = false
@@ -163,36 +176,12 @@ public sealed class CreateOrderHandler
         }
 
         // 1. Prepare Outbox Message (BEFORE saving order)
-        if (order.CustomerId.HasValue)
-        {
-            // Create OrderCreatedEvent
-            var orderEvent = new OrderCreatedEvent
-            {
-                OrderId = order.Id,
-                CustomerId = order.CustomerId,
-                CustomerEmail = string.Empty, // Will be fetched by Consumer
-                OrderSummary = $"Order {order.Code} created with {order.OrderItems.Count} items",
-                TotalAmount = order.TotalAmount,
-                CreatedAt = DateTimeOffset.UtcNow
-            };
+        // Outbox: KHÔNG publish OrderStatusEvent khi PaymentPending
+        // → Chỉ notify khách khi đơn hàng đã thanh toán (ConfirmationPending trở đi)
+        _logger.LogInformation("Order {OrderCode} created with status PaymentPending. Notification sẽ gửi sau khi thanh toán.", order.Code);
 
-            // Serialize to JSON
-            var eventJson = System.Text.Json.JsonSerializer.Serialize(orderEvent);
-
-            var outboxMessage = new OutboxMessage
-            {
-                Id = Guid.NewGuid(),
-                Type = "OrderCreatedEvent",
-                Content = eventJson,
-                OccurredOn = DateTimeOffset.UtcNow,
-                ProcessedOn = null,
-                Error = null
-            };
-
-            // Add to Outbox Repository
-            _outboxRepository.Add(outboxMessage);
-            _logger.LogInformation("Added OrderCreatedEvent to Outbox for Order {OrderCode}", order.Code);
-        }
+        //Remove orderd items in cartItem
+        await _cartItemRepository.RemoveItemsAsync(order.CustomerId, skus, cancellationToken);
 
         // 2. Save Order (and OutboxMessage) in one transaction (implicitly handled by CreateAsync -> SaveChanges)
         var createdOrder = await _orderRepository.CreateAsync(order, cancellationToken);
@@ -206,6 +195,13 @@ public sealed class CreateOrderHandler
         {
             OrderId = createdOrder.Id,
             OrderCode = createdOrder.Code,
+            Items = createdOrder.OrderItems.Select(x => new OrderItemDto
+            {
+                Sku = x.Sku,
+                Quantity = x.Quantity,
+                UnitPrice = x.UnitPrice
+            }).ToList(),
+            StoreId = request.Request.StoreId,
             TotalAmount = createdOrder.TotalAmount,
             CheckEnoughStockRes = { IsEnough = true, ShortageItems = { } }
         });

@@ -6,6 +6,8 @@ using FranchiseService.Application.Features.Stores.Queries.CheckStoreAvailabilit
 using FranchiseService.Infrastructure.Extentions;
 using MediatR;
 
+using FranchiseService.API.BackgroundJobs;
+
 namespace FranchiseService.API
 {
     public class Program
@@ -32,8 +34,8 @@ namespace FranchiseService.API
             {
                 options.ConfigureEndpointDefaults(listenOptions =>
                 {
-                    // gRPC thường cần HTTP/2
-                    listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2;
+                    // Hỗ trợ cả HTTP/1 (REST) và HTTP/2 (gRPC)
+                    listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2;
                 });
             });
 
@@ -57,7 +59,11 @@ namespace FranchiseService.API
 
             // gRPC & Interceptor (GỘP LẠI Ở ĐÂY)
             // Bước A: Đăng ký class Interceptor vào DI Container
+            // Bước A: Đăng ký class Interceptor vào DI Container
             builder.Services.AddSingleton<GrpcExceptionInterceptor>();
+
+            // Worker (Background Job)
+            builder.Services.AddHostedService<OutboxWorker>();
 
             // Bước B: Config gRPC và gắn Interceptor
             builder.Services.AddGrpc(options =>
@@ -66,6 +72,14 @@ namespace FranchiseService.API
                 options.EnableDetailedErrors = true;
             });
             builder.Services.AddGrpcReflection();
+
+            // HttpContextAccessor (de forward x-user-id header sang gRPC metadata)
+            builder.Services.AddHttpContextAccessor();
+
+            // gRPC Client → IdentityService (để validate user và lấy thông tin nhân viên)
+            // Scoped vi can doc HttpContext.Request.Headers cua tung request
+            builder.Services.AddScoped<Application.ClientInterfaces.IIdentityServiceClient,
+                Infrastructure.Clients.Identity.IdentityServiceClient>();
 
             // Rest API Controllers
             builder.Services.AddControllers();
@@ -99,6 +113,9 @@ namespace FranchiseService.API
             // Map gRPC Services
             app.MapGrpcService<Services.StoreGrpcService>();
             app.MapGrpcService<Services.ShiftGrpcService>();
+            app.MapGrpcService<Services.AvailabilityGrpcService>();
+            app.MapGrpcService<Services.ShiftRuleGrpcService>();
+            app.MapGrpcService<Services.ShiftTemplateGrpcService>();
             app.MapGrpcReflectionService();
 
             // Root Endpoint (Health check nhẹ)

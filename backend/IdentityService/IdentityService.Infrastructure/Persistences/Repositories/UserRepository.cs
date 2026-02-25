@@ -40,11 +40,11 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
             if (string.IsNullOrEmpty(email))
                 return null;
 
-            var user = await _dbContext.Users
+            // Sử dụng EF.Functions.Like hoặc so sánh trực tiếp nếu DB đã set case-insensitive
+            return await _dbContext.Users
                 .Include(u => u.Role)
-                .Where(u => u.Email.ToLower() == email.ToLower())
-                .FirstOrDefaultAsync();
-            return user;
+                .FirstOrDefaultAsync(u => u.Email != null && u.Email.ToLower() == email.ToLower());
+            //.FirstOrDefaultAsync(u => u.Email == email);
         }
 
         public async Task<User?> GetByUsernameAsync(string? username)
@@ -110,7 +110,13 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
                 .ToListAsync();
         }
 
-
+        public async Task<IEnumerable<User?>> GetByIds(IReadOnlyList<Guid> ids)
+        {
+            return await _dbContext.Users
+                .Where(u => ids.Contains(u.Id))
+                .Cast<User?>()
+                .ToListAsync();
+        }
         public async Task<PagedResult<User>> GetPagedUsersAsync(string? keyword, Guid? id, string? roleSlug, int pageIndex, int pageSize, CancellationToken cancellationToken)
         {
             var query = _dbContext.Users
@@ -137,6 +143,19 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
 
             query = query.OrderByDescending(u => u.CreatedAt);
             return await query.ToPagedListAsync(pageIndex, pageSize, cancellationToken);
+        }
+
+        public async Task<User?> GetByPhoneAsync(string? phone)
+        {
+            // 1. Kiểm tra đầu vào sớm để tránh truy vấn vô ích
+            if (string.IsNullOrWhiteSpace(phone))
+                return null;
+
+            // 2. Thực hiện truy vấn an toàn
+            var customer =  await _dbContext.Users
+                .AsNoTracking() 
+                .FirstOrDefaultAsync(u => u.Phone != null && u.Phone == phone);
+            return customer;
         }
     }
 }

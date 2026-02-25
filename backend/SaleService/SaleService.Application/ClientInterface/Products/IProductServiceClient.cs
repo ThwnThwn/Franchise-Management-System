@@ -5,6 +5,11 @@ namespace SalesService.Application.ClientInterface.Products;
 
 public interface IProductServiceClient
 {
+    /// <summary>
+    ///  Get product variants by SKU.
+    /// </summary>
+    /// <param name="sku"></param>
+    /// <returns></returns>
     Task<ProductVariantInfo?> GetProductVariantBySkuAsync(string sku);
     
     /// <summary>
@@ -12,6 +17,11 @@ public interface IProductServiceClient
     /// Returns list of variants found (only active variants that exist in requested SKU list).
     /// </summary>
     Task<List<ProductVariantInfo>> GetListProductVariantsBySkusAsync(List<string> skus);
+
+    /// <summary>
+    /// Get product SKUs by Category ID.
+    /// </summary>
+    Task<List<string>> GetSkusByCategoryAsync(Guid categoryId);
 }
 
 public class ProductVariantInfo

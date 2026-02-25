@@ -3,11 +3,14 @@ using MediatR;
 using Microsoft.Extensions.Configuration;
 using SalesService.Application.Helpers;
 using SalesService.Application.Interfaces.Payments;
+using SalesService.Application.Mapping.Orders;
 using SalesService.Application.Persisitences.Orders;
 using SalesService.Application.Persisitences.Outbox;
 using SalesService.Application.Signals;
-using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
+using SharedKernel.Constants;
+using SharedKernel.Infrastructure.Extensions;
+
 namespace SalesService.Application.Features.Payments.CreatePayment;
 
 public sealed class CreatePaymentHandler : IRequestHandler<CreatePaymentCommand, Result<CreatePaymentRes>>
@@ -68,9 +71,9 @@ public sealed class CreatePaymentHandler : IRequestHandler<CreatePaymentCommand,
             Amount = order.TotalAmount,
             Currency = "VND",
             Method = (int)request.PaymentMethod,// 0 = Cash | 1 = VNPay
-            Status = request.PaymentMethod == PaymentMethod.Cash
-                        ? (int)PaymentStatus.Paid
-                        : (int)PaymentStatus.Pending,      // 0 = Pending | 1 = Paid
+            Status = request.PaymentMethod == PaymentMethod.VNPay
+                        ? (int)PaymentStatus.Pending
+                        : (int)PaymentStatus.Paid,      // if VNPay then Paid Else Pending
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             IsDeleted = false
@@ -81,34 +84,20 @@ public sealed class CreatePaymentHandler : IRequestHandler<CreatePaymentCommand,
         {
             //Mark Order as Paid
             order.PaidAmount = order.TotalAmount;
-            order.PaidAt = DateTime.UtcNow;
             order.PaymentMethod = (int)PaymentMethod.Cash;
-            order.Status = OrderStatus.Completed;
+            order.Status = OrderStatus.ConfirmationPending;
             order.UpdatedAt = DateTime.UtcNow;
 
-            // PUBLISH OrderPaidEvent via Outbox
+            // Publish events qua Outbox
             if (order.OrderItems != null && order.OrderItems.Any())
             {
-                var paidEvent = new SharedKernel.Events.OrderPaidEvent
-                {
-                    OrderId = order.Id,
-                    StoreId = order.StoreId ?? Guid.Empty,
-                    PaidAt = DateTimeOffset.UtcNow,
-                    Items = order.OrderItems.Select(oi => new SharedKernel.Events.OrderPaidItem
-                    {
-                        VariantId = oi.VariantId,
-                        Quantity = oi.Quantity
-                    }).ToList()
-                };
+                // 1. OrderStatusEvent → NotificationService
+                var orderStatusEvent = OrderToKafka.MapToOrderStatusEvent(order);
+                _outboxRepository.AddEvent(orderStatusEvent, KafkaTopics.OrderNotifications);
 
-                var outbox = new OutboxMessage
-                {
-                    Id = Guid.NewGuid(),
-                    Type = SharedKernel.Constants.KafkaTopics.OrderPaid,
-                    Content = System.Text.Json.JsonSerializer.Serialize(paidEvent),
-                    OccurredOn = DateTimeOffset.UtcNow
-                };
-                _outboxRepository.Add(outbox);
+                // 2. OrderPaidEvent → InventoryService (trừ kho)
+                var orderPaidEvent = OrderToKafka.MapToOrderPaidEvent(order);
+                _outboxRepository.AddEvent(orderPaidEvent, KafkaTopics.OrderPaid);
             }
 
             await _orderRepository.UpdateAsync(order, cancellationToken);

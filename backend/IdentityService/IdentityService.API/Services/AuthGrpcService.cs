@@ -97,6 +97,7 @@ public class AuthGrpcService : AuthGrpc.AuthGrpcBase
             Message = "Confirm OTP successfully"
         };
     }
+
     public override async Task<RefreshTokenResponse> RefreshToken(RefreshTokenRequest request, ServerCallContext context)
     {
         try
@@ -145,7 +146,7 @@ public class AuthGrpcService : AuthGrpc.AuthGrpcBase
         };
     }
 
-    public override async Task<ConfirmOtpForgetPasswordOtpResponse> ConfirmForgetPasswordOtp(ConfirmOtpRequest request,ServerCallContext context)
+    public override async Task<ConfirmOtpForgetPasswordOtpResponse> ConfirmForgetPasswordOtp(ConfirmOtpRequest request, ServerCallContext context)
     {
         var rep = await _mediator.Send(new ConfirmNewPasswordCommand(new()
         {
@@ -159,7 +160,7 @@ public class AuthGrpcService : AuthGrpc.AuthGrpcBase
         };
     }
 
-    public override async Task<ConfirmOtpResponse> NewPassword(NewPasswordRequest request,ServerCallContext context)
+    public override async Task<ConfirmOtpResponse> NewPassword(NewPasswordRequest request, ServerCallContext context)
     {
         var userEmailEntry = context.RequestHeaders.FirstOrDefault(h =>
             h.Key.Equals("x-email", StringComparison.OrdinalIgnoreCase));
@@ -199,6 +200,7 @@ public class AuthGrpcService : AuthGrpc.AuthGrpcBase
             Message = "OTP has been resent successfully"
         };
     }
+
     private static UserResponse MapUser(Application.Dtos.User.Respone.UserRep user)
     {
         return new UserResponse
@@ -217,13 +219,14 @@ public class AuthGrpcService : AuthGrpc.AuthGrpcBase
             IsBlocked = user.IsBlocked ?? false,
             CreatedAt = Timestamp.FromDateTime(user.CreatedAt.UtcDateTime),
             UpdatedAt = Timestamp.FromDateTime(user.UpdatedAt.UtcDateTime),
+            HomeStoreId = user.HomeStoreId.HasValue ? user.HomeStoreId.Value.ToString() : "",
             Role = user.Role == null
                 ? new Grpc.Protos.Role.RoleUserResponse()
                 : new Grpc.Protos.Role.RoleUserResponse
                 {
                     Id = user.Role.Id.ToString(),
                     Name = user.Role.Name ?? "",
-                    Slug = user.Role.Slug ?? ""   
+                    Slug = user.Role.Slug ?? ""
                 }
         };
     }

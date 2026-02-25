@@ -1,5 +1,4 @@
-﻿using System.Globalization;
-using Google.Protobuf.WellKnownTypes;
+﻿using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using IdentityService.Application.Dtos.User.Request;
 using IdentityService.Application.Dtos.User.Respone;
@@ -9,12 +8,18 @@ using IdentityService.Application.Features.Users.Commands.CustomerCreateUser;
 using IdentityService.Application.Features.Users.Commands.DeleteUser;
 using IdentityService.Application.Features.Users.Commands.UpdateUser;
 using IdentityService.Application.Features.Users.Queries.GetAllUser;
+using IdentityService.Application.Features.Users.Queries.GetByEmail;
+using IdentityService.Application.Features.Users.Queries.GetByPhone;
 using IdentityService.Application.Features.Users.Queries.GetManager;
 using IdentityService.Application.Features.Users.Queries.GetUserById;
+using IdentityService.Application.Features.Users.Queries.GetUserByIds;
+using IdentityService.Application.Features.Users.Commands.UploadAvatar;
+using IdentityService.Application.Features.Users.Commands.DeleteAvatar;
 using IdentityService.Grpc.Protos.Role;
 using IdentityService.Grpc.Protos.User;
 using MediatR;
 using Sprache;
+using System.Globalization;
 
 namespace IdentityService.API.Services;
 
@@ -83,13 +88,48 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
 
     public override async Task<UserResponse> GetById(GetUserByIdRequest request, ServerCallContext context)
     {
-        var rep = await _mediator.Send(new GetUserByIdQuery(Guid.Parse(request.Id)));
+        try
+        {
+            var rep = await _mediator.Send(new GetUserByIdQuery(Guid.Parse(request.Id)));
 
-        if (rep == null)
-            throw new RpcException(new Status(StatusCode.NotFound, "User not found"));
+            if (rep == null)
+                throw new RpcException(new Status(StatusCode.NotFound, "User not found"));
 
-        return MapUser(rep);
+            return MapUser(rep);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ERROR] GetById Failed: {ex.Message}");
+            Console.WriteLine(ex.StackTrace);
+            throw new RpcException(new Status(StatusCode.Internal, $"Internal Server Error: {ex.Message}"));
+        }
     }
+
+    public override async Task<GetUserByIdsResponse> GetByIds(GetUserByIdsRequest request, ServerCallContext context)
+    {
+        if (request.Ids == null || request.Ids.Count == 0)
+        {
+            return new GetUserByIdsResponse();
+        }
+
+        var userIds = request.Ids
+            .Select(id => Guid.TryParse(id, out var guid) ? guid : (Guid?)null)
+            .Where(g => g.HasValue)
+            .Select(g => g.Value)
+            .ToList();
+
+        if (userIds.Count == 0)
+        {
+            return new GetUserByIdsResponse();
+        }
+
+        var users = await _mediator.Send(new GetUserByIdsQuery(userIds), context.CancellationToken);
+        var response = new GetUserByIdsResponse();
+        response.Users.AddRange(users.Select(MapUser));
+
+        return response;
+    }
+
     public override async Task<GetAllUserOrWithRoleResponse> GetAll(GetAllUserOrWithRoleRequest request, ServerCallContext context)
     {
         var userEntry = context.RequestHeaders.FirstOrDefault(h =>
@@ -115,35 +155,7 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
             TotalPages = pagedResult.TotalPages
         };
 
-        res.Users.AddRange(pagedResult.Items.Select(u => new UserResponse
-        {
-            Id = u.Id.ToString(),
-            Email = u.Email ?? "",
-            Username = u.Username ?? "",
-            Phone = u.Phone ?? "",
-            Address = u.Address ?? "",
-            IsBlocked = u.IsBlocked ?? false,
-
-            FirstName = u.FirstName ?? "",
-            LastName = u.LastName ?? "",
-            Gender = u.Gender,
-
-            DateOfBirth = u.DateOfBirth.HasValue
-        ? Timestamp.FromDateTime(u.DateOfBirth.Value.ToUniversalTime())
-        : null,
-
-            Role = u.Role == null
-            ? null
-            : new RoleUserResponse
-            {
-                Id = u.Role.Id.ToString(),
-                Slug = u.Role.Slug,
-                Name = u.Role.Name
-            },
-
-            CreatedAt = Timestamp.FromDateTime(u.CreatedAt.UtcDateTime),
-            UpdatedAt = Timestamp.FromDateTime(u.UpdatedAt.UtcDateTime),
-        }));
+        res.Users.AddRange(pagedResult.Items.Select(u => MapUser(u)));
         return res;
     }
 
@@ -239,6 +251,37 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
         return new DeleteUserResponse { Success = ok };
     }
 
+    public override async Task<UserResponse> UploadAvatar(UploadAvatarRequest request, ServerCallContext context)
+    {
+        var userEntry = context.RequestHeaders.FirstOrDefault(h =>
+           h.Key.Equals("x-user-id", StringComparison.OrdinalIgnoreCase));
+        if (userEntry == null)
+        {
+            throw new RpcException(new Status(StatusCode.Unauthenticated, "Missing x-user-id in request headers"));
+        }
+
+        var rep = await _mediator.Send(new UploadAvatarCommand(
+            UserId: Guid.Parse(userEntry.Value),
+            ImageData: request.ImageData.ToByteArray()
+        ));
+
+        return MapUser(rep);
+    }
+
+    public override async Task<DeleteAvatarResponse> DeleteAvatar(Empty request, ServerCallContext context)
+    {
+        var userEntry = context.RequestHeaders.FirstOrDefault(h =>
+           h.Key.Equals("x-user-id", StringComparison.OrdinalIgnoreCase));
+        if (userEntry == null)
+        {
+            throw new RpcException(new Status(StatusCode.Unauthenticated, "Missing x-user-id in request headers"));
+        }
+
+        var message = await _mediator.Send(new DeleteAvatarCommand(Guid.Parse(userEntry.Value)));
+
+        return new DeleteAvatarResponse { Message = message };
+    }
+
     private static UserResponse MapUser(UserRep user)
     {
         return new UserResponse
@@ -257,14 +300,30 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
                 : null,
             CreatedAt = Timestamp.FromDateTime(user.CreatedAt.UtcDateTime),
             UpdatedAt = Timestamp.FromDateTime(user.UpdatedAt.UtcDateTime),
+            CurrentHourlyWage = (double)(user.CurrentHourlyWage ?? 0),
+            HomeStoreId = user.HomeStoreId.HasValue ? user.HomeStoreId.Value.ToString() : "",
             Role = user.Role == null
-                ? new Grpc.Protos.Role.RoleUserResponse()
-                : new Grpc.Protos.Role.RoleUserResponse
+                ? new RoleUserResponse()
+                : new RoleUserResponse
                 {
                     Id = user.Role.Id.ToString(),
                     Name = user.Role.Name ?? "",
                     Slug = user.Role.Slug ?? ""
-                }
+                },
+            AvatarUrl = user.AvatarUrl ?? ""
         };
+    }
+    public override async Task<UserIdResponse> GetUserIdByPhone(GetUserIdByPhoneRequest request, ServerCallContext context)
+    {
+        var req = new GetUserByPhoneQuery(PhoneNumber: request.Phone);
+        var user = await _mediator.Send(req);
+        return new UserIdResponse { Id = user.Id.ToString() };
+    }
+
+    public override async Task<UserIdResponse> GetUserIdByEmail(GetUserIdByEmailRequest request, ServerCallContext context)
+    {
+        var req = new GetByEmailQuery(Email: request.Email);
+        var user = await _mediator.Send(req);
+        return new UserIdResponse { Id = user.Id.ToString() };
     }
 }

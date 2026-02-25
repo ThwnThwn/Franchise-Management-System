@@ -85,5 +85,19 @@ namespace FranchiseService.Infrastructure.Repositories
                 .AsNoTracking()
                 .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
         }
+
+        public async Task<IEnumerable<Store>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken)
+        {
+            if (ids == null || !ids.Any())
+                return [];
+
+            var distinctIds = ids.Distinct().ToList();
+
+            return await _dbContext.Stores
+                .Include(s => s.StoreHours)
+                .AsNoTracking()
+                .Where(s => distinctIds.Contains(s.Id))
+                .ToListAsync(cancellationToken);
+        }
     }
 }

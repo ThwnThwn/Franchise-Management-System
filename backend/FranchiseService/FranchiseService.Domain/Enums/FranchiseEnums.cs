@@ -20,11 +20,20 @@ namespace FranchiseService.Domain.Enums
         Renovating = 3 // Đang sửa chữa
     }
 
-    public enum ScheduleStatus
+    public enum ShiftStatus
     {
         Draft = 0,      // Nháp
         Published = 1,  // Đã chốt
-        Cancelled = 2   // Đã hủy
+        Completed = 2,  // Hoàn thành
+        Cancelled = 3   // Đã hủy
+    }
+
+    // Trạng thái phân công nhân viên vào ca
+    public enum ShiftAssignmentStatus
+    {
+        Assigned = 0,   // Quản lý mới gán
+        Confirmed = 1,  // Nhân viên đã xác nhận
+        Rejected = 2    // Nhân viên từ chối
     }
 
     public enum TimeLogStatus

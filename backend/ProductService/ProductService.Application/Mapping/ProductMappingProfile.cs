@@ -59,7 +59,6 @@ public class ProductMappingProfile : Profile
             .ForMember(d => d.Cost, opt => opt.MapFrom(s => s.Cost))
             .ForMember(d => d.IsActive, opt => opt.MapFrom(s => s.IsActive ?? true));
 
-
         CreateMap<Product, GetProductByNameQueryResponse>()
             .ForMember(d => d.ProductId, opt => opt.MapFrom(s => s.Id))
             .ForMember(d => d.Name, opt => opt.MapFrom(s => s.Name))
@@ -82,6 +81,7 @@ public class ProductMappingProfile : Profile
             .ForMember(d => d.CreatedAt, opt => opt.MapFrom(s => s.CreatedAt))
             .ForMember(d => d.UpdatedAt, opt => opt.MapFrom(s => s.UpdatedAt))
             .ForMember(d => d.CategoryId, opt => opt.MapFrom(s => s.CategoryId))
+            .ForMember(d => d.CategoryName, opt => opt.MapFrom(s => s.Category.Name))
             .ForMember(d => d.Variants, opt => opt.MapFrom(s => s.ProductVariants));
 
         CreateMap<ProductVariant, ProductVariantDTO>()

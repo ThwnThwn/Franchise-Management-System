@@ -8,9 +8,29 @@ package di
 
 import (
 	"api-gateway/config"
-	"api-gateway/internal/api/handlers"
+	franchise2 "api-gateway/internal/api/handlers/franchise"
+	identity2 "api-gateway/internal/api/handlers/identity"
+	inventory2 "api-gateway/internal/api/handlers/inventory"
+	product2 "api-gateway/internal/api/handlers/product"
+	sales2 "api-gateway/internal/api/handlers/sales"
 	"api-gateway/internal/api/middleware"
 	"api-gateway/internal/api/routes"
+	"api-gateway/internal/api/routes/auth"
+	"api-gateway/internal/api/routes/carts"
+	categories2 "api-gateway/internal/api/routes/categories"
+	"api-gateway/internal/api/routes/ingredients"
+	"api-gateway/internal/api/routes/ingredients/categories"
+	"api-gateway/internal/api/routes/myshifts"
+	"api-gateway/internal/api/routes/orders"
+	"api-gateway/internal/api/routes/permissions"
+	"api-gateway/internal/api/routes/products"
+	"api-gateway/internal/api/routes/recipes"
+	"api-gateway/internal/api/routes/roles"
+	"api-gateway/internal/api/routes/shifts"
+	"api-gateway/internal/api/routes/stores"
+	"api-gateway/internal/api/routes/stores/stock"
+	"api-gateway/internal/api/routes/users"
+	"api-gateway/internal/api/routes/variants"
 	"api-gateway/internal/application/usecases"
 	"api-gateway/internal/bootstrap"
 	"api-gateway/internal/infrastructure/cache"
@@ -32,61 +52,99 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, erro
 		return nil, err
 	}
 	iStoreService := franchise.ProvideStoreClient(clientFactory)
-	storeHandler := handlers.NewStoreHandler(iStoreService)
-	iShiftService := franchise.ProvideShiftClient(clientFactory)
-	shiftHandler := handlers.NewShiftHandler(iShiftService)
+	storeHandler := franchise2.NewStoreHandler(iStoreService)
+	redis := &cfg.Redis
+	iPermCache := cache.NewPermCache(redis, l)
 	identityServiceUrl := cfg.IdentityServiceUrl
 	identityClientFactory, err := identity.NewIdentityClientFactory(identityServiceUrl)
 	if err != nil {
 		return nil, err
 	}
-	iAuthService := identity.ProvideAuthClient(identityClientFactory)
+	iRolePermissionService := identity.ProvideRolePermClient(identityClientFactory)
+	iBlacklistCache := cache.NewBlacklistCache(redis, l)
+	iBlacklistUseCase := usecases.NewBlacklistUseCase(iBlacklistCache, l)
+	authMiddleware := middleware.NewAuthMiddleware(iPermCache, iRolePermissionService, iBlacklistUseCase)
+	inventoryServiceUrl := cfg.InventoryServiceUrl
+	inventoryClientFactory, err := inventory.NewInventoryClientFactory(inventoryServiceUrl)
+	if err != nil {
+		return nil, err
+	}
+	iStockService := inventory.ProvideStoreIngredientClient(inventoryClientFactory)
+	stockHandler := inventory2.NewStockHandler(iStockService)
+	stockRouter := stock.NewRouter(cfg, authMiddleware, stockHandler)
+	storeRouter := stores.NewRouter(cfg, storeHandler, stockRouter)
+	iShiftService := franchise.ProvideShiftClient(clientFactory)
 	iUserService := identity.ProvideUserClient(identityClientFactory)
-	authHandler := handlers.NewAuthHandler(iAuthService, iUserService)
-	userHandler := handlers.NewUserHandler(iUserService)
+	shiftStaffHandler := franchise2.NewShiftStaffHandler(iShiftService, iUserService)
+	iShiftAvailabilityService := franchise.ProvideShiftAvailabilityClient(clientFactory)
+	shiftAvailabilityHandler := franchise2.NewShiftAvailabilityHandler(iShiftAvailabilityService)
+	myShiftsRouter := myshifts.NewRouter(cfg, authMiddleware, shiftStaffHandler, shiftAvailabilityHandler)
+	shiftHandler := franchise2.NewShiftHandler(iShiftService, iUserService)
+	shiftBulkHandler := franchise2.NewShiftBulkHandler(iShiftService)
+	iShiftRuleService := franchise.ProvideShiftRuleClient(clientFactory)
+	shiftRuleHandler := franchise2.NewShiftRuleHandler(iShiftRuleService)
+	iShiftTemplateService := franchise.ProvideShiftTemplateClient(clientFactory)
+	shiftTemplateHandler := franchise2.NewShiftTemplateHandler(iShiftTemplateService)
+	shiftsRouter := shifts.NewRouter(cfg, authMiddleware, shiftHandler, shiftAvailabilityHandler, shiftBulkHandler, shiftRuleHandler, shiftTemplateHandler)
+	iAuthService := identity.ProvideAuthClient(identityClientFactory)
+	authHandler := identity2.NewAuthHandler(iAuthService, iUserService)
+	authRouter := auth.NewRouter(cfg, authMiddleware, authHandler)
+	userHandler := identity2.NewUserHandler(iUserService)
+	userRouter := users.NewRouter(cfg, authMiddleware, userHandler)
+	iRoleService := identity.ProvideRoleClient(identityClientFactory)
+	roleHandler := identity2.NewRoleHandler(iRoleService, iRolePermissionService)
+	roleRouter := roles.NewRouter(cfg, authMiddleware, roleHandler)
+	permHandler := identity2.NewPermHandler(iRolePermissionService)
+	permissionRouter := permissions.NewRouter(cfg, authMiddleware, permHandler)
+	iIngredientService := inventory.ProvideIngredientClient(inventoryClientFactory)
+	ingredientHandler := inventory2.NewIngredientHandler(iIngredientService)
+	iIngredientCategoryService := inventory.ProvideIngredientCategoryClient(inventoryClientFactory)
+	ingredientCategoryHandler := inventory2.NewIngredientCategoryHandler(iIngredientCategoryService)
+	ingredientCategoryRouter := categories.NewRouter(cfg, authMiddleware, ingredientCategoryHandler)
+	ingredientRouter := ingredients.NewRouter(cfg, authMiddleware, ingredientHandler, ingredientCategoryRouter)
+	iRecipeService := inventory.ProvideRecipeClient(inventoryClientFactory)
+	recipeHandler := inventory2.NewRecipeHandler(iRecipeService)
+	recipeRouter := recipes.NewRouter(cfg, authMiddleware, recipeHandler)
 	productServiceUrl := cfg.ProductServiceUrl
 	productClientFactory, err := product.NewProductClientFactory(productServiceUrl)
 	if err != nil {
 		return nil, err
 	}
 	iProductService := product.ProvideProductClient(productClientFactory)
-	productHandler := handlers.NewProductHandler(iProductService)
+	productHandler := product2.NewProductHandler(iProductService)
+	productRouter := products.NewRouter(cfg, authMiddleware, productHandler)
 	iCategoryService := product.ProvideCategoryClient(productClientFactory)
-	categoryHandler := handlers.NewCategoryHandler(iCategoryService)
+	categoryHandler := product2.NewCategoryHandler(iCategoryService)
+	categoryRouter := categories2.NewRouter(cfg, authMiddleware, categoryHandler)
+	variantRouter := variants.NewRouter(cfg, authMiddleware, recipeHandler)
 	salesServiceUrl := cfg.SalesServiceUrl
 	salesClientFactory, err := sales.NewSalesClientFactory(salesServiceUrl)
 	if err != nil {
 		return nil, err
 	}
 	iOrderService := sales.ProvideOrderClient(salesClientFactory)
-	orderHandler := handlers.NewOrderHandler(iOrderService)
+	orderHandler := sales2.NewOrderHandler(iOrderService, iStoreService)
+	orderRouter := orders.NewRouter(cfg, authMiddleware, orderHandler)
 	iCartService := sales.ProvideCartClient(salesClientFactory)
-	cartHandler := handlers.NewCartHandler(iCartService)
-	inventoryServiceUrl := cfg.InventoryServiceUrl
-	inventoryClientFactory, err := inventory.NewInventoryClientFactory(inventoryServiceUrl)
-	if err != nil {
-		return nil, err
+	cartHandler := sales2.NewCartHandler(iCartService)
+	cartRouter := carts.NewRouter(cfg, authMiddleware, cartHandler)
+	appRouter := &routes.AppRouter{
+		StoreRouter:      storeRouter,
+		MyShiftsRouter:   myShiftsRouter,
+		ShiftsRouter:     shiftsRouter,
+		AuthRouter:       authRouter,
+		UserRouter:       userRouter,
+		RoleRouter:       roleRouter,
+		PermissionRouter: permissionRouter,
+		IngredientRouter: ingredientRouter,
+		RecipeRouter:     recipeRouter,
+		ProductRouter:    productRouter,
+		CategoryRouter:   categoryRouter,
+		VariantRouter:    variantRouter,
+		OrderRouter:      orderRouter,
+		CartRouter:       cartRouter,
 	}
-	iInventoryService := inventory.ProvideInventoryClient(inventoryClientFactory)
-	inventoryHandler := handlers.NewInventoryHandler(iInventoryService)
-	appHandlers := &handlers.AppHandlers{
-		StoreHandler:     storeHandler,
-		ShiftHandler:     shiftHandler,
-		AuthHandler:      authHandler,
-		UserHandler:      userHandler,
-		ProductHandler:   productHandler,
-		CategoryHandler:  categoryHandler,
-		OrderHandler:     orderHandler,
-		CartHandler:      cartHandler,
-		InventoryHandler: inventoryHandler,
-	}
-	redis := &cfg.Redis
-	iPermCache := cache.NewPermCache(redis, l)
-	iRolePermissionService := identity.NewRolePermClient(identityClientFactory)
-	iBlacklistCache := cache.NewBlacklistCache(redis, l)
-	iBlacklistUseCase := usecases.NewBlacklistUseCase(iBlacklistCache, l)
-	authMiddleware := middleware.NewAuthMiddleware(iPermCache, iRolePermissionService, iBlacklistUseCase)
-	engine := routes.NewRouter(cfg, appHandlers, authMiddleware)
+	engine := routes.NewEngine(cfg, appRouter)
 	app := bootstrap.NewApp(cfg, engine)
 	return app, nil
 }

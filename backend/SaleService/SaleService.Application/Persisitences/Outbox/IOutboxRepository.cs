@@ -1,17 +1,13 @@
 using SalesService.Domain.Entities;
+using SharedKernel.Abstractions;
 
 namespace SalesService.Application.Persisitences.Outbox; // Updated namespace
 
 /// <summary>
-/// Interface Repository dùng để lưu trữ các Outbox Message.
-/// Giúp tách biệt (decouple) tầng Application khỏi DbContext cụ thể.
+/// Repository Outbox cho SaleService.
+/// Kế thừa SharedKernel để dùng được extension method AddEvent().
 /// </summary>
-public interface IOutboxRepository
+public interface IOutboxRepository : IOutboxRepository<OutboxMessage>
 {
-    /// <summary>
-    /// Thêm một Outbox message mới vào DbContext.
-    /// Lưu ý: Hàm này chưa lưu xuống DB (SaveChanges) ngay, mà sẽ lưu cùng Transaction của Handler.
-    /// </summary>
-    /// <param name="message">Tin nhắn cần lưu.</param>
-    void Add(OutboxMessage message);
+    // Kế thừa void Add(OutboxMessage message) từ SharedKernel
 }

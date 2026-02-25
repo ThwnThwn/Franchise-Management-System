@@ -26,47 +26,38 @@ namespace IdentityService.Application.Features.Roles.Commands.UpdateRolePermissi
             var role = await _roleRepo.GetByIdDetailsAsync(request.Id)
                  ?? throw new KeyNotFoundException($"Không tìm thấy role {request.Id}");
 
-            // 2. Gom tất cả slug cần xử lý (cả grant và revoke) để query DB 1 lần
+            // 2. Lấy danh sách Permission Entity từ DB dựa trên list slug gửi lên
             var allSlugs = request.PermissionsToGrant.Concat(request.PermissionsToRevoke).Distinct().ToList();
-
-            // Lấy Entity từ DB lên
             var relevantPermissions = await _permRepo.GetListBySlugsAsync(allSlugs);
 
             // 3. Vòng lặp xử lý Logic
             foreach (var perm in relevantPermissions)
             {
                 // Tìm xem role đã có link tới perm này chưa
-                var existingLink = role.RolePermissions
-                    .FirstOrDefault(rp => rp.PermissionId == perm.Id);
+                var existingPerm = role.Permissions
+                    .FirstOrDefault(rp => rp.Id == perm.Id);
 
                 // A. Xử lý GRANT (Cấp quyền)
                 if (request.PermissionsToGrant.Contains(perm.Slug))
                 {
-                    if (existingLink == null)
+                    if (existingPerm == null)
                     {
-                        // Chưa có -> Thêm mới (Active)
-                        role.RolePermissions.Add(new RolePermission
-                        {
-                            RoleId = role.Id,
-                            PermissionId = perm.Id,
-                            IsActived = true
-                        });
+                        role.Permissions.Add(perm);
                     }
-                    else if (!existingLink.IsActived)
-                    {
-                        // Có rồi mà đang tắt -> Bật lên
-                        existingLink.IsActived = true;
-                    }
+                    //else if (!existingPerm.IsActived)
+                    //{
+                    //    // Có rồi mà đang tắt -> Bật lên
+                    //    existingPerm.IsActived = true;
+                    //}
                 }
 
                 // B. Xử lý REVOKE (Thu hồi)
                 // Lưu ý: Dùng 'else if' để ưu tiên Grant nếu lỡ FE gửi trùng slug trong cả 2 mảng (Safety first)
                 else if (request.PermissionsToRevoke.Contains(perm.Slug))
                 {
-                    if (existingLink != null && existingLink.IsActived)
+                    if (existingPerm != null)
                     {
-                        // Đang bật -> Tắt đi
-                        existingLink.IsActived = false;
+                        role.Permissions.Remove(existingPerm);
                     }
                 }
             }

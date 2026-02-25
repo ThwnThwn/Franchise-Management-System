@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 
 namespace IdentityService.Application.Helpers
 {
-
     public class JwtHelper
     {
         private readonly string _secretKey;
@@ -27,19 +26,23 @@ namespace IdentityService.Application.Helpers
             _refreshTokenExpirationDays = refreshTokenExpirationDays;
         }
 
-        public string GenerateAccessToken(Guid userId, string roleSlug)
+        public string GenerateAccessToken(Guid userId, string roleSlug, Guid? storeId)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.UTF8.GetBytes(_secretKey);
 
             var claims = new List<Claim>
-        {
-            new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
-            new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
-            new Claim(ClaimTypes.Role, roleSlug),
-            new Claim("role_slug", roleSlug),
-            new Claim("type", "access")
-        };
+            {
+                new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
+                new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
+                new Claim(ClaimTypes.Role, roleSlug),
+                new Claim("role_slug", roleSlug),
+                new Claim("type", "access")
+            };
+            if (storeId != null)
+            {
+                claims.Add(new Claim("store_id", storeId.Value.ToString()));
+            }
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {

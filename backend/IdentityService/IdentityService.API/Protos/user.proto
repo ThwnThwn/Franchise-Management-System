@@ -14,6 +14,8 @@ service UserGrpc {
 
   rpc GetById(GetUserByIdRequest) returns (UserResponse);
   rpc GetAll(google.protobuf.Empty) returns (UserListResponse);
+  rpc GetUserIdByPhone(GetUserIdByPhoneRequest) returns (UserIdResponse);
+  rpc GetUserIdByEmail(GetUserIdByEmailRequest) returns (UserIdResponse);
 
   rpc Update(UpdateUserRequest) returns (UserResponse);
   rpc Delete(DeleteUserRequest) returns (DeleteUserResponse);
@@ -83,5 +85,17 @@ message UserResponse {
 
   google.protobuf.Timestamp createdAt = 8;
   google.protobuf.Timestamp updatedAt = 9;
+}
+
+message GetUserIdByPhoneRequest {
+  string phone = 1;
+}
+
+message UserIdResponse {
+  string id = 1;
+}
+
+message GetUserIdByEmailRequest {
+  string email = 1;
 }
 

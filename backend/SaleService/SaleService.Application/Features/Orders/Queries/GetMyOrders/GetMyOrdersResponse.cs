@@ -15,6 +15,7 @@
         string? Notes,
         DateTimeOffset CreatedAt,
         DateTimeOffset UpdatedAt,
-        Guid? CustomerId
+        Guid? CustomerId,
+        Guid? StoreId
     );
 }

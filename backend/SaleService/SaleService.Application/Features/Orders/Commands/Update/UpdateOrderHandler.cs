@@ -1,16 +1,17 @@
 ﻿using Ardalis.Result;
+using DocumentFormat.OpenXml.VariantTypes;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using SalesService.Application.AppExceptions;
 using SalesService.Application.ClientInterface.Inventory;
 using SalesService.Application.ClientInterface.Products;
 using SalesService.Application.Dtos.Inventory;
-using SalesService.Application.Persisitences.OrderItems;
+using SalesService.Application.Features.Orders.Commands.Create;
 using SalesService.Application.Persisitences.Orders;
 using SalesService.Application.Persisitences.Outbox;
 using SalesService.Application.Signals;
-using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
+using System.Diagnostics.CodeAnalysis;
 
 namespace SalesService.Application.Features.Orders.Commands.Update
 {
@@ -19,7 +20,6 @@ namespace SalesService.Application.Features.Orders.Commands.Update
         private readonly IOrderRepository _orderRepository;
         private readonly IProductServiceClient _productServiceClient;
         private readonly IInventoryServiceClient _inventoryServiceClient;
-        private readonly IOrderItemRepository _orderItemRepository;
         private readonly IOutboxRepository _outboxRepository;
         private readonly IOutboxSignal _outboxSignal;
         private readonly ILogger<UpdateOrderHandler> _logger;
@@ -28,7 +28,6 @@ namespace SalesService.Application.Features.Orders.Commands.Update
         IOrderRepository orderRepository,
         IProductServiceClient productServiceClient,
         IInventoryServiceClient inventoryServiceClient,
-        IOrderItemRepository orderItemRepository,
         IOutboxRepository outboxRepository,
         IOutboxSignal outboxSignal,
         ILogger<UpdateOrderHandler> logger)
@@ -36,32 +35,35 @@ namespace SalesService.Application.Features.Orders.Commands.Update
             _orderRepository = orderRepository;
             _productServiceClient = productServiceClient;
             _inventoryServiceClient = inventoryServiceClient;
-            _orderItemRepository = orderItemRepository;
             _outboxRepository = outboxRepository;
             _outboxSignal = outboxSignal;
             _logger = logger;
         }
+
         public async Task<UpdateOrderRes> Handle(UpdateOrderCommand command, CancellationToken cancellationToken)
         {
             var request = command.Request;
-
             if (request.Items == null || !request.Items.Any())
                 throw new BusinessException("Order must contain at least one item.");
 
             //Load existing order
             var order = await _orderRepository.GetByIdAsync(request.OrderId!, cancellationToken);
-
             if (order == null)
                 throw new BusinessException("Order not found.");
 
+            //Check if currentUser is the onwer or staff
+            var isStaff = request.RoleSlug != "customer";
+            if (request.UserId != order.CustomerId && !isStaff)
+                throw new BusinessException("Olny staff/admin or the owner can update order");
+
             //Only allow update when still Ordered
-            if (order.Status != OrderStatus.Ordered)
+            if (order.Status != OrderStatus.PaymentPending)
                 throw new BusinessException("Order cannot be updated after preparation has started.");
 
             //Get SKUs
             var skus = request.Items.Select(x => x.Sku).ToList();
 
-            // Remove items that are no longer present 
+            // Remove items that are no longer present
             var itemsToRemove = order.OrderItems
                 .Where(x => !skus.Contains(x.Sku))
                 .ToList();
@@ -70,7 +72,6 @@ namespace SalesService.Application.Features.Orders.Commands.Update
             {
                 order.OrderItems.Remove(removed);
             }
-
 
             //Validate variants exist
             var variants = await _productServiceClient.GetListProductVariantsBySkusAsync(skus);
@@ -82,6 +83,7 @@ namespace SalesService.Application.Features.Orders.Commands.Update
             var newReserveItems = variants.Select(v => new AmountVariant
             {
                 VariantId = v.VariantId,
+                Sku = v.Sku,
                 Amount = request.Items.First(i => i.Sku == v.Sku).Quantity
             }).ToList();
 
@@ -101,8 +103,15 @@ namespace SalesService.Application.Features.Orders.Commands.Update
                 Items = newReserveItems
             });
 
-            if (!reserveRes.Success)
-                throw new BusinessException($"Stock update failed: {reserveRes.Message}");
+            if (!reserveRes.IsEnough)
+                //throw new BusinessException($"Stock update failed: {reserveRes.Message}");
+                return Result.Success(new UpdateOrderRes
+                {
+                    OrderId = Guid.Empty,
+                    OrderCode = "Failed",
+                    TotalAmount = 0,
+                    CheckEnoughStockRes = reserveRes
+                });
 
             // Remove orderItem - save change order
             decimal subtotal = 0;
@@ -115,6 +124,9 @@ namespace SalesService.Application.Features.Orders.Commands.Update
                 {
                     // Update quantity
                     existing.Quantity = item.Quantity;
+                    var variant = variants.First(v => v.Sku == item.Sku);
+                    decimal unitPrice = variant.BasePrice.Value;
+                    subtotal += unitPrice * item.Quantity;
                 }
                 else
                 {
@@ -124,7 +136,6 @@ namespace SalesService.Application.Features.Orders.Commands.Update
                     subtotal += unitPrice * item.Quantity;
                     order.OrderItems.Add(new Domain.Entities.OrderItem
                     {
-                        Id = Guid.NewGuid(),
                         OrderId = order.Id,
                         ProductId = variant.ProductId,
                         VariantId = variant.VariantId,
@@ -148,13 +159,20 @@ namespace SalesService.Application.Features.Orders.Commands.Update
             order.TotalAmount = totalAmount;
 
             // 10. Save update
-            await _orderItemRepository.SaveAsync(cancellationToken);
+            await _orderRepository.SaveAsync(cancellationToken);
             _logger.LogInformation("Order {OrderCode} updated successfully.", order.Code);
 
             return Result.Success(new UpdateOrderRes
             {
                 OrderId = order.Id,
+                CustomerId = order.CustomerId,
                 OrderCode = order.Code,
+                Items = order.OrderItems.Select(x => new OrderItemDto
+                {
+                    Sku = x.Sku,
+                    Quantity = x.Quantity,
+                    UnitPrice = x.UnitPrice
+                }).ToList(),
                 TotalAmount = order.TotalAmount,
                 CheckEnoughStockRes = new CheckEnoughStockRes
                 {
