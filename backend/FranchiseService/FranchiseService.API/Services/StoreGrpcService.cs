@@ -6,6 +6,7 @@ using FranchiseService.Application.Features.Stores.Queries.GetStores;
 using Grpc.Core;
 using MediatR;
 using FranchiseService.Grpc;
+using FranchiseService.Application.Features.Stores.Queries.GetByIds;
 
 namespace FranchiseService.API.Services
 {
@@ -104,6 +105,15 @@ namespace FranchiseService.API.Services
             }
 
             return MapToStoreDetailResponse(result);
+        }
+
+        public override async Task<GetStoresByIdsResponse> GetStoresByIds(GetStoresByIdsRequest request, ServerCallContext context)
+        {
+            var query = new GetByIdsQuery { Ids = request.Ids };
+            var stores = await _mediator.Send(query);
+            var response = new GetStoresByIdsResponse();
+            response.Stores.AddRange(stores.Select(s => MapToStoreDetailResponse(s)));
+            return response;
         }
 
         private StoreDetailResponse MapToStoreDetailResponse(StoreDto dto)

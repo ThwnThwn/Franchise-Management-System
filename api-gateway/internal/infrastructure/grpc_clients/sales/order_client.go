@@ -4,12 +4,12 @@ import (
 	"api-gateway/global"
 	salesGW "api-gateway/internal/application/gateways/sales"
 	"api-gateway/internal/domain/constants/enum"
+	"api-gateway/internal/domain/models/common"
 	"api-gateway/internal/domain/models/order"
 	"api-gateway/pkg/mapper"
 	salesPb "api-gateway/pkg/pb/sales"
-	"api-gateway/pkg/utils/numberutils"
-	"api-gateway/pkg/utils/timeutils"
 	"context"
+	"fmt"
 
 	"github.com/google/uuid"
 )
@@ -52,6 +52,7 @@ func (o *OrderGrpcClient) CreateOrder(ctx context.Context, req *order.CreateOrde
 		OrderCode:         res.OrderCode,
 		TotalAmount:       res.TotalAmount,
 		CustomerId:        res.CustomerId,
+		StoreId:           res.StoreId,
 		CheckStockRespone: mapper.MapCheckEnoughStockRes(res.CheckStockRespone),
 	}, nil
 }
@@ -79,7 +80,36 @@ func (o *OrderGrpcClient) UpdateOrder(ctx context.Context, id uuid.UUID, items [
 		OrderCode:         res.OrderCode,
 		TotalAmount:       res.TotalAmount,
 		CustomerId:        res.CustomerId,
+		StoreId:           res.StoreId,
 		CheckStockRespone: mapper.MapCheckEnoughStockRes(res.CheckStockRespone),
+	}, nil
+}
+
+// GetOrders implements sales.IOrderService.
+func (o *OrderGrpcClient) GetOrders(ctx context.Context, req *order.GetOrdersRequest) (common.PaginationResult[*order.OrderSummary], error) {
+	res, err := o.client.GetOrders(ctx, &salesPb.GetOrdersRequest{
+		StoreId:       req.StoreId,
+		Code:          req.Code,
+		Status:        req.Status,
+		PaymentMethod: req.PaymentMethod,
+		FromDate:      req.FromDate,
+		ToDate:        req.ToDate,
+		Page:          &req.Page,
+		PageSize:      &req.PageSize,
+	})
+	if err != nil {
+		return common.PaginationResult[*order.OrderSummary]{}, err
+	}
+
+	orders := make([]*order.OrderSummary, 0, len(res.Orders))
+	for _, item := range res.Orders {
+		orders = append(orders, mapper.MapOrderSummaryPbToModel(item))
+	}
+
+	return common.PaginationResult[*order.OrderSummary]{
+		Items:      orders,
+		TotalCount: res.TotalCount,
+		TotalPages: res.TotalPages,
 	}, nil
 }
 
@@ -104,22 +134,8 @@ func (o *OrderGrpcClient) GetOrderById(ctx context.Context, id uuid.UUID) (*orde
 	}
 
 	order := &order.Order{
-		OrderHeader: order.OrderHeader{
-			Id:            res.Order.Id,
-			Code:          res.Order.Code,
-			Subtotal:      res.Order.Subtotal,
-			Tax:           numberutils.GetFloat64(res.Order.Tax),
-			TotalAmount:   res.Order.TotalAmount,
-			PaidAmount:    res.Order.PaidAmount,
-			PaymentMethod: numberutils.GetInt32(res.Order.PaymentMethod),
-			Status:        numberutils.GetInt32(res.Order.Status),
-			PaidAt:        timeutils.StringToTime(res.Order.PaidAt),
-			Notes:         res.Order.Notes,
-			CreatedAt:     timeutils.StringToTime(res.Order.CreatedAt),
-			UpdatedAt:     timeutils.StringToTime(res.Order.UpdatedAt),
-			CustomerId:    res.Order.CustomerId,
-		},
-		Items: items,
+		OrderHeader: *mapper.MapOrderPbToHeaderModel(res.Order),
+		Items:       items,
 	}
 
 	return order, nil
@@ -137,24 +153,7 @@ func (o *OrderGrpcClient) GetMyOrders(ctx context.Context, req *order.GetMyOrder
 
 	orders := make([]*order.OrderSummary, 0, len(res.Orders))
 	for _, o := range res.Orders {
-		orders = append(orders, &order.OrderSummary{
-			OrderHeader: order.OrderHeader{
-				Id:            o.Id,
-				Code:          o.Code,
-				Subtotal:      o.Subtotal,
-				Tax:           numberutils.GetFloat64(o.Tax),
-				TotalAmount:   o.TotalAmount,
-				PaidAmount:    numberutils.GetFloat64(o.PaidAmount),
-				PaymentMethod: numberutils.GetInt32(o.PaymentMethod),
-				Status:        numberutils.GetInt32(o.Status),
-				PaidAt:        timeutils.StringToTime(o.PaidAt),
-				Notes:         o.Notes,
-				CreatedAt:     timeutils.StringToTime(o.CreatedAt),
-				UpdatedAt:     timeutils.StringToTime(o.UpdatedAt),
-
-				CustomerId: o.CustomerId,
-			},
-		})
+		orders = append(orders, mapper.MapOrderSummaryPbToModel(o))
 	}
 
 	return orders, nil
@@ -166,6 +165,7 @@ func (o *OrderGrpcClient) UpdateStatus(ctx context.Context, id uuid.UUID, status
 		OrderId: id.String(),
 		Status:  salesPb.OrderStatus(status),
 	})
+	fmt.Println(status)
 
 	return err
 }

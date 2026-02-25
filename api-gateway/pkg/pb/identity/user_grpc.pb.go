@@ -29,6 +29,8 @@ type UserGrpcClient interface {
 	GetByIds(ctx context.Context, in *GetUserByIdsRequest, opts ...grpc.CallOption) (*GetUserByIdsResponse, error)
 	GetAll(ctx context.Context, in *GetAllUserOrWithRoleRequest, opts ...grpc.CallOption) (*GetAllUserOrWithRoleResponse, error)
 	GetManager(ctx context.Context, in *GetManagerRequest, opts ...grpc.CallOption) (*UserResponse, error)
+	GetUserIdByPhone(ctx context.Context, in *GetUserIdByPhoneRequest, opts ...grpc.CallOption) (*UserIdResponse, error)
+	GetUserIdByEmail(ctx context.Context, in *GetUserIdByEmailRequest, opts ...grpc.CallOption) (*UserIdResponse, error)
 	Update(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*UserResponse, error)
 	ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*UserResponse, error)
 	Delete(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error)
@@ -98,6 +100,24 @@ func (c *userGrpcClient) GetManager(ctx context.Context, in *GetManagerRequest, 
 	return out, nil
 }
 
+func (c *userGrpcClient) GetUserIdByPhone(ctx context.Context, in *GetUserIdByPhoneRequest, opts ...grpc.CallOption) (*UserIdResponse, error) {
+	out := new(UserIdResponse)
+	err := c.cc.Invoke(ctx, "/identity.user.UserGrpc/GetUserIdByPhone", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userGrpcClient) GetUserIdByEmail(ctx context.Context, in *GetUserIdByEmailRequest, opts ...grpc.CallOption) (*UserIdResponse, error) {
+	out := new(UserIdResponse)
+	err := c.cc.Invoke(ctx, "/identity.user.UserGrpc/GetUserIdByEmail", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *userGrpcClient) Update(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*UserResponse, error) {
 	out := new(UserResponse)
 	err := c.cc.Invoke(ctx, "/identity.user.UserGrpc/Update", in, out, opts...)
@@ -153,6 +173,8 @@ type UserGrpcServer interface {
 	GetByIds(context.Context, *GetUserByIdsRequest) (*GetUserByIdsResponse, error)
 	GetAll(context.Context, *GetAllUserOrWithRoleRequest) (*GetAllUserOrWithRoleResponse, error)
 	GetManager(context.Context, *GetManagerRequest) (*UserResponse, error)
+	GetUserIdByPhone(context.Context, *GetUserIdByPhoneRequest) (*UserIdResponse, error)
+	GetUserIdByEmail(context.Context, *GetUserIdByEmailRequest) (*UserIdResponse, error)
 	Update(context.Context, *UpdateUserRequest) (*UserResponse, error)
 	ChangePassword(context.Context, *ChangePasswordRequest) (*UserResponse, error)
 	Delete(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error)
@@ -182,6 +204,12 @@ func (UnimplementedUserGrpcServer) GetAll(context.Context, *GetAllUserOrWithRole
 }
 func (UnimplementedUserGrpcServer) GetManager(context.Context, *GetManagerRequest) (*UserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetManager not implemented")
+}
+func (UnimplementedUserGrpcServer) GetUserIdByPhone(context.Context, *GetUserIdByPhoneRequest) (*UserIdResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserIdByPhone not implemented")
+}
+func (UnimplementedUserGrpcServer) GetUserIdByEmail(context.Context, *GetUserIdByEmailRequest) (*UserIdResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserIdByEmail not implemented")
 }
 func (UnimplementedUserGrpcServer) Update(context.Context, *UpdateUserRequest) (*UserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
@@ -319,6 +347,42 @@ func _UserGrpc_GetManager_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserGrpc_GetUserIdByPhone_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserIdByPhoneRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserGrpcServer).GetUserIdByPhone(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/identity.user.UserGrpc/GetUserIdByPhone",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserGrpcServer).GetUserIdByPhone(ctx, req.(*GetUserIdByPhoneRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserGrpc_GetUserIdByEmail_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserIdByEmailRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserGrpcServer).GetUserIdByEmail(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/identity.user.UserGrpc/GetUserIdByEmail",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserGrpcServer).GetUserIdByEmail(ctx, req.(*GetUserIdByEmailRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _UserGrpc_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UpdateUserRequest)
 	if err := dec(in); err != nil {
@@ -439,6 +503,14 @@ var UserGrpc_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetManager",
 			Handler:    _UserGrpc_GetManager_Handler,
+		},
+		{
+			MethodName: "GetUserIdByPhone",
+			Handler:    _UserGrpc_GetUserIdByPhone_Handler,
+		},
+		{
+			MethodName: "GetUserIdByEmail",
+			Handler:    _UserGrpc_GetUserIdByEmail_Handler,
 		},
 		{
 			MethodName: "Update",

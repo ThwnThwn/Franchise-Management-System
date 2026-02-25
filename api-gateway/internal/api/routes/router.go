@@ -36,6 +36,7 @@ func NewEngine(cfg *config.Config, aR *AppRouter) *gin.Engine {
 		// Franchise
 		aR.StoreRouter.Init(MainGroup)
 		aR.MyShiftsRouter.Init(MainGroup)
+		aR.ShiftsRouter.Init(MainGroup)
 
 		// Identity
 		aR.AuthRouter.Init(MainGroup)

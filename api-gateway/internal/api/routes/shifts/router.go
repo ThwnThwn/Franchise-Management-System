@@ -118,7 +118,7 @@ func (s *ShiftsRouter) Init(r *gin.RouterGroup) {
 	storesApi := r.Group("/stores")
 	storesApi.Use(auth)
 	{
-		storesApi.GET("/:storeId/shifts/:shiftId/candidates",
+		storesApi.GET("/:id/shifts/:shiftId/candidates",
 			s.authMW.PermissionCheck("shift.read"),
 			s.shiftHl.GetAvailableStaffs,
 		)

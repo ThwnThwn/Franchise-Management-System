@@ -1,5 +1,6 @@
 ﻿using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
+using InventoryService.Application.ClientInterface;
 using InventoryService.Application.Constants;
 using InventoryService.Application.Features.StoreIngredient.Commands;
 using InventoryService.Application.Features.StoreIngredient.Commands.IncreaseStock;
@@ -13,9 +14,11 @@ namespace InventoryService.API.Services.Inventory
     public class InventoryGrpcService : InventoryGrpc.InventoryGrpcBase
     {
         private readonly IMediator _mediator;
-        public InventoryGrpcService(IMediator mediator)
+        private readonly IIdentityServiceClient _identityServiceClient;
+        public InventoryGrpcService(IMediator mediator, IIdentityServiceClient identityServiceClient)
         {
             _mediator = mediator;
+            _identityServiceClient = identityServiceClient;
         }
 
         public override async Task<IncreaseStockResponse> IncreaseStock(IncreaseStockRequest request, ServerCallContext context)
@@ -23,6 +26,12 @@ namespace InventoryService.API.Services.Inventory
             //ktra phải manager của kho 
             var managerIdEntry = context.RequestHeaders.FirstOrDefault(h =>
             h.Key.Equals("x-user-id", StringComparison.OrdinalIgnoreCase));
+
+            var manager = await _identityServiceClient.GetManager(new Application.Dtos.User.GetManagerReq() { StoreId = Guid.Parse(request.StoreId)});
+            if(manager.Id != Guid.Parse(managerIdEntry.Value))
+            {
+                throw new RpcException(new Status(StatusCode.PermissionDenied, "Bạn không có quyền thực hiện hành động này"));
+            }
             //===============================
             var rep = await _mediator.Send(new IncreaseStockCommand(new()
             {

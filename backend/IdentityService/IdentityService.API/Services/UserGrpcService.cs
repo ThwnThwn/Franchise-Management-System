@@ -8,6 +8,8 @@ using IdentityService.Application.Features.Users.Commands.CustomerCreateUser;
 using IdentityService.Application.Features.Users.Commands.DeleteUser;
 using IdentityService.Application.Features.Users.Commands.UpdateUser;
 using IdentityService.Application.Features.Users.Queries.GetAllUser;
+using IdentityService.Application.Features.Users.Queries.GetByEmail;
+using IdentityService.Application.Features.Users.Queries.GetByPhone;
 using IdentityService.Application.Features.Users.Queries.GetManager;
 using IdentityService.Application.Features.Users.Queries.GetUserById;
 using IdentityService.Application.Features.Users.Queries.GetUserByIds;
@@ -310,5 +312,18 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
                 },
             AvatarUrl = user.AvatarUrl ?? ""
         };
+    }
+    public override async Task<UserIdResponse> GetUserIdByPhone(GetUserIdByPhoneRequest request, ServerCallContext context)
+    {
+        var req = new GetUserByPhoneQuery(PhoneNumber: request.Phone);
+        var user = await _mediator.Send(req);
+        return new UserIdResponse { Id = user.Id.ToString() };
+    }
+
+    public override async Task<UserIdResponse> GetUserIdByEmail(GetUserIdByEmailRequest request, ServerCallContext context)
+    {
+        var req = new GetByEmailQuery(Email: request.Email);
+        var user = await _mediator.Send(req);
+        return new UserIdResponse { Id = user.Id.ToString() };
     }
 }

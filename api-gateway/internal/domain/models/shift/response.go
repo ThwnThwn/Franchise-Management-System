@@ -1,7 +1,6 @@
 package shift
 
 import (
-	"api-gateway/internal/domain/constants/enum"
 	"api-gateway/internal/domain/models/store"
 )
 
@@ -10,11 +9,11 @@ import (
 // ===============================
 
 type ShiftAssignment struct {
-	ID         string  `json:"id"`
-	ShiftID    string  `json:"shiftId"`
-	UserID     string  `json:"userId"`
-	Status     int     `json:"status"` // ShiftAssignmentStatus enum
-	HourlyWage float64 `json:"hourlyWage"`
+	ID         string   `json:"id"`
+	ShiftID    string   `json:"shiftId"`
+	UserID     string   `json:"userId"`
+	Status     int32    `json:"status"` // ShiftAssignmentStatus enum
+	HourlyWage *float64 `json:"hourlyWage"`
 
 	FirstName string  `json:"firstName"`
 	LastName  *string `json:"lastName,omitempty"`
@@ -23,18 +22,18 @@ type ShiftAssignment struct {
 }
 
 type ShiftResponse struct {
-	ID                   string            `json:"id"`
-	StoreID              string            `json:"storeId"`
-	ShiftDate            string            `json:"shiftDate"` // YYYY-MM-DD
-	StartTime            string            `json:"startTime"` // HH:mm:ss
-	EndTime              string            `json:"endTime"`
-	RequiredStaffCount   int               `json:"requiredStaffCount"`
-	BreakDurationMinutes int               `json:"breakDurationMinutes"`
-	ShiftTemplateID      *string           `json:"shiftTemplateId,omitempty"`
-	Status               int               `json:"status"` // ShiftStatus enum
-	Note                 *string           `json:"note,omitempty"`
-	AssignedStaffCount   int               `json:"assignedStaffCount"`
-	Assignments          []ShiftAssignment `json:"assignments"`
+	ID                   string             `json:"id"`
+	StoreID              string             `json:"storeId"`
+	ShiftDate            string             `json:"shiftDate"` // YYYY-MM-DD
+	StartTime            string             `json:"startTime"` // HH:mm:ss
+	EndTime              string             `json:"endTime"`
+	RequiredStaffCount   int32              `json:"requiredStaffCount"`
+	BreakDurationMinutes int32              `json:"breakDurationMinutes"`
+	ShiftTemplateID      *string            `json:"shiftTemplateId,omitempty"`
+	Status               int32              `json:"status"` // ShiftStatus enum
+	Note                 *string            `json:"note,omitempty"`
+	AssignedStaffCount   int32              `json:"assignedStaffCount"`
+	Assignments          []*ShiftAssignment `json:"assignments"`
 }
 
 // ===============================
@@ -48,7 +47,7 @@ type ShiftTemplateResponse struct {
 	Name                 string  `json:"name"`
 	StartTime            string  `json:"startTime"`
 	EndTime              string  `json:"endTime"`
-	BreakDurationMinutes int     `json:"breakDurationMinutes"`
+	BreakDurationMinutes int32   `json:"breakDurationMinutes"`
 	IsActive             bool    `json:"isActive"`
 	CreatedAt            string  `json:"createdAt"`
 }
@@ -87,14 +86,14 @@ type ShiftRuleResponse struct {
 	StoreID               *string `json:"storeId,omitempty"`
 	AllowShuttle          bool    `json:"allowShuttle"`
 	AllowShiftSwap        bool    `json:"allowShiftSwap"`
-	MinHoursBetweenShifts int     `json:"minHoursBetweenShifts"`
-	MaxHoursPerWeek       int     `json:"maxHoursPerWeek"`
+	MinHoursBetweenShifts int32   `json:"minHoursBetweenShifts"`
+	MaxHoursPerWeek       int32   `json:"maxHoursPerWeek"`
 	UpdatedAt             string  `json:"updatedAt"`
 }
 
 type ShiftRuleSettingsResponse struct {
-	Global ShiftRuleResponse   `json:"global"`
-	Stores []ShiftRuleResponse `json:"stores"`
+	Global *ShiftRuleResponse   `json:"global"`
+	Stores []*ShiftRuleResponse `json:"stores"`
 }
 
 // ===============================
@@ -107,7 +106,7 @@ type ShiftAvailabilityResponse struct {
 	IsAvailable  bool    `json:"isAvailable"`
 	IsRecurring  bool    `json:"isRecurring"`
 	SpecificDate *string `json:"specificDate,omitempty"`
-	DayOfWeek    *int    `json:"dayOfWeek,omitempty"` // 0-6
+	DayOfWeek    *int32  `json:"dayOfWeek,omitempty"` // 0-6
 	StartTime    string  `json:"startTime"`
 	EndTime      string  `json:"endTime"`
 	Note         *string `json:"note,omitempty"`
@@ -186,27 +185,31 @@ type TimeLogResponse struct {
 	CheckOutLat      *float64 `json:"checkOutLat,omitempty"`
 	CheckOutLong     *float64 `json:"checkOutLong,omitempty"`
 
-	TotalWorkMinutes *int               `json:"totalWorkMinutes,omitempty"`
-	Status           enum.TimeLogStatus `json:"status"`
-	ManagerNote      *string            `json:"managerNote,omitempty"`
+	TotalWorkMinutes *int32  `json:"totalWorkMinutes,omitempty"`
+	Status           int32   `json:"status"`
+	ManagerNote      *string `json:"managerNote,omitempty"`
 
 	CreatedAt string `json:"createdAt"`
 	UpdatedAt string `json:"updatedAt"`
 
 	// Staff info
-	Staff struct {
-		Id        string  `json:"id"`
-		FirstName *string `json:"firstName,omitempty"`
-		LastName  *string `json:"lastName,omitempty"`
-		AvatarUrl *string `json:"avatarUrl,omitempty"`
-		Email     *string `json:"email,omitempty"`
-	} `json:"staff"`
+	Staff StaffTimeLogRes `json:"staff"`
 
-	Shift struct {
-		Id        string  `json:"id"`
-		ShiftDate string  `json:"shiftDate"`
-		StartTime string  `json:"startTime"`
-		EndTime   string  `json:"endTime"`
-		Note      *string `json:"note"`
-	} `json:"shift"`
+	Shift ShiftTimeLogRes `json:"shift"`
+}
+
+type StaffTimeLogRes struct {
+	Id        string  `json:"id"`
+	FirstName *string `json:"firstName,omitempty"`
+	LastName  *string `json:"lastName,omitempty"`
+	AvatarUrl *string `json:"avatarUrl,omitempty"`
+	Email     *string `json:"email,omitempty"`
+}
+
+type ShiftTimeLogRes struct {
+	Id        string  `json:"id"`
+	ShiftDate string  `json:"shiftDate"`
+	StartTime string  `json:"startTime"`
+	EndTime   string  `json:"endTime"`
+	Note      *string `json:"note"`
 }

@@ -3,6 +3,7 @@ package mapper
 import (
 	"api-gateway/internal/domain/models/shift"
 	"api-gateway/internal/domain/models/user"
+	"api-gateway/pkg/pb/franchise"
 	"api-gateway/pkg/utils/stringutils"
 )
 
@@ -48,4 +49,72 @@ func MapStaffToTimeLog(log *shift.TimeLogResponse, u *user.UserResponse) {
 	log.Staff.FirstName = stringutils.ToPtr(u.FirstName)
 	log.Staff.LastName = stringutils.ToPtr(u.LastName)
 	log.Staff.Email = stringutils.ToPtr(u.Email)
+}
+
+func MapShiftPbToModel(shiftPb *franchise.ShiftResponse) *shift.ShiftResponse {
+	if shiftPb == nil {
+		return nil
+	}
+	assignments := make([]*shift.ShiftAssignment, 0, len(shiftPb.Assignments))
+	for _, item := range shiftPb.Assignments {
+		assignments = append(assignments, &shift.ShiftAssignment{
+			ID:         item.Id,
+			ShiftID:    item.ShiftId,
+			UserID:     item.UserId,
+			Status:     item.Status,
+			HourlyWage: item.HourlyWage,
+
+			FirstName: item.FirstName,
+			LastName:  item.LastName,
+			AvatarURL: item.AvatarUrl,
+			Email:     &item.Email,
+		})
+	}
+
+	return &shift.ShiftResponse{
+		ID:                   shiftPb.Id,
+		StoreID:              shiftPb.StoreId,
+		ShiftDate:            shiftPb.ShiftDate,
+		StartTime:            shiftPb.StartTime,
+		EndTime:              shiftPb.EndTime,
+		RequiredStaffCount:   shiftPb.RequiredStaffCount,
+		BreakDurationMinutes: shiftPb.BreakDurationMinutes,
+		ShiftTemplateID:      shiftPb.ShiftTemplateId,
+		Status:               shiftPb.Status,
+		Note:                 shiftPb.Note,
+		AssignedStaffCount:   shiftPb.AssignedStaffCount,
+		Assignments:          assignments,
+	}
+}
+
+func MapShiftRulePbToModel(rulePb *franchise.ShiftRuleResponse) *shift.ShiftRuleResponse {
+	if rulePb == nil {
+		return nil
+	}
+	return &shift.ShiftRuleResponse{
+		ID:                    rulePb.Id,
+		StoreID:               stringutils.ToPtr(rulePb.StoreId),
+		AllowShuttle:          rulePb.AllowShuttle,
+		AllowShiftSwap:        rulePb.AllowShiftSwap,
+		MinHoursBetweenShifts: rulePb.MinHoursBetweenShifts,
+		MaxHoursPerWeek:       rulePb.MaxHoursPerWeek,
+		UpdatedAt:             rulePb.UpdatedAt,
+	}
+}
+
+func MapShiftTemplatePbToModel(templPb *franchise.ShiftTemplateResponse) *shift.ShiftTemplateResponse {
+	if templPb == nil {
+		return nil
+	}
+	return &shift.ShiftTemplateResponse{
+		ID:                   templPb.Id,
+		Code:                 templPb.Code,
+		StoreID:              stringutils.ToPtr(templPb.StoreId),
+		Name:                 templPb.Name,
+		StartTime:            templPb.StartTime,
+		EndTime:              templPb.EndTime,
+		BreakDurationMinutes: templPb.BreakDurationMinutes,
+		IsActive:             templPb.IsActive,
+		CreatedAt:            templPb.CreatedAt,
+	}
 }

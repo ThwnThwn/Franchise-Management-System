@@ -1,3 +1,5 @@
+using SalesService.Application.Features.Orders.Queries.GetOrderVolume;
+using SalesService.Application.Features.Reports.Queries.GetRevenueReport;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
 
@@ -26,4 +28,18 @@ public interface IOrderRepository
 
     Task UpdateAsync(Order order, CancellationToken cancellationToken = default);
     Task SaveAsync(CancellationToken cancellationToken = default);
+
+    Task<List<RevenueItemDto>> GetRevenueReportAsync(
+        DateOnly? fromDate,
+        DateOnly? toDate,
+        List<string>? skus,
+        Guid? storeId,
+        CancellationToken cancellationToken = default);
+
+    Task<List<OrderVolumePerDayDto>> GetOrderVolumeAsync(
+        DateOnly fromDate,
+        DateOnly toDate,
+        Guid? storeId,
+        OrderStatus? status,
+        CancellationToken cancellationToken);
 }

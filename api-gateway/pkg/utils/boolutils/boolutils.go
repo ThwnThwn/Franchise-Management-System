@@ -5,5 +5,4 @@ func GetBool(p *bool) bool {
 		return *p
 	}
 	return true
-
 }

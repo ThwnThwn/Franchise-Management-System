@@ -23,6 +23,12 @@ service OrderGrpc {
 
   // Lấy danh sách đơn hàng với bộ lọc và phân trang
   rpc GetOrders (GetOrdersRequest) returns (GetOrdersReply);
+
+  // Lấy báo cáo doanh thu
+  rpc GetRevenueReport (GetRevenueReportRequest) returns (GetRevenueReportReply);
+
+  // Lấy danh sách đơn hàng
+  rpc GetOrderVolume (GetOrderVolumeRequest) returns (GetOrderVolumeReply);
 }
 
 message CreateOrderRequest {
@@ -41,7 +47,16 @@ message OrderReply {
   string order_code = 2;
   double total_amount = 3;
   string customer_id = 4;
-  CheckEnoughStockResponse check_stock_respone = 5;
+  string store_id = 5;
+
+  repeated OrderItemReply items = 6;
+  CheckEnoughStockResponse check_stock_respone = 7;
+}
+
+message OrderItemReply {
+  string sku = 1;
+  int32 quantity = 2;
+  double unit_price = 3;
 }
 
 message GetOrderByIdRequest {
@@ -66,7 +81,8 @@ message Order {
   string created_at = 11;
   string updated_at = 12;
   string customer_id = 13;
-  repeated OrderItem items = 14;
+  string store_id = 14;
+  repeated OrderItem items = 15;
 }
 
 
@@ -105,6 +121,7 @@ message OrderSummary {
   string created_at = 11;
   string updated_at = 12;
   string customer_id = 13;
+  string store_id = 14;
 }
 
 
@@ -117,6 +134,7 @@ message ShortageItem {
   string variant_id = 1;
   int32 max_feasible_quantity = 2;
 }
+
 enum OrderStatus{
   PaymentPending = 0;
   ConfirmationPending = 1; 
@@ -138,12 +156,11 @@ message UpdateOrderStatusReply {
 }
 
 message UpdateOrderItem {
-
   string sku = 1;
   int32 quantity = 2;
 }
-message UpdateOrderRequest {
 
+message UpdateOrderRequest {
   string order_id = 1;
   repeated UpdateOrderItem items = 2;
 }
@@ -162,4 +179,61 @@ message GetOrdersRequest {
 message GetOrdersReply {
   repeated OrderSummary orders = 1;
   int32 total_count = 2;
+  int32 total_pages = 3;
+}
+
+message GetRevenueReportRequest {
+  optional string from_date = 1; // ISO 8601 string
+  optional string to_date = 2;   // ISO 8601 string
+  optional string category_id = 3;
+  optional string store_id = 4;
+  bool include_csv = 5;
+}
+
+message GetRevenueReportReply {
+  string from_date = 1;
+  string to_date = 2;
+  string category_id = 3;
+  repeated RevenueItem items = 4;
+  double overall_total_revenue = 5;
+
+  optional CsvFile csv_file = 6;
+}
+
+message RevenueItem {
+  optional string store_id = 1;
+  string product_name = 2;
+  string sku = 3;
+  int32 quantity_sold = 4;
+  double unit_price = 5;
+  double total_revenue = 6;
+}
+
+message GetOrderVolumeRequest{
+  string from_date = 1; // YYYY-MM-DD
+  string to_date = 2; // YYYY-MM-DD
+  optional string store_id = 3;
+  optional OrderStatus status = 4; //
+  optional bool include_csv = 5;
+}
+
+message GetOrderVolumeReply{
+  repeated OrderVolumeADay orders = 1;
+  optional CsvFile csv_file = 6;
+}
+
+message OrderVolumeADay{
+  string date = 1; // YYYY-MM-DD
+  int32 total_orders = 2;
+  int32 canceled_order = 3;
+  int32 completed_order = 4;
+  optional string store_id = 5;
+  map<string, int32> status_counts = 6;
+
+  optional CsvFile csv_file = 7;
+}
+
+message CsvFile{
+  bytes csv_raw = 1;
+  string csv_file_name = 2;
 }

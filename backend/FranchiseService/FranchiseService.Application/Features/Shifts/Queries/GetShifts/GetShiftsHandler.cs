@@ -1,12 +1,11 @@
 using FranchiseService.Application.ClientInterfaces;
 using FranchiseService.Application.Features.Shifts.DTOs;
 using FranchiseService.Application.Repositories;
-using BuildingBlocks.Core.Pagination;
 using MediatR;
 
 namespace FranchiseService.Application.Features.Shifts.Queries.GetShifts
 {
-    public class GetShiftsHandler : IRequestHandler<GetShiftsQuery, PagedResult<ShiftResponse>>
+    public class GetShiftsHandler : IRequestHandler<GetShiftsQuery, IEnumerable<ShiftResponse>>
     {
         private readonly IShiftRepository _shiftRepo;
         private readonly IIdentityServiceClient _identityClient;
@@ -17,7 +16,7 @@ namespace FranchiseService.Application.Features.Shifts.Queries.GetShifts
             _identityClient = identityClient;
         }
 
-        public async Task<PagedResult<ShiftResponse>> Handle(GetShiftsQuery request, CancellationToken cancellationToken)
+        public async Task<IEnumerable<ShiftResponse>> Handle(GetShiftsQuery request, CancellationToken cancellationToken)
         {
             var defaultFrom = DateOnly.FromDateTime(DateTime.Today);
             var defaultTo = defaultFrom.AddDays(7);
@@ -30,11 +29,11 @@ namespace FranchiseService.Application.Features.Shifts.Queries.GetShifts
                 request.StoreId, fromDate, toDate, request.Status, cancellationToken);
 
             // 2. Pagination (InMemory for now, as Repo returns IEnumerable)
-            var totalCount = shifts.Count();
-            var pagedShifts = shifts
-                .Skip((request.PageNumber - 1) * request.PageSize)
-                .Take(request.PageSize)
-                .ToList();
+            //var totalCount = shifts.Count();
+            var pagedShifts = shifts;
+            // .Skip((request.PageNumber - 1) * request.PageSize)
+            // .Take(request.PageSize)
+            // .ToList();
 
             // 3. Map to DTO (Async Loop for external calls)
             var shiftResponses = new List<ShiftResponse>();
@@ -45,12 +44,7 @@ namespace FranchiseService.Application.Features.Shifts.Queries.GetShifts
             }
 
             // Correction: PagedResult constructor order is (items, totalCount, pageIndex, pageSize)
-            return new PagedResult<ShiftResponse>(
-                shiftResponses,
-                totalCount,
-                request.PageNumber, 
-                request.PageSize
-            );
+            return shiftResponses;
         }
 
         private async Task<ShiftResponse> MapToShiftResponseAsync(Domain.Entities.Shift s)
@@ -70,10 +64,14 @@ namespace FranchiseService.Application.Features.Shifts.Queries.GetShifts
                         Id = a.Id,
                         ShiftId = a.ShiftId,
                         UserId = a.UserId,
-                        StaffName = userInfo?.Username, 
-                        StaffEmail = userInfo?.Email,   
                         Status = a.Status,
                         HourlyWage = a.HourlyWage,
+
+                        FirstName = userInfo?.FirstName ?? "",
+                        LastName = userInfo?.LastName,
+                        AvatarUrl = userInfo?.AvatarUrl,
+                        Email = userInfo?.Email,
+
                         TimeLogs = a.TimeLogs.Select(tl => new TimeLogDto
                         {
                             Id = tl.Id,
@@ -89,16 +87,17 @@ namespace FranchiseService.Application.Features.Shifts.Queries.GetShifts
             {
                 Id = s.Id,
                 StoreId = s.StoreId,
-                ShiftTemplateId = s.ShiftTemplateId,
                 ShiftDate = s.ShiftDate,
                 StartTime = s.StartTime,
                 EndTime = s.EndTime,
                 RequiredStaffCount = s.RequiredStaffCount,
-                AssignedStaffCount = assignmentDtos.Count, 
                 BreakDurationMinutes = s.BreakDurationMinutes,
+
+                ShiftTemplateId = s.ShiftTemplateId,
                 Status = s.Status,
                 Note = s.Note,
-                Assignments = assignmentDtos 
+                AssignedStaffCount = assignmentDtos.Count,
+                Assignments = assignmentDtos
             };
         }
     }

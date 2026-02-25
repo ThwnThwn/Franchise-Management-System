@@ -13,8 +13,11 @@ import (
 var ClientSet = wire.NewSet(
 	// Franchise Service
 	franchise.NewFranchiseClientFactory,
-	franchise.ProvideStoreClient,
+	franchise.ProvideShiftAvailabilityClient,
 	franchise.ProvideShiftClient,
+	franchise.ProvideShiftRuleClient,
+	franchise.ProvideShiftTemplateClient,
+	franchise.ProvideStoreClient,
 
 	// Identity Service
 	identity.NewIdentityClientFactory,

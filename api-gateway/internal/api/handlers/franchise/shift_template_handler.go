@@ -3,9 +3,11 @@ package franchise
 import (
 	"api-gateway/internal/application/constants/errorcode"
 	"api-gateway/internal/application/gateways/franchise"
+	"api-gateway/internal/domain/constants/roleslug"
 	"api-gateway/internal/domain/models/shift"
+	"api-gateway/pkg/utils/contextutils"
+	"api-gateway/pkg/utils/stringutils"
 	"api-gateway/pkg/utils/validation"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -13,10 +15,10 @@ import (
 )
 
 type ShiftTemplateHandler struct {
-	shiftGW franchise.IShiftService
+	shiftGW franchise.IShiftTemplateService
 }
 
-func NewShiftTemplateHandler(shiftGW franchise.IShiftService) *ShiftTemplateHandler {
+func NewShiftTemplateHandler(shiftGW franchise.IShiftTemplateService) *ShiftTemplateHandler {
 	return &ShiftTemplateHandler{shiftGW: shiftGW}
 }
 
@@ -35,10 +37,12 @@ func (h *ShiftTemplateHandler) GetAll(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(params)
-	// res, err := h.shiftGW.GetTemplates(c.Request.Context(), params)
+	res, err := h.shiftGW.GetAll(c.Request.Context(), &params)
+	if err != nil {
+		c.Error(err)
+		return
+	}
 
-	res := []shift.ShiftTemplateResponse{}
 	c.JSON(http.StatusOK, res)
 }
 
@@ -57,10 +61,12 @@ func (h *ShiftTemplateHandler) GetByID(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(id)
-	// res, err := h.shiftGW.GetTemplateByID(c.Request.Context(), id)
+	res, err := h.shiftGW.GetById(c.Request.Context(), id)
+	if err != nil {
+		c.Error(err)
+		return
+	}
 
-	res := shift.ShiftTemplateResponse{}
 	c.JSON(http.StatusOK, res)
 }
 
@@ -78,8 +84,28 @@ func (h *ShiftTemplateHandler) Create(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(req)
-	// err := h.shiftGW.CreateTemplate(c.Request.Context(), req)
+	roleSlug, err := contextutils.GetRoleSlug(c)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	if roleSlug == string(roleslug.Manager) {
+		storeId, err := contextutils.GetStoreId(c)
+		if err != nil {
+			c.Error(err)
+			return
+		}
+		req.StoreID = stringutils.ToPtr(storeId.String())
+	} else {
+		req.StoreID = nil
+	}
+
+	err = h.shiftGW.Create(c.Request.Context(), &req)
+	if err != nil {
+		c.Error(err)
+		return
+	}
 
 	c.JSON(http.StatusCreated, gin.H{})
 }
@@ -105,8 +131,11 @@ func (h *ShiftTemplateHandler) Update(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(id, req)
-	// err := h.shiftGW.UpdateTemplate(c.Request.Context(), id, req)
+	err = h.shiftGW.Update(c.Request.Context(), id, &req)
+	if err != nil {
+		c.Error(err)
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{})
 }
@@ -125,8 +154,11 @@ func (h *ShiftTemplateHandler) Delete(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(id)
-	// err := h.shiftGW.DeleteTemplate(c.Request.Context(), id)
+	err = h.shiftGW.Delete(c.Request.Context(), id)
+	if err != nil {
+		c.Error(err)
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{})
 }

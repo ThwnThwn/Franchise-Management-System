@@ -1,4 +1,5 @@
 using AutoMapper;
+using Google.Protobuf;
 using Grpc.Core;
 using InventoryService.Grpc.Protos.Inventory.Internal;
 using MediatR;
@@ -9,9 +10,13 @@ using SalesService.Application.Features.Orders.Commands.UpdateOrderStatus;
 using SalesService.Application.Features.Orders.GetById;
 using SalesService.Application.Features.Orders.Queries.GetMyOrders;
 using SalesService.Application.Features.Orders.Queries.GetOrders;
-using SalesService.Domain.Entities;
-using SalesService.Domain.Enums;
+using SalesService.Application.Features.Orders.Queries.GetOrderVolume;
+using SalesService.Application.Features.Reports.Queries.GetRevenueReport;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace SalesService.API.Services.Orders;
 
@@ -125,8 +130,8 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             Subtotal = (double)dto.Subtotal,
             TotalAmount = (double)dto.TotalAmount,
             //dùng -1 cho NULL (chưa thanh toán)
-            Tax = dto.Tax.HasValue ? (double)dto.Tax :-1,
-            PaidAmount = dto.PaidAmount.HasValue? (double)dto.PaidAmount.Value: -1,
+            Tax = dto.Tax.HasValue ? (double)dto.Tax : -1,
+            PaidAmount = dto.PaidAmount.HasValue ? (double)dto.PaidAmount.Value : -1,
             PaymentMethod = dto.PaymentMethod ?? -1,
             Status = dto.Status,
             PaidAt = dto.PaidAt.ToString("O"),
@@ -134,7 +139,7 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             CreatedAt = dto.CreatedAt.ToString("O"),
             UpdatedAt = dto.UpdatedAt.ToString("O"),
             CustomerId = dto.CustomerId.ToString(),
-            
+            StoreId = dto.StoreId?.ToString() ?? string.Empty
         };
 
         orderMessage.Items.AddRange(dto.Items.Select(i => new OrderItem
@@ -197,6 +202,8 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
                 CreatedAt = order.CreatedAt.ToString("O"),
                 UpdatedAt = order.UpdatedAt.ToString("O"),
                 CustomerId = order.CustomerId?.ToString() ?? "",
+                StoreId = order.StoreId?.ToString() ?? "",
+                Notes = order.Notes ?? string.Empty,
 
                 //dùng -1 cho NULL (chưa thanh toán)
                 Tax = order.Tax.HasValue ? (double)order.Tax.Value : -1,
@@ -215,12 +222,12 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
         return reply;
     }
 
-    public override async Task<UpdateOrderStatusReply> UpdateOrderStatus(UpdateOrderStatusRequest request,ServerCallContext context)
+    public override async Task<UpdateOrderStatusReply> UpdateOrderStatus(UpdateOrderStatusRequest request, ServerCallContext context)
     {
         //Validate orderId
         if (!Guid.TryParse(request.OrderId, out var orderId))
         {
-            throw new RpcException(new Status(StatusCode.InvalidArgument,"Invalid OrderId"));
+            throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid OrderId"));
         }
 
         //Validate status enum
@@ -248,6 +255,7 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             Message = resultMessage
         };
     }
+
     public override async Task<OrderReply> UpdateOrder(UpdateOrderRequest request, ServerCallContext context)
     {
         var userIdEntry = context.RequestHeaders.FirstOrDefault(h =>
@@ -276,7 +284,6 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             }).ToList(),
             UserId = Guid.Parse(userIdEntry.Value),
             RoleSlug = roleSlug.Value
-            
         });
         var result = await _mediator.Send(command);
         var reply = new OrderReply
@@ -307,6 +314,13 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
         return reply;
     }
 
+    /// <summary>
+    /// Lấy danh sách đơn hàng với các bộ lọc: theo cửa hàng, theo mã đơn hàng, theo khoảng thời gian, theo trạng thái, theo phương thức thanh toán
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="context"></param>
+    /// <returns></returns>
+    /// <exception cref="RpcException"></exception>
     public override async Task<GetOrdersReply> GetOrders(GetOrdersRequest request, ServerCallContext context)
     {
         var storeId = string.IsNullOrEmpty(request.StoreId) ? (Guid?)null : Guid.Parse(request.StoreId);
@@ -335,10 +349,11 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
 
         var reply = new GetOrdersReply
         {
-            TotalCount = result.Value.TotalCount
+            TotalCount = Convert.ToInt32(result.Value.PageResult.TotalCount),
+            TotalPages = result.Value.PageResult.TotalPages
         };
 
-        foreach (var order in result.Value.Orders)
+        foreach (var order in result.Value.PageResult.Items)
         {
             var summary = new OrderSummary
             {
@@ -348,9 +363,11 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
                 TotalAmount = (double)order.TotalAmount,
                 Status = order.Status,
                 PaidAt = order.PaidAt.ToString("O"),
-                CreatedAt = order.CreatedAt.ToString("O"), 
+                CreatedAt = order.CreatedAt.ToString("O"),
                 UpdatedAt = order.UpdatedAt.ToString("O"),
                 CustomerId = order.CustomerId?.ToString() ?? "",
+                StoreId = order.StoreId?.ToString() ?? "",
+                Notes = order.Notes ?? string.Empty,
                 Tax = order.Tax.HasValue ? (double)order.Tax.Value : -1,
                 PaidAmount = order.PaidAmount.HasValue ? (double)order.PaidAmount.Value : -1,
                 PaymentMethod = order.PaymentMethod ?? -1
@@ -364,6 +381,137 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             reply.Orders.Add(summary);
         }
 
+        return reply;
+    }
+
+    /// <summary>
+    /// Báo cáo doanh thu theo khoảng thời gian và danh mục sản phẩm (nếu có)
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="context"></param>
+    /// <returns></returns>
+    /// <exception cref="RpcException"></exception>
+    public override async Task<GetRevenueReportReply> GetRevenueReport(
+        GetRevenueReportRequest request,
+        ServerCallContext context)
+    {
+        DateOnly? fromDate = string.IsNullOrEmpty(request.FromDate)
+            ? (DateOnly?)null
+            : DateOnly.Parse(request.FromDate);
+
+        DateOnly? toDate = string.IsNullOrEmpty(request.ToDate)
+            ? (DateOnly?)null
+            : DateOnly.Parse(request.ToDate);
+
+        Guid? categoryId = string.IsNullOrEmpty(request.CategoryId)
+            ? (Guid?)null
+            : Guid.Parse(request.CategoryId);
+
+        Guid? storeId = string.IsNullOrEmpty(request.StoreId)
+            ? (Guid?)null
+            : Guid.Parse(request.StoreId);
+        var query = new GetRevenueReportQuery(fromDate, toDate, categoryId, storeId);
+        var result = await _mediator.Send(query, context.CancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            throw new RpcException(new Status(
+                StatusCode.Internal,
+                result.Errors.FirstOrDefault() ?? "Failed to get revenue report"));
+        }
+        var report = result.Value;
+
+        var reply = new GetRevenueReportReply
+        {
+            FromDate = result.Value.FromDate?.ToString("O") ?? string.Empty,
+            ToDate = result.Value.ToDate?.ToString("O") ?? string.Empty,
+            CategoryId = result.Value.CategoryId?.ToString() ?? string.Empty,
+            OverallTotalRevenue = (double)result.Value.OverallTotalRevenue,
+        };
+
+        reply.Items.AddRange(result.Value.Items.Select(i => new RevenueItem
+        {
+            ProductName = i.ProductName,
+            Sku = i.Sku,
+            QuantitySold = i.QuantitySold,
+            UnitPrice = (double)i.UnitPrice,
+            TotalRevenue = (double)i.TotalRevenue,
+            StoreId = i.StoreId?.ToString() ?? string.Empty,
+        }));
+
+        if (request.IncludeCsv)
+        {
+            var csvBytes = RevenueReportCsvExporter.Export(report);
+            reply.CsvFile = new CsvFile
+            {
+                CsvRaw = ByteString.CopyFrom(csvBytes),
+                CsvFileName = $"revenue-report-{DateTime.UtcNow:yyyyMMddHHmmss}.csv"
+            };
+        }
+
+        return reply;
+    }
+
+    public override async Task<GetOrderVolumeReply> GetOrderVolume(
+    GetOrderVolumeRequest request,
+    ServerCallContext context)
+    {
+        var fromDate = DateOnly.Parse(request.FromDate);
+        var toDate = DateOnly.Parse(request.ToDate);
+
+        Guid? storeId = string.IsNullOrEmpty(request.StoreId)
+            ? null
+            : Guid.Parse(request.StoreId);
+
+        SalesService.Domain.Enums.OrderStatus? domainStatus = null;
+        if (request.HasStatus)
+        {
+            domainStatus =
+                (SalesService.Domain.Enums.OrderStatus)(int)request.Status;
+        }
+
+        var result = await _mediator.Send(
+            new GetOrderVolumeQuery(
+                new Application.Features.Orders.Queries.GetOrderVolume.GetOrderVolumeRequest
+                {
+                    FromDate = fromDate,
+                    ToDate = toDate,
+                    StoreId = storeId,
+                    Status = domainStatus,
+                    Include_csv = request.IncludeCsv
+                }),
+            context.CancellationToken);
+
+        var reply = new GetOrderVolumeReply();
+
+        foreach (var item in result.Orders)
+        {
+            var order = new OrderVolumeADay
+            {
+                Date = item.Date.ToString("yyyy-MM-dd"),
+                TotalOrders = item.TotalOrders,
+                CanceledOrder = item.CanceledOrders,
+                CompletedOrder = item.CompletedOrders,
+            };
+
+            if (item.StoreId.HasValue)
+            {
+                order.StoreId = item.StoreId.Value.ToString();
+            }
+            foreach (var statusGroup in item.StatusCounts)
+            {
+                order.StatusCounts[statusGroup.Key.ToString()] = statusGroup.Value;
+            }
+            reply.Orders.Add(order);
+        }
+        if (result.CsvFile != null)
+        {
+            reply.CsvFile = new CsvFile
+            {
+                CsvRaw = ByteString.CopyFrom(result.CsvFile),
+                CsvFileName = result.CsvFileName!
+            };
+        }
         return reply;
     }
 }

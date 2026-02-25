@@ -28,7 +28,7 @@ public sealed class GetOrderByIdQueryHandler
             });
         }
 
-        var order = await _orderRepository.GetByIdAsync(query.OrderId,cancellationToken);
+        var order = await _orderRepository.GetByIdAsync(query.OrderId, cancellationToken);
 
         if (order == null || order.IsDeleted)
         {
@@ -52,6 +52,7 @@ public sealed class GetOrderByIdQueryHandler
             CreatedAt = order.CreatedAt,
             UpdatedAt = order.UpdatedAt,
             CustomerId = order.CustomerId,
+            StoreId = order.StoreId,
             Items = order.OrderItems.Select(item => new OrderItemDto
             {
                 Id = item.Id,

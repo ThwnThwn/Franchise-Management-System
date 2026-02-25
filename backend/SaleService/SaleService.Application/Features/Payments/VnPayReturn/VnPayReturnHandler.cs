@@ -1,15 +1,18 @@
-﻿using System.Text.Json;
+
+using System.Text.Json;
 using Ardalis.Result;
 using MediatR;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using SalesService.Application.Helpers;
 using SalesService.Application.Interfaces.Payments;
-using SalesService.Domain.Entities;
-using SalesService.Domain.Enums;
+using SalesService.Application.Mapping.Orders;
 using SalesService.Application.Persisitences.Outbox;
 using SalesService.Application.Signals;
+using SalesService.Domain.Enums;
 using SharedKernel.Constants;
-using Microsoft.Extensions.Logging;
+using SharedKernel.Events;
+using SharedKernel.Infrastructure.Extensions;
 
 namespace SalesService.Application.Features.Payments.VnPayReturn;
 
@@ -23,7 +26,7 @@ public sealed class VnPayReturnHandler
     private readonly ILogger<VnPayReturnHandler> _logger;
 
     public VnPayReturnHandler(
-        IPaymentRepository paymentRepository, 
+        IPaymentRepository paymentRepository,
         IConfiguration config,
         IOutboxRepository outboxRepository,
         IOutboxSignal outboxSignal,
@@ -142,27 +145,15 @@ public sealed class VnPayReturnHandler
                 // PUBLISH OrderPaidEvent
                 if (payment.Order.OrderItems != null && payment.Order.OrderItems.Any())
                 {
-                    var paidEvent = new SharedKernel.Events.OrderPaidEvent
-                    {
-                        OrderId = payment.Order.Id,
-                        StoreId = payment.Order.StoreId ?? Guid.Empty, // Ensure StoreId is available
-                        PaidAt = DateTimeOffset.UtcNow,
-                        Items = payment.Order.OrderItems.Select(oi => new SharedKernel.Events.OrderPaidItem
-                        {
-                            VariantId = oi.VariantId,
-                            Quantity = oi.Quantity
-                        }).ToList()
-                    };
+                    // 1. OrderStatusEvent → NotificationService (thông báo khách hàng)
+                    var orderStatusEvent = OrderToKafka.MapToOrderStatusEvent(payment.Order);
+                    _outboxRepository.AddEvent(orderStatusEvent, KafkaTopics.OrderNotifications);
 
-                    var outbox = new OutboxMessage
-                    {
-                        Id = Guid.NewGuid(),
-                        Type = KafkaTopics.OrderPaid,
-                        Content = JsonSerializer.Serialize(paidEvent),
-                        OccurredOn = DateTimeOffset.UtcNow
-                    };
-                    _outboxRepository.Add(outbox);
-                    _logger.LogInformation("Published OrderPaidEvent for Order {OrderId}", payment.Order.Id);
+                    // 2. OrderPaidEvent → InventoryService (trừ kho)
+                    var orderPaidEvent = OrderToKafka.MapToOrderPaidEvent(payment.Order);
+                    _outboxRepository.AddEvent(orderPaidEvent, KafkaTopics.OrderPaid);
+
+                    _logger.LogInformation("Outbox: OrderStatusEvent + OrderPaidEvent cho Order {OrderId}", payment.Order.Id);
                 }
             }
 
@@ -177,29 +168,23 @@ public sealed class VnPayReturnHandler
 
             if (payment.Order != null)
             {
-                 // PUBLISH OrderCancelledEvent (release reservation)
-                 var cancelledEvent = new SharedKernel.Events.OrderCancelledEvent
-                 {
-                     OrderId = payment.Order.Id,
-                     CancelledAt = DateTimeOffset.UtcNow,
-                     Reason = $"Payment Failed: {responseCode}"
-                 };
+                // OrderCancelledEvent → InventoryService (giải phóng giữ chỗ)
+                var cancelledEvent = new OrderCancelledEvent
+                {
+                    OrderId = payment.Order.Id,
+                    CancelledAt = DateTimeOffset.UtcNow,
+                    Reason = $"Payment Failed: {responseCode}"
+                };
 
-                 var outbox = new OutboxMessage
-                 {
-                     Id = Guid.NewGuid(),
-                     Type = KafkaTopics.OrderCancelled,
-                     Content = JsonSerializer.Serialize(cancelledEvent),
-                     OccurredOn = DateTimeOffset.UtcNow
-                 };
-                 _outboxRepository.Add(outbox);
+                _outboxRepository.AddEvent(cancelledEvent, KafkaTopics.OrderCancelled);
             }
 
             await AddPaymentEvent(payment.Id, "VNPAY_CALLBACK_FAILED", query, cancellationToken);
         }
 
         await _paymentRepository.SaveChangesAsync(cancellationToken);
-        
+
+
         // Pulse Outbox Worker
         _outboxSignal.Pulse();
 

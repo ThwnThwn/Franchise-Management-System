@@ -12,6 +12,11 @@ using FranchiseService.Application.Features.Shifts.Commands.CheckIn;
 using FranchiseService.Application.Features.Shifts.Commands.CheckOut;
 using FranchiseService.Application.Features.Shifts.Commands.UpdateTimeLog;
 using FranchiseService.Application.Features.Shifts.Queries.GetTimeLogs;
+using FranchiseService.Application.Features.Shifts.Queries.GetMyAgenda;
+using FranchiseService.Application.Features.Shifts.Commands.BulkCreateManual;
+using FranchiseService.Application.Features.Shifts.Commands.BulkCreateFromTemplate;
+using FranchiseService.Application.Features.Shifts.Commands.BulkPublish;
+using FranchiseService.Application.Features.Shifts.Commands.BulkDelete;
 using Dtos = FranchiseService.Application.Features.Shifts.DTOs;
 using Grpc.Core;
 using MediatR;
@@ -31,7 +36,7 @@ namespace FranchiseService.API.Services
 
         // 3. GetUserCurrentShift
         public override async Task<GetUserCurrentShiftResponse> GetUserCurrentShift(
-    GetUserCurrentShiftRequest request, ServerCallContext context)
+            GetUserCurrentShiftRequest request, ServerCallContext context)
         {
             // Parse User ID from request (or context if needed)
             if (!Guid.TryParse(request.UserId, out var userId))
@@ -90,32 +95,31 @@ namespace FranchiseService.API.Services
         {
             DateOnly? from = null;
             DateOnly? to = null;
-            
+
             if (DateOnly.TryParse(request.FromDate, out var f)) from = f;
             if (DateOnly.TryParse(request.ToDate, out var t)) to = t;
 
             if (!Guid.TryParse(request.StoreId, out var storeId))
             {
-               throw new RpcException(new Status(StatusCode.InvalidArgument, "StoreId is required"));
+                throw new RpcException(new Status(StatusCode.InvalidArgument, "StoreId is required"));
             }
 
-            int page = request.Page <= 0 ? 1 : request.Page;
-            int pageSize = request.PageSize <= 0 ? 100 : request.PageSize;
-            int? status = request.Status == 0 ? null : request.Status;
+            int? status = request.Status == -1 ? null : request.Status;
 
-            var query = new GetShiftsQuery(storeId, from, to, page, pageSize, status);
+            var query = new GetShiftsQuery(storeId, from, to, status);
             var result = await _mediator.Send(query);
 
             var response = new FranchiseService.Grpc.GetShiftsResponse();
-            response.Data.AddRange(result.Items.Select(s => new FranchiseService.Grpc.ShiftResponse
+            response.Data.AddRange(result.Select(s => new FranchiseService.Grpc.ShiftResponse
             {
                 Id = s.Id.ToString(),
                 StoreId = s.StoreId.ToString(),
                 ShiftDate = s.ShiftDate.ToString("yyyy-MM-dd"),
-                StartTime = s.StartTime.ToString("HH:mm"),
-                EndTime = s.EndTime.ToString("HH:mm"),
+                StartTime = s.StartTime.ToString("HH:mm:ss"),
+                EndTime = s.EndTime.ToString("HH:mm:ss"),
                 RequiredStaffCount = s.RequiredStaffCount,
                 BreakDurationMinutes = s.BreakDurationMinutes,
+
                 ShiftTemplateId = s.ShiftTemplateId?.ToString() ?? "",
                 Status = s.Status,
                 Note = s.Note ?? "",
@@ -123,12 +127,16 @@ namespace FranchiseService.API.Services
                 Assignments = { s.Assignments.Select(a => new FranchiseService.Grpc.ShiftAssignmentResponse
                 {
                     Id = a.Id.ToString(),
+                    ShiftId = a.ShiftId.ToString(),
                     UserId = a.UserId.ToString(),
-                    StaffName = a.StaffName ?? "",
-                    AvatarUrl = a.StaffAvatarUrl ?? "",
                     Status = a.Status == 0 ? 1 : 0, // Mapping simple status
-                    CreatedAt = "" 
-                }) }
+                    HourlyWage = a.HourlyWage.HasValue ? (double)a.HourlyWage.Value : 0,
+
+                    FirstName = a.FirstName,
+                    LastName = a.LastName,
+                    AvatarUrl = a.AvatarUrl,
+                    Email = a.Email
+                })}
             }));
 
             return response;
@@ -153,10 +161,11 @@ namespace FranchiseService.API.Services
                 Id = result.Id.ToString(),
                 StoreId = result.StoreId.ToString(),
                 ShiftDate = result.ShiftDate.ToString("yyyy-MM-dd"),
-                StartTime = result.StartTime.ToString("HH:mm"),
-                EndTime = result.EndTime.ToString("HH:mm"),
+                StartTime = result.StartTime.ToString("HH:mm:ss"),
+                EndTime = result.EndTime.ToString("HH:mm:ss"),
                 RequiredStaffCount = result.RequiredStaffCount,
                 BreakDurationMinutes = result.BreakDurationMinutes,
+
                 ShiftTemplateId = result.ShiftTemplateId?.ToString() ?? "",
                 Status = result.Status,
                 Note = result.Note ?? "",
@@ -164,11 +173,16 @@ namespace FranchiseService.API.Services
                 Assignments = { result.Assignments.Select(a => new FranchiseService.Grpc.ShiftAssignmentResponse
                 {
                     Id = a.Id.ToString(),
+                    ShiftId = a.ShiftId.ToString(),
                     UserId = a.UserId.ToString(),
-                    StaffName = a.StaffName ?? "",
-                    AvatarUrl = a.StaffAvatarUrl ?? "",
-                    Status = a.Status == 0 ? 1 : 0, // 0:Assigned -> Active(1)
-                }) }
+                    Status = a.Status == 0 ? 1 : 0, // Mapping simple status
+                    HourlyWage = a.HourlyWage.HasValue ? (double)a.HourlyWage.Value : 0,
+
+                    FirstName = a.FirstName,
+                    LastName = a.LastName,
+                    AvatarUrl = a.AvatarUrl,
+                    Email = a.Email
+                })}
             };
         }
 
@@ -183,41 +197,41 @@ namespace FranchiseService.API.Services
             Guid? templateId = null;
             if (!string.IsNullOrEmpty(request.ShiftTemplateId))
             {
-                 if (!Guid.TryParse(request.ShiftTemplateId, out var tId))
+                if (!Guid.TryParse(request.ShiftTemplateId, out var tId))
                     throw new RpcException(new Status(StatusCode.InvalidArgument, $"Invalid ShiftTemplateId format: '{request.ShiftTemplateId}'"));
-                 templateId = tId;
+                templateId = tId;
             }
 
             if (!DateOnly.TryParse(request.ShiftDate, out var shiftDate))
             {
-                 throw new RpcException(new Status(StatusCode.InvalidArgument, $"Invalid ShiftDate format: '{request.ShiftDate}'"));
+                throw new RpcException(new Status(StatusCode.InvalidArgument, $"Invalid ShiftDate format: '{request.ShiftDate}'"));
             }
 
             TimeOnly? start = null;
             if (!string.IsNullOrEmpty(request.StartTime))
             {
                 if (!TimeOnly.TryParse(request.StartTime, out var s))
-                     throw new RpcException(new Status(StatusCode.InvalidArgument, $"Invalid StartTime format: '{request.StartTime}'"));
+                    throw new RpcException(new Status(StatusCode.InvalidArgument, $"Invalid StartTime format: '{request.StartTime}'"));
                 start = s;
             }
 
             TimeOnly? end = null;
             if (!string.IsNullOrEmpty(request.EndTime))
             {
-                 if (!TimeOnly.TryParse(request.EndTime, out var e))
-                     throw new RpcException(new Status(StatusCode.InvalidArgument, $"Invalid EndTime format: '{request.EndTime}'"));
-                 end = e;
+                if (!TimeOnly.TryParse(request.EndTime, out var e))
+                    throw new RpcException(new Status(StatusCode.InvalidArgument, $"Invalid EndTime format: '{request.EndTime}'"));
+                end = e;
             }
 
             Guid createdBy = Guid.Empty;
             if (!string.IsNullOrEmpty(request.CreatedBy))
             {
-                 if (!Guid.TryParse(request.CreatedBy, out var cBy))
-                      createdBy = Guid.Empty; // Fail safe or throw? Let's keep strict for inputs but safe for optional context
-                 else 
-                      createdBy = cBy;
+                if (!Guid.TryParse(request.CreatedBy, out var cBy))
+                    createdBy = Guid.Empty; // Fail safe or throw? Let's keep strict for inputs but safe for optional context
+                else
+                    createdBy = cBy;
             }
-            
+
             var command = new CreateShiftCommand
             {
                 StoreId = storeId,
@@ -249,8 +263,8 @@ namespace FranchiseService.API.Services
                 RequiredStaffCount = request.RequiredStaffCount == 0 ? null : request.RequiredStaffCount, // Logic check
                 Note = request.Note,
                 BreakDurationMinutes = request.BreakDurationMinutes == 0 ? null : request.BreakDurationMinutes,
-                Status = request.Status == 0 ? null : request.Status, // Mapping status
-                LockVersion = request.LockVersion,
+                Status = request.Status == -1 ? null : request.Status, // Mapping status
+                //LockVersion = request.LockVersion,
                 UpdatedBy = string.IsNullOrEmpty(request.UpdatedBy) ? Guid.Empty : Guid.Parse(request.UpdatedBy)
             };
 
@@ -258,25 +272,25 @@ namespace FranchiseService.API.Services
             return new UpdateShiftResponse { Success = true };
         }
 
-        // DELETE 
+        // DELETE
         public override async Task<DeleteShiftResponse> DeleteShift(DeleteShiftRequest request, ServerCallContext context)
         {
             await _mediator.Send(new DeleteShiftCommand(Guid.Parse(request.Id)));
             return new DeleteShiftResponse { Success = true };
         }
 
-        //  PUBLISH 
+        //  PUBLISH
         public override async Task<PublishShiftResponse> PublishShift(PublishShiftRequest request, ServerCallContext context)
         {
-             await _mediator.Send(new PublishShiftCommand(Guid.Parse(request.Id)));
-             return new PublishShiftResponse { Success = true };
+            await _mediator.Send(new PublishShiftCommand(Guid.Parse(request.Id)));
+            return new PublishShiftResponse { Success = true };
         }
 
-        // ASSIGN STAFF (SYNC) 
+        // ASSIGN STAFF (SYNC)
         public override async Task<AssignStaffResponse> AssignStaff(AssignStaffRequest request, ServerCallContext context)
         {
             var userIds = request.UserIds.Select(Guid.Parse).ToList();
-            
+
             var command = new UpdateShiftAssignmentCommand
             {
                 ShiftId = Guid.Parse(request.ShiftId),
@@ -398,7 +412,7 @@ namespace FranchiseService.API.Services
             }
         }
 
-        // GET TIME LOGS 
+        // GET TIME LOGS
         public override async Task<GetTimeLogsResponse> GetTimeLogs(
             GetTimeLogsRequest request, ServerCallContext context)
         {
@@ -408,7 +422,7 @@ namespace FranchiseService.API.Services
                 {
                     StoreId = string.IsNullOrEmpty(request.StoreId) ? null : Guid.Parse(request.StoreId),
                     StaffId = string.IsNullOrEmpty(request.StaffId) ? null : Guid.Parse(request.StaffId),
-                    Status = request.Status == 0 ? null : request.Status,
+                    Status = request.Status == -1 ? null : request.Status,
                     FromDate = DateOnly.TryParse(request.FromDate, out var f) ? f : null,
                     ToDate = DateOnly.TryParse(request.ToDate, out var t) ? t : null,
                     PageNumber = request.Page <= 0 ? 1 : request.Page,
@@ -448,7 +462,7 @@ namespace FranchiseService.API.Services
             }
         }
 
-        // UPDATE TIME LOG 
+        // UPDATE TIME LOG
         public override async Task<UpdateTimeLogResponse> UpdateTimeLog(
             UpdateTimeLogRequest request, ServerCallContext context)
         {
@@ -459,7 +473,7 @@ namespace FranchiseService.API.Services
                     Id = Guid.Parse(request.Id),
                     Status = request.Status,
                     ManagerNote = request.HasManagerNote ? request.ManagerNote : null,
-                    UserId = Guid.Parse(request.UserId)
+                    //UserId = Guid.Parse(request.UserId)
                 };
 
                 await _mediator.Send(command);
@@ -484,6 +498,220 @@ namespace FranchiseService.API.Services
             catch (FormatException ex)
             {
                 throw new RpcException(new Status(StatusCode.InvalidArgument, $"Định dạng dữ liệu không hợp lệ: {ex.Message}"));
+            }
+        }
+
+        // LAY LICH CA NHAN CUA NHAN VIEN
+        public override async Task<GetAgendaResponse> GetMyAgenda(
+            GetAgendaRequest request, ServerCallContext context)
+        {
+            try
+            {
+                var query = new GetMyAgendaQuery
+                {
+                    UserId = Guid.Parse(request.UserId),
+                    StartDate = DateOnly.Parse(request.StartDate),
+                    EndDate = DateOnly.Parse(request.EndDate)
+                };
+
+                var items = await _mediator.Send(query);
+                var response = new GetAgendaResponse();
+
+                foreach (var item in items)
+                {
+                    var dto = new AgendaItemDto
+                    {
+                        Id = item.Id.ToString(),
+                        Date = item.Date.ToString("yyyy-MM-dd"),
+                        StartTime = item.StartTime.ToString("HH:mm:ss"),
+                        EndTime = item.EndTime.ToString("HH:mm:ss")
+                    };
+
+                    // Map thong tin cua hang
+                    dto.Store = new AgendaStoreInfo
+                    {
+                        Id = item.Store.Id.ToString(),
+                        Name = item.Store.Name ?? "",
+                        Address = item.Store.Address ?? "",
+                        Phone = item.Store.Phone ?? "",
+                        ImageUrl = item.Store.ImageUrl ?? "",
+                        IsOpenNow = item.Store.IsOpenNow
+                    };
+                    if (item.Store.Latitude.HasValue)
+                        dto.Store.Latitude = (double)item.Store.Latitude.Value;
+                    if (item.Store.Longitude.HasValue)
+                        dto.Store.Longitude = (double)item.Store.Longitude.Value;
+
+                    // Map dong nghiep cung ca
+                    foreach (var cw in item.CoWorkers)
+                    {
+                        dto.CoWorkers.Add(new AgendaCoWorkerDto
+                        {
+                            Id = cw.Id.ToString(),
+                            FirstName = cw.FirstName ?? "",
+                            LastName = cw.LastName ?? "",
+                            Avatar = cw.AvatarUrl ?? "",
+                            Phone = cw.Phone ?? ""
+                        });
+                    }
+
+                    // Map trang thai cham cong
+                    if (item.CheckInAt.HasValue)
+                        dto.CheckInAt = item.CheckInAt.Value.ToString("o");
+                    if (item.CheckOutAt.HasValue)
+                        dto.CheckOutAt = item.CheckOutAt.Value.ToString("o");
+
+                    response.Data.Add(dto);
+                }
+
+                return response;
+            }
+            catch (KeyNotFoundException ex)
+            {
+                throw new RpcException(new Status(StatusCode.NotFound, ex.Message));
+            }
+            catch (FormatException ex)
+            {
+                throw new RpcException(new Status(StatusCode.InvalidArgument,
+                    $"Dinh dang du lieu khong hop le: {ex.Message}"));
+            }
+        }
+
+        // Tao ca hang loat thu cong theo khung gio va cac ngay trong tuan
+        public override async Task<BulkCreateResponse> BulkCreateManual(
+            BulkCreateManualRequest request, ServerCallContext context)
+        {
+            try
+            {
+                var command = new BulkCreateManualCommand
+                {
+                    StoreId = Guid.Parse(request.StoreId),
+                    StartTime = TimeOnly.Parse(request.StartTime),
+                    EndTime = TimeOnly.Parse(request.EndTime),
+                    DaysOfWeek = request.DaysOfWeek.ToList(),
+                    StartDate = DateOnly.Parse(request.StartDate),
+                    EndDate = DateOnly.Parse(request.EndDate),
+                    RequiredStaffCount = request.RequiredStaffCount,
+                    BreakDurationMinutes = request.BreakDurationMinutes,
+                    Note = request.Note,
+                    CreatedBy = Guid.Parse(request.CreatedBy)
+                };
+
+                var count = await _mediator.Send(command);
+                return new BulkCreateResponse { CreatedCount = count };
+            }
+            catch (KeyNotFoundException ex)
+            {
+                throw new RpcException(new Status(StatusCode.NotFound, ex.Message));
+            }
+            catch (InvalidOperationException ex)
+            {
+                throw new RpcException(new Status(StatusCode.FailedPrecondition, ex.Message));
+            }
+            catch (ArgumentException ex)
+            {
+                throw new RpcException(new Status(StatusCode.InvalidArgument, ex.Message));
+            }
+            catch (FormatException ex)
+            {
+                throw new RpcException(new Status(StatusCode.InvalidArgument,
+                    $"Dinh dang du lieu khong hop le: {ex.Message}"));
+            }
+        }
+
+        // Tao ca hang loat tu Template co san (Ca Sang/Chieu/Toi)
+        public override async Task<BulkCreateResponse> BulkCreateFromTemplate(
+            BulkCreateFromTemplateRequest request, ServerCallContext context)
+        {
+            try
+            {
+                var command = new BulkCreateFromTemplateCommand
+                {
+                    StoreId = Guid.Parse(request.StoreId),
+                    TemplateId = Guid.Parse(request.TemplateId),
+                    StartDate = DateOnly.Parse(request.StartDate),
+                    EndDate = DateOnly.Parse(request.EndDate),
+                    RequiredStaffCount = request.RequiredStaffCount,
+                    CreatedBy = Guid.Parse(request.CreatedBy)
+                };
+
+                var count = await _mediator.Send(command);
+                return new BulkCreateResponse { CreatedCount = count };
+            }
+            catch (KeyNotFoundException ex)
+            {
+                throw new RpcException(new Status(StatusCode.NotFound, ex.Message));
+            }
+            catch (InvalidOperationException ex)
+            {
+                throw new RpcException(new Status(StatusCode.FailedPrecondition, ex.Message));
+            }
+            catch (ArgumentException ex)
+            {
+                throw new RpcException(new Status(StatusCode.InvalidArgument, ex.Message));
+            }
+            catch (FormatException ex)
+            {
+                throw new RpcException(new Status(StatusCode.InvalidArgument,
+                    $"Dinh dang du lieu khong hop le: {ex.Message}"));
+            }
+        }
+
+        // Publish hang loat ca lam viec (Draft -> Published)
+        public override async Task<BulkActionResponse> BulkPublish(
+            BulkPublishRequest request, ServerCallContext context)
+        {
+            try
+            {
+                var command = new BulkPublishCommand
+                {
+                    ShiftIds = request.Ids.Select(Guid.Parse).ToList()
+                };
+
+                var count = await _mediator.Send(command);
+                return new BulkActionResponse { Success = true, AffectedCount = count };
+            }
+            catch (InvalidOperationException ex)
+            {
+                throw new RpcException(new Status(StatusCode.FailedPrecondition, ex.Message));
+            }
+            catch (ArgumentException ex)
+            {
+                throw new RpcException(new Status(StatusCode.InvalidArgument, ex.Message));
+            }
+            catch (FormatException ex)
+            {
+                throw new RpcException(new Status(StatusCode.InvalidArgument,
+                    $"Dinh dang du lieu khong hop le: {ex.Message}"));
+            }
+        }
+
+        // Xoa hang loat ca lam viec (chi xoa ca Draft)
+        public override async Task<BulkActionResponse> BulkDelete(
+            BulkDeleteRequest request, ServerCallContext context)
+        {
+            try
+            {
+                var command = new BulkDeleteCommand
+                {
+                    ShiftIds = request.Ids.Select(Guid.Parse).ToList()
+                };
+
+                var count = await _mediator.Send(command);
+                return new BulkActionResponse { Success = true, AffectedCount = count };
+            }
+            catch (InvalidOperationException ex)
+            {
+                throw new RpcException(new Status(StatusCode.FailedPrecondition, ex.Message));
+            }
+            catch (ArgumentException ex)
+            {
+                throw new RpcException(new Status(StatusCode.InvalidArgument, ex.Message));
+            }
+            catch (FormatException ex)
+            {
+                throw new RpcException(new Status(StatusCode.InvalidArgument,
+                    $"Dinh dang du lieu khong hop le: {ex.Message}"));
             }
         }
 

@@ -17,7 +17,8 @@ service UserGrpc {
   rpc GetByIds (GetUserByIdsRequest) returns (GetUserByIdsResponse);
   rpc GetAll(GetAllUserOrWithRoleRequest) returns (GetAllUserOrWithRoleResponse);
   rpc GetManager(GetManagerRequest) returns (UserResponse);
-
+  rpc GetUserIdByPhone(GetUserIdByPhoneRequest) returns (UserIdResponse);
+  rpc GetUserIdByEmail(GetUserIdByEmailRequest) returns (UserIdResponse);
 
   rpc Update(UpdateUserRequest) returns (UserResponse);
   rpc ChangePassword(ChangePasswordRequest) returns (UserResponse);
@@ -136,6 +137,17 @@ message GetManagerRequest{
   string id = 1;
 }
 
+message GetUserIdByPhoneRequest {
+  string phone = 1;
+}
+
+message UserIdResponse {
+  string id = 1;
+}
+
+message GetUserIdByEmailRequest {
+  string email = 1;
+}
 message UploadAvatarRequest {
   bytes image_data = 1;
 }

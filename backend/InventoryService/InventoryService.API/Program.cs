@@ -78,24 +78,12 @@ namespace InventoryService.API
 
             // Add API documentation
             builder.Services.AddEndpointsApiExplorer();
-            //builder.Services.AddSwaggerGen(c =>
-            //{
-            //    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
-            //    {
-            //        Title = "Sale Service API",
-            //        Version = "v1",
-            //        Description = "API quản lý đơn hàng và bán hàng"
-            //    });
-            //});
 
             // Interceptors
             builder.Services.AddScoped<UpdateTimestampInterceptor>();
 
             // Connect Db
             var connectionString = builder.Configuration[Common.INVENTORY_DB_CONNECTION];
-
-            // EF Core interceptors used by SalesDbContext
-            builder.Services.AddScoped<UpdateTimestampInterceptor>();
 
             // DbContext + wire interceptor via DI
             builder.Services.AddDbContext<InventoryDbContext>(

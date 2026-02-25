@@ -9,6 +9,7 @@ using IdentityService.Application.Persistences.Caches;
 using IdentityService.Infrastructure.DependencyInjection;
 using IdentityService.Infrastructure.Persistences.Cache;
 using IdentityService.Infrastructure.Settings;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 
 namespace IdentityService.API
 {
@@ -82,15 +83,13 @@ namespace IdentityService.API
             builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
             // --- SERVER CONFIG ---
-            //var servicePort = int.Parse(builder.Configuration["IDENTITY_PORT"] ?? "5001");
-            //builder.WebHost.ConfigureKestrel(opt =>
-            //    opt.ListenAnyIP(servicePort, l => l.Protocols = HttpProtocols.Http2));
+            var servicePort = int.Parse(builder.Configuration["IDENTITY_PORT"] ?? "5001");
             builder.WebHost.ConfigureKestrel(options =>
             {
                 options.ConfigureEndpointDefaults(listenOptions =>
                 {
-                    // gRPC thường cần HTTP/2
-                    listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2;
+                    // Hỗ trợ cả HTTP/1 (REST) và HTTP/2 (gRPC)
+                    listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2;
                 });
             });
 
@@ -124,7 +123,7 @@ namespace IdentityService.API
                     Console.WriteLine("An error occurred while syncing permissions: " + ex.Message);
                 }
             }
-
+            app.MapGet("/", () => $"Identity Service is running on port {servicePort}. Environment: {builder.Environment.EnvironmentName}");
             app.Run();
         }
     }

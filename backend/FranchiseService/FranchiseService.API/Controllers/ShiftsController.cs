@@ -39,7 +39,7 @@ namespace FranchiseService.API.Controllers
             [FromQuery] int pageSize = 10,
             CancellationToken cancellationToken = default)
         {
-            var query = new GetShiftsQuery(storeId, fromDate, toDate, page, pageSize, status);
+            var query = new GetShiftsQuery(storeId, fromDate, toDate, status);
             var result = await _mediator.Send(query, cancellationToken);
             return Ok(result);
         }
@@ -120,4 +120,3 @@ namespace FranchiseService.API.Controllers
         }
     }
 }
-

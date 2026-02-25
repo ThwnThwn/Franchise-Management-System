@@ -16,7 +16,7 @@ public class IdentityServiceClient : IIdentityServiceClient
 
     public IdentityServiceClient(IConfiguration configuration, ILogger<IdentityServiceClient> logger)
     {
-        var identityServiceUrl = configuration["IDENTITY_SERVICE_URL"] ?? "http://localhost:5001";
+        var identityServiceUrl = configuration["IDENTITY_SERVICE_URL"] ?? "https://localhost:5001";
         var channel = GrpcChannel.ForAddress(identityServiceUrl);
         _client = new UserGrpc.UserGrpcClient(channel);
         _logger = logger;

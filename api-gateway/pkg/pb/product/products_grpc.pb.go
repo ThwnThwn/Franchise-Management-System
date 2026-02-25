@@ -36,6 +36,8 @@ type ProductGrpcClient interface {
 	GetProductBySku(ctx context.Context, in *GetProductBySkuRequest, opts ...grpc.CallOption) (*GetProductBySkuReply, error)
 	// Get multiple product variants by list of SKUs
 	GetProductsBySkus(ctx context.Context, in *GetProductsBySkusRequest, opts ...grpc.CallOption) (*GetProductsBySkusReply, error)
+	// Get SKUs by Category ID
+	GetSkusByCategory(ctx context.Context, in *GetSkusByCategoryRequest, opts ...grpc.CallOption) (*GetSkusByCategoryReply, error)
 }
 
 type productGrpcClient struct {
@@ -145,6 +147,15 @@ func (c *productGrpcClient) GetProductsBySkus(ctx context.Context, in *GetProduc
 	return out, nil
 }
 
+func (c *productGrpcClient) GetSkusByCategory(ctx context.Context, in *GetSkusByCategoryRequest, opts ...grpc.CallOption) (*GetSkusByCategoryReply, error) {
+	out := new(GetSkusByCategoryReply)
+	err := c.cc.Invoke(ctx, "/product.ProductGrpc/GetSkusByCategory", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ProductGrpcServer is the server API for ProductGrpc service.
 // All implementations must embed UnimplementedProductGrpcServer
 // for forward compatibility
@@ -163,6 +174,8 @@ type ProductGrpcServer interface {
 	GetProductBySku(context.Context, *GetProductBySkuRequest) (*GetProductBySkuReply, error)
 	// Get multiple product variants by list of SKUs
 	GetProductsBySkus(context.Context, *GetProductsBySkusRequest) (*GetProductsBySkusReply, error)
+	// Get SKUs by Category ID
+	GetSkusByCategory(context.Context, *GetSkusByCategoryRequest) (*GetSkusByCategoryReply, error)
 	mustEmbedUnimplementedProductGrpcServer()
 }
 
@@ -202,6 +215,9 @@ func (UnimplementedProductGrpcServer) GetProductBySku(context.Context, *GetProdu
 }
 func (UnimplementedProductGrpcServer) GetProductsBySkus(context.Context, *GetProductsBySkusRequest) (*GetProductsBySkusReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProductsBySkus not implemented")
+}
+func (UnimplementedProductGrpcServer) GetSkusByCategory(context.Context, *GetSkusByCategoryRequest) (*GetSkusByCategoryReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetSkusByCategory not implemented")
 }
 func (UnimplementedProductGrpcServer) mustEmbedUnimplementedProductGrpcServer() {}
 
@@ -414,6 +430,24 @@ func _ProductGrpc_GetProductsBySkus_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProductGrpc_GetSkusByCategory_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSkusByCategoryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductGrpcServer).GetSkusByCategory(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/product.ProductGrpc/GetSkusByCategory",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductGrpcServer).GetSkusByCategory(ctx, req.(*GetSkusByCategoryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ProductGrpc_ServiceDesc is the grpc.ServiceDesc for ProductGrpc service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -464,6 +498,10 @@ var ProductGrpc_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetProductsBySkus",
 			Handler:    _ProductGrpc_GetProductsBySkus_Handler,
+		},
+		{
+			MethodName: "GetSkusByCategory",
+			Handler:    _ProductGrpc_GetSkusByCategory_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

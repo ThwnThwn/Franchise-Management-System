@@ -72,5 +72,14 @@ namespace FranchiseService.Application.Repositories
             int page, 
             int pageSize,
             CancellationToken cancellationToken);
+
+        // Lay lich ca nhan cua nhan vien, include Store, StoreHours va TimeLogs
+        Task<List<ShiftAssignment>> GetAgendaByUserAsync(
+            Guid userId, DateOnly fromDate, DateOnly toDate,
+            CancellationToken cancellationToken);
+
+        // Lay tat ca phan cong cua nhieu ca cung luc, dung de tim dong nghiep
+        Task<List<ShiftAssignment>> GetAssignmentsByShiftIdsAsync(
+            List<Guid> shiftIds, CancellationToken cancellationToken);
     }
 }

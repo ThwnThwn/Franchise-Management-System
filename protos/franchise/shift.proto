@@ -43,6 +43,15 @@ service ShiftGrpcService {
   // --- TIME LOGS ---
   rpc GetTimeLogs (GetTimeLogsRequest) returns (GetTimeLogsResponse);
   rpc UpdateTimeLog (UpdateTimeLogRequest) returns (UpdateTimeLogResponse);
+
+  // --- AGENDA Lich ca nhan ---
+  rpc GetMyAgenda (GetAgendaRequest) returns (GetAgendaResponse);
+
+  // --- BULK OPERATIONS Thao tac hang loat ---
+  rpc BulkCreateManual (BulkCreateManualRequest) returns (BulkCreateResponse);
+  rpc BulkCreateFromTemplate (BulkCreateFromTemplateRequest) returns (BulkCreateResponse);
+  rpc BulkPublish (BulkPublishRequest) returns (BulkActionResponse);
+  rpc BulkDelete (BulkDeleteRequest) returns (BulkActionResponse);
 }
 
 // ----------------------------------------------------
@@ -93,31 +102,39 @@ message ShiftResponse {
   string end_time = 5;          // Format: "HH:mm"
   int32 required_staff_count = 6;
   int32 break_duration_minutes = 7;
-  string shift_template_id = 8; // Optional
+  optional string shift_template_id = 8; // Optional
   int32 status = 9;             // 0:Draft, 1:Published, 2:Completed, 3:Cancelled
-  string note = 10;
+  optional string note = 10;
   int32 assigned_staff_count = 11;
   repeated ShiftAssignmentResponse assignments = 12;
 }
 
 message ShiftAssignmentResponse {
   string id = 1;
-  string user_id = 2;
-  string staff_name = 3;
-  string avatar_url = 4;
-  int32 status = 5;
-  string created_at = 6;
+  string shift_id = 2;
+  string user_id = 3;
+  int32 status = 4;
+  optional double hourly_wage = 5;
+
+  string first_name = 6;
+  optional string last_name = 7;
+  optional string avatar_url = 8;
+  string email = 9;
+
+  // string user_id = 2;
+  // string staff_name = 3;
+  // string created_at = 6;
 }
 
 // --- GET LIST ---
 
 message GetShiftsRequest {
   string store_id = 1;           // Optional 
-  string from_date = 2;          // "YYYY-MM-DD"
-  string to_date = 3;            // "YYYY-MM-DD"
+  optional string from_date = 2;          // "YYYY-MM-DD"
+  optional string to_date = 3;            // "YYYY-MM-DD"
   int32 status = 4;              // Optional filter
-  int32 page = 5;
-  int32 page_size = 6;
+  // int32 page = 5;
+  // int32 page_size = 6;
 }
 
 message GetShiftsResponse {
@@ -134,7 +151,7 @@ message GetShiftByIdRequest {
 
 message CreateShiftRequest {
   string store_id = 1;
-  string shift_template_id = 2; // Optional
+  optional string shift_template_id = 2; // Optional
   string shift_date = 3;        // "YYYY-MM-DD"
   string start_time = 4;        // "HH:mm"
   string end_time = 5;          // "HH:mm"
@@ -152,18 +169,17 @@ message CreateShiftResponse {
 
 message UpdateShiftRequest {
   string id = 1;
-  string store_id = 2;          // Optional
-  string shift_template_id = 3; // Optional
-  string shift_date = 4;
-  string start_time = 5;
-  string end_time = 6;
-  int32 required_staff_count = 7; 
-  string note = 8;
-  int32 break_duration_minutes = 9;
+  optional string store_id = 2;          // Optional
+  optional string shift_template_id = 3; // Optional
+  optional string shift_date = 4;
+  optional string start_time = 5;
+  optional string end_time = 6;
+  optional int32 required_staff_count = 7; 
+  optional string note = 8;
+  optional int32 break_duration_minutes = 9;
   int32 status = 10;
   int32 lock_version = 11;      // Optimistic Locking
   string updated_by = 12;
-  
 }
 
 message UpdateShiftResponse {
@@ -317,9 +333,91 @@ message UpdateTimeLogRequest {
   string id = 1;
   int32 status = 2;
   optional string manager_note = 3;
-  string user_id = 4;
+  // string user_id = 4;
 }
 
 message UpdateTimeLogResponse {
   bool success = 1;
+}
+
+// Lich ca nhan
+message GetAgendaRequest {
+  string user_id = 1;
+  string start_date = 2;
+  string end_date = 3;
+}
+
+message GetAgendaResponse {
+  repeated AgendaItemDto data = 1;
+}
+
+message AgendaItemDto {
+  string id = 1;
+  string start_time = 2;
+  string end_time = 3;
+  string date = 4;
+  AgendaStoreInfo store = 5;
+  repeated AgendaCoWorkerDto co_workers = 6;
+  optional string check_in_at = 7;
+  optional string check_out_at = 8;
+}
+
+message AgendaStoreInfo {
+  string id = 1;
+  string name = 2;
+  string address = 3;
+  string phone = 4;
+  string image_url = 5;
+  optional double latitude = 6;
+  optional double longitude = 7;
+  bool is_open_now = 8;
+}
+
+message AgendaCoWorkerDto {
+  string id = 1;
+  string first_name = 2;
+  string last_name = 3;
+  string avatar = 4;
+  string phone = 5;
+}
+
+// BULK OPERATIONS Messages
+
+message BulkCreateManualRequest {
+  string store_id = 1;
+  string start_time = 2;
+  string end_time = 3;
+  repeated int32 days_of_week = 4;
+  string start_date = 5;
+  string end_date = 6;
+  int32 required_staff_count = 7;
+  int32 break_duration_minutes = 8;
+  string note = 9;
+  string created_by = 10;
+}
+
+message BulkCreateFromTemplateRequest {
+  string store_id = 1;
+  string template_id = 2;
+  string start_date = 3;
+  string end_date = 4;
+  int32 required_staff_count = 5;
+  string created_by = 6;
+}
+
+message BulkCreateResponse {
+  int32 created_count = 1;
+}
+
+message BulkPublishRequest {
+  repeated string ids = 1;
+}
+
+message BulkDeleteRequest {
+  repeated string ids = 1;
+}
+
+message BulkActionResponse {
+  bool success = 1;
+  int32 affected_count = 2;
 }

@@ -10,7 +10,6 @@ using SalesService.Application.Persisitences.Outbox;
 using SalesService.Application.Signals;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
-using SharedKernel.Events;
 
 namespace SalesService.Application.Features.Orders.Commands.Create;
 
@@ -175,36 +174,10 @@ public sealed class CreateOrderHandler
         }
 
         // 1. Prepare Outbox Message (BEFORE saving order)
-        if (order.CustomerId.HasValue)
-        {
-            // Create OrderCreatedEvent
-            var orderEvent = new OrderCreatedEvent
-            {
-                OrderId = order.Id,
-                CustomerId = order.CustomerId,
-                CustomerEmail = string.Empty, // Will be fetched by Consumer
-                OrderSummary = $"Order {order.Code} created with {order.OrderItems.Count} items",
-                TotalAmount = order.TotalAmount,
-                CreatedAt = DateTimeOffset.UtcNow
-            };
+        // Outbox: KHÔNG publish OrderStatusEvent khi PaymentPending
+        // → Chỉ notify khách khi đơn hàng đã thanh toán (ConfirmationPending trở đi)
+        _logger.LogInformation("Order {OrderCode} created with status PaymentPending. Notification sẽ gửi sau khi thanh toán.", order.Code);
 
-            // Serialize to JSON
-            var eventJson = System.Text.Json.JsonSerializer.Serialize(orderEvent);
-
-            var outboxMessage = new OutboxMessage
-            {
-                Id = Guid.NewGuid(),
-                Type = "OrderCreatedEvent",
-                Content = eventJson,
-                OccurredOn = DateTimeOffset.UtcNow,
-                ProcessedOn = null,
-                Error = null
-            };
-
-            // Add to Outbox Repository
-            _outboxRepository.Add(outboxMessage);
-            _logger.LogInformation("Added OrderCreatedEvent to Outbox for Order {OrderCode}", order.Code);
-        }
 
         //Remove orderd items in cartItem
         await _cartItemRepository.RemoveItemsAsync(order.CustomerId, skus, cancellationToken);
@@ -221,6 +194,12 @@ public sealed class CreateOrderHandler
         {
             OrderId = createdOrder.Id,
             OrderCode = createdOrder.Code,
+            Items = createdOrder.OrderItems.Select(x => new OrderItemDto
+            {
+                Sku = x.Sku,
+                Quantity = x.Quantity,
+                UnitPrice = x.UnitPrice
+            }).ToList(),
             TotalAmount = createdOrder.TotalAmount,
             CheckEnoughStockRes = { IsEnough = true, ShortageItems = { } }
         });

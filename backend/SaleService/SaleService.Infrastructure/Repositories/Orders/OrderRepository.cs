@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using SalesService.Application.Features.Orders.Queries.GetOrderVolume;
+using SalesService.Application.Features.Reports.Queries.GetRevenueReport;
 using SalesService.Application.Persisitences.Orders;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
@@ -118,9 +120,146 @@ public class OrderRepository : IOrderRepository
 
         return (items, totalCount);
     }
-
     public async Task SaveAsync(CancellationToken cancellationToken = default)
     {
         await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<List<RevenueItemDto>> GetRevenueReportAsync(
+        DateOnly? fromDate,
+        DateOnly? toDate,
+        List<string>? skus,
+        Guid? storedId,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _context.OrderItems
+        .Include(oi => oi.Order)
+        .Where(oi => oi.Order != null
+            && oi.Order.Status == OrderStatus.Completed
+            && !oi.IsDeleted
+            && !oi.Order.IsDeleted)
+        .AsNoTracking();
+
+        if (fromDate.HasValue)
+        {
+            var fromDateTime = new DateTimeOffset(fromDate.Value.ToDateTime(TimeOnly.MinValue), TimeSpan.FromHours(7)).ToUniversalTime();
+            query = query.Where(oi => oi.Order!.CreatedAt >= fromDateTime);
+        }
+
+        if (toDate.HasValue)
+        {
+            var toDateTime = new DateTimeOffset(toDate.Value.ToDateTime(TimeOnly.MaxValue), TimeSpan.FromHours(7)).ToUniversalTime();
+            query = query.Where(oi => oi.Order!.CreatedAt <= toDateTime);
+        }
+
+        if (skus != null)
+        {
+            query = query.Where(oi => skus.Contains(oi.Sku));
+        }
+
+        if (storedId.HasValue)
+        {
+            query = query.Where(oi => oi.Order!.StoreId == storedId.Value);
+        }
+
+        var aggregatedResult = storedId.HasValue
+        ? await query
+            .GroupBy(oi => new
+            {
+                oi.Sku,
+                oi.ProductName
+            })
+            .Select(g => new RevenueItemDto
+            {
+                StoreId = storedId.Value, // single store
+                Sku = g.Key.Sku,
+                ProductName = g.Key.ProductName,
+                QuantitySold = g.Sum(x => x.Quantity),
+                UnitPrice = g.Max(x => x.UnitPrice),
+                TotalRevenue = g.Sum(x => x.Quantity * x.UnitPrice)
+            })
+            .ToListAsync(cancellationToken)
+
+        : await query
+            .GroupBy(oi => new
+            {
+                oi.Order!.StoreId,
+                oi.Sku,
+                oi.ProductName
+            })
+            .Select(g => new RevenueItemDto
+            {
+                StoreId = g.Key.StoreId, // multi-store
+                Sku = g.Key.Sku,
+                ProductName = g.Key.ProductName,
+                QuantitySold = g.Sum(x => x.Quantity),
+                UnitPrice = g.Max(x => x.UnitPrice),
+                TotalRevenue = g.Sum(x => x.Quantity * x.UnitPrice)
+            })
+            .ToListAsync(cancellationToken);
+
+        return aggregatedResult;
+    }
+    public async Task<List<OrderVolumePerDayDto>> GetOrderVolumeAsync(
+        DateOnly fromDate,
+        DateOnly toDate,
+        Guid? storeId,
+        OrderStatus? status,
+        CancellationToken cancellationToken)
+    {
+        var fromUtc = new DateTimeOffset(
+            fromDate.ToDateTime(TimeOnly.MinValue),
+            TimeSpan.Zero);
+
+        var toUtc = new DateTimeOffset(
+            toDate.ToDateTime(TimeOnly.MaxValue),
+            TimeSpan.Zero);
+
+        var query = _context.Orders
+            .AsNoTracking()
+            .Where(oi => oi.CreatedAt >= fromUtc && oi.CreatedAt <= toUtc);
+
+        if (storeId.HasValue)
+        {
+            query = query.Where(oi => oi.StoreId == storeId.Value);
+        }
+
+        if (status.HasValue)
+        {
+            query = query.Where(oi => oi.Status == status.Value);
+        }
+        var data = await query
+            .GroupBy(o => new { o.CreatedAt.Date, o.StoreId })
+            .Select(g => new
+            {
+                Date = g.Key.Date,
+                StoreId = g.Key.StoreId,
+                TotalOrders = g.Count(),
+                CanceledOrders = g.Count(o => o.Status == OrderStatus.Cancelled),
+                CompletedOrders = g.Count(o => o.Status == OrderStatus.Completed),
+                StatusGroups = g
+                    .GroupBy(o => o.Status)
+                    .Select(sg => new
+                    {
+                        Status = sg.Key,
+                        Count = sg.Count()
+                    })
+                    .ToList()
+            })
+            .ToListAsync(cancellationToken);
+
+        return data.Select(x => new OrderVolumePerDayDto
+        {
+            Date = DateOnly.FromDateTime(x.Date),
+            StoreId = x.StoreId,
+            TotalOrders = x.TotalOrders,
+            CanceledOrders = x.CanceledOrders,
+            CompletedOrders = x.CompletedOrders,
+            StatusCounts = x.StatusGroups
+            .ToDictionary(
+                s => s.Status,
+                s => s.Count
+            )
+        }).ToList();
     }
 }

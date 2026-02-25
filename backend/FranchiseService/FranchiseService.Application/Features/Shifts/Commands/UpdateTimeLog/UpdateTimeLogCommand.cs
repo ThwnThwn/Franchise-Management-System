@@ -10,5 +10,5 @@ public class UpdateTimeLogCommand : IRequest<bool>
     public Guid Id { get; set; }
     public int Status { get; set; }       // Trạng thái (1: Valid, 2: Invalid)
     public string? ManagerNote { get; set; }
-    public Guid UserId { get; set; }      // Manager ID người duyệt
+    //public Guid UserId { get; set; }      // Manager ID người duyệt
 }

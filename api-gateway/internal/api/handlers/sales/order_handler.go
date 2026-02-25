@@ -2,9 +2,15 @@ package sales
 
 import (
 	"api-gateway/internal/application/constants/errorcode"
+	"api-gateway/internal/application/gateways/franchise"
 	"api-gateway/internal/application/gateways/sales"
+	"api-gateway/internal/domain/constants/roleslug"
 	"api-gateway/internal/domain/models/order"
+	"api-gateway/pkg/mapper"
+	"api-gateway/pkg/utils/contextutils"
 	"api-gateway/pkg/utils/grpcutils"
+	"api-gateway/pkg/utils/sliceutils"
+	"api-gateway/pkg/utils/stringutils"
 	"api-gateway/pkg/utils/validation"
 	"net/http"
 
@@ -14,10 +20,79 @@ import (
 
 type OrderHandler struct {
 	orderGW sales.IOrderService
+	storeGW franchise.IStoreService
 }
 
-func NewOrderHandler(orderGW sales.IOrderService) *OrderHandler {
-	return &OrderHandler{orderGW: orderGW}
+func NewOrderHandler(
+	orderGW sales.IOrderService,
+	storeGW franchise.IStoreService,
+) *OrderHandler {
+	return &OrderHandler{
+		orderGW: orderGW,
+		storeGW: storeGW,
+	}
+}
+
+// GetOrders
+// @Summary      Get Orders History
+// @Description  Retrieve a list of orders placed with optional filtering.
+// @Tags         Orders
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        query  query     order.GetOrdersRequest  false  "Filter params (page, status, etc.)"
+// @Success      200    {object}  map[string]interface{}    "List of orders"
+// @Failure      401    {object}  map[string]string         "Unauthorized"
+// @Router       /orders [get]
+func (h *OrderHandler) GetOrders(c *gin.Context) error {
+	var req order.GetOrdersRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		return validation.TranslateValidationError(err)
+	}
+
+	ctx, err := grpcutils.BuildAuthContext(c)
+	if err != nil {
+		return err
+	}
+
+	roleSlug, err := contextutils.GetRoleSlug(c)
+	if err != nil {
+		return err
+	}
+
+	storeId, err := contextutils.GetStoreId(c)
+	if err != nil {
+		return err
+	}
+
+	if roleSlug == string(roleslug.Manager) || roleSlug == string(roleslug.Staff) {
+		req.StoreId = stringutils.ToPtr(storeId.String())
+	}
+
+	res, err := h.orderGW.GetOrders(ctx, &req)
+	if err != nil {
+		return err
+	}
+	if len(res.Items) == 0 {
+		c.JSON(http.StatusOK, res)
+		return nil
+	}
+
+	storeIds := sliceutils.CollectUniqueIDs(res.Items, func(o *order.OrderSummary) string {
+		if o.Store != nil {
+			return o.Store.Id
+		}
+		return ""
+	})
+
+	stores, err := h.storeGW.GetByIds(ctx, storeIds)
+	if err == nil {
+		// Chỉ map nếu lấy được store, không thì trả về data gốc
+		res.Items = mapper.MapStoreToOrderHeaders(res.Items, stores)
+	}
+
+	c.JSON(http.StatusOK, res)
+	return nil
 }
 
 // GetOrderById
@@ -32,27 +107,32 @@ func NewOrderHandler(orderGW sales.IOrderService) *OrderHandler {
 // @Failure      400  {object}  map[string]string      "Invalid ID format"
 // @Failure      404  {object}  map[string]string      "Order not found"
 // @Router       /orders/{id} [get]
-func (h *OrderHandler) GetOrderById(c *gin.Context) {
+func (h *OrderHandler) GetOrderById(c *gin.Context) error {
 	id := c.Param("id")
 	orderId, err := uuid.Parse(id)
 	if err != nil {
-		c.Error(errorcode.ErrInvalidId)
-		return
+		return errorcode.ErrInvalidId
 	}
 
 	ctx, err := grpcutils.BuildAuthContext(c)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	res, err := h.orderGW.GetOrderById(ctx, orderId)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
+	}
+
+	if storeId, err := uuid.Parse(res.Store.Id); err == nil {
+		store, err := h.storeGW.GetStoreDetail(ctx, storeId)
+		if err == nil {
+			res.Store = store
+		}
 	}
 
 	c.JSON(http.StatusOK, res)
+	return nil
 }
 
 // GetMyOrders
@@ -66,26 +146,41 @@ func (h *OrderHandler) GetOrderById(c *gin.Context) {
 // @Success      200    {object}  map[string]interface{}    "List of orders"
 // @Failure      401    {object}  map[string]string         "Unauthorized"
 // @Router       /me/orders [get]
-func (h *OrderHandler) GetMyOrders(c *gin.Context) {
+func (h *OrderHandler) GetMyOrders(c *gin.Context) error {
 	var req order.GetMyOrdersRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	ctx, err := grpcutils.BuildAuthContext(c)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	res, err := h.orderGW.GetMyOrders(ctx, &req)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
+	}
+	if len(res) == 0 {
+		c.JSON(http.StatusOK, res)
+		return nil
+	}
+
+	storeIds := sliceutils.CollectUniqueIDs(res, func(o *order.OrderSummary) string {
+		if o.Store != nil {
+			return o.Store.Id
+		}
+		return ""
+	})
+
+	stores, err := h.storeGW.GetByIds(ctx, storeIds)
+	if err == nil {
+		// Chỉ map nếu lấy được store, không thì trả về data gốc
+		res = mapper.MapStoreToOrderHeaders(res, stores)
 	}
 
 	c.JSON(http.StatusOK, res)
+	return nil
 }
 
 // CreateOrder

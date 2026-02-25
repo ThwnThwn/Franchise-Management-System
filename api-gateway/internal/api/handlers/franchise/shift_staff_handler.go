@@ -4,12 +4,10 @@ import (
 	"api-gateway/internal/application/constants/errorcode"
 	"api-gateway/internal/application/gateways/franchise"
 	"api-gateway/internal/application/gateways/identity"
-	"api-gateway/internal/domain/models/common"
 	"api-gateway/internal/domain/models/shift"
-	"api-gateway/internal/domain/models/user"
-	"api-gateway/pkg/mapper"
+	"api-gateway/pkg/utils/contextutils"
+	"api-gateway/pkg/utils/stringutils"
 	"api-gateway/pkg/utils/validation"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -42,14 +40,14 @@ func NewShiftStaffHandler(
 // @Failure      401  {object}  map[string]string      "Unauthorized"
 // @Router       /me/shifts/current [get]
 func (h *ShiftStaffHandler) GetUserCurrentShift(c *gin.Context) {
-	userID, exists := c.Get("userID")
-	if !exists {
-		c.Error(errorcode.ErrInvalidToken)
+	userId, err := contextutils.GetUserId(c)
+	if err != nil {
+		c.Error(err)
 		return
 	}
 
 	ctx := c.Request.Context()
-	res, err := h.shiftGW.GetUserCurrentShift(ctx, userID.(uuid.UUID))
+	res, err := h.shiftGW.GetUserCurrentShift(ctx, userId)
 	if err != nil {
 		c.Error(err)
 		return
@@ -68,9 +66,9 @@ func (h *ShiftStaffHandler) GetUserCurrentShift(c *gin.Context) {
 // @Router       /me/shifts/assignments/{id}/check-in [put]
 func (h *ShiftStaffHandler) CheckIn(c *gin.Context) {
 	// 1. Lấy userID từ Token Middleware
-	userID, exists := c.Get("userID")
-	if !exists {
-		c.Error(errorcode.ErrInvalidToken)
+	userId, err := contextutils.GetUserId(c)
+	if err != nil {
+		c.Error(err)
 		return
 	}
 
@@ -88,14 +86,12 @@ func (h *ShiftStaffHandler) CheckIn(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(userID, assignmentID)
-
-	// ctx := c.Request.Context()
-	// err = h.shiftGW.CheckIn(ctx, userID.(uuid.UUID), assignmentID, req)
-	// if err != nil {
-	// 	c.Error(err)
-	// 	return
-	// }
+	ctx := c.Request.Context()
+	err = h.shiftGW.CheckIn(ctx, userId, assignmentID, &req)
+	if err != nil {
+		c.Error(err)
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{})
 }
@@ -109,9 +105,9 @@ func (h *ShiftStaffHandler) CheckIn(c *gin.Context) {
 // @Param        body body      shift.AttendancePayload true "GPS & Note"
 // @Router       /me/shifts/logs/{id}/check-out [put]
 func (h *ShiftStaffHandler) CheckOut(c *gin.Context) {
-	userID, exists := c.Get("userID")
-	if !exists {
-		c.Error(errorcode.ErrInvalidToken)
+	userId, err := contextutils.GetUserId(c)
+	if err != nil {
+		c.Error(err)
 		return
 	}
 
@@ -127,21 +123,17 @@ func (h *ShiftStaffHandler) CheckOut(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(userID)
-	fmt.Println(logID)
-	fmt.Println(req)
-
-	// ctx := c.Request.Context()
-	// err = h.shiftGW.CheckOut(ctx, userID.(uuid.UUID), logID, req)
-	// if err != nil {
-	// 	c.Error(err)
-	// 	return
-	// }
+	ctx := c.Request.Context()
+	err = h.shiftGW.CheckOut(ctx, userId, logID, &req)
+	if err != nil {
+		c.Error(err)
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{})
 }
 
-// GetAgenda (Lịch cá nhân)
+// GetMyAgenda (Lịch cá nhân)
 // @Summary      Get Staff Agenda
 // @Description  Retrieve shift schedule within a date range for the logged-in staff.
 // @Tags         Shifts: Staff
@@ -149,10 +141,10 @@ func (h *ShiftStaffHandler) CheckOut(c *gin.Context) {
 // @Param        startDate query     string  true  "Start Date (YYYY-MM-DD)"
 // @Param        endDate   query     string  true  "End Date (YYYY-MM-DD)"
 // @Router       /me/shifts [get]
-func (h *ShiftStaffHandler) GetAgenda(c *gin.Context) {
-	userID, exists := c.Get("userID")
-	if !exists {
-		c.Error(errorcode.ErrInvalidToken)
+func (h *ShiftStaffHandler) GetMyAgenda(c *gin.Context) {
+	userId, err := contextutils.GetUserId(c)
+	if err != nil {
+		c.Error(err)
 		return
 	}
 
@@ -163,16 +155,12 @@ func (h *ShiftStaffHandler) GetAgenda(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(userID)
-
-	// ctx := c.Request.Context()
-	// res, err := h.shiftGW.GetAgenda(ctx, userID.(uuid.UUID), params)
-	// if err != nil {
-	// 	c.Error(err)
-	// 	return
-	// }
-
-	res := gin.H{}
+	ctx := c.Request.Context()
+	res, err := h.shiftGW.GetMyAgenda(ctx, userId, &params)
+	if err != nil {
+		c.Error(err)
+		return
+	}
 
 	c.JSON(http.StatusOK, res)
 }
@@ -187,14 +175,9 @@ func (h *ShiftStaffHandler) GetAgenda(c *gin.Context) {
 func (h *ShiftStaffHandler) GetMyTimeLogHistory(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	uidStr := c.GetString("userId")
-	if uidStr == "" {
-		c.Error(errorcode.ErrInvalidAccessToken)
-		return
-	}
-	userUUID, err := uuid.Parse(uidStr)
+	userId, err := contextutils.GetUserId(c)
 	if err != nil {
-		c.Error(errorcode.ErrInvalidId)
+		c.Error(err)
 		return
 	}
 
@@ -205,25 +188,20 @@ func (h *ShiftStaffHandler) GetMyTimeLogHistory(c *gin.Context) {
 	}
 
 	// 3. SECURITY: Ép staffId phải là của chính mình
-	params.StaffID = &uidStr
+	params.StaffID = stringutils.ToPtr(userId.String())
 
 	// 4. Gọi sang Franchise Service lấy logs
-	// logRes, err := h.shiftGW.GetAllTimeLogs(ctx, params)
-	// if err != nil {
-	// 	c.Error(err)
-	// 	return
-	// }
-	logRes := &common.PaginationResult[*shift.TimeLogResponse]{}
-	if len(logRes.Items) == 0 {
-		c.JSON(http.StatusOK, logRes)
+	logRes, err := h.shiftGW.GetTimeLogs(ctx, &params)
+	if err != nil {
+		c.Error(err)
 		return
 	}
 
-	me, err := h.userGW.GetById(ctx, userUUID)
-	if err == nil {
-		users := []*user.UserResponse{me}
-		logRes.Items = mapper.MapStaffToTimeLogsBatch(logRes.Items, users)
-	}
+	// me, err := h.userGW.GetById(ctx, userUUID)
+	// if err == nil {
+	// 	users := []*user.UserResponse{me}
+	// 	logRes.Items = mapper.MapStaffToTimeLogsBatch(logRes.Items, users)
+	// }
 
 	c.JSON(http.StatusOK, logRes)
 }

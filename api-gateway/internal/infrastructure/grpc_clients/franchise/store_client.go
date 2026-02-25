@@ -35,7 +35,7 @@ func (s *storeGrpcClient) CheckStoreAvailability(ctx context.Context, id uuid.UU
 func (s *storeGrpcClient) FindNearbyStores(
 	ctx context.Context,
 	req *store.FindNearbyStoresRequest,
-) (*common.PaginationResult[*store.StoreDetailResponse], error) {
+) (common.PaginationResult[*store.StoreDetailResponse], error) {
 	res, err := s.client.FindNearbyStores(ctx, &franchisePb.FindNearbyStoresRequest{
 		UserLat:  req.UserLat,
 		UserLong: req.UserLong,
@@ -43,7 +43,7 @@ func (s *storeGrpcClient) FindNearbyStores(
 		Limit:    req.Limit,
 	})
 	if err != nil {
-		return nil, err
+		return common.PaginationResult[*store.StoreDetailResponse]{}, err
 	}
 
 	stores := make([]*store.StoreDetailResponse, 0, len(res.Items))
@@ -51,7 +51,7 @@ func (s *storeGrpcClient) FindNearbyStores(
 		stores = append(stores, mapper.MapStorePbToStoreModel(s))
 	}
 
-	return &common.PaginationResult[*store.StoreDetailResponse]{
+	return common.PaginationResult[*store.StoreDetailResponse]{
 		Items:      stores,
 		TotalCount: res.TotalCount,
 		TotalPages: res.TotalPages,
@@ -70,15 +70,32 @@ func (s *storeGrpcClient) GetStoreDetail(ctx context.Context, id uuid.UUID) (*st
 	return mapper.MapStorePbToStoreModel(res), nil
 }
 
+// GetByIds implements franchise.IStoreService.
+func (s *storeGrpcClient) GetByIds(ctx context.Context, ids []string) ([]*store.StoreDetailResponse, error) {
+	res, err := s.client.GetStoresByIds(ctx, &franchisePb.GetStoresByIdsRequest{
+		Ids: ids,
+	})
+	if err != nil {
+		return []*store.StoreDetailResponse{}, err
+	}
+
+	stores := make([]*store.StoreDetailResponse, 0, len(res.Stores))
+	for _, item := range res.Stores {
+		stores = append(stores, mapper.MapStorePbToStoreModel(item))
+	}
+
+	return stores, nil
+}
+
 // GetStores implements franchise.IStoreService.
-func (s *storeGrpcClient) GetStores(ctx context.Context, req *store.GetStoresRequest) (*common.PaginationResult[*store.StoreDetailResponse], error) {
+func (s *storeGrpcClient) GetStores(ctx context.Context, req *store.GetStoresRequest) (common.PaginationResult[*store.StoreDetailResponse], error) {
 	res, err := s.client.GetStores(ctx, &franchisePb.GetStoresRequest{
 		Page:     req.Page,
 		PageSize: req.PageSize,
 		Keyword:  req.Keyword,
 	})
 	if err != nil {
-		return nil, err
+		return common.PaginationResult[*store.StoreDetailResponse]{}, err
 	}
 
 	stores := make([]*store.StoreDetailResponse, 0, len(res.Items))
@@ -86,7 +103,7 @@ func (s *storeGrpcClient) GetStores(ctx context.Context, req *store.GetStoresReq
 		stores = append(stores, mapper.MapStorePbToStoreModel(s))
 	}
 
-	return &common.PaginationResult[*store.StoreDetailResponse]{
+	return common.PaginationResult[*store.StoreDetailResponse]{
 		Items:      stores,
 		TotalCount: res.TotalCount,
 		TotalPages: res.TotalPages,

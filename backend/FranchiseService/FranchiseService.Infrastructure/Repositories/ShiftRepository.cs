@@ -25,7 +25,8 @@ namespace FranchiseService.Infrastructure.Repositories
             Guid userId, DateTime now, int bufferInMin, int bufferOutHour
         )
         {
-            var today = DateOnly.FromDateTime(now);
+            var finalNow = DateTime.SpecifyKind(now, DateTimeKind.Unspecified);
+            var today = DateOnly.FromDateTime(finalNow);
             var yesterday = today.AddDays(-1);
 
             return await _dbContext.ShiftAssignments
@@ -33,9 +34,9 @@ namespace FranchiseService.Infrastructure.Repositories
                 .Include(sa => sa.TimeLogs.Where(tl => !tl.IsDeleted))
                 .AsNoTracking()
                 .Where(sa => sa.UserId == userId
-                          && !sa.IsDeleted
-                          && sa.Shift.Status == (int)ShiftStatus.Published
-                          && (sa.Shift.ShiftDate == today || sa.Shift.ShiftDate == yesterday))
+                    && !sa.IsDeleted
+                    && sa.Shift.Status == (int)ShiftStatus.Published
+                    && (sa.Shift.ShiftDate == today || sa.Shift.ShiftDate == yesterday))
                 .Select(sa => new
                 {
                     Assignment = sa,
@@ -44,8 +45,8 @@ namespace FranchiseService.Infrastructure.Repositories
                         ? sa.Shift.ShiftDate.ToDateTime(sa.Shift.EndTime)
                         : sa.Shift.ShiftDate.AddDays(1).ToDateTime(sa.Shift.EndTime)
                 })
-                .Where(x => now >= x.ActualStart.AddMinutes(-bufferInMin)
-                         && now <= x.ActualEnd.AddHours(bufferOutHour))
+                .Where(x => finalNow >= x.ActualStart.AddMinutes(-bufferInMin)
+                    && finalNow <= x.ActualEnd.AddHours(bufferOutHour))
                 // --- LOGIC GIẢI QUYẾT XUNG ĐỘT ---
                 .OrderByDescending(x => x.Assignment.TimeLogs.Any(tl => tl.CheckInAt != null && tl.CheckOutAt == null)) // 1. Ưu tiên ca đang In-Progress
                 .ThenByDescending(x => !x.Assignment.TimeLogs.Any()) // 2. Ưu tiên ca chưa chấm công tí nào (so với ca đã hoàn thành nhưng vẫn trong buffer)
@@ -202,8 +203,8 @@ namespace FranchiseService.Infrastructure.Repositories
                 .Where(tl => !tl.IsDeleted && !tl.ShiftAssignment.IsDeleted && !tl.ShiftAssignment.Shift.IsDeleted);
 
             // 1. Lọc theo khoảng ngày (dựa trên thông tin ca làm việc)
-            query = query.Where(tl => 
-                tl.ShiftAssignment.Shift.ShiftDate >= fromDate && 
+            query = query.Where(tl =>
+                tl.ShiftAssignment.Shift.ShiftDate >= fromDate &&
                 tl.ShiftAssignment.Shift.ShiftDate <= toDate);
 
             // 2. Lọc theo StoreId (Dành cho Manager)
@@ -236,6 +237,39 @@ namespace FranchiseService.Infrastructure.Repositories
                 .ToListAsync(cancellationToken);
 
             return (items, totalCount);
+        }
+
+        // Lay lich ca nhan gom day du: Ca, Cua hang, Gio mo cua, va Cham cong
+        public async Task<List<ShiftAssignment>> GetAgendaByUserAsync(
+            Guid userId, DateOnly fromDate, DateOnly toDate,
+            CancellationToken cancellationToken)
+        {
+            return await _dbContext.ShiftAssignments
+                .AsNoTracking()
+                .Include(a => a.Shift)
+                    .ThenInclude(s => s.Store)
+                        .ThenInclude(st => st.StoreHours)
+                .Include(a => a.TimeLogs)
+                .Where(a => a.UserId == userId
+                         && a.Shift.ShiftDate >= fromDate
+                         && a.Shift.ShiftDate <= toDate
+                         && a.Shift.Status == (int)ShiftStatus.Published
+                         && a.IsDeleted == false
+                         && a.Shift.IsDeleted == false)
+                .OrderBy(a => a.Shift.ShiftDate)
+                    .ThenBy(a => a.Shift.StartTime)
+                .ToListAsync(cancellationToken);
+        }
+
+        // Lay danh sach phan cong cua nhieu ca, dung de tim dong nghiep
+        public async Task<List<ShiftAssignment>> GetAssignmentsByShiftIdsAsync(
+            List<Guid> shiftIds, CancellationToken cancellationToken)
+        {
+            return await _dbContext.ShiftAssignments
+                .AsNoTracking()
+                .Where(a => shiftIds.Contains(a.ShiftId)
+                         && a.IsDeleted == false)
+                .ToListAsync(cancellationToken);
         }
     }
 }

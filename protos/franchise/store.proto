@@ -17,6 +17,8 @@ service StoreGrpcService {
   // Lấy chi tiết 1 cửa hàng (để hiện địa chỉ, hình ảnh)
   rpc GetStoreDetail (GetStoreDetailRequest) returns (StoreDetailResponse);
 
+  rpc GetStoresByIds (GetStoresByIdsRequest) returns (GetStoresByIdsResponse);
+
   // Tìm cửa hàng gần nhất (Dựa trên GPS User gửi lên)
   rpc FindNearbyStores (FindNearbyStoresRequest) returns (GetStoresResponse);
 
@@ -44,6 +46,14 @@ message GetStoresResponse {
   repeated StoreDetailResponse items = 1;
   int32 total_count = 2;
   int32 total_pages = 3;
+}
+
+message GetStoresByIdsRequest {
+  repeated string ids = 1;
+}
+
+message GetStoresByIdsResponse {
+  repeated StoreDetailResponse stores = 1;
 }
 
 // Tìm quanh đây

@@ -8,6 +8,7 @@ using FranchiseService.Application.Features.ShiftAvailabilities.Queries.GetStaff
 using Grpc.Core;
 using MediatR;
 using System;
+using BuildingBlocks.Core.Pagination;
 
 namespace FranchiseService.API.Services
 {
@@ -24,7 +25,7 @@ namespace FranchiseService.API.Services
         public override async Task<StaffAvailabilityListResponse> GetMyAvailability(GetAvailabilityParams request, ServerCallContext context)
         {
             var queryParams = MapToParams(request);
-            
+
             var query = new GetMyAvailabilityQuery
             {
                 FromDate = queryParams.FromDate,
@@ -33,7 +34,9 @@ namespace FranchiseService.API.Services
                 IsRecurring = queryParams.IsRecurring,
                 DayOfWeek = queryParams.DayOfWeek,
                 UserId = queryParams.UserId ?? Guid.Empty, // Or handle logic
-                Keyword = queryParams.Keyword
+                Keyword = queryParams.Keyword,
+                Page = request.Page,
+                PageSize = request.PageSize
                 // StoreId not in MyAvailabilityQuery? Check definition
             };
 
@@ -43,7 +46,7 @@ namespace FranchiseService.API.Services
 
             var result = await _mediator.Send(query);
 
-            return MapToResponse(result.Items);
+            return MapToResponse(result);
         }
 
         // --- GET STAFF AVAILABILITIES ---
@@ -52,17 +55,23 @@ namespace FranchiseService.API.Services
             var queryParams = MapToParams(request);
             var query = new GetStaffAvailabilitiesQuery
             {
-                 StoreId = queryParams.StoreId,
-                 UserId = queryParams.UserId,
-                 FromDate = queryParams.FromDate,
-                 ToDate = queryParams.ToDate,
-                 IsAvailable = queryParams.IsAvailable,
-                 IsRecurring = queryParams.IsRecurring,
-                 Keyword = queryParams.Keyword
+                StoreId = queryParams.StoreId,
+                UserId = queryParams.UserId,
+
+                FromDate = queryParams.FromDate,
+                ToDate = queryParams.ToDate,
+
+                IsAvailable = queryParams.IsAvailable,
+                IsRecurring = queryParams.IsRecurring,
+                DayOfWeek = queryParams.DayOfWeek,
+
+                Keyword = queryParams.Keyword,
+                Page = request.Page,
+                PageSize = request.PageSize
             };
             var result = await _mediator.Send(query);
 
-            return MapToResponse(result.Items);
+            return MapToResponse(result);
         }
 
         // --- CREATE ---
@@ -74,7 +83,7 @@ namespace FranchiseService.API.Services
                 IsAvailable = request.IsAvailable,
                 IsRecurring = request.IsRecurring,
                 SpecificDate = string.IsNullOrEmpty(request.SpecificDate) ? null : DateOnly.Parse(request.SpecificDate),
-                DayOfWeek = request.DayOfWeek == 0 ? null : (DayOfWeek)request.DayOfWeek, // 0 is Sunday usually, assuming valid input
+                DayOfWeek = request.DayOfWeek == -1 ? null : (DayOfWeek)request.DayOfWeek, // 0 is Sunday usually, assuming valid input
                 StartTime = TimeOnly.Parse(request.StartTime),
                 EndTime = TimeOnly.Parse(request.EndTime),
                 Note = request.Note
@@ -126,31 +135,37 @@ namespace FranchiseService.API.Services
             {
                 FromDate = string.IsNullOrEmpty(request.FromDate) ? null : DateOnly.Parse(request.FromDate),
                 ToDate = string.IsNullOrEmpty(request.ToDate) ? null : DateOnly.Parse(request.ToDate),
+
                 IsAvailable = request.HasIsAvailable ? request.IsAvailable : null,
                 IsRecurring = request.HasIsRecurring ? request.IsRecurring : null,
                 DayOfWeek = request.HasDayOfWeek ? (DayOfWeek)request.DayOfWeek : null,
+
                 StoreId = string.IsNullOrEmpty(request.StoreId) ? null : Guid.Parse(request.StoreId),
                 UserId = string.IsNullOrEmpty(request.UserId) ? null : Guid.Parse(request.UserId),
-                Keyword = request.Keyword
+
+                Keyword = request.Keyword,
             };
         }
 
-        private StaffAvailabilityListResponse MapToResponse(IEnumerable<AppDTOs.StaffAvailabilityResponse> list)
+        private StaffAvailabilityListResponse MapToResponse(PagedResult<AppDTOs.StaffAvailabilityResponse> list)
         {
             var response = new StaffAvailabilityListResponse();
-            response.Data.AddRange(list.Select(x => new FranchiseService.Grpc.StaffAvailabilityResponse
+            response.Data.AddRange(list.Items.Select(x => new FranchiseService.Grpc.StaffAvailabilityResponse
             {
                 Id = x.Id.ToString(),
                 UserId = x.UserId.ToString(),
                 IsAvailable = x.IsAvailable,
                 IsRecurring = x.IsRecurring,
                 SpecificDate = x.SpecificDate?.ToString("yyyy-MM-dd") ?? "",
-                DayOfWeek = x.DayOfWeek.HasValue ? (int)x.DayOfWeek.Value : 0, // Need to handle 0 carefully if Enum 0 is Sunday
+                DayOfWeek = x.DayOfWeek.HasValue ? (int)x.DayOfWeek.Value : -1, // Need to handle 0 carefully if Enum 0 is Sunday
                 StartTime = x.StartTime.ToString("HH:mm"),
                 EndTime = x.EndTime.ToString("HH:mm"),
                 Note = x.Note ?? "",
-                CreatedAt = x.CreatedAt.ToString("O")
+                CreatedAt = x.CreatedAt.ToString("O"),
+                UpdatedAt = x.UpdatedAt.ToString("O")
             }));
+            response.TotalCount = (int)list.TotalCount;
+            response.TotalPages = list.TotalPages;
             return response;
         }
     }
