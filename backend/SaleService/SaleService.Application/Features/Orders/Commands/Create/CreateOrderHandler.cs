@@ -200,6 +200,7 @@ public sealed class CreateOrderHandler
                 Quantity = x.Quantity,
                 UnitPrice = x.UnitPrice
             }).ToList(),
+            StoreId = request.Request.StoreId,
             TotalAmount = createdOrder.TotalAmount,
             CheckEnoughStockRes = { IsEnough = true, ShortageItems = { } }
         });
