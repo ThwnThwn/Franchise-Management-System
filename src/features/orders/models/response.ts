@@ -3,6 +3,7 @@ import { StoreDetailDto } from "@/features/stores"
 
 export interface ShortageItem {
     variantId: string
+    sku: string
     maxFeasibleQuantity: number
 }
 

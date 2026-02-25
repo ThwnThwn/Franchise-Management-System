@@ -1,16 +1,16 @@
-import { StoreDetailDto } from "@/features/stores"
-import { UUID } from "crypto"
-
 export interface CartItem {
+    id: string
     sku: string
-    productId: UUID
-    variantId: UUID
     productName: string
-    sizeName?: string
-    attributes?: string
-    basePrice: number
+    customerId: string
     quantity: number
-    imageUrl?: string
-    // storeId?: string
-    store?: StoreDetailDto
+    basePrice: number
+
+    // productId: UUID
+    // variantId: UUID
+    // sizeName?: string
+    // attributes?: string
+    // imageUrl?: string
+    // // storeId?: string
+    // store?: StoreDetailDto
 }

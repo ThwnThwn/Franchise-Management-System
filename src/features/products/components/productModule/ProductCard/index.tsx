@@ -1,32 +1,31 @@
 "use client"
 
-import React from "react"
 import { Card, CardBody, CardFooter, Image } from "@heroui/react"
 import { formatCurrencyWithSymbol } from "@/utils/helpers/currency"
 import { Product } from "@/features/products/models/products/respone"
 import { motion } from "framer-motion"
 
 // Simple SVG Icons for Cup Sizes
-const CupIcon = ({ size, opacity = 1 }: { size: "s" | "m" | "l"; opacity?: number }) => {
-    const scale = size === "s" ? 0.7 : size === "m" ? 0.85 : 1
-    return (
-        <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="text-white"
-            style={{ transform: `scale(${scale})`, opacity }}
-        >
-            <path d="M17 21v-8a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v8" />
-            <path d="M19 10a2 2 0 0 0-2-2h-3.4" />
-        </svg>
-    )
-}
+// const CupIcon = ({ size, opacity = 1 }: { size: "s" | "m" | "l"; opacity?: number }) => {
+//     const scale = size === "s" ? 0.7 : size === "m" ? 0.85 : 1
+//     return (
+//         <svg
+//             width="24"
+//             height="24"
+//             viewBox="0 0 24 24"
+//             fill="none"
+//             stroke="currentColor"
+//             strokeWidth="2"
+//             strokeLinecap="round"
+//             strokeLinejoin="round"
+//             className="text-white"
+//             style={{ transform: `scale(${scale})`, opacity }}
+//         >
+//             <path d="M17 21v-8a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v8" />
+//             <path d="M19 10a2 2 0 0 0-2-2h-3.4" />
+//         </svg>
+//     )
+// }
 
 type ProductCardProps = {
     product: Product
@@ -85,7 +84,7 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
                     </div>
 
                     {/* Size Icons */}
-                    <div className="w-full flex justify-between items-center mt-4 border-t border-white/10 pt-4">
+                    {/* <div className="w-full flex justify-between items-center mt-4 border-t border-white/10 pt-4">
                         <div className="flex flex-col items-center gap-1 cursor-pointer hover:bg-white/10 p-1 rounded-lg transition-colors">
                             <CupIcon size="s" opacity={0.5} />
                             <span className="text-[9px] text-white/50 font-medium">Tall</span>
@@ -95,7 +94,6 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
                             <span className="text-[9px] text-white/50 font-medium">Grande</span>
                         </div>
                         <div className="flex flex-col items-center gap-1 cursor-pointer bg-white/20 p-1.5 rounded-xl border border-white/30 transition-all shadow-lg backdrop-blur-sm">
-                            {/* Highlight one size as 'selected' visual */}
                             <CupIcon size="l" />
                             <span className="text-[9px] text-white font-bold">Venti</span>
                         </div>
@@ -103,7 +101,7 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
                             <div className="w-5 h-5 border border-dashed border-white/50 rounded-md" />
                             <span className="text-[9px] text-white/50 font-medium">Custom</span>
                         </div>
-                    </div>
+                    </div> */}
                 </CardFooter>
             </Card>
         </div>
