@@ -8,11 +8,10 @@ import {
     TableBody,
     TableRow,
     TableCell,
-    Button,
     Tooltip,
     Spinner
 } from "@heroui/react"
-import { Clock, Pencil } from "lucide-react"
+import { Clock } from "lucide-react"
 import dayjs from "dayjs"
 
 import {
@@ -32,7 +31,7 @@ interface Props {
     onEditClick?: (log: TimeLogResponse) => void
 }
 
-export const TimeLogTable = ({ data, selectedDate, isLoading, isManager, onEditClick }: Props) => {
+export const TimeLogTable = ({ data, selectedDate, isLoading, onEditClick }: Props) => {
     const { formatTime } = useDay()
 
     // 1. Logic tự lọc: Chỉ lấy các bản ghi có ngày Check-in trùng với selectedDate
@@ -63,10 +62,16 @@ export const TimeLogTable = ({ data, selectedDate, isLoading, isManager, onEditC
             <Table
                 aria-label="Time Log Table"
                 selectionMode="none"
+                onRowAction={(key) => {
+                    // Tìm item dựa trên key (id) của row
+                    const item = filteredLogs.find((log) => log.id === key)
+                    if (item) onEditClick?.(item)
+                }}
                 layout="fixed"
                 classNames={{
                     wrapper: "rounded-2xl shadow-sm border border-divider p-0 overflow-hidden",
-                    table: "min-w-full"
+                    table: "min-w-full",
+                    tr: "cursor-pointer hover:bg-default-100 transition-colors"
                 }}
             >
                 <TableHeader>
@@ -77,9 +82,9 @@ export const TimeLogTable = ({ data, selectedDate, isLoading, isManager, onEditC
                         TRẠNG THÁI
                     </TableColumn>
 
-                    <TableColumn align="center" className={`${!isManager ? "hidden" : "w-[15%]"}`}>
+                    {/* <TableColumn align="center" className={`${!isManager ? "hidden" : "w-[15%]"}`}>
                         THAO TÁC
-                    </TableColumn>
+                    </TableColumn> */}
                 </TableHeader>
                 <TableBody
                     items={filteredLogs} // Dùng dữ liệu đã lọc
@@ -127,7 +132,7 @@ export const TimeLogTable = ({ data, selectedDate, isLoading, isManager, onEditC
                                     <TimeLogStatusBadge status={item.status} />
                                 </Tooltip>
                             </TableCell>
-                            <TableCell className={`${!isManager && "hidden"}`}>
+                            {/* <TableCell className={`${!isManager && "hidden"}`}>
                                 <Button
                                     isIconOnly
                                     size="sm"
@@ -138,7 +143,7 @@ export const TimeLogTable = ({ data, selectedDate, isLoading, isManager, onEditC
                                 >
                                     <Pencil size={18} />
                                 </Button>
-                            </TableCell>
+                            </TableCell> */}
                         </TableRow>
                     )}
                 </TableBody>

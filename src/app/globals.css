@@ -57,7 +57,7 @@ button {
         transform: scale(1.03);
     }
     .interactive-scale:active {
-        transform: scale(0.99);
+        transform: scale(1);
     }
 }
 

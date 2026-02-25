@@ -1,5 +1,5 @@
 "use client"
-import React from "react"
+
 import { ModalContent, ModalHeader, ModalBody, ModalFooter } from "@heroui/react"
 import StoreList from "@/features/stores/components/StoreList"
 import { StoreDetailDto } from "@/features/stores/models/schema/response"
@@ -19,9 +19,6 @@ export function StoreSelectionModal({
     onOpenChange,
     onStoreSelect
 }: StoreSelectionModalProps) {
-    // const [keyword, setKeyword] = useState("")
-    // const { data, loading } = useStores({ page: 1, pageSize: 12, keyword })
-
     const LIMIT = 3
     const RADIUS_KM = 6
     const { latitude, longitude } = useUserLocation()

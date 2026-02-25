@@ -110,6 +110,7 @@ export function ShiftAssignmentTab({
                                         />
                                     }
                                     onPress={() => handleToggle(item.id)}
+                                    isReadOnly={!isSubmitable}
                                     className="group"
                                 >
                                     <User
@@ -138,6 +139,7 @@ export function ShiftAssignmentTab({
                                 startContent={<Sparkles size={14} />}
                                 className="h-7 text-tiny font-bold"
                                 onPress={handleQuickSuggest}
+                                isDisabled={!isSubmitable}
                             >
                                 Gợi ý nhanh
                             </ButtonStyled>

@@ -11,7 +11,6 @@ import { CalendarApi } from "@fullcalendar/core"
 import { ShiftEventCard } from "./ShiftEventCard"
 import { mapShiftsToEvents } from "@/features/shifts/utils"
 import { ShiftResponse } from "@/features/shifts/models/response"
-import { DEFAULT_TIMEZONE } from "@/constants/constants"
 
 interface ShiftCalendarProps {
     shifts: ShiftResponse[]
@@ -68,7 +67,6 @@ export const ShiftCalendar = ({
                 ref={calendarRef}
                 plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
                 initialView={viewMode}
-                timeZone={DEFAULT_TIMEZONE}
                 headerToolbar={false} // Tắt toolbar mặc định để dùng cái mình tự build
                 events={events}
                 eventContent={renderEventContent}

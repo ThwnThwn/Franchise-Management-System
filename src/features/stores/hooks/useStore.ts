@@ -60,13 +60,14 @@ export const useGetStores = ({
     })
 }
 
-export const useGetStoreById = (id: string) => {
+export const useGetStoreById = ({ id, enabled = true }: { id: string; enabled?: boolean }) => {
     const key = [QUERY_KEYS.STORES, id]
     return useQuery({
         queryKey: key,
         queryFn: async () => {
             return await storeApi.getDetail(id)
-        }
+        },
+        enabled: enabled
     })
 }
 

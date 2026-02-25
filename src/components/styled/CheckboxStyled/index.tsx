@@ -6,5 +6,5 @@ import React from "react"
 export interface CheckboxStyledProps extends CheckboxProps {}
 
 export function CheckboxStyled(props: CheckboxStyledProps) {
-    return <Checkbox {...props} />
+    return <Checkbox {...(props as any)} />
 }

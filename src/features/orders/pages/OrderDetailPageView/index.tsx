@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react"
 import "./index.css"
 import { Chip, Spinner, addToast, Card, CardHeader, CardBody, CardFooter } from "@heroui/react"
-import { BackLink, ButtonStyled, EnumPicker } from "@/components"
+import { BackLink, ButtonStyled, EnumPicker, LogoStyled } from "@/components"
 import {
     ORDER_TEXT,
     OrderStatus,
@@ -24,10 +24,13 @@ import { OrderDetail } from "@/features/orders/components"
 import { Printer } from "lucide-react"
 import { RoleSlug } from "@/constants/enums"
 import { useGetRecipes } from "@/features/products/hooks/useRecipe"
+import { OrderStatusActions } from "@/features/orders/components/OrderStatusActions"
+import { canCancelFrom } from "@/features/orders/utils"
 
 export default function OrderDetailPageView({ orderId }: { orderId: string }) {
     // const isCustomer = false
     const isCustomer = useTokenStore((s) => s.roleSlug === RoleSlug.Customer)
+    const isStaff = useTokenStore((s) => s.roleSlug === RoleSlug.Staff)
 
     const router = useRouter()
 
@@ -76,6 +79,20 @@ export default function OrderDetailPageView({ orderId }: { orderId: string }) {
     }
 
     const updateStatus = useUpdateOrderStatus({ id: orderId })
+    const handleUpdate = async (status: OrderStatus) => {
+        if (!order) return
+        const isConfirmed = await confirmDialog({
+            title: "Xác nhận chuyển trạng thái",
+            message: (
+                <div className="text-slate-600">Chuyển sang [{OrderStatusLabels[status]}]</div>
+            ),
+            confirmText: "Xác nhận",
+            variant: "info"
+        })
+        console.log(status)
+
+        if (isConfirmed) updateStatus.mutate(status)
+    }
 
     const handleCancel = async () => {
         if (!order) return
@@ -112,6 +129,8 @@ export default function OrderDetailPageView({ orderId }: { orderId: string }) {
         )
     }
 
+    const canCancel = canCancelFrom(order.status)
+
     return (
         // Đã đẩy rộng ra max-w-5xl
         <div className="w-full md:w-3xl max-w-5xl mx-auto p-4 md:p-10 space-y-8">
@@ -122,7 +141,13 @@ export default function OrderDetailPageView({ orderId }: { orderId: string }) {
                     label="Danh sách đơn hàng"
                     className="text-default-500 hover:text-primary"
                 />
-                <ButtonStyled isIconOnly variant="flat" size="sm" onPress={() => window.print()}>
+                <ButtonStyled
+                    isIconOnly
+                    variant="flat"
+                    size="sm"
+                    // onPress={() => handlePrint("invoice-card")}
+                    onPress={() => window.print()}
+                >
                     <Printer size={18} />
                 </ButtonStyled>
             </div>
@@ -135,14 +160,18 @@ export default function OrderDetailPageView({ orderId }: { orderId: string }) {
                 <CardHeader className="flex flex-col p-8 md:p-12 pb-0! space-y-8">
                     {/* Phần hiển thị khi IN (CHB Coffee Shop) */}
                     <div className="hidden print:flex flex-col items-center text-center">
-                        <h2 className="text-xl font-black uppercase">{CHB} COFFEE SHOP</h2>
-                        <div className="border-b border-black w-full my-4" />
+                        <LogoStyled className="w-12 h-12" />
                     </div>
 
                     <div className="flex flex-col gap-1 w-full mb-0">
                         <div className="space-y-4">
-                            {" "}
-                            {/* Tăng gap lên 4 để thoáng hơn */}
+                            <center>
+                                <h2 className="mb-0 text-xl font-black uppercase">
+                                    {order.store?.name ?? `${CHB} COFFEE SHOP`}
+                                </h2>
+                                <p className="text-default-400">{order.store?.address ?? ""}</p>
+                                <div className="border-b border-black w-full my-4" />
+                            </center>
                             <div className="flex justify-between items-start gap-3">
                                 <div className="space-y-1">
                                     <h1 className="text-3xl md:text-4xl font-black tracking-tighter text-slate-900 leading-none">
@@ -151,7 +180,7 @@ export default function OrderDetailPageView({ orderId }: { orderId: string }) {
                                 </div>
 
                                 <div className="flex flex-col items-end gap-2">
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-1">
                                         <p className="hidden print:block text-[10px] font-mono text-default-400 tracking-widest uppercase font-bold">
                                             Trạng thái:
                                         </p>
@@ -210,70 +239,82 @@ export default function OrderDetailPageView({ orderId }: { orderId: string }) {
                     </div>
                 </CardBody>
 
-                {/* Footer Hóa đơn */}
-                <div className="print:hidden px-8 md:px-12">
-                    <div className="my-4 border-t-2 border-dashed border-default-500 w-full relative"></div>
-                </div>
-
-                <CardFooter className="print:hidden flex flex-col p-8 md:p-12 gap-8 bg-slate-50/30">
-                    {order.status === OrderStatus.PaymentPending ? (
-                        <div className="w-full space-y-6">
-                            <div className="flex flex-col items-center gap-2">
-                                <p className="text-[11px] uppercase tracking-[0.3em] text-primary font-black">
-                                    Hoàn tất thanh toán đơn hàng
-                                </p>
-                                <div className="h-1 w-12 bg-primary/20 rounded-full" />
-                            </div>
-
-                            <div className="flex flex-col md:flex-row justify-center items-center gap-4 max-w-2xl mx-auto w-full">
-                                <EnumPicker
-                                    placeholder="Phương thức thanh toán"
-                                    labels={omitRecord(PaymentMethodLabels, [
-                                        PaymentMethod.Unknown
-                                    ])}
-                                    value={paymentMethod}
-                                    onChange={(val) => setPaymentMethod(val as PaymentMethod)}
-                                    isClearable={false}
-                                    className="w-full md:w-80"
-                                />
-                                <ButtonStyled
-                                    color="primary"
-                                    size="lg"
-                                    className="w-full md:w-auto px-12 font-black shadow-xl shadow-primary/30"
-                                    onPress={handlePayment}
-                                    isLoading={isPaymentPending}
-                                    isDisabled={paymentMethod === undefined}
-                                >
-                                    {ORDER_TEXT.labels.PAY}
-                                </ButtonStyled>
-                            </div>
-
-                            {isCustomer && (
+                {(isStaff || isCustomer) && (
+                    <>
+                        {/* Footer Hóa đơn */}
+                        <div className="print-hidden px-8 md:px-12">
+                            <div className="my-4 border-t-2 border-dashed border-default-500 w-full relative"></div>
+                        </div>
+                        <CardFooter className="print-hidden flex flex-col p-8 md:p-12 gap-8 bg-slate-50/30">
+                            {order.status === OrderStatus.PaymentPending ? (
+                                <div className="w-full space-y-6">
+                                    <div className="flex flex-col items-center gap-2">
+                                        <p className="text-[11px] uppercase tracking-[0.3em] text-primary font-black">
+                                            Hoàn tất thanh toán đơn hàng
+                                        </p>
+                                        <div className="h-1 w-12 bg-primary/20 rounded-full" />
+                                    </div>
+                                    <div className="flex flex-col md:flex-row justify-center items-center gap-4 max-w-2xl mx-auto w-full">
+                                        <EnumPicker
+                                            placeholder="Phương thức thanh toán"
+                                            labels={omitRecord(PaymentMethodLabels, [
+                                                PaymentMethod.Unknown
+                                            ])}
+                                            value={paymentMethod}
+                                            onChange={(val) =>
+                                                setPaymentMethod(val as PaymentMethod)
+                                            }
+                                            isClearable={false}
+                                            className="w-full md:w-80"
+                                        />
+                                        <ButtonStyled
+                                            color="primary"
+                                            size="lg"
+                                            className="w-full md:w-auto px-12 font-black shadow-xl shadow-primary/30"
+                                            onPress={handlePayment}
+                                            isLoading={isPaymentPending}
+                                            isDisabled={paymentMethod === undefined}
+                                        >
+                                            {ORDER_TEXT.labels.PAY}
+                                        </ButtonStyled>
+                                    </div>
+                                    {canCancel && (
+                                        <center>
+                                            <ButtonStyled
+                                                variant="light"
+                                                color="danger"
+                                                size="sm"
+                                                className="font-bold opacity-40 hover:opacity-100 transition-all"
+                                                onPress={handleCancel}
+                                                isLoading={updateStatus.isPending}
+                                            >
+                                                Tôi muốn huỷ đơn hàng này
+                                            </ButtonStyled>
+                                        </center>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="w-full text-center space-y-2 py-4">
+                                    <p className="text-default-400 font-medium italic">
+                                        Cảm ơn bạn đã tin tưởng dịch vụ của chúng tôi.
+                                    </p>
+                                    <p className="text-[10px] text-default-300 uppercase tracking-widest">
+                                        Bản sao hóa đơn điện tử • {order.id}
+                                    </p>
+                                </div>
+                            )}
+                            {isStaff && (
                                 <center>
-                                    <ButtonStyled
-                                        variant="light"
-                                        color="danger"
-                                        size="sm"
-                                        className="font-bold opacity-40 hover:opacity-100 transition-all"
-                                        onPress={handleCancel}
-                                        isLoading={updateStatus.isPending}
-                                    >
-                                        Tôi muốn huỷ đơn hàng này
-                                    </ButtonStyled>
+                                    <OrderStatusActions
+                                        currentStatus={order.status}
+                                        onUpdate={handleUpdate}
+                                        isLoading={isLoading}
+                                    />
                                 </center>
                             )}
-                        </div>
-                    ) : (
-                        <div className="w-full text-center space-y-2 py-4">
-                            <p className="text-default-400 font-medium italic">
-                                Cảm ơn bạn đã tin tưởng dịch vụ của chúng tôi.
-                            </p>
-                            <p className="text-[10px] text-default-300 uppercase tracking-widest">
-                                Bản sao hóa đơn điện tử • {order.id}
-                            </p>
-                        </div>
-                    )}
-                </CardFooter>
+                        </CardFooter>
+                    </>
+                )}
             </Card>
         </div>
     )

@@ -79,9 +79,19 @@ export const OrderDetail = ({
 
                 <Divider className="mb-0" />
 
+                <div className="hidden print:flex flex-col">
+                    {order.items.map((item) => (
+                        <div
+                            key={item.id}
+                            className="px-2 py-4 border-b border-default-100 last:border-none transition-none"
+                        >
+                            <OrderItemRow item={item} />
+                        </div>
+                    ))}
+                </div>
+
                 {isCustomer ? (
-                    // 🛡️ VIEW KHÁCH HÀNG: Danh sách tĩnh, không hover, không click
-                    <div className="flex flex-col">
+                    <div className="print-hidden flex flex-col">
                         {order.items.map((item) => (
                             <div
                                 key={item.id}
@@ -92,11 +102,10 @@ export const OrderDetail = ({
                         ))}
                     </div>
                 ) : (
-                    // 🛠️ VIEW STAFF: Accordion xịn sò, có thể click mở công thức
                     <Accordion
                         selectionMode="multiple"
                         variant="light"
-                        className="px-0"
+                        className="px-0 print-hidden"
                         defaultExpandedKeys={defaultKeys}
                         hideIndicator
                         itemClasses={{

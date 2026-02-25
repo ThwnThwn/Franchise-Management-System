@@ -48,8 +48,6 @@ export const useGetOrderById = ({ id, enabled = true }: { id: string; enabled?: 
         queryKey: [QUERY_KEYS.ORDERS, id],
         queryFn: async () => {
             const data = await ordersApi.getById({ id })
-            console.log(data)
-
             return data
         },
         enabled: enabled

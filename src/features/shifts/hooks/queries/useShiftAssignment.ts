@@ -1,128 +1,12 @@
-"use client"
-
-import { useState, useMemo, useCallback } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { QUERY_KEYS } from "@/constants/queryKeys"
-import { STRINGS } from "@/constants/strings"
+
 import { addToast } from "@heroui/react"
 import { StaffAssignmentCandidate } from "@/features/shifts/models/response"
-import { fakeDelay, MOCK_SHIFTS_DB } from "./useShifts" // Đảm bảo đúng path
-
-// --- MOCK DATABASE TẠI CHỖ ---
-let MOCK_CANDIDATES_DB: Record<string, StaffAssignmentCandidate[]> = {}
-
-const generateMockCandidates = (shiftId: string): StaffAssignmentCandidate[] => {
-    return [
-        {
-            id: "user-1",
-            firstName: "Văn A",
-            lastName: "Nguyễn",
-            avatarUrl: "https://i.pravatar.cc/150?u=user-1",
-            currentHourlyWage: 25000,
-            isAvailable: true,
-            isConflict: false,
-            isAssigned: shiftId === "shift-1",
-            note: "Sẵn sàng tăng ca",
-            validation: {
-                isRestTimeInvalid: false,
-                restHours: 12,
-                isOverLimit: false,
-                weeklyHours: 35,
-                isShuttleInvalid: false
-            }
-        },
-        {
-            id: "user-2",
-            firstName: "Thị B",
-            lastName: "Trần",
-            avatarUrl: "https://i.pravatar.cc/150?u=user-2",
-            currentHourlyWage: 22000,
-            isAvailable: true,
-            isConflict: false,
-            isAssigned: shiftId === "shift-1",
-            note: "",
-            validation: {
-                isRestTimeInvalid: true,
-                restHours: 6,
-                isOverLimit: false,
-                weeklyHours: 20,
-                isShuttleInvalid: false
-            }
-        },
-        {
-            id: "user-3",
-            firstName: "Minh C",
-            lastName: "Lê",
-            avatarUrl: "https://i.pravatar.cc/150?u=user-3",
-            currentHourlyWage: 28000,
-            isAvailable: false,
-            isConflict: false,
-            isAssigned: false,
-            note: "Đi học thêm buổi sáng",
-            validation: {
-                isRestTimeInvalid: false,
-                restHours: 24,
-                isOverLimit: true,
-                weeklyHours: 42,
-                isShuttleInvalid: false
-            }
-        },
-        {
-            id: "user-4",
-            firstName: "Hoàng D",
-            lastName: "Phạm",
-            avatarUrl: "https://i.pravatar.cc/150?u=user-4",
-            currentHourlyWage: 24000,
-            isAvailable: true,
-            isConflict: true,
-            isAssigned: false,
-            note: "Trùng lịch ca Part-time tại Store khác",
-            validation: {
-                isRestTimeInvalid: false,
-                restHours: 8,
-                isOverLimit: false,
-                weeklyHours: 15,
-                isShuttleInvalid: false
-            }
-        },
-        {
-            id: "user-5",
-            firstName: "Thanh E",
-            lastName: "Vũ",
-            avatarUrl: "https://i.pravatar.cc/150?u=user-5",
-            currentHourlyWage: 30000,
-            isAvailable: true,
-            isConflict: false,
-            isAssigned: false,
-            note: "Nhân viên cứng",
-            validation: {
-                isRestTimeInvalid: true,
-                restHours: 4.5,
-                isOverLimit: false,
-                weeklyHours: 30,
-                isShuttleInvalid: false
-            }
-        },
-        {
-            id: "user-6",
-            firstName: "Quốc F",
-            lastName: "Đỗ",
-            avatarUrl: "https://i.pravatar.cc/150?u=user-6",
-            currentHourlyWage: 27000,
-            isAvailable: true,
-            isConflict: false,
-            isAssigned: false,
-            note: "",
-            validation: {
-                isRestTimeInvalid: false,
-                restHours: 15,
-                isOverLimit: true,
-                weeklyHours: 45,
-                isShuttleInvalid: false
-            }
-        }
-    ]
-}
+import { BackendError } from "@/models/common/respone"
+import { shiftApi } from "@/features/shifts/services"
+import { STRINGS } from "@/constants/strings"
+import { QUERY_KEYS } from "@/constants/queryKeys"
+import { useCallback, useMemo, useState } from "react"
 
 export const useShiftAssignment = ({
     storeId,
@@ -142,49 +26,35 @@ export const useShiftAssignment = ({
     const [keyword, setKeyword] = useState("")
     const [draftIds, setDraftIds] = useState<string[] | null>(null)
 
-    // --- 1. Query fetch data mock ---
+    // ===============================
+    // Query and Mutation
+    // ===============================
     const { data: candidates = [], isLoading } = useQuery<StaffAssignmentCandidate[]>({
         queryKey,
-        queryFn: async () => {
-            await fakeDelay(800)
-            if (!MOCK_CANDIDATES_DB[shiftId]) {
-                MOCK_CANDIDATES_DB[shiftId] = generateMockCandidates(shiftId)
-            }
-            return MOCK_CANDIDATES_DB[shiftId]
-        },
+        queryFn: () => shiftApi.getAvailableStaffs({ storeId, shiftId }),
         enabled: !!storeId && !!shiftId
     })
 
-    // --- 2. Mutation sync data ---
     const syncMutation = useMutation({
-        mutationFn: async (userIds: string[]) => {
-            await fakeDelay(1000)
-            if (MOCK_CANDIDATES_DB[shiftId]) {
-                MOCK_CANDIDATES_DB[shiftId] = MOCK_CANDIDATES_DB[shiftId].map((c) => ({
-                    ...c,
-                    isAssigned: userIds.includes(c.id)
-                }))
-            }
-            // Cập nhật ngược lại MOCK_SHIFTS_DB nếu có
-            const shiftIndex = MOCK_SHIFTS_DB.findIndex((s) => s.id === shiftId)
-            if (shiftIndex !== -1) {
-                MOCK_SHIFTS_DB[shiftIndex].assignedStaffCount = userIds.length
-            }
-        },
+        mutationFn: (userIds: string[]) => shiftApi.updateAssignments({ shiftId, userIds }),
         onSuccess: () => {
             addToast({
                 title: STRINGS.COMMON.SUCCESS,
-                description: "Cập nhật thành công",
+                description: "Cập nhật nhân sự thành công",
                 color: "success"
             })
             queryClient.invalidateQueries({ queryKey })
             queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SHIFTS] })
-            setDraftIds(null)
             onSuccess?.()
+        },
+        onError: (error: BackendError) => {
+            addToast({ title: error.title, description: error.detail, color: "danger" })
         }
     })
 
-    // --- 3. Logic xử lý danh sách ---
+    // ===============================
+    // Logic xử lý danh sách
+    // ===============================
     const originalAssignedIds = useMemo(
         () => candidates.filter((c) => c.isAssigned).map((c) => c.id),
         [candidates]

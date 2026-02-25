@@ -21,6 +21,7 @@ interface ShiftTemplateModalProps {
     onOpenChange: () => void
     onClose: () => void
     selectedTemplate?: ShiftTemplateResponse
+    templateStoreName?: string
     storeId?: string
 }
 
@@ -39,6 +40,7 @@ export const ShiftTemplateModal = ({
     onOpenChange,
     onClose,
     selectedTemplate,
+    templateStoreName = "",
     storeId
 }: ShiftTemplateModalProps) => {
     const { formatTime, toTime } = useDay()
@@ -111,6 +113,11 @@ export const ShiftTemplateModal = ({
                 <form onSubmit={formik.handleSubmit}>
                     <ModalHeader className="flex flex-col gap-1 text-xl font-bold">
                         {isEdit ? "Cập nhật Mẫu Ca" : "Tạo Mẫu Ca Mới"}
+                        {isEdit && templateStoreName && (
+                            <span className="text-tiny text-default-400">
+                                Cửa hàng: {templateStoreName}
+                            </span>
+                        )}
                     </ModalHeader>
 
                     <ModalBody className="gap-4">

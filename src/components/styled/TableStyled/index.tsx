@@ -6,7 +6,7 @@ export function TableStyled({ className, children, ...rest }: TableProps) {
     return (
         <Table
             isHeaderSticky
-            {...rest}
+            {...(rest as any)}
             className={cn("overflow-auto w-full", className)}
             classNames={{
                 ...rest.classNames,

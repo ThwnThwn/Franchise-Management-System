@@ -18,7 +18,7 @@ export const useShiftActions = ({
     onOpenModal: () => void
     onCloseModal: () => void
 }) => {
-    const { formatDate, formatDateTime } = useDay({
+    const { formatDate, formatTime } = useDay({
         defaultFormat: "HH:mm"
     })
 
@@ -89,8 +89,8 @@ export const useShiftActions = ({
         }
 
         // --- Logic update API ---
-        const startISO = formatDateTime({ date: newStart })
-        const endISO = formatDateTime({ date: newEnd })
+        const startISO = formatTime(newStart)
+        const endISO = formatTime(newEnd)
 
         if (!startISO || !endISO) {
             dropInfo?.revert()

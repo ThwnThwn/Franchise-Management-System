@@ -1,4 +1,3 @@
-import { HOUR_MINUTE_REGEX } from "@/constants/regexs"
 import * as Yup from "yup"
 import { ShiftStatus } from "@/features/shifts/constants"
 
@@ -9,13 +8,12 @@ export const shiftSchema = Yup.object().shape({
     storeId: Yup.string().required(),
     shiftDate: Yup.date().required("Vui lòng chọn ngày"),
 
-    startTime: Yup.string()
-        .required("Vui lòng chọn giờ bắt đầu")
-        .matches(HOUR_MINUTE_REGEX, "Định dạng giờ không hợp lệ (HH:mm)"),
+    startTime: Yup.string().required("Vui lòng chọn giờ bắt đầu"),
+    // .matches(HOUR_MINUTE_REGEX, "Định dạng giờ không hợp lệ (HH:mm)"),
 
     endTime: Yup.string()
         .required("Vui lòng chọn giờ kết thúc")
-        .matches(HOUR_MINUTE_REGEX, "Định dạng giờ không hợp lệ (HH:mm)")
+        // .matches(HOUR_MINUTE_REGEX, "Định dạng giờ không hợp lệ (HH:mm)")
         .test("is-not-same", "Giờ kết thúc không được trùng giờ bắt đầu", function (value) {
             const { startTime } = this.parent
             return value !== startTime
