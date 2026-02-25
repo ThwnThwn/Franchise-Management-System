@@ -111,96 +111,155 @@ CREATE INDEX idx_outbox_messages_processed_on ON outbox_messages(processed_on) W
 
 CREATE TABLE IF NOT EXISTS wallets (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    balance DECIMAL(18,2) NOT NULL,
 
-    status INT NOT NULL,          -- 0=Inactive,1=Active,2=Locked
-    row_version BYTEA,            -- optimistic concurrency
+    user_id UUID NOT NULL,
+    balance NUMERIC(18,2) NOT NULL DEFAULT 0,
 
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    is_deleted BOOLEAN DEFAULT FALSE,
+    status INT NOT NULL,
+    notes VARCHAR(500),
 
-    user_id UUID NOT NULL
+    row_version BYTEA NOT NULL,
+
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID NOT NULL,
+
+    is_deleted BOOLEAN NOT NULL DEFAULT FALSE
 );
 
-CREATE UNIQUE INDEX idx_wallets_user ON wallets(user_id) WHERE is_deleted = FALSE;
-CREATE INDEX idx_wallets_status ON wallets(status);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_wallets_user
+ON wallets(user_id)
+WHERE is_deleted = FALSE;
 
+CREATE INDEX IF NOT EXISTS idx_wallets_status
+ON wallets(status);
+
+ALTER TABLE wallets ALTER COLUMN row_version SET DEFAULT '\\x0000000000000001'::bytea;
 
 CREATE TABLE IF NOT EXISTS wallet_transactions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+
+    wallet_id UUID NOT NULL,
+    user_id UUID NOT NULL,
+    order_id UUID,
+    initiated_by UUID,
+    processed_by UUID,
+    parent_transaction_id UUID,
+
+    transaction_code VARCHAR(50) NOT NULL,
+
+    amount NUMERIC(18,2) NOT NULL,
+    balance_before NUMERIC(18,2),
+    balance_after NUMERIC(18,2),
+
+    transaction_type INT NOT NULL,
+    status INT NOT NULL,
+
+    reference_id UUID,
+    reference_type INT,
+
+    description VARCHAR(500),
+    external_transaction_id VARCHAR(100),
+    notes VARCHAR(500),
+    metadata TEXT,
+    failure_reason VARCHAR(500),
+
+    payment_method INT,
+
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    completed_at TIMESTAMP WITH TIME ZONE,
+    failed_at TIMESTAMP WITH TIME ZONE,
+    processed_at TIMESTAMP WITH TIME ZONE,
+
+    is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
+
     CONSTRAINT fk_wallet_transactions_wallet
         FOREIGN KEY (wallet_id) REFERENCES wallets(id),
 
-    code VARCHAR(50) NOT NULL,      -- TXN-20260203-000001
-    amount DECIMAL(18,2) NOT NULL,
+    CONSTRAINT fk_wallet_transactions_parent
+        FOREIGN KEY (parent_transaction_id) REFERENCES wallet_transactions(id),
 
-    balance_before DECIMAL(18,2) NOT NULL,
-    balance_after DECIMAL(18,2) NOT NULL,
-
-    transaction_type INT NOT NULL,  -- Deposit, Payment, Refund...
-    status INT NOT NULL,            -- Pending, Completed, Failed
-
-    reference_id UUID,
-    reference_type VARCHAR(50),     -- Order, RefundTicket...
-
-    description VARCHAR(500),
-
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    completed_at TIMESTAMP WITH TIME ZONE,
-    is_deleted BOOLEAN DEFAULT FALSE,
-
-    wallet_id UUID NOT NULL
+    CONSTRAINT fk_wallet_transactions_order
+        FOREIGN KEY (order_id) REFERENCES orders(id)
 );
 
-CREATE UNIQUE INDEX idx_wallet_transactions_code
-ON wallet_transactions(code);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_wallet_transactions_code
+ON wallet_transactions(transaction_code);
 
-CREATE INDEX idx_wallet_transactions_wallet
+CREATE INDEX IF NOT EXISTS idx_wallet_transactions_wallet
 ON wallet_transactions(wallet_id, created_at DESC);
 
-CREATE INDEX idx_wallet_transactions_reference ON wallet_transactions(reference_id) 
-WHERE reference_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_wallet_transactions_user
+ON wallet_transactions(user_id);
 
-CREATE INDEX idx_wallet_transactions_status ON wallet_transactions(status);
-
+CREATE INDEX IF NOT EXISTS idx_wallet_transactions_status
+ON wallet_transactions(status);
 
 CREATE TABLE IF NOT EXISTS refund_tickets (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
 
-    code VARCHAR(50) NOT NULL,      -- REFUND-20260203-000001
-    amount DECIMAL(18,2) NOT NULL,
+    ticket_code VARCHAR(50) NOT NULL,
+
+    amount NUMERIC(18,2) NOT NULL,
+    refund_amount NUMERIC(18,2) NOT NULL,
+
     reason VARCHAR(500),
-
-    status INT NOT NULL,            -- Pending, Approved, Rejected...
-
-    processed_by UUID,
     rejection_reason VARCHAR(500),
-
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    processed_at TIMESTAMP WITH TIME ZONE,
-    completed_at TIMESTAMP WITH TIME ZONE,
-    is_deleted BOOLEAN DEFAULT FALSE,
+    rejection_notes VARCHAR(500),
 
     wallet_id UUID NOT NULL,
-    transaction_id UUID,
+    user_id UUID NOT NULL,
     order_id UUID,
-    original_transaction_id UUID,
+    transaction_id UUID,
+    original_transaction_id UUID NOT NULL,
 
-    CONSTRAINT fk_refund_tickets_wallet
+    status INT NOT NULL,
+
+    processed_by UUID,
+
+    approved_by UUID,
+    approval_notes VARCHAR(500),
+    approved_at TIMESTAMP WITH TIME ZONE,
+
+    rejected_by UUID,
+    rejected_at TIMESTAMP WITH TIME ZONE,
+
+    cancelled_by UUID,
+    cancellation_reason VARCHAR(500),
+    cancelled_at TIMESTAMP WITH TIME ZONE,
+
+    processed_at TIMESTAMP WITH TIME ZONE,
+    completed_at TIMESTAMP WITH TIME ZONE,
+
+    refund_reason INT,
+    refund_ticket_method INT,
+
+    bank_name VARCHAR(255),
+    notes VARCHAR(500),
+    internal_notes VARCHAR(500),
+    created_by_internal_user_id UUID,
+
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
+
+    CONSTRAINT fk_refund_wallet
         FOREIGN KEY (wallet_id) REFERENCES wallets(id),
 
-    CONSTRAINT fk_refund_tickets_transaction
-        FOREIGN KEY (transaction_id) REFERENCES wallet_transactions(id)
+    CONSTRAINT fk_refund_transaction
+        FOREIGN KEY (transaction_id) REFERENCES wallet_transactions(id),
+
+    CONSTRAINT fk_refund_original_transaction
+        FOREIGN KEY (original_transaction_id) REFERENCES wallet_transactions(id)
 );
 
-CREATE UNIQUE INDEX idx_refund_tickets_code ON refund_tickets(code);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_refund_tickets_code
+ON refund_tickets(ticket_code);
 
-CREATE INDEX idx_refund_tickets_wallet ON refund_tickets(wallet_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_refund_tickets_wallet
+ON refund_tickets(wallet_id);
 
-CREATE INDEX idx_refund_tickets_status ON refund_tickets(status);
-
-CREATE INDEX idx_refund_tickets_transaction ON refund_tickets(transaction_id)
-WHERE transaction_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_refund_tickets_status
+ON refund_tickets(status);

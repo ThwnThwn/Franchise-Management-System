@@ -1,9 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using BuildingBlocks.Core.Extensions;
+using BuildingBlocks.Core.Pagination;
+using Microsoft.EntityFrameworkCore;
 using SalesService.Application.Persisitences;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
 using SalesService.Infrastructure.ApplicationDbContext;
-
 namespace SalesService.Infrastructure.Repositories
 {
     public class RefundTicketRepository : GenericRepository<RefundTicket>, IRefundTicketRepository
@@ -23,14 +24,16 @@ namespace SalesService.Infrastructure.Repositories
                 .ToListAsync(cancellationToken);
         }
 
-        public async Task<IEnumerable<RefundTicket>> GetByUserIdAsync(
+        public async Task<PagedResult<RefundTicket>> GetByUserIdAsync(
             Guid userId,
+            int page,
+            int pageSize,
             CancellationToken cancellationToken)
         {
-            return await _context.Set<RefundTicket>()
+            var query = _context.Set<RefundTicket>()
                 .Where(rt => rt.UserId == userId)
-                .OrderByDescending(rt => rt.CreatedAt)
-                .ToListAsync(cancellationToken);
+                .OrderByDescending(rt => rt.CreatedAt);
+            return await query.ToPagedListAsync(page, pageSize, cancellationToken);
         }
 
         public async Task<IEnumerable<RefundTicket>> GetByStatusAsync(
@@ -63,6 +66,17 @@ namespace SalesService.Infrastructure.Repositories
                 .ToListAsync(cancellationToken);
         }
 
+        public async Task<PagedResult<RefundTicket>> GetAllRefundsAsync(
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+        {
+            var query = _context.Set<RefundTicket>()
+                .OrderByDescending(rt => rt.CreatedAt);
+
+            return await query.ToPagedListAsync(page, pageSize, cancellationToken);
+        }
+
         public async Task<int> UpdateStatusAsync(
             Guid id,
             RefundTicketStatus status,
@@ -82,7 +96,7 @@ namespace SalesService.Infrastructure.Repositories
 
         public async Task<int> ApproveRefundAsync(
             Guid id,
-            string? approvedBy,
+            Guid? approvedBy,
             string? approvalNotes,
             CancellationToken cancellationToken)
         {
@@ -104,7 +118,7 @@ namespace SalesService.Infrastructure.Repositories
         public async Task<int> RejectRefundAsync(
             Guid id,
             string reason,
-            string? rejectedBy,
+            Guid? rejectedBy,
             CancellationToken cancellationToken)
         {
             var refundTicket = await _context.Set<RefundTicket>()
@@ -125,7 +139,7 @@ namespace SalesService.Infrastructure.Repositories
         public async Task<int> CompleteRefundAsync(
             Guid id,
             Guid transactionId,
-            DateTimeOffset processedDate,
+            DateTimeOffset processedAt,
             CancellationToken cancellationToken)
         {
             var refundTicket = await _context.Set<RefundTicket>()
@@ -136,7 +150,7 @@ namespace SalesService.Infrastructure.Repositories
 
             refundTicket.Status = RefundTicketStatus.Completed;
             refundTicket.TransactionId = transactionId;
-            refundTicket.ProcessedDate = processedDate;
+            refundTicket.ProcessedAt = processedAt;
             refundTicket.UpdatedAt = DateTime.UtcNow;
 
             return await _context.SaveChangesAsync(cancellationToken);
@@ -196,6 +210,49 @@ namespace SalesService.Infrastructure.Repositories
                     cancellationToken);
         }
 
-        
-    }       
+        public async Task<decimal> GetTotalRefundedAmountByTransactionIdAsync(
+        Guid transactionId,
+        CancellationToken cancellationToken = default)
+        {
+            var total = await _context.Set<RefundTicket>()
+                .AsNoTracking()
+                .Where(rt => rt.OriginalTransactionId == transactionId &&
+                            rt.Status == RefundTicketStatus.Completed &&
+                            !rt.IsDeleted)
+                .SumAsync(rt => rt.RefundAmount, cancellationToken);
+
+            return total;
+        }
+
+        public async Task<PagedResult<RefundTicket>> GetByStatusAsync(
+        RefundTicketStatus status,
+        int pageIndex,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+        {
+            var query = _context.Set<RefundTicket>()
+                .AsNoTracking()
+                .Where(rt => rt.Status == status && !rt.IsDeleted)
+                .OrderByDescending(rt => rt.CreatedAt);
+
+            return await query.ToPagedListAsync(pageIndex, pageSize, cancellationToken);
+        }
+
+        public async Task<PagedResult<RefundTicket>> GetByUserIdAndStatusAsync(
+            Guid userId,
+            RefundTicketStatus status,
+            int pageIndex,
+            int pageSize,
+            CancellationToken cancellationToken = default)
+        {
+            var query = _context.Set<RefundTicket>()
+                .AsNoTracking()
+                .Where(rt => rt.UserId == userId &&
+                            rt.Status == status &&
+                            !rt.IsDeleted)
+                .OrderByDescending(rt => rt.CreatedAt);
+
+            return await query.ToPagedListAsync(pageIndex, pageSize, cancellationToken);
+        }
+    }
 }

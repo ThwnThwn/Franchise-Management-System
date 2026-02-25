@@ -1,6 +1,7 @@
 using AutoMapper;
 using DotNetEnv;
 using Microsoft.EntityFrameworkCore;
+using SalesService.API.GrpcServices;
 using SalesService.API.Middleware;
 using SalesService.API.Services.CartItems;
 using SalesService.API.Services.Identity;
@@ -8,6 +9,8 @@ using SalesService.API.Services.Inventory;
 using SalesService.API.Services.Orders;
 using SalesService.API.Services.Payments;
 using SalesService.API.Services.Products;
+using SalesService.API.Services.Wallets;
+using SalesService.Application.Authorization;
 using SalesService.Application.ClientInterface.Inventory;
 using SalesService.Application.ClientInterface.Products;
 //using SalesService.Infrastructure.Models;
@@ -15,23 +18,29 @@ using SalesService.Application.Interfaces.CartItems;
 using SalesService.Application.Interfaces.Identity;
 using SalesService.Application.Interfaces.Payments;
 using SalesService.Application.Mapping.Orders;
+using SalesService.Application.Persisitences;
 using SalesService.Application.Persisitences.OrderItems;
 using SalesService.Application.Persisitences.Orders;
 using SalesService.Application.Persisitences.Outbox;
+using SalesService.Application.Persisitences.Wallets;
+using SalesService.Application.Persisitences.WalletTransactions;
 using SalesService.Application.Signals;
+using SalesService.Grpc;
 using SalesService.Infrastructure.ApplicationDbContext;
 using SalesService.Infrastructure.Extensions;
 using SalesService.Infrastructure.Interceptor;
+using SalesService.Infrastructure.Repositories;
 using SalesService.Infrastructure.Repositories.CartItems;
 using SalesService.Infrastructure.Repositories.OrderItems;
 using SalesService.Infrastructure.Repositories.Orders;
 using SalesService.Infrastructure.Repositories.Outbox;
 using SalesService.Infrastructure.Repositories.Payments;
 using SalesService.Infrastructure.Signals;
-using SalesService.Application.Persisitences.Wallets;
-using SalesService.Infrastructure.Repositories;
 using SharedKernel.Infrastructure.Kafka;
-
+using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 namespace SalesService.API;
 
 public class Program
@@ -75,15 +84,7 @@ public class Program
 
         // Add API documentation
         builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen(c =>
-        {
-            c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
-            {
-                Title = "Sale Service API",
-                Version = "v1",
-                Description = "API quản lý đơn hàng và bán hàng"
-            });
-        });
+        
 
         // Interceptors
         builder.Services.AddScoped<UpdateTimestampInterceptor>();
@@ -136,6 +137,10 @@ public class Program
         builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
         builder.Services.AddScoped<ICartItemRepository, CartItemRepository>();
         builder.Services.AddScoped<IWalletRepository, WalletRepository>();
+        builder.Services.AddScoped<IWalletTransactionRepository, WalletTransactionRepository>();
+        builder.Services.AddScoped<IRefundTicketRepository, RefundTicketRepository>();
+        builder.Services.AddScoped<IRefundAuthorizationService, RefundAuthorizationService>();
+        builder.Services.AddScoped<IWalletAuthorizationService, WalletAuthorizationService>();
 
         // Register ProductService gRPC client
         builder.Services.AddSingleton<IProductServiceClient, ProductServiceClient>();
@@ -182,6 +187,97 @@ public class Program
             });
         });
 
+        builder.Services.AddSwaggerGen(options =>
+        {
+            options.SwaggerDoc("v1", new OpenApiInfo
+            {
+                Title = "Sale Service API",
+                Version = "v1",
+                Description = "API quản lý đơn hàng và bán hàng"
+            });
+
+            options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+            {
+                Name = "Authorization",
+                Type = SecuritySchemeType.Http,
+                Scheme = "bearer",
+                BearerFormat = "JWT",
+                In = ParameterLocation.Header,
+                Description = "Nhập token theo format: Bearer {your token}"
+            });
+
+            options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+        });
+
+
+        builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        var secret = builder.Configuration["JWT_SECRET"];
+
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+
+            ValidIssuer = "CFSM-be",
+            ValidAudience = "CFSM-be",
+
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(secret)
+            ),
+
+           RoleClaimType = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnAuthenticationFailed = context =>
+            {
+                context.NoResult();
+                context.Response.StatusCode = 500;
+                context.Response.ContentType = "application/json";
+
+                return context.Response.WriteAsync(
+                    $"Authentication failed: {context.Exception.Message}");
+            },
+
+            OnChallenge = context =>
+            {
+                context.HandleResponse();
+                context.Response.StatusCode = 401;
+                context.Response.ContentType = "application/json";
+
+                return context.Response.WriteAsync(
+                    $"Unauthorized: {context.ErrorDescription}");
+            },
+
+            OnForbidden = context =>
+            {
+                context.Response.StatusCode = 403;
+                context.Response.ContentType = "application/json";
+
+                return context.Response.WriteAsync(
+                    "Forbidden: You do not have required role.");
+            }
+        };
+    });
+
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
@@ -199,14 +295,19 @@ public class Program
         // Add global exception handler middleware
         app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
+        app.UseAuthentication();
         app.UseAuthorization();
 
         app.MapControllers();
         app.MapGrpcService<OrderGrpcService>();
         app.MapGrpcService<PaymentGrpcService>();
         app.MapGrpcService<CartItemGrpcService>();
+        app.MapGrpcService<WalletGrpcService>();
+        app.MapGrpcService<WalletTransactionGrpcService>();
+        app.MapGrpcService<RefundGrpcService>();
         app.MapGrpcReflectionService(); // Enable gRPC Server Reflection endpoint
         app.MapGet("/", () => "Sale Service API is running. Visit /swagger for API documentation.");
+
 
         app.Run();
     }

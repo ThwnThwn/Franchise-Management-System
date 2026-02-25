@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
+using SalesService.Application.Features.Wallets.Command.AddBalance;
 
-namespace SalesService.Application.Features.Wallets.Command.AddBalance;
+namespace SalesService.Application.Features.Wallets.Validators;
 
 public sealed class AddBalanceCommandValidator
     : AbstractValidator<AddBalanceCommand>
@@ -9,16 +10,28 @@ public sealed class AddBalanceCommandValidator
     {
         RuleFor(x => x.WalletId)
             .NotEmpty()
-            .WithMessage("Wallet ID is required");
+            .WithMessage("WalletId is required.");
 
-        RuleFor(x => x.Request.Amount)
-            .GreaterThan(0)
-            .WithMessage("Amount value must be greater than 0");
-
-        RuleFor(x => x.Request.RowVersion)
-            .NotNull()
-            .WithMessage("RowVersion is required for concurrency control.")
+        RuleFor(x => x.UserId)
             .NotEmpty()
-            .WithMessage("RowVersion cannot be empty. Please reload wallet data and retry.");
+            .WithMessage("UserId is required.");
+
+        RuleFor(x => x.Request)
+            .NotNull()
+            .WithMessage("Request is required.");
+
+        When(x => x.Request != null, () =>
+        {
+            RuleFor(x => x.Request.Amount)
+                .GreaterThan(0)
+                .WithMessage("Amount must be greater than zero.")
+                .LessThanOrEqualTo(1_000_000_000) // 1 billion VND max
+                .WithMessage("Amount exceeds maximum allowed.");
+
+            RuleFor(x => x.Request.RowVersion)
+                .NotNull()
+                .NotEmpty()
+                .WithMessage("RowVersion is required for concurrency control.");
+        });
     }
 }

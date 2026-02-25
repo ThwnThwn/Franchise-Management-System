@@ -1,0 +1,188 @@
+syntax = "proto3";
+
+option csharp_namespace = "SalesService.Grpc";
+package wallettransaction;
+
+/* ================= SERVICE ================= */
+
+service WalletTransactionGrpc {
+  rpc CreateTransaction (CreateTransactionRequest) returns (CreateTransactionResponse);
+  rpc GetAll (GetAllWalletTransactionsRequest) returns (GetAllWalletTransactionsResponse);
+  rpc GetById (GetWalletTransactionByIdRequest) returns (WalletTransactionResponse);
+  rpc GetByUserId (GetWalletTransactionsByUserIdRequest) returns (GetAllWalletTransactionsResponse);
+  rpc GetByCode (GetWalletTransactionByCodeRequest) returns (WalletTransactionResponse);
+  rpc GetByOrderId (GetWalletTransactionByOrderIdRequest) returns (GetAllWalletTransactionsResponse);
+}
+
+/* ================= ENUMS ================= */
+
+enum TransactionType {
+  TRANSACTION_TYPE_UNSPECIFIED = 0;
+  TRANSACTION_TYPE_DEPOSIT = 1;
+  TRANSACTION_TYPE_PAYMENT = 2;
+  TRANSACTION_TYPE_REFUND = 3;
+  TRANSACTION_TYPE_ADJUSTMENT = 4;
+  TRANSACTION_TYPE_WITHDRAWAL = 5;
+  TRANSACTION_TYPE_TRANSFER = 6;
+}
+
+enum TransactionStatus {
+  TRANSACTION_STATUS_UNSPECIFIED = 0;
+  TRANSACTION_STATUS_PENDING = 1;
+  TRANSACTION_STATUS_COMPLETED = 2;
+  TRANSACTION_STATUS_FAILED = 3;
+  TRANSACTION_STATUS_CANCELLED = 4;
+}
+
+enum WalletReferenceType {
+  REFERENCE_TYPE_UNSPECIFIED = 0;
+  REFERENCE_TYPE_ORDER = 1;
+  REFERENCE_TYPE_REFUND_TICKET = 2;
+  REFERENCE_TYPE_INTERNAL_USER = 3;
+  REFERENCE_TYPE_SYSTEM = 4;
+}
+
+enum WalletTransactionPaymentMethod {
+  PAYMENT_METHOD_UNSPECIFIED = 0;
+  PAYMENT_METHOD_CASH = 1;
+  PAYMENT_METHOD_VNPAY = 2;
+  PAYMENT_METHOD_WALLET = 3;
+}
+
+/* ================= PAGINATION ================= */
+
+message WalletTransactionPagedResponseMeta {
+  int32 page_index = 1;
+  int32 page_size = 2;
+  int32 total_count = 3;
+  int32 total_pages = 4;
+}
+
+/* ================= COMMON RESPONSE ================= */
+
+message WalletTransactionResponse {
+  string id = 1;
+  string wallet_id = 2;
+  string user_id = 3;
+  string order_id = 4;
+  string initiated_by = 5;
+  string processed_by = 6;
+  string parent_transaction_id = 7;
+
+  string transaction_code = 8;
+  string notes = 9;
+
+  string amount = 10;
+  string balance_before = 11;
+  string balance_after = 12;
+
+  TransactionType transaction_type = 13;
+  TransactionStatus status = 14;
+
+  string reference_id = 15;
+  WalletReferenceType reference_type = 16;
+
+  string description = 17;
+  string external_transaction_id = 18;
+  string metadata = 19;
+
+  WalletTransactionPaymentMethod payment_method = 20;
+
+  string created_at = 21;
+  string updated_at = 22;
+  string completed_at = 23;
+  string failed_at = 24;
+  string processed_at = 25;
+  string failure_reason = 26;
+}
+
+/* ================= GET ALL ================= */
+
+message GetAllWalletTransactionsRequest {
+  string logged_user_id = 1;
+  int32 page_index = 2;
+  int32 page_size = 3;
+}
+
+message GetAllWalletTransactionsResponse {
+  repeated WalletTransactionResponse transactions = 1;
+  WalletTransactionPagedResponseMeta meta = 2;  // ✅ Fixed: unique field number
+}
+
+/* ================= GET BY ID ================= */
+
+message GetWalletTransactionByIdRequest {
+  string transaction_id = 1;
+  string logged_user_id = 2;
+}
+
+/* ================= GET BY USER ================= */
+
+message GetWalletTransactionsByUserIdRequest {
+  string user_id_to_search = 1;
+  string logged_user_id = 2;
+  int32 page_index = 3;
+  int32 page_size = 4;
+}
+
+/* ================= GET BY CODE ================= */
+
+message GetWalletTransactionByCodeRequest {
+  string transaction_code = 1;
+  string logged_user_id = 2;
+}
+
+/* ================= GET BY ORDER ================= */
+
+message GetWalletTransactionByOrderIdRequest {
+  string order_id = 1;
+  string logged_user_id = 2;
+}
+
+/* ================= CREATE TRANSACTION ================= */
+
+message CreateTransactionRequest {
+  string user_id = 1;
+  string wallet_id = 2;
+  string amount = 3;
+  TransactionType transaction_type = 4;
+  WalletTransactionPaymentMethod payment_method = 5;
+
+  string reference_id = 6;
+  WalletReferenceType reference_type = 7;
+
+  string description = 8;
+  string notes = 9;
+  string external_transaction_id = 10;
+  string destination_wallet_id = 11;
+  string metadata = 12;
+
+  AdminOverride admin_override = 13;
+}
+
+message AdminOverride {
+  string admin_id = 1;
+  bool auto_complete = 2;
+  bool bypass_balance_check = 3;
+  bool bypass_transaction_limits = 4;
+  string internal_notes = 5;
+}
+
+message CreateTransactionResponse {
+  string id = 1;
+  string transaction_code = 2;
+  string wallet_id = 3;
+
+  string amount = 4;
+  TransactionType transaction_type = 5;
+  TransactionStatus status = 6;
+
+  string balance_before = 7;
+  string balance_after = 8;
+
+  string reference_id = 9;
+  WalletReferenceType reference_type = 10;
+  WalletTransactionPaymentMethod payment_method = 11;
+
+  string created_at = 12;
+}
