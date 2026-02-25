@@ -10,9 +10,11 @@ import { DashboardHeader } from "@/features/dashboard/components/general/Dashboa
 import { ShieldCheck, Zap, Store } from "lucide-react"
 import { useGetShiftRuleSettings, useSaveShiftRule } from "@/features/shifts/hooks"
 import { SystemDefaultHint } from "./SystemDefaultHint"
+import { RoleSlug } from "@/constants/enums"
 
 export default function ShiftRulesManagerPageView() {
     const storeId = useTokenStore((s) => s.storeId)
+    const isAdmin = useTokenStore((s) => s.roleSlug === RoleSlug.Admin)
 
     // React Query Hooks
     const { data, isLoading } = useGetShiftRuleSettings(storeId || "")
@@ -62,7 +64,7 @@ export default function ShiftRulesManagerPageView() {
             />
 
             {/* Banner thông báo trạng thái */}
-            {!currentStoreRule && (
+            {!currentStoreRule && !isAdmin && (
                 // <div className="mb-6 p-4 bg-primary-50 border border-primary-100 rounded-2xl flex items-start gap-4 animate-appearance-in">
                 //     <div className="p-2 bg-primary-100 rounded-xl text-primary">
                 //         <Info size={20} />

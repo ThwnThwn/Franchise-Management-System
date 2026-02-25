@@ -54,10 +54,10 @@ export default function CartDrawer() {
     useEffect(() => {
         if (items.length > 0) {
             setSelectedKeys((prev) =>
-                prev.size === 0 ? new Set(items.map((item) => item.variantId)) : prev
+                prev.size === 0 ? new Set(items.map((item) => item.sku)) : prev
             )
             const newQuantities = items.reduce(
-                (acc, item) => ({ ...acc, [item.variantId]: item.quantity }),
+                (acc, item) => ({ ...acc, [item.sku]: item.quantity }),
                 {}
             )
             setOptimisticQuantities(newQuantities)
@@ -77,7 +77,14 @@ export default function CartDrawer() {
 
     // Cập nhật số lượng sản phẩm: Hiển thị ngay lập tức và gọi API sau 1 giây nếu không có thay đổi thêm
     const handleUpdateQuantity = (sku: string, newQuantity: number) => {
-        setOptimisticQuantities((prev) => ({ ...prev, [sku]: newQuantity }))
+        setOptimisticQuantities((prev) => {
+            if (newQuantity <= 0) {
+                const next = { ...prev }
+                delete next[sku] // Xóa khỏi state ngay lập tức nếu số lượng bằng 0
+                return next
+            }
+            return { ...prev, [sku]: newQuantity }
+        })
 
         // Xóa trạng thái báo lỗi thiếu kho của sản phẩm này khi người dùng bắt đầu chỉnh sửa số lượng
         if (shortageMap[sku]) {
@@ -89,7 +96,11 @@ export default function CartDrawer() {
         // Tạo hàm debounce cho SKU này nếu chưa có
         if (!debounceMapRef.current[sku]) {
             debounceMapRef.current[sku] = debouncedWrapper(async (q: number) => {
-                await updateCartItemMutation.mutateAsync({ sku, quantity: q })
+                if (q <= 0) {
+                    await deleteListCartItemMutation.mutateAsync({ skus: [sku] })
+                } else {
+                    await updateCartItemMutation.mutateAsync({ sku, quantity: q })
+                }
             }, 1000)
         }
         debounceMapRef.current[sku](newQuantity)
@@ -121,11 +132,11 @@ export default function CartDrawer() {
     // --- LOGIC TÍNH TOÁN HÓA ĐƠN ---
 
     // Danh sách các mặt hàng người dùng đã chọn để mua
-    const selectedItems = items.filter((item) => selectedKeys.has(item.variantId))
+    const selectedItems = items.filter((item) => selectedKeys.has(item.sku))
 
     // Tính tổng tiền hàng dựa trên số lượng đang hiển thị (số lượng ảo)
     const selectedTotal = selectedItems.reduce((acc, item) => {
-        const currentQty = optimisticQuantities[item.variantId] ?? item.quantity
+        const currentQty = optimisticQuantities[item.sku] ?? item.quantity
         return acc + item.basePrice * currentQty
     }, 0)
 
@@ -144,7 +155,7 @@ export default function CartDrawer() {
             if (res.checkStockResponse && !res.checkStockResponse.isEnough) {
                 const newShortageMap: Record<string, number> = {}
                 res.checkStockResponse.shortageItems.forEach((item) => {
-                    newShortageMap[item.variantId] = item.maxFeasibleQuantity
+                    newShortageMap[item.sku] = item.maxFeasibleQuantity
                 })
                 setShortageMap(newShortageMap)
                 return // Dừng xử lý thành công nếu kho không đủ
@@ -189,7 +200,7 @@ export default function CartDrawer() {
     // }
 
     const handleCheckout = async () => {
-        if (selectedItems.length === 0) return
+        if (!currentStore || selectedItems.length === 0) return
         setShortageMap({}) // Reset danh sách lỗi trước khi gửi yêu cầu thanh toán mới
 
         await createOrderMutation.mutateAsync({
@@ -200,7 +211,7 @@ export default function CartDrawer() {
             // tax,
             // paymentMethod: paymentMethod,
             notes: "",
-            storeId: currentStore?.id || selectedItems[0]?.store?.id
+            storeId: currentStore.id
         })
     }
 
@@ -250,47 +261,36 @@ export default function CartDrawer() {
                         ) : (
                             <div className="space-y-3">
                                 {items.map((item) => {
-                                    // So khớp lỗi dựa trên variantId
-                                    const maxAvailable = shortageMap[item.variantId]
+                                    // So khớp lỗi dựa trên sku
+                                    const maxAvailable = shortageMap[item.sku]
                                     const isShortage = maxAvailable !== undefined
 
                                     return (
-                                        <div
-                                            key={item.variantId}
-                                            className="flex flex-col gap-2 mb-0"
-                                        >
+                                        <div key={item.sku} className="flex flex-col gap-2 mb-0">
                                             <div
                                                 className={`flex items-center gap-2 p-2 rounded-2xl transition-all border-2 ${
                                                     isShortage
                                                         ? "bg-danger-50 border-danger-200"
                                                         : "border-transparent"
                                                 }`}
-                                                onClick={() => handleSelectItem(item.variantId)} // Dùng variantId
+                                                onClick={() => handleSelectItem(item.sku)} // Dùng variantId
                                             >
                                                 <CheckboxStyled
-                                                    isSelected={selectedKeys.has(item.variantId)} // Dùng variantId
-                                                    onValueChange={() =>
-                                                        handleSelectItem(item.variantId)
-                                                    }
+                                                    isSelected={selectedKeys.has(item.sku)} // Dùng variantId
+                                                    onValueChange={() => handleSelectItem(item.sku)}
                                                 />
                                                 <div className="flex-1">
                                                     <CartItem
                                                         item={{
                                                             ...item,
                                                             quantity:
-                                                                optimisticQuantities[
-                                                                    item.variantId
-                                                                ] ?? item.quantity
+                                                                optimisticQuantities[item.sku] ??
+                                                                item.quantity
                                                         }}
                                                         onUpdateQuantity={(id, qty) =>
-                                                            handleUpdateQuantity(
-                                                                item.variantId,
-                                                                qty
-                                                            )
+                                                            handleUpdateQuantity(item.sku, qty)
                                                         }
-                                                        onRemove={() =>
-                                                            handleRemoveItem(item.variantId)
-                                                        }
+                                                        onRemove={() => handleRemoveItem(item.sku)}
                                                     />
                                                 </div>
                                             </div>
@@ -325,12 +325,14 @@ export default function CartDrawer() {
                                                                 onClick={(e) => {
                                                                     e.stopPropagation()
                                                                     handleUpdateQuantity(
-                                                                        item.variantId,
+                                                                        item.sku,
                                                                         maxAvailable
                                                                     )
                                                                 }}
                                                             >
-                                                                Cập nhật ngay
+                                                                {maxAvailable <= 0
+                                                                    ? "Xoá khỏi giỏ hàng"
+                                                                    : "Cập nhật ngay"}
                                                             </button>
                                                         </div>
                                                     </motion.div>
@@ -381,7 +383,7 @@ export default function CartDrawer() {
                                 className="font-bold h-12 shadow-lg"
                                 onPress={handleCheckout}
                                 isLoading={createOrderMutation.isPending}
-                                isDisabled={selectedItems.length === 0}
+                                isDisabled={selectedItems.length === 0 || hasShortageError}
                             >
                                 {hasShortageError
                                     ? "Vui lòng điều chỉnh giỏ hàng"
