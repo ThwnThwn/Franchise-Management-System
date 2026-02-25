@@ -12,7 +12,11 @@ public partial class MembershipTier : SoftDeletedEntity, IEntity
 
     public decimal MinSpendRequired { get; set; }
 
-    public double EarningRate { get; set; }
+    public double DiscountRate { get; set; }
+
+    public decimal AmountPerPoint { get; set; } // đổi từ tiền sang điểm
+
+    public decimal ValuePerPoint { get; set; }  // đổi từ điểm sang tiền
 
     public DateTimeOffset CreatedAt { get; set; }
 

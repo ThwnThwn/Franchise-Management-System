@@ -27,7 +27,7 @@ namespace EngagementService.Application.Features.LoyaltyAccount.Commands.Create
             {
                 throw new DirectoryNotFoundException(MembershipTierMsg.NotFound);
             }
-            var point = await CalculatePointHelper.CalculatePoint(_membershipTierCache, null, request.OrderAmount);
+            var point = await CalculatePointHelper.CalculatePoint(_membershipTierRepository, _membershipTierCache, null, request.OrderAmount);
             var loyaltyAccount = new Domain.Entities.LoyaltyAccount
             {
                 Id = request.Id,

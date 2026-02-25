@@ -2,6 +2,7 @@
 
 using DotNetEnv;
 using EngagementService.API.Services.LoyaltyAccount;
+using EngagementService.API.Services.MemberShipTier;
 using EngagementService.Application.Abstraction;
 using EngagementService.Application.ClientInterface;
 using EngagementService.Application.DependencyInjection;
@@ -99,6 +100,8 @@ public class Program
         app.UseAuthorization();
         app.MapGrpcReflectionService(); // Enable gRPC Server Reflection endpoint
         app.MapGrpcService<LoyaltyAccountGrpcService>();
+        app.MapGrpcService<MembershipTierGrpcService>();
+
         using (var scope = app.Services.CreateScope())
         {
             var services = scope.ServiceProvider;
