@@ -12,11 +12,6 @@ namespace EngagementService.Application.Dtos.LoyaltyAccount
         public decimal OrderAmount { get; set; }
     }
 
-    public class GetByUserPhoneRequest
-    {
-        public string PhoneNumber { get; set; }
-    }
-
     public class GetByUserPhoneOrEmailRequest
     {
         public string? PhoneNumber { get; set; }

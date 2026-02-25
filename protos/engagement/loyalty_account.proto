@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 option csharp_namespace = "EngagementService.Infrastructure.Protos";
-
+import "engagement/membership_tier.proto";
 package engagement;
 // Import thư viện Empty của Google để định nghĩa hàm không trả về gì
 import "google/protobuf/empty.proto";
@@ -27,11 +27,6 @@ message GetByUserPhoneOrEmailRequest {
   string email = 2;
 }
 
-// Thông tin hạng thành viên
-message MembershipTierResponse {
-  string id = 1;   // Đại diện Guid
-  string name = 2;
-}
 
 // Thông tin tài khoản Loyalty trả về
 message LoyaltyAccountResponse {

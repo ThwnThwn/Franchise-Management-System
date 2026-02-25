@@ -15,8 +15,10 @@ CREATE TYPE voucher_item_type AS ENUM ('GIFT', 'REQUIRED');
 CREATE TABLE "membership_tiers" (
     "id" UUID NOT NULL DEFAULT uuid_generate_v4() PRIMARY KEY,
     "name" VARCHAR(20) NOT NULL,
-    "min_spend_required" DECIMAL(15, 2) CHECK ("min_spend_required" >= 0),
-    "earning_rate" FLOAT DEFAULT 1.0,
+    "min_spend_required" DECIMAL(15, 3) CHECK ("min_spend_required" >= 0),
+    "amount_per_point" DECIMAL(15, 3) CHECK ("amount_per_point" >= 0),
+    "value_per_point" DECIMAL(15, 3) CHECK ("value_per_point" >= 0),
+    "discount_rate" FLOAT DEFAULT 0.0,
     "created_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     "is_deleted" BOOLEAN DEFAULT FALSE
@@ -24,8 +26,8 @@ CREATE TABLE "membership_tiers" (
 
 CREATE TABLE "loyalty_accounts" (
     "id" UUID PRIMARY KEY,
-    "available_points" DECIMAL(15, 2) DEFAULT 0 CHECK ("available_points" >= 0),
-    "total_spent" DECIMAL(15, 2) DEFAULT 0 CHECK ("total_spent" >= 0),
+    "available_points" DECIMAL(15, 3) DEFAULT 0 CHECK ("available_points" >= 0),
+    "total_spent" DECIMAL(15, 3) DEFAULT 0 CHECK ("total_spent" >= 0),
     "current_tier_id" UUID,
     "created_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -36,9 +38,9 @@ CREATE TABLE "loyalty_accounts" (
 CREATE TABLE "point_logs" (
     "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     "user_id" UUID REFERENCES "loyalty_accounts"("id"),
-    "amount" DECIMAL(15, 2) NOT NULL,
-    "balance_before" DECIMAL(15, 2),
-    "balance_after" DECIMAL(15, 2),
+    "amount" DECIMAL(15, 3) NOT NULL,
+    "balance_before" DECIMAL(15, 3),
+    "balance_after" DECIMAL(15, 3),
     "action_type" point_action_type NOT NULL,
     "reason_code" point_reason_code,
     "reference_id" UUID,
@@ -55,9 +57,9 @@ CREATE TABLE "vouchers" (
     "code" VARCHAR(50) NOT NULL,
     "category" voucher_category NOT NULL,
     "type" voucher_discount_type,
-    "discount_value" DECIMAL(15, 2) CHECK ("discount_value" >= 0),
-    "min_order_value" DECIMAL(15, 2) DEFAULT 0 CHECK ("min_order_value" >= 0),
-    "point_cost" DECIMAL(15, 2) DEFAULT 0 CHECK ("point_cost" >= 0),
+    "discount_value" DECIMAL(15, 3) CHECK ("discount_value" >= 0),
+    "min_order_value" DECIMAL(15, 3) DEFAULT 0 CHECK ("min_order_value" >= 0),
+    "point_cost" DECIMAL(15, 3) DEFAULT 0 CHECK ("point_cost" >= 0),
     "init_quantity" INT DEFAULT 0 CHECK ("init_quantity" >= 0),
     "current_quantity" INT DEFAULT 0 CHECK ("current_quantity" >= 0),
     "max_usage_per_user" INT NOT NULL DEFAULT 1 CHECK ("max_usage_per_user" >= 0), 
@@ -101,7 +103,7 @@ CREATE TABLE "voucher_usages" (
     "voucher_id" UUID NOT NULL REFERENCES "vouchers"("id"),
     "order_id" UUID NOT NULL,
     "store_id" UUID NOT NULL,
-    "discount_amount" DECIMAL(15, 2) DEFAULT 0,
+    "discount_amount" DECIMAL(15, 3) DEFAULT 0,
     "applied_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     "created_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
