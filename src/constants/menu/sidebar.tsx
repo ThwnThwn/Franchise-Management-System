@@ -10,13 +10,11 @@ import {
     Package,
     Settings,
     Calendar,
-<<<<<<< HEAD
     FlaskConical,
-    Tag
-=======
+    Tag,
     ShoppingBag
->>>>>>> 9fadeb8eb2c347407433b00945472e88a43b747d
 } from "lucide-react"
+
 
 export interface MenuItem {
     icon: React.ReactNode

@@ -17,6 +17,7 @@ import {
     useGetAllCategories,
     useGetProductById
 } from "../../hooks"
+import { useGetRecipes } from "../../hooks/useRecipe"
 import { CreateProductRequest, UpdateProductRequest } from "../../models/products/request"
 import { parseAttributes } from "../../utils/utils"
 import { ProductFormValues } from "../../types"
@@ -36,6 +37,13 @@ export default function ProductFormPageView({ productId }: { productId?: string 
 
     const { data: categoriesData } = useGetAllCategories()
     const categories = categoriesData || []
+
+    // Lấy sẵn tất cả recipes của product khi ở Edit Mode
+    const variantIds = product?.sizes?.map((s) => s.id) ?? []
+    const { data: allRecipes = [] } = useGetRecipes({
+        req: { variantIds },
+        enabled: isEditMode && variantIds.length > 0
+    })
 
     const createMutation = useCreateProduct({
         onSuccess: () => {
@@ -228,6 +236,12 @@ export default function ProductFormPageView({ productId }: { productId?: string 
                                                             formik.values.variants.length > 1
                                                         }
                                                         remove={() => variantHelpers.remove(index)}
+                                                        variantId={
+                                                            isEditMode
+                                                                ? product?.sizes?.[index]?.id
+                                                                : undefined
+                                                        }
+                                                        recipes={allRecipes}
                                                     />
                                                 ))}
                                                 <Button
