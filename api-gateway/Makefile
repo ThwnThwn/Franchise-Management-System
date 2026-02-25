@@ -49,12 +49,15 @@ swagger:
 proto:
 	@echo "Generating code from $(PROTO_SOURCE_DIR) to $(GO_PB_DIR)..."
 	@mkdir -p $(GO_PB_DIR)
-	@protoc \
-		--proto_path=$(PROTO_SOURCE_DIR) \
-		--go_out=$(GO_PB_DIR) --go_opt=paths=source_relative \
-		--go-grpc_out=$(GO_PB_DIR) --go-grpc_opt=paths=source_relative \
-		$(shell find $(PROTO_SOURCE_DIR) -name "*.proto")
-	@echo "Proto generation done! Check: $(GO_PB_DIR)"
+	@for file in $(shell find $(PROTO_SOURCE_DIR) -name "*.proto"); do \
+		echo "Compiling $$file..."; \
+		protoc \
+			--proto_path=$(PROTO_SOURCE_DIR) \
+			--go_out=$(GO_PB_DIR) --go_opt=paths=source_relative \
+			--go-grpc_out=$(GO_PB_DIR) --go-grpc_opt=paths=source_relative \
+			$$file || echo "Warning: Failed to compile $$file, skipping..."; \
+	done
+	@echo "Proto generation process finished! Check: $(GO_PB_DIR)"
 
 gen: swagger proto
 

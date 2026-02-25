@@ -79,10 +79,9 @@ public sealed class CreateOrderHandler
         IEnumerable<AmountVariant> listItemCheck = variantInfo.Select(v => new AmountVariant
         {
             VariantId = v.VariantId,
+            Sku = v.Sku,
             Amount = request.Request.Items.First(i => i.Sku == v.Sku).Quantity
         });
-
-
 
         // Generate OrderId and Code early
         var orderId = Guid.NewGuid();
@@ -96,8 +95,13 @@ public sealed class CreateOrderHandler
             Items = listItemCheck.ToList()
         };
         var reserveRes = await _inventoryServiceClient.ReserveStockAsync(reserveReq);
+
         if (!reserveRes.IsEnough)
         {
+            foreach (var item in reserveRes.ShortageItems ?? [])
+            {
+                item.Sku = variantInfo.FirstOrDefault(v => v.VariantId == item.VariantId)?.Sku ?? item.Sku;
+            }
             return Result.Success(new CreateOrderResponseDto
             {
                 OrderId = Guid.Empty,
@@ -106,8 +110,6 @@ public sealed class CreateOrderHandler
                 CheckEnoughStockRes = reserveRes
             });
         }
-
-
 
         // Gọi ProductService để lấy thông tin sản phẩm từ SKU
         decimal subtotal = 0;
@@ -177,7 +179,6 @@ public sealed class CreateOrderHandler
         // Outbox: KHÔNG publish OrderStatusEvent khi PaymentPending
         // → Chỉ notify khách khi đơn hàng đã thanh toán (ConfirmationPending trở đi)
         _logger.LogInformation("Order {OrderCode} created with status PaymentPending. Notification sẽ gửi sau khi thanh toán.", order.Code);
-
 
         //Remove orderd items in cartItem
         await _cartItemRepository.RemoveItemsAsync(order.CustomerId, skus, cancellationToken);

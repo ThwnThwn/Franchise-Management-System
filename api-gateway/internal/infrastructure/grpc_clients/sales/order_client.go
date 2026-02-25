@@ -9,7 +9,6 @@ import (
 	"api-gateway/pkg/mapper"
 	salesPb "api-gateway/pkg/pb/sales"
 	"context"
-	"fmt"
 
 	"github.com/google/uuid"
 )
@@ -165,7 +164,6 @@ func (o *OrderGrpcClient) UpdateStatus(ctx context.Context, id uuid.UUID, status
 		OrderId: id.String(),
 		Status:  salesPb.OrderStatus(status),
 	})
-	fmt.Println(status)
 
 	return err
 }

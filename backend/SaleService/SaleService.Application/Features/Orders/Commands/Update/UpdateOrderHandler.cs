@@ -37,6 +37,7 @@ namespace SalesService.Application.Features.Orders.Commands.Update
             _outboxSignal = outboxSignal;
             _logger = logger;
         }
+
         public async Task<UpdateOrderRes> Handle(UpdateOrderCommand command, CancellationToken cancellationToken)
         {
             var request = command.Request;
@@ -53,7 +54,6 @@ namespace SalesService.Application.Features.Orders.Commands.Update
             if (request.UserId != order.CustomerId && !isStaff)
                 throw new BusinessException("Olny staff/admin or the owner can update order");
 
-
             //Only allow update when still Ordered
             if (order.Status != OrderStatus.PaymentPending)
                 throw new BusinessException("Order cannot be updated after preparation has started.");
@@ -61,7 +61,7 @@ namespace SalesService.Application.Features.Orders.Commands.Update
             //Get SKUs
             var skus = request.Items.Select(x => x.Sku).ToList();
 
-            // Remove items that are no longer present 
+            // Remove items that are no longer present
             var itemsToRemove = order.OrderItems
                 .Where(x => !skus.Contains(x.Sku))
                 .ToList();
@@ -81,6 +81,7 @@ namespace SalesService.Application.Features.Orders.Commands.Update
             var newReserveItems = variants.Select(v => new AmountVariant
             {
                 VariantId = v.VariantId,
+                Sku = v.Sku,
                 Amount = request.Items.First(i => i.Sku == v.Sku).Quantity
             }).ToList();
 
@@ -104,9 +105,8 @@ namespace SalesService.Application.Features.Orders.Commands.Update
                 //throw new BusinessException($"Stock update failed: {reserveRes.Message}");
                 throw new BusinessException($"Stock update faile");
 
-
-                // Remove orderItem - save change order
-                decimal subtotal = 0;
+            // Remove orderItem - save change order
+            decimal subtotal = 0;
             foreach (var item in request.Items)
             {
                 var existing = order.OrderItems

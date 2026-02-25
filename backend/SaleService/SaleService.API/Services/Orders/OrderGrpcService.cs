@@ -88,6 +88,7 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
                     // 2. Map đúng tên thuộc tính của ShortageItem trong Sales API
                     // Ví dụ: có thể là Id, VariantId hoặc ProductId tùy vào file proto của Sales
                     VariantId = i.VariantId.ToString(),
+                    Sku = i.Sku,
                     MaxFeasibleQuantity = i.Amount
                 })
             );
@@ -306,6 +307,7 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
                     new ShortageItem
                     {
                         VariantId = x.VariantId.ToString(),
+                        Sku = x.Sku,
                         MaxFeasibleQuantity = x.Amount
                     })
             );

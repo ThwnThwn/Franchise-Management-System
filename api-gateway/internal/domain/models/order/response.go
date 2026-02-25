@@ -21,6 +21,7 @@ type CheckEnoughStockResponse struct {
 
 type ShortageItem struct {
 	VariantId           string `json:"variantId"`
+	Sku                 string `json:"sku"`
 	MaxFeasibleQuantity int32  `json:"maxFeasibleQuantity"`
 }
 

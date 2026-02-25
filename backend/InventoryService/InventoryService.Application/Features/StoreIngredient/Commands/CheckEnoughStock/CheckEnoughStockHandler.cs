@@ -6,7 +6,6 @@ using MediatR;
 
 namespace InventoryService.Application.Features.StoreIngredient.Commands.CheckEnoughStock
 {
-
     /// <summary>
     /// Handler kiểm tra tồn kho khả dụng cho danh sách sản phẩm.
     /// Tính Available Stock = Physical Stock - Reserved Quantity (đang giữ trong Queue).
@@ -81,6 +80,7 @@ namespace InventoryService.Application.Features.StoreIngredient.Commands.CheckEn
                     shortageItems.Add(new AmountVariant
                     {
                         VariantId = item.VariantId,
+                        Sku = item.Sku,
                         Amount = (int)maxPossible // Trả về số lượng tối đa có thể pha (ví dụ: 3)
                     });
                 }

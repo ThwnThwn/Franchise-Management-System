@@ -44,6 +44,7 @@ func MapCheckEnoughStockRes(s *sales.CheckEnoughStockResponse) *order.CheckEnoug
 	for _, item := range s.ShortageItems {
 		items = append(items, &order.ShortageItem{
 			VariantId:           item.VariantId,
+			Sku:                 item.Sku,
 			MaxFeasibleQuantity: item.MaxFeasibleQuantity,
 		})
 	}
