@@ -16,6 +16,7 @@ CREATE TABLE "ingredients" (
   "category_id" UUID, -- Khóa ngoại liên kết tới bảng danh mục
   "name" VARCHAR(255) NOT NULL,
   "base_unit" VARCHAR(50) NOT NULL,
+  "cost" DECIMAL(18, 2) NOT NULL DEFAULT 0,
   "created_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   "is_deleted" BOOLEAN DEFAULT FALSE,

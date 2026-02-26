@@ -1,5 +1,6 @@
 syntax = "proto3";
 
+import "google/protobuf/empty.proto";
 option csharp_namespace = "ProductService.Grpc";
 
 package productvariant;
@@ -7,6 +8,9 @@ package productvariant;
 service ProductVariantGrpc {
   rpc GetById (GetProductVariantByIdRequest)
       returns (GetProductVariantByIdResponse);
+
+  // Update variant costs (called by InventoryService after MAC calculation)
+  rpc UpdateVariantCosts (UpdateVariantCostsRequest) returns (google.protobuf.Empty);
 }
 
 message GetProductVariantByIdRequest {
@@ -23,4 +27,14 @@ message GetProductVariantByIdResponse {
   bool is_active = 7;
   string updated_at = 8;
   string product_id = 9;
+}
+
+// ── UpdateVariantCosts ──
+message UpdateVariantCostsRequest {
+  repeated VariantCostUpdate updates = 1;
+}
+
+message VariantCostUpdate {
+  string variant_id = 1;
+  double new_cost = 2;
 }
