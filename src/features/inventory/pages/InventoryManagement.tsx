@@ -1,58 +1,60 @@
 "use client"
 
-import React, { useState } from "react"
-import { Package, Search, Store } from "lucide-react"
-import { InputStyled } from "@/components"
+import { useMemo, useState } from "react"
+import { Package, Search } from "lucide-react"
+import { InputStyled, PaginationStyled } from "@/components"
 import { InventoryTable } from "../components/InventoryTable"
 import { AdjustStockModal } from "../components/AdjustStockModal"
-import { useGetAllStocks, useGetStockByStoreId, useAdjustStock } from "../hooks/useInventory"
-import { useGetStores } from "@/features/stores/hooks/useStore"
+import { useGetStockByStoreId, useAdjustStock } from "../hooks/useInventory"
 import { StockItem } from "../models/response"
 import { GetAllStockParams } from "../models/request"
 import { DashboardHeader } from "@/features/dashboard/components/general/DashboardHeader"
-import { Select, SelectItem, Chip, Pagination } from "@heroui/react"
 import { useTokenStore } from "@/hooks"
+import { debouncedWrapper } from "@/utils/helpers/axiosHelper"
 
+/**
+ * @title Trang cho Manager quản lí kho của cửa hàng
+ */
 export default function InventoryManagementPage() {
     const storeId = useTokenStore((s) => s.storeId)
 
     // ── Store filter ─────────────────────────────────────────
-    const [selectedStoreId, setSelectedStoreId] = useState<string>(storeId || "")
+    // const [selectedStoreId, setSelectedStoreId] = useState<string>(storeId || "")
 
-    const { data: storesData } = useGetStores({
-        pagination: { page: 1, pageSize: 100 },
-        params: {}
-    })
-    const stores = storesData?.items ?? []
+    // const { data: storesData } = useGetStores({
+    //     pagination: { page: 1, pageSize: 100 },
+    //     params: {}
+    // })
+    // const stores = storesData?.items ?? []
 
     // ── Stock filter ─────────────────────────────────────────
-    const [filter, setFilter] = useState<GetAllStockParams>({
-        storeIds: storeId ? [storeId] : [],
+    const [filter, setFilter] = useState<Omit<GetAllStockParams, "storeIds">>({
+        // storeIds: storeId ? [storeId] : [],
         page: 1,
         pageSize: 50
     })
 
     // Reset to page 1 when store changes
-    const handleStoreChange = (storeId: string) => {
-        setSelectedStoreId(storeId)
-        setFilter((prev) => ({ ...prev, page: 1 }))
-    }
+    // const handleStoreChange = (storeId: string) => {
+    //     setSelectedStoreId(storeId)
+    //     setFilter((prev) => ({ ...prev, page: 1 }))
+    // }
 
-    const baseParams: GetAllStockParams = { ...filter }
+    const baseParams: Omit<GetAllStockParams, "storeIds"> = { ...filter }
 
     // Use per-store endpoint when store selected (storeIds is commented out in BE)
-    const allStocksQuery = useGetAllStocks({
-        params: baseParams,
-        enabled: !selectedStoreId
-    })
+    // const allStocksQuery = useGetAllStocks({
+    //     params: baseParams,
+    //     enabled: !selectedStoreId
+    // })
 
     const storeStocksQuery = useGetStockByStoreId({
-        storeId: selectedStoreId,
+        storeId: storeId || "",
         params: baseParams,
-        enabled: !!selectedStoreId
+        enabled: !!storeId
     })
 
-    const activeQuery = selectedStoreId ? storeStocksQuery : allStocksQuery
+    const activeQuery = storeStocksQuery
     const stocksData = activeQuery.data
     const isLoading = activeQuery.isLoading
     const isRefetching = activeQuery.isRefetching
@@ -96,13 +98,27 @@ export default function InventoryManagementPage() {
         })
     }
 
-    const handleSearch = (value: string) => {
-        // TODO: BE filter by keyword khi có
-        setFilter((prev) => ({ ...prev, keyword: value || undefined, page: 1 }))
-    }
+    const [isTyping, setIsTyping] = useState(false)
+    const debouncedSearch = useMemo(
+        () =>
+            debouncedWrapper(
+                async (value: string) => {
+                    setFilter((prev) => ({ ...prev, keyword: value || undefined, page: 1 }))
+                },
+                1000,
+                () => setIsTyping(true),
+                () => setIsTyping(false)
+            ),
+        []
+    )
+
+    // const handleSearch = (value: string) => {
+    //     // TODO: BE filter by keyword khi có
+    //     setFilter((prev) => ({ ...prev, keyword: value || undefined, page: 1 }))
+    // }
 
     // Selected store label
-    const selectedStore = stores.find((s) => s.id === selectedStoreId)
+    // const selectedStore = stores.find((s) => s.id === selectedStoreId)
 
     return (
         <div className="max-w-7xl mb-8 mx-auto min-h-screen p-4 md:p-6 lg:p-8 bg-slate-50/30">
@@ -121,12 +137,14 @@ export default function InventoryManagementPage() {
                             placeholder="Tìm kiếm nguyên liệu..."
                             startContent={<Search size={18} className="text-slate-400" />}
                             size="md"
-                            onChange={(e) => handleSearch(e.target.value)}
+                            onChange={async (e) => {
+                                await debouncedSearch(e.target.value)
+                            }}
                         />
                     </div>
 
                     {/* Store filter */}
-                    <div className="w-full sm:w-72" hidden={!!storeId}>
+                    {/* <div className="w-full sm:w-72" hidden={!!storeId}>
                         <Select
                             placeholder="Tất cả cửa hàng"
                             selectedKeys={selectedStoreId ? [selectedStoreId] : []}
@@ -148,10 +166,10 @@ export default function InventoryManagementPage() {
                                 </SelectItem>
                             ))}
                         </Select>
-                    </div>
+                    </div> */}
 
                     {/* Clear store filter badge */}
-                    {selectedStoreId && selectedStore && (
+                    {/* {selectedStoreId && selectedStore && (
                         <div className="flex items-center">
                             <Chip
                                 color="primary"
@@ -164,14 +182,14 @@ export default function InventoryManagementPage() {
                                 {selectedStore.name}
                             </Chip>
                         </div>
-                    )}
+                    )} */}
                 </div>
             </div>
 
             {/* ── COUNT ── */}
             <div className="mb-4 flex items-center justify-between">
                 <div className="text-sm text-slate-600">
-                    {selectedStore ? (
+                    {/* {selectedStore ? (
                         <>
                             Kho của{" "}
                             <span className="font-semibold text-primary-600">
@@ -181,7 +199,7 @@ export default function InventoryManagementPage() {
                         </>
                     ) : (
                         "Tất cả cửa hàng — "
-                    )}
+                    )} */}
                     <span className="font-semibold text-slate-900">
                         {stocksData?.totalCount || 0}
                     </span>{" "}
@@ -193,7 +211,7 @@ export default function InventoryManagementPage() {
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                 <InventoryTable
                     stocks={stocks}
-                    stores={stores}
+                    // stores={stores}
                     isLoading={isLoading}
                     isRefetching={isRefetching}
                     onIncrease={handleIncrease}
@@ -201,17 +219,15 @@ export default function InventoryManagementPage() {
                 />
 
                 {/* Pagination */}
-                {(stocksData?.totalPages ?? 0) > 1 && (
-                    <div className="flex justify-center py-4 border-t border-slate-100">
-                        <Pagination
-                            total={stocksData?.totalPages ?? 1}
-                            page={filter.page ?? 1}
-                            onChange={(p) => setFilter((prev) => ({ ...prev, page: p }))}
-                            showControls
-                            color="primary"
-                            variant="light"
-                        />
-                    </div>
+                {(stocksData?.totalPages ?? 0) > 1 && !isTyping && (
+                    <PaginationStyled
+                        page={filter.page ?? 1}
+                        total={stocksData?.totalPages ?? 1}
+                        onChange={(p) => setFilter((prev) => ({ ...prev, page: p }))}
+                        // showControls
+                        // color="primary"
+                        // variant="light"
+                    />
                 )}
             </div>
 

@@ -29,7 +29,7 @@ export const inventoryApi = {
     /** Lấy tồn kho theo 1 cửa hàng cụ thể — GET /stores/:storeId/stock */
     getStockByStoreId: async (
         storeId: string,
-        params?: GetAllStockParams
+        params?: Omit<GetAllStockParams, "storeIds">
     ): Promise<GetAllStockResult> => {
         const queryParams = buildQueryParams(params ?? {})
         const res = await axiosInstance.get(`/stores/${storeId}/stock`, { params: queryParams })

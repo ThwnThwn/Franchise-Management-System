@@ -111,11 +111,11 @@ export function AdjustStockModal({
 
                         {/* Số lượng sau điều chỉnh */}
                         {quantity && !error && (
-                            <div className="flex justify-between items-center bg-blue-50 p-3 rounded-lg">
-                                <span className="text-sm text-blue-900">
+                            <div className="flex justify-between items-center bg-default p-3 rounded-lg">
+                                <span className="text-sm text-primary">
                                     Số lượng sau điều chỉnh:
                                 </span>
-                                <span className="font-bold text-blue-900">
+                                <span className="font-bold text-primary">
                                     {adjustedQty.toFixed(2)} {stock.ingredientViewRes.baseUnit}
                                 </span>
                             </div>

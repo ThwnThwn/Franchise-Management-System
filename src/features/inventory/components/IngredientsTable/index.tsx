@@ -1,8 +1,8 @@
 "use client"
 
 import React from "react"
-import { Package, Plus, Pencil, Trash2 } from "lucide-react"
-import { TableStyled, ButtonIconStyled, ButtonStyled, TitleSkeleton } from "@/components"
+import { Package, Pencil, Plus } from "lucide-react"
+import { TableStyled, ButtonIconStyled, TitleSkeleton, ButtonStyled } from "@/components"
 import {
     TableCell,
     TableRow,
@@ -23,7 +23,7 @@ type IngredientsTableProps = {
     emptyMessage?: string
     onAddStock?: (ingredient: IngredientItem) => void
     onEdit?: (ingredient: IngredientItem) => void
-    onDelete?: (ingredient: IngredientItem) => void
+    // onDelete?: (ingredient: IngredientItem) => void
 }
 
 export function IngredientsTable({
@@ -33,8 +33,8 @@ export function IngredientsTable({
     isRefetching = false,
     emptyMessage,
     onAddStock,
-    onEdit,
-    onDelete
+    onEdit
+    // onDelete
 }: IngredientsTableProps) {
     /** Lấy tên danh mục từ categoryId */
     const getCategoryName = (categoryId: string | null): string => {
@@ -68,7 +68,9 @@ export function IngredientsTable({
                     <TableCell colSpan={4} className="text-center py-14 text-slate-400">
                         <div className="flex flex-col items-center gap-2">
                             <Package className="w-10 h-10 text-slate-300" />
-                            <span className="text-sm">{emptyMessage ?? "Chưa có nguyên liệu nào"}</span>
+                            <span className="text-sm">
+                                {emptyMessage ?? "Chưa có nguyên liệu nào"}
+                            </span>
                         </div>
                     </TableCell>
                 </TableRow>
@@ -83,19 +85,23 @@ export function IngredientsTable({
                 {/* Tên nguyên liệu */}
                 <TableCell>
                     <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shrink-0">
+                        <div className="w-9 h-9 rounded-xl bg-linear-to-br from-emerald-500 to-teal-600 flex items-center justify-center shrink-0">
                             <Package className="w-4 h-4 text-white" />
                         </div>
                         <div>
                             <div className="font-semibold text-slate-900 text-sm">{item.name}</div>
-                            <div className="text-xs text-slate-400 font-mono">{item.id.slice(0, 8)}…</div>
+                            {/* <div className="text-xs text-slate-400 font-mono">
+                                {item.id.slice(0, 8)}…
+                            </div> */}
                         </div>
                     </div>
                 </TableCell>
 
                 {/* Danh mục */}
                 <TableCell>
-                    <span className="text-sm text-slate-700">{getCategoryName(item.categoryId)}</span>
+                    <span className="text-sm text-slate-700">
+                        {getCategoryName(item.categoryId)}
+                    </span>
                 </TableCell>
 
                 {/* Đơn vị */}
@@ -137,7 +143,7 @@ export function IngredientsTable({
                             </ButtonIconStyled>
                         </Tooltip>
 
-                        <Tooltip content="Xóa" color="danger">
+                        {/* <Tooltip content="Xóa" color="danger">
                             <ButtonIconStyled
                                 variant="light"
                                 color="danger"
@@ -146,7 +152,7 @@ export function IngredientsTable({
                             >
                                 <Trash2 size={16} />
                             </ButtonIconStyled>
-                        </Tooltip>
+                        </Tooltip> */}
                     </div>
                 </TableCell>
             </TableRow>
@@ -155,16 +161,14 @@ export function IngredientsTable({
 
     return (
         <>
-            <TableStyled
-                className="min-w-full"
-                removeWrapper
-                aria-label="Danh sách nguyên liệu"
-            >
+            <TableStyled className="min-w-full" removeWrapper aria-label="Danh sách nguyên liệu">
                 <TableHeader>
                     <TableColumn width="35%">NGUYÊN LIỆU</TableColumn>
                     <TableColumn width="25%">DANH MỤC</TableColumn>
                     <TableColumn width="15%">ĐƠN VỊ</TableColumn>
-                    <TableColumn width="25%" align="center">THAO TÁC</TableColumn>
+                    <TableColumn width="25%" align="center">
+                        THAO TÁC
+                    </TableColumn>
                 </TableHeader>
                 <TableBody>{renderBody()}</TableBody>
             </TableStyled>

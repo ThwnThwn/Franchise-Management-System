@@ -22,15 +22,15 @@ import { useTokenStore } from "@/hooks"
 // CONSTANTS
 // ===========================================================
 
-const UNITS_OF_MEASURE = [
-    { label: "Grams (g)", value: "g" },
-    { label: "Kilograms (kg)", value: "kg" },
-    { label: "Mililiters (ml)", value: "ml" },
-    { label: "Liters (l)", value: "l" },
-    { label: "Units (pcs)", value: "pcs" },
-    { label: "Tablespoon (tbsp)", value: "tbsp" },
-    { label: "Teaspoon (tsp)", value: "tsp" }
-] as const
+// const UNITS_OF_MEASURE = [
+//     { label: "Grams (g)", value: "g" },
+//     { label: "Kilograms (kg)", value: "kg" },
+//     { label: "Mililiters (ml)", value: "ml" },
+//     { label: "Liters (l)", value: "l" },
+//     { label: "Units (pcs)", value: "pcs" },
+//     { label: "Tablespoon (tbsp)", value: "tbsp" },
+//     { label: "Teaspoon (tsp)", value: "tsp" }
+// ] as const
 
 type FormState = {
     storeId: string
@@ -221,43 +221,43 @@ export function AddIngredientStockModal({
                             </Select>
                         </div>
 
-                        {/* ── Ingredient Name (Autocomplete) ── */}
-                        <Autocomplete
-                            label="Ingredient Name"
-                            placeholder="Chọn hoặc tìm kiếm nguyên liệu…"
-                            isRequired
-                            isInvalid={!!errors.ingredientId}
-                            errorMessage={errors.ingredientId}
-                            selectedKey={form.ingredientId}
-                            onSelectionChange={(key) => {
-                                if (key) handleIngredientSelect(String(key))
-                            }}
-                            defaultItems={ingredients}
-                            className="w-full"
-                            labelPlacement="outside"
-                            variant="bordered"
-                            classNames={{
-                                base: "w-full",
-                                listboxWrapper: "max-h-60"
-                            }}
-                        >
-                            {(item) => (
-                                <AutocompleteItem key={item.id} textValue={item.name}>
-                                    <div className="flex flex-col">
-                                        <span className="text-sm">{item.name}</span>
-                                        <span className="text-xs text-slate-400">
-                                            {item.baseUnit}
-                                        </span>
-                                    </div>
-                                </AutocompleteItem>
-                            )}
-                        </Autocomplete>
+                        {/* ── Ingredient Name (Autocomplete) + Quantity ── */}
+                        <div className="grid grid-cols-2 gap-2">
+                            <Autocomplete
+                                label="Tên nguyên liệu"
+                                labelPlacement="outside"
+                                placeholder="Chọn hoặc tìm kiếm nguyên liệu…"
+                                isRequired
+                                isInvalid={!!errors.ingredientId}
+                                errorMessage={errors.ingredientId}
+                                selectedKey={form.ingredientId}
+                                onSelectionChange={(key) => {
+                                    if (key) handleIngredientSelect(String(key))
+                                }}
+                                defaultItems={ingredients}
+                                className="w-full"
+                                variant="bordered"
+                                classNames={{
+                                    base: "w-full",
+                                    listboxWrapper: "max-h-60"
+                                }}
+                            >
+                                {(item) => (
+                                    <AutocompleteItem key={item.id} textValue={item.name}>
+                                        <div className="flex flex-col">
+                                            <span className="text-sm">{item.name}</span>
+                                            <span className="text-xs text-slate-400">
+                                                {item.baseUnit}
+                                            </span>
+                                        </div>
+                                    </AutocompleteItem>
+                                )}
+                            </Autocomplete>
 
-                        {/* ── Quantity + MinThreshold + Unit ── */}
-                        <div className="grid grid-cols-2 gap-3">
                             <InputStyled
                                 type="number"
-                                label="Quantity to Add"
+                                label="Số lượng cần thêm"
+                                labelPlacement="outside"
                                 placeholder="0"
                                 isRequired
                                 isInvalid={!!errors.quantity}
@@ -268,17 +268,17 @@ export function AddIngredientStockModal({
                                 onChange={(e) => handleChange("quantity", e.target.value)}
                                 endContent={
                                     form.unit ? (
-                                        <span className="text-xs text-slate-400 whitespace-nowrap">
-                                            {form.unit}
-                                        </span>
+                                        <span className="whitespace-nowrap">{form.unit}</span>
                                     ) : undefined
                                 }
                             />
+                        </div>
 
-                            <div className="flex flex-col gap-1">
-                                {/* <label className="text-sm font-medium text-slate-700">
+                        {/* <div className="grid grid-cols-2 gap-3"> 
+                        <div className="flex flex-col gap-1">
+                                <label className="text-sm font-medium text-slate-700">
                                     Unit of Measure <span className="text-danger">*</span>
-                                </label> */}
+                                </label> 
                                 <Select
                                     label="Unit of Measure"
                                     placeholder="Chọn đơn vị"
@@ -300,8 +300,8 @@ export function AddIngredientStockModal({
                                         </SelectItem>
                                     ))}
                                 </Select>
-                            </div>
-                        </div>
+                            </div> 
+                        </div> */}
 
                         {/* ── Min Threshold ── */}
                         {/* <InputStyled

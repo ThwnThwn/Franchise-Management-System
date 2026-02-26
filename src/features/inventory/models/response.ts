@@ -1,3 +1,5 @@
+import { StockStatus } from "../constants/enum"
+
 export type Ingredient = {
     id: string
     name: string
@@ -31,7 +33,7 @@ export type StockItem = {
     ingredientViewRes: Ingredient
     quantity: string
     minThreshold: string
-    stockStatus: number // 0=low, 1=normal, 2=high
+    stockStatus: StockStatus
 }
 
 export type GetAllStockResult = {

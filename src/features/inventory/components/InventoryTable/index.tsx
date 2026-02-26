@@ -2,7 +2,7 @@
 
 import React from "react"
 import { Plus, Minus } from "lucide-react"
-import { TableStyled, ButtonIconStyled, TitleSkeleton } from "@/components"
+import { TableStyled, ButtonIconStyled } from "@/components"
 import {
     TableCell,
     TableRow,
@@ -14,11 +14,12 @@ import {
     Spinner
 } from "@heroui/react"
 import { StockItem } from "../../models/response"
-import { StoreDetailDto } from "@/features/stores/models/schema/response"
+import { StockStatusColors } from "../../constants/styles"
+import { StockStatusLabels } from "../../constants/labels"
 
 type InventoryTableProps = {
     stocks: StockItem[]
-    stores?: StoreDetailDto[]
+    // stores?: StoreDetailDto[]
     isLoading?: boolean
     emptyMessage?: string
     onIncrease?: (stock: StockItem) => void
@@ -28,27 +29,13 @@ type InventoryTableProps = {
 
 export function InventoryTable({
     stocks,
-    stores = [],
+    // stores = [],
     isLoading = false,
     emptyMessage,
     onIncrease,
     onDecrease,
     isRefetching = false
 }: InventoryTableProps) {
-    // Helper: Get stock status color and label
-    const getStockStatus = (stockStatus: number) => {
-        switch (stockStatus) {
-            case 0:
-                return { color: "danger" as const, label: "Sắp hết" }
-            case 1:
-                return { color: "success" as const, label: "Bình thường" }
-            case 2:
-                return { color: "primary" as const, label: "Dư thừa" }
-            default:
-                return { color: "default" as const, label: "Không xác định" }
-        }
-    }
-
     // Helper: format quantity string từ BE (có thể là "10", "10.5", "0", "")
     const formatQty = (raw: string): string => {
         const n = parseFloat(raw)
@@ -59,28 +46,27 @@ export function InventoryTable({
 
     // Render table body
     const renderBody = () => {
-        if (isLoading) {
-            return Array.from({ length: 5 }).map((_, index) => (
-                <TableRow key={`skeleton-${index}`} className="h-20">
-                    <TableCell colSpan={6} className="text-center">
-                        <TitleSkeleton className="h-12 w-full" />
-                    </TableCell>
-                </TableRow>
-            ))
-        }
+        // if (isLoading) {
+        //     return Array.from({ length: 5 }).map((_, index) => (
+        //         <TableRow key={`skeleton-${index}`} className="h-20">
+        //             <TableCell colSpan={6} className="text-center">
+        //                 <TitleSkeleton className="h-12 w-full" />
+        //             </TableCell>
+        //         </TableRow>
+        //     ))
+        // }
 
-        if (stocks.length === 0) {
-            return (
-                <TableRow>
-                    <TableCell colSpan={6} className="text-center py-10 text-slate-500">
-                        {emptyMessage ?? "Không có dữ liệu tồn kho"}
-                    </TableCell>
-                </TableRow>
-            )
-        }
+        // if (stocks.length === 0) {
+        //     return (
+        //         <TableRow>
+        //             <TableCell colSpan={5} className="text-center py-10 text-slate-500">
+        //                 {emptyMessage ?? "Không có dữ liệu tồn kho"}
+        //             </TableCell>
+        //         </TableRow>
+        //     )
+        // }
 
         return stocks.map((item) => {
-            const status = getStockStatus(item.stockStatus)
             return (
                 <TableRow
                     key={`${item.storeId}-${item.ingredientViewRes.id}`}
@@ -99,7 +85,7 @@ export function InventoryTable({
                     </TableCell>
 
                     {/* Cột 2: Cửa hàng */}
-                    <TableCell className="text-sm text-slate-700">
+                    {/* <TableCell className="text-sm text-slate-700">
                         {(() => {
                             const store = stores.find((s) => s.id === item.storeId)
                             return store ? (
@@ -108,10 +94,12 @@ export function InventoryTable({
                                     <span className="text-xs text-slate-400">{store.address}</span>
                                 </div>
                             ) : (
-                                <span className="text-xs text-slate-400 font-mono">{item.storeId}</span>
+                                <span className="text-xs text-slate-400 font-mono">
+                                    {item.storeId}
+                                </span>
                             )
                         })()}
-                    </TableCell>
+                    </TableCell> */}
 
                     {/* Cột 3: Số lượng tồn */}
                     <TableCell>
@@ -126,8 +114,15 @@ export function InventoryTable({
                     </TableCell>
 
                     {/* Cột 4: Ngưỡng tối thiểu */}
-                    <TableCell className="text-sm text-slate-600">
-                        {formatQty(item.minThreshold)} {item.ingredientViewRes.baseUnit}
+                    <TableCell>
+                        <div className="flex flex-col text-sm text-slate-600">
+                            <span className="font-semibold text-slate-900">
+                                {formatQty(item.minThreshold)}
+                            </span>
+                            <span className="text-xs text-slate-500">
+                                {item.ingredientViewRes.baseUnit}
+                            </span>
+                        </div>
                     </TableCell>
 
                     {/* Cột 5: Trạng thái */}
@@ -135,13 +130,13 @@ export function InventoryTable({
                         <Chip
                             size="sm"
                             variant="dot"
-                            color={status.color}
+                            color={StockStatusColors[item.stockStatus]}
                             classNames={{
                                 base: "border-none bg-transparent gap-2",
                                 dot: item.stockStatus === 0 ? "animate-pulse" : ""
                             }}
                         >
-                            {status.label}
+                            {StockStatusLabels[item.stockStatus]}
                         </Chip>
                     </TableCell>
 
@@ -181,7 +176,7 @@ export function InventoryTable({
             <TableStyled className="min-w-full" removeWrapper aria-label="Danh sách tồn kho">
                 <TableHeader>
                     <TableColumn width="25%">NGUYÊN LIỆU</TableColumn>
-                    <TableColumn width="15%">CỬA HÀNG</TableColumn>
+                    {/* <TableColumn width="15%">CỬA HÀNG</TableColumn> */}
                     <TableColumn width="15%">SỐ LƯỢNG TỒN</TableColumn>
                     <TableColumn width="15%">NGƯỠNG TỐI THIỂU</TableColumn>
                     <TableColumn width="15%">TRẠNG THÁI</TableColumn>
@@ -189,7 +184,13 @@ export function InventoryTable({
                         THAO TÁC
                     </TableColumn>
                 </TableHeader>
-                <TableBody>{renderBody()}</TableBody>
+                <TableBody
+                    isLoading={isLoading}
+                    loadingContent={<Spinner label="Đang tải..." />}
+                    emptyContent={emptyMessage ?? "Không có dữ liệu tồn kho"}
+                >
+                    {renderBody()}
+                </TableBody>
             </TableStyled>
 
             {/* Loading Indicator nhỏ khi refetch */}

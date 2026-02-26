@@ -1,25 +1,27 @@
 "use client"
 
-import React, { useState } from "react"
+import { useState } from "react"
 import { FlaskConical, Search, Plus } from "lucide-react"
 import { InputStyled, ButtonStyled } from "@/components"
 import { DashboardHeader } from "@/features/dashboard/components/general/DashboardHeader"
 import { IngredientsTable } from "../components/IngredientsTable"
-import { AddIngredientStockModal } from "../components/AddIngredientStockModal"
 import { CreateIngredientModal } from "../components/CreateIngredientModal"
 import { EditIngredientModal } from "../components/EditIngredientModal"
 import {
     useGetIngredients,
     useGetIngredientCategories,
-    useAddIngredientStock,
-    useDeleteIngredient,
     useCreateIngredient,
-    useUpdateIngredient
+    useUpdateIngredient,
+    useAddIngredientStock
 } from "../hooks/useInventory"
-import { useGetStores } from "@/features/stores/hooks/useStore"
 import { IngredientItem } from "../models/response"
 import { GetIngredientsParams } from "../models/request"
+import { useGetStores } from "@/features/stores"
+import { AddIngredientStockModal } from "../components/AddIngredientStockModal"
 
+/**
+ * @title Trang cho Admin quản lí danh sách định nghĩa nguyên liệu của hệ thống
+ */
 export default function IngredientsPage() {
     // ── Filter state ──────────────────────────────────────────────
     const [filter, setFilter] = useState<GetIngredientsParams>({
@@ -53,8 +55,6 @@ export default function IngredientsPage() {
             setSelectedIngredient(null)
         }
     })
-
-    const deleteIngredientMutation = useDeleteIngredient()
 
     // ── Create Ingredient Modal state ────────────────────────────
     const [isCreateOpen, setIsCreateOpen] = useState(false)
@@ -106,10 +106,17 @@ export default function IngredientsPage() {
     }
 
     /** Xóa nguyên liệu */
-    const handleDelete = (ingredient: IngredientItem) => {
-        if (!confirm(`Bạn có chắc muốn xóa "${ingredient.name}"?`)) return
-        deleteIngredientMutation.mutate(ingredient.id)
-    }
+    // const deleteIngredientMutation = useDeleteIngredient()
+    // const handleDelete = (ingredient: IngredientItem) => {
+    //     if (
+    //         !confirmDialog({
+    //             title: "Xoá nguyên liệu",
+    //             message: `Bạn có chắc muốn xóa "${ingredient.name}"?`
+    //         })
+    //     )
+    //         return
+    //     deleteIngredientMutation.mutate(ingredient.id)
+    // }
 
     /** Mở modal chỉnh sửa nguyên liệu */
     const handleEdit = (ingredient: IngredientItem) => {
@@ -174,7 +181,7 @@ export default function IngredientsPage() {
                     isRefetching={isRefetching}
                     onAddStock={handleAddStock}
                     onEdit={handleEdit}
-                    onDelete={handleDelete}
+                    // onDelete={handleDelete}
                 />
             </div>
 
