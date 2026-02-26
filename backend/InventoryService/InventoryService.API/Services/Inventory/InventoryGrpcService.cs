@@ -24,14 +24,14 @@ namespace InventoryService.API.Services.Inventory
         public override async Task<IncreaseStockResponse> IncreaseStock(IncreaseStockRequest request, ServerCallContext context)
         {
             //ktra phải manager của kho 
-            // var managerIdEntry = context.RequestHeaders.FirstOrDefault(h =>
-            // h.Key.Equals("x-user-id", StringComparison.OrdinalIgnoreCase));
+            var managerIdEntry = context.RequestHeaders.FirstOrDefault(h =>
+            h.Key.Equals("x-user-id", StringComparison.OrdinalIgnoreCase));
 
-            // var manager = await _identityServiceClient.GetManager(new Application.Dtos.User.GetManagerReq() { StoreId = Guid.Parse(request.StoreId)});
-            // if(manager.Id != Guid.Parse(managerIdEntry.Value))
-            // {
-            //     throw new RpcException(new Status(StatusCode.PermissionDenied, "Bạn không có quyền thực hiện hành động này"));
-            // }
+            var manager = await _identityServiceClient.GetManager(new Application.Dtos.User.GetManagerReq() { StoreId = Guid.Parse(request.StoreId)});
+            if(manager.Id != Guid.Parse(managerIdEntry.Value))
+            {
+                throw new RpcException(new Status(StatusCode.PermissionDenied, "Bạn không có quyền thực hiện hành động này"));
+            }
             //===============================
             var rep = await _mediator.Send(new IncreaseStockCommand(new()
             {
