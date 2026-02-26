@@ -8,6 +8,7 @@ using SupplierService.Infrastructure.DbContext;
 using SupplierService.API.Clients.Inventory;
 using SupplierService.Infrastructure.Interceptor;
 using SupplierService.Infrastructure.Repositories;
+using SupplierService.API.Clients.Franchise;
 
 namespace SupplierService.API;
 
@@ -73,6 +74,9 @@ public class Program
             });
         });
 
+        //Inventory Service Client
+        builder.Services.AddScoped<IFranchiseServiceClient, FranchiseServiceClient>();
+
         // ── CORS ──────────────────────────────────────────────────────────────
         var frontEndOrigin = builder.Configuration["FRONTEND_ORIGIN"] ?? "http://localhost:3000";
         builder.Services.AddCors(options =>
@@ -96,6 +100,7 @@ public class Program
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Supplier Service API v1");
             });
         }
+
 
         app.UseCors();
         app.UseAuthorization();

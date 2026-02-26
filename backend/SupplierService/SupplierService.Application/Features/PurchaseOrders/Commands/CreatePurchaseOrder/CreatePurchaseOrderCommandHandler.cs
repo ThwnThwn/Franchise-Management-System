@@ -17,10 +17,14 @@ namespace SupplierService.Application.Features.PurchaseOrders.Commands.CreatePur
 public class CreatePurchaseOrderCommandHandler : IRequestHandler<CreatePurchaseOrderCommand, CreatePurchaseOrderResult>
 {
     private readonly IPurchaseOrderRepository _purchaseOrderRepo;
+    private readonly SupplierService.Application.ClientInterfaces.IFranchiseServiceClient _franchiseServiceClient;
 
-    public CreatePurchaseOrderCommandHandler(IPurchaseOrderRepository purchaseOrderRepo)
+    public CreatePurchaseOrderCommandHandler(
+        IPurchaseOrderRepository purchaseOrderRepo,
+        SupplierService.Application.ClientInterfaces.IFranchiseServiceClient franchiseServiceClient)
     {
         _purchaseOrderRepo = purchaseOrderRepo;
+        _franchiseServiceClient = franchiseServiceClient;
     }
 
     public async Task<CreatePurchaseOrderResult> Handle(CreatePurchaseOrderCommand request, CancellationToken cancellationToken)
@@ -34,8 +38,12 @@ public class CreatePurchaseOrderCommandHandler : IRequestHandler<CreatePurchaseO
         if (request.Items == null || request.Items.Count == 0)
             throw new InvalidOperationException("Purchase order must have at least one item.");
 
-        if(request.StoreId == null)
+        if (request.StoreId == null)
             throw new InvalidOperationException("StoreId is required.");
+
+        var storeExists = await _franchiseServiceClient.GetFranchiseByIdAsync(request.StoreId.Value);
+        if (!storeExists)
+            throw new KeyNotFoundException($"Store {request.StoreId} does not exist.");
 
         // 3. Tra cứu unit_price từ supplier_ingredients
         var ingredientIds = request.Items.Select(i => i.IngredientId).ToList();
