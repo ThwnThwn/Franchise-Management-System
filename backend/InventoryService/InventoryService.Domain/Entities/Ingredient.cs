@@ -12,6 +12,8 @@ public partial class Ingredient : SoftDeletedEntity, IEntity
 
     public string BaseUnit { get; set; } = null!;
 
+    public decimal Cost { get; set; }
+
     public Guid? CategoryId { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; }

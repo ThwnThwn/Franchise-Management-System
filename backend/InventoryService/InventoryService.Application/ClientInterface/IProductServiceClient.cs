@@ -11,5 +11,6 @@ namespace InventoryService.Application.ClientInterface
     public interface IProductServiceClient
     {
         Task<ProductVariantRespone> GetVariantById(Guid request);
+        Task UpdateVariantCostsAsync(Dictionary<Guid, decimal> variantCosts, CancellationToken cancellationToken = default);
     }
 }
