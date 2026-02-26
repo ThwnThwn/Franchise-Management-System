@@ -34,8 +34,8 @@ namespace InventoryService.Infrastructure.Persistences.Repositories
         {
             return await _dbContext.StoreIngredients.AsQueryable()
                         .Include(e => e.Ingredient)
-                        .Where(e => e.StoreId == storeId 
-                                && ingredientIds.Contains(e.IngredientId) 
+                        .Where(e => e.StoreId == storeId
+                                && ingredientIds.Contains(e.IngredientId)
                                 && e.IsDeleted == false)
                         .ToListAsync(cancellationToken);
         }
@@ -51,11 +51,12 @@ namespace InventoryService.Infrastructure.Persistences.Repositories
                         .ThenInclude(e => e.IngredientCategory)
                         .Where(e => e.IsDeleted == false)
                         .AsNoTracking();
-            if(storeIds != null && storeIds.Any())
+            if (storeIds != null && storeIds.Any())
             {
                 query = query.Where(e => storeIds.Contains(e.StoreId));
             }
-            if (categoryIds != null && categoryIds.Any()) { 
+            if (categoryIds != null && categoryIds.Any())
+            {
                 query = query.Where(e => e.Ingredient.CategoryId != null && categoryIds.Contains((Guid)e.Ingredient.CategoryId));
             }
             if (ingredientIds != null && ingredientIds.Any())
@@ -126,7 +127,7 @@ namespace InventoryService.Infrastructure.Persistences.Repositories
                 }
                 await _dbContext.SaveChangesAsync();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 throw new Application.AppExceptions.DbUpdateException("Lỗi update db");
             }
@@ -142,7 +143,7 @@ namespace InventoryService.Infrastructure.Persistences.Repositories
                 await connection.OpenAsync();
 
             using var command = connection.CreateCommand();
-            
+
             command.CommandText = @"
                 UPDATE ""store_ingredients""
                 SET ""quantity"" = ""quantity"" - @amount,
@@ -228,14 +229,14 @@ namespace InventoryService.Infrastructure.Persistences.Repositories
         public async Task<decimal> GetReservedQuantityAsync(Guid storeId, Guid ingredientId)
         {
             return await _dbContext.IngredientQueues
-                .Where(x => x.StoreId == storeId 
-                         && x.IngredientId == ingredientId 
-                         && x.ExpiresAt > DateTimeOffset.UtcNow 
+                .Where(x => x.StoreId == storeId
+                         && x.IngredientId == ingredientId
+                         && x.ExpiresAt > DateTimeOffset.UtcNow
                          && x.IsDeleted == false)
                 .SumAsync(x => x.Amount);
         }
 
-        public async Task<List<IngredientQueue>> GetQueueByOrderIdAsync(Guid orderId,CancellationToken cancellationToken)
+        public async Task<List<IngredientQueue>> GetQueueByOrderIdAsync(Guid orderId, CancellationToken cancellationToken)
         {
             return await _dbContext.IngredientQueues
                 .Where(x =>

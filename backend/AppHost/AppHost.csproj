@@ -21,6 +21,7 @@
     <ProjectReference Include="..\NotificationService\NotificationService.API\NotificationService.API.csproj" />
     <ProjectReference Include="..\ProductService\ProductService.API\ProductService.API.csproj" />
     <ProjectReference Include="..\SaleService\SaleService.API\SalesService.API.csproj" />
+    <ProjectReference Include="..\SupplierService\SupplierService.API\SupplierService.API.csproj" />
   </ItemGroup>
 
 </Project>
