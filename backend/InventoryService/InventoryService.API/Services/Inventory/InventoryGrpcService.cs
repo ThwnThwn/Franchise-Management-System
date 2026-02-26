@@ -35,8 +35,9 @@ namespace InventoryService.API.Services.Inventory
                 //ktra phải manager của kho 
                 var managerIdEntry = context.RequestHeaders.FirstOrDefault(h =>
                 h.Key.Equals("x-user-id", StringComparison.OrdinalIgnoreCase));
-
+                
                 var manager = await _identityServiceClient.GetManager(new Application.Dtos.User.GetManagerReq() { StoreId = Guid.Parse(request.StoreId) });
+
                 if (manager.Id != Guid.Parse(managerIdEntry!.Value))
                 {
                     throw new RpcException(new Status(StatusCode.PermissionDenied, "Bạn không có quyền thực hiện hành động này"));
