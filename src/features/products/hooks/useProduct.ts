@@ -50,11 +50,11 @@ export const useGetAllProducts = ({
     const queryClient = useQueryClient()
 
     return useQuery({
-        queryKey: [QUERY_KEYS.PRODUCTS, params],
+        queryKey: [QUERY_KEYS.PRODUCTS, params, pagination],
         queryFn: () => productApi.getAll({ query: params, pagination }),
         initialData: () => {
             return queryClient.getQueryData<PageResult<Product>>([
-                QUERY_KEYS.USERS,
+                QUERY_KEYS.PRODUCTS,
                 params,
                 pagination
             ])

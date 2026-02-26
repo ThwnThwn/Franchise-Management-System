@@ -166,7 +166,6 @@ export default function ProductFormPageView({ productId }: { productId?: string 
                     isIconOnly
                     variant="light"
                     onPress={() => router.push(PRODUCTS_ROUTES.LIST)}
-                    isDisabled={isReadOnly}
                 >
                     <ArrowLeft size={20} />
                 </Button>
@@ -279,6 +278,7 @@ export default function ProductFormPageView({ productId }: { productId?: string 
                                                             !isReadOnly &&
                                                             formik.values.variants.length > 1
                                                         }
+                                                        isReadOnly={isReadOnly}
                                                         remove={() => variantHelpers.remove(index)}
                                                         variantId={
                                                             isEditMode
@@ -303,7 +303,8 @@ export default function ProductFormPageView({ productId }: { productId?: string 
                                                             attributes: []
                                                         })
                                                     }
-                                                    isDisabled={isReadOnly}
+                                                    // isDisabled={isReadOnly}
+                                                    hidden={isReadOnly}
                                                 >
                                                     Thêm phân loại mới
                                                 </Button>
@@ -326,6 +327,7 @@ export default function ProductFormPageView({ productId }: { productId?: string 
                                 <ProductImageUploader
                                     productId={productId}
                                     currentImageUrl={product?.imageUrl}
+                                    isReadOnly={isReadOnly}
                                 />
                             </CardBody>
                         </Card>

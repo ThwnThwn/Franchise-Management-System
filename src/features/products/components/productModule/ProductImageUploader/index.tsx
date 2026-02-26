@@ -1,22 +1,20 @@
 "use client"
 
-import React from "react"
-import { useImageUploadModal, useTokenStore } from "@/hooks"
+import { useImageUploadModal } from "@/hooks"
 import { useUploadProductImage } from "@/features/products/hooks"
 import { DropdownStyled, ImagePreviewModal, ImageStyled, ImageUploaderModal } from "@/components"
 import { Camera, Eye } from "lucide-react"
 import { DropdownItem, DropdownMenu, DropdownTrigger, useDisclosure } from "@heroui/react"
-import { RoleSlug } from "@/constants/enums"
+import { useMemo } from "react"
 
 type Props = {
     productId: string
     currentImageUrl?: string
     onSuccess?: () => void
+    isReadOnly: boolean
 }
 
-export function ProductImageUploader({ productId, currentImageUrl, onSuccess }: Props) {
-    const isReadOnly = useTokenStore((s) => s.roleSlug !== RoleSlug.Admin)
-
+export function ProductImageUploader({ productId, currentImageUrl, onSuccess, isReadOnly }: Props) {
     const {
         isOpen: isPreviewOpen,
         onOpen: onOpenPreview,
@@ -34,6 +32,23 @@ export function ProductImageUploader({ productId, currentImageUrl, onSuccess }: 
     })
 
     const uploadMutation = useUploadProductImage({ id: productId, onSuccess: onSuccess })
+
+    const disabledImageActions = useMemo(() => {
+        const keys: string[] = []
+        if (isReadOnly) keys.push("upload")
+        if (!currentImageUrl) keys.push("view")
+        return keys
+    }, [isReadOnly, currentImageUrl])
+
+    const menuItems = useMemo(() => {
+        const baseItems = [{ key: "view", label: "Xem ảnh", icon: <Eye size={20} /> }]
+
+        if (!isReadOnly) {
+            baseItems.push({ key: "upload", label: "Thay đổi ảnh", icon: <Camera size={20} /> })
+        }
+
+        return baseItems
+    }, [isReadOnly])
 
     return (
         <div className="relative group w-40 h-40 rounded-xl overflow-hidden border border-gray-200 shadow-sm bg-gray-50">
@@ -62,23 +77,18 @@ export function ProductImageUploader({ productId, currentImageUrl, onSuccess }: 
                         if (key === "view") onOpenPreview()
                         if (key === "upload") onOpen()
                     }}
-                    // Fix lỗi type cho disabledKeys: Phải là mảng (Iterable)
-                    disabledKeys={isReadOnly ? ["upload"] : !currentImageUrl ? ["view"] : []}
+                    items={menuItems}
+                    disabledKeys={disabledImageActions}
                 >
-                    <DropdownItem
-                        key="view"
-                        startContent={<Eye size={20} className="text-primary" />}
-                    >
-                        Xem ảnh
-                    </DropdownItem>
-
-                    <DropdownItem
-                        key="upload"
-                        startContent={<Camera size={20} className="text-primary" />}
-                        className="text-primary font-medium"
-                    >
-                        Thay đổi ảnh
-                    </DropdownItem>
+                    {(item) => (
+                        <DropdownItem
+                            key={item.key}
+                            startContent={item.icon}
+                            className={item.key === "upload" ? "text-primary" : ""}
+                        >
+                            {item.label}
+                        </DropdownItem>
+                    )}
                 </DropdownMenu>
             </DropdownStyled>
 

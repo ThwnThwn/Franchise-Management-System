@@ -7,7 +7,6 @@ import { useDeleteProduct, useGetAllProducts } from "../hooks"
 import { useGetAllCategories } from "../hooks/useCategory"
 import { Product } from "../models/products/respone"
 import {
-    AlertModal,
     AutocompleteStyled,
     ButtonIconStyled,
     InputStyled,
@@ -21,6 +20,7 @@ import { DashboardHeader } from "@/features/dashboard/components/general/Dashboa
 import { ProductTable } from "@/features/products/components"
 import { useRouter } from "next/navigation"
 import { PRODUCTS_ROUTES } from "@/features/products/constants/routes"
+import { confirmDialog } from "@/hooks"
 
 // Import Components & Hooks
 
@@ -55,46 +55,35 @@ export default function ProductManagementPage() {
         [handleSetFilter]
     )
 
-    // State & Hooks quản lý Modal
-    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
-
-    // Chỉ cần 1 biến state cho modal
-    // const { isOpen, onOpen, onOpenChange } = useDisclosure()
-
-    // Handler: Mở để Tạo mới
     const handleCreate = () => {
-        // setSelectedProduct(null) // Quan trọng: set null để modal biết là Create
-        // onOpen()
         router.push(PRODUCTS_ROUTES.CREATE)
     }
 
-    // Handler: Mở để Update
     const handleEdit = (productId: string) => {
-        // setSelectedProduct(product) // Truyền product vào để modal biết là Edit
-        // onOpen()
         router.push(PRODUCTS_ROUTES.EDIT(productId))
     }
 
     // Modal Delete
-    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
     const deleteMutation = useDeleteProduct()
 
     // Mở Modal Xóa
-    const handleDeleteClick = (product: Product) => {
-        setSelectedProduct(product)
-        setIsDeleteModalOpen(true)
-    }
+    const handleDeleteClick = async (product: Product) => {
+        const isConfirm = await confirmDialog({
+            title: "Xác nhận xóa",
+            message: (
+                <div className="text-slate-600">
+                    Bạn có chắc chắn muốn xóa sản phẩm <br />
+                    <span className="font-bold text-slate-900 text-lg">{product?.name}</span> không?
+                    <div className="mt-2 text-xs text-slate-400 bg-slate-50 p-2 rounded">
+                        ⚠️ Hành động này sẽ xóa toàn bộ biến thể và lịch sử liên quan.
+                    </div>
+                </div>
+            ),
+            confirmText: "Xóa vĩnh viễn"
+        })
 
-    // Xác nhận Xóa
-    const handleConfirmDelete = async () => {
-        if (!selectedProduct) return
-        try {
-            await deleteMutation.mutateAsync({ id: selectedProduct.id })
-            setIsDeleteModalOpen(false)
-            setSelectedProduct(null)
-        } catch (error) {
-            console.error("Delete failed:", error)
-        }
+        if (!isConfirm) return
+        await deleteMutation.mutateAsync({ id: product.id })
     }
 
     return (
@@ -181,38 +170,6 @@ export default function ProductManagementPage() {
                     }
                 />
             )}
-
-            <>
-                {/* --- MODALS --- */}
-                {/* <ProductFormModal
-                    isOpen={isOpen}
-                    onOpenChange={onOpenChange}
-                    product={selectedProduct} // Modal tự check: Có hàng -> Edit, Null -> Create
-                /> */}
-
-                {/* 3. Delete */}
-                <AlertModal
-                    isOpen={isDeleteModalOpen}
-                    onClose={() => setIsDeleteModalOpen(false)}
-                    onConfirm={handleConfirmDelete}
-                    header="Xác nhận xóa"
-                    variant="danger"
-                    isLoading={deleteMutation.isPending}
-                    confirmText="Xóa vĩnh viễn"
-                    body={
-                        <div className="text-slate-600">
-                            Bạn có chắc chắn muốn xóa sản phẩm <br />
-                            <span className="font-bold text-slate-900 text-lg">
-                                {selectedProduct?.name}
-                            </span>{" "}
-                            không?
-                            <div className="mt-2 text-xs text-slate-400 bg-slate-50 p-2 rounded">
-                                ⚠️ Hành động này sẽ xóa toàn bộ biến thể và lịch sử liên quan.
-                            </div>
-                        </div>
-                    }
-                />
-            </>
         </div>
     )
 }

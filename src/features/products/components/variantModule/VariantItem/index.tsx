@@ -17,6 +17,7 @@ interface VariantItemProps {
     formik: FormikProps<ProductFormValues>
     remove: () => void
     isDeleteAble: boolean
+    isReadOnly: boolean
     /** ID thực từ BE — chỉ có khi đang Edit Mode, undefined khi variant mới chưa lưu */
     variantId?: string
     /** Tất cả recipes của product — dùng để hiển thị preview read-only trên card */
@@ -29,6 +30,7 @@ export const VariantItem = React.memo(function VariantItem({
     formik,
     remove,
     isDeleteAble,
+    isReadOnly,
     variantId,
     recipes = []
 }: VariantItemProps) {
@@ -53,7 +55,7 @@ export const VariantItem = React.memo(function VariantItem({
                 </span>
                 <div className="flex items-center gap-2">
                     {/* Nút mở modal Nguyên liệu — chỉ hiển thị khi variant đã có ID (Edit Mode) */}
-                    {variantId && (
+                    {variantId && !isReadOnly && (
                         <Button
                             size="sm"
                             variant={hasRecipes ? "solid" : "flat"}
@@ -77,7 +79,7 @@ export const VariantItem = React.memo(function VariantItem({
                             )}
                         </Button>
                     )}
-                    {isDeleteAble && (
+                    {isDeleteAble && !isReadOnly && (
                         <ButtonIconStyled
                             isIconOnly
                             size="sm"
@@ -94,6 +96,7 @@ export const VariantItem = React.memo(function VariantItem({
                         onValueChange={(val) =>
                             formik.setFieldValue(`variants.${index}.isActive`, val)
                         }
+                        isReadOnly={isReadOnly}
                     />
                 </div>
             </div>
@@ -108,6 +111,7 @@ export const VariantItem = React.memo(function VariantItem({
                         {...formik.getFieldProps(`variants.${index}.name`)}
                         isInvalid={isInvalid(getVariantPath("name"))}
                         errorMessage={getErrorMessage(getVariantPath("name"))}
+                        isReadOnly={isReadOnly}
                     />
                 </div>
                 <div className="md:col-span-4">
@@ -118,6 +122,7 @@ export const VariantItem = React.memo(function VariantItem({
                         {...formik.getFieldProps(`variants.${index}.sku`)}
                         isInvalid={isInvalid(getVariantPath("sku"))}
                         errorMessage={getErrorMessage(getVariantPath("sku"))}
+                        isReadOnly={isReadOnly}
                     />
                 </div>
                 <div className="md:col-span-2">
@@ -129,6 +134,7 @@ export const VariantItem = React.memo(function VariantItem({
                         {...formik.getFieldProps(`variants.${index}.basePrice`)}
                         isInvalid={isInvalid(getVariantPath("basePrice"))}
                         errorMessage={getErrorMessage(getVariantPath("basePrice"))}
+                        isReadOnly={isReadOnly}
                     />
                 </div>
                 <div className="md:col-span-2">
@@ -140,6 +146,7 @@ export const VariantItem = React.memo(function VariantItem({
                         {...formik.getFieldProps(`variants.${index}.cost`)}
                         isInvalid={isInvalid(getVariantPath("cost"))}
                         errorMessage={getErrorMessage(getVariantPath("cost"))}
+                        isReadOnly={isReadOnly}
                     />
                 </div>
             </div>
@@ -156,6 +163,7 @@ export const VariantItem = React.memo(function VariantItem({
                                     variantIndex={index}
                                     formik={formik}
                                     remove={() => attrHelpers.remove(attrIndex)}
+                                    isReadOnly={isReadOnly}
                                 />
                             ))}
                             <Button
@@ -165,6 +173,7 @@ export const VariantItem = React.memo(function VariantItem({
                                 className="w-fit"
                                 startContent={<Plus size={14} />}
                                 onPress={() => attrHelpers.push({ key: "", value: "" })}
+                                hidden={isReadOnly}
                             >
                                 Thêm thuộc tính
                             </Button>
@@ -185,7 +194,7 @@ export const VariantItem = React.memo(function VariantItem({
             )}
 
             {/* ---- Recipe Edit Modal ---- */}
-            {variantId && (
+            {variantId && !isReadOnly && (
                 <RecipeEditModal
                     variantId={variantId}
                     variantName={variant.name || variant.sku}
