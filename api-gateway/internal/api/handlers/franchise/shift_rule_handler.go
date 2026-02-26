@@ -29,24 +29,23 @@ func NewShiftRuleHandler(shiftGW franchise.IShiftRuleService) *ShiftRuleHandler 
 // @Param        storeId query string false "ID cửa hàng (Nếu muốn lọc theo store cụ thể)"
 // @Success      200 {object} shift.ShiftRuleSettingsResponse "Dữ liệu cấu hình"
 // @Router       /shift-rules [get]
-func (h *ShiftRuleHandler) GetSettings(c *gin.Context) {
+func (h *ShiftRuleHandler) GetSettings(c *gin.Context) error {
 	// FE gửi params: { storeId } qua Query String
 	var params struct {
 		StoreID string `form:"storeId"`
 	}
 
 	if err := c.ShouldBindQuery(&params); err != nil {
-		c.Error(validation.TranslateValidationError(err))
-		return
+		return validation.TranslateValidationError(err)
 	}
 
 	res, err := h.shiftGW.GetSettings(c.Request.Context(), params.StoreID)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, res)
+	return nil
 }
 
 // Save
@@ -56,36 +55,31 @@ func (h *ShiftRuleHandler) GetSettings(c *gin.Context) {
 // @Security     BearerAuth
 // @Param        payload body shift.SaveShiftRuleRequest true "Dữ liệu quy định cần lưu"
 // @Router       /shift-rules [put]
-func (h *ShiftRuleHandler) Save(c *gin.Context) {
+func (h *ShiftRuleHandler) Save(c *gin.Context) error {
 	var req shift.SaveShiftRuleRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(validation.TranslateValidationError(err))
-		return
+		return validation.TranslateValidationError(err)
 	}
 
 	ctx, err := grpcutils.BuildAuthContext(c)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	userId, err := contextutils.GetUserId(c)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	roleSlug, err := contextutils.GetRoleSlug(c)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	if roleSlug == string(roleslug.Manager) {
 		storeId, err := contextutils.GetStoreId(c)
 		if err != nil {
-			c.Error(err)
-			return
+			return err
 		}
 		req.StoreID = stringutils.ToPtr(storeId.String())
 	} else {
@@ -94,9 +88,9 @@ func (h *ShiftRuleHandler) Save(c *gin.Context) {
 
 	err = h.shiftGW.Save(ctx, userId, &req)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, gin.H{})
+	return nil
 }

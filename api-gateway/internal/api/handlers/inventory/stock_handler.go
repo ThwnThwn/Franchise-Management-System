@@ -31,26 +31,24 @@ func NewStockHandler(stockGW inventory.IStockService) *StockHandler {
 // @Success      200    {object}  map[string]interface{}     "Global inventory list"
 // @Failure      500    {object}  map[string]string          "Internal server error"
 // @Router       /stores/stock [get]
-func (h *StockHandler) GetAllStock(c *gin.Context) {
+func (h *StockHandler) GetAllStock(c *gin.Context) error {
 	var req ingredient.GetAllStockReq
 	if err := c.ShouldBindQuery(&req); err != nil {
-		c.Error(validation.TranslateValidationError(err))
-		return
+		return validation.TranslateValidationError(err)
 	}
 
 	ctx, err := grpcutils.BuildAuthContext(c)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	res, err := h.stockGW.GetAllStock(ctx, &req)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, res)
+	return nil
 }
 
 // GetStockByStoreId
@@ -66,33 +64,30 @@ func (h *StockHandler) GetAllStock(c *gin.Context) {
 // @Failure      400    {object}  map[string]string          "Invalid ID format"
 // @Failure      404    {object}  map[string]string          "Store not found"
 // @Router       /stores/{id}/stock [get]
-func (h *StockHandler) GetStockByStoreId(c *gin.Context) {
+func (h *StockHandler) GetStockByStoreId(c *gin.Context) error {
 	id := c.Param("id")
 	storeId, err := uuid.Parse(id)
 	if err != nil {
-		c.Error(errorcode.ErrInvalidId)
-		return
+		return errorcode.ErrInvalidId
 	}
 
 	var req ingredient.GetAllStockReq
 	if err := c.ShouldBindQuery(&req); err != nil {
-		c.Error(validation.TranslateValidationError(err))
-		return
+		return validation.TranslateValidationError(err)
 	}
 
 	ctx, err := grpcutils.BuildAuthContext(c)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	res, err := h.stockGW.GetStockByStoreId(ctx, storeId, &req)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, res)
+	return nil
 }
 
 // IncreaseStock
@@ -108,31 +103,28 @@ func (h *StockHandler) GetStockByStoreId(c *gin.Context) {
 // @Failure      400      {object} map[string]string                 "Validation error or Invalid ID"
 // @Failure      401      {object} map[string]string                 "Unauthorized"
 // @Router       /stores/{id}/stock [put]
-func (h *StockHandler) IncreaseStock(c *gin.Context) {
+func (h *StockHandler) IncreaseStock(c *gin.Context) error {
 	id := c.Param("id")
 	storeId, err := uuid.Parse(id)
 	if err != nil {
-		c.Error(errorcode.ErrInvalidId)
-		return
+		return errorcode.ErrInvalidId
 	}
 
 	var req []*ingredient.IngredientStockItem
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(validation.TranslateValidationError(err))
-		return
+		return validation.TranslateValidationError(err)
 	}
 
 	ctx, err := grpcutils.BuildAuthContext(c)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	err = h.stockGW.IncreaseStock(ctx, storeId, req)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, gin.H{})
+	return nil
 }

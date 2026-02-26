@@ -28,15 +28,15 @@ func NewCategoryHandler(categoryGW product.ICategoryService) *CategoryHandler {
 // @Success      200  {object}  map[string]interface{} "List of categories"
 // @Failure      500  {object}  map[string]string      "Internal server error"
 // @Router       /categories [get]
-func (h *CategoryHandler) GetCategories(c *gin.Context) {
+func (h *CategoryHandler) GetCategories(c *gin.Context) error {
 	ctx := c.Request.Context()
 	res, err := h.categoryGW.GetCategories(ctx)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, res)
+	return nil
 }
 
 // GetById
@@ -50,22 +50,21 @@ func (h *CategoryHandler) GetCategories(c *gin.Context) {
 // @Failure      400  {object}  map[string]string      "Invalid ID format"
 // @Failure      404  {object}  map[string]string      "Category not found"
 // @Router       /categories/{id} [get]
-func (h *CategoryHandler) GetById(c *gin.Context) {
+func (h *CategoryHandler) GetById(c *gin.Context) error {
 	id := c.Param("id")
 	cateId, err := uuid.Parse(id)
 	if err != nil {
-		c.Error(errorcode.ErrInvalidId)
-		return
+		return errorcode.ErrInvalidId
 	}
 
 	ctx := c.Request.Context()
 	res, err := h.categoryGW.GetById(ctx, cateId)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, res)
+	return nil
 }
 
 // Create
@@ -79,21 +78,20 @@ func (h *CategoryHandler) GetById(c *gin.Context) {
 // @Success      200  {object}  map[string]interface{} "Success"
 // @Failure      400  {object}  map[string]string      "Validation error"
 // @Router       /categories [post]
-func (h *CategoryHandler) Create(c *gin.Context) {
+func (h *CategoryHandler) Create(c *gin.Context) error {
 	var req category.CreateCategoryReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(validation.TranslateValidationError(err))
-		return
+		return validation.TranslateValidationError(err)
 	}
 
 	ctx := c.Request.Context()
 	err := h.categoryGW.Create(ctx, &req)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, gin.H{})
+	return nil
 }
 
 // UpdateById
@@ -108,28 +106,26 @@ func (h *CategoryHandler) Create(c *gin.Context) {
 // @Success      200     {object}  map[string]interface{} "Success"
 // @Failure      400     {object}  map[string]string      "Validation error or Invalid ID"
 // @Router       /categories/{id} [patch]
-func (h *CategoryHandler) UpdateById(c *gin.Context) {
+func (h *CategoryHandler) UpdateById(c *gin.Context) error {
 	id := c.Param("id")
 	cateId, err := uuid.Parse(id)
 	if err != nil {
-		c.Error(errorcode.ErrInvalidId)
-		return
+		return errorcode.ErrInvalidId
 	}
 
 	var req category.UpdateCategoryReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(validation.TranslateValidationError(err))
-		return
+		return validation.TranslateValidationError(err)
 	}
 
 	ctx := c.Request.Context()
 	err = h.categoryGW.Update(ctx, cateId, &req)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, gin.H{})
+	return nil
 }
 
 // DeleteById
@@ -143,20 +139,19 @@ func (h *CategoryHandler) UpdateById(c *gin.Context) {
 // @Success      200  {object}  map[string]interface{} "Success"
 // @Failure      400  {object}  map[string]string      "Invalid ID format"
 // @Router       /categories/{id} [delete]
-func (h *CategoryHandler) DeleteById(c *gin.Context) {
+func (h *CategoryHandler) DeleteById(c *gin.Context) error {
 	id := c.Param("id")
 	cateId, err := uuid.Parse(id)
 	if err != nil {
-		c.Error(errorcode.ErrInvalidId)
-		return
+		return errorcode.ErrInvalidId
 	}
 
 	ctx := c.Request.Context()
 	err = h.categoryGW.Delete(ctx, cateId)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, gin.H{})
+	return nil
 }
