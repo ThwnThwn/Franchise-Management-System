@@ -39,7 +39,8 @@ namespace InventoryService.API.Services.Inventory
                 Items = request.Items.Select(x => new Application.Dtos.StoreIngredient.IngredientStockItem
                 {
                     IngredientId = Guid.Parse(x.IngredientId),
-                    Quantity = Convert.ToDecimal(x.Quantity)
+                    Quantity = Convert.ToDecimal(x.Quantity),
+                    UnitPrice = Convert.ToDecimal(x.UnitPrice)
                 }).ToList()
             }));
             return new IncreaseStockResponse();

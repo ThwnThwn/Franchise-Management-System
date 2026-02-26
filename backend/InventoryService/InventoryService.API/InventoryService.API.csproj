@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+	</PropertyGroup>
 
 	<ItemGroup>
 		<Protobuf Include="..\..\..\protos\inventory\*.proto" GrpcServices="Server" ProtoRoot="..\..\..\protos" />
@@ -12,6 +12,7 @@
 	<ItemGroup>
 		<Protobuf Include="Protos\inventory.proto" GrpcServices="Server" />
 		<Protobuf Include="Protos\productVariants.proto" GrpcServices="Client" />
+		<Protobuf Include="Protos\products.proto" GrpcServices="Client" />
 	</ItemGroup>
 	<ItemGroup>
 		<Protobuf Include="Protos\user.proto" GrpcServices="Client" />
@@ -21,19 +22,23 @@
 	  <None Remove="Protos\inventory.proto" />
 	</ItemGroup> -->
 
-  <ItemGroup>
-    <PackageReference Include="AutoMapper" Version="12.0.1" />
-    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
-    <PackageReference Include="DotNetEnv" Version="3.1.1" />
-    <PackageReference Include="FluentValidation" Version="12.1.1" />
-    <PackageReference Include="Grpc.AspNetCore" Version="2.57.0" />
-	<PackageReference Include="Grpc.AspNetCore.Server.Reflection" Version="2.57.0" />
-	<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="AutoMapper" Version="12.0.1" />
+		<PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
+		<PackageReference Include="DotNetEnv" Version="3.1.1" />
+		<PackageReference Include="FluentValidation" Version="12.1.1" />
+		<PackageReference Include="Grpc.AspNetCore" Version="2.57.0" />
+		<PackageReference Include="Grpc.AspNetCore.Server.Reflection" Version="2.57.0" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.10">
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+		</PackageReference>
+		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\InventoryService.Infrastructure\InventoryService.Infrastructure.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\InventoryService.Infrastructure\InventoryService.Infrastructure.csproj" />
+	</ItemGroup>
 
 
 </Project>
