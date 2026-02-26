@@ -23,15 +23,26 @@ namespace InventoryService.API.Services.Inventory
 
         public override async Task<IncreaseStockResponse> IncreaseStock(IncreaseStockRequest request, ServerCallContext context)
         {
-            //ktra phải manager của kho 
-            var managerIdEntry = context.RequestHeaders.FirstOrDefault(h =>
-            h.Key.Equals("x-user-id", StringComparison.OrdinalIgnoreCase));
+            var canContinue = false;
+            //ktra phải admin không, nếu là admin thì có thể tăng stock của tất cả các kho, nếu không phải admin thì chỉ có thể tăng stock của kho mà mình quản lý
+            var roleEntry = (context.RequestHeaders.FirstOrDefault(h =>
+            h.Key.Equals("x-role-slug", StringComparison.OrdinalIgnoreCase)));
 
-            var manager = await _identityServiceClient.GetManager(new Application.Dtos.User.GetManagerReq() { StoreId = Guid.Parse(request.StoreId)});
-            if(manager.Id != Guid.Parse(managerIdEntry.Value))
+            if (roleEntry != null && roleEntry.Value == "admin") canContinue = true;
+
+            if (!canContinue)
             {
-                throw new RpcException(new Status(StatusCode.PermissionDenied, "Bạn không có quyền thực hiện hành động này"));
+                //ktra phải manager của kho 
+                var managerIdEntry = context.RequestHeaders.FirstOrDefault(h =>
+                h.Key.Equals("x-user-id", StringComparison.OrdinalIgnoreCase));
+
+                var manager = await _identityServiceClient.GetManager(new Application.Dtos.User.GetManagerReq() { StoreId = Guid.Parse(request.StoreId) });
+                if (manager.Id != Guid.Parse(managerIdEntry!.Value))
+                {
+                    throw new RpcException(new Status(StatusCode.PermissionDenied, "Bạn không có quyền thực hiện hành động này"));
+                }
             }
+           
             //===============================
             var rep = await _mediator.Send(new IncreaseStockCommand(new()
             {
