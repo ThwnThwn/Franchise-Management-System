@@ -43,6 +43,8 @@ using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using SharedKernel.Events;
+using SharedKernel.Constants;
 namespace SalesService.API;
 
 public class Program
@@ -195,6 +197,9 @@ public class Program
 
         builder.Services.AddSwaggerGen(options =>
         {
+            // 🔥 FIX duplicate DTO schema issue
+            options.CustomSchemaIds(type => type.FullName);
+
             options.SwaggerDoc("v1", new OpenApiInfo
             {
                 Title = "Sale Service API",

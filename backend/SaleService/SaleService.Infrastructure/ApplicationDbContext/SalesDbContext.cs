@@ -400,6 +400,7 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
             entity.Property(e => e.ProcessedAt).HasColumnName("processed_at");
             entity.Property(e => e.CompletedAt).HasColumnName("completed_at");
             entity.Property(e => e.CancelledAt).HasColumnName("cancelled_at");
+            entity.Property(x => x.CancellationReason).HasColumnName("cancellation_reason");
 
             entity.Property(e => e.RefundReason).HasColumnName("refund_reason");
             entity.Property(e => e.RefundTicketMethod).HasColumnName("refund_ticket_method");
@@ -440,6 +441,18 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
                 .WithMany()
                 .HasForeignKey(e => e.TransactionId)
                 .HasConstraintName("fk_refund_transaction");
+
+            entity.Property(e => e.RejectionNotes)
+            .HasMaxLength(500)
+            .HasColumnName("rejection_notes");
+
+            entity.Property(e => e.CancelledBy)
+                  .HasColumnName("cancelled_by");
+
+            entity.HasOne<WalletTransaction>()
+                  .WithMany()
+                  .HasForeignKey(e => e.OriginalTransactionId)
+                  .HasConstraintName("fk_refund_original_transaction");
         });
 
         modelBuilder.Entity<WalletTransaction>(entity =>

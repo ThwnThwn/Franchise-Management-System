@@ -6,8 +6,8 @@ using static SalesService.Application.Features.RefundTickets.Command.CancelRefun
 namespace SalesService.Application.Features.RefundTickets.Command.CancelRefund;
 
 public sealed record CancelRefundCommand(
-    Guid CustomerId,
     Guid RefundTicketId,
+    Guid CustomerId,
     CancelRefundRequest? Request = null 
 ) : IRequest<Result<CancelRefundResponse>>
 {

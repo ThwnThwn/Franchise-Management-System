@@ -21,9 +21,9 @@ namespace SalesService.Application.Features.RefundTickets.Command.CancelRefund
         CancellationToken cancellationToken)
         {
             // ===== STEP 1: LOAD REFUND TICKET =====
-            var refundTicket = await _refundTicketRepository.GetByIdAsync(
-                command.RefundTicketId,
-                cancellationToken);
+            var refundTicket = await _refundTicketRepository.GetByTicketIdAsync(
+            command.RefundTicketId,
+            cancellationToken);
 
             if (refundTicket == null)
             {

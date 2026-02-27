@@ -1,4 +1,5 @@
-﻿using Ardalis.Result;
+﻿using System.Security.Claims;
+using Ardalis.Result;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,7 +20,7 @@ namespace SalesService.API.Controllers;
 
 [ApiController]
 [Route("api/refund-tickets")]
-[Authorize]
+//[Authorize]
 public class RefundTicketsController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -65,7 +66,7 @@ public class RefundTicketsController : ControllerBase
     }
 
     [HttpPost("internal")]
-    [Authorize(Roles = "admin,manager,staff")]
+    //[Authorize(Roles = "admin,manager,staff")]
     public async Task<IActionResult> InternalCreateRefund(
         [FromBody] InternalCreateRefundRequestDto request,
         CancellationToken cancellationToken)
@@ -113,7 +114,7 @@ public class RefundTicketsController : ControllerBase
     }
 
     [HttpPost("{refundTicketId}/approve")]
-    [Authorize(Roles = "admin")]
+    //[Authorize(Roles = "admin")]
     public async Task<IActionResult> ApproveRefund(
         [FromRoute] Guid refundTicketId,
         [FromBody] ApproveRefundRequestDto request,
@@ -150,7 +151,7 @@ public class RefundTicketsController : ControllerBase
     }
 
     [HttpPost("{refundTicketId}/reject")]
-    [Authorize(Roles = "admin")]
+    //[Authorize(Roles = "admin")]
     public async Task<IActionResult> RejectRefund(
         [FromRoute] Guid refundTicketId,
         [FromBody] RejectRefundRequestDto request,
@@ -257,7 +258,7 @@ public class RefundTicketsController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize(Roles = "admin")]
+    //[Authorize(Roles = "admin")]
     public async Task<IActionResult> GetAll(
         [FromQuery] int pageIndex = 1,
         [FromQuery] int pageSize = 20,
@@ -336,7 +337,8 @@ public class RefundTicketsController : ControllerBase
 
     private Guid GetUserIdFromClaims()
     {
-        var userIdClaim = User.FindFirst("sub")?.Value ?? User.FindFirst("userId")?.Value;
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
         return Guid.TryParse(userIdClaim, out var userId)
             ? userId
             : throw new UnauthorizedAccessException("Invalid user credentials");

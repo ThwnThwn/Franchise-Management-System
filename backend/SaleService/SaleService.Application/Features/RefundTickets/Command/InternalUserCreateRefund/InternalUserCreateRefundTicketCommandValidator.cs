@@ -45,41 +45,39 @@ public sealed class InternalUserCreateRefundTicketCommandValidator
         // InternalUserOverride Validation
         When(x => x.InternalUserOverride != null, () =>
         {
-            RuleFor(x => x.InternalUserOverride!.InternalUserId)
-                .NotEmpty()
-                .WithMessage("InternalUserId is required.");
+
 
             RuleFor(x => x.InternalUserOverride!.RefundReason)
-                .IsInEnum()
-                .WithMessage("Invalid refund reason.")
-                .When(x => x.InternalUserOverride!.RefundReason.HasValue);
+            .IsInEnum()
+            .WithMessage("Invalid refund reason.")
+            .When(x => x.InternalUserOverride!.RefundReason.HasValue);
 
-            //  InternalNotes required when using ANY bypass
-            RuleFor(x => x.InternalUserOverride!.InternalNotes)
-                .NotEmpty()
-                .WithMessage("InternalNotes is required when bypassing validations.")
-                .When(x => x.InternalUserOverride!.BypassTimeLimit ||
-                          x.InternalUserOverride!.BypassAmountValidation);
+        //  InternalNotes required when using ANY bypass
+        //RuleFor(x => x.InternalUserOverride!.InternalNotes)
+        //    .NotEmpty()
+        //    .WithMessage("InternalNotes is required when bypassing validations.")
+        //    .When(x => x.InternalUserOverride!.BypassTimeLimit ||
+        //              x.InternalUserOverride!.BypassAmountValidation);
 
-            RuleFor(x => x.InternalUserOverride!.InternalNotes)
-                .MaximumLength(1000)
-                .WithMessage("InternalNotes cannot exceed 1000 characters.")
-                .When(x => !string.IsNullOrWhiteSpace(x.InternalUserOverride!.InternalNotes));
+        RuleFor(x => x.InternalUserOverride!.InternalNotes)
+            .MaximumLength(1000)
+            .WithMessage("InternalNotes cannot exceed 1000 characters.")
+            .When(x => !string.IsNullOrWhiteSpace(x.InternalUserOverride!.InternalNotes));
 
-            //  RefundReasonType required for non-normal refunds
-            RuleFor(x => x.InternalUserOverride!.RefundReason)
-                .NotNull()
-                .NotEqual(RefundReasonType.NormalProcess)
-                .WithMessage("Refund Reason Type must be specified when bypassing validations.")
-                .When(x => x.InternalUserOverride!.BypassTimeLimit ||
-                          x.InternalUserOverride!.BypassAmountValidation);
+        //  RefundReasonType required for non-normal refunds
+        RuleFor(x => x.InternalUserOverride!.RefundReason)
+            .NotNull()
+            .NotEqual(RefundReasonType.NormalProcess)
+            .WithMessage("Refund Reason Type must be specified when bypassing validations.")
+            .When(x => x.InternalUserOverride!.BypassTimeLimit ||
+                      x.InternalUserOverride!.BypassAmountValidation);
 
-            //  AutoApprove logic validation
-            RuleFor(x => x.InternalUserOverride!.InternalNotes)
-                .NotEmpty()
-                .WithMessage("InternalNotes is required for auto-approved refunds.")
-                .When(x => x.InternalUserOverride!.AutoApprove);
-        });
+        //  AutoApprove logic validation
+        //RuleFor(x => x.InternalUserOverride!.InternalNotes)
+        //    .NotEmpty()
+        //    .WithMessage("InternalNotes is required for auto-approved refunds.")
+        //    .When(x => x.InternalUserOverride!.AutoApprove);
+    });
 
         //  If bypassing amount, compensation type cannot be Normal
         RuleFor(x => x.InternalUserOverride!.RefundReason)

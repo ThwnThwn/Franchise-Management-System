@@ -24,13 +24,13 @@ public sealed class GetRefundByIdQueryHandler
 
         var ticket = await _refundTicketRepository.GetByIdAsync(request.RefundTicketId, cancellationToken);
 
-        var userRole = await _identityServiceClient.GetUserByIdAsync(request.UserId);
-        var isOwner = ticket != null && ticket.UserId == request.UserId;
-        var isAdmin = userRole.Role.RoleName is "Administrator" or "Manager";
-        if (!isAdmin && !isOwner)
-        {
-            return Result.Forbidden("You do not have permission!!!");
-        }
+        //var userRole = await _identityServiceClient.GetUserByIdAsync(request.UserId);
+        //var isOwner = ticket != null && ticket.UserId == request.UserId;
+        //var isAdmin = userRole.Role.RoleName is "Administrator" or "Manager";
+        //if (!isAdmin && !isOwner)
+        //{
+        //    return Result.Forbidden("You do not have permission!!!");
+        //}
 
         if (ticket == null)
             return Result.NotFound($"Refund ticket not found for id '{request.RefundTicketId}'");

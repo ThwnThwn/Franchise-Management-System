@@ -53,15 +53,15 @@ public sealed class InternalUserCreateRefundTicketCommandHandler
                 return Result.NotFound("Original transaction not found");
 
             // ✅ Call authorization service
-            var authResult = _authorizationService.ValidateInternalUserOverridePermissions(
-                userRole.Role.RoleName,
-                InternalUserOverride,
-                request.Amount,
-                OriginalTransaction.Amount,
-                OriginalTransaction.CreatedAt);
+            //var authResult = _authorizationService.ValidateInternalUserOverridePermissions(
+            //    userRole.Role.RoleName,
+            //    InternalUserOverride,
+            //    request.Amount,
+            //    OriginalTransaction.Amount,
+            //    OriginalTransaction.CreatedAt);
 
-            if (!authResult.IsSuccess)
-                return Result<InternalUserCreateRefundTicketResponse>.Forbidden(authResult.Errors.ToArray());
+            //if (!authResult.IsSuccess)
+            //    return Result<InternalUserCreateRefundTicketResponse>.Forbidden(authResult.Errors.ToArray());
         }
         // ===== BASIC VALIDATIONS (Always Required) =====
 

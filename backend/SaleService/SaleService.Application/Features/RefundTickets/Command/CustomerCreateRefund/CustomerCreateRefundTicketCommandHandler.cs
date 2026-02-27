@@ -41,7 +41,6 @@ public sealed class CustomerCreateRefundTicketCommandHandler
             command.OrderId,
             cancellationToken);
 
-        // ✅ Check null FIRST
         if (originalTransaction == null)
         {
             return Result.NotFound("No payment transaction found for this order");
@@ -95,19 +94,21 @@ public sealed class CustomerCreateRefundTicketCommandHandler
         }
 
         // ===== STEP 8: VALIDATE REFUNDABLE AMOUNT =====
+        var originalAmount = Math.Abs(originalTransaction.Amount);
+
         var totalRefunded = await _refundTicketRepository
             .GetTotalRefundedAmountByTransactionIdAsync(
                 originalTransaction.Id,
                 cancellationToken);
 
-        var remainingRefundable = originalTransaction.Amount - totalRefunded;
+        var remainingRefundable = originalAmount - totalRefunded;
 
         if (request.Amount > remainingRefundable)
         {
             return Result.Invalid(new ValidationError(
                 nameof(request.Amount),
                 $"Refund amount exceeds remaining refundable amount. " +
-                $"Original: {originalTransaction.Amount:N2}, " +
+                $"Original: {originalAmount:N2}, " +
                 $"Already refunded: {totalRefunded:N2}, " +
                 $"Remaining: {remainingRefundable:N2}"));
         }

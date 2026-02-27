@@ -5,8 +5,8 @@ using static SalesService.Application.Features.RefundTickets.Command.RejectRefun
 namespace SalesService.Application.Features.RefundTickets.Command.RejectRefundByAdmin;
 
 public sealed record RejectRefundCommand(
-Guid InternalUserId,
 Guid RefundTicketId,
+Guid InternalUserId,
 RejectRefundRequest Request
 ) : IRequest<Result<RejectRefundResponse>>
 {

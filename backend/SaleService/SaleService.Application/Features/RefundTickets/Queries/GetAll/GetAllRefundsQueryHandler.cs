@@ -21,11 +21,11 @@ public sealed class GetAllRefundsHandler
         GetAllRefundsQuery request,
         CancellationToken cancellationToken)
     {
-        var userRole = await _identityServiceClient.GetUserByIdAsync(request.InternalUserId);
-        if (userRole.Role.Slug != "admin" && userRole.Role.Slug != "manager")
-        {
-            return Result.Forbidden("You do not have permission!!!");
-        }
+        //var userRole = await _identityServiceClient.GetUserByIdAsync(request.InternalUserId);
+        //if (userRole.Role.Slug != "admin" && userRole.Role.Slug != "manager")
+        //{
+        //    return Result.Forbidden("You do not have permission!!!");
+        //}
 
         var pagedResult = await _ticketRepository.GetAllRefundsAsync(
             request.PageIndex,

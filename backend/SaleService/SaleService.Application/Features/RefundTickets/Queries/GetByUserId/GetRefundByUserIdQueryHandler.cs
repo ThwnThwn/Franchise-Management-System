@@ -40,16 +40,19 @@ public sealed class GetRefundByUserIdHandler
        var response = tickets.Items.Select(ticket => new GetRefundByUserIdResponse
         {
             Id = ticket.Id,
+            UserId = ticket.UserId,
             TicketCode = ticket.TicketCode,
             Amount = ticket.Amount,
+            RefundAmount= ticket.RefundAmount,
             Reason = ticket.Reason,
             WalletId = ticket.WalletId,
             OrderId = ticket.OrderId,
             TransactionId = ticket.TransactionId,
             OriginalTransactionId = ticket.OriginalTransactionId,
             Status = ticket.Status,
-            CreatedAt = ticket.CreatedAt
-        }).ToList();
+            CreatedAt = ticket.CreatedAt,
+            UpdatedAt = ticket.UpdatedAt
+       }).ToList();
         return Result.Success(new BuildingBlocks.Core.Pagination.PagedResult<GetRefundByUserIdResponse>(
             response,
             tickets.TotalCount,

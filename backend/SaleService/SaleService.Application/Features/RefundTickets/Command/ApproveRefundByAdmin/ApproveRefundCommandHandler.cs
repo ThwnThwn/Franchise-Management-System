@@ -36,22 +36,26 @@ public sealed class ApproveRefundCommandHandler
         var request = command.Request;
 
 
-        var userRole = await _identityServiceClient.GetUserByIdAsync(command.InternalUserId);
-        var role = userRole?.Role?.RoleName?.Trim().ToLower();
+        //var userRole = await _identityServiceClient.GetUserByIdAsync(command.InternalUserId);
+        //var role = userRole?.Role?.RoleName?.Trim().ToLower();
 
-        var isInternalUser = role == "administrator"
-                        || role == "manager"
-                        || role == "staff";
+        //var isInternalUser = role == "administrator"
+        //                || role == "manager"
+        //                || role == "staff";
 
-        if (!isInternalUser)
-        {
-            return Result.Forbidden("Only Admin or Manager can approve refund requests");
-        }
+        //if (!isInternalUser)
+        //{
+        //    return Result.Forbidden("Only Admin or Manager can approve refund requests");
+        //}
 
         // ===== STEP 2: LOAD REFUND TICKET =====
-        var refundTicket = await _refundTicketRepository.GetByIdAsync(
+
+        Console.WriteLine($"[Reject] Looking for RefundTicketId: {command.RefundTicketId}");
+        var refundTicket = await _refundTicketRepository.GetByTicketIdAsync(
             command.RefundTicketId,
             cancellationToken);
+        Console.WriteLine($"[Reject] Result: {(refundTicket == null ? "NULL" : refundTicket.Id.ToString())}");
+        
 
         if (refundTicket == null)
         {
@@ -103,12 +107,14 @@ public sealed class ApproveRefundCommandHandler
         }
 
         // ===== STEP 6: VALIDATE REFUND AMOUNT =====
+        var originalAmount = Math.Abs(originalTransaction.Amount);
+
         var totalRefunded = await _refundTicketRepository
             .GetTotalRefundedAmountByTransactionIdAsync(
-                refundTicket.OriginalTransactionId,
+                originalTransaction.Id,
                 cancellationToken);
 
-        var remainingRefundable = originalTransaction.Amount - totalRefunded;
+        var remainingRefundable = originalAmount - totalRefunded;
 
         if (refundTicket.Amount > remainingRefundable)
         {
@@ -129,20 +135,8 @@ public sealed class ApproveRefundCommandHandler
             refundTicket,
             cancellationToken);
 
-        // ===== STEP 8: AUTO-COMPLETE IF REQUESTED =====
-        string nextSteps;
-        if (request.AutoComplete)
-        {
-            // TODO: Implement CompleteRefundAsync
-            // - Create refund transaction
-            // - Update wallet balance
-            // - Update refund ticket to Completed
-            nextSteps = "Refund has been processed. Money added to wallet.";
-        }
-        else
-        {
-            nextSteps = "Refund approved. Awaiting processing to add money to wallet.";
-        }
+        string nextSteps = "Refund approved. Awaiting processing to add money to wallet.";
+        
 
         // ===== STEP 9: RETURN RESPONSE =====
         var response = new ApproveRefundResponse

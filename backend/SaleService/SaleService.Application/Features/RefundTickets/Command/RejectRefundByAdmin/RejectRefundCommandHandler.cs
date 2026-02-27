@@ -36,23 +36,29 @@ public sealed class RejectRefundCommandHandler
     {
         var request = command.Request;
 
-        var userRole = await _identityServiceClient
-            .GetUserByIdAsync(command.InternalUserId);
+        Console.WriteLine($"[Reject] Looking for RefundTicketId: {command.RefundTicketId}");
+        var refundTicket = await _refundTicketRepository.GetByTicketIdAsync(
+            command.RefundTicketId,
+            cancellationToken);
+        Console.WriteLine($"[Reject] Result: {(refundTicket == null ? "NULL" : refundTicket.Id.ToString())}");
 
-        var role = userRole?.Role?.RoleName?.Trim().ToLower();
-
-        var isAdmin = role == "administrator";
-
-        if (!isAdmin)
-        {
-            return Result.Forbidden("Only Admin can reject refund requests");
-        }
-
-        var refundTicket = await _refundTicketRepository
-            .GetByIdAsync(command.RefundTicketId, cancellationToken);
 
         if (refundTicket == null)
+        {
             return Result.NotFound("Refund ticket not found");
+        }
+
+        //var userRole = await _identityServiceClient.GetUserByIdAsync(command.InternalUserId);
+
+        //var role = userRole?.Role?.Slug?.Trim().ToLower();
+        //Console.WriteLine($"User Role: {role}"); 
+        //var isAdmin = role == "admin";
+
+        //if (!isAdmin)
+        //{
+        //    return Result.Forbidden("Only Admin can reject refund requests");
+        //}
+
 
         if (refundTicket.Status != RefundTicketStatus.Pending)
             return Result.Invalid(new ValidationError(

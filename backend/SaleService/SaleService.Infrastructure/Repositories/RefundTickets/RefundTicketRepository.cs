@@ -15,13 +15,13 @@ namespace SalesService.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<IEnumerable<RefundTicket>> GetByTicketIdAsync(
-            Guid ticketId,
-            CancellationToken cancellationToken)
+        public async Task<RefundTicket?> GetByTicketIdAsync(
+        Guid ticketId,
+        CancellationToken cancellationToken)
         {
             return await _context.Set<RefundTicket>()
-                .Where(rt => rt.Id == ticketId)
-                .ToListAsync(cancellationToken);
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(rt => rt.Id == ticketId, cancellationToken);
         }
 
         public async Task<PagedResult<RefundTicket>> GetByUserIdAsync(

@@ -1,4 +1,5 @@
-﻿using Ardalis.Result;
+﻿using System.Security.Claims;
+using Ardalis.Result;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -155,15 +156,13 @@ public class WalletController : ControllerBase
     // ================= UPDATE STATUS =================
 
     [HttpPatch("{walletId}/status")]
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles = "admin,manager")]
     public async Task<IActionResult> UpdateWalletStatus(
-        [FromRoute] Guid walletId,
-        [FromBody] UpdateWalletStatusRequestDto request,
-        CancellationToken cancellationToken)
+    [FromRoute] Guid walletId,
+    [FromBody] UpdateWalletStatusRequestDto request,
+    CancellationToken cancellationToken)
     {
-        var adminIdClaim =
-            User.FindFirst("sub")?.Value ??
-            User.FindFirst("userId")?.Value;
+        var adminIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
         if (!Guid.TryParse(adminIdClaim, out var adminId))
             return Unauthorized(new { errors = new[] { "Invalid admin credentials" } });
@@ -183,7 +182,7 @@ public class WalletController : ControllerBase
         if (!result.IsSuccess)
             return result.ToActionResult();
 
-        var response = new UpdateWalletStatusResponseDto
+        return Ok(new UpdateWalletStatusResponseDto
         {
             WalletId = result.Value.WalletId,
             OldStatus = result.Value.OldStatus,
@@ -191,9 +190,7 @@ public class WalletController : ControllerBase
             Reason = result.Value.Reason,
             UpdatedBy = result.Value.UpdatedBy,
             UpdatedAt = result.Value.UpdatedAt
-        };
-
-        return Ok(response);
+        });
     }
 
     // ================= GET WALLET =================

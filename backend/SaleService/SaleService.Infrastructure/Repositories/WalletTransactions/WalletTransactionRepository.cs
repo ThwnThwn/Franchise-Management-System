@@ -445,6 +445,17 @@ public sealed class WalletTransactionRepository
 
         return await query.ToPagedListAsync(pageIndex, pageSize, cancellationToken);
     }
-    
-   
+
+    public async Task<WalletTransaction?> GetByReferenceAsync(
+    Guid referenceId,
+    WalletReferenceType referenceType,
+    CancellationToken cancellationToken)
+    {
+        return await _context.WalletTransactions
+            .FirstOrDefaultAsync(
+                x => x.ReferenceId == referenceId &&
+                     x.ReferenceType == referenceType &&
+                     !x.IsDeleted,
+                cancellationToken);
+    }
 }
