@@ -137,6 +137,7 @@ namespace InventoryService.API
             //add client
             builder.Services.AddScoped<IIdentityServiceClient, IdentityServiceClient>();
             builder.Services.AddScoped<IProductServiceClient, ProductServiceClient>();
+            builder.Services.AddScoped<ISupplierServiceClient, InventoryService.API.Services.Supplier.SupplierServiceClient>();
             // Kafka Producer Registry (for Outbox)
             builder.Services.AddSingleton<KafkaProducerRegistry>(sp => {
                 var registry = new KafkaProducerRegistry();

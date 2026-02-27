@@ -47,6 +47,29 @@ public class PurchaseOrderRepository : IPurchaseOrderRepository
             .Where(si => si.SupplierId == supplierId && idList.Contains(si.IngredientId))
             .ToDictionaryAsync(si => si.IngredientId, si => si.UnitPrice, cancellationToken);
     }
+
+    public async Task<Dictionary<Guid, decimal>> GetLatestPriceForIngredientsAsync(
+        IEnumerable<Guid> ingredientIds, CancellationToken cancellationToken = default)
+    {
+        var idList = ingredientIds.ToList();
+
+        var query = from poi in _dbContext.Set<PurchaseOrderItem>()
+                    join po in _dbContext.PurchaseOrders on poi.PurchaseOrderId equals po.Id
+                    where po.Status == Domain.Enums.PurchaseOrderStatus.Completed
+                          && !po.IsDeleted && !poi.IsDeleted
+                          && idList.Contains(poi.IngredientId)
+                    group new { poi, po } by poi.IngredientId into g
+                    select new
+                    {
+                        IngredientId = g.Key,
+                        LatestPrice = g.OrderByDescending(x => x.po.CompletedAt ?? x.po.CreatedAt)
+                                       .Select(x => x.poi.UnitPrice)
+                                       .FirstOrDefault()
+                    };
+
+        return await query.ToDictionaryAsync(x => x.IngredientId, x => x.LatestPrice, cancellationToken);
+    }
+
     public IQueryable<PurchaseOrder> GetQueryable()
     {
         return _dbContext.PurchaseOrders.AsQueryable();
