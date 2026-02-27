@@ -11,15 +11,18 @@ namespace InventoryService.Application.Features.StoreIngredient.Commands.SyncZer
         private readonly IInventoryDbContext _dbContext;
         private readonly ISupplierServiceClient _supplierServiceClient;
         private readonly ILogger<SyncZeroCostIngredientsHandler> _logger;
+        private readonly IMediator _mediator;
 
         public SyncZeroCostIngredientsHandler(
             IInventoryDbContext dbContext,
             ISupplierServiceClient supplierServiceClient,
-            ILogger<SyncZeroCostIngredientsHandler> logger)
+            ILogger<SyncZeroCostIngredientsHandler> logger,
+            IMediator mediator)
         {
             _dbContext = dbContext;
             _supplierServiceClient = supplierServiceClient;
             _logger = logger;
+            _mediator = mediator;
         }
 
         public async Task<SyncZeroCostIngredientsResult> Handle(SyncZeroCostIngredientsCommand request, CancellationToken cancellationToken)
@@ -73,10 +76,33 @@ namespace InventoryService.Application.Features.StoreIngredient.Commands.SyncZer
                 await _dbContext.SaveChangesAsync(cancellationToken);
             }
 
+            // Đồng bộ xong thì gọi mediator để tính lại giá vốn cho tất cả Variant có liên quan
+            // tới các nguyên liệu vừa được cập nhật giá
+            foreach (var ingredient in zeroCostIngredients)
+            {
+                if (latestPrices.TryGetValue(ingredient.Id, out var newCost) && newCost > 0)
+                {
+                    try
+                    {
+                        var recalculateResult = await _mediator.Send(new Application.Features.StoreIngredient.Commands.RecalculateVariantCosts.RecalculateVariantCostsByIngredientCommand
+                        {
+                            IngredientId = ingredient.Id
+                        }, cancellationToken);
+                        
+                        _logger.LogInformation(
+                            "[SyncZeroCostIngredients → VariantCost] {Message}", recalculateResult.Message);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error recalculating variant costs for ingredient {Id}", ingredient.Id);
+                    }
+                }
+            }
+
             return new SyncZeroCostIngredientsResult
             {
                 UpdatedCount = updatedCount,
-                Message = $"Đã đồng bộ {updatedCount} nguyên liệu cũ lên giá mới từ SupplierService."
+                Message = $"Đã đồng bộ {updatedCount} nguyên liệu cũ lên giá mới từ SupplierService và cập nhật giá vốn Món ăn liên quan."
             };
         }
     }
