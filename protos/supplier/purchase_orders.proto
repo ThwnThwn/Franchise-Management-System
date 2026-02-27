@@ -12,6 +12,15 @@ service PurchaseOrderGrpc {
   rpc CreatePurchaseOrder(CreatePurchaseOrderRequest) returns (CreatePurchaseOrderReply);
   rpc UpdatePurchaseOrder(UpdatePurchaseOrderRequest) returns (UpdatePurchaseOrderReply);
   rpc CancelPurchaseOrder(CancelPurchaseOrderRequest) returns (CancelPurchaseOrderReply);
+  rpc GetLatestPriceForIngredients(GetLatestPriceForIngredientsRequest) returns (GetLatestPriceForIngredientsReply);
+}
+
+message GetLatestPriceForIngredientsRequest {
+  repeated string ingredient_ids = 1;
+}
+
+message GetLatestPriceForIngredientsReply {
+  map<string, double> prices = 1;
 }
 
 // ── Requests ──────────────────────────────────────────────────────────

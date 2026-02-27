@@ -16,6 +16,12 @@
 		<Protobuf Include="..\..\..\protos\supplier\*.proto" GrpcServices="Server" ProtoRoot="..\..\..\protos" />
 		<Protobuf Include="..\..\..\protos\franchise\*.proto" GrpcServices="Client" ProtoRoot="..\..\..\protos" />
 	</ItemGroup>
+	<ItemGroup>
+	  <Compile Remove="NewFolder\**" />
+	  <Content Remove="NewFolder\**" />
+	  <EmbeddedResource Remove="NewFolder\**" />
+	  <None Remove="NewFolder\**" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="DotNetEnv" Version="3.1.1" />
@@ -32,10 +38,6 @@
 		<PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="10.0.0" />
 		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<Folder Include="NewFolder\" />
 	</ItemGroup>
 
 </Project>

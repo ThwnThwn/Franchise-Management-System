@@ -88,7 +88,7 @@ message GetPurchaseOrdersReply {
 }
 
 message PurchaseOrderSummary {
-  string id = 1;
+  string id = 1;  
   string code = 2;
   string supplier_name = 3;
   int32 status = 4;

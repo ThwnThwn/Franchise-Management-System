@@ -42,10 +42,12 @@ internal class Program
         builder.AddProject<Projects.FranchiseService_API>("franchise-service")
             .WithHttpsEndpoint(name: "grpc", port: franchisePort);
 
+
         // Engagement Service
         var engagementPort = int.Parse(builder.Configuration["ENGAGEMENT_PORT"] ?? "5007");
         builder.AddProject<Projects.EngagementService_API>("engagement-service")
             .WithHttpsEndpoint(name: "grpc", port: engagementPort);
+
         // Supplier Service
         var supplierPort = int.Parse(builder.Configuration["SUPPLIER_PORT"] ?? "5008");
         builder.AddProject<Projects.SupplierService_API>("supplier-service")
