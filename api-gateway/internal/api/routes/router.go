@@ -4,6 +4,7 @@ import (
 	"api-gateway/config"
 	"api-gateway/internal/api/middleware"
 	"net/http"
+	"time"
 
 	_ "api-gateway/docs"
 
@@ -19,6 +20,7 @@ func NewEngine(cfg *config.Config, aR *AppRouter) *gin.Engine {
 	// Apply Global Middleware
 	r.Use(middleware.GlobalErrorHandler())
 	r.Use(middleware.CORSMiddleware())
+	r.Use(middleware.GlobalTimeoutMiddleware(time.Duration(cfg.GatewayTimeoutSeconds) * time.Second))
 
 	// Health check cho Gateway
 	r.GET("/health", func(c *gin.Context) {

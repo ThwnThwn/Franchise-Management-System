@@ -26,26 +26,19 @@ REPLACE_REGEX  = json:"$1"
 
 help:
 	@echo "PROJECT COMMANDS:"
-	@echo "  make swagger       : Generate Swagger documentation"
 	@echo "  make proto         : Generate gRPC code"
-	@echo "  make gen           : Generate gRPC code AND Swagger docs"
+	@echo "  make wire          : Generate Dependency Injection code (Google Wire)"
+	@echo "  make swagger       : Generate Swagger documentation"
+	@echo "  make gen           : Generate wire, gRPC code AND Swagger docs"
 	@echo "  make build         : Build the Go API Gateway executable"
 	@echo "  make run           : Build and Run the Go Gateway locally"
 	@echo "  make dev           : Full flow: Gen (Proto+Swagger) -> Build -> Run"
-	@echo "  make wire          : Generate Dependency Injection code (Google Wire)"
 	@echo "  make clean         : Clean generated PB files and binaries"
 	@echo "  make install-tools : Install necessary tools (swag, wire, protoc-gen-go)"
 
 # ------------------------------------------------------------------------------
-# 1. CODE GENERATION (PROTO + SWAGGER)
+# 1. CODE GENERATION (PROTO + WIRE + SWAGGER)
 # ------------------------------------------------------------------------------
-swagger:
-	@echo "Regenerating Swagger documentation to $(SWAGGER_DOCS_DIR)..."
-	@swag init -g $(GO_MAIN_REL_PATH) \
-		--output $(SWAGGER_DOCS_DIR) \
-		--parseDependency --parseInternal
-	@echo "Swagger docs updated! (Check ./$(SWAGGER_DOCS_DIR) folder)"
-
 proto:
 	@echo "Generating code from $(PROTO_SOURCE_DIR) to $(GO_PB_DIR)..."
 	@mkdir -p $(GO_PB_DIR)
@@ -59,7 +52,19 @@ proto:
 	done
 	@echo "Proto generation process finished! Check: $(GO_PB_DIR)"
 
-gen: swagger proto
+wire:
+	@echo "Running Google Wire..."
+	@wire $(if $(filter-out $@,$(MAKECMDGOALS)),$(WIRE_PATH)/$(filter-out $@,$(MAKECMDGOALS)),$(WIRE_PATH)/...)
+	@echo "Google Wire generation process finished!"
+
+swagger:
+	@echo "Regenerating Swagger documentation to $(SWAGGER_DOCS_DIR)..."
+	@swag init -g $(GO_MAIN_REL_PATH) \
+		--output $(SWAGGER_DOCS_DIR) \
+		--parseDependency --parseInternal
+	@echo "Swagger docs updated! (Check ./$(SWAGGER_DOCS_DIR) folder)"
+
+gen: swagger proto wire
 
 # ------------------------------------------------------------------------------
 # 2. GO BUILD
@@ -87,10 +92,6 @@ dev: gen run
 # ------------------------------------------------------------------------------
 test:
 	@go test -v ./...
-
-wire:
-	@echo "Running Google Wire..."
-	@wire $(if $(filter-out $@,$(MAKECMDGOALS)),$(WIRE_PATH)/$(filter-out $@,$(MAKECMDGOALS)),$(WIRE_PATH)/...)
 
 install-tools:
 	@echo "Installing tools..."

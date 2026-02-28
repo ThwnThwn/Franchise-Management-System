@@ -6,6 +6,7 @@ import (
 	"api-gateway/internal/application/constants/errorcode"
 	"api-gateway/internal/di"
 	"api-gateway/pkg/logger"
+	"fmt"
 
 	"go.uber.org/zap"
 )
@@ -32,10 +33,17 @@ func main() {
 	l := logger.New(global.Config.Logger)
 
 	// 2. Init App
-	app, err := di.InitializeApp(global.Config, l)
+	app, cleanup, err := di.InitializeApp(global.Config, l)
 	if err != nil {
-		l.Fatal("Init app error:", zap.Error(err))
+		l.Error("Gateway shutdown with error:", zap.Error(err))
 	}
+
+	// Đảm bảo cleanup được gọi khi hàm main kết thúc (Graceful Shutdown)
+	defer func() {
+		fmt.Println("Cleaning up resources...")
+		cleanup()
+		fmt.Println("Server exited properly.")
+	}()
 
 	// 3. Run
 	if err := app.Run(); err != nil {
