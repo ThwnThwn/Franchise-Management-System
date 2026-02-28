@@ -42,7 +42,6 @@ namespace EngagementService.API.Services.LoyaltyAccount
 
         public async override Task<LoyaltyAccountResponse> GetByUserPhoneOrEmail(GetByUserPhoneOrEmailRequest request, Grpc.Core.ServerCallContext context)
         {
-            //giả định lấy ra được id từ phone
             var req = new Application.Dtos.LoyaltyAccount.GetByUserPhoneOrEmailRequest()
             {
                 Email = request.Email,
