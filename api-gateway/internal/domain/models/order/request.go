@@ -43,3 +43,17 @@ type GetOrdersRequest struct {
 	FromDate      *string `form:"fromDate"`
 	ToDate        *string `form:"toDate"`
 }
+
+type GetRevenueReportRequest struct {
+	FromDate   *string `json:"fromDate" example:"2024-01-01T00:00:00Z"`
+	ToDate     *string `json:"toDate" example:"2024-01-31T23:59:59Z"`
+	CategoryId *string `json:"categoryId"`
+	StoreId    *string `json:"storeId"`
+}
+
+type GetOrderVolumeRequest struct {
+	FromDate string            `json:"fromDate" example:"2024-05-20"`
+	ToDate   string            `json:"toDate" example:"2024-05-27"`
+	StoreId  *string           `json:"storeId"`
+	Status   *enum.OrderStatus `json:"status"`
+}

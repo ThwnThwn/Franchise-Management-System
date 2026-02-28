@@ -3,10 +3,8 @@ package franchise
 import (
 	"api-gateway/internal/application/constants/errorcode"
 	"api-gateway/internal/application/gateways/franchise"
-	"api-gateway/internal/domain/constants/roleslug"
 	"api-gateway/internal/domain/models/shift"
 	"api-gateway/pkg/utils/contextutils"
-	"api-gateway/pkg/utils/stringutils"
 	"api-gateway/pkg/utils/validation"
 	"net/http"
 
@@ -81,22 +79,9 @@ func (h *ShiftTemplateHandler) Create(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	roleSlug, err := contextutils.GetRoleSlug(c)
-	if err != nil {
-		return err
-	}
+	contextutils.ApplyStoreBoundaries(c, &req.StoreID)
 
-	if roleSlug == string(roleslug.Manager) {
-		storeId, err := contextutils.GetStoreId(c)
-		if err != nil {
-			return err
-		}
-		req.StoreID = stringutils.ToPtr(storeId.String())
-	} else {
-		req.StoreID = nil
-	}
-
-	err = h.shiftGW.Create(c.Request.Context(), &req)
+	err := h.shiftGW.Create(c.Request.Context(), &req)
 	if err != nil {
 		return err
 	}

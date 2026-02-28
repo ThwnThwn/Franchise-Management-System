@@ -267,6 +267,40 @@ func (h *UserHandler) Create(c *gin.Context) error {
 	return nil
 }
 
+// Update
+// @Summary      Update User
+// @Description  Update a specific user info.
+// @Tags         Users
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id       path     string                    true  "User UUID"
+// @Param        request  body     user.UpdateUserRequest 	 true "New User Info"
+// @Success      200      {object} map[string]interface{}    "Updated user details"
+// @Failure      400      {object} map[string]string         "Validation error"
+// @Router       /users/{id} [patch]
+func (h *UserHandler) Update(c *gin.Context) error {
+	var req user.UpdateUserRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		return validation.TranslateValidationError(err)
+	}
+
+	id := c.Param("id")
+	userId, err := uuid.Parse(id)
+	if err != nil {
+		return errorcode.ErrInvalidId
+	}
+
+	ctx := c.Request.Context()
+	res, err := h.userUC.Update(ctx, userId, &req)
+	if err != nil {
+		return err
+	}
+
+	c.JSON(http.StatusOK, res)
+	return nil
+}
+
 // UpdateRole
 // @Summary      Update User Role
 // @Description  Change the role (permission level) of a specific user.

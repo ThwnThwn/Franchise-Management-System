@@ -30,7 +30,7 @@ type LoyaltyAccountGrpcClient interface {
 	// Hàm Upsert nhận vào UpSertRequest và không trả ra gì
 	CreateLoyaltyAccount(ctx context.Context, in *CreateLoyaltyAccountRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// Hàm trừ điểm khi xử dụng
-	DetuctPoints(ctx context.Context, in *DetuctPointRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	DeductPoints(ctx context.Context, in *DeductPointRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type loyaltyAccountGrpcClient struct {
@@ -68,9 +68,9 @@ func (c *loyaltyAccountGrpcClient) CreateLoyaltyAccount(ctx context.Context, in 
 	return out, nil
 }
 
-func (c *loyaltyAccountGrpcClient) DetuctPoints(ctx context.Context, in *DetuctPointRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *loyaltyAccountGrpcClient) DeductPoints(ctx context.Context, in *DeductPointRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/engagement.LoyaltyAccountGrpc/DetuctPoints", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engagement.LoyaltyAccountGrpc/DeductPoints", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +88,7 @@ type LoyaltyAccountGrpcServer interface {
 	// Hàm Upsert nhận vào UpSertRequest và không trả ra gì
 	CreateLoyaltyAccount(context.Context, *CreateLoyaltyAccountRequest) (*emptypb.Empty, error)
 	// Hàm trừ điểm khi xử dụng
-	DetuctPoints(context.Context, *DetuctPointRequest) (*emptypb.Empty, error)
+	DeductPoints(context.Context, *DeductPointRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedLoyaltyAccountGrpcServer()
 }
 
@@ -105,8 +105,8 @@ func (UnimplementedLoyaltyAccountGrpcServer) GetByUserPhoneOrEmail(context.Conte
 func (UnimplementedLoyaltyAccountGrpcServer) CreateLoyaltyAccount(context.Context, *CreateLoyaltyAccountRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateLoyaltyAccount not implemented")
 }
-func (UnimplementedLoyaltyAccountGrpcServer) DetuctPoints(context.Context, *DetuctPointRequest) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DetuctPoints not implemented")
+func (UnimplementedLoyaltyAccountGrpcServer) DeductPoints(context.Context, *DeductPointRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeductPoints not implemented")
 }
 func (UnimplementedLoyaltyAccountGrpcServer) mustEmbedUnimplementedLoyaltyAccountGrpcServer() {}
 
@@ -175,20 +175,20 @@ func _LoyaltyAccountGrpc_CreateLoyaltyAccount_Handler(srv interface{}, ctx conte
 	return interceptor(ctx, in, info, handler)
 }
 
-func _LoyaltyAccountGrpc_DetuctPoints_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DetuctPointRequest)
+func _LoyaltyAccountGrpc_DeductPoints_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeductPointRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(LoyaltyAccountGrpcServer).DetuctPoints(ctx, in)
+		return srv.(LoyaltyAccountGrpcServer).DeductPoints(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engagement.LoyaltyAccountGrpc/DetuctPoints",
+		FullMethod: "/engagement.LoyaltyAccountGrpc/DeductPoints",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(LoyaltyAccountGrpcServer).DetuctPoints(ctx, req.(*DetuctPointRequest))
+		return srv.(LoyaltyAccountGrpcServer).DeductPoints(ctx, req.(*DeductPointRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -213,8 +213,8 @@ var LoyaltyAccountGrpc_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _LoyaltyAccountGrpc_CreateLoyaltyAccount_Handler,
 		},
 		{
-			MethodName: "DetuctPoints",
-			Handler:    _LoyaltyAccountGrpc_DetuctPoints_Handler,
+			MethodName: "DeductPoints",
+			Handler:    _LoyaltyAccountGrpc_DeductPoints_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

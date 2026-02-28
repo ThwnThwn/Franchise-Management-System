@@ -31,6 +31,10 @@ func (u *UserRouter) Init(r *gin.RouterGroup) {
 		privateApi.POST("", u.authMW.PermissionCheck("user.create"),
 			api.WrapHandler(u.userHl.Create))
 
+		// update 1 user
+		privateApi.PATCH("/:id", u.authMW.PermissionCheck("user.update"),
+			api.WrapHandler(u.userHl.Update))
+
 		// update role cho 1 user
 		privateApi.PATCH("/:id/role", u.authMW.PermissionCheck("user.update"),
 			api.WrapHandler(u.userHl.UpdateRole))

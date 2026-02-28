@@ -2,11 +2,9 @@ package franchise
 
 import (
 	"api-gateway/internal/application/gateways/franchise"
-	"api-gateway/internal/domain/constants/roleslug"
 	"api-gateway/internal/domain/models/shift"
 	"api-gateway/pkg/utils/contextutils"
 	"api-gateway/pkg/utils/grpcutils"
-	"api-gateway/pkg/utils/stringutils"
 	"api-gateway/pkg/utils/validation"
 	"net/http"
 
@@ -71,20 +69,7 @@ func (h *ShiftRuleHandler) Save(c *gin.Context) error {
 		return err
 	}
 
-	roleSlug, err := contextutils.GetRoleSlug(c)
-	if err != nil {
-		return err
-	}
-
-	if roleSlug == string(roleslug.Manager) {
-		storeId, err := contextutils.GetStoreId(c)
-		if err != nil {
-			return err
-		}
-		req.StoreID = stringutils.ToPtr(storeId.String())
-	} else {
-		req.StoreID = nil
-	}
+	contextutils.ApplyStoreBoundaries(c, &req.StoreID)
 
 	err = h.shiftGW.Save(ctx, userId, &req)
 	if err != nil {

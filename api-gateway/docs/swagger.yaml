@@ -7,12 +7,18 @@ definitions:
     - 2
     - 3
     - 4
+    - 5
+    - 6
+    - 7
     format: int32
     type: integer
     x-enum-varnames:
     - OrderStatus_PAYMENT_PENDING
+    - OrderStatus_CONFIRMATION_PENDING
+    - OrderStatus_CONFIRMED
     - OrderStatus_PREPARING
-    - OrderStatus_READY
+    - OrderStatus_READY_FOR_PICKUP
+    - OrderStatus_DELIVERING
     - OrderStatus_COMPLETED
     - OrderStatus_CANCEL
   api-gateway_internal_domain_constants_enum.PaymentMethod:
@@ -169,6 +175,8 @@ definitions:
     properties:
       ingredientId:
         type: string
+      minThreshold:
+        type: number
       quantity:
         type: number
     type: object
@@ -219,6 +227,64 @@ definitions:
         $ref: '#/definitions/api-gateway_internal_domain_constants_enum.PaymentMethod'
       returnUrl:
         type: string
+    type: object
+  api-gateway_internal_domain_models_order.GetOrderVolumeReply:
+    properties:
+      orders:
+        items:
+          $ref: '#/definitions/api-gateway_internal_domain_models_order.OrderVolumeADay'
+        type: array
+    type: object
+  api-gateway_internal_domain_models_order.GetRevenueReportReply:
+    properties:
+      categoryId:
+        type: string
+      fromDate:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/api-gateway_internal_domain_models_order.RevenueItem'
+        type: array
+      overallTotalRevenue:
+        type: number
+      toDate:
+        example: "2024-01-31T23:59:59Z"
+        type: string
+    type: object
+  api-gateway_internal_domain_models_order.OrderVolumeADay:
+    properties:
+      canceledOrder:
+        type: integer
+      completedOrder:
+        type: integer
+      date:
+        example: "2024-05-20"
+        type: string
+      statusCounts:
+        additionalProperties:
+          format: int32
+          type: integer
+        type: object
+      storeId:
+        type: string
+      totalOrders:
+        type: integer
+    type: object
+  api-gateway_internal_domain_models_order.RevenueItem:
+    properties:
+      productName:
+        type: string
+      quantitySold:
+        type: integer
+      sku:
+        type: string
+      storeId:
+        type: string
+      totalRevenue:
+        type: number
+      unitPrice:
+        type: number
     type: object
   api-gateway_internal_domain_models_order.UpdateOrderItem:
     properties:
@@ -705,6 +771,8 @@ definitions:
     properties:
       address:
         type: string
+      currentHourlyWage:
+        type: number
       dateOfBirth:
         type: string
       email:
@@ -713,6 +781,8 @@ definitions:
         type: string
       gender:
         type: integer
+      homeStoreId:
+        type: string
       lastName:
         type: string
       phone:
@@ -733,8 +803,6 @@ definitions:
         type: string
       dateOfBirth:
         type: string
-      email:
-        type: string
       firstName:
         type: string
       gender:
@@ -742,6 +810,33 @@ definitions:
       lastName:
         type: string
       phone:
+        description: Email       string `json:"email"`
+        type: string
+    type: object
+  api-gateway_internal_domain_models_user.UpdateUserRequest:
+    properties:
+      address:
+        type: string
+      currentHourlyWage:
+        type: number
+      dateOfBirth:
+        type: string
+      firstName:
+        type: string
+      gender:
+        type: integer
+      homeStoreId:
+        type: string
+      isBlocked:
+        type: boolean
+      lastName:
+        type: string
+      phone:
+        description: Email       string `json:"email"`
+        type: string
+      roleSlug:
+        type: string
+      username:
         type: string
     type: object
   api-gateway_internal_domain_models_user.UpdateUserRoleRequest:
@@ -2017,6 +2112,168 @@ paths:
       summary: Update Order Status
       tags:
       - Orders
+  /orders/reports/revenue:
+    get:
+      consumes:
+      - application/json
+      description: Get detailed revenue breakdown by product and category for charts.
+      parameters:
+      - in: query
+        name: categoryId
+        type: string
+      - example: "2024-01-01T00:00:00Z"
+        in: query
+        name: fromDate
+        type: string
+      - in: query
+        name: storeId
+        type: string
+      - example: "2024-01-31T23:59:59Z"
+        in: query
+        name: toDate
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Revenue data
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_order.GetRevenueReportReply'
+      security:
+      - BearerAuth: []
+      summary: Get Revenue Report (JSON)
+      tags:
+      - Orders
+  /orders/reports/revenue/export:
+    get:
+      description: Download revenue report as a CSV file for bookkeeping.
+      parameters:
+      - in: query
+        name: categoryId
+        type: string
+      - example: "2024-01-01T00:00:00Z"
+        in: query
+        name: fromDate
+        type: string
+      - in: query
+        name: storeId
+        type: string
+      - example: "2024-01-31T23:59:59Z"
+        in: query
+        name: toDate
+        type: string
+      produces:
+      - text/csv
+      responses:
+        "200":
+          description: CSV File
+          schema:
+            type: file
+      security:
+      - BearerAuth: []
+      summary: Export Revenue Report (CSV)
+      tags:
+      - Orders
+  /orders/reports/volume:
+    get:
+      consumes:
+      - application/json
+      description: Get daily order counts and status breakdown for line charts.
+      parameters:
+      - example: "2024-05-20"
+        in: query
+        name: fromDate
+        type: string
+      - enum:
+        - 0
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        - 7
+        format: int32
+        in: query
+        name: status
+        type: integer
+        x-enum-varnames:
+        - OrderStatus_PAYMENT_PENDING
+        - OrderStatus_CONFIRMATION_PENDING
+        - OrderStatus_CONFIRMED
+        - OrderStatus_PREPARING
+        - OrderStatus_READY_FOR_PICKUP
+        - OrderStatus_DELIVERING
+        - OrderStatus_COMPLETED
+        - OrderStatus_CANCEL
+      - in: query
+        name: storeId
+        type: string
+      - example: "2024-05-27"
+        in: query
+        name: toDate
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Order volume data
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_order.GetOrderVolumeReply'
+      security:
+      - BearerAuth: []
+      summary: Get Order Volume Statistics (JSON)
+      tags:
+      - Orders
+  /orders/reports/volume/export:
+    get:
+      description: Download daily order statistics as a CSV file.
+      parameters:
+      - example: "2024-05-20"
+        in: query
+        name: fromDate
+        type: string
+      - enum:
+        - 0
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        - 7
+        format: int32
+        in: query
+        name: status
+        type: integer
+        x-enum-varnames:
+        - OrderStatus_PAYMENT_PENDING
+        - OrderStatus_CONFIRMATION_PENDING
+        - OrderStatus_CONFIRMED
+        - OrderStatus_PREPARING
+        - OrderStatus_READY_FOR_PICKUP
+        - OrderStatus_DELIVERING
+        - OrderStatus_COMPLETED
+        - OrderStatus_CANCEL
+      - in: query
+        name: storeId
+        type: string
+      - example: "2024-05-27"
+        in: query
+        name: toDate
+        type: string
+      produces:
+      - text/csv
+      responses:
+        "200":
+          description: CSV File
+          schema:
+            type: file
+      security:
+      - BearerAuth: []
+      summary: Export Order Volume (CSV)
+      tags:
+      - Orders
   /permissions:
     get:
       consumes:
@@ -3188,7 +3445,7 @@ paths:
       parameters:
       - description: ID cửa hàng
         in: path
-        name: storeId
+        name: id
         required: true
         type: string
       - description: ID ca làm
@@ -3394,6 +3651,41 @@ paths:
       security:
       - BearerAuth: []
       summary: Get User by ID
+      tags:
+      - Users
+    patch:
+      consumes:
+      - application/json
+      description: Update a specific user info.
+      parameters:
+      - description: User UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: New User Info
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_user.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated user details
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update User
       tags:
       - Users
   /users/{id}/role:
