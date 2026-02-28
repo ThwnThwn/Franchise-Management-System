@@ -1,9 +1,8 @@
 "use client"
 
-import React, { Suspense, useCallback, useMemo, useState } from "react"
+import { Suspense, useCallback, useMemo, useState } from "react"
 import { Spinner, useDisclosure } from "@heroui/react"
 import { Plus, Search, Users } from "lucide-react"
-import { useCreateUser, useGetAllUsers } from "../../hooks"
 import {
     ButtonIconStyled,
     EnumPicker,
@@ -11,19 +10,61 @@ import {
     PaginationStyled,
     SpinnerStyled
 } from "@/components"
-import { UserTable, ViewUserModal } from "../../components"
-import { CreateUserModal } from "../../components/user/CreateUserModal"
+
+import { useGetAllUsers } from "@/features/users/hooks"
+import { UserModal, UserTable } from "@/features/users/components"
+import { UserFilterParams } from "@/features/users/models/request"
+
 import { RoleSlug } from "@/constants/enums"
-import { UserFilterParams } from "../../models/user/request"
 import { PaginationParams } from "@/models/common/request"
 import { RoleSlugLabels } from "@/constants/labels"
 import { debouncedWrapper } from "@/utils/helpers/axiosHelper"
-import { DashboardHeader } from "../../components/general/DashboardHeader"
+import { DashboardHeader } from "@/features/dashboard"
+import { omitRecord } from "@/utils/helpers/uiHelper"
+import { useTokenStore } from "@/hooks"
+import { User } from "@/models/user"
 
-export default function UserView() {
+export default function UserManagementPageView() {
+    const currStoreId = useTokenStore((s) => s.storeId) || undefined
+    const roleSlug = useTokenStore((s) => s.roleSlug)
+
+    // const isAdmin = roleSlug === RoleSlug.Admin
+
+    const { defaultManageRole, manageRoleLabels } = useMemo(() => {
+        switch (roleSlug) {
+            case RoleSlug.Admin:
+                return {
+                    defaultManageRole: RoleSlug.Manager,
+                    manageRoleLabels: omitRecord(RoleSlugLabels, [RoleSlug.Admin])
+                }
+            case RoleSlug.Manager:
+                return {
+                    defaultManageRole: RoleSlug.Staff,
+                    manageRoleLabels: omitRecord(RoleSlugLabels, [RoleSlug.Admin, RoleSlug.Manager])
+                }
+            case RoleSlug.Staff:
+                return {
+                    defaultManageRole: RoleSlug.Customer,
+                    manageRoleLabels: omitRecord(RoleSlugLabels, [
+                        RoleSlug.Admin,
+                        RoleSlug.Manager,
+                        RoleSlug.Customer
+                    ])
+                }
+            default:
+                return {
+                    defaultManageRole: undefined,
+                    manageRoleLabels: undefined
+                }
+        }
+    }, [roleSlug])
+
     // --- Data Fetching ---
     // Assuming useGetAllUsers has 'params' and 'pagination' in its dependency array
-    const [filter, setFilter] = useState<UserFilterParams>({})
+    const [filter, setFilter] = useState<UserFilterParams>({
+        roleSlug: defaultManageRole,
+        storeId: currStoreId
+    })
     const [pagination, setPagination] = useState<PaginationParams>({ page: 1, pageSize: 10 })
     const { data, isLoading } = useGetAllUsers({
         params: filter,
@@ -51,25 +92,14 @@ export default function UserView() {
     )
 
     // --- Mutations ---
-    const {
-        isOpen: isCreateOpen,
-        onOpen: onCreateOpen,
-        onOpenChange: onCreateOpenChange,
-        onClose: onCreateClose
-    } = useDisclosure()
+    const { isOpen, onOpen, onClose } = useDisclosure()
+    const [selectedUser, setSelectedUser] = useState<User | undefined>(undefined)
+    const handleClose = () => {
+        setSelectedUser(undefined)
+        onClose()
+    }
 
-    const createMutation = useCreateUser({
-        onSuccess: onCreateClose
-    })
-
-    // --- View detail ---
-    const {
-        isOpen: isViewOpen,
-        onOpen: onViewOpen,
-        onOpenChange: onViewOpenChange
-        // onClose: onViewClose
-    } = useDisclosure()
-    const [selectedUserId, setSelectedUserId] = useState<string | undefined>(undefined)
+    if (!manageRoleLabels) return null
 
     return (
         <div className="max-w-7xl mx-auto min-h-screen p-4 md:p-6 lg:p-8 bg-slate-50/30">
@@ -96,7 +126,7 @@ export default function UserView() {
                 />
                 <EnumPicker
                     placeholder="Chọn vai trò"
-                    labels={RoleSlugLabels}
+                    labels={manageRoleLabels}
                     value={filter.roleSlug}
                     onChange={(e) => {
                         handleSetFilter({ ...filter, roleSlug: e })
@@ -104,32 +134,33 @@ export default function UserView() {
                     isReadOnly={isLoading}
                     className="w-70"
                     aria-label="Chọn vai trò"
+                    // hidden={!isAdmin}
                 />
 
                 <ButtonIconStyled
                     variant="bordered"
                     className="btn-gradient rounded-lg"
-                    onPress={onCreateOpen}
+                    onPress={onOpen}
                 >
                     <Plus />
                 </ButtonIconStyled>
 
                 {/* Create Modal */}
-                <CreateUserModal
-                    isOpen={isCreateOpen}
-                    onOpenChange={onCreateOpenChange}
-                    createMutation={createMutation}
-                    isCreateCustomer={false}
-                    createRoleSlug={RoleSlug.Staff}
+                <UserModal
+                    isOpen={isOpen}
+                    onClose={handleClose}
+                    initialData={selectedUser}
+                    manageRoleLabels={manageRoleLabels}
+                    defaultManageRole={defaultManageRole}
                 />
 
-                {selectedUserId && (
+                {/* {selectedUser && (
                     <ViewUserModal
                         isOpen={isViewOpen}
                         onOpenChange={onViewOpenChange}
-                        userId={selectedUserId}
+                        userId={selectedUser.id}
                     />
-                )}
+                )} */}
             </div>
 
             {isTyping ? (
@@ -143,9 +174,9 @@ export default function UserView() {
                             users={data?.items || []}
                             isLoading={isLoading}
                             emptyMessage="Không tìm thấy nhân viên nào"
-                            onViewUser={(userId: string) => {
-                                setSelectedUserId(userId)
-                                onViewOpen()
+                            onViewUser={(user: User) => {
+                                setSelectedUser(user)
+                                onOpen()
                             }}
                         />
                     </div>

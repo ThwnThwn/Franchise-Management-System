@@ -1,3 +1,4 @@
+export * from "./UserModal"
 export * from "./UserTable"
 export * from "./CreateUserModal"
 export * from "./ViewUserModal"

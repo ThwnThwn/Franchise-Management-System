@@ -10,19 +10,25 @@ export interface CreateUserRequest {
     gender: number
     dateOfBirth: string
     roleSlug: RoleSlug
+
+    homeStoreId?: string
+    currentHourlyWage?: number
 }
 
 export interface UpdateUserRequest {
-    username: string
-    email: string
-    phone: string
-    address: string
-    firstName: string
-    lastName: string
-    gender: number
-    dateOfBirth: string
-    isBlocked: boolean
+    // username: string
+    // email: string
+    // phone: string
+    // address: string
+    // firstName: string
+    // lastName: string
+    // gender: number
+    // dateOfBirth: string
+    // isBlocked: boolean
     roleSlug: RoleSlug
+
+    homeStoreId?: string
+    currentHourlyWage?: number
 }
 
 export interface UpdateUserRoleRequest {

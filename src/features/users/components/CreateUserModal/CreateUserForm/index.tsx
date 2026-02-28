@@ -1,9 +1,9 @@
 "use client"
 
-import React, { useCallback } from "react"
+import { useCallback } from "react"
 import { Gender, RoleSlug } from "@/constants/enums"
-import { useCreateUser } from "@/features/dashboard/hooks"
-import { CreateUserRequest } from "@/features/dashboard/models/user/request"
+import { useCreateUser } from "@/features/users/hooks"
+import { CreateUserRequest } from "@/features/users/models/request"
 import { useDay } from "@/hooks"
 import * as Yup from "yup"
 import { useFormik } from "formik"
@@ -71,7 +71,7 @@ export function CreateUserForm({
             lastName: "",
             gender: Gender.Male,
             dateOfBirth: "",
-            roleSlug: (createRoleSlug as unknown as RoleSlug) || RoleSlug.Customer
+            roleSlug: createRoleSlug || RoleSlug.Customer
         },
         enableReinitialize: true,
         validationSchema: validationSchema,

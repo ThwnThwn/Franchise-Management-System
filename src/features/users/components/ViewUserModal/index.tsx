@@ -1,9 +1,9 @@
 "use client"
 
-import React, { useEffect } from "react"
+import { useEffect } from "react"
 import { DatePickerStyled, InputStyled, ModalContentStyled, ModalStyled } from "@/components/styled"
 import { addToast, ModalBody, ModalHeader, Spinner } from "@heroui/react"
-import { useGetUserById } from "@/features/dashboard/hooks"
+import { useGetUserById } from "@/features/users/hooks"
 import { BackendError } from "@/models/common/respone"
 import { STRINGS } from "@/constants/strings"
 import { useDay, useUserHelper } from "@/hooks"

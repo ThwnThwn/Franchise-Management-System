@@ -75,7 +75,7 @@ export const DASHBOARD_SIDEBAR_MENU: MenuItem[] = [
         icon: <Users className="w-5 h-5" />,
         label: "Người dùng",
         href: "/dashboard/users",
-        allowedRoles: [RoleSlug.Admin]
+        allowedRoles: [RoleSlug.Admin, RoleSlug.Manager, RoleSlug.Staff]
     },
     {
         icon: <ShieldUser className="w-5 h-5" />,

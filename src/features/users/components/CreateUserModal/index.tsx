@@ -1,6 +1,5 @@
 "use client"
 
-import React from "react"
 import { CreateUserForm, CreateUserFormProps } from "./CreateUserForm"
 import { ModalContentStyled, ModalStyled } from "@/components/styled"
 import { ModalBody, ModalHeader } from "@heroui/react"
@@ -21,7 +20,7 @@ export function CreateUserModal({
         <ModalStyled isOpen={isOpen} onOpenChange={onOpenChange} isDismissable>
             <ModalContentStyled className="max-w-150 w-full">
                 <ModalHeader className="flex flex-col items-center font-semibold text-3xl">
-                    {"Tạo người dùng mới"}
+                    {"Tạo nhân viên mới"}
                 </ModalHeader>
                 <ModalBody>
                     <CreateUserForm

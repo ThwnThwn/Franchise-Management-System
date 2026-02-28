@@ -16,6 +16,7 @@ export interface User {
     isBlocked: boolean
 
     homeStoreId?: string
+    currentHourlyWage?: number
     role?: RoleUserResponse
 
     createdAt?: string

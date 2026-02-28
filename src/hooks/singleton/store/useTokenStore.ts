@@ -10,6 +10,7 @@ interface JwtPayload {
 
 type TokenStore = {
     accessToken: string | null
+    userId: string | null
     roleSlug: RoleSlug | null
     storeId: string | null
     isHydrated: boolean
@@ -18,6 +19,17 @@ type TokenStore = {
     removeAccessToken: () => void
     setRememberMe: (remember: boolean) => void
     removeRememberMe: () => void
+}
+
+// --- Helper trích xuất UserId từ sub ---
+const getUserIdFromToken = (token: string | null): string | null => {
+    if (!token) return null
+    try {
+        const decoded = jwtDecode<JwtPayload>(token)
+        return decoded.sub || null
+    } catch {
+        return null
+    }
 }
 
 const getRoleFromToken = (token: string | null): RoleSlug | null => {
@@ -54,23 +66,21 @@ const getStoredToken = () => {
 
 export const useTokenStore = create<TokenStore>()((set) => {
     const initialToken = getStoredToken()
-    const initialRole = getRoleFromToken(initialToken)
-    const initialStoreId = getStoreIdFromToken(initialToken)
 
     return {
         accessToken: initialToken,
-        roleSlug: initialRole,
-        storeId: initialStoreId,
+        userId: getUserIdFromToken(initialToken),
+        roleSlug: getRoleFromToken(initialToken),
+        storeId: getStoreIdFromToken(initialToken),
         isHydrated: false,
 
         hydrate: () => {
             const token = getStoredToken()
-            const role = getRoleFromToken(token)
-            const storeId = getStoreIdFromToken(token)
             set({
                 accessToken: token,
-                roleSlug: role,
-                storeId: storeId,
+                userId: getUserIdFromToken(token),
+                roleSlug: getRoleFromToken(token),
+                storeId: getStoreIdFromToken(token),
                 isHydrated: true
             })
         },
@@ -88,13 +98,11 @@ export const useTokenStore = create<TokenStore>()((set) => {
                 localStorage.removeItem("remember_me")
             }
 
-            const role = getRoleFromToken(token)
-            const storeId = getStoreIdFromToken(token)
-
             set({
                 accessToken: token,
-                roleSlug: role,
-                storeId: storeId
+                userId: getUserIdFromToken(token),
+                roleSlug: getRoleFromToken(token),
+                storeId: getStoreIdFromToken(token)
             })
         },
 
@@ -106,6 +114,7 @@ export const useTokenStore = create<TokenStore>()((set) => {
 
             set({
                 accessToken: null,
+                userId: null,
                 roleSlug: null,
                 storeId: null
             })

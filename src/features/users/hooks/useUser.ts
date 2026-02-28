@@ -4,7 +4,7 @@ import { userApi } from "../services"
 import { addToast } from "@heroui/react"
 import { STRINGS } from "@/constants/strings"
 import { BackendError, PageResult } from "@/models/common/respone"
-import { UserFilterParams } from "../models/user/request"
+import { UserFilterParams } from "../models/request"
 import { PaginationParams } from "@/models/common/request"
 import { User } from "@/models/user"
 
@@ -51,11 +51,39 @@ export const useCreateUser = ({ onSuccess }: { onSuccess?: () => void }) => {
         mutationFn: userApi.create,
         onSuccess: () => {
             queryClient.invalidateQueries({
-                queryKey: [QUERY_KEYS.USERS]
+                queryKey: [QUERY_KEYS.USERS],
+                exact: false
             })
             addToast({
                 title: STRINGS.COMMON.SUCCESS,
                 description: "Tạo mới thành công",
+                color: "success"
+            })
+            onSuccess?.()
+        },
+        onError: (error: BackendError) => {
+            addToast({
+                title: error.title || STRINGS.COMMON.ERROR,
+                description: error.detail,
+                color: "danger"
+            })
+        }
+    })
+}
+
+export const useUpdateUser = ({ onSuccess }: { onSuccess?: () => void }) => {
+    const queryClient = useQueryClient()
+
+    return useMutation({
+        mutationFn: userApi.update,
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.USERS],
+                exact: false
+            })
+            addToast({
+                title: STRINGS.COMMON.SUCCESS,
+                description: "Cập nhật thành công",
                 color: "success"
             })
             onSuccess?.()

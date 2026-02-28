@@ -196,6 +196,7 @@ export const VariantItem = React.memo(function VariantItem({
             {/* ---- Recipe Edit Modal ---- */}
             {variantId && !isReadOnly && (
                 <RecipeEditModal
+                    key={variantId}
                     variantId={variantId}
                     variantName={variant.name || variant.sku}
                     isOpen={isRecipeOpen}

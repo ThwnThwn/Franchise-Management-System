@@ -1,4 +1,4 @@
-import InventoryManagementPage from "@/features/inventory/pages/InventoryManagement"
+import InventoryManagementPage from "@/features/stores/inventory/pages/InventoryManagement"
 import React from "react"
 
 export default function InventoryPage() {

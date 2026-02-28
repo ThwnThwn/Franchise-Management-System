@@ -1,8 +1,5 @@
-"use client"
-
-import React from "react"
-import UserView from "@/features/dashboard/pages/UserView"
+import UserManagementPageView from "@/features/users/pages/UserManagementPageView"
 
 export default function UserManagementPage() {
-    return <UserView />
+    return <UserManagementPageView />
 }
