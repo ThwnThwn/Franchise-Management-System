@@ -21,7 +21,7 @@ service LoyaltyAccountGrpc {
   rpc CreateLoyaltyAccount (CreateLoyaltyAccountRequest) returns (google.protobuf.Empty);
 
   //Hàm trừ điểm khi xử dụng
-  rpc DeductPoints (DeductPointRequest) returns (google.protobuf.Empty);
+  rpc DetuctPoints (DetuctPointRequest) returns (google.protobuf.Empty);
 }
 
   // Định nghĩa Request
@@ -51,7 +51,7 @@ message CreateLoyaltyAccountRequest {
 }
 
 //Request trừ điểm
-message DeductPointRequest{
+message DetuctPointRequest{
   string id = 1;
-  string point_amount = 2;
+  string point_to_detuct = 2;
 }

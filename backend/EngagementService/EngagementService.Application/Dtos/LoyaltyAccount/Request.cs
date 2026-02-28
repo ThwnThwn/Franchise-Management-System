@@ -17,4 +17,10 @@ namespace EngagementService.Application.Dtos.LoyaltyAccount
         public string? PhoneNumber { get; set; }
         public string? Email { get; set; }
     }
+
+    public class DetuctPointRequest
+    {
+        public Guid Id { get; set; }
+        public decimal PointToDetuct { get; set; } = 0;
+    }
 }

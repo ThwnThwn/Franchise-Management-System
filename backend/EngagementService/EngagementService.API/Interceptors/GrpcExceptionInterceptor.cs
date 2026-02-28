@@ -52,6 +52,14 @@ public class GrpcExceptionInterceptor : Interceptor
         {
             throw new RpcException(new Status(StatusCode.NotFound, ex.Message));
         }
+        catch (InvalidOperationException ex)
+        {
+            throw new RpcException(new Status(StatusCode.FailedPrecondition, ex.Message));
+        }
+        catch (ArgumentException ex)
+        {
+            throw new RpcException(new Status(StatusCode.InvalidArgument, ex.Message));
+        }
         catch (UnauthorizedAccessException ex)
         {
             throw new RpcException(new Status(StatusCode.Unauthenticated, ex.Message));
