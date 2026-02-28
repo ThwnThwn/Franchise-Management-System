@@ -16,13 +16,19 @@ service LoyaltyAccountGrpc {
 
   // Hàm lấy thông tin tài khoản qua số điện thoại
   rpc GetByUserPhoneOrEmail (GetByUserPhoneOrEmailRequest) returns (LoyaltyAccountResponse);
+
+  // Hàm Upsert nhận vào UpSertRequest và không trả ra gì
+  rpc CreateLoyaltyAccount (CreateLoyaltyAccountRequest) returns (google.protobuf.Empty);
+
+  //Hàm trừ điểm khi xử dụng
+  rpc DeductPoints (DeductPointRequest) returns (google.protobuf.Empty);
 }
 
-// Định nghĩa Request
-message ProcessOrderRewardRequest {
-  string id = 1;           // Đại diện cho Guid Id
-  string order_amount = 2; // Đại diện cho decimal OrderAmount (Dùng string để bảo toàn độ chính xác)
-}
+  // Định nghĩa Request
+  message ProcessOrderRewardRequest {
+    string id = 1;           // Đại diện cho Guid Id
+    string order_amount = 2; // Đại diện cho decimal OrderAmount (Dùng string để bảo toàn độ chính xác)
+  }
 
 // Request lấy thông tin theo số điện thoại
 message GetByUserPhoneOrEmailRequest {
@@ -37,4 +43,15 @@ message LoyaltyAccountResponse {
   string available_points = 2; // Đại diện decimal
   string total_spent = 3;      // Đại diện decimal
   MembershipTierResponse current_tier = 4;
+}
+
+// Định nghĩa Request cho hàm Upsert
+message CreateLoyaltyAccountRequest {
+  string user_id = 1;           // Tương ứng với Guid Id
+}
+
+//Request trừ điểm
+message DeductPointRequest{
+  string id = 1;
+  string point_amount = 2;
 }
