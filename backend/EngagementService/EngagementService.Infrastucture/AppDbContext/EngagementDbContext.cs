@@ -47,12 +47,12 @@ public partial class EngagementDbContext : DbContext, IEngagementDbContext
     {
         // 1. Đăng ký các Postgres Enum bằng kiểu dữ liệu C# (Generic)
         // Việc này giúp EF Core nhận diện các kiểu Enum tùy chỉnh trong PostgreSQL
-        modelBuilder.HasPostgresEnum<PointActionType>();
-        modelBuilder.HasPostgresEnum<PointReasonCode>();
-        modelBuilder.HasPostgresEnum<UserVoucherStatus>();
-        modelBuilder.HasPostgresEnum<VoucherCategory>();
-        modelBuilder.HasPostgresEnum<VoucherDiscountType>();
-        modelBuilder.HasPostgresEnum<VoucherItemType>();
+        modelBuilder.HasPostgresEnum<PointActionType>("point_action_type");
+        modelBuilder.HasPostgresEnum<PointReasonCode>("point_reason_code");
+        modelBuilder.HasPostgresEnum<UserVoucherStatus>("user_voucher_status");
+        modelBuilder.HasPostgresEnum<VoucherCategory>("voucher_category");
+        modelBuilder.HasPostgresEnum<VoucherDiscountType>("voucher_discount_type");
+        modelBuilder.HasPostgresEnum<VoucherItemType>("voucher_item_type");
 
         modelBuilder.HasPostgresExtension("uuid-ossp");
 

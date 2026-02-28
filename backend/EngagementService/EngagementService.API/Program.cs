@@ -7,12 +7,15 @@ using EngagementService.Application.Abstraction;
 using EngagementService.Application.ClientInterface;
 using EngagementService.Application.DependencyInjection;
 using EngagementService.Application.Persistences;
+using EngagementService.Domain.Constants;
 using EngagementService.Infrastucture.AppDbContext;
 using EngagementService.Infrastucture.DependencyInjection;
 using EngagementService.Infrastucture.Interceptor;
 using EngagementService.Infrastucture.Persistences;
 using InventoryService.API.Services.Identity;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
+using Npgsql.NameTranslation; // Thêm namespace này
 
 namespace EngagementService.API;
 
@@ -52,13 +55,30 @@ public class Program
 
         // Connect Db
         var connectionString = builder.Configuration["ENGAGEMENT_DB_CONNECTION"];
-        // DbContext + wire interceptor via DI
-        builder.Services.AddDbContext<EngagementDbContext>(
-            (sp, opt) =>
-            {
-                opt.UseNpgsql(connectionString);
-                opt.AddInterceptors(sp.GetRequiredService<UpdateTimestampInterceptor>());
-            });
+
+        // 1. Khởi tạo Builder cho DataSource
+        var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
+
+        // 2. Sử dụng NpgsqlNullNameTranslator để giữ nguyên định dạng VIẾT HOA (EARN, REDEEM...)
+        var translator = new NpgsqlNullNameTranslator();
+
+        // 3. Đăng ký các Enum với Translator này
+        dataSourceBuilder.MapEnum<PointActionType>("point_action_type", translator);
+        dataSourceBuilder.MapEnum<PointReasonCode>("point_reason_code", translator);
+        dataSourceBuilder.MapEnum<UserVoucherStatus>("user_voucher_status", translator);
+        dataSourceBuilder.MapEnum<VoucherCategory>("voucher_category", translator);
+        dataSourceBuilder.MapEnum<VoucherDiscountType>("voucher_discount_type", translator);
+        dataSourceBuilder.MapEnum<VoucherItemType>("voucher_item_type", translator);
+
+        // 4. Xây dựng DataSource
+        var dataSource = dataSourceBuilder.Build();
+
+        // 5. Đăng ký DbContext sử dụng dataSource đã cấu hình
+        builder.Services.AddDbContext<EngagementDbContext>((sp, opt) =>
+        {
+            opt.UseNpgsql(dataSource);
+            opt.AddInterceptors(sp.GetRequiredService<UpdateTimestampInterceptor>());
+        });
 
         // Expose DbContext via abstraction used by repositories
         builder.Services.AddScoped<IEngagementDbContext>(sp => sp.GetRequiredService<EngagementDbContext>());

@@ -19,7 +19,7 @@ public partial class PointLog : IEntity
 
     public PointActionType ActionType { get; set; }
 
-    public string? ReasonCode { get; set; }
+    public PointReasonCode? ReasonCode { get; set; }
 
     public Guid? ReferenceId { get; set; }
 

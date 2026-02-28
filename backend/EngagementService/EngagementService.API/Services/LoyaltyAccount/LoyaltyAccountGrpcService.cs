@@ -24,7 +24,8 @@ namespace EngagementService.API.Services.LoyaltyAccount
             var upsertRequest = new Application.Dtos.LoyaltyAccount.UpSertReqest
             {
                 Id = id,
-                OrderAmount = int.Parse(request.OrderAmount)
+                OrderAmount = int.Parse(request.OrderAmount),
+                OrderId = Guid.Parse(request.OrderId)
             };
             if (account == null)
             {
@@ -77,21 +78,23 @@ namespace EngagementService.API.Services.LoyaltyAccount
             var upSertReq = new Application.Dtos.LoyaltyAccount.UpSertReqest
             {
                 Id = Guid.Parse(request.UserId),
-                OrderAmount = 0
+                OrderAmount = 0,
+                OrderId = Guid.Empty
             };
             await _mediator.Send(new Application.Features.LoyaltyAccount.Commands.Create.CreateCommand(upSertReq));
 
             return new Empty();
         }
 
-        public async override Task<Empty> DetuctPoints(DetuctPointRequest request, Grpc.Core.ServerCallContext context)
+        public async override Task<Empty> DeductPoints(DeductPointRequest request, Grpc.Core.ServerCallContext context)
         {
-            var req = new Application.Dtos.LoyaltyAccount.DetuctPointRequest
+            var req = new Application.Dtos.LoyaltyAccount.DeductPointRequest
             {
                 Id = Guid.Parse(request.Id),
-                PointToDetuct = decimal.Parse(request.PointToDetuct)
+                PointToDeduct = decimal.Parse(request.PointToDeduct),
+                OrderId = Guid.Parse(request.OrderId)
             };
-            await _mediator.Send(new Application.Features.LoyaltyAccount.Commands.DetuctPoint.DetuctPointCommand(req));
+            await _mediator.Send(new Application.Features.LoyaltyAccount.Commands.DetuctPoint.DeductPointCommand(req));
             return new Empty();
         }
     }

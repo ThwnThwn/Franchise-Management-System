@@ -28,7 +28,8 @@ namespace EngagementService.Application.EventHandler
             var upsertRequest = new Application.Dtos.LoyaltyAccount.UpSertReqest
             {
                 Id = id,
-                OrderAmount = @event.OrderAmount
+                OrderAmount = @event.OrderAmount,
+                OrderId = @event.OrderId
             };
             if (account == null)
             {
