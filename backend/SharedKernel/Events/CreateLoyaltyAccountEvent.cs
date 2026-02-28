@@ -9,5 +9,6 @@ namespace SharedKernel.Events
     public class CreateLoyaltyAccountEvent
     {
         public Guid CustomerId { get; set; }
+
     }
 }
