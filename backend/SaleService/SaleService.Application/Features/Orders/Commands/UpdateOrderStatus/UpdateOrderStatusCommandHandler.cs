@@ -80,6 +80,7 @@ public sealed class UpdateOrderStatusCommandHandler
                 {
                     return "Order cannot be completed because payment is not paid.";
                 }
+                //Trừ kho bên vnpay return  rùi
             }
             else
             {
@@ -97,6 +98,12 @@ public sealed class UpdateOrderStatusCommandHandler
                 payment.UpdatedAt = DateTime.UtcNow;
                 await _paymentRepository.SaveChangesAsync();
             }
+            // Publish process Point loyalty event to Kafka
+            await _kafkaProducer.PublishAsync(KafkaTopics.ProcessOrderReward, new ProcessOrderRewardEvent
+            {
+                Id = order.CustomerId ?? Guid.Empty,
+                OrderAmount = order.PaidAmount ?? 0
+            });
         }
         order.Status = request.Status;
         // Create OrderStatusEvent

@@ -40,7 +40,6 @@ builder.Services.Configure<SmtpSettings>(opt =>
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 builder.Services.AddScoped<IIdentityServiceClient, NotificationService.Infrastructure.ExternalServices.IdentityServiceClient>();
-builder.Services.AddScoped<IEngagementServiceClient, NotificationService.Infrastructure.ExternalServices.EngagementServiceClient>();
 
 // KAFKA CONSUMER (Generic)
 builder.Services.AddKafkaConsumer(config =>
@@ -49,7 +48,6 @@ builder.Services.AddKafkaConsumer(config =>
     config.Register<SharedKernel.Events.OrderStatusEvent>(SharedKernel.Constants.KafkaTopics.OrderNotifications, typeof(NotificationService.Application.EventHandlers.OrderStatusHandler));
     config.Register<SharedKernel.Events.LowStockEvent>(SharedKernel.Constants.KafkaTopics.LowStockNotifications, typeof(NotificationService.Application.EventHandlers.LowStockHandler));
     config.Register<SharedKernel.Events.PasswordResetRequestedEvent>(SharedKernel.Constants.KafkaTopics.PasswordResetNotifications, typeof(NotificationService.Application.EventHandlers.PasswordResetHandler));
-    config.Register<SharedKernel.Events.UserRegisteredEvent>(SharedKernel.Constants.KafkaTopics.LoyaltyTierAccount, typeof(NotificationService.Application.EventHandlers.CreateLoyaltyAccountHandler));
 });
 // LOGGING
 builder.Services.AddLogging(config =>

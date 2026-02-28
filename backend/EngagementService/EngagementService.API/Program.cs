@@ -13,7 +13,7 @@ using EngagementService.Infrastucture.Interceptor;
 using EngagementService.Infrastucture.Persistences;
 using InventoryService.API.Services.Identity;
 using Microsoft.EntityFrameworkCore;
-
+using SharedKernel.Infrastructure.Kafka;
 namespace EngagementService.API;
 
 public class Program
@@ -91,7 +91,20 @@ public class Program
 
         //Client service
         builder.Services.AddScoped<IIdentityServiceClient, IdentityServiceClient>();
+        // KAFKA - Override for local development
+        var kafkaBootstrap = Environment.GetEnvironmentVariable("KAFKA_BOOTSTRAP_SERVERS") ?? "localhost:9092";
+        if (kafkaBootstrap.Contains("kafka:"))
+        {
+            kafkaBootstrap = "localhost:9092";  // Use localhost when running outside Docker
+        }
+        builder.Configuration["KAFKA_BOOTSTRAP_SERVERS"] = kafkaBootstrap;
 
+        // KAFKA CONSUMER (Generic)
+        builder.Services.AddKafkaConsumer(config =>
+        {
+            config.Register<SharedKernel.Events.UserRegisteredEvent>(SharedKernel.Constants.KafkaTopics.LoyaltyTierAccount, typeof(EngagementService.Application.EventHandler.CreateLoyaltyAccountHandler));
+            config.Register<SharedKernel.Events.ProcessOrderRewardEvent>(SharedKernel.Constants.KafkaTopics.ProcessOrderReward, typeof(EngagementService.Application.EventHandler.ProcessOrderRewardHandler));
+        });
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
