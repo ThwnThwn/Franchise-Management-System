@@ -2,6 +2,7 @@
 using EngagementService.Application.Helper;
 using EngagementService.Application.Persistences.Cache;
 using EngagementService.Application.Persistences.Repository;
+using EngagementService.Domain.Constants;
 using MediatR;
 
 namespace EngagementService.Application.Features.LoyaltyAccount.Commands.ProcessOrderReward
@@ -11,14 +12,17 @@ namespace EngagementService.Application.Features.LoyaltyAccount.Commands.Process
         private readonly IMembershipTierCache _membershipTierCache;
         private readonly ILoyaltyAccountRepository _loyaltyAccountRepository;
         private readonly IMembershipTierRepository _membershipTierRepository;
+        private readonly IPointLogRepository _pointLogRepository;   
         public ProcessOrderRewardHandler(
             IMembershipTierCache membershipTierCache,
             ILoyaltyAccountRepository loyaltyAccountRepository,
-            IMembershipTierRepository membershipTierRepository)
+            IMembershipTierRepository membershipTierRepository,
+            IPointLogRepository pointLogRepository)
         {
             _membershipTierCache = membershipTierCache;
             _loyaltyAccountRepository = loyaltyAccountRepository;
             _membershipTierRepository = membershipTierRepository;
+            _pointLogRepository = pointLogRepository;
         }
         public async Task<Unit> Handle(ProcessOrderRewardCommand command, CancellationToken cancellationToken)
         {
@@ -36,6 +40,8 @@ namespace EngagementService.Application.Features.LoyaltyAccount.Commands.Process
             {
                 loyaltyAccount.CurrentTierId = newTierId;
             }
+
+            await HandlePointLog.CreatePointLog(_pointLogRepository, loyaltyAccount, loyaltyAccount.AvailablePoints -  point, loyaltyAccount.AvailablePoints, point, request.OrderId, PointReasonCode.ORDER_COMPLETED, PointActionType.EARN, "Points earned for order completion");
 
             await _loyaltyAccountRepository.UpdateAsync(loyaltyAccount);
             return Unit.Value;

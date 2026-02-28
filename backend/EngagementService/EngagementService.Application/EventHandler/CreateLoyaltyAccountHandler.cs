@@ -18,7 +18,8 @@ namespace EngagementService.Application.EventHandler
             new Dtos.LoyaltyAccount.UpSertReqest()
             {
                 Id = @event.CustomerId,
-                OrderAmount = 0
+                OrderAmount = 0,
+                OrderId = Guid.Empty
             });
 
             await _mediator.Send(command);

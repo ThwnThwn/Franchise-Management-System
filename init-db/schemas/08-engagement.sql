@@ -3,7 +3,22 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- 0. ĐỊNH NGHĨA CÁC KIỂU ENUM
 -- ---------------------------------------------------------
 CREATE TYPE point_action_type AS ENUM ('REDEEM', 'EARN', 'REFUND', 'ADJUST');
-CREATE TYPE point_reason_code AS ENUM ('ORDER_PAYMENT', 'BIRTHDAY', 'CANCEL_ORDER', 'PROMOTION', 'MANUAL_ADJUST');
+CREATE TYPE point_reason_code AS ENUM (
+    -- Nhóm cộng điểm
+    'ORDER_COMPLETED',      -- Tích điểm từ đơn hàng
+    'BIRTHDAY_GIFT',       -- Thưởng sinh nhật
+    'PROMOTION_BONUS',     -- Thưởng khuyến mãi
+    'REFERRAL_REWARD',     -- Thưởng giới thiệu bạn mới
+    
+    -- Nhóm trừ điểm
+    'POINT_EXPIRED',       -- Điểm hết hạn
+    'POINT_REDEEM',
+    
+    -- Nhóm hoàn/hủy/điều chỉnh
+    'ORDER_CANCEL_REFUND', -- Hoàn điểm khi hủy đơn
+    'ORDER_RETURN_DEDUCT', -- Thu hồi điểm khi trả hàng
+    'MANUAL_ADJUST'        -- Điều chỉnh thủ công bởi admin
+);
 CREATE TYPE voucher_category AS ENUM ('DISCOUNT_GIFT', 'SHIPPING');
 CREATE TYPE voucher_discount_type AS ENUM ('PERCENTAGE', 'FIXED_AMOUNT', 'GIFT_ITEM');
 CREATE TYPE user_voucher_status AS ENUM ('AVAILABLE', 'USED', 'EXPIRED');

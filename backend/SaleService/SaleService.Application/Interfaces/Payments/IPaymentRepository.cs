@@ -20,5 +20,14 @@ public interface IPaymentRepository
         int page,
         int pageSize,
         CancellationToken cancellationToken = default);
+
+    Task<PagedResult<Payment>> GetMyPaymentHistoryAsync(
+        Guid customerId,
+        int page,
+        int pageSize,
+        DateTime? startDate = null,
+        DateTime? endDate = null,
+        int? status = null,
+        CancellationToken cancellationToken = default);
 }
 

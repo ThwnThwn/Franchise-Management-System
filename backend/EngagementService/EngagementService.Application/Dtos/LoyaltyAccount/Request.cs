@@ -10,6 +10,7 @@ namespace EngagementService.Application.Dtos.LoyaltyAccount
     {
         public Guid Id { get; set; }
         public decimal OrderAmount { get; set; }
+        public Guid OrderId { get; set; } = Guid.Empty;
     }
 
     public class GetByUserPhoneOrEmailRequest
@@ -18,9 +19,10 @@ namespace EngagementService.Application.Dtos.LoyaltyAccount
         public string? Email { get; set; }
     }
 
-    public class DetuctPointRequest
+    public class DeductPointRequest
     {
         public Guid Id { get; set; }
-        public decimal PointToDetuct { get; set; } = 0;
+        public decimal PointToDeduct { get; set; } = 0;
+        public Guid? OrderId { get; set; } = null;
     }
 }

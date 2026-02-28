@@ -37,6 +37,7 @@ public static class DependencyInjection
         services.AddScoped<IMembershipTierRepository, MembershipTierRepository>();
         services.AddScoped<IMembershipTierCache, MembershipTierCache>();
         services.AddScoped<IVoucherRepository, VoucherRepository>();
+        services.AddScoped<IPointLogRepository, PointLogRepository>();
 
         services.AddSingleton<IKafkaProducer, KafkaProducer>();
 
