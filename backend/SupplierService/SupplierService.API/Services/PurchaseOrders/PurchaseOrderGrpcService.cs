@@ -16,11 +16,13 @@ public class PurchaseOrderGrpcService : PurchaseOrderGrpc.PurchaseOrderGrpcBase
 {
     private readonly IMediator _mediator;
     private readonly ISupplierDbContext _dbContext;
+    private readonly Application.Repositories.IPurchaseOrderRepository _purchaseOrderRepo;
 
-    public PurchaseOrderGrpcService(IMediator mediator, ISupplierDbContext dbContext)
+    public PurchaseOrderGrpcService(IMediator mediator, ISupplierDbContext dbContext, Application.Repositories.IPurchaseOrderRepository purchaseOrderRepo)
     {
         _mediator = mediator;
         _dbContext = dbContext;
+        _purchaseOrderRepo = purchaseOrderRepo;
     }
 
     /// <summary>
@@ -256,6 +258,32 @@ public class PurchaseOrderGrpcService : PurchaseOrderGrpc.PurchaseOrderGrpcBase
         {
             Message = "Purchase order cancelled successfully."
         };
+    }
+
+    /// <summary>
+    /// Lấy giá nhập gần nhất của danh sách nguyên liệu từ các đơn nhập hàng đã hoàn thành.
+    /// </summary>
+    public override async Task<GetLatestPriceForIngredientsReply> GetLatestPriceForIngredients(
+        GetLatestPriceForIngredientsRequest request, ServerCallContext context)
+    {
+        var ingredientIds = new List<Guid>();
+        foreach (var idStr in request.IngredientIds)
+        {
+            if (Guid.TryParse(idStr, out var id))
+            {
+                ingredientIds.Add(id);
+            }
+        }
+
+        var prices = await _purchaseOrderRepo.GetLatestPriceForIngredientsAsync(ingredientIds, context.CancellationToken);
+
+        var reply = new GetLatestPriceForIngredientsReply();
+        foreach (var price in prices)
+        {
+            reply.Prices[price.Key.ToString()] = (double)price.Value;
+        }
+
+        return reply;
     }
 }
 

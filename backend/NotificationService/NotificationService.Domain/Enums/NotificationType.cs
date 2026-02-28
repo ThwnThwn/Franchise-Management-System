@@ -6,6 +6,9 @@ public enum NotificationType
     Otp = 1,
     PasswordReset = 2,
 
+    // Inventory
+    LowStock = 4,
+
     // Order lifecycle
     OrderCreated = 3,        // Order placed (ConfirmationPending)
     OrderConfirmed = 5,      // Confirmed
@@ -15,6 +18,6 @@ public enum NotificationType
     OrderCompleted = 9,      // Completed
     OrderCancelled = 10,     // Cancelled
 
-    // Inventory
-    LowStock = 4
+    // Engegament
+    Loyalty = 11
 }

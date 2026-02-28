@@ -23,15 +23,27 @@ namespace InventoryService.API.Services.Inventory
 
         public override async Task<IncreaseStockResponse> IncreaseStock(IncreaseStockRequest request, ServerCallContext context)
         {
-            //ktra phải manager của kho 
-            var managerIdEntry = context.RequestHeaders.FirstOrDefault(h =>
-            h.Key.Equals("x-user-id", StringComparison.OrdinalIgnoreCase));
+            var canContinue = false;
+            //ktra phải admin không, nếu là admin thì có thể tăng stock của tất cả các kho, nếu không phải admin thì chỉ có thể tăng stock của kho mà mình quản lý
+            var roleEntry = (context.RequestHeaders.FirstOrDefault(h =>
+            h.Key.Equals("x-role-slug", StringComparison.OrdinalIgnoreCase)));
 
-            var manager = await _identityServiceClient.GetManager(new Application.Dtos.User.GetManagerReq() { StoreId = Guid.Parse(request.StoreId)});
-            if(manager.Id != Guid.Parse(managerIdEntry.Value))
+            if (roleEntry != null && roleEntry.Value == "admin") canContinue = true;
+
+            if (!canContinue)
             {
-                throw new RpcException(new Status(StatusCode.PermissionDenied, "Bạn không có quyền thực hiện hành động này"));
+                //ktra phải manager của kho 
+                var managerIdEntry = context.RequestHeaders.FirstOrDefault(h =>
+                h.Key.Equals("x-user-id", StringComparison.OrdinalIgnoreCase));
+                
+                var manager = await _identityServiceClient.GetManager(new Application.Dtos.User.GetManagerReq() { StoreId = Guid.Parse(request.StoreId) });
+
+                if (manager.Id != Guid.Parse(managerIdEntry!.Value))
+                {
+                    throw new RpcException(new Status(StatusCode.PermissionDenied, "Bạn không có quyền thực hiện hành động này"));
+                }
             }
+           
             //===============================
             var rep = await _mediator.Send(new IncreaseStockCommand(new()
             {
@@ -99,6 +111,80 @@ namespace InventoryService.API.Services.Inventory
             // 3. Add danh sách đã map vào repeated field
             response.StockRes.AddRange(protoStockList);
             return response;
+        }
+
+        /// <summary>
+        /// gRPC method: Tính lại cost cho tất cả variant liên quan đến 1 ingredient.
+        /// Test bằng Postman: gọi InventoryGrpc/RecalculateVariantCostsByIngredient
+        /// </summary>
+        public override async Task<RecalculateVariantCostsByIngredientResponse> RecalculateVariantCostsByIngredient(
+            RecalculateVariantCostsByIngredientRequest request, ServerCallContext context)
+        {
+            var command = new Application.Features.StoreIngredient.Commands.RecalculateVariantCosts.RecalculateVariantCostsByIngredientCommand
+            {
+                IngredientId = Guid.Parse(request.IngredientId)
+            };
+
+            var result = await _mediator.Send(command);
+
+            var response = new RecalculateVariantCostsByIngredientResponse
+            {
+                Message = result.Message
+            };
+
+            response.Results.AddRange(result.Results.Select(r => new VariantCostResult
+            {
+                VariantId = r.VariantId.ToString(),
+                OldCost = (double)r.OldCost,
+                NewCost = (double)r.NewCost
+            }));
+
+            return response;
+        }
+
+        /// <summary>
+        /// gRPC method: Tính MAC (Moving Average Cost) cho nguyên liệu.
+        /// Test bằng Postman: gọi InventoryGrpc/CaculateCostIngredientInStock
+        /// Cũng được gọi nội bộ từ IncreaseStock (tự động).
+        /// </summary>
+        public override async Task<CaculateCostIngredientInStockResponse> CaculateCostIngredientInStock(
+            CaculateCostIngredientInStockRequest request, ServerCallContext context)
+        {
+            var command = new Application.Features.StoreIngredient.Commands.CaculateCostIngredientInStock.CaculateCostIngredientInStockCommand
+            {
+                IngredientId = Guid.Parse(request.IngredientId),
+                AddedQuantity = Convert.ToDecimal(request.AddedQuantity),
+                UnitPrice = Convert.ToDecimal(request.UnitPrice)
+            };
+
+            var result = await _mediator.Send(command);
+
+            return new CaculateCostIngredientInStockResponse
+            {
+                IngredientId = result.IngredientId.ToString(),
+                IngredientName = result.IngredientName,
+                OldCost = (double)result.OldCost,
+                NewCost = (double)result.NewCost,
+                StockBefore = (double)result.TotalStockBefore,
+                StockAfter = (double)result.TotalStockAfter,
+                Message = result.Message
+            };
+        }
+        /// <summary>
+        /// gRPC method: Đồng bộ giá vốn cho nguyên liệu có cost = 0 từ SupplierService.
+        /// Test bằng Postman: gọi InventoryGrpc/SyncZeroCostIngredients
+        /// </summary>
+        public override async Task<SyncZeroCostIngredientsResponse> SyncZeroCostIngredients(
+            SyncZeroCostIngredientsRequest request, ServerCallContext context)
+        {
+            var command = new Application.Features.StoreIngredient.Commands.SyncZeroCostIngredients.SyncZeroCostIngredientsCommand();
+            var result = await _mediator.Send(command);
+
+            return new SyncZeroCostIngredientsResponse
+            {
+                UpdatedCount = result.UpdatedCount,
+                Message = result.Message
+            };
         }
     }
 }

@@ -17,6 +17,7 @@ namespace EngagementService.Application.Constants
     public static class LoyaltyAccountMsg
     {
         public const string NotFound = "Không tìm thấy tài khoản thành viên";
+        public const string InsufficientPoints = "Điểm không đủ để trừ";
     }
 
     public static class CommonMsg

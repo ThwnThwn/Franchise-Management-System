@@ -42,8 +42,8 @@ namespace EngagementService.API.Services.LoyaltyAccount
 
         public async override Task<LoyaltyAccountResponse> GetByUserPhoneOrEmail(GetByUserPhoneOrEmailRequest request, Grpc.Core.ServerCallContext context)
         {
-            //giả định lấy ra được id từ phone
-            var req = new Application.Dtos.LoyaltyAccount.GetByUserPhoneOrEmailRequest() {
+            var req = new Application.Dtos.LoyaltyAccount.GetByUserPhoneOrEmailRequest()
+            {
                 Email = request.Email,
                 PhoneNumber = request.PhoneNumber
             };
@@ -70,6 +70,29 @@ namespace EngagementService.API.Services.LoyaltyAccount
             };
 
             return response;
+        }
+
+        public async override Task<Empty> CreateLoyaltyAccount(CreateLoyaltyAccountRequest request, Grpc.Core.ServerCallContext context)
+        {
+            var upSertReq = new Application.Dtos.LoyaltyAccount.UpSertReqest
+            {
+                Id = Guid.Parse(request.UserId),
+                OrderAmount = 0
+            };
+            await _mediator.Send(new Application.Features.LoyaltyAccount.Commands.Create.CreateCommand(upSertReq));
+
+            return new Empty();
+        }
+
+        public async override Task<Empty> DetuctPoints(DetuctPointRequest request, Grpc.Core.ServerCallContext context)
+        {
+            var req = new Application.Dtos.LoyaltyAccount.DetuctPointRequest
+            {
+                Id = Guid.Parse(request.Id),
+                PointToDetuct = decimal.Parse(request.PointToDetuct)
+            };
+            await _mediator.Send(new Application.Features.LoyaltyAccount.Commands.DetuctPoint.DetuctPointCommand(req));
+            return new Empty();
         }
     }
 }
