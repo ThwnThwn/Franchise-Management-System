@@ -1,4 +1,5 @@
-﻿using Grpc.Core;
+﻿using Ardalis.Result;
+using Grpc.Core;
 using MediatR;
 using SalesService.Application.Features.WalletTransactions.Commands.CreateTransaction;
 using SalesService.Application.Features.WalletTransactions.Queries.GetAll;
@@ -109,9 +110,28 @@ public sealed class WalletTransactionGrpcService : WalletTransactionGrpc.WalletT
         var result = await _mediator.Send(command, context.CancellationToken);
 
         if (!result.IsSuccess)
+        {
+            if (result.Status == ResultStatus.Invalid)
+            {
+                var message = string.Join(" | ",
+                    result.ValidationErrors.Select(e =>
+                        $"{e.Identifier}: {e.ErrorMessage}"));
+
+                _logger.LogWarning("Validation failed: {Message}", message);
+
+                throw new RpcException(new Status(
+                    StatusCode.InvalidArgument,
+                    message));
+            }
+
+            var errorMessage = string.Join(" | ", result.Errors);
+
+            _logger.LogError("Business error: {Error}", errorMessage);
+
             throw new RpcException(new Status(
                 StatusCode.FailedPrecondition,
-                string.Join(", ", result.Errors)));
+                errorMessage));
+        }
 
         var data = result.Value;
 
@@ -148,9 +168,28 @@ public sealed class WalletTransactionGrpcService : WalletTransactionGrpc.WalletT
         var result = await _mediator.Send(query, context.CancellationToken);
 
         if (!result.IsSuccess)
+        {
+            if (result.Status == ResultStatus.Invalid)
+            {
+                var message = string.Join(" | ",
+                    result.ValidationErrors.Select(e =>
+                        $"{e.Identifier}: {e.ErrorMessage}"));
+
+                _logger.LogWarning("Validation failed: {Message}", message);
+
+                throw new RpcException(new Status(
+                    StatusCode.InvalidArgument,
+                    message));
+            }
+
+            var errorMessage = string.Join(" | ", result.Errors);
+
+            _logger.LogError("Business error: {Error}", errorMessage);
+
             throw new RpcException(new Status(
                 StatusCode.FailedPrecondition,
-                string.Join(", ", result.Errors)));
+                errorMessage));
+        }
 
         var response = new GetAllWalletTransactionsResponse
         {
@@ -196,9 +235,28 @@ public sealed class WalletTransactionGrpcService : WalletTransactionGrpc.WalletT
                 result.Errors.FirstOrDefault() ?? "Transaction not found"));
 
         if (!result.IsSuccess)
+        {
+            if (result.Status == ResultStatus.Invalid)
+            {
+                var message = string.Join(" | ",
+                    result.ValidationErrors.Select(e =>
+                        $"{e.Identifier}: {e.ErrorMessage}"));
+
+                _logger.LogWarning("Validation failed: {Message}", message);
+
+                throw new RpcException(new Status(
+                    StatusCode.InvalidArgument,
+                    message));
+            }
+
+            var errorMessage = string.Join(" | ", result.Errors);
+
+            _logger.LogError("Business error: {Error}", errorMessage);
+
             throw new RpcException(new Status(
                 StatusCode.FailedPrecondition,
-                string.Join(", ", result.Errors)));
+                errorMessage));
+        }
 
         return MapToGrpcTransactionResponse(result.Value);
     }
@@ -224,9 +282,28 @@ public sealed class WalletTransactionGrpcService : WalletTransactionGrpc.WalletT
         var result = await _mediator.Send(query, context.CancellationToken);
 
         if (!result.IsSuccess)
+        {
+            if (result.Status == ResultStatus.Invalid)
+            {
+                var message = string.Join(" | ",
+                    result.ValidationErrors.Select(e =>
+                        $"{e.Identifier}: {e.ErrorMessage}"));
+
+                _logger.LogWarning("Validation failed: {Message}", message);
+
+                throw new RpcException(new Status(
+                    StatusCode.InvalidArgument,
+                    message));
+            }
+
+            var errorMessage = string.Join(" | ", result.Errors);
+
+            _logger.LogError("Business error: {Error}", errorMessage);
+
             throw new RpcException(new Status(
                 StatusCode.FailedPrecondition,
-                string.Join(", ", result.Errors)));
+                errorMessage));
+        }
 
         var response = new GetAllWalletTransactionsResponse
         {
@@ -269,9 +346,28 @@ public sealed class WalletTransactionGrpcService : WalletTransactionGrpc.WalletT
                 result.Errors.FirstOrDefault() ?? "Transaction not found"));
 
         if (!result.IsSuccess)
+        {
+            if (result.Status == ResultStatus.Invalid)
+            {
+                var message = string.Join(" | ",
+                    result.ValidationErrors.Select(e =>
+                        $"{e.Identifier}: {e.ErrorMessage}"));
+
+                _logger.LogWarning("Validation failed: {Message}", message);
+
+                throw new RpcException(new Status(
+                    StatusCode.InvalidArgument,
+                    message));
+            }
+
+            var errorMessage = string.Join(" | ", result.Errors);
+
+            _logger.LogError("Business error: {Error}", errorMessage);
+
             throw new RpcException(new Status(
                 StatusCode.FailedPrecondition,
-                string.Join(", ", result.Errors)));
+                errorMessage));
+        }
 
         return MapToGrpcTransactionResponse(result.Value);
     }
@@ -295,9 +391,28 @@ public sealed class WalletTransactionGrpcService : WalletTransactionGrpc.WalletT
         var result = await _mediator.Send(query, context.CancellationToken);
 
         if (!result.IsSuccess)
+        {
+            if (result.Status == ResultStatus.Invalid)
+            {
+                var message = string.Join(" | ",
+                    result.ValidationErrors.Select(e =>
+                        $"{e.Identifier}: {e.ErrorMessage}"));
+
+                _logger.LogWarning("Validation failed: {Message}", message);
+
+                throw new RpcException(new Status(
+                    StatusCode.InvalidArgument,
+                    message));
+            }
+
+            var errorMessage = string.Join(" | ", result.Errors);
+
+            _logger.LogError("Business error: {Error}", errorMessage);
+
             throw new RpcException(new Status(
                 StatusCode.FailedPrecondition,
-                string.Join(", ", result.Errors)));
+                errorMessage));
+        }
 
         var response = new GetAllWalletTransactionsResponse
         {

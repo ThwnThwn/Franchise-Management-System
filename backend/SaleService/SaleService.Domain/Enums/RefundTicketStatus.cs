@@ -2,14 +2,13 @@
 {
     public enum RefundTicketStatus
     {
-        Pending=0,
-        Approved=1,
-        Processing=2,
-        Completed=3,
-        Failed=4,
-        Rejected=5,
-        Cancelled=6
+        Unspecified = 0,
+        Pending = 1,
+        Approved = 2,
+        Processing = 3,
+        Completed = 4,
+        Failed = 5,
+        Rejected = 6,
+        Cancelled = 7
     }
-
-
 }

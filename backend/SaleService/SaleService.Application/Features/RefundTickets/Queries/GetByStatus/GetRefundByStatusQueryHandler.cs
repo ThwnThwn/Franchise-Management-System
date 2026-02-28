@@ -41,29 +41,29 @@ public sealed class GetRefundByStatusQueryHandler
 
 
         //  Case 1: UserId is NULL → Admin viewing all users
-        if (!query.UserId.HasValue)
-        {
-            // Must be admin (checked at controller level via [Authorize(Roles = "Admin")])
-            // Or you can check here:
-            var InternalRole = await _identityServiceClient.GetUserByIdAsync(query.UserId.Value);
-            if (InternalRole?.Role.Slug is not ("admin" or "manager"))
-                return Result.Forbidden("Only administrators or managers can view all refund tickets");
-        }
-        //  Case 2: UserId provided → User viewing own tickets OR admin viewing specific user
-        else
-        {
-            var userRole = await _identityServiceClient.GetUserByIdAsync(query.UserId.Value);
-            var role = userRole?.Role?.RoleName?.Trim().ToLower();
+        //if (!query.UserId.HasValue)
+        //{
+        //    // Must be admin (checked at controller level via [Authorize(Roles = "Admin")])
+        //    // Or you can check here:
+        //    var InternalRole = await _identityServiceClient.GetUserByIdAsync(query.UserId.Value);
+        //    if (InternalRole?.Role.Slug is not ("admin" or "manager"))
+        //        return Result.Forbidden("Only administrators or managers can view all refund tickets");
+        //}
+        ////  Case 2: UserId provided → User viewing own tickets OR admin viewing specific user
+        //else
+        //{
+        //    var userRole = await _identityServiceClient.GetUserByIdAsync(query.UserId.Value);
+        //    var role = userRole?.Role?.RoleName?.Trim().ToLower();
 
-            var isInternalUser = role == "administrator"
-                            || role == "manager";
+        //    var isInternalUser = role == "administrator"
+        //                    || role == "manager";
 
-            if (!isInternalUser)
-            {
-                return Result.Forbidden("Only Admin or Manager can get refund requests");
-            }
+        //    if (!isInternalUser)
+        //    {
+        //        return Result.Forbidden("Only Admin or Manager can get refund requests");
+        //    }
 
-        }
+        //}
 
         BuildingBlocks.Core.Pagination.PagedResult<RefundTicket> refundTickets;
 

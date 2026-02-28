@@ -87,13 +87,13 @@ public sealed class InternalUserCreateRefundTicketCommandValidator
                       x.InternalUserOverride.BypassAmountValidation);
 
         //  If compensation type is SystemError/Complaint, bypass should be considered
-        RuleFor(x => x.InternalUserOverride)
-            .Must(o => o!.BypassTimeLimit || o.BypassAmountValidation)
-            .WithMessage("SystemError or Complaint refunds should use bypass options.")
-            .When(x => x.InternalUserOverride != null &&
-                      x.InternalUserOverride.RefundReason.HasValue &&
-                      (x.InternalUserOverride.RefundReason == RefundReasonType.SystemError ||
-                       x.InternalUserOverride.RefundReason == RefundReasonType.CustomerComplaint))
-            .WithSeverity(Severity.Warning); //  Warning, not error
+        //RuleFor(x => x.InternalUserOverride)
+        //    .Must(o => o!.BypassTimeLimit || o.BypassAmountValidation)
+        //    .WithMessage("SystemError or Complaint refunds should use bypass options.")
+        //    .When(x => x.InternalUserOverride != null &&
+        //              x.InternalUserOverride.RefundReason.HasValue &&
+        //              (x.InternalUserOverride.RefundReason == RefundReasonType.SystemError ||
+        //               x.InternalUserOverride.RefundReason == RefundReasonType.CustomerComplaint))
+        //    .WithSeverity(Severity.Warning); //  Warning, not error
     }
 }

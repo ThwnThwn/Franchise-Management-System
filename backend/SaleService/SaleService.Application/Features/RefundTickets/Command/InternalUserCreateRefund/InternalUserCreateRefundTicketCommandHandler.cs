@@ -138,23 +138,23 @@ public sealed class InternalUserCreateRefundTicketCommandHandler
                 "A pending refund already exists for this transaction"));
 
         // ✅ Amount validation (unless bypassed)
-        decimal totalRefunded = 0;
-        decimal remainingRefundable = originalTransaction.Amount;
+
+        var originalAmount = Math.Abs(originalTransaction.Amount);
+
+        var totalRefunded = await _refundTicketRepository
+            .GetTotalRefundedAmountByTransactionIdAsync(
+                originalTransaction.Id,
+                cancellationToken);
+
+        var remainingRefundable = originalAmount - totalRefunded;
 
         if (!InternalUserOverride.BypassAmountValidation)
         {
-            totalRefunded = await _refundTicketRepository
-                .GetTotalRefundedAmountByTransactionIdAsync(
-                    request.OriginalTransactionId,
-                    cancellationToken);
-
-            remainingRefundable = originalTransaction.Amount - totalRefunded;
-
             if (request.Amount > remainingRefundable)
                 return Result.Invalid(new ValidationError(
                     nameof(request.Amount),
                     $"Refund amount exceeds remaining refundable amount. " +
-                    $"Original: {originalTransaction.Amount:N2}, " +
+                    $"Original: {originalAmount:N2}, " +
                     $"Already refunded: {totalRefunded:N2}, " +
                     $"Remaining: {remainingRefundable:N2}. " +
                     $"InternalUser can use BypassAmountValidation flag to override."));

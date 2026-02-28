@@ -62,9 +62,28 @@ public sealed class RefundGrpcService : RefundTicketGrpcService.RefundTicketGrpc
         var result = await _mediator.Send(command, context.CancellationToken);
 
         if (!result.IsSuccess)
+        {
+            if (result.Status == ResultStatus.Invalid)
+            {
+                var message = string.Join(" | ",
+                    result.ValidationErrors.Select(e =>
+                        $"{e.Identifier}: {e.ErrorMessage}"));
+
+                _logger.LogWarning("Validation failed: {Message}", message);
+
+                throw new RpcException(new Status(
+                    StatusCode.InvalidArgument,
+                    message));
+            }
+
+            var errorMessage = string.Join(" | ", result.Errors);
+
+            _logger.LogError("Business error: {Error}", errorMessage);
+
             throw new RpcException(new Status(
                 StatusCode.FailedPrecondition,
-                string.Join(", ", result.Errors)));
+                errorMessage));
+        }
 
         var data = result.Value;
 
@@ -126,10 +145,29 @@ public sealed class RefundGrpcService : RefundTicketGrpcService.RefundTicketGrpc
 
         var result = await _mediator.Send(command, context.CancellationToken);
 
-        if (!result.IsSuccess)
+        if(!result.IsSuccess)
+{
+            if (result.Status == ResultStatus.Invalid)
+            {
+                var message = string.Join(" | ",
+                    result.ValidationErrors.Select(e =>
+                        $"{e.Identifier}: {e.ErrorMessage}"));
+
+                _logger.LogWarning("Validation failed: {Message}", message);
+
+                throw new RpcException(new Status(
+                    StatusCode.InvalidArgument,
+                    message));
+            }
+
+            var errorMessage = string.Join(" | ", result.Errors);
+
+            _logger.LogError("Business error: {Error}", errorMessage);
+
             throw new RpcException(new Status(
                 StatusCode.FailedPrecondition,
-                string.Join(", ", result.Errors)));
+                errorMessage));
+        }
 
         var data = result.Value;
 
@@ -174,9 +212,28 @@ public sealed class RefundGrpcService : RefundTicketGrpcService.RefundTicketGrpc
         var result = await _mediator.Send(command, context.CancellationToken);
 
         if (!result.IsSuccess)
+        {
+            if (result.Status == ResultStatus.Invalid)
+            {
+                var message = string.Join(" | ",
+                    result.ValidationErrors.Select(e =>
+                        $"{e.Identifier}: {e.ErrorMessage}"));
+
+                _logger.LogWarning("Validation failed: {Message}", message);
+
+                throw new RpcException(new Status(
+                    StatusCode.InvalidArgument,
+                    message));
+            }
+
+            var errorMessage = string.Join(" | ", result.Errors);
+
+            _logger.LogError("Business error: {Error}", errorMessage);
+
             throw new RpcException(new Status(
                 StatusCode.FailedPrecondition,
-                string.Join(", ", result.Errors)));
+                errorMessage));
+        }
 
         var data = result.Value;
 
@@ -219,9 +276,28 @@ public sealed class RefundGrpcService : RefundTicketGrpcService.RefundTicketGrpc
         var result = await _mediator.Send(command, context.CancellationToken);
 
         if (!result.IsSuccess)
+        {
+            if (result.Status == ResultStatus.Invalid)
+            {
+                var message = string.Join(" | ",
+                    result.ValidationErrors.Select(e =>
+                        $"{e.Identifier}: {e.ErrorMessage}"));
+
+                _logger.LogWarning("Validation failed: {Message}", message);
+
+                throw new RpcException(new Status(
+                    StatusCode.InvalidArgument,
+                    message));
+            }
+
+            var errorMessage = string.Join(" | ", result.Errors);
+
+            _logger.LogError("Business error: {Error}", errorMessage);
+
             throw new RpcException(new Status(
                 StatusCode.FailedPrecondition,
-                string.Join(", ", result.Errors)));
+                errorMessage));
+        }
 
         var data = result.Value;
 
@@ -262,9 +338,28 @@ public sealed class RefundGrpcService : RefundTicketGrpcService.RefundTicketGrpc
         var result = await _mediator.Send(command, context.CancellationToken);
 
         if (!result.IsSuccess)
+        {
+            if (result.Status == ResultStatus.Invalid)
+            {
+                var message = string.Join(" | ",
+                    result.ValidationErrors.Select(e =>
+                        $"{e.Identifier}: {e.ErrorMessage}"));
+
+                _logger.LogWarning("Validation failed: {Message}", message);
+
+                throw new RpcException(new Status(
+                    StatusCode.InvalidArgument,
+                    message));
+            }
+
+            var errorMessage = string.Join(" | ", result.Errors);
+
+            _logger.LogError("Business error: {Error}", errorMessage);
+
             throw new RpcException(new Status(
                 StatusCode.FailedPrecondition,
-                string.Join(", ", result.Errors)));
+                errorMessage));
+        }
 
         var data = result.Value;
 
@@ -304,9 +399,28 @@ public sealed class RefundGrpcService : RefundTicketGrpcService.RefundTicketGrpc
                 result.Errors.FirstOrDefault() ?? "Refund ticket not found"));
 
         if (!result.IsSuccess)
+        {
+            if (result.Status == ResultStatus.Invalid)
+            {
+                var message = string.Join(" | ",
+                    result.ValidationErrors.Select(e =>
+                        $"{e.Identifier}: {e.ErrorMessage}"));
+
+                _logger.LogWarning("Validation failed: {Message}", message);
+
+                throw new RpcException(new Status(
+                    StatusCode.InvalidArgument,
+                    message));
+            }
+
+            var errorMessage = string.Join(" | ", result.Errors);
+
+            _logger.LogError("Business error: {Error}", errorMessage);
+
             throw new RpcException(new Status(
                 StatusCode.FailedPrecondition,
-                string.Join(", ", result.Errors)));
+                errorMessage));
+        }
 
         var data = result.Value;
         return new Grpc.GetRefundByIdResponse
@@ -348,9 +462,28 @@ public sealed class RefundGrpcService : RefundTicketGrpcService.RefundTicketGrpc
         var result = await _mediator.Send(query, context.CancellationToken);
 
         if (!result.IsSuccess)
+        {
+            if (result.Status == ResultStatus.Invalid)
+            {
+                var message = string.Join(" | ",
+                    result.ValidationErrors.Select(e =>
+                        $"{e.Identifier}: {e.ErrorMessage}"));
+
+                _logger.LogWarning("Validation failed: {Message}", message);
+
+                throw new RpcException(new Status(
+                    StatusCode.InvalidArgument,
+                    message));
+            }
+
+            var errorMessage = string.Join(" | ", result.Errors);
+
+            _logger.LogError("Business error: {Error}", errorMessage);
+
             throw new RpcException(new Status(
                 StatusCode.FailedPrecondition,
-                string.Join(", ", result.Errors)));
+                errorMessage));
+        }
 
         var response = new Grpc.GetAllRefundsResponse
         {
@@ -388,9 +521,28 @@ public sealed class RefundGrpcService : RefundTicketGrpcService.RefundTicketGrpc
         var result = await _mediator.Send(query, context.CancellationToken);
 
         if (!result.IsSuccess)
+        {
+            if (result.Status == ResultStatus.Invalid)
+            {
+                var message = string.Join(" | ",
+                    result.ValidationErrors.Select(e =>
+                        $"{e.Identifier}: {e.ErrorMessage}"));
+
+                _logger.LogWarning("Validation failed: {Message}", message);
+
+                throw new RpcException(new Status(
+                    StatusCode.InvalidArgument,
+                    message));
+            }
+
+            var errorMessage = string.Join(" | ", result.Errors);
+
+            _logger.LogError("Business error: {Error}", errorMessage);
+
             throw new RpcException(new Status(
                 StatusCode.FailedPrecondition,
-                string.Join(", ", result.Errors)));
+                errorMessage));
+        }
 
         var response = new GetRefundByStatusResponse
         {
@@ -433,9 +585,28 @@ public sealed class RefundGrpcService : RefundTicketGrpcService.RefundTicketGrpc
         var result = await _mediator.Send(query, context.CancellationToken);
 
         if (!result.IsSuccess)
+        {
+            if (result.Status == ResultStatus.Invalid)
+            {
+                var message = string.Join(" | ",
+                    result.ValidationErrors.Select(e =>
+                        $"{e.Identifier}: {e.ErrorMessage}"));
+
+                _logger.LogWarning("Validation failed: {Message}", message);
+
+                throw new RpcException(new Status(
+                    StatusCode.InvalidArgument,
+                    message));
+            }
+
+            var errorMessage = string.Join(" | ", result.Errors);
+
+            _logger.LogError("Business error: {Error}", errorMessage);
+
             throw new RpcException(new Status(
                 StatusCode.FailedPrecondition,
-                string.Join(", ", result.Errors)));
+                errorMessage));
+        }
 
         var response = new Grpc.GetRefundByUserIdResponse
         {
