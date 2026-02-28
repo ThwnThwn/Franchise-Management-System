@@ -9,6 +9,6 @@ namespace SharedKernel.Events
     public class ProcessOrderRewardEvent
     {
         public Guid Id { get; set; }
-        public decimal TotalAmount { get; set; } = 0;
+        public decimal OrderAmount { get; set; } = 0;
     }
 }
