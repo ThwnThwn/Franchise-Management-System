@@ -1,14 +1,7 @@
 ﻿using EngagementService.Application.Features.LoyaltyAccount.Queries.GetById;
-using Google.Protobuf.WellKnownTypes;
 using MediatR;
-using Org.BouncyCastle.Asn1.Ocsp;
 using SharedKernel.Events;
 using SharedKernel.Infrastructure.Kafka;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EngagementService.Application.EventHandler
 {
@@ -44,3 +37,4 @@ namespace EngagementService.Application.EventHandler
         }
     }
 }
+

@@ -1,25 +1,18 @@
-﻿
-using EngagementService.Application.Features.LoyaltyAccount.Commands.Create;
+﻿using EngagementService.Application.Features.LoyaltyAccount.Commands.Create;
 using MediatR;
 using SharedKernel.Events;
 using SharedKernel.Infrastructure.Kafka;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EngagementService.Application.EventHandler
 {
-    public class CreateLoyaltyAccountHandler : IIntegrationEventHandler<CreateLoyaltyAccountEvent>
+    public class CreateLoyaltyAccountHandler : IIntegrationEventHandler<UserRegisteredEvent>
     {
         private readonly IMediator _mediator;
         public CreateLoyaltyAccountHandler(IMediator mediator)
         {
             _mediator = mediator;
         }
-        public async Task Handle(CreateLoyaltyAccountEvent @event)
+        public async Task Handle(UserRegisteredEvent @event)
         {
             var command = new CreateCommand(
             new Dtos.LoyaltyAccount.UpSertReqest()

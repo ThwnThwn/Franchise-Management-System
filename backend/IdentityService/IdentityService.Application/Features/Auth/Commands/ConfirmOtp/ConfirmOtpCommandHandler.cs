@@ -4,6 +4,9 @@ using IdentityService.Application.Persistences.Caches;
 using IdentityService.Application.Persistences.Repositories;
 using IdentityService.Domain.Entities;
 using MediatR;
+using SharedKernel.Constants;
+using SharedKernel.Events;
+using SharedKernel.Infrastructure.Kafka;
 using System.Text.Json;
 
 namespace IdentityService.Application.Features.Auth.Commands.ConfirmOtp
@@ -13,15 +16,18 @@ namespace IdentityService.Application.Features.Auth.Commands.ConfirmOtp
         private readonly IOtpStore _otpStore;
         private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
+        private readonly IKafkaProducer _kafkaProducer;
 
         public ConfirmOtpCommandHandler(
             IOtpStore otpStore,
             IUserRepository userRepository,
-            IMapper mapper)
+            IMapper mapper,
+            IKafkaProducer kafkaProducer)
         {
             _otpStore = otpStore;
             _userRepository = userRepository;
             _mapper = mapper;
+            _kafkaProducer = kafkaProducer;
         }
 
         public async Task<Unit> Handle(ConfirmOtpCommand command, CancellationToken cancellationToken)
@@ -89,6 +95,13 @@ namespace IdentityService.Application.Features.Auth.Commands.ConfirmOtp
             await _otpStore.RemoveRegistrationDataAsync(request.Email);
             await _otpStore.ResetOtpAttemptAsync(request.Email, register);
             await _otpStore.RemoveLastOtpRequestTimeAsync(request.Email, register);
+
+            
+            //Create Loyalty Tier Account Through Kafka
+            await _kafkaProducer.PublishAsync(KafkaTopics.LoyaltyTierAccount, new UserRegisteredEvent
+            {
+                CustomerId = user.Id
+            });
 
             return Unit.Value;
         }

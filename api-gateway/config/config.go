@@ -28,7 +28,8 @@ type Config struct {
 	JwtSecret                       string
 	JwtAccessTokenExpirationMinutes int
 
-	MaxUploadSizeMb int
+	MaxUploadSizeMb       int
+	GatewayTimeoutSeconds int
 }
 
 type Logger struct {
@@ -68,12 +69,12 @@ func LoadConfig() *Config {
 
 	cfg := &Config{
 		Logger: Logger{
-			LogLevel:    getEnv("LOGGER_LOG_LEVEL", "debug"),
-			FileLogName: getEnv("LOGGER_FILE_LOG_NAME", "./logs/dev.log"),
-			MaxBackups:  getEnvInt("LOGGER_MAX_BACKUPS", 3),
-			MaxAge:      getEnvInt("LOGGER_MAX_AGE", 30),
-			MaxSize:     getEnvInt("LOGGER_MAX_SIZE", 100),
-			Compress:    getEnvBool("LOGGER_COMPRESS", true),
+			LogLevel:    getEnv("GATEWAY_LOGGER_LOG_LEVEL", "debug"),
+			FileLogName: getEnv("GATEWAY_LOGGER_FILE_LOG_NAME", "./logs/dev.log"),
+			MaxBackups:  getEnvInt("GATEWAY_LOGGER_MAX_BACKUPS", 3),
+			MaxAge:      getEnvInt("GATEWAY_LOGGER_MAX_AGE", 30),
+			MaxSize:     getEnvInt("GATEWAY_LOGGER_MAX_SIZE", 100),
+			Compress:    getEnvBool("GATEWAY_LOGGER_COMPRESS", true),
 		},
 
 		Redis: Redis{
@@ -99,7 +100,8 @@ func LoadConfig() *Config {
 		JwtSecret:                       getEnv("JWT_SECRET", ""),
 		JwtAccessTokenExpirationMinutes: getEnvInt("JWT_ACCESS_TOKEN_EXPIRATION_MINUTES", 15),
 
-		MaxUploadSizeMb: getEnvInt("MAX_UPLOAD_SIZE_MB", 10),
+		MaxUploadSizeMb:       getEnvInt("MAX_UPLOAD_SIZE_MB", 10),
+		GatewayTimeoutSeconds: getEnvInt("GATEWAY_TIMEOUT_SECONDS", 15),
 	}
 	return cfg
 }

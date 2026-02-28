@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace SharedKernel.Events
 {
-    public class CreateLoyaltyAccountEvent
+    public class UserRegisteredEvent
+
     {
         public Guid CustomerId { get; set; }
-
     }
 }
