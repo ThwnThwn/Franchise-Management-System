@@ -27,7 +27,7 @@ namespace EngagementService.Application.Helper
                 Description = description,
                 ReasonCode = reasonCode,
                 ReferenceId = orderId,
-                User = null,
+                User = account,
             };
             await _repo.AddAsync(pointLog);
         }
