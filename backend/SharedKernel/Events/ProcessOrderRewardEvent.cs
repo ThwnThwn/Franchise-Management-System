@@ -10,5 +10,6 @@ namespace SharedKernel.Events
     {
         public Guid Id { get; set; }
         public decimal OrderAmount { get; set; } = 0;
+        public Guid OrderId { get; set; } = Guid.Empty;
     }
 }

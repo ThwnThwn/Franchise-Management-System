@@ -21,13 +21,14 @@ service LoyaltyAccountGrpc {
   rpc CreateLoyaltyAccount (CreateLoyaltyAccountRequest) returns (google.protobuf.Empty);
 
   //Hàm trừ điểm khi xử dụng
-  rpc DetuctPoints (DetuctPointRequest) returns (google.protobuf.Empty);
+  rpc DeductPoints (DeductPointRequest) returns (google.protobuf.Empty);
 }
 
   // Định nghĩa Request
   message ProcessOrderRewardRequest {
     string id = 1;           // Đại diện cho Guid Id
     string order_amount = 2; // Đại diện cho decimal OrderAmount (Dùng string để bảo toàn độ chính xác)
+    string order_id = 3;
   }
 
 // Request lấy thông tin theo số điện thoại
@@ -51,7 +52,8 @@ message CreateLoyaltyAccountRequest {
 }
 
 //Request trừ điểm
-message DetuctPointRequest{
+message DeductPointRequest{
   string id = 1;
-  string point_to_detuct = 2;
+  string point_to_deduct = 2;
+  optional string order_id = 3;
 }

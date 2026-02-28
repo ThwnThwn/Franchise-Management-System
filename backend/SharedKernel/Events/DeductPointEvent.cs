@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 
 namespace SharedKernel.Events
 {
-    public class DetuctPointEvent
+    public class DeductPointEvent
     {
         public Guid Id { get; set; }
-        public decimal PointToDetuct { get; set; } = 0;
+        public decimal PointToDeduct { get; set; } = 0;
+        public Guid? OrderId { get; set; } = null;
     }
 }
