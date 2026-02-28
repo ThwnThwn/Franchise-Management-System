@@ -1,0 +1,14 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace SharedKernel.Events
+{
+    public class DetuctPointEvent
+    {
+        public Guid Id { get; set; }
+        public decimal PointToDetuct { get; set; } = 0;
+    }
+}

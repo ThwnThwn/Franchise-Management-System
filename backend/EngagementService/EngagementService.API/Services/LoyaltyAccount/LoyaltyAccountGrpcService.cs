@@ -83,5 +83,16 @@ namespace EngagementService.API.Services.LoyaltyAccount
 
             return new Empty();
         }
+
+        public async override Task<Empty> DetuctPoints(DetuctPointRequest request, Grpc.Core.ServerCallContext context)
+        {
+            var req = new Application.Dtos.LoyaltyAccount.DetuctPointRequest
+            {
+                Id = Guid.Parse(request.Id),
+                PointToDetuct = decimal.Parse(request.PointToDetuct)
+            };
+            await _mediator.Send(new Application.Features.LoyaltyAccount.Commands.DetuctPoint.DetuctPointCommand(req));
+            return new Empty();
+        }
     }
 }
