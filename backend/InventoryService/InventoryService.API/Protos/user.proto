@@ -17,16 +17,19 @@ message UserResponse {
   string phone = 4;
   string address = 5;
   bool isBlocked = 6;
-
   string firstName = 7;
   string lastName = 8;
   int32 gender = 9;
   google.protobuf.Timestamp dateOfBirth = 10;
 
-  RoleUserResponse role = 11;
-  google.protobuf.Timestamp createdAt = 12;
-  google.protobuf.Timestamp updatedAt = 13;
+  optional string homeStoreId = 11; 
+  RoleUserResponse role = 12; 
+  google.protobuf.Timestamp createdAt = 13;
+  google.protobuf.Timestamp updatedAt = 14;
+  optional double current_hourly_wage = 15;
+  string avatar_url = 16;
 }
+
 
 message GetManagerRequest{
   string id = 1;

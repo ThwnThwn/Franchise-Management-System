@@ -1,11 +1,13 @@
 syntax = "proto3";
 
 option csharp_namespace = "EngagementService.Infrastructure.Protos";
+
 option go_package = "api-gateway/pkg/pb/engagement";
 
 package engagement;
 // Import thư viện Empty của Google để định nghĩa hàm không trả về gì
 import "google/protobuf/empty.proto";
+import "engagement/membership_tier.proto";
 
 // Service định nghĩa các hành động liên quan đến Loyalty
 service LoyaltyAccountGrpc {
@@ -14,13 +16,19 @@ service LoyaltyAccountGrpc {
 
   // Hàm lấy thông tin tài khoản qua số điện thoại
   rpc GetByUserPhoneOrEmail (GetByUserPhoneOrEmailRequest) returns (LoyaltyAccountResponse);
+
+  // Hàm Upsert nhận vào UpSertRequest và không trả ra gì
+  rpc CreateLoyaltyAccount (CreateLoyaltyAccountRequest) returns (google.protobuf.Empty);
+
+  //Hàm trừ điểm khi xử dụng
+  rpc DeductPoints (DeductPointRequest) returns (google.protobuf.Empty);
 }
 
-// Định nghĩa Request
-message ProcessOrderRewardRequest {
-  string id = 1;           // Đại diện cho Guid Id
-  string order_amount = 2; // Đại diện cho decimal OrderAmount (Dùng string để bảo toàn độ chính xác)
-}
+  // Định nghĩa Request
+  message ProcessOrderRewardRequest {
+    string id = 1;           // Đại diện cho Guid Id
+    string order_amount = 2; // Đại diện cho decimal OrderAmount (Dùng string để bảo toàn độ chính xác)
+  }
 
 // Request lấy thông tin theo số điện thoại
 message GetByUserPhoneOrEmailRequest {
@@ -28,11 +36,6 @@ message GetByUserPhoneOrEmailRequest {
   string email = 2;
 }
 
-// Thông tin hạng thành viên
-message MembershipTierResponse {
-  string id = 1;   // Đại diện Guid
-  string name = 2;
-}
 
 // Thông tin tài khoản Loyalty trả về
 message LoyaltyAccountResponse {
@@ -40,4 +43,15 @@ message LoyaltyAccountResponse {
   string available_points = 2; // Đại diện decimal
   string total_spent = 3;      // Đại diện decimal
   MembershipTierResponse current_tier = 4;
+}
+
+// Định nghĩa Request cho hàm Upsert
+message CreateLoyaltyAccountRequest {
+  string user_id = 1;           // Tương ứng với Guid Id
+}
+
+//Request trừ điểm
+message DeductPointRequest{
+  string id = 1;
+  string point_amount = 2;
 }

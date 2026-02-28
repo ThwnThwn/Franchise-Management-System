@@ -42,8 +42,8 @@ namespace EngagementService.API.Services.LoyaltyAccount
 
         public async override Task<LoyaltyAccountResponse> GetByUserPhoneOrEmail(GetByUserPhoneOrEmailRequest request, Grpc.Core.ServerCallContext context)
         {
-            //giả định lấy ra được id từ phone
-            var req = new Application.Dtos.LoyaltyAccount.GetByUserPhoneOrEmailRequest() {
+            var req = new Application.Dtos.LoyaltyAccount.GetByUserPhoneOrEmailRequest()
+            {
                 Email = request.Email,
                 PhoneNumber = request.PhoneNumber
             };
@@ -55,7 +55,11 @@ namespace EngagementService.API.Services.LoyaltyAccount
             var tierRep = new MembershipTierResponse()
             {
                 Id = account.CurrentTier.Id.ToString(),
-                Name = account.CurrentTier.Name
+                Name = account.CurrentTier.Name,
+                MinSpendRequired = account.CurrentTier.MinSpendRequired.ToString(), // Chuyển decimal sang string để gRPC hiểu
+                DiscountRate = account.CurrentTier.DiscountRate,
+                ValuePerPoint = account.CurrentTier.ValuePerPoint.ToString(),
+                AmountPerPoint = account.CurrentTier.AmountPerPoint.ToString()
             };
             var response = new LoyaltyAccountResponse
             {
@@ -66,6 +70,18 @@ namespace EngagementService.API.Services.LoyaltyAccount
             };
 
             return response;
+        }
+
+        public async override Task<Empty> CreateLoyaltyAccount(CreateLoyaltyAccountRequest request, Grpc.Core.ServerCallContext context)
+        {
+            var upSertReq = new Application.Dtos.LoyaltyAccount.UpSertReqest
+            {
+                Id = Guid.Parse(request.UserId),
+                OrderAmount = 0
+            };
+            await _mediator.Send(new Application.Features.LoyaltyAccount.Commands.Create.CreateCommand(upSertReq));
+
+            return new Empty();
         }
     }
 }

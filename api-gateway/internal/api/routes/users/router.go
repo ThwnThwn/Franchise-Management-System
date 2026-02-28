@@ -1,6 +1,8 @@
 package users
 
 import (
+	"api-gateway/internal/api"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -10,20 +12,27 @@ func (u *UserRouter) Init(r *gin.RouterGroup) {
 	privateApi := userApi.Group("")
 	privateApi.Use(u.authMW.ValidateToken([]byte(u.cfg.JwtSecret)))
 	{
-		privateApi.GET("/me", u.userHl.GetMe)
-		privateApi.PATCH("/me", u.userHl.UpdateMe)
-		privateApi.PUT("/me/avatar", u.userHl.UploadMyAvatar)
-		privateApi.DELETE("/me/avatar", u.userHl.DeleteMyAvatar)
+		privateApi.GET("/me", api.WrapHandler(u.userHl.GetMe))
+		privateApi.PATCH("/me", api.WrapHandler(u.userHl.UpdateMe))
+		privateApi.PUT("/me/avatar", api.WrapHandler(u.userHl.UploadMyAvatar))
+		privateApi.DELETE("/me/avatar", api.WrapHandler(u.userHl.DeleteMyAvatar))
 	}
 
 	{
-		// Admin lấy danh sách user
-		privateApi.GET("", u.authMW.PermissionCheck("user.read"), u.userHl.GetAll)
-		// Admin lấy thông tin 1 user
-		privateApi.GET("/:id", u.authMW.PermissionCheck("user.read"), u.userHl.GetById)
-		// Admin tạo 1 user
-		privateApi.POST("", u.authMW.PermissionCheck("user.create"), u.userHl.Create)
-		// Admin update role cho 1 user
-		privateApi.PATCH("/:id/role", u.authMW.PermissionCheck("user.update"), u.userHl.UpdateRole)
+		// lấy danh sách user
+		privateApi.GET("", u.authMW.PermissionCheck("user.read"),
+			api.WrapHandler(u.userHl.GetAll))
+
+		// lấy thông tin 1 user
+		privateApi.GET("/:id", u.authMW.PermissionCheck("user.read"),
+			api.WrapHandler(u.userHl.GetById))
+
+		// tạo 1 user
+		privateApi.POST("", u.authMW.PermissionCheck("user.create"),
+			api.WrapHandler(u.userHl.Create))
+
+		// update role cho 1 user
+		privateApi.PATCH("/:id/role", u.authMW.PermissionCheck("user.update"),
+			api.WrapHandler(u.userHl.UpdateRole))
 	}
 }

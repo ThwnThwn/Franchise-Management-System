@@ -11,8 +11,8 @@ public sealed record UpdateProductCommand(
         Guid ProductId,
         string? Name,
         string? Description,
-        string? ImageUrl,
-        string? ImagePublicId,
+        //string? ImageUrl,
+        //string? ImagePublicId,
         bool? IsActive,
         Guid CategoryId,
         List<UpdateProductVariantRequest>? Variants

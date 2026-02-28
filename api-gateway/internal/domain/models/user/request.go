@@ -11,12 +11,15 @@ type CreateUserRequest struct {
 	LastName    string `json:"lastName"`
 	Gender      *int32 `json:"gender" binding:"required"`
 	DateOfBirth string `json:"dateOfBirth"`
-	RoleSlug    string `json:"roleSlug" binding:"required"`
+
+	HomeStoreID       *string  `json:"homeStoreId"`
+	CurrentHourlyWage *float64 `json:"currentHourlyWage"`
+	RoleSlug          string   `json:"roleSlug" binding:"required"`
 }
 
 type UpdateUserRequest struct {
-	Username    string `json:"username"`
-	Email       string `json:"email"`
+	Username string `json:"username"`
+	// Email       string `json:"email"`
 	Phone       string `json:"phone"`
 	Address     string `json:"address"`
 	FirstName   string `json:"firstName"`
@@ -24,7 +27,10 @@ type UpdateUserRequest struct {
 	Gender      int32  `json:"gender"`
 	DateOfBirth string `json:"dateOfBirth"`
 	IsBlocked   bool   `json:"isBlocked"`
-	RoleSlug    string `json:"roleSlug"`
+
+	HomeStoreID       *string  `json:"homeStoreId"`
+	CurrentHourlyWage *float64 `json:"currentHourlyWage"`
+	RoleSlug          string   `json:"roleSlug"`
 }
 
 type UpdateUserRoleRequest struct {
@@ -32,7 +38,7 @@ type UpdateUserRoleRequest struct {
 }
 
 type UpdateMeRequest struct {
-	Email       string `json:"email"`
+	// Email       string `json:"email"`
 	Phone       string `json:"phone"`
 	Address     string `json:"address"`
 	FirstName   string `json:"firstName"`

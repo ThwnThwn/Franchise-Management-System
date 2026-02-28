@@ -33,27 +33,25 @@ func NewShiftAvailabilityHandler(shiftGW franchise.IShiftAvailabilityService) *S
 // @Security     BearerAuth
 // @Param        query query shift.GetAvailabilityParams false "Bộ lọc tìm kiếm"
 // @Router       /me/shift-availabilities [get]
-func (h *ShiftAvailabilityHandler) GetMyHistory(c *gin.Context) {
+func (h *ShiftAvailabilityHandler) GetMyHistory(c *gin.Context) error {
 	userID, err := contextutils.GetUserId(c)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	var params shift.GetAvailabilityParams
 	if err := c.ShouldBindQuery(&params); err != nil {
-		c.Error(validation.TranslateValidationError(err))
-		return
+		return validation.TranslateValidationError(err)
 	}
 
 	params.UserID = stringutils.ToPtr(userID.String())
 	res, err := h.shiftGW.GetAll(c.Request.Context(), &params)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, res)
+	return nil
 }
 
 // Create
@@ -63,32 +61,29 @@ func (h *ShiftAvailabilityHandler) GetMyHistory(c *gin.Context) {
 // @Security     BearerAuth
 // @Param        body body shift.CreateShiftAvailabilityRequest true "Dữ liệu đăng ký"
 // @Router       /shift-availabilities [post]
-func (h *ShiftAvailabilityHandler) Create(c *gin.Context) {
+func (h *ShiftAvailabilityHandler) Create(c *gin.Context) error {
 	userID, err := contextutils.GetUserId(c)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	var req shift.CreateShiftAvailabilityRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(validation.TranslateValidationError(err))
-		return
+		return validation.TranslateValidationError(err)
 	}
 
 	ctx, err := grpcutils.BuildAuthContext(c)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	err = h.shiftGW.Create(ctx, userID, &req)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusCreated, gin.H{})
+	return nil
 }
 
 // Update
@@ -99,38 +94,34 @@ func (h *ShiftAvailabilityHandler) Create(c *gin.Context) {
 // @Param        id   path string true "ID lịch đăng ký"
 // @Param        body body shift.UpdateShiftAvailabilityRequest true "Dữ liệu cập nhật"
 // @Router       /shift-availabilities/{id} [patch]
-func (h *ShiftAvailabilityHandler) Update(c *gin.Context) {
+func (h *ShiftAvailabilityHandler) Update(c *gin.Context) error {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		c.Error(errorcode.ErrInvalidId)
-		return
+		return errorcode.ErrInvalidId
 	}
 
 	var req shift.UpdateShiftAvailabilityRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(validation.TranslateValidationError(err))
-		return
+		return validation.TranslateValidationError(err)
 	}
 
 	ctx, err := grpcutils.BuildAuthContext(c)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	userId, err := contextutils.GetUserId(c)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	err = h.shiftGW.Update(ctx, id, userId, &req)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, gin.H{})
+	return nil
 }
 
 // Delete
@@ -140,32 +131,29 @@ func (h *ShiftAvailabilityHandler) Update(c *gin.Context) {
 // @Security     BearerAuth
 // @Param        id path string true "ID lịch đăng ký"
 // @Router       /shift-availabilities/{id} [delete]
-func (h *ShiftAvailabilityHandler) Delete(c *gin.Context) {
+func (h *ShiftAvailabilityHandler) Delete(c *gin.Context) error {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		c.Error(errorcode.ErrInvalidId)
-		return
+		return errorcode.ErrInvalidId
 	}
 
 	ctx, err := grpcutils.BuildAuthContext(c)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	userId, err := contextutils.GetUserId(c)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	err = h.shiftGW.Delete(ctx, id, userId)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, gin.H{})
+	return nil
 }
 
 // ===============================
@@ -179,18 +167,17 @@ func (h *ShiftAvailabilityHandler) Delete(c *gin.Context) {
 // @Security     BearerAuth
 // @Param        query query shift.GetAvailabilityParams false "Bộ lọc tìm kiếm (Store, User, Date...)"
 // @Router       /shift-availabilities [get]
-func (h *ShiftAvailabilityHandler) GetAll(c *gin.Context) {
+func (h *ShiftAvailabilityHandler) GetAll(c *gin.Context) error {
 	var params shift.GetAvailabilityParams
 	if err := c.ShouldBindQuery(&params); err != nil {
-		c.Error(validation.TranslateValidationError(err))
-		return
+		return validation.TranslateValidationError(err)
 	}
 
 	res, err := h.shiftGW.GetAll(c.Request.Context(), &params)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, res)
+	return nil
 }

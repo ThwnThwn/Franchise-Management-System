@@ -194,26 +194,24 @@ func (h *OrderHandler) GetMyOrders(c *gin.Context) error {
 // @Success      200     {object} map[string]interface{}    "Created Order Data"
 // @Failure      400     {object} map[string]string         "Validation error"
 // @Router       /orders [post]
-func (h *OrderHandler) CreateOrder(c *gin.Context) {
+func (h *OrderHandler) CreateOrder(c *gin.Context) error {
 	var req order.CreateOrderRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(validation.TranslateValidationError(err))
-		return
+		return validation.TranslateValidationError(err)
 	}
 
 	ctx, err := grpcutils.BuildAuthContext(c)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	res, err := h.orderGW.CreateOrder(ctx, &req)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, res)
+	return nil
 }
 
 // UpdateOrder
@@ -228,33 +226,30 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
 // @Success      200      {object} map[string]interface{}    "Updated Order Data"
 // @Failure      400      {object} map[string]string         "Validation error"
 // @Router       /orders/{id} [put]
-func (h *OrderHandler) UpdateOrder(c *gin.Context) {
+func (h *OrderHandler) UpdateOrder(c *gin.Context) error {
 	id := c.Param("id")
 	orderId, err := uuid.Parse(id)
 	if err != nil {
-		c.Error(errorcode.ErrInvalidId)
-		return
+		return errorcode.ErrInvalidId
 	}
 
 	var req []*order.UpdateOrderItem
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(validation.TranslateValidationError(err))
-		return
+		return validation.TranslateValidationError(err)
 	}
 
 	ctx, err := grpcutils.BuildAuthContext(c)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	res, err := h.orderGW.UpdateOrder(ctx, orderId, req)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, res)
+	return nil
 }
 
 // UpdateOrderStatus
@@ -269,33 +264,30 @@ func (h *OrderHandler) UpdateOrder(c *gin.Context) {
 // @Success      200      {object} map[string]interface{}   "Success"
 // @Failure      400      {object} map[string]string        "Validation error"
 // @Router       /orders/{id}/status [patch]
-func (h *OrderHandler) UpdateOrderStatus(c *gin.Context) {
+func (h *OrderHandler) UpdateOrderStatus(c *gin.Context) error {
 	id := c.Param("id")
 	orderId, err := uuid.Parse(id)
 	if err != nil {
-		c.Error(errorcode.ErrInvalidId)
-		return
+		return errorcode.ErrInvalidId
 	}
 
 	var req order.UpdateOrderStatus
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(validation.TranslateValidationError(err))
-		return
+		return validation.TranslateValidationError(err)
 	}
 
 	ctx, err := grpcutils.BuildAuthContext(c)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	err = h.orderGW.UpdateStatus(ctx, orderId, req.Status)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, gin.H{})
+	return nil
 }
 
 // CreatePaymentUrl
@@ -310,33 +302,30 @@ func (h *OrderHandler) UpdateOrderStatus(c *gin.Context) {
 // @Success      200      {object} map[string]interface{}    "Payment URL"
 // @Failure      400      {object} map[string]string         "Validation error"
 // @Router       /orders/{id}/payment [post]
-func (h *OrderHandler) CreatePaymentUrl(c *gin.Context) {
+func (h *OrderHandler) CreatePaymentUrl(c *gin.Context) error {
 	var req order.CreatePaymentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(validation.TranslateValidationError(err))
-		return
+		return validation.TranslateValidationError(err)
 	}
 
 	id := c.Param("id")
 	orderId, err := uuid.Parse(id)
 	if err != nil {
-		c.Error(errorcode.ErrInvalidId)
-		return
+		return errorcode.ErrInvalidId
 	}
 
 	ctx, err := grpcutils.BuildAuthContext(c)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	res, err := h.orderGW.CreatePaymentUrl(ctx, orderId, &req)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"paymentUrl": res,
 	})
+	return nil
 }

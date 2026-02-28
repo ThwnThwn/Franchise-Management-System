@@ -241,8 +241,8 @@ public class ProductGrpcService : ProductGrpc.ProductGrpcBase
                 productId,
                 request.Name,
                 request.Description,
-                request.ImageUrl,
-                request.ImagePublicId,
+                //request.ImageUrl,
+                //request.ImagePublicId,
                 request.IsActive,
                 categoryId,
                 request.Variants.Any()
@@ -277,13 +277,13 @@ public class ProductGrpcService : ProductGrpc.ProductGrpcBase
         return new UpdateProductReply
         {
             ProductId = result.Value.ProductId.ToString(),
-            Name = result.Value.Name,
-            Description = result.Value.Description,
-            ImageUrl = result.Value.ImageUrl,
-            ImagePublicId = result.Value.ImagePublicId,
-            IsActive = result.Value.IsActive,
-            CategoryId = result.Value.CategoryId.ToString(),
-            UpdatedAt = result.Value.UpdatedAt.ToString("O")
+            //Name = result.Value.Name,
+            //Description = result.Value.Description,
+            //ImageUrl = result.Value.ImageUrl,
+            //ImagePublicId = result.Value.ImagePublicId,
+            //IsActive = result.Value.IsActive,
+            //CategoryId = result.Value.CategoryId.ToString(),
+            //UpdatedAt = result.Value.UpdatedAt.ToString("O")
         };
     }
 
@@ -510,12 +510,13 @@ public class ProductGrpcService : ProductGrpc.ProductGrpcBase
             VariantId = variant.Id.ToString(),
             ProductName = product.Name,
             Sku = variant.Sku,
+            Attributes = variant.Attributes ?? string.Empty,
             BasePrice = (double)variant.BasePrice,
             ImageUrl = product.ImageUrl ?? string.Empty
         };
     }
 
-    // GetProductsBySkus 
+    // GetProductsBySkus
     public override async Task<GetProductsBySkusReply> GetProductsBySkus(
         GetProductsBySkusRequest request,
         ServerCallContext context)
@@ -548,6 +549,7 @@ public class ProductGrpcService : ProductGrpc.ProductGrpcBase
                         VariantId = variant.Id.ToString(),
                         ProductName = product.Name,
                         Sku = variant.Sku,
+                        Attributes = variant.Attributes ?? string.Empty,
                         BasePrice = (double)variant.BasePrice,
                         ImageUrl = product.ImageUrl ?? string.Empty
                     });
@@ -571,7 +573,7 @@ public class ProductGrpcService : ProductGrpc.ProductGrpcBase
         var products = await _productRepository.GetAllProductsAsync(categoryId);
 
         var reply = new GetSkusByCategoryReply();
-        
+
         var skus = products
             .SelectMany(p => p.ProductVariants)
             .Where(v => !string.IsNullOrWhiteSpace(v.Sku))
@@ -584,5 +586,3 @@ public class ProductGrpcService : ProductGrpc.ProductGrpcBase
         return reply;
     }
 }
-
-

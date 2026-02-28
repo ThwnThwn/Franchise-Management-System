@@ -46,13 +46,6 @@ import (
 
 // InitializeApp nằm ở package 'di', trả về 'bootstrap.App'
 func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, error) {
-	franchiseServiceUrl := cfg.FranchiseServiceUrl
-	clientFactory, err := franchise.NewFranchiseClientFactory(franchiseServiceUrl)
-	if err != nil {
-		return nil, err
-	}
-	iStoreService := franchise.ProvideStoreClient(clientFactory)
-	storeHandler := franchise2.NewStoreHandler(iStoreService)
 	redis := &cfg.Redis
 	iPermCache := cache.NewPermCache(redis, l)
 	identityServiceUrl := cfg.IdentityServiceUrl
@@ -64,6 +57,13 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, erro
 	iBlacklistCache := cache.NewBlacklistCache(redis, l)
 	iBlacklistUseCase := usecases.NewBlacklistUseCase(iBlacklistCache, l)
 	authMiddleware := middleware.NewAuthMiddleware(iPermCache, iRolePermissionService, iBlacklistUseCase)
+	franchiseServiceUrl := cfg.FranchiseServiceUrl
+	clientFactory, err := franchise.NewFranchiseClientFactory(franchiseServiceUrl)
+	if err != nil {
+		return nil, err
+	}
+	iStoreService := franchise.ProvideStoreClient(clientFactory)
+	storeHandler := franchise2.NewStoreHandler(iStoreService)
 	inventoryServiceUrl := cfg.InventoryServiceUrl
 	inventoryClientFactory, err := inventory.NewInventoryClientFactory(inventoryServiceUrl)
 	if err != nil {
@@ -72,7 +72,7 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, erro
 	iStockService := inventory.ProvideStoreIngredientClient(inventoryClientFactory)
 	stockHandler := inventory2.NewStockHandler(iStockService)
 	stockRouter := stock.NewRouter(cfg, authMiddleware, stockHandler)
-	storeRouter := stores.NewRouter(cfg, storeHandler, stockRouter)
+	storeRouter := stores.NewRouter(cfg, authMiddleware, storeHandler, stockRouter)
 	iShiftService := franchise.ProvideShiftClient(clientFactory)
 	iUserService := identity.ProvideUserClient(identityClientFactory)
 	shiftStaffHandler := franchise2.NewShiftStaffHandler(iShiftService, iUserService)

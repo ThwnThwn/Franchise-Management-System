@@ -73,5 +73,33 @@ namespace EngagementService.Infrastucture.Persistences.Cache
 
             await _db.KeyDeleteAsync(keysToDelete.ToArray());
         }
+
+        public async Task<List<MembershipTier>> GetOrSetAllAsync(Func<Task<List<MembershipTier>>> getAllFromDb)
+        {
+            // 1. Kiểm tra xem Index có tồn tại không
+            var tierIds = await _db.SetMembersAsync(TIER_INDEX_KEY);
+
+            if (tierIds.Length > 0)
+            {
+                // Cache Hit: Lấy từng item dựa trên ID trong Index
+                var tasks = tierIds.Select(id => GetMembershipTierAsync(Guid.Parse(id!)));
+                var results = await Task.WhenAll(tasks);
+                return results.Where(r => r != null).ToList()!;
+            }
+
+            // 2. Cache Miss: Gọi Database thông qua Callback
+            var tiersFromDb = await getAllFromDb();
+
+            if (tiersFromDb != null && tiersFromDb.Any())
+            {
+                // 3. Nạp vào Redis để lần sau dùng (Lazy Load)
+                foreach (var tier in tiersFromDb)
+                {
+                    await SetMembershipTierAsync(tier.Id, tier);
+                }
+            }
+
+            return tiersFromDb ?? new List<MembershipTier>();
+        }
     }
 }

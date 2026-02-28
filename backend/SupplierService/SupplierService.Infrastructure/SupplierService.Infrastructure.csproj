@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Reference to shared inventory proto (gRPC client) - need both files since inventory.proto imports ingredient.proto -->
+    <Protobuf Include="..\..\..\protos\inventory\inventory.proto" GrpcServices="Client" ProtoRoot="..\..\..\protos" />
+    <Protobuf Include="..\..\..\protos\inventory\ingredient.proto" GrpcServices="Client" ProtoRoot="..\..\..\protos" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SupplierService.Application\SupplierService.Application.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Grpc.AspNetCore" Version="2.57.0" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.57.0" />
+    <PackageReference Include="Google.Protobuf" Version="3.27.3" />
+    <PackageReference Include="Grpc.Tools" Version="2.57.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.11" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,137 @@
+syntax = "proto3";
+
+option csharp_namespace = "SupplierService.Grpc.Protos.Supplier";
+option go_package = "api-gateway/pkg/pb/supplier";
+
+package supplier;
+
+service PurchaseOrderGrpc {
+  rpc CompletePurchaseOrder(CompletePurchaseOrderRequest) returns (CompletePurchaseOrderReply);
+  rpc GetPurchaseOrders(GetPurchaseOrdersRequest) returns (GetPurchaseOrdersReply);
+  rpc GetPurchaseOrderById(GetPurchaseOrderByIdRequest) returns (PurchaseOrderDetail);
+  rpc CreatePurchaseOrder(CreatePurchaseOrderRequest) returns (CreatePurchaseOrderReply);
+  rpc UpdatePurchaseOrder(UpdatePurchaseOrderRequest) returns (UpdatePurchaseOrderReply);
+  rpc CancelPurchaseOrder(CancelPurchaseOrderRequest) returns (CancelPurchaseOrderReply);
+  rpc GetLatestPriceForIngredients(GetLatestPriceForIngredientsRequest) returns (GetLatestPriceForIngredientsReply);
+}
+
+message GetLatestPriceForIngredientsRequest {
+  repeated string ingredient_ids = 1;
+}
+
+message GetLatestPriceForIngredientsReply {
+  map<string, double> prices = 1;
+}
+
+// ── Requests ──────────────────────────────────────────────────────────
+
+message CompletePurchaseOrderRequest {
+  string purchase_order_id = 1;
+}
+
+message GetPurchaseOrdersRequest {
+  optional string supplier_id = 1;
+  optional string store_id = 2;
+  optional int32 status = 3;
+  int32 page = 4;
+  int32 page_size = 5;
+}
+
+message GetPurchaseOrderByIdRequest {
+  string id = 1;
+}
+
+message CreatePurchaseOrderRequest {
+  string supplier_id = 1;
+  optional string store_id = 2;
+  optional string notes = 3;
+  optional string reference_code = 4;
+  optional string expected_delivery_date = 5;
+  double discount_amount = 6;
+  repeated CreatePurchaseOrderItemRequest items = 7;
+}
+
+message CreatePurchaseOrderItemRequest {
+  string ingredient_id = 1;
+  double quantity = 2;
+}
+
+message UpdatePurchaseOrderRequest {
+  string id = 1;
+  string supplier_id = 2;
+  optional string store_id = 3;
+  optional string notes = 4;
+  optional string reference_code = 5;
+  optional string expected_delivery_date = 6;
+  double discount_amount = 7;
+  repeated CreatePurchaseOrderItemRequest items = 8;
+}
+
+message CancelPurchaseOrderRequest {
+  string id = 1;
+  optional string reason = 2;
+}
+
+// ── Replies ───────────────────────────────────────────────────────────
+
+message CompletePurchaseOrderReply {
+  string message = 1;
+}
+
+message CreatePurchaseOrderReply {
+  string id = 1;
+  string code = 2;
+}
+
+message UpdatePurchaseOrderReply {
+  string message = 1;
+}
+
+message CancelPurchaseOrderReply {
+  string message = 1;
+}
+
+message GetPurchaseOrdersReply {
+  repeated PurchaseOrderSummary purchase_orders = 1;
+  int32 total_count = 2;
+}
+
+message PurchaseOrderSummary {
+  string id = 1;
+  string code = 2;
+  string supplier_name = 3;
+  int32 status = 4;
+  int32 payment_status = 5;
+  double total_amount = 6;
+  double net_amount = 7;
+  string order_date = 8;
+  string created_at = 9;
+}
+
+message PurchaseOrderDetail {
+  string id = 1;
+  string code = 2;
+  string supplier_id = 3;
+  string supplier_name = 4;
+  string store_id = 5;
+  int32 status = 6;
+  int32 payment_status = 7;
+  double total_amount = 8;
+  double discount_amount = 9;
+  double net_amount = 10;
+  double paid_amount = 11;
+  string order_date = 12;
+  string completed_at = 13;
+  string notes = 14;
+  repeated PurchaseOrderItemDetail items = 15;
+  string created_at = 16;
+  string updated_at = 17;
+}
+
+message PurchaseOrderItemDetail {
+  string id = 1;
+  string ingredient_id = 2;
+  double quantity = 3;
+  double unit_price = 4;
+  double total_price = 5;
+}

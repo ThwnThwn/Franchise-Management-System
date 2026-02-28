@@ -5,6 +5,7 @@ import (
 	"api-gateway/internal/domain/models/common"
 	"api-gateway/internal/domain/models/ingredient"
 	"context"
+	"fmt"
 
 	inventoryPb "api-gateway/pkg/pb/inventory"
 
@@ -23,10 +24,13 @@ func ProvideStoreIngredientClient(f *clientFactory) inventoryGW.IStockService {
 func (s *stockGrpcClient) IncreaseStock(ctx context.Context, id uuid.UUID, req []*ingredient.IngredientStockItem) error {
 	items := make([]*inventoryPb.IngredientStockItem, 0, len(req))
 	for _, item := range req {
+		fmt.Println(item.Quantity)
+
 		pbItem := &inventoryPb.IngredientStockItem{
 			IngredientId: item.IngredientId,
 			Quantity:     item.Quantity,
 		}
+		pbItem.MinThreshold = nil
 		if item.MinThreshold != nil {
 			pbItem.MinThreshold = item.MinThreshold
 		}

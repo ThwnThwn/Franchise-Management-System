@@ -55,5 +55,19 @@ namespace InventoryService.API.Services.Product
                 ProductId = Guid.Parse(respone.ProductId)
             };  
         }
+
+        public async Task UpdateVariantCostsAsync(Dictionary<Guid, decimal> variantCosts, CancellationToken cancellationToken = default)
+        {
+            var request = new UpdateVariantCostsRequest();
+            foreach (var (variantId, newCost) in variantCosts)
+            {
+                request.Updates.Add(new VariantCostUpdate
+                {
+                    VariantId = variantId.ToString(),
+                    NewCost = (double)newCost
+                });
+            }
+            await _client.UpdateVariantCostsAsync(request, cancellationToken: cancellationToken);
+        }
     }
 }

@@ -1,5 +1,6 @@
 syntax = "proto3";
 
+import "google/protobuf/empty.proto";
 option csharp_namespace = "ProductService.API";
 option go_package = "api-gateway/pkg/pb/product";
 
@@ -37,6 +38,9 @@ service ProductGrpc {
 
   // Get SKUs by Category ID
   rpc GetSkusByCategory (GetSkusByCategoryRequest) returns (GetSkusByCategoryReply);
+
+  // Recalculate variant costs from InventoryService MAC updates
+  rpc RecalculateVariantCosts (RecalculateVariantCostsRequest) returns (google.protobuf.Empty);
 }
 
 // ── GetProductBySku ──
@@ -50,8 +54,9 @@ message GetProductBySkuReply {
   string variant_id = 3;
   string product_name = 4;
   string sku = 5;
-  double base_price = 6;
-  string image_url = 7;
+  string attributes = 6;
+  double base_price = 7;
+  string image_url = 8;
 }
 
 // ── GetProductsBySkus ──
@@ -68,8 +73,9 @@ message ProductVariantDetail {
   string variant_id = 2;
   string product_name = 3;
   string sku = 4;
-  double base_price = 5;
-  string image_url = 6;
+  string attributes = 5;
+  double base_price = 6;
+  string image_url = 7;
 }
 
 // ── GetSkusByCategory ──
@@ -158,13 +164,6 @@ message UpdateProductVariant {
 
 message UpdateProductReply {
   string product_id = 1;
-  string name = 2;
-  optional string description = 3;
-  optional string image_url = 4;
-  optional string image_public_id = 5;
-  bool is_active = 6;
-  string category_id = 7;
-  string updated_at = 8;
 }
 
 message DeleteProductRequest {
@@ -239,4 +238,14 @@ message UploadProductImageReply {
   string product_id = 1;
   string image_url = 2;
   string image_public_id = 3;
+}
+
+// ── RecalculateVariantCosts ──
+message RecalculateVariantCostsRequest {
+    repeated VariantCostUpdate updates = 1;
+}
+
+message VariantCostUpdate {
+    string variant_id = 1;
+    double new_cost = 2;
 }

@@ -19,8 +19,9 @@ type UserResponse struct {
 	AvatarUrl *string `json:"avatarUrl"`
 	IsBlocked bool    `json:"isBlocked"`
 
-	HomeStoreID *string                `json:"homeStoreId"`
-	Role        *role.RoleUserResponse `json:"role"`
+	HomeStoreID       *string                `json:"homeStoreId"`
+	CurrentHourlyWage *float64               `json:"currentHourlyWage"`
+	Role              *role.RoleUserResponse `json:"role"`
 
 	CreatedAt *time.Time `json:"createdAt"`
 	UpdatedAt *time.Time `json:"updatedAt"`

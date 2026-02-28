@@ -24,6 +24,7 @@ namespace InventoryService.API.Services.Recipe
             response.Items.AddRange(recipes.Select(r => new RecipeRep
             {
                 VariantId = r.VariantId.ToString(),
+                IngredientId = r.IngredientId.ToString(),
                 Quantity = (double)r.Quantity,
                 Name = r.Name,
                 BaseUnit = r.BaseUnit
