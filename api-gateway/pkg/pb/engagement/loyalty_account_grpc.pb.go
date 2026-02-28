@@ -27,6 +27,10 @@ type LoyaltyAccountGrpcClient interface {
 	ProcessOrderReward(ctx context.Context, in *ProcessOrderRewardRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// Hàm lấy thông tin tài khoản qua số điện thoại
 	GetByUserPhoneOrEmail(ctx context.Context, in *GetByUserPhoneOrEmailRequest, opts ...grpc.CallOption) (*LoyaltyAccountResponse, error)
+	// Hàm Upsert nhận vào UpSertRequest và không trả ra gì
+	CreateLoyaltyAccount(ctx context.Context, in *CreateLoyaltyAccountRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// Hàm trừ điểm khi xử dụng
+	DetuctPoints(ctx context.Context, in *DetuctPointRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type loyaltyAccountGrpcClient struct {
@@ -55,6 +59,24 @@ func (c *loyaltyAccountGrpcClient) GetByUserPhoneOrEmail(ctx context.Context, in
 	return out, nil
 }
 
+func (c *loyaltyAccountGrpcClient) CreateLoyaltyAccount(ctx context.Context, in *CreateLoyaltyAccountRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/engagement.LoyaltyAccountGrpc/CreateLoyaltyAccount", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *loyaltyAccountGrpcClient) DetuctPoints(ctx context.Context, in *DetuctPointRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/engagement.LoyaltyAccountGrpc/DetuctPoints", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // LoyaltyAccountGrpcServer is the server API for LoyaltyAccountGrpc service.
 // All implementations must embed UnimplementedLoyaltyAccountGrpcServer
 // for forward compatibility
@@ -63,6 +85,10 @@ type LoyaltyAccountGrpcServer interface {
 	ProcessOrderReward(context.Context, *ProcessOrderRewardRequest) (*emptypb.Empty, error)
 	// Hàm lấy thông tin tài khoản qua số điện thoại
 	GetByUserPhoneOrEmail(context.Context, *GetByUserPhoneOrEmailRequest) (*LoyaltyAccountResponse, error)
+	// Hàm Upsert nhận vào UpSertRequest và không trả ra gì
+	CreateLoyaltyAccount(context.Context, *CreateLoyaltyAccountRequest) (*emptypb.Empty, error)
+	// Hàm trừ điểm khi xử dụng
+	DetuctPoints(context.Context, *DetuctPointRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedLoyaltyAccountGrpcServer()
 }
 
@@ -75,6 +101,12 @@ func (UnimplementedLoyaltyAccountGrpcServer) ProcessOrderReward(context.Context,
 }
 func (UnimplementedLoyaltyAccountGrpcServer) GetByUserPhoneOrEmail(context.Context, *GetByUserPhoneOrEmailRequest) (*LoyaltyAccountResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetByUserPhoneOrEmail not implemented")
+}
+func (UnimplementedLoyaltyAccountGrpcServer) CreateLoyaltyAccount(context.Context, *CreateLoyaltyAccountRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateLoyaltyAccount not implemented")
+}
+func (UnimplementedLoyaltyAccountGrpcServer) DetuctPoints(context.Context, *DetuctPointRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DetuctPoints not implemented")
 }
 func (UnimplementedLoyaltyAccountGrpcServer) mustEmbedUnimplementedLoyaltyAccountGrpcServer() {}
 
@@ -125,6 +157,42 @@ func _LoyaltyAccountGrpc_GetByUserPhoneOrEmail_Handler(srv interface{}, ctx cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LoyaltyAccountGrpc_CreateLoyaltyAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateLoyaltyAccountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LoyaltyAccountGrpcServer).CreateLoyaltyAccount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/engagement.LoyaltyAccountGrpc/CreateLoyaltyAccount",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LoyaltyAccountGrpcServer).CreateLoyaltyAccount(ctx, req.(*CreateLoyaltyAccountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LoyaltyAccountGrpc_DetuctPoints_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DetuctPointRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LoyaltyAccountGrpcServer).DetuctPoints(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/engagement.LoyaltyAccountGrpc/DetuctPoints",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LoyaltyAccountGrpcServer).DetuctPoints(ctx, req.(*DetuctPointRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // LoyaltyAccountGrpc_ServiceDesc is the grpc.ServiceDesc for LoyaltyAccountGrpc service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -139,6 +207,14 @@ var LoyaltyAccountGrpc_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetByUserPhoneOrEmail",
 			Handler:    _LoyaltyAccountGrpc_GetByUserPhoneOrEmail_Handler,
+		},
+		{
+			MethodName: "CreateLoyaltyAccount",
+			Handler:    _LoyaltyAccountGrpc_CreateLoyaltyAccount_Handler,
+		},
+		{
+			MethodName: "DetuctPoints",
+			Handler:    _LoyaltyAccountGrpc_DetuctPoints_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

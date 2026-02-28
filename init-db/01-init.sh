@@ -42,7 +42,6 @@ create_db_safe "payment_db"
 create_db_safe "notification_db"
 create_db_safe "inventory_db"
 create_db_safe "franchise_db"
-create_db_safe "payment_db"
 create_db_safe "engagement_db"
 create_db_safe "supplier_db"
 

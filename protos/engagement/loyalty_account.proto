@@ -1,7 +1,6 @@
 syntax = "proto3";
 
 option csharp_namespace = "EngagementService.Infrastructure.Protos";
-
 option go_package = "api-gateway/pkg/pb/engagement";
 
 package engagement;
