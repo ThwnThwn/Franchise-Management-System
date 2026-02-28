@@ -31,7 +31,7 @@ namespace EngagementService.Application.Features.LoyaltyAccount.Commands.Process
         {
             var request = command.Request;
             var loyaltyAccount = await _loyaltyAccountRepository.GetByIdAsync(request.Id);
-            var point = await CalculatePointHelper.CalculatePoint(_membershipTierCache,loyaltyAccount!.CurrentTierId, request.OrderAmount);
+            var point = await CalculatePointHelper.CalculatePoint(_membershipTierCache, loyaltyAccount!.CurrentTierId, request.OrderAmount);
             loyaltyAccount.TotalSpent += request.OrderAmount;
             loyaltyAccount.AvailablePoints += point;
             await _loyaltyAccountRepository.UpdateAsync(loyaltyAccount);
@@ -39,5 +39,9 @@ namespace EngagementService.Application.Features.LoyaltyAccount.Commands.Process
 
         }
 
+        private async Task CheckTierUpgrade(decimal totalSpent)
+        {
+
+        }
     }
 }
