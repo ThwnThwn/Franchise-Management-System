@@ -53,6 +53,24 @@ namespace EngagementService.API.Services.LoyaltyAccount
 
             if (account == null) throw new DirectoryNotFoundException("Không tìm thấy tài khoản");
 
+            List<LogResponse> logResponse = new ();
+            if (account.PointLogs != null)
+            {
+                logResponse.AddRange(account.PointLogs.Select(log => new LogResponse
+                {
+                    Id = log.Id.ToString(),
+                    UserId = log.UserId.ToString(),
+                    Amount = log.Amount.ToString(),
+                    BalanceAfter = log.BalanceAfter.ToString(),
+                    BalanceBefore = log.BalanceBefore.ToString(),
+                    ActionType = log.ActionType.ToString(),
+                    ReasonCode = log.ReasonCode.ToString(),
+                    Description = log.Description,
+                    ReferenceId = log.ReferenceId?.ToString() ?? string.Empty,
+                    ExpiredAt = log.ExpiredAt?.ToString("o") ?? string.Empty
+                }));
+            }
+
             var tierRep = new MembershipTierResponse()
             {
                 Id = account.CurrentTier.Id.ToString(),
@@ -62,12 +80,15 @@ namespace EngagementService.API.Services.LoyaltyAccount
                 ValuePerPoint = account.CurrentTier.ValuePerPoint.ToString(),
                 AmountPerPoint = account.CurrentTier.AmountPerPoint.ToString()
             };
+
+            
             var response = new LoyaltyAccountResponse
             {
                 Id = account.Id.ToString(),
                 AvailablePoints = account.AvailablePoints.ToString(),
                 TotalSpent = account.TotalSpent.ToString(),
-                CurrentTier = tierRep
+                CurrentTier = tierRep,
+                LogRep = { logResponse }
             };
 
             return response;

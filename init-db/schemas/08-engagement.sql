@@ -13,6 +13,8 @@ CREATE TYPE point_reason_code AS ENUM (
     -- Nhóm trừ điểm
     'POINT_EXPIRED',       -- Điểm hết hạn
     'POINT_REDEEM',
+    -- 'YEARLY_ROLLOVER',
+    -- 'PERIODIC_EXPIRATION',
     
     -- Nhóm hoàn/hủy/điều chỉnh
     'ORDER_CANCEL_REFUND', -- Hoàn điểm khi hủy đơn
@@ -39,15 +41,28 @@ CREATE TABLE "membership_tiers" (
     "is_deleted" BOOLEAN DEFAULT FALSE
 );
 
+-- Bảng cấu hình ngày hết hạn tập trung
+-- CREATE TABLE "point_expiration_policies" (
+--     "applicable_year" INT PRIMARY KEY,           -- Ví dụ: 2025
+--     "expiration_date" TIMESTAMP WITH TIME ZONE NOT NULL, -- Ví dụ: 2026-03-31
+--     "note" TEXT,
+--     "created_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+-- );
+
 CREATE TABLE "loyalty_accounts" (
-    "id" UUID PRIMARY KEY,
+    "id" UUID PRIMARY KEY, -- Thường khớp với UserID từ Service Identity
     "available_points" DECIMAL(15, 3) DEFAULT 0 CHECK ("available_points" >= 0),
-    "total_spent" DECIMAL(15, 3) DEFAULT 0 CHECK ("total_spent" >= 0),
-    "current_tier_id" UUID,
+    
+    -- Chia điểm thành 2 giỏ để quản lý hết hạn theo kỳ
+    -- "points_this_year" DECIMAL(15, 3) DEFAULT 0 CHECK ("points_this_year" >= 0),
+    -- "points_last_year" DECIMAL(15, 3) DEFAULT 0 CHECK ("points_last_year" >= 0),
+    
+    "total_spent" DECIMAL(15, 3) DEFAULT 0,
+    "current_tier_id" UUID REFERENCES "membership_tiers"("id"),
+    -- "last_rollover_at" TIMESTAMP WITH TIME ZONE, -- Ngày cuối cùng chuyển điểm từ năm nay sang năm ngoái
     "created_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    "is_deleted" BOOLEAN DEFAULT FALSE,
-    CONSTRAINT "fk_loyalty_tier" FOREIGN KEY ("current_tier_id") REFERENCES "membership_tiers"("id") ON DELETE SET NULL
+    "is_deleted" BOOLEAN DEFAULT FALSE
 );
 
 CREATE TABLE "point_logs" (
@@ -58,10 +73,21 @@ CREATE TABLE "point_logs" (
     "balance_after" DECIMAL(15, 3),
     "action_type" point_action_type NOT NULL,
     "reason_code" point_reason_code,
-    "reference_id" UUID,
+    "reference_id" UUID, -- ID của Order hoặc Voucher liên quan
     "description" TEXT,
+    "expired_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     "created_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE "point_rules" (
+    "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    "reason_code" point_reason_code NOT NULL,
+    "expiry_days" INT NOT NULL DEFAULT 6,
+    "created_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    -- Quan trọng: Đảm bảo mỗi mã lý do chỉ có một cấu hình duy nhất
+    CONSTRAINT "uq_point_rule_reason" UNIQUE ("reason_code")
 );
 
 -- NHÓM 2: QUẢN LÝ VOUCHER & KHUYẾN MÃI
@@ -142,3 +168,5 @@ CREATE INDEX "idx_user_vouchers_user_status" ON "user_vouchers"("user_id", "stat
 CREATE INDEX "idx_voucher_usages_order_id" ON "voucher_usages"("order_id");
 CREATE INDEX "idx_voucher_usages_store_id" ON "voucher_usages"("store_id");
 CREATE INDEX "idx_voucher_items_lookup" ON "voucher_items" ("voucher_id") WHERE "is_deleted" IS FALSE;
+CREATE INDEX IX_point_logs_expired_at ON "point_logs" ("expired_at") 
+WHERE "expired_at" IS NOT NULL;

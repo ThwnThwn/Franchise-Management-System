@@ -12,17 +12,23 @@ namespace EngagementService.Application.Features.LoyaltyAccount.Commands.Process
         private readonly IMembershipTierCache _membershipTierCache;
         private readonly ILoyaltyAccountRepository _loyaltyAccountRepository;
         private readonly IMembershipTierRepository _membershipTierRepository;
-        private readonly IPointLogRepository _pointLogRepository;   
+        private readonly IPointLogRepository _pointLogRepository;
+        private readonly IPointRuleCache _pointRuleCache;
+        private readonly IPointRuleRepository _pointRuleRepository;
         public ProcessOrderRewardHandler(
             IMembershipTierCache membershipTierCache,
             ILoyaltyAccountRepository loyaltyAccountRepository,
             IMembershipTierRepository membershipTierRepository,
-            IPointLogRepository pointLogRepository)
+            IPointLogRepository pointLogRepository,
+            IPointRuleCache pointRuleCache,
+            IPointRuleRepository pointRuleRepository)
         {
             _membershipTierCache = membershipTierCache;
             _loyaltyAccountRepository = loyaltyAccountRepository;
             _membershipTierRepository = membershipTierRepository;
             _pointLogRepository = pointLogRepository;
+            _pointRuleCache = pointRuleCache;
+            _pointRuleRepository = pointRuleRepository;
         }
         public async Task<Unit> Handle(ProcessOrderRewardCommand command, CancellationToken cancellationToken)
         {
@@ -41,7 +47,15 @@ namespace EngagementService.Application.Features.LoyaltyAccount.Commands.Process
                 loyaltyAccount.CurrentTierId = newTierId;
             }
 
-            await HandlePointLog.CreatePointLog(_pointLogRepository, loyaltyAccount, loyaltyAccount.AvailablePoints -  point, loyaltyAccount.AvailablePoints, point, request.OrderId, PointReasonCode.ORDER_COMPLETED, PointActionType.EARN, "Points earned for order completion");
+            var allRules = await _pointRuleCache.GetOrSetAllAsync(async () =>
+            {
+                // Gọi Repository để lấy dữ liệu (IEnumerable)
+                var data = await _pointRuleRepository.GetAllAsync();
+
+                // Chuyển đổi sang List để khớp với yêu cầu của hàm Cache
+                return data.ToList();
+            });
+            await HandlePointLog.CreatePointLog(_pointLogRepository, loyaltyAccount, loyaltyAccount.AvailablePoints -  point, loyaltyAccount.AvailablePoints, point, request.OrderId, PointReasonCode.ORDER_COMPLETED, PointActionType.EARN, "Points earned for order completion", allRules);
 
             await _loyaltyAccountRepository.UpdateAsync(loyaltyAccount);
             return Unit.Value;

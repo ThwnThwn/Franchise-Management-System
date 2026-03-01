@@ -15,16 +15,24 @@ namespace EngagementService.Application.Features.LoyaltyAccount.Commands.Create
         private readonly IMembershipTierRepository _membershipTierRepository;
         private readonly IMembershipTierCache _membershipTierCache;
         private readonly IPointLogRepository _pointLogRepository;
-        public CreateHandler(ILoyaltyAccountRepository loyaltyAccountRepository, IMembershipTierRepository membershipTierRepository, IMembershipTierCache membershipTierCache, IPointLogRepository pointLogRepository)
+        private readonly IPointRuleCache _pointRuleCache;
+        private readonly IPointRuleRepository _pointRuleRepository;
+        public CreateHandler(ILoyaltyAccountRepository loyaltyAccountRepository, IMembershipTierRepository membershipTierRepository, IMembershipTierCache membershipTierCache, IPointLogRepository pointLogRepository, IPointRuleCache pointRuleCache, IPointRuleRepository pointRuleRepository)
         {
             _loyaltyAccountRepository = loyaltyAccountRepository;
             _membershipTierRepository = membershipTierRepository;
             _membershipTierCache = membershipTierCache;
             _pointLogRepository = pointLogRepository;
+            _pointRuleCache = pointRuleCache;
+            _pointRuleRepository = pointRuleRepository;
         }
         public async Task<Unit> Handle(CreateCommand command, CancellationToken cancellationToken)
         {
             var request = command.Request;
+            
+            if((await _loyaltyAccountRepository.GetByIdAsync(request.Id)) != null)
+                throw new InvalidOperationException(LoyaltyAccountMsg.AlreadyExists);   
+
             var defaultTier = await _membershipTierRepository.GetDefaultTierAsync();
             if(defaultTier == null)
                 throw new DirectoryNotFoundException(MembershipTierMsg.NotFound);
@@ -43,7 +51,17 @@ namespace EngagementService.Application.Features.LoyaltyAccount.Commands.Create
 
             //có điểm ms ghi log
             if (point > 0)
-                await HandlePointLog.CreatePointLog(_pointLogRepository, loyaltyAccount, 0, loyaltyAccount.AvailablePoints, point, request.OrderId, PointReasonCode.ORDER_COMPLETED, PointActionType.EARN, "Initial points");
+            {
+                var allRules = await _pointRuleCache.GetOrSetAllAsync(async () =>
+                {
+                    // Gọi Repository để lấy dữ liệu (IEnumerable)
+                    var data = await _pointRuleRepository.GetAllAsync();
+                    // Chuyển đổi sang List để khớp với yêu cầu của hàm Cache
+                    return data.ToList();
+                });
+
+                await HandlePointLog.CreatePointLog(_pointLogRepository, loyaltyAccount, 0, loyaltyAccount.AvailablePoints, point, request.OrderId, PointReasonCode.ORDER_COMPLETED, PointActionType.EARN, "Initial points", allRules);
+            }
             return Unit.Value;
         }
     }

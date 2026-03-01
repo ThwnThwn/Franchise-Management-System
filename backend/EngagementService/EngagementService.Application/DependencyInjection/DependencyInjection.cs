@@ -19,6 +19,7 @@ public static class DependencyInjection
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
         services.AddScoped<IMembershipTierSyncService, MembershipTierSyncService>();
+        services.AddScoped<IPointRuleSyncService, PointRuleSyncService>();
         return services;
     }
 }

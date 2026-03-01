@@ -14,6 +14,27 @@ INSERT INTO "membership_tiers" ("id", "name", "min_spend_required", "amount_per_
 ('00000000-0000-0000-0000-000000000004', 'Platinum', 50000000.000, 7000.000, 1500.000, 0.10)
 ON CONFLICT (id) DO NOTHING;
 
+-- Seed dữ liệu cho bảng point_rules
+-- Đơn vị tính: Ngày (expiry_days) - Mặc định tối thiểu 1 tháng (30 ngày)
+INSERT INTO "point_rules" ("id", "reason_code", "expiry_days") VALUES
+-- Nhóm cộng điểm (EARN)
+(uuid_generate_v4(), 'ORDER_COMPLETED', 365),    -- 1 năm
+(uuid_generate_v4(), 'BIRTHDAY_GIFT', 30),       -- 1 tháng (Tối thiểu)
+(uuid_generate_v4(), 'PROMOTION_BONUS', 60),     -- 2 tháng
+(uuid_generate_v4(), 'REFERRAL_REWARD', 180),    -- 6 tháng
+
+-- Nhóm trừ điểm (REDEEM/EXPIRATION)
+(uuid_generate_v4(), 'POINT_EXPIRED', 30),
+(uuid_generate_v4(), 'POINT_REDEEM', 30),
+
+-- Nhóm hoàn/hủy/điều chỉnh (REFUND/ADJUST)
+(uuid_generate_v4(), 'ORDER_CANCEL_REFUND', 365), 
+(uuid_generate_v4(), 'ORDER_RETURN_DEDUCT', 30),
+(uuid_generate_v4(), 'MANUAL_ADJUST', 30)
+
+ON CONFLICT ("reason_code") DO UPDATE SET 
+    "expiry_days" = EXCLUDED."expiry_days",
+    "updated_at" = CURRENT_TIMESTAMP;
 -- 3. Tài khoản Loyalty (Dựa trên danh sách UUID người dùng của bạn)
 DO $$
 DECLARE

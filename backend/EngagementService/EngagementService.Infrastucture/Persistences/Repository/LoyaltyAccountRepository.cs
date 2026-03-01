@@ -15,6 +15,7 @@ namespace EngagementService.Infrastucture.Persistences.Repository
         {
             return await _dbContext.LoyaltyAccounts
                 .Include(x => x.CurrentTier)
+                .Include(x => x.PointLogs)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Id == userId);
         }
