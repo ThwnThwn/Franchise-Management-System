@@ -43,6 +43,7 @@ message LoyaltyAccountResponse {
   string available_points = 2; // Đại diện decimal
   string total_spent = 3;      // Đại diện decimal
   MembershipTierResponse current_tier = 4;
+  repeated LogResponse log_rep = 5;
 }
 
 // Định nghĩa Request cho hàm Upsert
@@ -55,4 +56,18 @@ message DeductPointRequest{
   string id = 1;
   string point_to_deduct = 2;
   optional string order_id = 3;
+}
+
+//Response của log 
+message LogResponse{
+  string id = 1;
+  string user_id = 2;
+  string amount = 3;
+  string balance_before = 4;
+  string balance_after = 5;
+  string action_type = 6;
+  string reason_code = 7;
+  string reference_id = 8;
+  string description = 9;
+  string expired_at = 10;
 }

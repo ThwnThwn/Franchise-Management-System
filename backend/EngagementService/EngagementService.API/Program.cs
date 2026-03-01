@@ -142,11 +142,12 @@ public class Program
             try
             {
                 // Lấy service ra từ Container
-                var syncService = services.GetRequiredService<IMembershipTierSyncService>();
-
+                var syncTierService = services.GetRequiredService<IMembershipTierSyncService>();
+                var syncPointRuleService = services.GetRequiredService<IPointRuleSyncService>();
                 // Gọi hàm Sync
                 Console.WriteLine("Start syncing tier...");
-                await syncService.SyncAllAsync();
+                await syncTierService.SyncAllAsync();
+                await syncPointRuleService.SyncAllAsync();
                 Console.WriteLine("tier synced successfully!");
             }
             catch (Exception ex)

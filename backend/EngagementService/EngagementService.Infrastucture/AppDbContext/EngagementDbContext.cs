@@ -3,8 +3,6 @@ using EngagementService.Domain.Constants;
 using EngagementService.Domain.Entities;
 using EngagementService.Infrastucture.Interceptor;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
 
 namespace EngagementService.Infrastucture.AppDbContext;
 
@@ -18,7 +16,7 @@ public partial class EngagementDbContext : DbContext, IEngagementDbContext
     public EngagementDbContext(DbContextOptions<EngagementDbContext> options, UpdateTimestampInterceptor updateInterceptor)
         : base(options)
     {
-        _updateInterceptor = updateInterceptor; 
+        _updateInterceptor = updateInterceptor;
     }
 
     public virtual DbSet<LoyaltyAccount> LoyaltyAccounts { get; set; }
@@ -36,7 +34,7 @@ public partial class EngagementDbContext : DbContext, IEngagementDbContext
     public virtual DbSet<VoucherQueue> VoucherQueues { get; set; }
 
     public virtual DbSet<VoucherUsage> VoucherUsages { get; set; }
-
+    public virtual DbSet<PointRule> PointRules { get; set; }
     public DbSet<T> Set<T>() where T : class, IEntity => base.Set<T>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -124,12 +122,44 @@ public partial class EngagementDbContext : DbContext, IEngagementDbContext
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").HasColumnName("created_at");
             entity.Property(e => e.Description).HasColumnName("description");
             entity.Property(e => e.ReferenceId).HasColumnName("reference_id");
+            entity.Property(e => e.ExpiredAt).HasDefaultValueSql("CURRENT_TIMESTAMP").HasColumnName("expired_at");
             entity.Property(e => e.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").HasColumnName("updated_at");
             entity.Property(e => e.UserId).HasColumnName("user_id");
 
             entity.HasOne(d => d.User).WithMany(p => p.PointLogs)
                 .HasForeignKey(d => d.UserId)
                 .HasConstraintName("point_logs_user_id_fkey");
+        });
+        modelBuilder.Entity<PointRule>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.ToTable("point_rules");
+
+            entity.Property(e => e.Id)
+                .HasColumnName("id")
+                .HasDefaultValueSql("uuid_generate_v4()");
+
+            entity.HasIndex(e => e.ReasonCode)
+                .IsUnique()
+                .HasDatabaseName("uq_point_rule_reason");
+
+            entity.Property(e => e.ReasonCode)
+                .IsRequired()
+                .HasColumnName("reason_code")
+                .HasColumnType("point_reason_code");
+
+            entity.Property(e => e.ExpiryDays)
+                .HasDefaultValue(6)
+                .HasColumnName("expiry_days");
+
+            entity.Property(e => e.CreatedAt)
+                .HasColumnName("created_at")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnName("updated_at")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
         });
 
         // --- NHÓM 2: QUẢN LÝ VOUCHER ---

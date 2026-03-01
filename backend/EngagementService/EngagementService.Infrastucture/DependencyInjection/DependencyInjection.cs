@@ -1,9 +1,9 @@
 ﻿using EngagementService.Application.Persistences.Cache;
 using EngagementService.Application.Persistences.Repository;
 using EngagementService.Infrastucture.Interceptor;
+using EngagementService.Infrastucture.Persistences.BackgroundJob;
 using EngagementService.Infrastucture.Persistences.Cache;
 using EngagementService.Infrastucture.Persistences.Repository;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using SharedKernel.Infrastructure.Kafka;
 using StackExchange.Redis;
@@ -38,6 +38,9 @@ public static class DependencyInjection
         services.AddScoped<IMembershipTierCache, MembershipTierCache>();
         services.AddScoped<IVoucherRepository, VoucherRepository>();
         services.AddScoped<IPointLogRepository, PointLogRepository>();
+        services.AddScoped<IPointRuleRepository, PointRuleRepository>();
+        services.AddScoped<IPointRuleCache, PointRuleCache>();
+        services.AddHostedService<CleanupPointLogJob>();
 
         services.AddSingleton<IKafkaProducer, KafkaProducer>();
 
