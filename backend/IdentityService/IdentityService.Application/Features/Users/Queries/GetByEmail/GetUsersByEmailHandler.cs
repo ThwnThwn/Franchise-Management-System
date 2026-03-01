@@ -9,21 +9,21 @@ using System.Threading.Tasks;
 
 namespace IdentityService.Application.Features.Users.Queries.GetByEmail
 {
-    public class GetByEmailHandler : IRequestHandler<GetByEmailQuery, User>
+    public class GetUsersByEmailHandler : IRequestHandler<GetUsersByEmailQuery, List<User>>
     {
         private readonly IUserRepository _userRepository;   
-        public GetByEmailHandler(IUserRepository userRepository)
+        public GetUsersByEmailHandler(IUserRepository userRepository)
         {
             _userRepository = userRepository;
         }   
-        public async Task<User> Handle(GetByEmailQuery request, CancellationToken cancellationToken)
+        public async Task<List<User>> Handle(GetUsersByEmailQuery request, CancellationToken cancellationToken)
         {
-            var user = await _userRepository.GetByEmailAsync(request.Email);
+            var users = await _userRepository.GetUsersByEmailAsync(request.Email);
 
-            if(user == null)
+            if(users == null || !users.Any())
                 throw new DirectoryNotFoundException("Không tìm thấy người dùng");
 
-            return user;
+            return users;
         }
     }
 }

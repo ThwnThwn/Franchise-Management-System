@@ -1,6 +1,4 @@
 ﻿using EngagementService.Application.Features.LoyaltyAccount.Queries.GetById;
-using EngagementService.Application.Helper;
-using EngagementService.Application.Persistences.Cache;
 using EngagementService.Infrastructure.Protos;
 using Google.Protobuf.WellKnownTypes;
 using MediatR;
@@ -41,7 +39,7 @@ namespace EngagementService.API.Services.LoyaltyAccount
             return new Empty();
         }
 
-        public async override Task<LoyaltyAccountResponse> GetByUserPhoneOrEmail(GetByUserPhoneOrEmailRequest request, Grpc.Core.ServerCallContext context)
+        public async override Task<LoyaltyAccountsResponse> GetByUserPhoneOrEmail(GetByUserPhoneOrEmailRequest request, Grpc.Core.ServerCallContext context)
         {
             var req = new Application.Dtos.LoyaltyAccount.GetByUserPhoneOrEmailRequest()
             {
@@ -49,47 +47,51 @@ namespace EngagementService.API.Services.LoyaltyAccount
                 PhoneNumber = request.PhoneNumber
             };
 
-            var account = await _mediator.Send(new GetByPhoneOrEmailQuery(req));
+            var accounts = await _mediator.Send(new GetByPhoneOrEmailQuery(req));
 
-            if (account == null) throw new DirectoryNotFoundException("Không tìm thấy tài khoản");
-
-            List<LogResponse> logResponse = new ();
-            if (account.PointLogs != null)
+            var response = new LoyaltyAccountsResponse();
+            foreach (var account in accounts)
             {
-                logResponse.AddRange(account.PointLogs.Select(log => new LogResponse
+                List<LogResponse> logResponse = new();
+                if (account.PointLogs != null)
                 {
-                    Id = log.Id.ToString(),
-                    UserId = log.UserId.ToString(),
-                    Amount = log.Amount.ToString(),
-                    BalanceAfter = log.BalanceAfter.ToString(),
-                    BalanceBefore = log.BalanceBefore.ToString(),
-                    ActionType = log.ActionType.ToString(),
-                    ReasonCode = log.ReasonCode.ToString(),
-                    Description = log.Description,
-                    ReferenceId = log.ReferenceId?.ToString() ?? string.Empty,
-                    ExpiredAt = log.ExpiredAt?.ToString("o") ?? string.Empty
-                }));
+                    logResponse.AddRange(account.PointLogs.Select(log => new LogResponse
+                    {
+                        Id = log.Id.ToString(),
+                        UserId = log.UserId.ToString(),
+                        Amount = log.Amount.ToString(),
+                        BalanceAfter = log.BalanceAfter.ToString(),
+                        BalanceBefore = log.BalanceBefore.ToString(),
+                        ActionType = log.ActionType.ToString(),
+                        ReasonCode = log.ReasonCode.ToString(),
+                        Description = log.Description,
+                        ReferenceId = log.ReferenceId?.ToString() ?? string.Empty,
+                        ExpiredAt = log.ExpiredAt?.ToString("o") ?? string.Empty
+                    }));
+                }
+
+                var tierRep = new MembershipTierResponse()
+                {
+                    Id = account.CurrentTier.Id.ToString(),
+                    Name = account.CurrentTier.Name,
+                    MinSpendRequired = account.CurrentTier.MinSpendRequired.ToString(), // Chuyển decimal sang string để gRPC hiểu
+                    DiscountRate = account.CurrentTier.DiscountRate,
+                    ValuePerPoint = account.CurrentTier.ValuePerPoint.ToString(),
+                    AmountPerPoint = account.CurrentTier.AmountPerPoint.ToString()
+                };
+
+
+                var responseItem = new LoyaltyAccountResponse
+                {
+                    Id = account.Id.ToString(),
+                    AvailablePoints = account.AvailablePoints.ToString(),
+                    TotalSpent = account.TotalSpent.ToString(),
+                    CurrentTier = tierRep,
+                    LogRep = { logResponse }
+                };
+
+                response.AccountsRes.Add(responseItem);
             }
-
-            var tierRep = new MembershipTierResponse()
-            {
-                Id = account.CurrentTier.Id.ToString(),
-                Name = account.CurrentTier.Name,
-                MinSpendRequired = account.CurrentTier.MinSpendRequired.ToString(), // Chuyển decimal sang string để gRPC hiểu
-                DiscountRate = account.CurrentTier.DiscountRate,
-                ValuePerPoint = account.CurrentTier.ValuePerPoint.ToString(),
-                AmountPerPoint = account.CurrentTier.AmountPerPoint.ToString()
-            };
-
-            
-            var response = new LoyaltyAccountResponse
-            {
-                Id = account.Id.ToString(),
-                AvailablePoints = account.AvailablePoints.ToString(),
-                TotalSpent = account.TotalSpent.ToString(),
-                CurrentTier = tierRep,
-                LogRep = { logResponse }
-            };
 
             return response;
         }

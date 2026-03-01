@@ -1,4 +1,6 @@
-﻿using System;
+﻿using EngagementService.Application.Constants;
+using EngagementService.Domain.Constants;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -25,4 +27,5 @@ namespace EngagementService.Application.Dtos.LoyaltyAccount
         public decimal PointToDeduct { get; set; } = 0;
         public Guid? OrderId { get; set; } = null;
     }
+
 }

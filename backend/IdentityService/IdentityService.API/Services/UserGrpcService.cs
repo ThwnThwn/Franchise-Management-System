@@ -313,17 +313,21 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
             AvatarUrl = user.AvatarUrl ?? ""
         };
     }
-    public override async Task<UserIdResponse> GetUserIdByPhone(GetUserIdByPhoneRequest request, ServerCallContext context)
+    public override async Task<UserIdsResponse> GetUserIdByPhone(GetUserIdByPhoneRequest request, ServerCallContext context)
     {
-        var req = new GetUserByPhoneQuery(PhoneNumber: request.Phone);
-        var user = await _mediator.Send(req);
-        return new UserIdResponse { Id = user.Id.ToString() };
+        var req = new GetUsersByPhoneQuery(PhoneNumber: request.Phone);
+        var users = await _mediator.Send(req);
+        var userRep = new UserIdsResponse();
+        userRep.Ids.AddRange(users.Select(u => u.Id.ToString()));
+        return userRep;
     }
 
-    public override async Task<UserIdResponse> GetUserIdByEmail(GetUserIdByEmailRequest request, ServerCallContext context)
+    public override async Task<UserIdsResponse> GetUserIdByEmail(GetUserIdByEmailRequest request, ServerCallContext context)
     {
-        var req = new GetByEmailQuery(Email: request.Email);
-        var user = await _mediator.Send(req);
-        return new UserIdResponse { Id = user.Id.ToString() };
+        var req = new GetUsersByEmailQuery(Email: request.Email);
+        var users = await _mediator.Send(req);
+        var userRep = new UserIdsResponse();
+        userRep.Ids.AddRange(users.Select(u => u.Id.ToString()));
+        return userRep;
     }
 }

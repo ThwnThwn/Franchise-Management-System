@@ -4,6 +4,7 @@ using IdentityService.Application.Persistences.Repositories;
 using IdentityService.Domain.Entities;
 using IdentityService.Infrastructure.ApplicationDbContext;
 using Microsoft.EntityFrameworkCore;
+using System.Numerics;
 
 namespace IdentityService.Infrastructure.Persistences.Repositories
 {
@@ -156,6 +157,31 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
                 .AsNoTracking() 
                 .FirstOrDefaultAsync(u => u.Phone != null && u.Phone == phone);
             return customer;
+        }
+
+        public async Task<List<User>> GetUsersByPhoneAsync(string? phone)
+        {
+            if (string.IsNullOrWhiteSpace(phone))
+                phone = "";
+
+            var customers = await _dbContext.Users
+                .AsNoTracking()
+                .Where(u => u.Phone != null && u.Phone.Contains(phone))
+                .ToListAsync();
+            return customers;
+        }
+
+        public async Task<List<User>> GetUsersByEmailAsync(string? email)
+        {
+            // 2. Thực hiện truy vấn an toàn
+            if(string.IsNullOrWhiteSpace(email))
+                email = "";
+
+            var customers = await _dbContext.Users
+                .AsNoTracking()
+                .Where(u => u.Email != null && u.Email.ToLower().Contains(email.ToLower()))
+                .ToListAsync();
+            return customers;
         }
     }
 }
