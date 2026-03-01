@@ -9,23 +9,23 @@ using System.Threading.Tasks;
 
 namespace IdentityService.Application.Features.Users.Queries.GetByPhone
 {
-    public class GetUserByPhoneHandler : IRequestHandler<GetUserByPhoneQuery, User>
+    public class GetUsersByPhoneHandler : IRequestHandler<GetUsersByPhoneQuery, List<User>>
     {
         private readonly IUserRepository _userRepository;
 
-        public GetUserByPhoneHandler(IUserRepository userRepository)
+        public GetUsersByPhoneHandler(IUserRepository userRepository)
         {
             _userRepository = userRepository;
         }   
 
-        public async Task<User> Handle(GetUserByPhoneQuery request, CancellationToken cancellationToken)
+        public async Task<List<User>> Handle(GetUsersByPhoneQuery request, CancellationToken cancellationToken)
         {
-            var user = await _userRepository.GetByPhoneAsync(request.PhoneNumber);
-            
-            if(user == null)
+            var users = await _userRepository.GetUsersByPhoneAsync(request.PhoneNumber);
+
+            if(users == null || !users.Any())
                 throw new DirectoryNotFoundException("Không tìm thấy người dùng");
 
-            return user;
+            return users;
         }
     }
 }

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace EngagementService.Application.Features.LoyaltyAccount.Queries.GetById
 {
-    public record class GetByPhoneOrEmailQuery(GetByUserPhoneOrEmailRequest Request) : IRequest<Domain.Entities.LoyaltyAccount?>
+    public record class GetByPhoneOrEmailQuery(GetByUserPhoneOrEmailRequest Request) : IRequest<List<Domain.Entities.LoyaltyAccount>>
     {
     }
 }

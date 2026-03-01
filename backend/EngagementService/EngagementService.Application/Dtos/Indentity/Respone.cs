@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace EngagementService.Application.Dtos.Indentity
 {
-    public class UserIdRep
+    public class UserIdsResp
     {
-        public Guid UserId { get; set; }    
+        public List<Guid> UserIds { get; set; } = new List<Guid>();
     }   
 }

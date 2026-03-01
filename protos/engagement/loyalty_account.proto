@@ -14,7 +14,7 @@ service LoyaltyAccountGrpc {
   rpc ProcessOrderReward (ProcessOrderRewardRequest) returns (google.protobuf.Empty);
 
   // Hàm lấy thông tin tài khoản qua số điện thoại
-  rpc GetByUserPhoneOrEmail (GetByUserPhoneOrEmailRequest) returns (LoyaltyAccountResponse);
+  rpc GetByUserPhoneOrEmail (GetByUserPhoneOrEmailRequest) returns (LoyaltyAccountsResponse);
 
   // Hàm Upsert nhận vào UpSertRequest và không trả ra gì
   rpc CreateLoyaltyAccount (CreateLoyaltyAccountRequest) returns (google.protobuf.Empty);
@@ -44,6 +44,10 @@ message LoyaltyAccountResponse {
   string total_spent = 3;      // Đại diện decimal
   MembershipTierResponse current_tier = 4;
   repeated LogResponse log_rep = 5;
+}
+
+message LoyaltyAccountsResponse{
+  repeated LoyaltyAccountResponse accounts_res = 1;
 }
 
 // Định nghĩa Request cho hàm Upsert

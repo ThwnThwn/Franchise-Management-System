@@ -19,5 +19,15 @@ namespace EngagementService.Infrastucture.Persistences.Repository
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Id == userId);
         }
+
+        public async Task<IEnumerable<LoyaltyAccount?>> GetUserByIdsAsync(List<Guid> userIds)
+        {
+            return await _dbContext.LoyaltyAccounts
+                .Include(x => x.CurrentTier)
+                .Include(x => x.PointLogs)
+                .AsNoTracking()
+                .Where(x => userIds.Contains(x.Id))
+                .ToListAsync();
+        }
     }
 }

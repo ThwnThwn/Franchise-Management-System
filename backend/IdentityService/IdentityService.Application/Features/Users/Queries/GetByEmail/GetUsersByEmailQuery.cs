@@ -3,7 +3,7 @@ using MediatR;
 
 namespace IdentityService.Application.Features.Users.Queries.GetByEmail
 {
-    public record class GetByEmailQuery(string Email) : IRequest<User>
+    public record class GetUsersByEmailQuery(string? Email) : IRequest<List<User>>
     {
     }
 }
