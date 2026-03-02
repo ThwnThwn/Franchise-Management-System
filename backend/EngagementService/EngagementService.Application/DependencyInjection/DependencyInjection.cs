@@ -1,9 +1,10 @@
-﻿using FluentValidation;
+﻿using EngagementService.Application.Abstraction;
 using EngagementService.Application.Behaviors;
+using EngagementService.Application.ClientInterface;
+using EngagementService.Application.Persistences.Repository;
+using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
-using EngagementService.Application.Abstraction;
-using EngagementService.Application.ClientInterface;
 
 namespace EngagementService.Application.DependencyInjection;
 
@@ -20,7 +21,6 @@ public static class DependencyInjection
 
         services.AddScoped<IMembershipTierSyncService, MembershipTierSyncService>();
         services.AddScoped<IPointRuleSyncService, PointRuleSyncService>();
-
         //Report
         services.AddScoped<IReportService, ReportService>();
         return services;

@@ -3,7 +3,7 @@ using MediatR;
 using SalesService.Application.Persisitences.Orders;
 using SalesService.Domain.Entities;
 
-namespace SalesService.Application.Features.Orders.GetById;
+namespace SalesService.Application.Features.Orders.Queries.GetById;
 
 public sealed class GetOrderByIdQueryHandler
     : IRequestHandler<GetOrderByIdQuery, Result<GetOrderByIdResponse>>

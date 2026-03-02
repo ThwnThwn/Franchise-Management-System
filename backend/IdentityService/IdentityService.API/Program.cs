@@ -5,8 +5,10 @@ using IdentityService.API.Services;
 using IdentityService.Application.Abstrations;
 using IdentityService.Application.AppConfigurations;
 using IdentityService.Application.DependencyInjection;
+using IdentityService.Application.ExternalServices;
 using IdentityService.Application.Persistences.Caches;
 using IdentityService.Infrastructure.DependencyInjection;
+using IdentityService.Infrastructure.ExternalServices;
 using IdentityService.Infrastructure.Persistences.Cache;
 using IdentityService.Infrastructure.Settings;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
@@ -81,7 +83,7 @@ namespace IdentityService.API
             builder.Services.AddApplication();
             builder.Services.AddScoped<ITokenBlacklist, TokenBlacklist>();
             builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
-
+            builder.Services.AddScoped<IEngagementServiceClient, EngagementServiceClient>();
             // --- SERVER CONFIG ---
             var servicePort = int.Parse(builder.Configuration["IDENTITY_PORT"] ?? "5001");
             builder.WebHost.ConfigureKestrel(options =>

@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option csharp_namespace = "EngagementService.Infrastructure.Protos";
+option csharp_namespace = "EngagementService.Grpc.Protos.LoyaltyAccountGrpc";
 option go_package = "api-gateway/pkg/pb/engagement";
 
 package engagement;
@@ -16,6 +16,9 @@ service LoyaltyAccountGrpc {
 
   // Hàm lấy thông tin tài khoản qua số điện thoại
   rpc GetByUserPhoneOrEmail (GetByUserPhoneOrEmailRequest) returns (LoyaltyAccountsResponse);
+
+  // Hàm lấy thông tin tài khoản theo bộ lọc
+  rpc GetByUserIdsWithFilter (GetByUserIdsWithFilterRequest) returns (LoyaltyAccountsResponse);
 
   // Hàm Upsert nhận vào UpSertRequest và không trả ra gì
   rpc CreateLoyaltyAccount (CreateLoyaltyAccountRequest) returns (google.protobuf.Empty);
@@ -40,7 +43,12 @@ message GetByUserPhoneOrEmailRequest {
   string email = 2;
 }
 
-
+message GetByUserIdsWithFilterRequest {
+  repeated string ids = 1;
+  optional string tierId = 2;
+  optional double startAt = 3;
+  optional double endAt = 4;
+}
 // Thông tin tài khoản Loyalty trả về
 message LoyaltyAccountResponse {
   string id = 1;               // Đại diện Guid

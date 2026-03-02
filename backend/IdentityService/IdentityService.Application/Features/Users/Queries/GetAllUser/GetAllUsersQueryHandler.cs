@@ -2,6 +2,7 @@
 using BuildingBlocks.Core.Pagination;
 using IdentityService.Application.Dtos.Role.Respone;
 using IdentityService.Application.Dtos.User.Respone;
+using IdentityService.Application.ExternalServices;
 using IdentityService.Application.Persistences.Repositories;
 using MediatR;
 
@@ -11,13 +12,15 @@ public class GetAllUsersQueryHandler : IRequestHandler<GetAllUsersQuery, PagedRe
 {
     private readonly IUserRepository _userRepository;
     private readonly IRoleRepository _roleRepository;
+    private readonly IEngagementServiceClient _engagementServiceClient;
     private readonly IMapper _mapper;
 
-    public GetAllUsersQueryHandler(IUserRepository userRepository, IRoleRepository roleRepository, IMapper mapper)
+    public GetAllUsersQueryHandler(IUserRepository userRepository, IRoleRepository roleRepository, IMapper mapper, IEngagementServiceClient engagementServiceClient)
     {
         _userRepository = userRepository;
         _roleRepository = roleRepository;
         _mapper = mapper;
+        _engagementServiceClient = engagementServiceClient;
     }
 
     public async Task<PagedResult<UserRep>> Handle(GetAllUsersQuery query, CancellationToken cancellationToken)
@@ -35,27 +38,37 @@ public class GetAllUsersQueryHandler : IRequestHandler<GetAllUsersQuery, PagedRe
         var role = await _roleRepository.GetBySlugAsync(query.RoleSlug);
         var roleResponse = _mapper.Map<RoleUserRep>(role);
 
-        var dtos = pagedUsers.Items.Select(u => new UserRep
-        {
-            Id = u.Id,
-            Email = u.Email,
-            Username = u.Username,
-            Address = u.Address,
-            FirstName = u.FirstName,
-            LastName = u.LastName,
-            Phone = u.Phone,
-            Gender = u.Gender,
-            CreatedAt = u.CreatedAt,
-            UpdatedAt = u.UpdatedAt,
-            DateOfBirth = u.DateOfBirth,
-            IsBlocked = u.IsBlocked,
-            HomeStoreId = u.HomeStoreId,
-            CurrentHourlyWage = u.CurrentHourlyWage,
-            Role = u.Role == null
-                ? null
-                : _mapper.Map<RoleUserRep>(u.Role)
-        }).ToList();
 
-        return new PagedResult<UserRep>(dtos, pagedUsers.TotalCount, pagedUsers.Page, pagedUsers.PageSize);
+        var dtos = await Task.WhenAll(
+            pagedUsers.Items.Select(async u => new UserRep
+            {
+                Id = u.Id,
+                Email = u.Email,
+                Username = u.Username,
+                Address = u.Address,
+                FirstName = u.FirstName,
+                LastName = u.LastName,
+                Phone = u.Phone,
+                Gender = u.Gender,
+                CreatedAt = u.CreatedAt,
+                UpdatedAt = u.UpdatedAt,
+                DateOfBirth = u.DateOfBirth,
+                IsBlocked = u.IsBlocked,
+                HomeStoreId = u.HomeStoreId,
+                CurrentHourlyWage = u.CurrentHourlyWage,
+                Role = u.Role == null
+                    ? null
+                    : _mapper.Map<RoleUserRep>(u.Role),
+                AvatarUrl = u.AvatarUrl,
+                
+            })
+        );
+
+        return new PagedResult<UserRep>(
+            dtos.ToList(), 
+            pagedUsers.TotalCount, 
+            pagedUsers.Page, 
+            pagedUsers.PageSize
+        );
     }
 }

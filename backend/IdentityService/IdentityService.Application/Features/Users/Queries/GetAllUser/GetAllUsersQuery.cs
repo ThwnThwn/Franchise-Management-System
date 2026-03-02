@@ -7,9 +7,11 @@ public class GetAllUsersQuery() : PaginationRequest, IRequest<PagedResult<UserRe
 {
     public string? RoleSlug {  get; set; }
     public Guid? Id { get; set; }
-
     public Guid? StoreId { get; set; }
-
     public bool? HasHourlyWage { get; set; }
     public string? Keyword { get; set; }
+    public Guid? TierId { get; set; }
+    public int? OrderCount { get; set; }
+    public decimal? StartAt { get; set; }
+    public decimal? EndAt { get; set; }
 }

@@ -1,4 +1,4 @@
-﻿using EngagementService.Infrastructure.Protos;
+﻿using EngagementService.Grpc.Protos.MembershipTier;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using MediatR;

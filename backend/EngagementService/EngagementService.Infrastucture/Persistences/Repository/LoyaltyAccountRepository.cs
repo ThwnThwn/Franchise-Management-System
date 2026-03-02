@@ -12,6 +12,8 @@ namespace EngagementService.Infrastucture.Persistences.Repository
         {
         }
 
+
+
         public async Task<LoyaltyAccount?> GetByUserIdAsync(Guid userId)
         {
             return await _dbContext.LoyaltyAccounts
@@ -85,6 +87,40 @@ namespace EngagementService.Infrastucture.Persistences.Repository
                 .AsNoTracking()
                 .Where(x => userIds.Contains(x.Id))
                 .ToListAsync();
+        }
+        public async Task<IEnumerable<LoyaltyAccount?>> GetByIdsFilterHandler(List<Guid> userIds, Guid? tierId, decimal? startAt, decimal? endAt)
+        {
+            var query = _dbContext.LoyaltyAccounts
+            .Include(x => x.CurrentTier)
+            .Include(x => x.PointLogs)
+            .AsNoTracking()
+            .AsQueryable();
+
+            if (userIds != null && userIds.Any())
+            {
+                query = query.Where(x => userIds.Contains(x.Id));
+            }
+
+            if (tierId.HasValue)
+            {
+                query = query.Where(x =>
+                    x.CurrentTier != null &&
+                    x.CurrentTier.Id == tierId.Value);
+            }
+
+            if (startAt.HasValue)
+            {
+                query = query.Where(x =>
+                    x.TotalSpent >= startAt.Value);
+            }
+
+            if (endAt.HasValue)
+            {
+                query = query.Where(x =>
+                    x.TotalSpent <= endAt.Value);
+            }
+
+            return await query.ToListAsync();
         }
     }
 }

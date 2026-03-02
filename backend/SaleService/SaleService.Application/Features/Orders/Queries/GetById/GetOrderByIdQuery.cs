@@ -1,7 +1,7 @@
 ﻿using Ardalis.Result;
 using MediatR;
 
-namespace SalesService.Application.Features.Orders.GetById
+namespace SalesService.Application.Features.Orders.Queries.GetById
 {
     public sealed record GetOrderByIdQuery(Guid OrderId)
         : IRequest<Result<GetOrderByIdResponse>>;

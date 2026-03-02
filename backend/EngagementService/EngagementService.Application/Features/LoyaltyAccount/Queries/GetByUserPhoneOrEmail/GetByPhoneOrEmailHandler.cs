@@ -1,5 +1,4 @@
-﻿using Confluent.Kafka;
-using EngagementService.Application.ClientInterface;
+﻿using EngagementService.Application.ClientInterface;
 using EngagementService.Application.Constants;
 using EngagementService.Application.Dtos.LoyaltyAccount;
 using EngagementService.Application.Persistences.Repository;
@@ -33,8 +32,8 @@ namespace EngagementService.Application.Features.LoyaltyAccount.Queries.GetById
             }
 
             var loyaltyAccounts = await _loyaltyAccountRepository.GetUserByIdsAsync(usersSimpleRep.UserIDNameResp.Select(u => u.UserId).ToList());
-            
-            if(loyaltyAccounts == null || !loyaltyAccounts.Any())
+
+            if (loyaltyAccounts == null || !loyaltyAccounts.Any())
                 throw new DirectoryNotFoundException(LoyaltyAccountMsg.NotFound);
 
             var resList = new List<LoyaltyAccountDto>();
