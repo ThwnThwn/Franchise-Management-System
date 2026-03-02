@@ -12,12 +12,14 @@ using EngagementService.Infrastucture.AppDbContext;
 using EngagementService.Infrastucture.DependencyInjection;
 using EngagementService.Infrastucture.Interceptor;
 using EngagementService.Infrastucture.Persistences;
-using InventoryService.API.Services.Identity;
+using EngagementService.API.Services.Identity;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Npgsql.NameTranslation; // Thêm namespace này
-
+using QuestPDF.Infrastructure;
 using SharedKernel.Infrastructure.Kafka;
+using EngagementService.Infrastructure.Protos;
+using EngagementService.API.Services.PointLog;
 namespace EngagementService.API;
 
 public class Program
@@ -126,6 +128,10 @@ public class Program
             config.Register<SharedKernel.Events.UserRegisteredEvent>(SharedKernel.Constants.KafkaTopics.LoyaltyTierAccount, typeof(EngagementService.Application.EventHandler.CreateLoyaltyAccountHandler));
             config.Register<SharedKernel.Events.ProcessOrderRewardEvent>(SharedKernel.Constants.KafkaTopics.ProcessOrderReward, typeof(EngagementService.Application.EventHandler.ProcessOrderRewardHandler));
         });
+
+        // 1. Cấu hình bản quyền QuestPDF (Bắt buộc để không bị lỗi khi chạy)
+        QuestPDF.Settings.License = LicenseType.Community;
+
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
@@ -135,6 +141,7 @@ public class Program
         app.MapGrpcReflectionService(); // Enable gRPC Server Reflection endpoint
         app.MapGrpcService<LoyaltyAccountGrpcService>();
         app.MapGrpcService<MembershipTierGrpcService>();
+        app.MapGrpcService<PointLogGrpcService>();
 
         using (var scope = app.Services.CreateScope())
         {
