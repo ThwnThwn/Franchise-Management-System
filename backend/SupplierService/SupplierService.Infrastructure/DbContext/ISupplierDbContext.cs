@@ -11,6 +11,7 @@ public interface ISupplierDbContext : IDisposable
     DbSet<SupplierIngredient> SupplierIngredients { get; set; }
     DbSet<PurchaseOrder> PurchaseOrders { get; set; }
     DbSet<PurchaseOrderItem> PurchaseOrderItems { get; set; }
+    DbSet<SupplierPayment> SupplierPayments { get; set; }
 
     public int SaveChanges();
 
