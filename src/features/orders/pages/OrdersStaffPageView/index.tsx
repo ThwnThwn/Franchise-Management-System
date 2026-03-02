@@ -1,12 +1,13 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { useRouter } from "next/navigation"
 import { useTokenStore } from "@/hooks"
 import { PaginationParams } from "@/models/common/request"
 import { RoleSlug } from "@/constants/enums"
 import { debouncedWrapper } from "@/utils/helpers/axiosHelper"
-import { PaginationStyled } from "@/components"
-import { ShoppingBag } from "lucide-react"
+import { PaginationStyled, ButtonStyled } from "@/components"
+import { ShoppingBag, BarChart2 } from "lucide-react"
 import { useInView } from "react-intersection-observer"
 
 import { DashboardHeader } from "@/features/dashboard"
@@ -16,6 +17,7 @@ import { useGetOrders } from "@/features/orders/hooks"
 import { OrdersTable, OrdersToolBar } from "@/features/orders/components"
 
 export default function OrdersStaffPageView() {
+    const router = useRouter()
     const roleSlug = useTokenStore((s) => s.roleSlug)
     const storeIdFromToken = useTokenStore((s) => s.storeId)
 
@@ -75,11 +77,23 @@ export default function OrdersStaffPageView() {
     return (
         <div className="max-w-7xl mb-8 mx-auto min-h-screen p-4 md:p-6 lg:p-8 bg-slate-50/30">
             {/* --- HEADER --- */}
-            <DashboardHeader
-                icon={<ShoppingBag className="w-6 h-6 text-white" />}
-                title="Quản lý đơn hàng"
-                description="Quản lý lịch sử, trạng thái đơn hàng..."
-            />
+            <div className="flex items-start justify-between mb-0">
+                <DashboardHeader
+                    icon={<ShoppingBag className="w-6 h-6 text-white" />}
+                    title="Quản lý đơn hàng"
+                    description="Quản lý lịch sử, trạng thái đơn hàng..."
+                />
+                {roleSlug === RoleSlug.Admin && (
+                    <ButtonStyled
+                        variant="bordered"
+                        startContent={<BarChart2 size={17} />}
+                        className="shrink-0 mt-1"
+                        onPress={() => router.push("/dashboard/orders/analytics")}
+                    >
+                        Phân tích đơn hàng
+                    </ButtonStyled>
+                )}
+            </div>
 
             <div className="space-y-3">
                 <OrdersToolBar

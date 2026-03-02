@@ -30,6 +30,12 @@ export const DASHBOARD_SIDEBAR_MENU: MenuItem[] = [
         allowedRoles: [RoleSlug.Admin, RoleSlug.Manager]
     },
     {
+        icon: <LayoutDashboard className="w-5 h-5" />,
+        label: "Thống kê",
+        href: "/dashboard/orders/analytics",
+        allowedRoles: [RoleSlug.Admin, RoleSlug.Manager]
+    },
+    {
         icon: <ShoppingBag className="w-5 h-5" />,
         label: "Đơn hàng",
         href: "/dashboard/orders",
@@ -89,6 +95,7 @@ export const DASHBOARD_SIDEBAR_MENU: MenuItem[] = [
     //     href: "/dashboard/products",
     //     allowedRoles: [RoleSlug.Admin, RoleSlug.Manager]
     // },
+
     {
         icon: <Settings className="w-5 h-5" />,
         label: "Cài đặt",
@@ -101,4 +108,6 @@ export const DASHBOARD_SIDEBAR_MENU: MenuItem[] = [
         href: "/dashboard/my-schedule",
         allowedRoles: [RoleSlug.Staff]
     }
+
+
 ]

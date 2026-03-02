@@ -9,7 +9,9 @@ import {
     GetIngredientsParams,
     CreateIngredientRequest,
     UpdateIngredientRequest,
-    AddIngredientStockItem
+    AddIngredientStockItem,
+    CreateIngredientCategoryRequest,
+    UpdateIngredientCategoryRequest
 } from "../models/request"
 
 // =============================================
@@ -95,6 +97,78 @@ export const useGetIngredientCategories = ({ enabled = true }: { enabled?: boole
         queryKey: [QUERY_KEYS.INGREDIENT_CATEGORIES],
         queryFn: () => inventoryApi.getIngredientCategories(),
         enabled
+    })
+}
+
+export const useCreateIngredientCategory = ({ onSuccess }: { onSuccess?: () => void } = {}) => {
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: (req: CreateIngredientCategoryRequest) =>
+            inventoryApi.createIngredientCategory(req),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INGREDIENT_CATEGORIES] })
+            addToast({
+                title: STRINGS.COMMON.SUCCESS,
+                description: "Tạo danh mục nguyên liệu thành công",
+                color: "success"
+            })
+            onSuccess?.()
+        },
+        onError: (error: BackendError) => {
+            addToast({
+                title: error.title || STRINGS.COMMON.ERROR,
+                description: error.detail,
+                color: "danger"
+            })
+        }
+    })
+}
+
+export const useUpdateIngredientCategory = ({ onSuccess }: { onSuccess?: () => void } = {}) => {
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: ({ id, req }: { id: string; req: UpdateIngredientCategoryRequest }) =>
+            inventoryApi.updateIngredientCategory(id, req),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INGREDIENT_CATEGORIES] })
+            addToast({
+                title: STRINGS.COMMON.SUCCESS,
+                description: "Cập nhật danh mục nguyên liệu thành công",
+                color: "success"
+            })
+            onSuccess?.()
+        },
+        onError: (error: BackendError) => {
+            addToast({
+                title: error.title || STRINGS.COMMON.ERROR,
+                description: error.detail,
+                color: "danger"
+            })
+        }
+    })
+}
+
+export const useDeleteIngredientCategory = ({ onSuccess }: { onSuccess?: () => void } = {}) => {
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: (id: string) => inventoryApi.deleteIngredientCategory(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INGREDIENT_CATEGORIES] })
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INGREDIENTS] })
+            addToast({
+                title: STRINGS.COMMON.SUCCESS,
+                description: "Xóa danh mục nguyên liệu thành công",
+                color: "success"
+            })
+            onSuccess?.()
+        },
+        onError: (error: BackendError) => {
+            addToast({
+                title: error.title || STRINGS.COMMON.ERROR,
+                description: error.detail,
+                color: "danger"
+            })
+        }
     })
 }
 

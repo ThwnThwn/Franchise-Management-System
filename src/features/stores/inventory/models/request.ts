@@ -54,3 +54,14 @@ export type AdjustStockRequest = {
     storeId: string
     items: IngredientStockItem[]
 }
+
+// === INGREDIENT CATEGORY CRUD REQUESTS ===
+export type CreateIngredientCategoryRequest = {
+    name: string
+    description?: string
+}
+
+export type UpdateIngredientCategoryRequest = {
+    name?: string
+    description?: string
+}

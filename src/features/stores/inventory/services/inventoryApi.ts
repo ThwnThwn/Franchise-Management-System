@@ -6,7 +6,9 @@ import {
     GetIngredientsParams,
     CreateIngredientRequest,
     UpdateIngredientRequest,
-    AddIngredientStockItem
+    AddIngredientStockItem,
+    CreateIngredientCategoryRequest,
+    UpdateIngredientCategoryRequest
 } from "../models/request"
 import { GetAllStockResult, GetIngredientsResult, IngredientCategory } from "../models/response"
 
@@ -84,5 +86,20 @@ export const inventoryApi = {
     getIngredientCategories: async (): Promise<IngredientCategory[]> => {
         const res = await axiosInstance.get("/ingredients/categories")
         return res.data
+    },
+
+    /** POST /api/ingredients/categories - Tạo danh mục nguyên liệu */
+    createIngredientCategory: async (req: CreateIngredientCategoryRequest): Promise<void> => {
+        await axiosInstance.post("/ingredients/categories", req)
+    },
+
+    /** PATCH /api/ingredients/categories/:id - Cập nhật danh mục nguyên liệu */
+    updateIngredientCategory: async (id: string, req: UpdateIngredientCategoryRequest): Promise<void> => {
+        await axiosInstance.patch(`/ingredients/categories/${id}`, req)
+    },
+
+    /** DELETE /api/ingredients/categories/:id - Xóa danh mục nguyên liệu */
+    deleteIngredientCategory: async (id: string): Promise<void> => {
+        await axiosInstance.delete(`/ingredients/categories/${id}`)
     }
 }

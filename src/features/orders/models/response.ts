@@ -60,4 +60,37 @@ export interface Order extends OrderHeader {
     items: OrderItem[]
 }
 
-export interface OrderSummary extends OrderHeader {}
+export interface OrderSummary extends OrderHeader { }
+
+// ── Analytics API response types ──────────────────────────────────────────────
+
+export interface RevenueItem {
+    storeId?: string | null
+    productName: string
+    sku: string
+    quantitySold: number
+    unitPrice: number
+    totalRevenue: number
+}
+
+export interface GetRevenueReportReply {
+    fromDate: string
+    toDate: string
+    categoryId?: string | null
+    overallTotalRevenue: number
+    items: RevenueItem[]
+}
+
+export interface OrderVolumeADay {
+    date: string              // e.g. "2024-05-20"
+    totalOrders: number
+    canceledOrder: number
+    completedOrder: number
+    storeId?: string | null
+    statusCounts: Record<string, number>
+}
+
+export interface GetOrderVolumeReply {
+    orders: OrderVolumeADay[]
+}
+

@@ -1,7 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { FlaskConical, Search, Plus } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { FlaskConical, Search, Plus, Tags } from "lucide-react"
 import { InputStyled, ButtonStyled } from "@/components"
 import { DashboardHeader } from "@/features/dashboard/components/general/DashboardHeader"
 import { IngredientsTable } from "../components/IngredientsTable"
@@ -23,6 +24,8 @@ import { AddIngredientStockModal } from "../components/AddIngredientStockModal"
  * @title Trang cho Admin quản lí danh sách định nghĩa nguyên liệu của hệ thống
  */
 export default function IngredientsPage() {
+    const router = useRouter()
+
     // ── Filter state ──────────────────────────────────────────────
     const [filter, setFilter] = useState<GetIngredientsParams>({
         page: 1,
@@ -154,14 +157,26 @@ export default function IngredientsPage() {
                     </div>
                 </div>
 
-                {/* Nút thêm nguyên liệu mới */}
-                <ButtonStyled
-                    color="primary"
-                    startContent={<Plus size={18} />}
-                    onPress={() => setIsCreateOpen(true)}
-                >
-                    Thêm nguyên liệu
-                </ButtonStyled>
+                {/* Nhóm nút hành động */}
+                <div className="flex items-center gap-2">
+                    {/* Nút quản lý danh mục */}
+                    <ButtonStyled
+                        variant="bordered"
+                        startContent={<Tags size={18} />}
+                        onPress={() => router.push("/dashboard/ingredients/categories")}
+                    >
+                        Quản lý danh mục
+                    </ButtonStyled>
+
+                    {/* Nút thêm nguyên liệu mới */}
+                    <ButtonStyled
+                        color="primary"
+                        startContent={<Plus size={18} />}
+                        onPress={() => setIsCreateOpen(true)}
+                    >
+                        Thêm nguyên liệu
+                    </ButtonStyled>
+                </div>
             </div>
 
             {/* ── COUNT ── */}
@@ -181,7 +196,7 @@ export default function IngredientsPage() {
                     isRefetching={isRefetching}
                     onAddStock={handleAddStock}
                     onEdit={handleEdit}
-                    // onDelete={handleDelete}
+                // onDelete={handleDelete}
                 />
             </div>
 

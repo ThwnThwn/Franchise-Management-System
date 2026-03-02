@@ -1,9 +1,17 @@
-import { OrderReply, Order, OrderSummary } from "@/features/orders/models/response"
+import {
+    OrderReply,
+    Order,
+    OrderSummary,
+    GetRevenueReportReply,
+    GetOrderVolumeReply
+} from "@/features/orders/models/response"
 import axiosInstance from "@/utils/axios"
 import {
     CreateOrderRequest,
     CreatePaymentRequest,
     GetOrdersQuery,
+    GetRevenueReportQuery,
+    GetOrderVolumeQuery,
     UpdateOrderItem
 } from "@/features/orders/models/request"
 import { OrderStatus } from "../constants"
@@ -85,5 +93,56 @@ export const ordersApi = {
             paymentMethod: Number(req.paymentMethod)
         })
         return res.data
+    },
+
+    // ── Analytics ──────────────────────────────────────────────────────────────
+
+    /** GET /orders/reports/revenue - Doanh thu theo sản phẩm */
+    getRevenueReport: async (query: GetRevenueReportQuery): Promise<GetRevenueReportReply> => {
+        const res = await axiosInstance.get("/orders/reports/revenue", {
+            params: buildQueryParams(query)
+        })
+        return res.data
+    },
+
+    /** GET /orders/reports/volume - Số đơn theo ngày */
+    getOrderVolume: async (query: GetOrderVolumeQuery): Promise<GetOrderVolumeReply> => {
+        const res = await axiosInstance.get("/orders/reports/volume", {
+            params: buildQueryParams(query)
+        })
+        return res.data
+    },
+
+    /** GET /orders/reports/revenue/export - Tải về CSV doanh thu */
+    exportRevenueReport: async (query: GetRevenueReportQuery): Promise<void> => {
+        const res = await axiosInstance.get("/orders/reports/revenue/export", {
+            params: buildQueryParams(query),
+            responseType: "blob"
+        })
+        const cd = res.headers["content-disposition"] as string
+        const filename = cd?.match(/filename=([^;]+)/)?.[1] ?? "revenue-report.csv"
+        const url = URL.createObjectURL(new Blob([res.data]))
+        const a = document.createElement("a")
+        a.href = url
+        a.download = filename
+        a.click()
+        URL.revokeObjectURL(url)
+    },
+
+    /** GET /orders/reports/volume/export - Tải về CSV khối lượng đơn */
+    exportOrderVolume: async (query: GetOrderVolumeQuery): Promise<void> => {
+        const res = await axiosInstance.get("/orders/reports/volume/export", {
+            params: buildQueryParams(query),
+            responseType: "blob"
+        })
+        const cd = res.headers["content-disposition"] as string
+        const filename = cd?.match(/filename=([^;]+)/)?.[1] ?? "order-volume.csv"
+        const url = URL.createObjectURL(new Blob([res.data]))
+        const a = document.createElement("a")
+        a.href = url
+        a.download = filename
+        a.click()
+        URL.revokeObjectURL(url)
     }
 }
+

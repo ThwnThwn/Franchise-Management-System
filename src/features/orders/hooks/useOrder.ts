@@ -8,7 +8,13 @@ import { BackendError, PageResult } from "@/models/common/respone"
 import { useTokenStore } from "@/hooks"
 import { RoleSlug } from "@/constants/enums"
 import { OrderReply, OrderSummary } from "@/features/orders/models/response"
-import { CreatePaymentRequest, GetOrdersQuery, UpdateOrderItem } from "../models/request"
+import {
+    CreatePaymentRequest,
+    GetOrdersQuery,
+    GetRevenueReportQuery,
+    GetOrderVolumeQuery,
+    UpdateOrderItem
+} from "../models/request"
 import { PaginationParams } from "@/models/common/request"
 
 export const useGetMyOrders = () => {
@@ -204,3 +210,48 @@ export const usePayment = ({
         }
     })
 }
+
+// ── Analytics Hooks ───────────────────────────────────────────────────────────
+
+export const useGetRevenueReport = (query: GetRevenueReportQuery) => {
+    return useQuery({
+        queryKey: [QUERY_KEYS.ORDERS, "reports", "revenue", query],
+        queryFn: () => ordersApi.getRevenueReport(query),
+        enabled: !!(query.fromDate || query.toDate)
+    })
+}
+
+export const useGetOrderVolume = (query: GetOrderVolumeQuery) => {
+    return useQuery({
+        queryKey: [QUERY_KEYS.ORDERS, "reports", "volume", query],
+        queryFn: () => ordersApi.getOrderVolume(query),
+        enabled: !!(query.fromDate || query.toDate)
+    })
+}
+
+export const useExportRevenueReport = () => {
+    return useMutation({
+        mutationFn: (query: GetRevenueReportQuery) => ordersApi.exportRevenueReport(query),
+        onError: (error: BackendError) => {
+            addToast({
+                title: error.title || STRINGS.COMMON.ERROR,
+                description: error.detail ?? "Không thể xuất báo cáo doanh thu",
+                color: "danger"
+            })
+        }
+    })
+}
+
+export const useExportOrderVolume = () => {
+    return useMutation({
+        mutationFn: (query: GetOrderVolumeQuery) => ordersApi.exportOrderVolume(query),
+        onError: (error: BackendError) => {
+            addToast({
+                title: error.title || STRINGS.COMMON.ERROR,
+                description: error.detail ?? "Không thể xuất khối lượng đơn",
+                color: "danger"
+            })
+        }
+    })
+}
+
