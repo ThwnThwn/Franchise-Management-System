@@ -20,6 +20,9 @@ public static class DependencyInjection
 
         services.AddScoped<IMembershipTierSyncService, MembershipTierSyncService>();
         services.AddScoped<IPointRuleSyncService, PointRuleSyncService>();
+
+        //Report
+        services.AddScoped<IReportService, ReportService>();
         return services;
     }
 }

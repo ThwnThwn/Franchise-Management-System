@@ -4,7 +4,7 @@ namespace EngagementService.Application.ClientInterface
 {
     public interface IIdentityServiceClient
     {
-        Task<UserIdsResp> GetUserIdByEmail(GetUserIdByEmailRequest request);
-        Task<UserIdsResp> GetUserIdByPhone(GetUserIdByPhoneRequest request);
+        Task<UserSimpleResp> GetUserIdByEmail(GetUserIdByEmailRequest request);
+        Task<UserSimpleResp> GetUserIdByPhone(GetUserIdByPhoneRequest request);
     }
 }

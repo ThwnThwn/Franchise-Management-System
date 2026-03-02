@@ -313,21 +313,29 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
             AvatarUrl = user.AvatarUrl ?? ""
         };
     }
-    public override async Task<UserIdsResponse> GetUserIdByPhone(GetUserIdByPhoneRequest request, ServerCallContext context)
+    public override async Task<GetSimpleUsersRespone> GetUserIdByPhone(GetUserIdByPhoneRequest request, ServerCallContext context)
     {
         var req = new GetUsersByPhoneQuery(PhoneNumber: request.Phone);
         var users = await _mediator.Send(req);
-        var userRep = new UserIdsResponse();
-        userRep.Ids.AddRange(users.Select(u => u.Id.ToString()));
+        var userRep = new GetSimpleUsersRespone();
+        userRep.UserRes.AddRange(users.Select(u => new UserIdNameResponse
+        {
+            Id = u.Id.ToString(),
+            Name = string.IsNullOrWhiteSpace(u.LastName) ? u.FirstName : u.LastName + " " + u.FirstName
+        }));
         return userRep;
     }
 
-    public override async Task<UserIdsResponse> GetUserIdByEmail(GetUserIdByEmailRequest request, ServerCallContext context)
+    public override async Task<GetSimpleUsersRespone> GetUserIdByEmail(GetUserIdByEmailRequest request, ServerCallContext context)
     {
         var req = new GetUsersByEmailQuery(Email: request.Email);
         var users = await _mediator.Send(req);
-        var userRep = new UserIdsResponse();
-        userRep.Ids.AddRange(users.Select(u => u.Id.ToString()));
+        var userRep = new GetSimpleUsersRespone();
+        userRep.UserRes.AddRange(users.Select(u => new UserIdNameResponse
+        {
+            Id = u.Id.ToString(),
+            Name = string.IsNullOrWhiteSpace(u.LastName) ? u.FirstName : u.LastName + " " + u.FirstName
+        }));
         return userRep;
     }
 }

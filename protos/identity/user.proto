@@ -17,8 +17,8 @@ service UserGrpc {
   rpc GetByIds (GetUserByIdsRequest) returns (GetUserByIdsResponse);
   rpc GetAll(GetAllUserOrWithRoleRequest) returns (GetAllUserOrWithRoleResponse);
   rpc GetManager(GetManagerRequest) returns (UserResponse);
-  rpc GetUserIdByPhone(GetUserIdByPhoneRequest) returns (UserIdsResponse);
-  rpc GetUserIdByEmail(GetUserIdByEmailRequest) returns (UserIdsResponse);
+  rpc GetUserIdByPhone(GetUserIdByPhoneRequest) returns (GetSimpleUsersRespone);
+  rpc GetUserIdByEmail(GetUserIdByEmailRequest) returns (GetSimpleUsersRespone);
 
   rpc Update(UpdateUserRequest) returns (UserResponse);
   rpc ChangePassword(ChangePasswordRequest) returns (UserResponse);
@@ -141,8 +141,13 @@ message GetUserIdByPhoneRequest {
   optional string phone = 1;
 }
 
-message UserIdsResponse {
-  repeated string ids = 1;
+message UserIdNameResponse {
+  string id = 1;
+  string name = 2;
+}
+
+message GetSimpleUsersRespone{
+  repeated UserIdNameResponse user_res = 1;
 }
 
 message GetUserIdByEmailRequest {
