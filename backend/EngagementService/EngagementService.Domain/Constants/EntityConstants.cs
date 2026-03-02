@@ -17,8 +17,8 @@
         ORDER_RETURN_DEDUCT,   
         MANUAL_ADJUST          
     }
-    public enum VoucherCategory { DISCOUNT_GIFT, SHIPPING }
+    public enum VoucherCategory { DISCOUNT, SHIPPING, GIFT }
     public enum VoucherDiscountType { PERCENTAGE, FIXED_AMOUNT, GIFT_ITEM }
     public enum UserVoucherStatus { AVAILABLE, USED, EXPIRED }
-    public enum VoucherItemType { GIFT, REQUIRED }
+    public enum VoucherItemType { ITEM_GIFT, ITEM_REQUIRED }
 }

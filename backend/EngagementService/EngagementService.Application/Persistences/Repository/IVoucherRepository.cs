@@ -1,4 +1,5 @@
-﻿using System;
+﻿using EngagementService.Domain.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,5 +9,6 @@ namespace EngagementService.Application.Persistences.Repository
 {
     public interface IVoucherRepository : IGenericRepository<Domain.Entities.Voucher>
     {
+        Task<Voucher?> GetVoucherByCodeAsync(string code);
     }
 }

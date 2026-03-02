@@ -40,7 +40,11 @@ public static class DependencyInjection
         services.AddScoped<IPointLogRepository, PointLogRepository>();
         services.AddScoped<IPointRuleRepository, PointRuleRepository>();
         services.AddScoped<IPointRuleCache, PointRuleCache>();
+        services.AddScoped<IVoucherItemRepository, VoucherItemRepository>();
+
+
         services.AddHostedService<CleanupPointLogJob>();
+        
 
         services.AddSingleton<IKafkaProducer, KafkaProducer>();
 

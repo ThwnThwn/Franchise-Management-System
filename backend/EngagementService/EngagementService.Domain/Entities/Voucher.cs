@@ -27,7 +27,7 @@ public partial class Voucher : SoftDeletedEntity, IEntity
 
     public int? CurrentQuantity { get; set; }
 
-    public int MaxUsagePerUser { get; set; }
+    public int? MaxUsagePerUser { get; set; }
 
     public bool? IsActive { get; set; }
 
