@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using ProductService.Application.Features.Products.Command.CreateProduct;
 using ProductService.Application.Features.Products.Command.DeleteProduct;
+using ProductService.Application.Features.Products.Command.UpdateProduct;
 using ProductService.Application.Features.Products.Queries.GetById;
 using ProductService.Application.Features.Products.Queries.GetByKeyword;
 using ProductService.Application.Features.Products.Queries.GetByProductName;
@@ -86,7 +87,7 @@ public class ProductsController : ControllerBase
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(
         Guid id,
-        UpdateProductCommand.UpdateProductCommandRequest request,
+        UpdateProductCommandRequest request,
         CancellationToken ct)
     {
         var result = await _mediator.Send(
@@ -110,7 +111,6 @@ public class ProductsController : ControllerBase
             : NotFound(result.Errors);
     }
 
-
     [HttpGet("by-keyword")]
     public async Task<IActionResult> Search(
         [FromQuery] string? keyword,
@@ -129,6 +129,7 @@ public class ProductsController : ControllerBase
 
         return Ok(result);
     }
+
     /// <summary>
     /// Upload image to Cloudinary (standalone, not bound to product)
     /// </summary>
@@ -231,6 +232,3 @@ public class ProductsController : ControllerBase
         }
     }
 }
-
-
-

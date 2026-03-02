@@ -23,7 +23,7 @@ namespace ProductService.Application.Features.Categories.Queries.GetList
 
         public async Task<Result<GetCategoriesResultDto>> Handle(GetCategoriesQuery request, CancellationToken cancellationToken)
         {
-            var categories = await _categoryRepository.GetAllAsync();
+            var categories = await _categoryRepository.GetAllAsync(cancellationToken);
 
             var categoryDtos = _mapper.Map<List<GetCategoryListItemDto>>(categories);
 

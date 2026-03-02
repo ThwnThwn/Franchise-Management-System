@@ -6,9 +6,9 @@ import (
 )
 
 func MapProductPbToProductModel(p *pb.Product) *product.Product {
-	sizes := make([]*product.ProductSize, 0, len(p.Sizes))
-	for _, s := range p.Sizes {
-		sizes = append(sizes, &product.ProductSize{
+	variants := make([]*product.ProductVariant, 0, len(p.Variants))
+	for _, s := range p.Variants {
+		variants = append(variants, &product.ProductVariant{
 			Id:         s.Id,
 			Sku:        s.Sku,
 			Name:       s.Name,
@@ -26,6 +26,6 @@ func MapProductPbToProductModel(p *pb.Product) *product.Product {
 		IsActive:     p.IsActive,
 		CategoryId:   p.CategoryId,
 		CategoryName: p.CategoryName,
-		Sizes:        sizes,
+		Variants:     variants,
 	}
 }

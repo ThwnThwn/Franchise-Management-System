@@ -1,16 +1,15 @@
-using System.Reflection;
-using AutoMapper;
 using DotNetEnv;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
 using ProductService.API.Middleware;
 using ProductService.API.Services;
-using ProductService.Application.Mapping;
+using ProductService.Application.Extentions;
+using ProductService.Application.Interfaces;
 using ProductService.Application.Repositories;
 using ProductService.Infrastructure.ApplicationDbContext;
 using ProductService.Infrastructure.Extensions;
 using ProductService.Infrastructure.Interceptor;
 using ProductService.Infrastructure.Repositories;
-using ProductService.Application.Interfaces;
 using ProductService.Infrastructure.Services;
 using ProductService.Infrastructure.Settings;
 
@@ -20,7 +19,7 @@ namespace ProductService.API
     {
         public static void Main(string[] args)
         {
-            // Load .env file 
+            // Load .env file
             Env.Load("../../../.env");
 
             var builder = WebApplication.CreateBuilder(args);
@@ -42,8 +41,7 @@ namespace ProductService.API
             {
                 options.ConfigureEndpointDefaults(listenOptions =>
                 {
-                    // gRPC thường cần HTTP/2
-                    listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2;
+                    listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
                 });
             });
 
@@ -64,59 +62,8 @@ namespace ProductService.API
                 });
             });
 
-            // Interceptors
-            builder.Services.AddScoped<UpdateTimestampInterceptor>();
-            // Connect Db
-            var connectionString = builder.Configuration["PRODUCT_DB_CONNECTION"];
-
-            // EF Core interceptors used by ProductDbContext
-            builder.Services.AddScoped<UpdateTimestampInterceptor>();
-
-            // DbContext + wire interceptor via DI
-            builder.Services.AddDbContext<ProductDbContext>(
-                (sp, opt) =>
-                {
-                    opt.UseNpgsql(connectionString);
-                    opt.AddInterceptors(sp.GetRequiredService<UpdateTimestampInterceptor>());
-                });
-
-            // Expose DbContext via abstraction used by repositories
-            builder.Services.AddScoped<IProductDbContext>(sp => sp.GetRequiredService<ProductDbContext>());
-
-            // Configure AutoMapper
-            // Auto scan all Profile classes from API and Application assemblies
-            var apiAssembly = Assembly.GetExecutingAssembly();
-            var applicationAssembly = typeof(ProductMappingProfile).Assembly;
-
-            builder.Services.AddSingleton(_ =>
-            {
-                var cfg = new MapperConfiguration(c =>
-                {
-                    c.AddMaps(apiAssembly);           // Scan API assembly (ProductGrpcMappingProfile)
-                    c.AddMaps(applicationAssembly);    // Scan Application assembly (ProductMappingProfile)
-                });
-                return cfg.CreateMapper();
-            });
-
-            // Register Application services (MediatR, FluentValidation, ValidationBehavior)
+            builder.Services.AddInfrastructures(builder.Configuration);
             builder.Services.AddApplication();
-
-            // Register repositories
-            builder.Services.AddScoped<IProductRepository, ProductRepository>();
-
-            builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
-            builder.Services.AddScoped<IProductVariantRepository, ProductVariantRepository>();
-
-            // Register Cloudinary service
-            builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
-
-            // Cloudinary configuration
-            builder.Services.Configure<CloudinarySettings>(options =>
-            {
-                options.CloudName = builder.Configuration["CLOUDINARY_CLOUD_NAME"] ?? string.Empty;
-                options.ApiKey = builder.Configuration["CLOUDINARY_API_KEY"] ?? string.Empty;
-                options.ApiSecret = builder.Configuration["CLOUDINARY_API_SECRET"] ?? string.Empty;
-            });
 
             // Register GlobalExceptionHandlerMiddleware
             builder.Services.AddSingleton<GlobalExceptionHandlerMiddleware>();
@@ -148,11 +95,10 @@ namespace ProductService.API
                 });
             }
 
+            app.UseRouting();
+
             app.UseCors();
-
-            // Add global exception handler middleware
             app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
-
             app.UseAuthorization();
 
             app.MapControllers();
