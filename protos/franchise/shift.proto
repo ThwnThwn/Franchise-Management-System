@@ -52,6 +52,10 @@ service ShiftGrpcService {
   rpc BulkCreateFromTemplate (BulkCreateFromTemplateRequest) returns (BulkCreateResponse);
   rpc BulkPublish (BulkPublishRequest) returns (BulkActionResponse);
   rpc BulkDelete (BulkDeleteRequest) returns (BulkActionResponse);
+
+  // --- CHO CA (Shift Pool) ---
+  // Mo nhieu ca ra Cho Ca (Draft -> Open)
+  rpc BulkOpenShifts (BulkOpenShiftsRequest) returns (BulkOpenShiftsResponse);
 }
 
 // ----------------------------------------------------
@@ -433,3 +437,16 @@ message BulkActionResponse {
   bool success = 1;
   int32 affected_count = 2;
 }
+
+// --- Cho Ca (Shift Pool) ---
+message BulkOpenShiftsRequest {
+  repeated string ids = 1;
+  string store_id = 2;
+}
+
+message BulkOpenShiftsResponse {
+  bool success = 1;
+  int32 opened_count = 2;
+  repeated string skipped_ids = 3;
+}
+

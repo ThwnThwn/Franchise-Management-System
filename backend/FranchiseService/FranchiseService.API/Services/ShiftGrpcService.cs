@@ -17,6 +17,7 @@ using FranchiseService.Application.Features.Shifts.Commands.BulkCreateManual;
 using FranchiseService.Application.Features.Shifts.Commands.BulkCreateFromTemplate;
 using FranchiseService.Application.Features.Shifts.Commands.BulkPublish;
 using FranchiseService.Application.Features.Shifts.Commands.BulkDelete;
+using FranchiseService.Application.Features.Shifts.Commands.BulkOpenShifts;
 using Dtos = FranchiseService.Application.Features.Shifts.DTOs;
 using Grpc.Core;
 using MediatR;
@@ -720,6 +721,40 @@ namespace FranchiseService.API.Services
             catch (ArgumentException ex)
             {
                 throw new RpcException(new Status(StatusCode.InvalidArgument, ex.Message));
+            }
+            catch (FormatException ex)
+            {
+                throw new RpcException(new Status(StatusCode.InvalidArgument,
+                    $"Dinh dang du lieu khong hop le: {ex.Message}"));
+            }
+        }
+
+        // Mo nhieu ca ra Cho Ca (Draft -> Open)
+        public override async Task<BulkOpenShiftsResponse> BulkOpenShifts(
+            BulkOpenShiftsRequest request, ServerCallContext context)
+        {
+            try
+            {
+                var command = new BulkOpenShiftsCommand
+                {
+                    ShiftIds = request.Ids.Select(Guid.Parse).ToList(),
+                    StoreId = Guid.Parse(request.StoreId)
+                };
+
+                var result = await _mediator.Send(command);
+
+                var response = new BulkOpenShiftsResponse
+                {
+                    Success = true,
+                    OpenedCount = result.OpenedCount
+                };
+                response.SkippedIds.AddRange(result.SkippedIds.Select(id => id.ToString()));
+
+                return response;
+            }
+            catch (InvalidOperationException ex)
+            {
+                throw new RpcException(new Status(StatusCode.FailedPrecondition, ex.Message));
             }
             catch (FormatException ex)
             {

@@ -41,6 +41,11 @@ public partial class FranchiseDbContext : DbContext, IFranchiseDbContext
 
     public virtual DbSet<OutboxMessage> OutboxMessages { get; set; }
 
+    /// <summary>
+    /// Don dang ky nhan ca tu Cho Ca (Shift Pool)
+    /// </summary>
+    public virtual DbSet<ShiftApplication> ShiftApplications { get; set; }
+
     public new DbSet<T> Set<T>() where T : class, IEntity => base.Set<T>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -467,6 +472,35 @@ public partial class FranchiseDbContext : DbContext, IFranchiseDbContext
                 .HasForeignKey(d => d.ShiftAssignmentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_timelogs_assignment");
+        });
+
+        // Cau hinh bang shift_applications (Don dang ky nhan ca tu Cho Ca)
+        modelBuilder.Entity<ShiftApplication>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("shift_applications_pkey");
+            entity.ToTable("shift_applications");
+
+            // Rang buoc: 1 nhan vien chi duoc dang ky 1 lan cho moi ca
+            entity.HasIndex(e => new { e.ShiftId, e.UserId }, "uq_application_user_shift").IsUnique();
+            entity.HasIndex(e => e.ShiftId, "idx_applications_shift");
+            entity.HasIndex(e => e.UserId, "idx_applications_user");
+
+            entity.Property(e => e.Id).HasDefaultValueSql("uuid_generate_v4()").HasColumnName("id");
+            entity.Property(e => e.ShiftId).HasColumnName("shift_id");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.Status).HasDefaultValue(0).HasColumnName("status");
+            entity.Property(e => e.Note).HasColumnName("note");
+            entity.Property(e => e.AppliedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").HasColumnName("applied_at");
+            entity.Property(e => e.ReviewedAt).HasColumnName("reviewed_at");
+            entity.Property(e => e.ReviewedBy).HasColumnName("reviewed_by");
+            entity.Property(e => e.ReviewNote).HasColumnName("review_note");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").HasColumnName("updated_at");
+            entity.Property(e => e.IsDeleted).HasDefaultValue(false).HasColumnName("is_deleted");
+
+            entity.HasOne(e => e.Shift).WithMany()
+                .HasForeignKey(e => e.ShiftId)
+                .HasConstraintName("fk_applications_shift");
         });
 
         foreach (var entity in modelBuilder.Model.GetEntityTypes())

@@ -122,6 +122,7 @@ namespace FranchiseService.API
             app.MapGrpcService<Services.AvailabilityGrpcService>();
             app.MapGrpcService<Services.ShiftRuleGrpcService>();
             app.MapGrpcService<Services.ShiftTemplateGrpcService>();
+            app.MapGrpcService<Services.ShiftApplicationGrpcService>();
             app.MapGrpcReflectionService();
 
 

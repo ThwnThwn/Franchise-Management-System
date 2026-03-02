@@ -301,3 +301,57 @@ CREATE TABLE IF NOT EXISTS outbox_messages (
 );
 
 CREATE INDEX ix_outbox_messages_processed_on ON outbox_messages(processed_on) WHERE processed_on IS NULL;
+
+-- ========================================================
+-- 11. SHIFT APPLICATIONS (Don dang ky nhan ca tu Cho Ca)
+-- Nhan vien thay ca dang mo (Open) tren App, bam "Dang ky"
+-- Manager vao Web xem danh sach don roi Duyet hoac Tu choi
+-- ========================================================
+CREATE TABLE IF NOT EXISTS shift_applications (
+    -- Khoa chinh
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+
+    -- Ca lam viec ma nhan vien muon dang ky nhan
+    shift_id UUID NOT NULL,
+
+    -- ID nhan vien gui don dang ky (tu Identity Service)
+    user_id UUID NOT NULL,
+
+    -- Trang thai don dang ky:
+    -- 0: Pending  (Dang cho Manager duyet)
+    -- 1: Approved (Manager da duyet, tu dong tao ShiftAssignment)
+    -- 2: Rejected (Manager tu choi)
+    status INT DEFAULT 0,
+
+    -- Ghi chu cua nhan vien khi dang ky (vi du: "Em ranh ca nay, xin nhan")
+    note TEXT,
+
+    -- Thoi diem nhan vien bam nut "Dang ky nhan ca"
+    applied_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+
+    -- Thoi diem Manager duyet hoac tu choi don
+    reviewed_at TIMESTAMP WITH TIME ZONE,
+
+    -- ID cua Manager da duyet/tu choi don nay
+    reviewed_by UUID,
+
+    -- Ghi chu cua Manager khi duyet/tu choi (vi du: "Tu choi vi da du nguoi")
+    review_note TEXT,
+
+    -- Truong audit chuan
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    is_deleted BOOLEAN DEFAULT FALSE,
+
+    -- Rang buoc: don phai thuoc ve 1 ca ton tai
+    CONSTRAINT fk_applications_shift FOREIGN KEY (shift_id) REFERENCES shifts(id),
+
+    -- Rang buoc: 1 nhan vien chi duoc dang ky 1 lan cho moi ca
+    CONSTRAINT uq_application_user_shift UNIQUE (shift_id, user_id)
+);
+
+-- Index de truy van nhanh theo ca (Manager xem danh sach ung vien cua 1 ca)
+CREATE INDEX idx_applications_shift ON shift_applications(shift_id);
+
+-- Index de truy van nhanh theo nhan vien (xem lich su dang ky cua 1 nguoi)
+CREATE INDEX idx_applications_user ON shift_applications(user_id);
