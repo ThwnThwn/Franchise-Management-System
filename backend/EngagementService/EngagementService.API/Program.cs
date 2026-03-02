@@ -1,25 +1,23 @@
 ﻿
 
 using DotNetEnv;
+using EngagementService.API.Services.Identity;
 using EngagementService.API.Services.LoyaltyAccount;
 using EngagementService.API.Services.MemberShipTier;
+using EngagementService.API.Services.PointLog;
+using EngagementService.API.Services.Voucher;
 using EngagementService.Application.Abstraction;
 using EngagementService.Application.ClientInterface;
 using EngagementService.Application.DependencyInjection;
-using EngagementService.Application.Persistences;
 using EngagementService.Domain.Constants;
 using EngagementService.Infrastucture.AppDbContext;
 using EngagementService.Infrastucture.DependencyInjection;
 using EngagementService.Infrastucture.Interceptor;
-using EngagementService.Infrastucture.Persistences;
-using EngagementService.API.Services.Identity;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Npgsql.NameTranslation; // Thêm namespace này
 using QuestPDF.Infrastructure;
 using SharedKernel.Infrastructure.Kafka;
-using EngagementService.Infrastructure.Protos;
-using EngagementService.API.Services.PointLog;
 namespace EngagementService.API;
 
 public class Program
@@ -142,7 +140,7 @@ public class Program
         app.MapGrpcService<LoyaltyAccountGrpcService>();
         app.MapGrpcService<MembershipTierGrpcService>();
         app.MapGrpcService<PointLogGrpcService>();
-
+        app.MapGrpcService<VoucherGrpcService>();
         using (var scope = app.Services.CreateScope())
         {
             var services = scope.ServiceProvider;
