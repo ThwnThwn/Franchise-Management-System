@@ -13,4 +13,19 @@ public class SaveShiftRuleRequest
     public bool AllowShiftSwap { get; set; }
     public int MinHoursBetweenShifts { get; set; }
     public int MaxHoursPerWeek { get; set; }
+
+    /// <summary>
+    /// Thời gian châm chước khi chấm công trễ tính bằng phút
+    /// </summary>
+    public int GracePeriodMinutes { get; set; }
+
+    /// <summary>
+    /// Ngưỡng tính OT theo ngày tính bằng giờ
+    /// </summary>
+    public int DailyOtThresholdHours { get; set; }
+
+    /// <summary>
+    /// Ngưỡng tính OT theo tuần tính bằng giờ
+    /// </summary>
+    public int WeeklyOtThresholdHours { get; set; }
 }

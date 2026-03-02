@@ -163,6 +163,11 @@ CREATE TABLE IF NOT EXISTS shift_assignments (
     
     -- Lưu lại wage tại thời điểm gán (snapshot)
     hourly_wage DECIMAL(10, 2),
+
+    is_overridden BOOLEAN DEFAULT FALSE,
+    override_reason TEXT,
+    overridden_by UUID,
+
     
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -191,6 +196,11 @@ CREATE TABLE IF NOT EXISTS shift_rules (
     -- Các rule mở rộng khác
     min_hours_between_shifts INT DEFAULT 8,   -- Nghỉ tối thiểu 8h giữa 2 ca
     max_hours_per_week INT DEFAULT 48,        -- Tối đa giờ làm/tuần
+
+    grace_period_minutes INT DEFAULT 5,
+    daily_ot_threshold_hours INT DEFAULT 8,
+    weekly_ot_threshold_hours INT DEFAULT 40,
+
     
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -256,11 +266,12 @@ CREATE TABLE IF NOT EXISTS time_logs (
     -- Check-out
     check_out_at TIMESTAMP WITH TIME ZONE,
     check_out_image_url VARCHAR(500),
+    -- Số phút làm việc thường và tăng ca (Overtime)
+    regular_minutes INT DEFAULT 0,
+    daily_ot_minutes INT DEFAULT 0,
+    weekly_ot_minutes INT DEFAULT 0,
     check_out_lat DECIMAL(10,8),
     check_out_long DECIMAL(11,8),
-    
-    -- Result
-    total_work_minutes INT DEFAULT 0,
     
     -- 0: Processing, 1: Valid, 2: Invalid
     status INT DEFAULT 0,

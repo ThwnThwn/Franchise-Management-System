@@ -2,14 +2,16 @@
 using FranchiseService.Application.Features.Shifts.DTOs;
 using FranchiseService.Application.Persistences.Repositories;
 using FranchiseService.Application.Repositories;
+using FranchiseService.Application.Services;
 using FranchiseService.Domain.Entities;
 using MediatR;
 
 namespace FranchiseService.Application.Features.Shifts.Queries.GetAvailableStaffs
 {
-    // Handler lay danh sach nhan vien kha dung cho mot ca lam viec
-    // Moi nhan vien duoc kem theo trang thai validation (trung lich, nghi ngoi, gioi han gio)
-    // De FE hien canh bao truoc khi Manager chon gan
+    /// <summary>
+    /// Lấy danh sách nhân viên khả dụng cho ca làm việc.
+    /// Mỗi nhân viên kèm trạng thái validation để FE hiện cảnh báo.
+    /// </summary>
     public class GetAvailableStaffsHandler : IRequestHandler<GetAvailableStaffsQuery, List<StaffAssignmentCandidateDto>>
     {
         private readonly IShiftRepository _shiftRepository;
@@ -18,6 +20,7 @@ namespace FranchiseService.Application.Features.Shifts.Queries.GetAvailableStaff
         private readonly IGenericRepository<ShiftRule> _ruleRepo;
         private readonly IGenericRepository<StaffAvailability> _availabilityRepo;
         private readonly IIdentityServiceClient _identityClient;
+        private readonly IShiftValidationService _validationService;
 
         public GetAvailableStaffsHandler(
             IShiftRepository shiftRepository,
@@ -25,7 +28,8 @@ namespace FranchiseService.Application.Features.Shifts.Queries.GetAvailableStaff
             IGenericRepository<ShiftAssignment> assignmentRepo,
             IGenericRepository<ShiftRule> ruleRepo,
             IGenericRepository<StaffAvailability> availabilityRepo,
-            IIdentityServiceClient identityClient)
+            IIdentityServiceClient identityClient,
+            IShiftValidationService validationService)
         {
             _shiftRepository = shiftRepository;
             _shiftGenericRepo = shiftGenericRepo;
@@ -33,6 +37,7 @@ namespace FranchiseService.Application.Features.Shifts.Queries.GetAvailableStaff
             _ruleRepo = ruleRepo;
             _availabilityRepo = availabilityRepo;
             _identityClient = identityClient;
+            _validationService = validationService;
         }
 
         public async Task<List<StaffAssignmentCandidateDto>> Handle(
@@ -83,31 +88,28 @@ namespace FranchiseService.Application.Features.Shifts.Queries.GetAvailableStaff
                 bool isAvailable = true;
                 string? note = null;
 
-                // A. Check Availability
+                // Kiểm tra lịch khả dụng cá nhân của nhân viên
                 if (availabilityMap.TryGetValue(user.Id, out var userAvails))
                 {
-                    var overlapping = userAvails.Where(a => IsOverlap(shift.StartTime, shift.EndTime, a.StartTime, a.EndTime)).ToList();
+                    var overlapping = userAvails.Where(a => IShiftValidationService.IsOverlap(
+                        shift.StartTime, shift.EndTime, a.StartTime, a.EndTime)).ToList();
                     var busyRule = overlapping.FirstOrDefault(a => !a.IsAvailable);
                     if (busyRule != null) { isAvailable = false; note = busyRule.Note; }
                     else if (overlapping.Any()) { note = overlapping.First()?.Note; }
                 }
 
-                // B. Check Overlap & Rest Time & Weekly Hours
+                // Validate trùng giờ, nghỉ tối thiểu, giới hạn giờ bằng Service
                 var userAssignments = assignmentMap.GetValueOrDefault(user.Id) ?? [];
+                var candidateResult = _validationService.ValidateCandidate(
+                    shift, userAssignments, minHoursBreak, maxHoursPerWeek);
 
-                bool isConflict = userAssignments.Any(a => a.Shift.ShiftDate == shift.ShiftDate && a.ShiftId != shift.Id
-                                    && IsOverlap(shift.StartTime, shift.EndTime, a.Shift.StartTime, a.Shift.EndTime));
+                bool isConflict = candidateResult.IsConflict;
+                validation.IsRestTimeInvalid = candidateResult.IsRestTimeInvalid;
+                validation.RestHours = candidateResult.RestHours;
+                validation.IsOverLimit = candidateResult.IsOverLimit;
+                validation.WeeklyHours = candidateResult.WeeklyHours;
 
-                var restResult = CalculateMinRestHours(shift, userAssignments.Where(a => a.ShiftId != shift.Id).ToList());
-                validation.IsRestTimeInvalid = restResult.minGap < minHoursBreak;
-                validation.RestHours = restResult.minGap;
-
-                double weeklyHours = CalculateWeeklyHours(shift, userAssignments);
-                double newShiftHours = CalculateNetHours(shift.StartTime, shift.EndTime, shift.BreakDurationMinutes);
-                validation.IsOverLimit = (weeklyHours + newShiftHours) > maxHoursPerWeek;
-                validation.WeeklyHours = weeklyHours;
-
-                // C. Check Shuttle (2 đầu)
+                // Kiểm tra quyền Shuttle giữa 2 cửa hàng
                 if (!isInternal)
                 {
                     var homeStoreRule = allRules.FirstOrDefault(r => r.StoreId == user.HomeStoreId) ?? globalRule;
@@ -115,7 +117,7 @@ namespace FranchiseService.Application.Features.Shifts.Queries.GetAvailableStaff
                     validation.IsShuttleInvalid = !currentStoreAllowsIn || !homeStoreAllowsOut;
                 }
 
-                // D. Lọc kết quả
+                // Lọc kết quả: nhân viên nội bộ luôn hiện, nhân viên ngoài chỉ hiện khi hợp lệ
                 bool isValidGlobal = isAvailable && !isConflict && !validation.IsRestTimeInvalid && !validation.IsOverLimit && !validation.IsShuttleInvalid;
 
                 if (isInternal || isValidGlobal)
@@ -137,89 +139,6 @@ namespace FranchiseService.Application.Features.Shifts.Queries.GetAvailableStaff
             }
 
             return result;
-        }
-
-        // === PRIVATE METHODS ===
-
-        // Kiem tra 2 khoang thoi gian co trung nhau khong
-        // Ho tro ca qua dem (StartTime > EndTime)
-        private static bool IsOverlap(TimeOnly s1, TimeOnly e1, TimeOnly s2, TimeOnly e2)
-        {
-            int start1 = s1.Hour * 60 + s1.Minute;
-            int end1 = e1.Hour * 60 + e1.Minute;
-            if (end1 <= start1) end1 += 1440;
-
-            int start2 = s2.Hour * 60 + s2.Minute;
-            int end2 = e2.Hour * 60 + e2.Minute;
-            if (end2 <= start2) end2 += 1440;
-
-            return start1 < end2 && end1 > start2;
-        }
-
-        // Tinh khoang nghi nho nhat giua ca moi va cac ca hien tai
-        // Tra ve khoang nghi nho nhat (tinh bang gio)
-        private static (double minGap, bool hasNearby) CalculateMinRestHours(
-            Shift newShift, List<ShiftAssignment> existingAssignments)
-        {
-            if (!existingAssignments.Any())
-                return (double.MaxValue, false);
-
-            var newStart = newShift.ShiftDate.ToDateTime(newShift.StartTime);
-            var newEnd = newShift.ShiftDate.ToDateTime(newShift.EndTime);
-            if (newShift.EndTime <= newShift.StartTime)
-                newEnd = newEnd.AddDays(1);
-
-            double minGap = double.MaxValue;
-
-            foreach (var existing in existingAssignments)
-            {
-                var existStart = existing.Shift.ShiftDate.ToDateTime(existing.Shift.StartTime);
-                var existEnd = existing.Shift.ShiftDate.ToDateTime(existing.Shift.EndTime);
-                if (existing.Shift.EndTime <= existing.Shift.StartTime)
-                    existEnd = existEnd.AddDays(1);
-
-                double gap;
-                if (newStart >= existEnd)
-                    gap = (newStart - existEnd).TotalHours;
-                else if (existStart >= newEnd)
-                    gap = (existStart - newEnd).TotalHours;
-                else
-                    continue; // Overlap -> khong can tinh gap
-
-                if (gap < minGap)
-                    minGap = gap;
-            }
-
-            return (minGap, true);
-        }
-
-        // Tinh tong gio lam trong tuan cua nhan vien (tru break)
-        // Tuan tinh tu Thu Hai -> Chu Nhat
-        // REFACTORED: Use In-Memory List
-        private static double CalculateWeeklyHours(Shift shift, List<ShiftAssignment> weeklyAssignments)
-        {
-            // Loc bo assignment cua chinh ca hien tai (tranh dem trung)
-            var filteredAssignments = weeklyAssignments
-                .Where(a => a.ShiftId != shift.Id);
-
-            return filteredAssignments.Sum(a =>
-                CalculateNetHours(a.Shift.StartTime, a.Shift.EndTime, a.Shift.BreakDurationMinutes));
-        }
-
-        // Tinh so gio lam thuc te (da tru thoi gian nghi)
-        private static double CalculateNetHours(TimeOnly start, TimeOnly end, int breakMinutes)
-        {
-            double grossHours;
-            if (end <= start)
-            {
-                grossHours = (1440 - (start.Hour * 60 + start.Minute) + (end.Hour * 60 + end.Minute)) / 60.0;
-            }
-            else
-            {
-                grossHours = (end.Hour * 60 + end.Minute - start.Hour * 60 - start.Minute) / 60.0;
-            }
-
-            return Math.Max(0, grossHours - (breakMinutes / 60.0));
         }
     }
 }

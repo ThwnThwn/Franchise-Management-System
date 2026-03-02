@@ -187,6 +187,13 @@ public partial class FranchiseDbContext : DbContext, IFranchiseDbContext
                 .HasColumnName("updated_at");
             entity.Property(e => e.UserId).HasColumnName("user_id");
 
+            // Theo dõi ghi đè cảnh báo validation
+            entity.Property(e => e.IsOverridden)
+                .HasDefaultValue(false)
+                .HasColumnName("is_overridden");
+            entity.Property(e => e.OverrideReason).HasColumnName("override_reason");
+            entity.Property(e => e.OverriddenBy).HasColumnName("overridden_by");
+
             entity.HasOne(d => d.Shift).WithMany(p => p.ShiftAssignments)
                 .HasForeignKey(d => d.ShiftId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -223,6 +230,17 @@ public partial class FranchiseDbContext : DbContext, IFranchiseDbContext
             entity.Property(e => e.UpdatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("updated_at");
+
+            // Quy tắc OT và châm chước
+            entity.Property(e => e.GracePeriodMinutes)
+                .HasDefaultValue(5)
+                .HasColumnName("grace_period_minutes");
+            entity.Property(e => e.DailyOtThresholdHours)
+                .HasDefaultValue(8)
+                .HasColumnName("daily_ot_threshold_hours");
+            entity.Property(e => e.WeeklyOtThresholdHours)
+                .HasDefaultValue(40)
+                .HasColumnName("weekly_ot_threshold_hours");
         });
 
         modelBuilder.Entity<ShiftTemplate>(entity =>
@@ -430,9 +448,17 @@ public partial class FranchiseDbContext : DbContext, IFranchiseDbContext
             entity.Property(e => e.Status)
                 .HasDefaultValue(0)
                 .HasColumnName("status");
-            entity.Property(e => e.TotalWorkMinutes)
-                .HasDefaultValue(0)
-                .HasColumnName("total_work_minutes");
+            entity.Property(e => e.RegularMinutes)
+                .HasColumnName("regular_minutes")
+                .HasDefaultValue(0);
+
+            entity.Property(e => e.DailyOtMinutes)
+                .HasColumnName("daily_ot_minutes")
+                .HasDefaultValue(0);
+
+            entity.Property(e => e.WeeklyOtMinutes)
+                .HasColumnName("weekly_ot_minutes")
+                .HasDefaultValue(0);
             entity.Property(e => e.UpdatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("updated_at");

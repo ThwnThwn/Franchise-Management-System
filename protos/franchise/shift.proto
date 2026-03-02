@@ -210,11 +210,21 @@ message PublishShiftResponse {
 
 message AssignStaffRequest {
   string shift_id = 1;
-  repeated string user_ids = 2; // List of User IDs to sync
+  repeated string user_ids = 2;
+  bool force_override = 3;
+  string override_reason = 4;
+  string overridden_by = 5;
 }
 
 message AssignStaffResponse {
   bool success = 1;
+  repeated ValidationWarningDto warnings = 2;
+}
+
+message ValidationWarningDto {
+  string code = 1;
+  string message = 2;
+  string severity = 3;
 }
 
 // --- GET AVAILABLE STAFFS (CANDIDATES) ---
@@ -304,13 +314,15 @@ message TimeLogDetailDto {
   optional string check_out_image_url = 8;
   optional double check_out_lat = 9;
   optional double check_out_long = 10;
-  optional int32 total_work_minutes = 11;
-  int32 status = 12;
-  optional string manager_note = 13;
-  string created_at = 14;
-  string updated_at = 15;
-  TimeLogStaffInfo staff = 16;
-  TimeLogShiftInfo shift = 17;
+  optional int32 regular_minutes = 11;
+  optional int32 daily_ot_minutes = 12;
+  optional int32 weekly_ot_minutes = 13;
+  int32 status = 14;
+  optional string manager_note = 15;
+  string created_at = 16;
+  string updated_at = 17;
+  TimeLogStaffInfo staff = 18;
+  TimeLogShiftInfo shift = 19;
 }
 
 message TimeLogStaffInfo {

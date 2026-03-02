@@ -7,6 +7,7 @@ using FranchiseService.Infrastructure.Extentions;
 using MediatR;
 
 using FranchiseService.API.BackgroundJobs;
+using FranchiseService.Application.Services;
 
 namespace FranchiseService.API
 {
@@ -81,6 +82,11 @@ namespace FranchiseService.API
             builder.Services.AddScoped<Application.ClientInterfaces.IIdentityServiceClient,
                 Infrastructure.Clients.Identity.IdentityServiceClient>();
 
+            builder.Services.AddScoped<IShiftValidationService, ShiftValidationService>();
+            builder.Services.AddScoped<IShiftRuleService, ShiftRuleService>();
+            builder.Services.AddScoped<IOvertimeCalculationService, OvertimeCalculationService>();
+
+
             // Rest API Controllers
             builder.Services.AddControllers();
 
@@ -117,6 +123,7 @@ namespace FranchiseService.API
             app.MapGrpcService<Services.ShiftRuleGrpcService>();
             app.MapGrpcService<Services.ShiftTemplateGrpcService>();
             app.MapGrpcReflectionService();
+
 
             // Root Endpoint (Health check nhẹ)
             app.MapGet("/", () => $"Franchise Service is running on port {servicePort}. Environment: {builder.Environment.EnvironmentName}");
