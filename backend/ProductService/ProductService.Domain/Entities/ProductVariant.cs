@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using ProductService.Domain.Commons;
+﻿using ProductService.Domain.Commons;
 
 namespace ProductService.Domain.Entities;
 

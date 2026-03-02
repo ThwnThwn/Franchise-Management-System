@@ -33,7 +33,14 @@ public class CategoryGrpcService : CategoryGrpc.CategoryGrpcBase
         }
 
         var reply = new GetCategoriesReply();
-        reply.Categories.AddRange(_mapper.Map<List<Category>>(result.Value.Categories));
+        reply.Categories.AddRange(result.Value.Categories.Select(c => new Category
+        {
+            Id = c.Id.ToString(),
+            Name = c.Name,
+            Description = c.Description ?? "",
+            ImageUrl = c.ImageUrl ?? "",
+            IsActive = c.IsActive,
+        }));
 
         return reply;
     }
@@ -59,7 +66,6 @@ public class CategoryGrpcService : CategoryGrpc.CategoryGrpcBase
             IsDeleted = result.Value.IsDeleted
         };
     }
-
 
     public override async Task<UpdateCategoryReply> UpdateCategory(
     UpdateCategoryRequest request,
@@ -172,5 +178,4 @@ public class CategoryGrpcService : CategoryGrpc.CategoryGrpcBase
             }
         };
     }
-
 }

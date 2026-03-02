@@ -162,7 +162,7 @@ public class ProductRepository : GenericRepository<Product>, IProductRepository
             .ToListAsync();
     }
 
-    public async Task UpdateWithVariantsAsync(Product updatedProduct)
+    public async Task<Product> UpdateWithVariantsOnlyAsync(Product updatedProduct)
     {
         // 1. Fetch: Lấy dữ liệu kèm theo Variants hiện tại
         var existingProduct = await _dbContext.Products
@@ -220,7 +220,12 @@ public class ProductRepository : GenericRepository<Product>, IProductRepository
             }
         }
 
-        // 4. Save: EF Core sẽ tự động tính toán Diff và chỉ bắn câu lệnh Update/Delete cần thiết
+        return existingProduct;
+    }
+
+    public async Task UpdateWithVariantsAsync(Product updatedProduct)
+    {
+        await UpdateWithVariantsOnlyAsync(updatedProduct);
         await _dbContext.SaveChangesAsync();
     }
 }
