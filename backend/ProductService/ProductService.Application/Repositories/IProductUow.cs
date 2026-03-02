@@ -1,7 +1,16 @@
-﻿namespace ProductService.Application.Interfaces;
+﻿namespace ProductService.Application.Repositories;
+
+public interface IIntegrationTransaction : IDisposable
+{
+    Task CommitAsync(CancellationToken ct = default);
+
+    Task RollbackAsync(CancellationToken ct = default);
+}
 
 public interface IProductUow
 {
+    IIntegrationTransaction? IntegrationTransaction { get; }
+
     /// <summary>
     /// Mở Transaction tích hợp CAP Outbox.
     /// </summary>
