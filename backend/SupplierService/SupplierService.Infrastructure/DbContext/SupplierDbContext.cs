@@ -29,6 +29,8 @@ public partial class SupplierDbContext : Microsoft.EntityFrameworkCore.DbContext
 
     public virtual DbSet<PurchaseOrderItem> PurchaseOrderItems { get; set; }
 
+    public virtual DbSet<SupplierPayment> SupplierPayments { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         optionsBuilder.AddInterceptors(_updateInterceptor);
@@ -168,6 +170,46 @@ public partial class SupplierDbContext : Microsoft.EntityFrameworkCore.DbContext
                 .HasForeignKey(d => d.PurchaseOrderId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("fk_purchase_order_items_po");
+        });
+
+        // ── SupplierPayment ───────────────────────────────────────────────────
+        modelBuilder.Entity<SupplierPayment>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("supplier_payments_pkey");
+            entity.ToTable("supplier_payments");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasColumnName("id");
+            entity.Property(e => e.PurchaseOrderId).HasColumnName("purchase_order_id");
+            entity.Property(e => e.Code).HasMaxLength(50).HasColumnName("code");
+            entity.Property(e => e.Amount).HasPrecision(18, 2).HasColumnName("amount");
+            entity.Property(e => e.Method).HasColumnName("method");
+            entity.Property(e => e.Status).HasColumnName("status");
+            entity.Property(e => e.Provider).HasMaxLength(50).HasColumnName("provider");
+            entity.Property(e => e.ProviderTxnId).HasMaxLength(100).HasColumnName("provider_txn_id");
+            entity.Property(e => e.ProviderPayload).HasColumnName("provider_payload");
+            entity.Property(e => e.Notes).HasColumnName("notes");
+            entity.Property(e => e.PaidAt).HasColumnName("paid_at");
+            entity.Property(e => e.IsDeleted).HasDefaultValue(false).HasColumnName("is_deleted");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_at")
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("updated_at");
+
+            entity.HasIndex(e => e.Code)
+                .IsUnique()
+                .HasFilter("is_deleted = FALSE")
+                .HasDatabaseName("ux_supplier_payments_code");
+
+            entity.HasOne(d => d.PurchaseOrder)
+                .WithMany(po => po.Payments)
+                .HasForeignKey(d => d.PurchaseOrderId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("fk_supplier_payments_po");
         });
 
         // ── Global Query Filter: soft-delete (giống SalesService) ─────────────

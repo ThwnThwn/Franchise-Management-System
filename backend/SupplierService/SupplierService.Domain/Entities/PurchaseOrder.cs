@@ -26,4 +26,6 @@ public class PurchaseOrder : BaseEntity
 
     public virtual Supplier Supplier { get; set; } = null!;
     public virtual ICollection<PurchaseOrderItem> Items { get; set; } = new List<PurchaseOrderItem>();
+    public virtual ICollection<SupplierPayment> Payments { get; set; } = new List<SupplierPayment>();
 }
+
