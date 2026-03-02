@@ -62,7 +62,7 @@ CREATE INDEX idx_order_items_order ON order_items(order_id);
 -- 3. Payments
 CREATE TABLE IF NOT EXISTS payments (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    order_id UUID NOT NULL,
+    order_id UUID ,
     CONSTRAINT fk_payments_order FOREIGN KEY (order_id) REFERENCES orders(id),
     code VARCHAR(50) NOT NULL, 
     amount DECIMAL(12,3) NOT NULL,
@@ -75,6 +75,10 @@ CREATE TABLE IF NOT EXISTS payments (
     provider_txn_id VARCHAR(100),      
     provider_payload JSONB,           
     paid_at TIMESTAMP WITH TIME ZONE,
+
+    reference_id UUID,
+    reference_type INT,
+
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     is_deleted BOOLEAN DEFAULT FALSE
@@ -208,11 +212,10 @@ CREATE TABLE IF NOT EXISTS refund_tickets (
     rejection_reason VARCHAR(500),
     rejection_notes VARCHAR(500),
 
-    wallet_id UUID NOT NULL,
+    wallet_id UUID ,
     user_id UUID NOT NULL,
-    order_id UUID,
     transaction_id UUID,
-    original_transaction_id UUID NOT NULL,
+    original_transaction_id UUID ,
 
     status INT NOT NULL,
 
@@ -263,3 +266,47 @@ ON refund_tickets(wallet_id);
 
 CREATE INDEX IF NOT EXISTS idx_refund_tickets_status
 ON refund_tickets(status);
+
+
+CREATE TABLE IF NOT EXISTS wallet_events (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+
+    wallet_id UUID NOT NULL,
+    user_id UUID NOT NULL,
+    wallet_transaction_id UUID,
+
+    event_type INT NOT NULL,
+    amount NUMERIC(18,2) NOT NULL,
+
+    status INT NOT NULL,
+
+    processed_by_admin_id UUID,
+    admin_note VARCHAR(500),
+
+    processed_at TIMESTAMP WITH TIME ZONE,
+
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
+
+    CONSTRAINT fk_wallet_events_wallet
+        FOREIGN KEY (wallet_id) REFERENCES wallets(id),
+
+    CONSTRAINT fk_wallet_events_wallet_transaction
+        FOREIGN KEY (wallet_transaction_id) REFERENCES wallet_transactions(id)
+);
+CREATE INDEX IF NOT EXISTS idx_wallet_events_wallet
+ON wallet_events(wallet_id, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_wallet_events_user
+ON wallet_events(user_id);
+
+CREATE INDEX IF NOT EXISTS idx_wallet_events_status
+ON wallet_events(status);
+
+CREATE INDEX IF NOT EXISTS idx_wallet_events_type
+ON wallet_events(event_type);
+
+CREATE INDEX IF NOT EXISTS idx_wallet_events_transaction
+ON wallet_events(wallet_transaction_id);

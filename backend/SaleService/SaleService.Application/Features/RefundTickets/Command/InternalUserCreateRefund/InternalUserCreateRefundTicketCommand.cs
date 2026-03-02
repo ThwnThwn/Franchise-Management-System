@@ -35,8 +35,6 @@ public sealed record InternalUserCreateRefundTicketCommand(
 
         public Guid WalletId { get; set; }
 
-        public Guid? OrderId { get; set; }
-
         public Guid? TransactionId { get; set; }
 
         public Guid OriginalTransactionId { get; set; }

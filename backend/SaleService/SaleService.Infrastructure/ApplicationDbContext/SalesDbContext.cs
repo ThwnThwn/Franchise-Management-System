@@ -37,6 +37,7 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
 
     public virtual DbSet<CartItem> CartItems { get; set; }
     public virtual DbSet<Wallet> Wallets { get; set; }
+    public virtual DbSet<WalletEvent> WalletEvents { get; set; }
     public virtual DbSet<WalletTransaction> WalletTransactions { get; set; }
     public virtual DbSet<RefundTicket> RefundTickets { get; set; }
     public DbSet<T> Set<T>() where T : class, IEntity => base.Set<T>();
@@ -244,6 +245,12 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
                 .HasForeignKey(d => d.OrderId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_payments_order");
+
+            entity.Property(e => e.ReferenceId)
+            .HasColumnName("reference_id");
+
+            entity.Property(e => e.ReferenceType)
+                .HasColumnName("reference_type");
         });
 
         modelBuilder.Entity<PaymentEvent>(entity =>
@@ -349,6 +356,69 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
                 .HasColumnName("is_deleted");
         });
 
+        modelBuilder.Entity<WalletEvent>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("wallet_events_pkey");
+
+            entity.ToTable("wallet_events");
+
+            entity.HasIndex(e => e.WalletId, "idx_wallet_events_wallet");
+            entity.HasIndex(e => e.UserId, "idx_wallet_events_user");
+            entity.HasIndex(e => e.Status, "idx_wallet_events_status");
+            entity.HasIndex(e => e.EventType, "idx_wallet_events_type");
+            entity.HasIndex(e => e.WalletTransactionId, "idx_wallet_events_transaction");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasColumnName("id");
+
+            entity.Property(e => e.WalletId)
+                .HasColumnName("wallet_id");
+
+            entity.Property(e => e.UserId)
+                .HasColumnName("user_id");
+
+            entity.Property(e => e.WalletTransactionId)
+                .HasColumnName("wallet_transaction_id");
+
+            entity.Property(e => e.EventType)
+                .HasColumnName("event_type");
+
+            entity.Property(e => e.Amount)
+                .HasPrecision(18, 2)
+                .HasColumnName("amount");
+
+            entity.Property(e => e.Status)
+                .HasColumnName("status");
+
+            entity.Property(e => e.ProcessedByAdminId)
+                .HasColumnName("processed_by_admin_id");
+
+            entity.Property(e => e.AdminNote)
+                .HasMaxLength(500)
+                .HasColumnName("admin_note");
+
+            entity.Property(e => e.ProcessedAt)
+                .HasColumnName("processed_at");
+
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_at");
+
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("updated_at");
+
+            entity.HasOne<Wallet>()
+                .WithMany()
+                .HasForeignKey(e => e.WalletId)
+                .HasConstraintName("fk_wallet_events_wallet");
+
+            entity.HasOne<WalletTransaction>()
+                .WithMany()
+                .HasForeignKey(e => e.WalletTransactionId)
+                .HasConstraintName("fk_wallet_events_wallet_transaction");
+        });
         modelBuilder.Entity<RefundTicket>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("refund_tickets_pkey");
@@ -385,7 +455,6 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
 
             entity.Property(e => e.WalletId).HasColumnName("wallet_id");
             entity.Property(e => e.UserId).HasColumnName("user_id");
-            entity.Property(e => e.OrderId).HasColumnName("order_id");
             entity.Property(e => e.TransactionId).HasColumnName("transaction_id");
             entity.Property(e => e.OriginalTransactionId).HasColumnName("original_transaction_id");
 

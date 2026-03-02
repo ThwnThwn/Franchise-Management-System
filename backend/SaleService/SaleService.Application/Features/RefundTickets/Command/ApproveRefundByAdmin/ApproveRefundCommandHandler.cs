@@ -39,13 +39,12 @@ public sealed class ApproveRefundCommandHandler
         //var userRole = await _identityServiceClient.GetUserByIdAsync(command.InternalUserId);
         //var role = userRole?.Role?.RoleName?.Trim().ToLower();
 
-        //var isInternalUser = role == "administrator"
-        //                || role == "manager"
+        //var isInternalUser = role == "manager"
         //                || role == "staff";
 
         //if (!isInternalUser)
         //{
-        //    return Result.Forbidden("Only Admin or Manager can approve refund requests");
+        //    return Result.Forbidden("Only Staff or Manager can approve refund requests");
         //}
 
         // ===== STEP 2: LOAD REFUND TICKET =====
@@ -73,7 +72,7 @@ public sealed class ApproveRefundCommandHandler
 
         // ===== STEP 4: VALIDATE WALLET EXISTS & ACTIVE =====
         var wallet = await _walletRepository.GetByIdAsync(
-            refundTicket.WalletId,
+            refundTicket.WalletId.Value,
             cancellationToken);
 
         if (wallet == null)
@@ -91,7 +90,7 @@ public sealed class ApproveRefundCommandHandler
 
         // ===== STEP 5: VALIDATE ORIGINAL TRANSACTION =====
         var originalTransaction = await _transactionRepository.GetByIdAsync(
-            refundTicket.OriginalTransactionId,
+            refundTicket.OriginalTransactionId.Value,
             cancellationToken);
 
         if (originalTransaction == null)

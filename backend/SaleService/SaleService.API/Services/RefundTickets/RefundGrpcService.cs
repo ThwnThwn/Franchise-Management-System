@@ -40,10 +40,6 @@ public sealed class RefundGrpcService : RefundTicketGrpcService.RefundTicketGrpc
                 StatusCode.InvalidArgument,
                 "Invalid customer_id format"));
 
-        if (!Guid.TryParse(request.OrderId, out var orderId))
-            throw new RpcException(new Status(
-                StatusCode.InvalidArgument,
-                "Invalid order_id format"));
 
         if (!decimal.TryParse(request.Amount, out var amount) || amount <= 0)
             throw new RpcException(new Status(
@@ -56,7 +52,6 @@ public sealed class RefundGrpcService : RefundTicketGrpcService.RefundTicketGrpc
         };
         var command = new CustomerCreateRefundTicketCommand(
         customerId,
-        orderId,
         commandRequest);
 
         var result = await _mediator.Send(command, context.CancellationToken);
@@ -93,7 +88,6 @@ public sealed class RefundGrpcService : RefundTicketGrpcService.RefundTicketGrpc
             TicketCode = data.TicketCode,
             Amount = data.Amount.ToString("F2"),
             Reason = data.Reason ?? "",
-            OrderId = data.OrderId.ToString(),
             Status = MapDomainStatusToGrpc(data.Status),
             CreatedAt = data.CreatedAt.ToString("O")
         };
@@ -178,7 +172,6 @@ public sealed class RefundGrpcService : RefundTicketGrpcService.RefundTicketGrpc
             Amount = data.Amount.ToString("F2"),
             Reason = data.Reason ?? "",
             WalletId = data.WalletId.ToString(),
-            OrderId = data.OrderId?.ToString() ?? "",
             TransactionId = data.TransactionId?.ToString() ?? "",
             OriginalTransactionId = data.OriginalTransactionId.ToString(),
             Status = MapDomainStatusToGrpc(data.Status),
@@ -433,7 +426,6 @@ public sealed class RefundGrpcService : RefundTicketGrpcService.RefundTicketGrpc
             RejectionReason = data.Reason ?? "",
             WalletId = data.WalletId.ToString(),
             UserId = data.UserId.ToString(),
-            OrderId = data.OrderId?.ToString() ?? "",
             TransactionId = data.TransactionId?.ToString() ?? "",
             OriginalTransactionId = data.OriginalTransactionId.ToString() ?? "",
             Status = MapDomainStatusToGrpc(data.Status),
@@ -638,7 +630,6 @@ public sealed class RefundGrpcService : RefundTicketGrpcService.RefundTicketGrpc
             Reason = refund.Reason ?? "",
             WalletId = refund.WalletId.ToString(),
             UserId = refund.UserId.ToString(),
-            OrderId = refund.OrderId?.ToString() ?? "",
             TransactionId = refund.TransactionId?.ToString() ?? "",
             OriginalTransactionId = refund.OriginalTransactionId?.ToString() ?? "",
             Status = MapDomainStatusToGrpc(refund.Status),

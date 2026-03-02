@@ -12,9 +12,9 @@ namespace SalesService.Application.Features.RefundTickets.Command.CustomerCreate
                 .NotEmpty()
                 .WithMessage("CustomerId is required.");
 
-            RuleFor(x => x.OrderId)
-                .NotEmpty()
-                .WithMessage("OrderId is required.");
+            //RuleFor(x => x.OrderId)
+            //    .NotEmpty()
+            //    .WithMessage("OrderId is required.");
 
             RuleFor(x => x.Request)
                 .NotNull()

@@ -11,6 +11,8 @@ service PaymentGrpc {
 
   // Lấy danh sách payment có phân trang
   rpc GetAllPayments (GetAllPaymentsRequest) returns (GetAllPaymentsReply);
+
+  
 }
 
 enum PaymentMethodType {
@@ -53,3 +55,4 @@ message GetAllPaymentsReply {
   int64 total_count = 4;
   int32 total_pages = 5;
 }
+

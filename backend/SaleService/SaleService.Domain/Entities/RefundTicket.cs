@@ -9,11 +9,10 @@ namespace SalesService.Domain.Entities
         public string TicketCode { get; set; } = null!;
         public decimal Amount { get; set; }
         public string? Reason { get; set; }
-        public Guid WalletId { get; set; }
+        public Guid? WalletId { get; set; }
         public Guid UserId { get; set; }
-        public Guid? OrderId { get; set; }
         public Guid? TransactionId { get; set; }
-        public Guid OriginalTransactionId { get; set; }
+        public Guid? OriginalTransactionId { get; set; }
         public RefundTicketStatus Status { get; set; }
         public Guid? ProcessedBy { get; set; }
         public string? RejectionReason { get; set; }

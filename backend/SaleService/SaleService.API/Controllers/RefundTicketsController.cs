@@ -45,7 +45,7 @@ public class RefundTicketsController : ControllerBase
             Reason = request.Reason
         };
 
-        var command = new CustomerCreateRefundTicketCommand(customerId, request.OrderId, commandRequest);
+        var command = new CustomerCreateRefundTicketCommand(customerId, commandRequest);
         var result = await _mediator.Send(command, cancellationToken);
 
         if (!result.IsSuccess)
@@ -57,7 +57,6 @@ public class RefundTicketsController : ControllerBase
             TicketCode = result.Value.TicketCode,
             Amount = result.Value.Amount,
             Reason = result.Value.Reason,
-            OrderId = result.Value.OrderId,
             Status = result.Value.Status,
             CreatedAt = result.Value.CreatedAt
         };
@@ -103,7 +102,6 @@ public class RefundTicketsController : ControllerBase
             Amount = result.Value.Amount,
             Reason = result.Value.Reason,
             WalletId = result.Value.WalletId,
-            OrderId = result.Value.OrderId,
             TransactionId = result.Value.TransactionId,
             OriginalTransactionId = result.Value.OriginalTransactionId,
             Status = result.Value.Status,
@@ -244,7 +242,6 @@ public class RefundTicketsController : ControllerBase
             RejectionReason = result.Value.Reason,
             WalletId = result.Value.WalletId,
             UserId = result.Value.UserId,
-            OrderId = result.Value.OrderId,
             TransactionId = result.Value.TransactionId,
             OriginalTransactionId = result.Value.OriginalTransactionId,
             Status = result.Value.Status,
@@ -355,7 +352,6 @@ public class RefundTicketsController : ControllerBase
             Reason = refund.Reason,
             WalletId = refund.WalletId,
             UserId = refund.UserId,
-            OrderId = refund.OrderId,
             TransactionId = refund.TransactionId,
             OriginalTransactionId = refund.OriginalTransactionId,
             Status = refund.Status,
@@ -369,7 +365,6 @@ public class RefundTicketsController : ControllerBase
 
 public record CustomerCreateRefundRequestDto
 {
-    public Guid OrderId { get; init; }
     public decimal Amount { get; init; }
     public string? Reason { get; init; }
 }
@@ -414,7 +409,6 @@ public record RefundTicketResponseDto
     public string TicketCode { get; init; } = string.Empty;
     public decimal Amount { get; init; }
     public string? Reason { get; init; }
-    public Guid OrderId { get; init; }
     public RefundTicketStatus Status { get; init; }
     public DateTimeOffset CreatedAt { get; init; }
 }
@@ -426,7 +420,6 @@ public record InternalRefundTicketResponseDto
     public decimal Amount { get; init; }
     public string? Reason { get; init; }
     public Guid WalletId { get; init; }
-    public Guid? OrderId { get; init; }
     public Guid? TransactionId { get; init; }
     public Guid OriginalTransactionId { get; init; }
     public RefundTicketStatus Status { get; init; }
@@ -480,7 +473,6 @@ public record RefundTicketDetailDto
     public string? RejectionReason { get; init; }
     public Guid WalletId { get; init; }
     public Guid UserId { get; init; }
-    public Guid? OrderId { get; init; }
     public Guid? TransactionId { get; init; }
     public Guid? OriginalTransactionId { get; init; }
     public RefundTicketStatus Status { get; init; }
@@ -499,7 +491,6 @@ public record RefundListItemDto
     public string? Reason { get; init; }
     public Guid WalletId { get; init; }
     public Guid UserId { get; init; }
-    public Guid? OrderId { get; init; }
     public Guid? TransactionId { get; init; }
     public Guid? OriginalTransactionId { get; init; }
     public RefundTicketStatus Status { get; init; }

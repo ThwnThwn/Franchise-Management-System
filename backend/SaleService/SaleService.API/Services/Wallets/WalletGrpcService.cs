@@ -6,7 +6,9 @@ using SalesService.Application.Features.Wallets.Command.AddBalance;
 using SalesService.Application.Features.Wallets.Command.Create;
 using SalesService.Application.Features.Wallets.Command.DeductBalance;
 using SalesService.Application.Features.Wallets.Commands.UpdateStatus;
+using SalesService.Application.Features.Wallets.Deposit;
 using SalesService.Application.Features.Wallets.Queries.GetByUserId;
+using SalesService.Application.Features.Wallets.Withdraw;
 using SalesService.Grpc;
 
 namespace SalesService.API.Services.Wallets;
@@ -373,6 +375,137 @@ public sealed class WalletGrpcService : WalletGrpc.WalletGrpcBase
             Status = MapDomainStatusToGrpc((Domain.Enums.WalletStatus)wallet.Status),
             CreatedAt = wallet.CreatedAt.ToString("O"),
             UpdatedAt = wallet.UpdatedAt.ToString("O")
+        };
+    }
+
+    // ===== DEPOSIT =====
+    public override async Task<DepositWalletResponse> DepositWallet(
+        DepositWalletRequest request,
+        ServerCallContext context)
+    {
+        if (!Guid.TryParse(request.UserId, out var userId))
+            throw new RpcException(new Status(
+                StatusCode.InvalidArgument,
+                "Invalid user_id format"));
+
+        var command = new DepositWalletCommand(
+            userId,
+            new DepositWalletReq
+            {
+                Amount = (decimal)request.Amount,
+                ReturnUrl = string.IsNullOrEmpty(request.ReturnUrl) ? null : request.ReturnUrl
+            });
+
+        var result = await _mediator.Send(command, context.CancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            if (result.Status == ResultStatus.Invalid)
+            {
+                var message = string.Join(" | ",
+                    result.ValidationErrors.Select(e =>
+                        $"{e.Identifier}: {e.ErrorMessage}"));
+
+                _logger.LogWarning("DepositWallet validation failed: {Message}", message);
+
+                throw new RpcException(new Status(StatusCode.InvalidArgument, message));
+            }
+
+            var errorMessage = string.Join(" | ", result.Errors);
+            _logger.LogError("DepositWallet business error: {Error}", errorMessage);
+
+            throw new RpcException(new Status(StatusCode.FailedPrecondition, errorMessage));
+        }
+
+        return new DepositWalletResponse
+        {
+            PaymentUrl = result.Value.PaymentUrl
+        };
+    }
+
+    // ===== DEPOSIT VNPAY RETURN =====
+    public override async Task<DepositVnPayReturnResponse> DepositVnPayReturn(
+        DepositVnPayReturnRequest request,
+        ServerCallContext context)
+    {
+        var command = new DepositVnPayReturnCommand(
+            request.QueryParams.ToDictionary(kv => kv.Key, kv => kv.Value));
+
+        var result = await _mediator.Send(command, context.CancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            var errorMessage = string.Join(" | ", result.Errors);
+            _logger.LogError("DepositVnPayReturn error: {Error}", errorMessage);
+
+            throw new RpcException(new Status(StatusCode.FailedPrecondition, errorMessage));
+        }
+
+        return new DepositVnPayReturnResponse
+        {
+            Success = result.Value.Success,
+            WalletTransactionId = result.Value.WalletTransactionId.ToString(),
+            Amount = (double)result.Value.Amount,
+            NewBalance = (double)result.Value.NewBalance
+        };
+    }
+
+    // ===== WITHDRAW =====
+    public override async Task<WithdrawWalletResponse> WithdrawWallet(
+        WithdrawWalletRequest request,
+        ServerCallContext context)
+    {
+        if (!Guid.TryParse(request.UserId, out var userId))
+            throw new RpcException(new Status(
+                StatusCode.InvalidArgument,
+                "Invalid user_id format"));
+
+
+        var command = new WithdrawWalletCommand(
+            userId,
+            new WithdrawWalletReq
+            {
+                Amount = (decimal)request.Amount,
+                Reason = request.Reason
+            });
+
+        var result = await _mediator.Send(command, context.CancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            if (result.Status == ResultStatus.Invalid)
+            {
+                var message = string.Join(" | ",
+                    result.ValidationErrors.Select(e =>
+                        $"{e.Identifier}: {e.ErrorMessage}"));
+
+                _logger.LogWarning("WithdrawWallet validation failed: {Message}", message);
+
+                throw new RpcException(new Status(StatusCode.InvalidArgument, message));
+            }
+
+            if (result.Status == ResultStatus.NotFound)
+                throw new RpcException(new Status(
+                    StatusCode.NotFound,
+                    result.Errors.FirstOrDefault() ?? "Not found"));
+
+            if (result.Status == ResultStatus.Forbidden)
+                throw new RpcException(new Status(
+                    StatusCode.PermissionDenied,
+                    result.Errors.FirstOrDefault() ?? "Forbidden"));
+
+            var errorMessage = string.Join(" | ", result.Errors);
+            _logger.LogError("WithdrawWallet business error: {Error}", errorMessage);
+
+            throw new RpcException(new Status(StatusCode.FailedPrecondition, errorMessage));
+        }
+
+        return new WithdrawWalletResponse
+        {
+            WithdrawTransactionId = result.Value.WithdrawTransactionId.ToString(),
+            Amount = (double)result.Value.Amount,
+            Message = result.Value.Message,
+            Status = result.Value.Status
         };
     }
 

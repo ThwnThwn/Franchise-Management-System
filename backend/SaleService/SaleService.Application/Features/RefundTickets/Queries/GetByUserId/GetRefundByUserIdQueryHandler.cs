@@ -45,10 +45,9 @@ public sealed class GetRefundByUserIdHandler
             Amount = ticket.Amount,
             RefundAmount= ticket.RefundAmount,
             Reason = ticket.Reason,
-            WalletId = ticket.WalletId,
-            OrderId = ticket.OrderId,
+            WalletId = ticket.WalletId.Value,
             TransactionId = ticket.TransactionId,
-            OriginalTransactionId = ticket.OriginalTransactionId,
+            OriginalTransactionId = ticket.OriginalTransactionId.Value,
             Status = ticket.Status,
             CreatedAt = ticket.CreatedAt,
             UpdatedAt = ticket.UpdatedAt

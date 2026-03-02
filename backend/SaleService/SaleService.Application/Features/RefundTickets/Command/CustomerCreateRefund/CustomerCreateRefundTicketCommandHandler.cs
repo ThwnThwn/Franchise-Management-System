@@ -28,7 +28,6 @@ public sealed class CustomerCreateRefundTicketCommandHandler
     {
         var request = command.Request;
 
-        // ===== STEP 1: VALIDATE AMOUNT =====
         if (request.Amount <= 0)
         {
             return Result.Invalid(new ValidationError(
@@ -36,101 +35,22 @@ public sealed class CustomerCreateRefundTicketCommandHandler
                 "Refund amount must be greater than zero"));
         }
 
-        // ===== STEP 2: FIND PAYMENT TRANSACTION =====
-        var originalTransaction = await _transactionRepository.GetByOrderIdSingleAsync(
-            command.OrderId,
-            cancellationToken);
-
-        if (originalTransaction == null)
-        {
-            return Result.NotFound("No payment transaction found for this order");
-        }
-
-        // ===== STEP 3: VALIDATE TRANSACTION TYPE =====
-        if (originalTransaction.TransactionType != TransactionType.Payment)
-        {
-            return Result.Invalid(new ValidationError(
-                "TransactionType",
-                "Only payment transactions can be refunded"));
-        }
-
-        // ===== STEP 4: VALIDATE TRANSACTION STATUS =====
-        if (originalTransaction.Status != TransactionStatus.Completed)
-        {
-            return Result.Invalid(new ValidationError(
-                "TransactionStatus",
-                $"Only completed transactions can be refunded. " +
-                $"Current status: {originalTransaction.Status}"));
-        }
-
-        // ===== STEP 5: VALIDATE OWNERSHIP =====
-        if (originalTransaction.UserId != command.CustomerId)
-        {
-            return Result.Forbidden("This order does not belong to you");
-        }
-
-        // ===== STEP 6: VALIDATE REFUND TIME LIMIT =====
-        var refundDeadline = originalTransaction.CreatedAt.AddDays(30);
-        if (DateTimeOffset.UtcNow > refundDeadline)
-        {
-            return Result.Invalid(new ValidationError(
-                "RefundDeadline",
-                $"Refund window has expired. " +
-                $"Deadline was {refundDeadline:yyyy-MM-dd}"));
-        }
-
-        // ===== STEP 7: CHECK PENDING REFUND =====
-        var hasPendingRefund = await _refundTicketRepository
-            .ExistingRefundWithPendingStatusAsync(
-                originalTransaction.Id,
-                cancellationToken);
-
-        if (hasPendingRefund)
-        {
-            return Result.Invalid(new ValidationError(
-                "PendingRefund",
-                "A refund request is already pending for this order. " +
-                "Please wait for it to be processed."));
-        }
-
-        // ===== STEP 8: VALIDATE REFUNDABLE AMOUNT =====
-        var originalAmount = Math.Abs(originalTransaction.Amount);
-
-        var totalRefunded = await _refundTicketRepository
-            .GetTotalRefundedAmountByTransactionIdAsync(
-                originalTransaction.Id,
-                cancellationToken);
-
-        var remainingRefundable = originalAmount - totalRefunded;
-
-        if (request.Amount > remainingRefundable)
-        {
-            return Result.Invalid(new ValidationError(
-                nameof(request.Amount),
-                $"Refund amount exceeds remaining refundable amount. " +
-                $"Original: {originalAmount:N2}, " +
-                $"Already refunded: {totalRefunded:N2}, " +
-                $"Remaining: {remainingRefundable:N2}"));
-        }
-
-        // ===== STEP 9: CREATE REFUND TICKET =====
         var refundTicket = new RefundTicket
         {
             Id = Guid.NewGuid(),
             TicketCode = GenerateTicketCode(),
             Amount = request.Amount,
-            RefundAmount = request.Amount, // Same as Amount initially
+            RefundAmount = request.Amount,
             Reason = request.Reason,
-            WalletId = originalTransaction.WalletId,
             UserId = command.CustomerId,
-            OrderId = command.OrderId,
-            OriginalTransactionId = originalTransaction.Id,
             Status = RefundTicketStatus.Pending,
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow
         };
 
-        // ===== STEP 10: SAVE TO DATABASE =====
+        Console.WriteLine("wallet: "+refundTicket.WalletId);
+        Console.WriteLine("or walllet: "+refundTicket.OriginalTransactionId);
+
         var refundTicketId = await _refundTicketRepository.AddAsync(
             refundTicket,
             cancellationToken);
@@ -140,14 +60,12 @@ public sealed class CustomerCreateRefundTicketCommandHandler
             return Result.Error("Failed to create refund request");
         }
 
-        // ===== STEP 11: RETURN RESPONSE =====
         var response = new CustomerCreateRefundTicketResponse
         {
             Id = refundTicket.Id,
             TicketCode = refundTicket.TicketCode,
             Amount = refundTicket.Amount,
             Reason = refundTicket.Reason,
-            OrderId = command.OrderId,
             Status = RefundTicketStatus.Pending, 
             CreatedAt = refundTicket.CreatedAt
         };

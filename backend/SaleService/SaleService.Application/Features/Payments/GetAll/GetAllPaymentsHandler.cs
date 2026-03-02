@@ -26,7 +26,7 @@ public sealed class GetAllPaymentsHandler
         var items = paged.Items.Select(p => new PaymentListItemDto
         {
             Id = p.Id,
-            OrderId = p.OrderId,
+            OrderId = p.OrderId.Value,
             Code = p.Code,
             Amount = p.Amount,
             Currency = p.Currency,

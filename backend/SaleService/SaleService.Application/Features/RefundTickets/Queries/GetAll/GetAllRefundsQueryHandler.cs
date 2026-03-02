@@ -47,12 +47,11 @@ public sealed class GetAllRefundsHandler
             Reason = ticket.Reason,
             RefundReason = ticket.RefundReason,
 
-            WalletId = ticket.WalletId,
+            WalletId = ticket.WalletId.Value,
             UserId = ticket.UserId,
 
-            OrderId = ticket.OrderId,
             TransactionId = ticket.TransactionId,
-            OriginalTransactionId = ticket.OriginalTransactionId,
+            OriginalTransactionId = ticket.OriginalTransactionId.Value,
 
             Status = ticket.Status,
             RefundTicketMethod = ticket.RefundTicketMethod,

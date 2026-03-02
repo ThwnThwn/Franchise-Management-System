@@ -196,7 +196,6 @@ public sealed class InternalUserCreateRefundTicketCommandHandler
             Reason = request.Reason,
             WalletId = request.WalletId,
             UserId = command.UserId,
-            OrderId = originalTransaction.OrderId,
             OriginalTransactionId = request.OriginalTransactionId,
             Status = initialStatus,
 
@@ -239,10 +238,9 @@ public sealed class InternalUserCreateRefundTicketCommandHandler
             TicketCode = refundTicket.TicketCode,
             Amount = refundTicket.Amount,
             Reason = refundTicket.Reason,
-            WalletId = refundTicket.WalletId,
-            OrderId = refundTicket.OrderId,
+            WalletId = refundTicket.WalletId.Value,
             TransactionId = refundTicket.TransactionId,
-            OriginalTransactionId = refundTicket.OriginalTransactionId,
+            OriginalTransactionId = refundTicket.OriginalTransactionId.Value,
             Status = refundTicket.Status,
             CreatedAt = refundTicket.CreatedAt
         };

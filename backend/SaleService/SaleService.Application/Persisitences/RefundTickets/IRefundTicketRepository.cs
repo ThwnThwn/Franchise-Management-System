@@ -20,10 +20,7 @@ namespace SalesService.Application.Persisitences
             RefundTicketStatus status,
             CancellationToken cancellationToken);
 
-        Task<IEnumerable<RefundTicket>> GetByOrderIdAsync(
-            Guid orderId,
-            CancellationToken cancellationToken);
-
+       
         Task<IEnumerable<RefundTicket>> GetByTransactionIdAsync(
         Guid OriginalTransactionId,
         CancellationToken cancellationToken);

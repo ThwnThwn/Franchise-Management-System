@@ -108,9 +108,8 @@ public sealed class GetRefundByStatusQueryHandler
             Id = ticket.Id,
             TicketCode = ticket.TicketCode,
             UserId = ticket.UserId,
-            WalletId = ticket.WalletId,
-            OrderId = ticket.OrderId,
-            OriginalTransactionId = ticket.OriginalTransactionId,
+            WalletId = ticket.WalletId.Value,
+            OriginalTransactionId = ticket.OriginalTransactionId.Value,
 
             // Amounts
             Amount = ticket.Amount,

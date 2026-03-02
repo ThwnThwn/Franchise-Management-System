@@ -14,6 +14,7 @@ public interface ISalesDbContext : IDisposable
     DbSet<OutboxMessage> OutboxMessages { get; set; }
     DbSet<CartItem> CartItems { get; set; }
     DbSet<Wallet> Wallets { get; set; }
+    DbSet<WalletEvent> WalletEvents { get; set; }
     DbSet<WalletTransaction> WalletTransactions { get; set; }
     DbSet<RefundTicket> RefundTickets { get; set; }
 

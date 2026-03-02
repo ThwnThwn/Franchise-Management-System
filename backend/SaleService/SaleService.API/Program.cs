@@ -1,6 +1,11 @@
+using System.Text;
 using AutoMapper;
+using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using DotNetEnv;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using SalesService.API.GrpcServices;
 using SalesService.API.Middleware;
 using SalesService.API.Services.CartItems;
@@ -22,6 +27,8 @@ using SalesService.Application.Persisitences;
 using SalesService.Application.Persisitences.OrderItems;
 using SalesService.Application.Persisitences.Orders;
 using SalesService.Application.Persisitences.Outbox;
+using SalesService.Application.Persisitences.WalletEvents;
+using SalesService.Application.Persisitences.Wallets;
 using SalesService.Application.Persisitences.Wallets;
 using SalesService.Application.Persisitences.WalletTransactions;
 using SalesService.Application.Signals;
@@ -30,21 +37,17 @@ using SalesService.Infrastructure.ApplicationDbContext;
 using SalesService.Infrastructure.Extensions;
 using SalesService.Infrastructure.Interceptor;
 using SalesService.Infrastructure.Repositories;
+using SalesService.Infrastructure.Repositories;
 using SalesService.Infrastructure.Repositories.CartItems;
 using SalesService.Infrastructure.Repositories.OrderItems;
 using SalesService.Infrastructure.Repositories.Orders;
 using SalesService.Infrastructure.Repositories.Outbox;
 using SalesService.Infrastructure.Repositories.Payments;
+using SalesService.Infrastructure.Repositories.WalletEvents;
 using SalesService.Infrastructure.Signals;
-using SalesService.Application.Persisitences.Wallets;
-using SalesService.Infrastructure.Repositories;
-using SharedKernel.Infrastructure.Kafka;
-using Microsoft.OpenApi.Models;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using SharedKernel.Events;
 using SharedKernel.Constants;
+using SharedKernel.Events;
+using SharedKernel.Infrastructure.Kafka;
 namespace SalesService.API;
 
 public class Program
@@ -145,7 +148,7 @@ public class Program
         builder.Services.AddScoped<IRefundTicketRepository, RefundTicketRepository>();
         builder.Services.AddScoped<IRefundAuthorizationService, RefundAuthorizationService>();
         builder.Services.AddScoped<IWalletAuthorizationService, WalletAuthorizationService>();
-
+        builder.Services.AddScoped<IWalletEventRepository, WalletEventRepository>();
         // Register ProductService gRPC client
         builder.Services.AddSingleton<IProductServiceClient, ProductServiceClient>();
 

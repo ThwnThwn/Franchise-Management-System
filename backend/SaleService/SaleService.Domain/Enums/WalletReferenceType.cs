@@ -6,7 +6,9 @@
         RefundTicket = 1,
         InternalUser = 2,
         System = 3,
-        WalletReferenceUnspecified = 4
+        WalletReferenceUnspecified = 4,
+        Deposit = 5,
+        Withdrawal = 6
     }
 
 }

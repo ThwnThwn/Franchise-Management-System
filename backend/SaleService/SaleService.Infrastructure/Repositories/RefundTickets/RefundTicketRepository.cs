@@ -46,14 +46,7 @@ namespace SalesService.Infrastructure.Repositories
                 .ToListAsync(cancellationToken);
         }
 
-        public async Task<IEnumerable<RefundTicket>> GetByOrderIdAsync(
-            Guid orderId,
-            CancellationToken cancellationToken)
-        {
-            return await _context.Set<RefundTicket>()
-                .Where(rt => rt.OrderId == orderId)
-                .ToListAsync(cancellationToken);
-        }
+      
 
         public async Task<IEnumerable<RefundTicket>> GetByTransactionIdAsync(
             Guid transactionId,

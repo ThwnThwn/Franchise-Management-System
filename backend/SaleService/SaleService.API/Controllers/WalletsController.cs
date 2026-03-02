@@ -8,7 +8,9 @@ using SalesService.Application.Features.Wallets.Command.AddBalance;
 using SalesService.Application.Features.Wallets.Command.Create;
 using SalesService.Application.Features.Wallets.Command.DeductBalance;
 using SalesService.Application.Features.Wallets.Commands.UpdateStatus;
+using SalesService.Application.Features.Wallets.Deposit;
 using SalesService.Application.Features.Wallets.Queries.GetByUserId;
+using SalesService.Application.Features.Wallets.Withdraw;
 using SalesService.Domain.Enums;
 
 namespace SalesService.API.Controllers;
@@ -219,9 +221,91 @@ public class WalletController : ControllerBase
 
         return Ok(response);
     }
+
+    [HttpPost("deposit")]
+    public async Task<IActionResult> Deposit(
+            [FromBody] DepositWalletReq request,
+            CancellationToken cancellationToken)
+    {
+        var userId = GetUserId();
+        if (userId == null)
+            return Unauthorized();
+
+        var command = new DepositWalletCommand(userId.Value, request);
+        var result = await _mediator.Send(command, cancellationToken);
+
+        if (result.IsSuccess)
+            return Ok(result.Value);
+
+        if (result.ValidationErrors.Any())
+            return BadRequest(result.ValidationErrors);
+
+        return StatusCode(500, result.Errors);
+    }
+
+    [AllowAnonymous]
+    [HttpGet("deposit/vnpay-return")]
+    public async Task<IActionResult> DepositVnPayReturn(
+    [FromQuery] IDictionary<string, string> queryParams,
+    CancellationToken cancellationToken)
+    {
+        var command = new DepositVnPayReturnCommand(queryParams);
+        var result = await _mediator.Send(command, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            if (queryParams.TryGetValue("redirectTo", out var redirectTo)
+                && !string.IsNullOrEmpty(redirectTo)
+                && Uri.TryCreate(redirectTo, UriKind.Absolute, out _)) // ✅ validate URL
+            {
+                var redirectUrl = $"{Uri.UnescapeDataString(redirectTo)}" +
+                                  $"?success={result.Value.Success}" +
+                                  $"&amount={result.Value.Amount}" +
+                                  $"&newBalance={result.Value.NewBalance}";
+                return Redirect(redirectUrl);
+            }
+
+            return Ok(result.Value);
+        }
+
+        return StatusCode(500, result.Errors);
+    }
+
+    [HttpPost("withdraw")]
+    public async Task<IActionResult> Withdraw(
+        [FromBody] WithdrawWalletReq request,
+        CancellationToken cancellationToken)
+    {
+        var userId = GetUserId();
+        if (userId == null)
+            return Unauthorized();
+
+        var command = new WithdrawWalletCommand(userId.Value, request);
+        var result = await _mediator.Send(command, cancellationToken);
+
+        if (result.IsSuccess)
+            return Ok(result.Value);
+
+        if (result.ValidationErrors.Any())
+            return BadRequest(result.ValidationErrors);
+
+        if (result.Status == Ardalis.Result.ResultStatus.NotFound)
+            return NotFound(result.Errors);
+
+        if (result.Status == Ardalis.Result.ResultStatus.Forbidden)
+            return Forbid();
+
+        return StatusCode(500, result.Errors);
+    }
+
+    private Guid? GetUserId()
+    {
+        var claim = User.FindFirstValue(ClaimTypes.NameIdentifier)
+                 ?? User.FindFirstValue("sub");
+
+        return Guid.TryParse(claim, out var id) ? id : null;
+    }
 }
-
-
 public record CreateWalletRequestDto
 {
     public Guid UserId { get; init; }

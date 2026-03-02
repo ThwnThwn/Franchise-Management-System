@@ -7,7 +7,6 @@ namespace SalesService.Application.Features.RefundTickets.Command.CreateRefund.C
 
 public sealed record CustomerCreateRefundTicketCommand(
     Guid CustomerId,
-    Guid OrderId,
     CustomerCreateRefundTicketRequest Request
 ) : IRequest<Result<CustomerCreateRefundTicketResponse>>
 {
@@ -23,8 +22,8 @@ public sealed record CustomerCreateRefundTicketCommand(
         public string TicketCode { get; set; } = null!;
         public decimal Amount { get; set; }
         public string Reason { get; set; } = null!;
-        public Guid OrderId { get; set; }
-        public RefundTicketStatus Status { get; set; }  // PENDING_APPROVAL
+        public RefundTicketStatus Status { get; set; }  
         public DateTimeOffset CreatedAt { get; set; }
+
     }
 }
