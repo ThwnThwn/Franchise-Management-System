@@ -146,10 +146,13 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
         var query = new GetAllUsersQuery()
         {
             RoleSlug = request.RoleSlug,
-            Id = Guid.Parse(userEntry.Value),
             StoreId = Guid.TryParse(request.HomeStoreId, out var storeId)? storeId: null,
             HasHourlyWage = request.HasHourlyWage,
             Keyword = request.Keyword,
+            OrderCount = request.HasOrderCount ? request.OrderCount : null,
+            TierId = Guid.TryParse(request.TierId, out var parsed)? parsed: null,
+            StartAt = (decimal)request.StartAt,
+            EndAt = (decimal)request.EndAt,
             Page = request.Page,
             PageSize = request.PageSize
         };
@@ -319,6 +322,7 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
                     Slug = user.Role.Slug ?? ""
                 },
             AvatarUrl = user.AvatarUrl ?? "",
+            OrderCount = user.OrderCount ?? 0,
             Loyalty = user.LoyaltyTier == null
             ? null
             : new LoyaltyResponse

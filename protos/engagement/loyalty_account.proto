@@ -18,7 +18,7 @@ service LoyaltyAccountGrpc {
   rpc GetByUserPhoneOrEmail (GetByUserPhoneOrEmailRequest) returns (LoyaltyAccountsResponse);
 
   // Hàm lấy thông tin tài khoản theo bộ lọc
-  rpc GetByUserIdsWithFilter (GetByUserIdsWithFilterRequest) returns (LoyaltyAccountsResponse);
+  rpc GetByFilter (GetByFilterRequest) returns (LoyaltyAccountsResponse);
 
   // Hàm Upsert nhận vào UpSertRequest và không trả ra gì
   rpc CreateLoyaltyAccount (CreateLoyaltyAccountRequest) returns (google.protobuf.Empty);
@@ -43,8 +43,7 @@ message GetByUserPhoneOrEmailRequest {
   string email = 2;
 }
 
-message GetByUserIdsWithFilterRequest {
-  repeated string ids = 1;
+message GetByFilterRequest {
   optional string tierId = 2;
   optional double startAt = 3;
   optional double endAt = 4;

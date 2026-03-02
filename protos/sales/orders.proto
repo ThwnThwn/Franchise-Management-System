@@ -29,6 +29,21 @@ service OrderGrpc {
 
   // Lấy danh sách đơn hàng
   rpc GetOrderVolume (GetOrderVolumeRequest) returns (GetOrderVolumeReply);
+
+  // Lấy số đơn hàng
+  rpc GetCountOrderByUserIds (GetCountOrderByUserIdsRequest) returns (GetCountOrderByUserIdsResponse);
+}
+
+message GetCountOrderByUserIdsRequest{
+  repeated string userId = 1;
+}
+
+message GetCountOrderByUserIdsResponse{
+  repeated CountOrderByUserId UserCountOrder = 1;
+}
+message CountOrderByUserId{
+  string userId = 1;
+  int32 OrderCount = 2;
 }
 
 message CreateOrderRequest {

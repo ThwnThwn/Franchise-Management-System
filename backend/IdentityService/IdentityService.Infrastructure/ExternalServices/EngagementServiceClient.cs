@@ -21,6 +21,58 @@ namespace IdentityService.Infrastructure.ExternalServices
             _logger = logger;
         }
 
+        public async Task<IEnumerable<LoyaltyRes>> GetByFilter( Guid? tierId, decimal? startAt, decimal? endAt) 
+        {
+            var result = new List<LoyaltyRes>();
+
+            try
+            {
+                var request = new GetByFilterRequest();
+
+                // Optional filters
+                if (tierId.HasValue)
+                    request.TierId = tierId.Value.ToString();
+
+                if (startAt.HasValue)
+                    request.StartAt = (double)startAt.Value;
+
+                if (endAt.HasValue)
+                    request.EndAt = (double)endAt.Value;
+
+                var response = await _client.GetByFilterAsync(request);
+
+                foreach (var loyalty in response.AccountsRes)
+                {
+                    var res = new LoyaltyRes
+                    {
+                        Id = Guid.Parse(loyalty.Id),
+                        AvailablePoints = decimal.Parse(loyalty.AvailablePoints),
+                        TotalSpent = decimal.Parse(loyalty.TotalSpent),
+                        CurrentTier = new MembershipTier
+                        {
+                            Id = Guid.Parse(loyalty.CurrentTier.Id),
+                            Name = loyalty.CurrentTier.Name,
+                            ValuePerPoint = decimal.Parse(loyalty.CurrentTier.ValuePerPoint),
+                            MinSpendRequired = decimal.Parse(loyalty.CurrentTier.MinSpendRequired),
+                            AmountPerPoint = decimal.Parse(loyalty.CurrentTier.AmountPerPoint),
+                            DiscountRate = loyalty.CurrentTier.DiscountRate
+                        }
+                    };
+
+                    result.Add(res);
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "Failed to get loyalty accounts for {Count} users",0);
+
+                return result;
+            }
+        }
+
         public async Task<LoyaltyRes> GetLoyaltyByEmail(string email)
         {
             LoyaltyRes res = new LoyaltyRes();

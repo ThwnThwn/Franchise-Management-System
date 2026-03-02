@@ -84,6 +84,7 @@ namespace IdentityService.API
             builder.Services.AddScoped<ITokenBlacklist, TokenBlacklist>();
             builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
             builder.Services.AddScoped<IEngagementServiceClient, EngagementServiceClient>();
+            builder.Services.AddScoped<ISaleServiceClient, SaleServiceClient>();
             // --- SERVER CONFIG ---
             var servicePort = int.Parse(builder.Configuration["IDENTITY_PORT"] ?? "5001");
             builder.WebHost.ConfigureKestrel(options =>

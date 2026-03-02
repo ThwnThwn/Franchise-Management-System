@@ -145,6 +145,7 @@ message UserResponse {
   optional double current_hourly_wage = 15;
   string avatar_url = 16;
   optional LoyaltyResponse loyalty = 17;
+  optional int32 orderCount = 18;
 }
 
 message LoyaltyResponse {

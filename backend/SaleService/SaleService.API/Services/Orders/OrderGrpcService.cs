@@ -6,6 +6,7 @@ using SalesService.Application.Features.Orders.Commands.Create;
 using SalesService.Application.Features.Orders.Commands.Update;
 using SalesService.Application.Features.Orders.Commands.UpdateOrderStatus;
 using SalesService.Application.Features.Orders.Queries.GetById;
+using SalesService.Application.Features.Orders.Queries.GetByIds;
 using SalesService.Application.Features.Orders.Queries.GetMyOrders;
 using SalesService.Application.Features.Orders.Queries.GetOrders;
 using SalesService.Application.Features.Orders.Queries.GetOrderVolume;
@@ -524,5 +525,33 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             };
         }
         return reply;
+    }
+    public override async Task<GetCountOrderByUserIdsResponse>GetCountOrderByUserIds(GetCountOrderByUserIdsRequest request,ServerCallContext context)
+    {
+        if (request.UserId == null || request.UserId.Count == 0)
+            return new GetCountOrderByUserIdsResponse();
+
+        // Convert string → Guid safely
+        var userIds = request.UserId
+            .Where(id => Guid.TryParse(id, out _))
+            .Select(Guid.Parse)
+            .ToList();
+
+        var result = await _mediator.Send(
+            new GetByUserIdsQuery
+            {
+                UserIds = userIds
+            });
+
+        var response = new GetCountOrderByUserIdsResponse();
+
+        response.UserCountOrder.AddRange(
+            result.Select(x => new CountOrderByUserId
+            {
+                UserId = x.UserId.ToString(),
+                OrderCount = x.OrderCount
+            }));
+
+        return response;
     }
 }

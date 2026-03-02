@@ -181,26 +181,20 @@ namespace EngagementService.API.Services.LoyaltyAccount
             return response;
         }
 
-        public override async Task<LoyaltyAccountsResponse> GetByUserIdsWithFilter(GetByUserIdsWithFilterRequest request,ServerCallContext context)
+        public override async Task<LoyaltyAccountsResponse> GetByFilter(GetByFilterRequest request,ServerCallContext context)
         {
-            // ===== 1️⃣ Parse filters safely =====
-            var userIds = request.Ids
-                .Where(x => !string.IsNullOrWhiteSpace(x))
-                .Select(Guid.Parse)
-                .ToList();
             Guid? tierId = string.IsNullOrEmpty(request.TierId)
                 ? null
                 : Guid.Parse(request.TierId);
-            decimal? startAt = (decimal)(request.StartAt);
-            decimal? endAt = (decimal)(request.EndAt);
-            var query = new GetByIdsFilterQuery
+            decimal? startAt = request.StartAt > 0 ? (decimal?)request.StartAt : null;
+            decimal? endAt = request.EndAt > 0 ? (decimal?)request.EndAt : null;
+            var query = new GetByFilterQuery
             {
-                UserIds = userIds,
                 TierId = tierId,
                 StartAt = startAt,
                 EndAt = endAt
             };
-            var accounts = _mediator.Send(query).Result;
+            var accounts = await _mediator.Send(query);
             var response = new LoyaltyAccountsResponse();
 
             foreach (var account in accounts)

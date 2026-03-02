@@ -7,7 +7,7 @@ namespace EngagementService.Application.Persistences.Repository
     {
         Task<LoyaltyAccount?> GetByUserIdAsync(Guid userId);
 
-        Task<IEnumerable<LoyaltyAccount?>> GetByIdsFilterHandler(List<Guid> userIds, Guid? tierId, decimal? startAt, decimal? endAt);
+        Task<IEnumerable<LoyaltyAccount?>> GetByFilterHandler(Guid? tierId, decimal? startAt, decimal? endAt);
         Task<IEnumerable<LoyaltyAccount?>> GetUserByIdsAsync(List<Guid> userIds);
 
         // Hàm lấy dữ liệu thô phục vụ báo cáo

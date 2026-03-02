@@ -3,8 +3,7 @@ using MediatR;
 
 namespace SalesService.Application.Features.Orders.Queries.GetById
 {
-    public sealed record GetOrderByIdQuery(Guid OrderId)
-        : IRequest<Result<GetOrderByIdResponse>>;
+    public sealed record GetOrderByIdQuery(Guid OrderId): IRequest<Result<GetOrderByIdResponse>>;
 
     public sealed class GetOrderByIdResponse
     {

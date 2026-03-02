@@ -25,6 +25,7 @@ namespace IdentityService.Application.Dtos.User.Respone
         public RoleUserRep? Role { get; set; }
         public string? AvatarUrl { get; set; }
         public LoyaltyRes? LoyaltyTier { get; set; }
+        public int? OrderCount { get; set; }    
         public DateTimeOffset CreatedAt { get; set; }
         public DateTimeOffset UpdatedAt { get; set; }
 
