@@ -25,6 +25,8 @@ public partial class PointLog : IEntity
 
     public string? Description { get; set; }
 
+    public DateTimeOffset? ExpiredAt { get; set; }
+
     public DateTimeOffset CreatedAt { get; set; }
 
     public DateTimeOffset UpdatedAt { get; set; }

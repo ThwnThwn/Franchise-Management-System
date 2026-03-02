@@ -7,6 +7,7 @@ package engagement;
 // Import thư viện Empty của Google để định nghĩa hàm không trả về gì
 import "google/protobuf/empty.proto";
 import "engagement/membership_tier.proto";
+import "google/protobuf/timestamp.proto";
 
 // Service định nghĩa các hành động liên quan đến Loyalty
 service LoyaltyAccountGrpc {
@@ -14,13 +15,16 @@ service LoyaltyAccountGrpc {
   rpc ProcessOrderReward (ProcessOrderRewardRequest) returns (google.protobuf.Empty);
 
   // Hàm lấy thông tin tài khoản qua số điện thoại
-  rpc GetByUserPhoneOrEmail (GetByUserPhoneOrEmailRequest) returns (LoyaltyAccountResponse);
+  rpc GetByUserPhoneOrEmail (GetByUserPhoneOrEmailRequest) returns (LoyaltyAccountsResponse);
 
   // Hàm Upsert nhận vào UpSertRequest và không trả ra gì
   rpc CreateLoyaltyAccount (CreateLoyaltyAccountRequest) returns (google.protobuf.Empty);
 
   //Hàm trừ điểm khi xử dụng
   rpc DeductPoints (DeductPointRequest) returns (google.protobuf.Empty);
+
+  // RPC lấy báo cáo (trả về dữ liệu thô)
+  rpc GetLoyaltyReport (GetLoyaltyReportRequest) returns (LoyaltyReportResponse);
 }
 
   // Định nghĩa Request
@@ -43,6 +47,12 @@ message LoyaltyAccountResponse {
   string available_points = 2; // Đại diện decimal
   string total_spent = 3;      // Đại diện decimal
   MembershipTierResponse current_tier = 4;
+//  repeated LogResponse log_rep = 5;
+  string user_name = 6;
+}
+
+message LoyaltyAccountsResponse{
+  repeated LoyaltyAccountResponse accounts_res = 1;
 }
 
 // Định nghĩa Request cho hàm Upsert
@@ -55,4 +65,47 @@ message DeductPointRequest{
   string id = 1;
   string point_to_deduct = 2;
   optional string order_id = 3;
+}
+
+//Response của log 
+//message LogResponse{
+//  string id = 1;
+//  string user_id = 2;
+// string amount = 3;
+//  string balance_before = 4;
+//  string balance_after = 5;
+// string action_type = 6;
+//  string reason_code = 7;
+//  string reference_id = 8;
+//  string description = 9;
+//  string expired_at = 10;
+//}
+
+// ĐỊNH NGHĨA CHO REPORT
+enum ExportFormat {
+  VIEW = 0;
+  PDF = 1;
+  CSV = 2;
+  EXCEL = 3;
+}
+
+message GetLoyaltyReportRequest {
+  google.protobuf.Timestamp from_date = 1;
+  google.protobuf.Timestamp to_date = 2;
+  optional string tier_id = 3;
+  ExportFormat format = 4;
+}
+
+message TierDistribution {
+  string tier_name = 1;
+  int32 member_count = 2;
+}
+
+message LoyaltyReportResponse {
+  int32 total_members = 1;
+  double total_points_earned = 2;
+  double total_points_redeemed = 3;
+  repeated TierDistribution tier_distribution = 4;
+  bytes file_content = 5; 
+  string file_name = 6;
 }

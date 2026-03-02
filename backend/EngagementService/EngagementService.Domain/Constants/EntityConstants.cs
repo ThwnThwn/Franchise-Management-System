@@ -1,6 +1,8 @@
 ﻿namespace EngagementService.Domain.Constants
 {
-    public enum PointActionType { REDEEM, EARN, REFUND, ADJUST }
+    public enum PointActionType { REDEEM, EARN, REFUND, ADJUST
+            //, YEARLY_ROLLOVER, PERIODIC_EXPIRATION
+    }
     public enum PointReasonCode
     {
         ORDER_COMPLETED,
@@ -8,7 +10,9 @@
         PROMOTION_BONUS,
         REFERRAL_REWARD,
         POINT_EXPIRED,
-        POINT_REDEEM,          
+        POINT_REDEEM,
+        //YEARLY_ROLLOVER,
+        //PERIODIC_EXPIRATION,
         ORDER_CANCEL_REFUND,   
         ORDER_RETURN_DEDUCT,   
         MANUAL_ADJUST          

@@ -7,5 +7,9 @@ public class GetAllUsersQuery() : PaginationRequest, IRequest<PagedResult<UserRe
 {
     public string? RoleSlug {  get; set; }
     public Guid? Id { get; set; }
+
+    public Guid? StoreId { get; set; }
+
+    public bool? HasHourlyWage { get; set; }
     public string? Keyword { get; set; }
 }

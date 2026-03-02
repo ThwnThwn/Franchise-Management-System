@@ -1,8 +1,9 @@
-﻿using IdentityService.Application.Dtos.User.Request;
-using IdentityService.Application.Dtos.User.Respone;
-using AutoMapper;
-using IdentityService.Domain.Entities;
+﻿using AutoMapper;
 using IdentityService.Application.Dtos.Role.Respone;
+using IdentityService.Application.Dtos.User.Request;
+using IdentityService.Application.Dtos.User.Respone;
+using IdentityService.Application.Features.Users.Commands.AdminCreateUser;
+using IdentityService.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +22,8 @@ namespace IdentityService.Application.Mappers
 
             CreateMap<UpdateUserReq, User>()
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
-
+            CreateMap<AdminCreateUserReq, User>()
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
             CreateMap<ChangePasswordReq, User>();
 
             CreateMap<User, UserRep>()

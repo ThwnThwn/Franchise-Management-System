@@ -26,10 +26,18 @@ public class AdminCreateUserCommandHandler
     {
         var request = command.Request;
 
+        // Check email
         var existingUser = await _userRepository.GetByEmailAsync(request.Email);
         if (existingUser != null)
             throw new ConflictDuplicateException(Message.UserMessage.ExistingUser);
-
+        //Check phone 
+        existingUser = await _userRepository.GetByPhoneAsync(request.Phone);
+        if (existingUser != null)
+            throw new ConflictDuplicateException($"Username '{request.Username}' already exists");
+        //Check username
+        existingUser = await _userRepository.GetByUsernameAsync(request.Username);
+        if (existingUser != null)
+            throw new ConflictDuplicateException(Message.UserMessage.ExistingUser);
         var user = _mapper.Map<User>(request);
 
         var role = await _roleRepository.GetBySlugAsync(request.RoleSlug);
@@ -42,6 +50,15 @@ public class AdminCreateUserCommandHandler
         user.CreatedAt = DateTimeOffset.UtcNow;
         user.UpdatedAt = DateTimeOffset.UtcNow;
         user.IsBlocked ??= false;
+        
+        if(request.CurrentHourlyWage != null)
+        {
+            user.CurrentHourlyWage = request.CurrentHourlyWage;
+        }
+        if(request.HomeStoreId != null)
+        {
+            user.HomeStoreId = request.HomeStoreId;
+        }
 
         await _userRepository.AddWithRoleAsync(user);
 

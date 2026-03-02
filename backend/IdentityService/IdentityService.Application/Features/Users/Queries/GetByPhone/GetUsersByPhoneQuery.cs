@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace IdentityService.Application.Features.Users.Queries.GetByPhone
 {
-    public record class GetUserByPhoneQuery(string PhoneNumber) : IRequest<Domain.Entities.User>
+    public record class GetUsersByPhoneQuery(string? PhoneNumber) : IRequest<List<Domain.Entities.User>>
     {
     }
 }

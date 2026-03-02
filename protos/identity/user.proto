@@ -17,8 +17,8 @@ service UserGrpc {
   rpc GetByIds (GetUserByIdsRequest) returns (GetUserByIdsResponse);
   rpc GetAll(GetAllUserOrWithRoleRequest) returns (GetAllUserOrWithRoleResponse);
   rpc GetManager(GetManagerRequest) returns (UserResponse);
-  rpc GetUserIdByPhone(GetUserIdByPhoneRequest) returns (UserIdResponse);
-  rpc GetUserIdByEmail(GetUserIdByEmailRequest) returns (UserIdResponse);
+  rpc GetUserIdByPhone(GetUserIdByPhoneRequest) returns (GetSimpleUsersRespone);
+  rpc GetUserIdByEmail(GetUserIdByEmailRequest) returns (GetSimpleUsersRespone);
 
   rpc Update(UpdateUserRequest) returns (UserResponse);
   rpc ChangePassword(ChangePasswordRequest) returns (UserResponse);
@@ -34,6 +34,8 @@ message GetAllUserOrWithRoleRequest{
   int32 page = 2;
   int32 page_size = 3;
   string keyword = 4;
+  optional bool HasHourlyWage = 5;
+  optional string homeStoreId = 6;
 }
 message GetAllUserOrWithRoleResponse {
   repeated UserResponse users = 1;
@@ -86,6 +88,9 @@ message AdminCreateUserRequest {
   string lastName = 7;
   optional int32 gender = 8;
   string dateOfBirth =9;
+
+  optional double current_hourly_wage = 10;
+  optional string homeStoreId = 11;
 }
 
 message UpdateUserRequest {
@@ -103,6 +108,9 @@ message UpdateUserRequest {
 
   optional bool isBlocked = 10;
   string roleSlug = 11;
+
+  optional double current_hourly_wage = 12;
+  optional string homeStoreId = 13;
 }
 message ChangePasswordRequest{
   string oldPassword = 1;
@@ -138,15 +146,20 @@ message GetManagerRequest{
 }
 
 message GetUserIdByPhoneRequest {
-  string phone = 1;
+  optional string phone = 1;
 }
 
-message UserIdResponse {
+message UserIdNameResponse {
   string id = 1;
+  string name = 2;
+}
+
+message GetSimpleUsersRespone{
+  repeated UserIdNameResponse user_res = 1;
 }
 
 message GetUserIdByEmailRequest {
-  string email = 1;
+  optional string email = 1;
 }
 message UploadAvatarRequest {
   bytes image_data = 1;

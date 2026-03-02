@@ -4,6 +4,7 @@ using IdentityService.Application.Persistences.Repositories;
 using IdentityService.Domain.Entities;
 using IdentityService.Infrastructure.ApplicationDbContext;
 using Microsoft.EntityFrameworkCore;
+using System.Numerics;
 
 namespace IdentityService.Infrastructure.Persistences.Repositories
 {
@@ -117,7 +118,7 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
                 .Cast<User?>()
                 .ToListAsync();
         }
-        public async Task<PagedResult<User>> GetPagedUsersAsync(string? keyword, Guid? id, string? roleSlug, int pageIndex, int pageSize, CancellationToken cancellationToken)
+        public async Task<PagedResult<User>> GetPagedUsersAsync(string? keyword, Guid? id, Guid? StoredId, bool? HasHourlyWage, string? roleSlug, int pageIndex, int pageSize, CancellationToken cancellationToken)
         {
             var query = _dbContext.Users
                 .Include(u => u.Role)
@@ -135,12 +136,21 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
                     (u.FirstName != null && u.FirstName.ToLower().Contains(lowerKeyword))
                 );
             }
-
+            // Filter by role
             if (!string.IsNullOrEmpty(roleSlug))
             {
                 query = query.Where(u => u.Role.Slug == roleSlug);
             }
-
+            // Filter by StoreId
+            if(!string.IsNullOrEmpty(StoredId.ToString()))
+            {
+                query = query.Where(u => u.HomeStoreId == StoredId);
+            }
+            // Filter by bool CurrentHourlyWage
+            if(HasHourlyWage == true)
+            {
+                query = query.Where(u => u.CurrentHourlyWage != null);
+            }
             query = query.OrderByDescending(u => u.CreatedAt);
             return await query.ToPagedListAsync(pageIndex, pageSize, cancellationToken);
         }
@@ -156,6 +166,31 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
                 .AsNoTracking() 
                 .FirstOrDefaultAsync(u => u.Phone != null && u.Phone == phone);
             return customer;
+        }
+
+        public async Task<List<User>> GetUsersByPhoneAsync(string? phone)
+        {
+            if (string.IsNullOrWhiteSpace(phone))
+                phone = "";
+
+            var customers = await _dbContext.Users
+                .AsNoTracking()
+                .Where(u => u.Phone != null && u.Phone.Contains(phone))
+                .ToListAsync();
+            return customers;
+        }
+
+        public async Task<List<User>> GetUsersByEmailAsync(string? email)
+        {
+            // 2. Thực hiện truy vấn an toàn
+            if(string.IsNullOrWhiteSpace(email))
+                email = "";
+
+            var customers = await _dbContext.Users
+                .AsNoTracking()
+                .Where(u => u.Email != null && u.Email.ToLower().Contains(email.ToLower()))
+                .ToListAsync();
+            return customers;
         }
     }
 }

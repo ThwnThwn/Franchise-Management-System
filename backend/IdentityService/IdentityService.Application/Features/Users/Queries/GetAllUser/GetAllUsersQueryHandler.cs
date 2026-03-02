@@ -25,6 +25,8 @@ public class GetAllUsersQueryHandler : IRequestHandler<GetAllUsersQuery, PagedRe
         var pagedUsers = await _userRepository.GetPagedUsersAsync(
             query.Keyword ?? "",
             query.Id,
+            query.StoreId,
+            query.HasHourlyWage,
             query.RoleSlug,
             query.Page,
             query.PageSize,
@@ -48,6 +50,7 @@ public class GetAllUsersQueryHandler : IRequestHandler<GetAllUsersQuery, PagedRe
             DateOfBirth = u.DateOfBirth,
             IsBlocked = u.IsBlocked,
             HomeStoreId = u.HomeStoreId,
+            CurrentHourlyWage = u.CurrentHourlyWage,
             Role = u.Role == null
                 ? null
                 : _mapper.Map<RoleUserRep>(u.Role)
