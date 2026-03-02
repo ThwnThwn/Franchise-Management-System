@@ -39,7 +39,10 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, UserR
         existingUser = await _userRepository.GetByUsernameAsync(request.Username);
         if (existingUser != null)
             throw new ConflictDuplicateException(Message.UserMessage.ExistingUser);
-
+        //Check phone 
+        existingUser = await _userRepository.GetByPhoneAsync(request.Phone);
+        if (existingUser != null)
+            throw new ConflictDuplicateException($"Username '{request.Username}' already exists");
         if (!string.IsNullOrEmpty(request.RoleSlug))
         {
             _ = await _roleRepository.GetBySlugAsync(request.RoleSlug)

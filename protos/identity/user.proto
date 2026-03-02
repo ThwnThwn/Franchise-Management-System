@@ -34,6 +34,8 @@ message GetAllUserOrWithRoleRequest{
   int32 page = 2;
   int32 page_size = 3;
   string keyword = 4;
+  optional bool HasHourlyWage = 5;
+  optional string homeStoreId = 6;
 }
 message GetAllUserOrWithRoleResponse {
   repeated UserResponse users = 1;
@@ -86,6 +88,9 @@ message AdminCreateUserRequest {
   string lastName = 7;
   optional int32 gender = 8;
   string dateOfBirth =9;
+
+  optional double current_hourly_wage = 10;
+  optional string homeStoreId = 11;
 }
 
 message UpdateUserRequest {
@@ -103,6 +108,9 @@ message UpdateUserRequest {
 
   optional bool isBlocked = 10;
   string roleSlug = 11;
+
+  optional double current_hourly_wage = 12;
+  optional string homeStoreId = 13;
 }
 message ChangePasswordRequest{
   string oldPassword = 1;

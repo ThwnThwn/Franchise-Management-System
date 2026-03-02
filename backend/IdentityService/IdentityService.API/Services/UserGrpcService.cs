@@ -20,6 +20,7 @@ using IdentityService.Grpc.Protos.User;
 using MediatR;
 using Sprache;
 using System.Globalization;
+using Google.Protobuf;
 
 namespace IdentityService.API.Services;
 
@@ -80,7 +81,10 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
             DateOfBirth = dob,
             Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone,
             Address = string.IsNullOrWhiteSpace(request.Address) ? null : request.Address,
-            RoleSlug = request.RoleSlug
+            RoleSlug = request.RoleSlug,
+            CurrentHourlyWage = request.HasCurrentHourlyWage? (decimal?)request.CurrentHourlyWage: null,
+            HomeStoreId = Guid.Parse(string.IsNullOrWhiteSpace(request.HomeStoreId) ? null : request.HomeStoreId)
+
         }));
 
         return MapUser(rep);
@@ -143,6 +147,8 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
         {
             RoleSlug = request.RoleSlug,
             Id = Guid.Parse(userEntry.Value),
+            StoreId = Guid.TryParse(request.HomeStoreId, out var storeId)? storeId: null,
+            HasHourlyWage = request.HasHourlyWage,
             Keyword = request.Keyword,
             Page = request.Page,
             PageSize = request.PageSize
@@ -208,7 +214,9 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
                 Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone,
                 Address = string.IsNullOrWhiteSpace(request.Address) ? null : request.Address,
                 IsBlocked = request.IsBlocked,
-                RoleSlug = request.RoleSlug
+                RoleSlug = request.RoleSlug,
+                CurrentHourlyWage = request.HasCurrentHourlyWage ? (decimal?)request.CurrentHourlyWage : null,
+                HomeStoreId = Guid.Parse(string.IsNullOrWhiteSpace(request.HomeStoreId) ? null : request.HomeStoreId)
             }
         ));
 
