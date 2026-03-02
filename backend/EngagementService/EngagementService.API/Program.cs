@@ -18,6 +18,10 @@ using Npgsql;
 using Npgsql.NameTranslation; // Thêm namespace này
 using QuestPDF.Infrastructure;
 using SharedKernel.Infrastructure.Kafka;
+using EngagementService.Grpc.Protos.LoyaltyAccountGrpc;
+using EngagementService.Grpc.Protos.MembershipTier;
+using EngagementService.Grpc.Protos.PointLogGrpc;
+using EngagementService.API.Services.PointLog;
 namespace EngagementService.API;
 
 public class Program

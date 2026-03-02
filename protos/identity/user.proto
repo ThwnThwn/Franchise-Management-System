@@ -15,7 +15,7 @@ service UserGrpc {
 
   rpc GetById(GetUserByIdRequest) returns (UserResponse);
   rpc GetByIds (GetUserByIdsRequest) returns (GetUserByIdsResponse);
-  rpc GetAll(GetAllUserOrWithRoleRequest) returns (GetAllUserOrWithRoleResponse);
+  rpc GetAll(GetAllUserWithFilterRequest) returns (GetAllUserOrWithRoleResponse);
   rpc GetManager(GetManagerRequest) returns (UserResponse);
   rpc GetUserIdByPhone(GetUserIdByPhoneRequest) returns (GetSimpleUsersRespone);
   rpc GetUserIdByEmail(GetUserIdByEmailRequest) returns (GetSimpleUsersRespone);
@@ -29,14 +29,19 @@ service UserGrpc {
   rpc DeleteAvatar(google.protobuf.Empty) returns (DeleteAvatarResponse);
 }
 
-message GetAllUserOrWithRoleRequest{
+message GetAllUserWithFilterRequest{
   string role_slug = 1;
   int32 page = 2;
   int32 page_size = 3;
   string keyword = 4;
   optional bool HasHourlyWage = 5;
   optional string homeStoreId = 6;
+  optional string tierId = 8;
+  optional int32 orderCount = 9;
+  optional double startAt = 10;
+  optional double endAt = 11;
 }
+
 message GetAllUserOrWithRoleResponse {
   repeated UserResponse users = 1;
   int32 total_count = 2;
@@ -139,8 +144,25 @@ message UserResponse {
   google.protobuf.Timestamp updatedAt = 14;
   optional double current_hourly_wage = 15;
   string avatar_url = 16;
+  optional LoyaltyResponse loyalty = 17;
+  optional int32 orderCount = 18;
 }
 
+message LoyaltyResponse {
+  string id = 1;
+  string available_points = 2;
+  string total_spent = 3;
+  MembershipTier current_tier = 4;
+}
+
+message MembershipTier {
+  string id = 1;
+  string name = 2;
+  string min_spend_required = 3;
+  double discount_rate = 4;
+  string amount_per_point = 5;
+  string value_per_point = 6;
+}
 message GetManagerRequest{
   string id = 1;
 }

@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 
-namespace SalesService.Application.Features.Orders.GetById;
+namespace SalesService.Application.Features.Orders.Queries.GetById;
 
 public sealed class GetOrderByIdQueryValidator
     : AbstractValidator<GetOrderByIdQuery>

@@ -1,22 +1,16 @@
 using AutoMapper;
 using Google.Protobuf;
 using Grpc.Core;
-using InventoryService.Grpc.Protos.Inventory.Internal;
 using MediatR;
-using SalesService.API;
 using SalesService.Application.Features.Orders.Commands.Create;
 using SalesService.Application.Features.Orders.Commands.Update;
 using SalesService.Application.Features.Orders.Commands.UpdateOrderStatus;
-using SalesService.Application.Features.Orders.GetById;
+using SalesService.Application.Features.Orders.Queries.GetById;
+using SalesService.Application.Features.Orders.Queries.GetByIds;
 using SalesService.Application.Features.Orders.Queries.GetMyOrders;
 using SalesService.Application.Features.Orders.Queries.GetOrders;
 using SalesService.Application.Features.Orders.Queries.GetOrderVolume;
 using SalesService.Application.Features.Reports.Queries.GetRevenueReport;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace SalesService.API.Services.Orders;
 
@@ -531,5 +525,33 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             };
         }
         return reply;
+    }
+    public override async Task<GetCountOrderByUserIdsResponse>GetCountOrderByUserIds(GetCountOrderByUserIdsRequest request,ServerCallContext context)
+    {
+        if (request.UserId == null || request.UserId.Count == 0)
+            return new GetCountOrderByUserIdsResponse();
+
+        // Convert string → Guid safely
+        var userIds = request.UserId
+            .Where(id => Guid.TryParse(id, out _))
+            .Select(Guid.Parse)
+            .ToList();
+
+        var result = await _mediator.Send(
+            new GetByUserIdsQuery
+            {
+                UserIds = userIds
+            });
+
+        var response = new GetCountOrderByUserIdsResponse();
+
+        response.UserCountOrder.AddRange(
+            result.Select(x => new CountOrderByUserId
+            {
+                UserId = x.UserId.ToString(),
+                OrderCount = x.OrderCount
+            }));
+
+        return response;
     }
 }

@@ -1,7 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using SalesService.Application.Features.Orders.GetById;
 using SalesService.Application.Features.Orders.Commands.Create;
+using SalesService.Application.Features.Orders.Queries.GetById;
 
 namespace SalesService.API.Controllers;
 
