@@ -121,3 +121,38 @@ ON purchase_order_items(purchase_order_id);
 
 CREATE INDEX idx_purchase_order_items_ingredient
 ON purchase_order_items(ingredient_id);
+
+-- -----------------------------------------------------------------------------
+-- Table Supplier Payments (Thanh toán đơn nhập hàng)
+-- -----------------------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS supplier_payments (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  purchase_order_id UUID NOT NULL,
+  code VARCHAR(50) NOT NULL,
+  amount DECIMAL(18,2) NOT NULL CHECK (amount > 0),
+  method INT NOT NULL DEFAULT 0,              -- 0:Cash, 1:VNPay
+  status INT NOT NULL DEFAULT 0,             -- 0:Pending, 1:Paid, 2:Failed
+  provider VARCHAR(50),                      -- 'vnpay' hoặc null
+  provider_txn_id VARCHAR(100),
+  provider_payload TEXT,
+  notes TEXT,
+  paid_at TIMESTAMP WITH TIME ZONE,
+  is_deleted BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (purchase_order_id)
+    REFERENCES purchase_orders(id)
+    ON DELETE RESTRICT
+);
+
+CREATE UNIQUE INDEX ux_supplier_payments_code
+ON supplier_payments(code)
+WHERE is_deleted = FALSE;
+
+CREATE INDEX idx_supplier_payments_po
+ON supplier_payments(purchase_order_id);
+
+CREATE INDEX idx_supplier_payments_status
+ON supplier_payments(status);

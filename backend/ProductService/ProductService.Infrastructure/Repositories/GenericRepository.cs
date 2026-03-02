@@ -18,11 +18,16 @@ namespace ProductService.Infrastructure.Repositories
             _dbSet = _dbContext.Set<T>();
         }
 
-        public virtual async Task<Guid> AddAsync(T entity)
+        public virtual async Task AddOnlyAsync(T entity)
         {
             await _dbSet.AddAsync(entity);
+        }
+
+        public virtual async Task<Guid> AddAsync(T entity)
+        {
+            await AddOnlyAsync(entity);
             await _dbContext.SaveChangesAsync();
-            return entity.Id;
+            return (entity as IEntity)?.Id ?? Guid.Empty;
         }
 
         public virtual async Task AddRangeAsync(IEnumerable<T> entities)
@@ -31,7 +36,7 @@ namespace ProductService.Infrastructure.Repositories
             await _dbContext.SaveChangesAsync();
         }
 
-        public virtual async Task DeleteAsync(Guid id)
+        public virtual async Task DeleteOnlyAsync(Guid id)
         {
             var entityFromDb = await GetByIdAsync(id)
                 ?? throw new DirectoryNotFoundException($"{typeof(T).Name} is not found");
@@ -43,6 +48,11 @@ namespace ProductService.Infrastructure.Repositories
             {
                 _dbSet.Remove(entityFromDb);
             }
+        }
+
+        public virtual async Task DeleteAsync(Guid id)
+        {
+            await DeleteOnlyAsync(id);
             await _dbContext.SaveChangesAsync();
         }
 

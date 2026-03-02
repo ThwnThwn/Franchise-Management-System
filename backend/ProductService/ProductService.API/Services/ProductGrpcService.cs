@@ -2,37 +2,28 @@ using Ardalis.Result;
 using AutoMapper;
 using Grpc.Core;
 using MediatR;
-using ProductService.API.Interceptors;
 using ProductService.Application.Features.Products.Command.CreateProduct;
 using ProductService.Application.Features.Products.Command.DeleteProduct;
+using ProductService.Application.Features.Products.Command.UpdateProduct;
+using ProductService.Application.Features.Products.Command.UploadProductImage;
 using ProductService.Application.Features.Products.Queries.GetById;
 using ProductService.Application.Features.Products.Queries.GetByKeyword;
 using ProductService.Application.Features.Products.Queries.GetByProductName;
 using ProductService.Application.Features.Products.Queries.GetList;
 using ProductService.Application.Interfaces;
 using ProductService.Application.Repositories;
-using ProductService.Domain.Entities;
 
 namespace ProductService.API.Services;
 
-public class ProductGrpcService : ProductGrpc.ProductGrpcBase
+public class ProductGrpcService(
+    IMediator mediator,
+    IMapper mapper,
+    IProductRepository productRepository
+) : ProductGrpc.ProductGrpcBase
 {
-    private readonly IMediator _mediator;
-    private readonly IMapper _mapper;
-    private readonly ICloudinaryService _cloudinaryService;
-    private readonly IProductRepository _productRepository;
-
-    public ProductGrpcService(
-        IMediator mediator,
-        IMapper mapper,
-        ICloudinaryService cloudinaryService,
-        IProductRepository productRepository)
-    {
-        _mediator = mediator;
-        _mapper = mapper;
-        _cloudinaryService = cloudinaryService;
-        _productRepository = productRepository;
-    }
+    private readonly IMediator _mediator = mediator;
+    private readonly IMapper _mapper = mapper;
+    private readonly IProductRepository _productRepository = productRepository;
 
     public override async Task<GetProductsReply> GetProducts(
         GetProductsRequest request,
@@ -101,13 +92,13 @@ public class ProductGrpcService : ProductGrpc.ProductGrpcBase
             Name = res.Name,
             Description = res.Description ?? "",
             ImageUrl = res.ImageUrl ?? "",
-            IsActive = res.IsActive,
+            IsActive = res.IsActive ?? true,
             CategoryId = res.CategoryId.ToString(),
             CategoryName = res.CategoryName ?? "",
         };
 
-        productRes.Sizes.AddRange(
-            res.Sizes.Select(v => new ProductSize
+        productRes.Variants.AddRange(
+            res.Variants.Select(v => new ProductVariant
             {
                 Id = v.Id.ToString(),
                 Sku = v.Sku ?? "",
@@ -115,7 +106,7 @@ public class ProductGrpcService : ProductGrpc.ProductGrpcBase
                 Attributes = v.Attributes ?? "",
                 BasePrice = (double)(v.BasePrice),
                 Cost = (double)(v.Cost),
-                IsActive = v.IsActive,
+                IsActive = v.IsActive ?? true,
             }));
 
         return new GetProductByIdReply
@@ -237,7 +228,7 @@ public class ProductGrpcService : ProductGrpc.ProductGrpcBase
 
         var command = new UpdateProductCommand(
             productId,
-            new UpdateProductCommand.UpdateProductCommandRequest(
+            new UpdateProductCommandRequest(
                 productId,
                 request.Name,
                 request.Description,
@@ -247,7 +238,7 @@ public class ProductGrpcService : ProductGrpc.ProductGrpcBase
                 categoryId,
                 request.Variants.Any()
                     ? request.Variants.Select(v =>
-                        new UpdateProductCommand.UpdateProductVariantRequest(
+                        new UpdateProductVariantRequest(
                             v.Sku,
                             v.Name,
                             v.Attributes,
@@ -336,9 +327,9 @@ public class ProductGrpcService : ProductGrpc.ProductGrpcBase
 
         var reply = new GetProductsByKeywordReply
         {
-            TotalCount = (int)result.TotalCount,
             Page = result.Page,
             PageSize = result.PageSize,
+            TotalCount = (int)result.TotalCount,
             TotalPages = result.TotalPages,
             HasNextPage = result.HasNextPage,
             HasPreviousPage = result.HasPreviousPage
@@ -355,15 +346,15 @@ public class ProductGrpcService : ProductGrpc.ProductGrpcBase
                 IsActive = p.IsActive ?? true,
                 CategoryId = p.CategoryId.ToString(),
                 CategoryName = p.CategoryName ?? "",
-                Sizes =                 {
-                    p.Variants.Select(v => new ProductSize
+                Variants =                 {
+                    p.Variants.Select(v => new ProductVariant
                     {
                         Id = v.Id.ToString(),
                         Sku = v.Sku ?? "",
                         Name = v.Name ?? "",
                         Attributes = v.Attributes ?? "",
-                        BasePrice = (double)(v.BasePrice ?? 0),
-                        Cost = (double)(v.Cost ?? 0),
+                        BasePrice = (double)(v.BasePrice),
+                        Cost = (double)(v.Cost),
                         IsActive = v.IsActive ?? true,
                     })
                 },
@@ -373,43 +364,43 @@ public class ProductGrpcService : ProductGrpc.ProductGrpcBase
         return reply;
     }
 
-    public override async Task<UploadImageReply> UploadImage(
-        UploadImageRequest request,
-        ServerCallContext context)
-    {
-        // Validate request
-        if (request.ImageData == null || request.ImageData.Length == 0)
-        {
-            throw new RpcException(
-                new Status(StatusCode.InvalidArgument, "Image data is required"));
-        }
+    //public override async Task<UploadImageReply> UploadImage(
+    //    UploadImageRequest request,
+    //    ServerCallContext context)
+    //{
+    //    // Validate request
+    //    if (request.ImageData == null || request.ImageData.Length == 0)
+    //    {
+    //        throw new RpcException(
+    //            new Status(StatusCode.InvalidArgument, "Image data is required"));
+    //    }
 
-        if (string.IsNullOrWhiteSpace(request.FileName))
-        {
-            throw new RpcException(
-                new Status(StatusCode.InvalidArgument, "File name is required"));
-        }
+    //    if (string.IsNullOrWhiteSpace(request.FileName))
+    //    {
+    //        throw new RpcException(
+    //            new Status(StatusCode.InvalidArgument, "File name is required"));
+    //    }
 
-        try
-        {
-            // Upload image to Cloudinary
-            var uploadResult = await _cloudinaryService.UploadImageFromBytesAsync(
-                request.ImageData.ToByteArray(),
-                request.FileName,
-                request.ContentType ?? "image/png");
+    //    try
+    //    {
+    //        // Upload image to Cloudinary
+    //        var uploadResult = await _cloudinaryService.UploadImageFromBytesAsync(
+    //            request.ImageData.ToByteArray(),
+    //            request.FileName,
+    //            request.ContentType ?? "image/png");
 
-            return new UploadImageReply
-            {
-                Url = uploadResult.Url,
-                PublicId = uploadResult.PublicId
-            };
-        }
-        catch (Exception ex)
-        {
-            throw new RpcException(
-                new Status(StatusCode.Internal, $"Upload image failed: {ex.Message}"));
-        }
-    }
+    //        return new UploadImageReply
+    //        {
+    //            Url = uploadResult.Url,
+    //            PublicId = uploadResult.PublicId
+    //        };
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        throw new RpcException(
+    //            new Status(StatusCode.Internal, $"Upload image failed: {ex.Message}"));
+    //    }
+    //}
 
     public override async Task<UploadProductImageReply> UploadProductImage(
         UploadProductImageRequest request,
@@ -433,48 +424,34 @@ public class ProductGrpcService : ProductGrpc.ProductGrpcBase
                 new Status(StatusCode.InvalidArgument, "File name is required"));
         }
 
-        try
+        var command = new UploadProductImageCommand(
+            productId,
+            ImageData: request.ImageData.ToByteArray(),
+            FileName: request.FileName,
+            ContentType: request.ContentType ?? "image/png"
+        );
+
+        var result = await _mediator.Send(command, context.CancellationToken);
+
+        if (!result.IsSuccess)
         {
-            var product = await _productRepository.GetByIdAsync(productId);
-            if (product is null)
+            if (result.Status == ResultStatus.NotFound)
             {
                 throw new RpcException(
                     new Status(StatusCode.NotFound, "Product not found"));
             }
 
-            // Delete old image if exists
-            if (!string.IsNullOrWhiteSpace(product.ImagePublicId))
-            {
-                await _cloudinaryService.DeleteImageAsync(product.ImagePublicId);
-            }
-
-            // Upload new image from bytes
-            var uploadResult = await _cloudinaryService.UploadImageFromBytesAsync(
-                request.ImageData.ToByteArray(),
-                request.FileName,
-                request.ContentType ?? "image/png");
-
-            product.ImageUrl = uploadResult.Url;
-            product.ImagePublicId = uploadResult.PublicId;
-
-            await _productRepository.UpdateAsync(product);
-
-            return new UploadProductImageReply
-            {
-                ProductId = product.Id.ToString(),
-                ImageUrl = product.ImageUrl ?? string.Empty,
-                ImagePublicId = product.ImagePublicId ?? string.Empty
-            };
-        }
-        catch (RpcException)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
             throw new RpcException(
-                new Status(StatusCode.Internal, $"Upload product image failed: {ex.Message}"));
+                new Status(StatusCode.Internal,
+                    result.Errors.FirstOrDefault() ?? "Update product failed"));
         }
+
+        return new UploadProductImageReply
+        {
+            ProductId = result.Value.ProductId.ToString(),
+            ImageUrl = result.Value.ImageUrl,
+            ImagePublicId = result.Value.ImagePublicId
+        };
     }
 
     // GetProductBySku

@@ -56,8 +56,10 @@ public class Program
         // ── Repositories ──────────────────────────────────────────────────────
         builder.Services.AddScoped<IPurchaseOrderRepository, PurchaseOrderRepository>();
         builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
+        builder.Services.AddScoped<ISupplierPaymentRepository, SupplierPaymentRepository>();
 
         // ── gRPC Client → InventoryService ────────────────────────────────────
+
 
 
         builder.Services.AddScoped<IInventoryServiceClient, InventoryServiceClient>();
@@ -110,7 +112,9 @@ public class Program
         // ── gRPC endpoints ────────────────────────────────────────────────────
         app.MapGrpcService<SupplierService.API.Services.PurchaseOrders.PurchaseOrderGrpcService>();
         app.MapGrpcService<SupplierService.API.Services.Suppliers.SupplierGrpcService>();
+        app.MapGrpcService<SupplierService.API.Services.SupplierPayments.SupplierPaymentGrpcService>();
         app.MapGrpcReflectionService();
+
 
         app.MapGet("/", () => "Supplier Service API is running.");
 
