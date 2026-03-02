@@ -21,6 +21,11 @@ namespace EngagementService.Application.Constants
         public const string AlreadyExists = "Tài khoản đã tồn tại";
     }
 
+    public static class VoucherCodeMsg
+    {
+        public const string NotFound = "Không tìm thấy mã giảm giá";
+        public const string CodeExisted = "Mã giảm giá đã tồn tại";
+    }
     public static class CommonMsg
     {
         public const string InvalidId = "Id không hợp lệ";

@@ -21,10 +21,10 @@ CREATE TYPE point_reason_code AS ENUM (
     'ORDER_RETURN_DEDUCT', -- Thu hồi điểm khi trả hàng
     'MANUAL_ADJUST'        -- Điều chỉnh thủ công bởi admin
 );
-CREATE TYPE voucher_category AS ENUM ('DISCOUNT_GIFT', 'SHIPPING');
+CREATE TYPE voucher_category AS ENUM ('DISCOUNT', 'SHIPPING', 'GIFT');
 CREATE TYPE voucher_discount_type AS ENUM ('PERCENTAGE', 'FIXED_AMOUNT', 'GIFT_ITEM');
 CREATE TYPE user_voucher_status AS ENUM ('AVAILABLE', 'USED', 'EXPIRED');
-CREATE TYPE voucher_item_type AS ENUM ('GIFT', 'REQUIRED');
+CREATE TYPE voucher_item_type AS ENUM ('ITEM_GIFT', 'ITEM_REQUIRED');
 
 -- NHÓM 1: QUẢN LÝ HẠNG THÀNH VIÊN & ĐIỂM THƯỞNG
 -- ---------------------------------------------------------
@@ -104,7 +104,7 @@ CREATE TABLE "vouchers" (
     "point_cost" DECIMAL(15, 3) DEFAULT 0 CHECK ("point_cost" >= 0),
     "init_quantity" INT DEFAULT 0 CHECK ("init_quantity" >= 0),
     "current_quantity" INT DEFAULT 0 CHECK ("current_quantity" >= 0),
-    "max_usage_per_user" INT NOT NULL DEFAULT 1 CHECK ("max_usage_per_user" >= 0), 
+    "max_usage_per_user" INT DEFAULT 1 CHECK ("max_usage_per_user" >= 0), 
     "is_active" BOOLEAN DEFAULT TRUE,
     "end_date" TIMESTAMP WITH TIME ZONE,
     "created_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -133,7 +133,7 @@ CREATE TABLE "voucher_items" (
     "voucher_id" UUID NOT NULL REFERENCES "vouchers"("id") ON DELETE CASCADE,
     "variant_id" UUID NOT NULL, 
     "quantity" INT DEFAULT 1 CHECK ("quantity" > 0), -- Đã fix lỗi tên cột trong CHECK
-    "type" voucher_item_type DEFAULT 'REQUIRED',
+    "type" voucher_item_type DEFAULT 'ITEM_REQUIRED',
     "created_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     "is_deleted" BOOLEAN DEFAULT FALSE
