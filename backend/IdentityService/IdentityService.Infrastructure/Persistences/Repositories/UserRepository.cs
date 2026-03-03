@@ -125,7 +125,11 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
                 .AsNoTracking()
                 .Where(u => !u.IsDeleted);
 
-            query = query.Where(u => ids.Contains(u.Id));
+            // Nếu mà không null thì tức đang có filter loyalty 
+            if (ids != null && ids.Any())
+            {
+                query = query.Where(u => ids.Contains(u.Id));
+            }
 
             if (!string.IsNullOrEmpty(keyword))
             {
