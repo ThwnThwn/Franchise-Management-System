@@ -12,9 +12,7 @@ namespace EngagementService.Application.Dtos.Voucher
     {
         public string Code { get; set; } = null!;
 
-        public VoucherCategory Category { get; set; }
-
-        public VoucherDiscountType Type { get; set; }
+        public VoucherType Type { get; set; }
 
         public decimal? DiscountValue { get; set; }
 
@@ -39,5 +37,38 @@ namespace EngagementService.Application.Dtos.Voucher
         public int Quantity { get; set; }
 
         public VoucherItemType Type { get; set; }
+    }
+
+    public class UpdateVoucherRequest
+    {
+        public Guid Id { get; set; }
+        
+        //public bool? IsActive { get; set; }
+        public decimal? DiscountValue { get; set; }
+
+        public decimal? MaxDiscountValue { get; set; }
+
+        public decimal? MinOrderValue { get; set; }
+
+        public decimal? PointCost { get; set; }
+
+        public int? MaxUsagePerUser { get; set; }
+
+        public DateTimeOffset? EndDate { get; set; }
+        public virtual IEnumerable<UpdateVoucherItemReq> VoucherItems { get; set; } = new List<UpdateVoucherItemReq>();
+    }
+
+    public class UpdateVoucherItemReq
+    {
+        public Guid? Id { get; set; }
+        public Guid? VariantId { get; set; }
+        public int? Quantity { get; set; }
+        public VoucherItemType? Type { get; set; }
+    }
+
+    public class UpdateVoucherStatusRequest
+    {
+        public Guid Id { get; set; }
+        public bool IsActive { get; set; }
     }
 }

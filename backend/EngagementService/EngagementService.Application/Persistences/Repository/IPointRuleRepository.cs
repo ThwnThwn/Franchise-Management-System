@@ -10,6 +10,6 @@ namespace EngagementService.Application.Persistences.Repository
 {
     public interface IPointRuleRepository : IGenericRepository<PointRule>
     {
-        //Task<PointRule?> GetByReasonCodeAsync(PointReasonCode actionType);
+        
     }
 }
