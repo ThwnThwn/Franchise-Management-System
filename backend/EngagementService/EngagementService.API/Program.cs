@@ -51,7 +51,7 @@ public class Program
             options.ConfigureEndpointDefaults(listenOptions =>
             {
                 // Allow both HTTP/1.1 (REST) and HTTP/2 (gRPC)
-                listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2;
+                listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2;
             });
         });
 
