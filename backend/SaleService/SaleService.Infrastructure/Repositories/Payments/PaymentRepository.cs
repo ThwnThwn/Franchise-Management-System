@@ -67,6 +67,34 @@ public sealed class PaymentRepository : IPaymentRepository
         return await query.ToPagedListAsync(page, pageSize, cancellationToken);
     }
 
+    public async Task<Payment?> GetByIdAsync(Guid paymentId, CancellationToken cancellationToken)
+    {
+       return await _db.Payments
+            .FirstOrDefaultAsync(p => p.Id == paymentId, cancellationToken);
+    }
+
+    public async Task<Payment?> GetByReferenceIdAsync(Guid paymentId, CancellationToken cancellationToken)
+    {
+        return await _db.Payments
+             .FirstOrDefaultAsync(p => p.ReferenceId == paymentId, cancellationToken);
+    }
+
+    public async Task<int> UpdateAsync(Payment payment,
+           CancellationToken cancellationToken)
+    {
+        var entityFromDb = await GetByIdAsync(payment.Id, cancellationToken)
+            ?? throw new KeyNotFoundException($"Không tìm thấy {typeof(Payment).Name}");
+
+        _db.Entry(entityFromDb).CurrentValues.SetValues(payment);
+
+        if (_db.Entry(entityFromDb).Metadata.FindProperty("CreatedAt") != null)
+        {
+            _db.Entry(entityFromDb).Property("CreatedAt").IsModified = false;
+        }
+
+        return await _db.SaveChangesAsync();
+    }
+
     public async Task<PagedResult<Payment>> GetMyPaymentHistoryAsync(
         Guid customerId,
         int page,

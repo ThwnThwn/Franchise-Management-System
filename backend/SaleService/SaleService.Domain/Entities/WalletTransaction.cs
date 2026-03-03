@@ -9,6 +9,9 @@ namespace SalesService.Domain.Entities
         public Guid WalletId { get; set; }
         public Guid UserId { get; set; }
         public Guid? OrderId { get; set; }
+        public Guid? InitiatedBy { get; set; }
+        public Guid? ProcessedBy { get; set; }
+        public Guid? ParentTransactionId { get; set; }
         public string TransactionCode { get; set; } = null!;
         public string? Notes { get; set; } 
         public decimal Amount { get; set; } 
@@ -19,13 +22,14 @@ namespace SalesService.Domain.Entities
         public Guid? ReferenceId { get; set; }
         public WalletReferenceType? ReferenceType { get; set; } 
         public string? Description { get; set; }
+        public string? ExternalTransactionId { get; set; }
         public DateTimeOffset CreatedAt { get; set; }
         public DateTimeOffset UpdatedAt { get; set; }
         public DateTimeOffset? CompletedAt { get; set; } 
         public DateTimeOffset? FailedAt { get; set; }
         public string? FailureReason { get; set; }
         public string? Metadata { get; set; }
-        public string? PaymentMethod { get; set; }
+        public PaymentMethod? PaymentMethod { get; set; }
         public DateTimeOffset? ProcessedAt { get; set; }
         public virtual Wallet? Wallet { get; set; }
         public virtual Order? Order { get; set; }

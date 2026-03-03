@@ -1,30 +1,47 @@
-﻿using System.Threading.Tasks;
-using SalesService.Domain.Entities;
+﻿using SalesService.Domain.Entities;
+using BuildingBlocks.Core.Pagination;
 using SalesService.Domain.Enums;
 
 namespace SalesService.Application.Persisitences
 {
     public interface IRefundTicketRepository : IGenericRepository<RefundTicket>
     {
-        Task<IEnumerable<RefundTicket>> GetByTicketIdAsync(
+        Task<RefundTicket> GetByTicketIdAsync(
             Guid ticketId,
             CancellationToken cancellationToken);
 
-        Task<IEnumerable<RefundTicket>> GetByUserIdAsync(
+        Task<PagedResult<RefundTicket>> GetByUserIdAsync(
             Guid userId,
+            int page,
+            int pageSize,
             CancellationToken cancellationToken);
 
         Task<IEnumerable<RefundTicket>> GetByStatusAsync(
             RefundTicketStatus status,
             CancellationToken cancellationToken);
 
-        Task<IEnumerable<RefundTicket>> GetByOrderIdAsync(
-            Guid orderId,
-            CancellationToken cancellationToken);
-
+       
         Task<IEnumerable<RefundTicket>> GetByTransactionIdAsync(
         Guid OriginalTransactionId,
         CancellationToken cancellationToken);
+
+        Task<PagedResult<RefundTicket>> GetAllRefundsAsync(
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default);
+
+        Task<PagedResult<RefundTicket>> GetByStatusAsync(
+            RefundTicketStatus status,
+            int pageIndex,
+            int pageSize,
+            CancellationToken cancellationToken = default);
+
+        Task<PagedResult<RefundTicket>> GetByUserIdAndStatusAsync(
+            Guid userId,
+            RefundTicketStatus status,
+            int pageIndex,
+            int pageSize,
+            CancellationToken cancellationToken = default);
 
         // Status updates
         Task<int> UpdateStatusAsync(
@@ -34,14 +51,14 @@ namespace SalesService.Application.Persisitences
 
         Task<int> ApproveRefundAsync(
             Guid id,
-            string? approvedBy,
+            Guid? approvedBy,
             string? approvalNotes,
             CancellationToken cancellationToken);
 
         Task<int> RejectRefundAsync(
             Guid id,
             string reason,
-            string? rejectedBy,
+            Guid? rejectedBy,
             CancellationToken cancellationToken);
 
         Task<int> CompleteRefundAsync(
@@ -71,5 +88,11 @@ namespace SalesService.Application.Persisitences
         Task<bool> ExistingRefundWithPendingStatusAsync(
         Guid transactionId,
         CancellationToken cancellationToken = default);
+
+        Task<decimal> GetTotalRefundedAmountByTransactionIdAsync(
+        Guid transactionId,
+        CancellationToken cancellationToken = default);
+
+
     }
 }

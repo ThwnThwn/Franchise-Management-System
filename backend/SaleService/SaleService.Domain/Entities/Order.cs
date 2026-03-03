@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using SalesService.Domain.Commons;
+﻿using SalesService.Domain.Commons;
 using SalesService.Domain.Enums;
 
 namespace SalesService.Domain.Entities;

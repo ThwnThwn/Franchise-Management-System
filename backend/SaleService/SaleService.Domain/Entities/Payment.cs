@@ -1,10 +1,11 @@
 ﻿using SalesService.Domain.Entities;
+using SalesService.Domain.Enums;
 
 public partial class Payment
 {
     public Guid Id { get; set; }
 
-    public Guid OrderId { get; set; }
+    public Guid? OrderId { get; set; }
 
     public string Code { get; set; } = null!;
 
@@ -29,6 +30,9 @@ public partial class Payment
     public DateTime? UpdatedAt { get; set; }
 
     public bool? IsDeleted { get; set; }
+
+    public Guid? ReferenceId { get; set; }      // WalletTransactionId khi deposit/withdraw
+    public PaymentReferenceType? ReferenceType { get; set; }
 
     public virtual Order Order { get; set; } = null!;
 

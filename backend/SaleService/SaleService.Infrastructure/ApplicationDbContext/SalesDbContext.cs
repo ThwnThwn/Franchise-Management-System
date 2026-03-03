@@ -37,6 +37,7 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
 
     public virtual DbSet<CartItem> CartItems { get; set; }
     public virtual DbSet<Wallet> Wallets { get; set; }
+    public virtual DbSet<WalletEvent> WalletEvents { get; set; }
     public virtual DbSet<WalletTransaction> WalletTransactions { get; set; }
     public virtual DbSet<RefundTicket> RefundTickets { get; set; }
     public DbSet<T> Set<T>() where T : class, IEntity => base.Set<T>();
@@ -244,6 +245,12 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
                 .HasForeignKey(d => d.OrderId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_payments_order");
+
+            entity.Property(e => e.ReferenceId)
+            .HasColumnName("reference_id");
+
+            entity.Property(e => e.ReferenceType)
+                .HasColumnName("reference_type");
         });
 
         modelBuilder.Entity<PaymentEvent>(entity =>
@@ -305,6 +312,308 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
                 .HasFilter("(processed_on IS NULL)");
         });
 
+        modelBuilder.Entity<Wallet>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("wallets_pkey");
+
+            entity.ToTable("wallets");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasColumnName("id");
+
+            entity.Property(e => e.UserId)
+                .HasColumnName("user_id");
+
+            entity.Property(e => e.Balance)
+                .HasPrecision(18, 2)
+                .HasColumnName("balance");
+
+            entity.Property(e => e.Status)
+                .HasColumnName("status");
+
+            entity.Property(e => e.RowVersion)
+                .IsRowVersion()
+                .HasColumnName("row_version");
+
+            entity.Property(e => e.Notes)
+                .HasMaxLength(500)
+                .HasColumnName("notes");
+
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_at");
+
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("updated_at");
+
+            entity.Property(e => e.UpdatedBy)
+                .HasColumnName("updated_by");
+
+            entity.Property(e => e.IsDeleted)
+                .HasDefaultValue(false)
+                .HasColumnName("is_deleted");
+        });
+
+        modelBuilder.Entity<WalletEvent>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("wallet_events_pkey");
+
+            entity.ToTable("wallet_events");
+
+            entity.HasIndex(e => e.WalletId, "idx_wallet_events_wallet");
+            entity.HasIndex(e => e.UserId, "idx_wallet_events_user");
+            entity.HasIndex(e => e.Status, "idx_wallet_events_status");
+            entity.HasIndex(e => e.EventType, "idx_wallet_events_type");
+            entity.HasIndex(e => e.WalletTransactionId, "idx_wallet_events_transaction");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasColumnName("id");
+
+            entity.Property(e => e.WalletId)
+                .HasColumnName("wallet_id");
+
+            entity.Property(e => e.UserId)
+                .HasColumnName("user_id");
+
+            entity.Property(e => e.WalletTransactionId)
+                .HasColumnName("wallet_transaction_id");
+
+            entity.Property(e => e.EventType)
+                .HasColumnName("event_type");
+
+            entity.Property(e => e.Amount)
+                .HasPrecision(18, 2)
+                .HasColumnName("amount");
+
+            entity.Property(e => e.Status)
+                .HasColumnName("status");
+
+            entity.Property(e => e.ProcessedByAdminId)
+                .HasColumnName("processed_by_admin_id");
+
+            entity.Property(e => e.AdminNote)
+                .HasMaxLength(500)
+                .HasColumnName("admin_note");
+
+            entity.Property(e => e.ProcessedAt)
+                .HasColumnName("processed_at");
+
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_at");
+
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("updated_at");
+
+            entity.HasOne<Wallet>()
+                .WithMany()
+                .HasForeignKey(e => e.WalletId)
+                .HasConstraintName("fk_wallet_events_wallet");
+
+            entity.HasOne<WalletTransaction>()
+                .WithMany()
+                .HasForeignKey(e => e.WalletTransactionId)
+                .HasConstraintName("fk_wallet_events_wallet_transaction");
+        });
+        modelBuilder.Entity<RefundTicket>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("refund_tickets_pkey");
+
+            entity.ToTable("refund_tickets");
+
+            entity.HasIndex(e => e.TicketCode)
+                .IsUnique()
+                .HasDatabaseName("idx_refund_tickets_code");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasColumnName("id");
+
+            entity.Property(e => e.TicketCode)
+                .HasMaxLength(50)
+                .HasColumnName("ticket_code");
+
+            entity.Property(e => e.Amount)
+                .HasPrecision(18, 2)
+                .HasColumnName("amount");
+
+            entity.Property(e => e.RefundAmount)
+                .HasPrecision(18, 2)
+                .HasColumnName("refund_amount");
+
+            entity.Property(e => e.Reason)
+                .HasMaxLength(500)
+                .HasColumnName("reason");
+
+            entity.Property(e => e.RejectionReason)
+                .HasMaxLength(500)
+                .HasColumnName("rejection_reason");
+
+            entity.Property(e => e.WalletId).HasColumnName("wallet_id");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.TransactionId).HasColumnName("transaction_id");
+            entity.Property(e => e.OriginalTransactionId).HasColumnName("original_transaction_id");
+
+            entity.Property(e => e.Status).HasColumnName("status");
+
+            entity.Property(e => e.ProcessedBy).HasColumnName("processed_by");
+            entity.Property(e => e.ApprovedBy).HasColumnName("approved_by");
+            entity.Property(e => e.ApprovalNotes).HasColumnName("approval_notes");
+            entity.Property(e => e.ApprovedAt).HasColumnName("approved_at");
+            entity.Property(e => e.RejectedBy).HasColumnName("rejected_by");
+            entity.Property(e => e.RejectedAt).HasColumnName("rejected_at");
+            entity.Property(e => e.ProcessedAt).HasColumnName("processed_at");
+            entity.Property(e => e.CompletedAt).HasColumnName("completed_at");
+            entity.Property(e => e.CancelledAt).HasColumnName("cancelled_at");
+            entity.Property(x => x.CancellationReason).HasColumnName("cancellation_reason");
+
+            entity.Property(e => e.RefundReason).HasColumnName("refund_reason");
+            entity.Property(e => e.RefundTicketMethod).HasColumnName("refund_ticket_method");
+
+            entity.Property(e => e.BankName)
+                .HasMaxLength(255)
+                .HasColumnName("bank_name");
+
+            entity.Property(e => e.Notes)
+                .HasMaxLength(500)
+                .HasColumnName("notes");
+
+            entity.Property(e => e.InternalNotes)
+                .HasMaxLength(500)
+                .HasColumnName("internal_notes");
+
+            entity.Property(e => e.CreatedByInternalUserId)
+                .HasColumnName("created_by_internal_user_id");
+
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_at");
+
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("updated_at");
+
+            entity.Property(e => e.IsDeleted)
+                .HasDefaultValue(false)
+                .HasColumnName("is_deleted");
+
+            entity.HasOne<Wallet>()
+                .WithMany()
+                .HasForeignKey(e => e.WalletId)
+                .HasConstraintName("fk_refund_wallet");
+
+            entity.HasOne<WalletTransaction>()
+                .WithMany()
+                .HasForeignKey(e => e.TransactionId)
+                .HasConstraintName("fk_refund_transaction");
+
+            entity.Property(e => e.RejectionNotes)
+            .HasMaxLength(500)
+            .HasColumnName("rejection_notes");
+
+            entity.Property(e => e.CancelledBy)
+                  .HasColumnName("cancelled_by");
+
+            entity.HasOne<WalletTransaction>()
+                  .WithMany()
+                  .HasForeignKey(e => e.OriginalTransactionId)
+                  .HasConstraintName("fk_refund_original_transaction");
+        });
+
+        modelBuilder.Entity<WalletTransaction>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("wallet_transactions_pkey");
+
+            entity.ToTable("wallet_transactions");
+
+            entity.HasIndex(e => e.TransactionCode)
+                .IsUnique()
+                .HasDatabaseName("idx_wallet_transactions_code");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasColumnName("id");
+
+            entity.Property(e => e.WalletId).HasColumnName("wallet_id");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.OrderId).HasColumnName("order_id");
+            entity.Property(e => e.InitiatedBy).HasColumnName("initiated_by");
+            entity.Property(e => e.ProcessedBy).HasColumnName("processed_by");
+            entity.Property(e => e.ParentTransactionId).HasColumnName("parent_transaction_id");
+
+            entity.Property(e => e.TransactionCode)
+                .HasMaxLength(50)
+                .HasColumnName("transaction_code");
+
+            entity.Property(e => e.Amount)
+                .HasPrecision(18, 2)
+                .HasColumnName("amount");
+
+            entity.Property(e => e.BalanceBefore)
+                .HasPrecision(18, 2)
+                .HasColumnName("balance_before");
+
+            entity.Property(e => e.BalanceAfter)
+                .HasPrecision(18, 2)
+                .HasColumnName("balance_after");
+
+            entity.Property(e => e.TransactionType).HasColumnName("transaction_type");
+            entity.Property(e => e.Status).HasColumnName("status");
+            entity.Property(e => e.ReferenceId).HasColumnName("reference_id");
+            entity.Property(e => e.ReferenceType).HasColumnName("reference_type");
+
+            entity.Property(e => e.Description)
+                .HasMaxLength(500)
+                .HasColumnName("description");
+
+            entity.Property(e => e.ExternalTransactionId)
+                .HasMaxLength(100)
+                .HasColumnName("external_transaction_id");
+
+            entity.Property(e => e.Notes)
+                .HasMaxLength(500)
+                .HasColumnName("notes");
+
+            entity.Property(e => e.Metadata)
+                .HasColumnName("metadata");
+
+            entity.Property(e => e.FailureReason)
+                .HasMaxLength(500)
+                .HasColumnName("failure_reason");
+
+            entity.Property(e => e.PaymentMethod).HasColumnName("payment_method");
+
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_at");
+
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("updated_at");
+
+            entity.Property(e => e.CompletedAt).HasColumnName("completed_at");
+            entity.Property(e => e.FailedAt).HasColumnName("failed_at");
+            entity.Property(e => e.ProcessedAt).HasColumnName("processed_at");
+
+            entity.Property(e => e.IsDeleted)
+                .HasDefaultValue(false)
+                .HasColumnName("is_deleted");
+
+            entity.HasOne(d => d.Wallet)
+                .WithMany()
+                .HasForeignKey(d => d.WalletId)
+                .HasConstraintName("fk_wallet_transactions_wallet");
+
+
+        });
+
+       
+
+
         foreach (var entity in modelBuilder.Model.GetEntityTypes())
         {
             if (typeof(SoftDeletedEntity).IsAssignableFrom(entity.ClrType))
@@ -318,6 +627,7 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
         OnModelCreatingPartial(modelBuilder);
     }
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
+
 
     private static LambdaExpression GenerateIsDeletedExpression(Type type)
     {

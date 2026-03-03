@@ -30,6 +30,9 @@ service OrderGrpc {
   // Lấy danh sách đơn hàng
   rpc GetOrderVolume (GetOrderVolumeRequest) returns (GetOrderVolumeReply);
 
+  // Thanh toán order bằng ví
+  rpc PayOrderWithWallet (PayOrderWithWalletRequest) returns (PayOrderWithWalletReply);
+      
   // Lấy số đơn hàng
   rpc GetCountOrderByUserIds (GetCountOrderByUserIdsRequest) returns (GetCountOrderByUserIdsResponse);
 }
@@ -41,6 +44,7 @@ message GetCountOrderByUserIdsRequest{
 message GetCountOrderByUserIdsResponse{
   repeated CountOrderByUserId UserCountOrder = 1;
 }
+
 message CountOrderByUserId{
   string userId = 1;
   int32 OrderCount = 2;
@@ -252,4 +256,32 @@ message OrderVolumeADay{
 message CsvFile{
   bytes csv_raw = 1;
   string csv_file_name = 2;
+}
+
+message PayOrderWithWalletRequest {
+  string order_id = 1;
+}
+
+message PayOrderWithWalletReply {
+  string order_id = 1;
+  string order_code = 2;
+
+  string customer_wallet_id = 3;
+  string shop_wallet_id = 4;
+
+  double amount = 5;
+
+  double customer_balance_before = 6;
+  double customer_balance_after = 7;
+
+  double shop_balance_before = 8;
+  double shop_balance_after = 9;
+
+  string customer_transaction_id = 10;
+  string shop_transaction_id = 11;
+
+  string customer_transaction_code = 12;
+  string shop_transaction_code = 13;
+
+  string paid_at = 14;
 }

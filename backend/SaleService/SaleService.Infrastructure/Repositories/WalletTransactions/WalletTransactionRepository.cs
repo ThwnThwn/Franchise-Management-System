@@ -29,6 +29,17 @@ public sealed class WalletTransactionRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<WalletTransaction?> GetByExternalTransactionIdAsync(
+    string externalTransactionId,
+    CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .FirstOrDefaultAsync(
+                t => t.ExternalTransactionId == externalTransactionId && !t.IsDeleted,
+                cancellationToken);
+    }
+
     public async Task<PagedResult<WalletTransaction>> GetByWalletIdPaginatedAsync(
         Guid walletId,
         int pageIndex,
@@ -43,15 +54,25 @@ public sealed class WalletTransactionRepository
         return await query.ToPagedListAsync(pageIndex, pageSize, cancellationToken);
     }
 
-    public async Task<IEnumerable<WalletTransaction>> GetByUserIdAsync(
-        Guid userId,
-        CancellationToken cancellationToken = default)
+    public async Task<PagedResult<WalletTransaction>> GetAllTransactionsAsync(int page, int pageSize, CancellationToken cancellationToken = default)
     {
-        return await _dbSet
+        var query = _context.Set<WalletTransaction>()
+                 .OrderByDescending(w => w.CreatedAt);
+
+        return await query.ToPagedListAsync(page, pageSize, cancellationToken);
+    }
+    public async Task<PagedResult<WalletTransaction>> GetByUserIdAsync(
+     Guid userId,
+     int pageIndex,
+     int pageSize,
+     CancellationToken cancellationToken = default)
+    {
+        var query = _dbSet
             .AsNoTracking()
             .Where(t => t.UserId == userId && !t.IsDeleted)
-            .OrderByDescending(t => t.CreatedAt)
-            .ToListAsync(cancellationToken);
+            .OrderByDescending(t => t.CreatedAt);
+
+        return await query.ToPagedListAsync(pageIndex, pageSize, cancellationToken);
     }
 
     public async Task<IEnumerable<WalletTransaction>> GetByOrderIdAsync(
@@ -423,5 +444,18 @@ public sealed class WalletTransactionRepository
         query = query.OrderByDescending(t => t.CreatedAt);
 
         return await query.ToPagedListAsync(pageIndex, pageSize, cancellationToken);
+    }
+
+    public async Task<WalletTransaction?> GetByReferenceAsync(
+    Guid referenceId,
+    WalletReferenceType referenceType,
+    CancellationToken cancellationToken)
+    {
+        return await _context.WalletTransactions
+            .FirstOrDefaultAsync(
+                x => x.ReferenceId == referenceId &&
+                     x.ReferenceType == referenceType &&
+                     !x.IsDeleted,
+                cancellationToken);
     }
 }
