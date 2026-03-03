@@ -6,6 +6,7 @@ import (
 	"api-gateway/internal/application/constants/errorcode"
 	"api-gateway/internal/application/gateways/identity"
 	"api-gateway/internal/domain/constants/jwttype"
+	"api-gateway/pkg/utils/contextutils"
 	"api-gateway/pkg/utils/jwtutils"
 	"strings"
 
@@ -32,8 +33,8 @@ func NewAuthMiddleware(
 
 func (a *AuthMiddleware) PermissionCheck(permSlug string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		roleSlug := c.GetString("roleSlug")
-		if roleSlug == "" {
+		_, err := contextutils.GetRoleSlug(c)
+		if err != nil {
 			abortWithErr(c, errorcode.ErrInvalidAccessToken)
 			return
 		}
@@ -76,7 +77,7 @@ func (a *AuthMiddleware) ValidateToken(secret []byte) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// CHECK NHANH: Nếu đã xác thực rồi thì bỏ qua (Skip)
 		// Kiểm tra xem key "userID" đã tồn tại trong context chưa
-		if _, exists := c.Get("userID"); exists {
+		if _, exists := c.Get(contextutils.CtxUserId); exists {
 			c.Next()
 			return
 		}
@@ -106,17 +107,17 @@ func (a *AuthMiddleware) ValidateToken(secret []byte) gin.HandlerFunc {
 			return
 		}
 
-		userID, err := uuid.Parse(claims.Subject)
+		userId, err := uuid.Parse(claims.Subject)
 		if err != nil {
 			abortWithErr(c, errorcode.ErrInvalidAccessToken)
 			return
 		}
 
-		c.Set("userID", userID)
-		c.Set("accessToken", token)
-		c.Set("roleSlug", claims.RoleSlug)
+		c.Set(contextutils.CtxUserId, userId)
+		c.Set(contextutils.CtxAccessToken, token)
+		c.Set(contextutils.CtxRoleSlug, claims.RoleSlug)
 		if claims.StoreId != nil {
-			c.Set("storeId", *claims.StoreId)
+			c.Set(contextutils.CtxStoreId, *claims.StoreId)
 		}
 		c.Next()
 	}

@@ -4,6 +4,7 @@ import (
 	"api-gateway/internal/application/constants/errorcode"
 	"api-gateway/internal/application/gateways/identity"
 	"api-gateway/internal/domain/models/user"
+	"api-gateway/pkg/utils/contextutils"
 	"api-gateway/pkg/utils/grpcutils"
 	"api-gateway/pkg/utils/validation"
 	"io"
@@ -34,8 +35,8 @@ func NewUserHandler(userUC identity.IUserService) *UserHandler {
 // @Failure      401  {object}  map[string]string      "Unauthorized"
 // @Router       /users/me [get]
 func (h *UserHandler) GetMe(c *gin.Context) error {
-	userID, exists := c.Get("userID")
-	if !exists {
+	userId, err := contextutils.GetUserId(c)
+	if err != nil {
 		return errorcode.ErrMissingTokenInfo
 	}
 
@@ -44,7 +45,7 @@ func (h *UserHandler) GetMe(c *gin.Context) error {
 		return err
 	}
 
-	res, err := h.userUC.GetById(ctx, userID.(uuid.UUID))
+	res, err := h.userUC.GetById(ctx, userId)
 	if err != nil {
 		return err
 	}
@@ -71,8 +72,8 @@ func (h *UserHandler) UpdateMe(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	userID, exists := c.Get("userID")
-	if !exists {
+	userId, err := contextutils.GetUserId(c)
+	if err != nil {
 		return errorcode.ErrMissingTokenInfo
 	}
 
@@ -81,7 +82,7 @@ func (h *UserHandler) UpdateMe(c *gin.Context) error {
 		return err
 	}
 
-	res, err := h.userUC.Update(ctx, userID.(uuid.UUID), &user.UpdateUserRequest{
+	res, err := h.userUC.Update(ctx, userId, &user.UpdateUserRequest{
 		// Email:       req.Email,
 		Phone:       req.Phone,
 		Address:     req.Address,

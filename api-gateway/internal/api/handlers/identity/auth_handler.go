@@ -7,6 +7,7 @@ import (
 	"api-gateway/internal/domain/constants/jwttype"
 	"api-gateway/internal/domain/models/auth"
 	"api-gateway/internal/domain/models/user"
+	"api-gateway/pkg/utils/contextutils"
 	"api-gateway/pkg/utils/jwtutils"
 	"api-gateway/pkg/utils/validation"
 	"net/http"
@@ -52,7 +53,7 @@ func (h *AuthHandler) Login(c *gin.Context) error {
 		return err
 	}
 
-	c.SetCookie("refresh_token", res.RefreshToken,
+	c.SetCookie(contextutils.CookieRefreshToken, res.RefreshToken,
 		60*60*24*global.Config.JwtRefreshTokenExpDays, "/", "", false, true)
 
 	c.JSON(http.StatusOK, gin.H{
@@ -73,11 +74,11 @@ func (h *AuthHandler) Login(c *gin.Context) error {
 // @Failure      401  {object}  map[string]string       "Unauthorized or invalid token"
 // @Router       /auth/logout [post]
 func (h *AuthHandler) Logout(c *gin.Context) error {
-	accessToken, exists := c.Get("accessToken")
+	accessToken, exists := c.Get(contextutils.CtxAccessToken)
 	if !exists {
 		return errorcode.ErrInvalidAccessToken
 	}
-	refreshToken, err := c.Cookie("refresh_token")
+	refreshToken, err := c.Cookie(contextutils.CookieRefreshToken)
 	if err != nil {
 		return err
 	}
@@ -91,7 +92,7 @@ func (h *AuthHandler) Logout(c *gin.Context) error {
 		return err
 	}
 
-	c.SetCookie("refresh_token", "", -1, "/", "", false, true)
+	c.SetCookie(contextutils.CookieRefreshToken, "", -1, "/", "", false, true)
 	c.JSON(http.StatusOK, gin.H{
 		"success": res,
 	})
@@ -109,7 +110,7 @@ func (h *AuthHandler) Logout(c *gin.Context) error {
 // @Failure      401  {object}  map[string]string       "Invalid refresh token"
 // @Router       /auth/refresh-token [post]
 func (h *AuthHandler) RefreshToken(c *gin.Context) error {
-	refreshToken, err := c.Cookie("refresh_token")
+	refreshToken, err := c.Cookie(contextutils.CookieRefreshToken)
 	if err != nil {
 		return err
 	}
@@ -122,7 +123,7 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) error {
 		return err
 	}
 
-	c.SetCookie("refresh_token", res.RefreshToken,
+	c.SetCookie(contextutils.CookieRefreshToken, res.RefreshToken,
 		60*60*24*global.Config.JwtRefreshTokenExpDays, "/", "", false, true)
 
 	c.JSON(http.StatusOK, gin.H{
@@ -293,7 +294,7 @@ func (h *AuthHandler) ConfirmForgotPasswordOtp(c *gin.Context) error {
 		return err
 	}
 
-	c.SetCookie("forgot_password_token", token,
+	c.SetCookie(contextutils.CookieForgotPasswordToken, token,
 		60*global.Config.JwtAccessTokenExpirationMinutes, "/", "", false, true)
 
 	c.JSON(http.StatusOK, gin.H{
@@ -319,7 +320,7 @@ func (h *AuthHandler) NewPassword(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	token, err := c.Cookie("forgot_password_token")
+	token, err := c.Cookie(contextutils.CookieForgotPasswordToken)
 	if err != nil {
 		return err
 	}
@@ -330,7 +331,7 @@ func (h *AuthHandler) NewPassword(c *gin.Context) error {
 	}
 
 	md := metadata.Pairs(
-		"x-email", claims.Subject,
+		contextutils.HeaderEmail, claims.Subject,
 	)
 	ctx := metadata.NewOutgoingContext(c.Request.Context(), md)
 	success, msg, err := h.authGW.NewPassword(ctx, req.NewPassword)
@@ -338,7 +339,7 @@ func (h *AuthHandler) NewPassword(c *gin.Context) error {
 		return err
 	}
 
-	c.SetCookie("forgot_password_token", "", -1, "/", "", false, true)
+	c.SetCookie(contextutils.CookieForgotPasswordToken, "", -1, "/", "", false, true)
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": success,
@@ -395,7 +396,7 @@ func (h *AuthHandler) ChangePassword(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	accessToken := c.GetString("accessToken")
+	accessToken := c.GetString(contextutils.CtxAccessToken)
 	if accessToken == "" {
 		return errorcode.ErrMissingTokenInfo
 	}

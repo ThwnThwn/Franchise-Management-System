@@ -2,6 +2,7 @@ package grpcutils
 
 import (
 	"api-gateway/internal/application/constants/errorcode"
+	"api-gateway/pkg/utils/contextutils"
 	"context"
 	"fmt"
 
@@ -10,19 +11,25 @@ import (
 )
 
 func BuildAuthContext(c *gin.Context) (context.Context, error) {
-	userID, exists := c.Get("userID")
-	if !exists {
+	userId, err := contextutils.GetUserId(c)
+	if err != nil {
 		return nil, errorcode.ErrInvalidToken
 	}
 
-	roleSlug, exists := c.Get("roleSlug")
-	if !exists {
+	roleSlug, err := contextutils.GetRoleSlug(c)
+	if err != nil {
 		return nil, errorcode.ErrInvalidToken
 	}
 
 	md := metadata.Pairs(
-		"x-user-id", fmt.Sprintf("%v", userID),
-		"x-role-slug", fmt.Sprintf("%v", roleSlug),
+		contextutils.HeaderUserId, fmt.Sprintf("%v", userId),
+		contextutils.HeaderRoleslug, fmt.Sprintf("%v", roleSlug),
 	)
+
+	storeId, err := contextutils.GetStoreId(c)
+	if err != nil {
+		md[contextutils.HeaderStoreId] = []string{fmt.Sprintf("%v", storeId)}
+	}
+
 	return metadata.NewOutgoingContext(c.Request.Context(), md), nil
 }
