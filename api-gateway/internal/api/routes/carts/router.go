@@ -1,6 +1,8 @@
 package carts
 
 import (
+	"api-gateway/internal/api"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -10,10 +12,10 @@ func (c *CartRouter) Init(r *gin.RouterGroup) {
 	privateApi := myCartApi.Group("")
 	privateApi.Use(c.authMW.ValidateToken([]byte(c.cfg.JwtSecret)))
 	{
-		privateApi.GET("", c.cartHl.GetMyCart)
-		privateApi.POST("/items", c.cartHl.AddToMyCart)
-		privateApi.PUT("/items", c.cartHl.UpdateMyCartItems)
-		privateApi.DELETE("/items", c.cartHl.DeleteMyCartItems)
-		privateApi.DELETE("", c.cartHl.ClearMyCart)
+		privateApi.GET("", api.WrapHandler(c.cartHl.GetMyCart))
+		privateApi.POST("/items", api.WrapHandler(c.cartHl.AddToMyCart))
+		privateApi.PUT("/items", api.WrapHandler(c.cartHl.UpdateMyCartItems))
+		privateApi.DELETE("/items", api.WrapHandler(c.cartHl.DeleteMyCartItems))
+		privateApi.DELETE("", api.WrapHandler(c.cartHl.ClearMyCart))
 	}
 }

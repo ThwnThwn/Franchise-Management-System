@@ -48,7 +48,7 @@ func MapErrorToProblem(err error) (int, string, string) {
 			return http.StatusTooManyRequests, "Quá nhiều yêu cầu", detail
 
 		case codes.DeadlineExceeded: // 4 -> 504 (hoặc 408)
-			return http.StatusGatewayTimeout, "Hết thời gian chờ", detail
+			return http.StatusGatewayTimeout, "Hết thời gian chờ", "Yêu cầu bị huỷ do tốn quá nhiều thời gian"
 
 		case codes.Unavailable: // 14 -> 503
 			return http.StatusServiceUnavailable, "Dịch vụ tạm thời gián đoạn", detail

@@ -25,5 +25,14 @@ public interface IPaymentRepository
     Task<Payment?> GetByReferenceIdAsync(Guid paymentId, CancellationToken cancellationToken = default);
 
     Task<int> UpdateAsync(Payment payment, CancellationToken cancellationToken);
+
+    Task<PagedResult<Payment>> GetMyPaymentHistoryAsync(
+        Guid customerId,
+        int page,
+        int pageSize,
+        DateTime? startDate = null,
+        DateTime? endDate = null,
+        int? status = null,
+        CancellationToken cancellationToken = default);
 }
 

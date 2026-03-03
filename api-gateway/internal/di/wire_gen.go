@@ -45,34 +45,37 @@ import (
 // Injectors from wire.go:
 
 // InitializeApp nằm ở package 'di', trả về 'bootstrap.App'
-func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, error) {
-	franchiseServiceUrl := cfg.FranchiseServiceUrl
-	clientFactory, err := franchise.NewFranchiseClientFactory(franchiseServiceUrl)
-	if err != nil {
-		return nil, err
-	}
-	iStoreService := franchise.ProvideStoreClient(clientFactory)
-	storeHandler := franchise2.NewStoreHandler(iStoreService)
+func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, func(), error) {
 	redis := &cfg.Redis
 	iPermCache := cache.NewPermCache(redis, l)
 	identityServiceUrl := cfg.IdentityServiceUrl
-	identityClientFactory, err := identity.NewIdentityClientFactory(identityServiceUrl)
+	identityClientFactory, cleanup, err := identity.NewIdentityClientFactory(identityServiceUrl, l)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	iRolePermissionService := identity.ProvideRolePermClient(identityClientFactory)
 	iBlacklistCache := cache.NewBlacklistCache(redis, l)
 	iBlacklistUseCase := usecases.NewBlacklistUseCase(iBlacklistCache, l)
 	authMiddleware := middleware.NewAuthMiddleware(iPermCache, iRolePermissionService, iBlacklistUseCase)
-	inventoryServiceUrl := cfg.InventoryServiceUrl
-	inventoryClientFactory, err := inventory.NewInventoryClientFactory(inventoryServiceUrl)
+	franchiseServiceUrl := cfg.FranchiseServiceUrl
+	clientFactory, cleanup2, err := franchise.NewFranchiseClientFactory(franchiseServiceUrl, l)
 	if err != nil {
-		return nil, err
+		cleanup()
+		return nil, nil, err
+	}
+	iStoreService := franchise.ProvideStoreClient(clientFactory)
+	storeHandler := franchise2.NewStoreHandler(iStoreService)
+	inventoryServiceUrl := cfg.InventoryServiceUrl
+	inventoryClientFactory, cleanup3, err := inventory.NewInventoryClientFactory(inventoryServiceUrl, l)
+	if err != nil {
+		cleanup2()
+		cleanup()
+		return nil, nil, err
 	}
 	iStockService := inventory.ProvideStoreIngredientClient(inventoryClientFactory)
 	stockHandler := inventory2.NewStockHandler(iStockService)
 	stockRouter := stock.NewRouter(cfg, authMiddleware, stockHandler)
-	storeRouter := stores.NewRouter(cfg, storeHandler, stockRouter)
+	storeRouter := stores.NewRouter(cfg, authMiddleware, storeHandler, stockRouter)
 	iShiftService := franchise.ProvideShiftClient(clientFactory)
 	iUserService := identity.ProvideUserClient(identityClientFactory)
 	shiftStaffHandler := franchise2.NewShiftStaffHandler(iShiftService, iUserService)
@@ -106,9 +109,12 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, erro
 	recipeHandler := inventory2.NewRecipeHandler(iRecipeService)
 	recipeRouter := recipes.NewRouter(cfg, authMiddleware, recipeHandler)
 	productServiceUrl := cfg.ProductServiceUrl
-	productClientFactory, err := product.NewProductClientFactory(productServiceUrl)
+	productClientFactory, cleanup4, err := product.NewProductClientFactory(productServiceUrl, cfg, l)
 	if err != nil {
-		return nil, err
+		cleanup3()
+		cleanup2()
+		cleanup()
+		return nil, nil, err
 	}
 	iProductService := product.ProvideProductClient(productClientFactory)
 	productHandler := product2.NewProductHandler(iProductService)
@@ -118,9 +124,13 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, erro
 	categoryRouter := categories2.NewRouter(cfg, authMiddleware, categoryHandler)
 	variantRouter := variants.NewRouter(cfg, authMiddleware, recipeHandler)
 	salesServiceUrl := cfg.SalesServiceUrl
-	salesClientFactory, err := sales.NewSalesClientFactory(salesServiceUrl)
+	salesClientFactory, cleanup5, err := sales.NewSalesClientFactory(salesServiceUrl, l)
 	if err != nil {
-		return nil, err
+		cleanup4()
+		cleanup3()
+		cleanup2()
+		cleanup()
+		return nil, nil, err
 	}
 	iOrderService := sales.ProvideOrderClient(salesClientFactory)
 	orderHandler := sales2.NewOrderHandler(iOrderService, iStoreService)
@@ -146,5 +156,11 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, erro
 	}
 	engine := routes.NewEngine(cfg, appRouter)
 	app := bootstrap.NewApp(cfg, engine)
-	return app, nil
+	return app, func() {
+		cleanup5()
+		cleanup4()
+		cleanup3()
+		cleanup2()
+		cleanup()
+	}, nil
 }

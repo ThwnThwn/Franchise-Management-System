@@ -1,6 +1,8 @@
 package variants
 
 import (
+	"api-gateway/internal/api"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -11,6 +13,6 @@ func (pV *VariantRouter) Init(r *gin.RouterGroup) {
 	privateApi.Use(pV.authMW.ValidateToken([]byte(pV.cfg.JwtSecret)))
 	{
 		privateApi.PUT("/:id/recipes", pV.authMW.PermissionCheck("recipe.update"),
-			pV.recipeHl.MutationVariantRecipe)
+			api.WrapHandler(pV.recipeHl.MutationVariantRecipe))
 	}
 }

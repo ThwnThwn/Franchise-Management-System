@@ -71,10 +71,8 @@ public sealed class CreatePaymentHandler
             Code = $"PAY-{DateTime.UtcNow:yyyyMMddHHmmss}",
             Amount = order.TotalAmount,
             Currency = "VND",
-            Method = (int)request.PaymentMethod,
-            Status = request.PaymentMethod == PaymentMethod.VNPay
-                        ? (int)PaymentStatus.Pending
-                        : (int)PaymentStatus.Paid,
+            Method = (int)request.PaymentMethod,// 0 = Cash | 1 = VNPay
+            Status = (int)PaymentStatus.Pending,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             IsDeleted = false

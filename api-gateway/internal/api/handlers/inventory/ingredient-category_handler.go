@@ -32,15 +32,15 @@ func NewIngredientCategoryHandler(
 // @Success      200  {object}  map[string]interface{} "List of categories"
 // @Failure      500  {object}  map[string]string      "Internal server error"
 // @Router       /ingredients/categories [get]
-func (h *IngredientCategoryHandler) GetAll(c *gin.Context) {
+func (h *IngredientCategoryHandler) GetAll(c *gin.Context) error {
 	ctx := c.Request.Context()
 	res, err := h.ingreCateGW.GetAll(ctx)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, res)
+	return nil
 }
 
 // Create
@@ -54,21 +54,20 @@ func (h *IngredientCategoryHandler) GetAll(c *gin.Context) {
 // @Success      200     {object} map[string]interface{}    "Success"
 // @Failure      400     {object} map[string]string         "Validation error"
 // @Router       /ingredients/categories [post]
-func (h *IngredientCategoryHandler) Create(c *gin.Context) {
+func (h *IngredientCategoryHandler) Create(c *gin.Context) error {
 	var req ingredient.CreateIngreCateReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(validation.TranslateValidationError(err))
-		return
+		return validation.TranslateValidationError(err)
 	}
 
 	ctx := c.Request.Context()
 	err := h.ingreCateGW.Create(ctx, &req)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, gin.H{})
+	return nil
 }
 
 // UpdateById
@@ -83,28 +82,26 @@ func (h *IngredientCategoryHandler) Create(c *gin.Context) {
 // @Success      200      {object} map[string]interface{}     "Success"
 // @Failure      400      {object} map[string]string          "Validation error or Invalid ID"
 // @Router       /ingredients/categories/{id} [patch]
-func (h *IngredientCategoryHandler) UpdateById(c *gin.Context) {
+func (h *IngredientCategoryHandler) UpdateById(c *gin.Context) error {
 	id := c.Param("id")
 	ingreId, err := uuid.Parse(id)
 	if err != nil {
-		c.Error(errorcode.ErrInvalidId)
-		return
+		return errorcode.ErrInvalidId
 	}
 
 	var req ingredient.UpdateIngreCateReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(validation.TranslateValidationError(err))
-		return
+		return validation.TranslateValidationError(err)
 	}
 
 	ctx := c.Request.Context()
 	err = h.ingreCateGW.Update(ctx, ingreId, &req)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, gin.H{})
+	return nil
 }
 
 // DeleteById
@@ -118,20 +115,19 @@ func (h *IngredientCategoryHandler) UpdateById(c *gin.Context) {
 // @Success      200  {object}  map[string]interface{}  "Success"
 // @Failure      400  {object}  map[string]string       "Invalid ID format"
 // @Router       /ingredients/categories/{id} [delete]
-func (h *IngredientCategoryHandler) DeleteById(c *gin.Context) {
+func (h *IngredientCategoryHandler) DeleteById(c *gin.Context) error {
 	id := c.Param("id")
 	ingreId, err := uuid.Parse(id)
 	if err != nil {
-		c.Error(errorcode.ErrInvalidId)
-		return
+		return errorcode.ErrInvalidId
 	}
 
 	ctx := c.Request.Context()
 	err = h.ingreCateGW.Delete(ctx, ingreId)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, gin.H{})
+	return nil
 }

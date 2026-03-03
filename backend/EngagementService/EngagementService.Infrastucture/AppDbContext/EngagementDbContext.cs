@@ -3,8 +3,6 @@ using EngagementService.Domain.Constants;
 using EngagementService.Domain.Entities;
 using EngagementService.Infrastucture.Interceptor;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
 
 namespace EngagementService.Infrastucture.AppDbContext;
 
@@ -18,7 +16,7 @@ public partial class EngagementDbContext : DbContext, IEngagementDbContext
     public EngagementDbContext(DbContextOptions<EngagementDbContext> options, UpdateTimestampInterceptor updateInterceptor)
         : base(options)
     {
-        _updateInterceptor = updateInterceptor; 
+        _updateInterceptor = updateInterceptor;
     }
 
     public virtual DbSet<LoyaltyAccount> LoyaltyAccounts { get; set; }
@@ -36,7 +34,7 @@ public partial class EngagementDbContext : DbContext, IEngagementDbContext
     public virtual DbSet<VoucherQueue> VoucherQueues { get; set; }
 
     public virtual DbSet<VoucherUsage> VoucherUsages { get; set; }
-
+    public virtual DbSet<PointRule> PointRules { get; set; }
     public DbSet<T> Set<T>() where T : class, IEntity => base.Set<T>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -47,12 +45,12 @@ public partial class EngagementDbContext : DbContext, IEngagementDbContext
     {
         // 1. Đăng ký các Postgres Enum bằng kiểu dữ liệu C# (Generic)
         // Việc này giúp EF Core nhận diện các kiểu Enum tùy chỉnh trong PostgreSQL
-        modelBuilder.HasPostgresEnum<PointActionType>();
-        modelBuilder.HasPostgresEnum<PointReasonCode>();
-        modelBuilder.HasPostgresEnum<UserVoucherStatus>();
-        modelBuilder.HasPostgresEnum<VoucherCategory>();
-        modelBuilder.HasPostgresEnum<VoucherDiscountType>();
-        modelBuilder.HasPostgresEnum<VoucherItemType>();
+        modelBuilder.HasPostgresEnum<PointActionType>("point_action_type");
+        modelBuilder.HasPostgresEnum<PointReasonCode>("point_reason_code");
+        modelBuilder.HasPostgresEnum<UserVoucherStatus>("user_voucher_status");
+        modelBuilder.HasPostgresEnum<VoucherCategory>("voucher_category");
+        modelBuilder.HasPostgresEnum<VoucherDiscountType>("voucher_discount_type");
+        modelBuilder.HasPostgresEnum<VoucherItemType>("voucher_item_type");
 
         modelBuilder.HasPostgresExtension("uuid-ossp");
 
@@ -67,11 +65,11 @@ public partial class EngagementDbContext : DbContext, IEngagementDbContext
             entity.HasIndex(e => e.CurrentTierId, "idx_loyalty_accounts_tier");
 
             entity.Property(e => e.Id).ValueGeneratedNever().HasColumnName("id");
-            entity.Property(e => e.AvailablePoints).HasPrecision(15, 2).HasDefaultValueSql("0").HasColumnName("available_points");
+            entity.Property(e => e.AvailablePoints).HasPrecision(15, 3).HasDefaultValueSql("0").HasColumnName("available_points");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").HasColumnName("created_at");
             entity.Property(e => e.CurrentTierId).HasColumnName("current_tier_id");
             entity.Property(e => e.IsDeleted).HasDefaultValue(false).HasColumnName("is_deleted");
-            entity.Property(e => e.TotalSpent).HasPrecision(15, 2).HasDefaultValueSql("0").HasColumnName("total_spent");
+            entity.Property(e => e.TotalSpent).HasPrecision(15, 3).HasDefaultValueSql("0").HasColumnName("total_spent");
             entity.Property(e => e.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").HasColumnName("updated_at");
 
             entity.HasOne(d => d.CurrentTier).WithMany(p => p.LoyaltyAccounts)
@@ -90,9 +88,11 @@ public partial class EngagementDbContext : DbContext, IEngagementDbContext
 
             entity.Property(e => e.Id).HasDefaultValueSql("uuid_generate_v4()").HasColumnName("id");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").HasColumnName("created_at");
-            entity.Property(e => e.EarningRate).HasDefaultValueSql("1.0").HasColumnName("earning_rate");
+            entity.Property(e => e.DiscountRate).HasDefaultValueSql("0.0").HasColumnName("discount_rate");
             entity.Property(e => e.IsDeleted).HasDefaultValue(false).HasColumnName("is_deleted");
-            entity.Property(e => e.MinSpendRequired).HasPrecision(15, 2).HasColumnName("min_spend_required");
+            entity.Property(e => e.MinSpendRequired).HasPrecision(15, 3).HasColumnName("min_spend_required");
+            entity.Property(e => e.ValuePerPoint).HasPrecision(15, 3).HasColumnName("value_per_point");
+            entity.Property(e => e.AmountPerPoint).HasPrecision(15, 3).HasColumnName("amount_per_point");
             entity.Property(e => e.Name).HasMaxLength(20).HasColumnName("name");
             entity.Property(e => e.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").HasColumnName("updated_at");
 
@@ -116,18 +116,50 @@ public partial class EngagementDbContext : DbContext, IEngagementDbContext
                 .HasColumnType("point_reason_code")
                 .HasColumnName("reason_code");
 
-            entity.Property(e => e.Amount).HasPrecision(15, 2).HasColumnName("amount");
-            entity.Property(e => e.BalanceAfter).HasPrecision(15, 2).HasColumnName("balance_after");
-            entity.Property(e => e.BalanceBefore).HasPrecision(15, 2).HasColumnName("balance_before");
+            entity.Property(e => e.Amount).HasPrecision(15, 3).HasColumnName("amount");
+            entity.Property(e => e.BalanceAfter).HasPrecision(15, 3).HasColumnName("balance_after");
+            entity.Property(e => e.BalanceBefore).HasPrecision(15, 3).HasColumnName("balance_before");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").HasColumnName("created_at");
             entity.Property(e => e.Description).HasColumnName("description");
             entity.Property(e => e.ReferenceId).HasColumnName("reference_id");
+            entity.Property(e => e.ExpiredAt).HasDefaultValueSql("CURRENT_TIMESTAMP").HasColumnName("expired_at");
             entity.Property(e => e.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").HasColumnName("updated_at");
             entity.Property(e => e.UserId).HasColumnName("user_id");
 
             entity.HasOne(d => d.User).WithMany(p => p.PointLogs)
                 .HasForeignKey(d => d.UserId)
                 .HasConstraintName("point_logs_user_id_fkey");
+        });
+        modelBuilder.Entity<PointRule>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.ToTable("point_rules");
+
+            entity.Property(e => e.Id)
+                .HasColumnName("id")
+                .HasDefaultValueSql("uuid_generate_v4()");
+
+            entity.HasIndex(e => e.ReasonCode)
+                .IsUnique()
+                .HasDatabaseName("uq_point_rule_reason");
+
+            entity.Property(e => e.ReasonCode)
+                .IsRequired()
+                .HasColumnName("reason_code")
+                .HasColumnType("point_reason_code");
+
+            entity.Property(e => e.ExpiryDays)
+                .HasDefaultValue(6)
+                .HasColumnName("expiry_days");
+
+            entity.Property(e => e.CreatedAt)
+                .HasColumnName("created_at")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnName("updated_at")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
         });
 
         // --- NHÓM 2: QUẢN LÝ VOUCHER ---
@@ -187,14 +219,15 @@ public partial class EngagementDbContext : DbContext, IEngagementDbContext
             entity.Property(e => e.Code).HasMaxLength(50).HasColumnName("code");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").HasColumnName("created_at");
             entity.Property(e => e.CurrentQuantity).HasDefaultValue(0).HasColumnName("current_quantity");
-            entity.Property(e => e.DiscountValue).HasPrecision(15, 2).HasColumnName("discount_value");
+            entity.Property(e => e.DiscountValue).HasPrecision(15, 3).HasColumnName("discount_value");
+            entity.Property(e => e.MaxDiscountValue).HasPrecision(15, 3).HasColumnName("max_discount_value");
             entity.Property(e => e.EndDate).HasColumnName("end_date");
             entity.Property(e => e.InitQuantity).HasDefaultValue(0).HasColumnName("init_quantity");
             entity.Property(e => e.IsActive).HasDefaultValue(true).HasColumnName("is_active");
             entity.Property(e => e.IsDeleted).HasDefaultValue(false).HasColumnName("is_deleted");
             entity.Property(e => e.MaxUsagePerUser).HasDefaultValue(1).HasColumnName("max_usage_per_user");
-            entity.Property(e => e.MinOrderValue).HasPrecision(15, 2).HasDefaultValueSql("0").HasColumnName("min_order_value");
-            entity.Property(e => e.PointCost).HasPrecision(15, 2).HasDefaultValueSql("0").HasColumnName("point_cost");
+            entity.Property(e => e.MinOrderValue).HasPrecision(15, 3).HasDefaultValueSql("0").HasColumnName("min_order_value");
+            entity.Property(e => e.PointCost).HasPrecision(15, 3).HasDefaultValueSql("0").HasColumnName("point_cost");
             entity.Property(e => e.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").HasColumnName("updated_at");
 
             // Ràng buộc kiểm tra số lượng (CHECK Constraint)
@@ -259,7 +292,7 @@ public partial class EngagementDbContext : DbContext, IEngagementDbContext
             entity.Property(e => e.Id).HasDefaultValueSql("uuid_generate_v4()").HasColumnName("id");
             entity.Property(e => e.AppliedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").HasColumnName("applied_at");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").HasColumnName("created_at");
-            entity.Property(e => e.DiscountAmount).HasPrecision(15, 2).HasDefaultValueSql("0").HasColumnName("discount_amount");
+            entity.Property(e => e.DiscountAmount).HasPrecision(15, 3).HasDefaultValueSql("0").HasColumnName("discount_amount");
             entity.Property(e => e.OrderId).HasColumnName("order_id");
             entity.Property(e => e.StoreId).HasColumnName("store_id");
             entity.Property(e => e.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").HasColumnName("updated_at");

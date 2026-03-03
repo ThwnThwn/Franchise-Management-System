@@ -6,17 +6,17 @@ type GetProductsReply struct {
 }
 
 type Product struct {
-	Id           string         `json:"id"`
-	Name         string         `json:"name"`
-	Description  string         `json:"description"`
-	ImageUrl     string         `json:"imageUrl"`
-	IsActive     bool           `json:"isActive"`
-	CategoryId   string         `json:"categoryId"`
-	CategoryName string         `json:"categoryName"`
-	Sizes        []*ProductSize `json:"sizes"`
+	Id           string            `json:"id"`
+	Name         string            `json:"name"`
+	Description  string            `json:"description"`
+	ImageUrl     string            `json:"imageUrl"`
+	IsActive     bool              `json:"isActive"`
+	CategoryId   string            `json:"categoryId"`
+	CategoryName string            `json:"categoryName"`
+	Variants     []*ProductVariant `json:"variants"`
 }
 
-type ProductSize struct {
+type ProductVariant struct {
 	Id         string  `json:"id"`
 	Sku        string  `json:"sku"`
 	Name       string  `json:"name"`

@@ -1,15 +1,9 @@
 ﻿using EngagementService.Application.Constants;
-using EngagementService.Application.Features.LoyaltyAccount.Commands.Create;
 using EngagementService.Application.Helper;
 using EngagementService.Application.Persistences.Cache;
 using EngagementService.Application.Persistences.Repository;
-using EngagementService.Domain.Entities;
+using EngagementService.Domain.Constants;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EngagementService.Application.Features.LoyaltyAccount.Commands.ProcessOrderReward
 {
@@ -18,26 +12,70 @@ namespace EngagementService.Application.Features.LoyaltyAccount.Commands.Process
         private readonly IMembershipTierCache _membershipTierCache;
         private readonly ILoyaltyAccountRepository _loyaltyAccountRepository;
         private readonly IMembershipTierRepository _membershipTierRepository;
+        private readonly IPointLogRepository _pointLogRepository;
+        private readonly IPointRuleCache _pointRuleCache;
+        private readonly IPointRuleRepository _pointRuleRepository;
         public ProcessOrderRewardHandler(
             IMembershipTierCache membershipTierCache,
             ILoyaltyAccountRepository loyaltyAccountRepository,
-            IMembershipTierRepository membershipTierRepository)
+            IMembershipTierRepository membershipTierRepository,
+            IPointLogRepository pointLogRepository,
+            IPointRuleCache pointRuleCache,
+            IPointRuleRepository pointRuleRepository)
         {
             _membershipTierCache = membershipTierCache;
             _loyaltyAccountRepository = loyaltyAccountRepository;
             _membershipTierRepository = membershipTierRepository;
+            _pointLogRepository = pointLogRepository;
+            _pointRuleCache = pointRuleCache;
+            _pointRuleRepository = pointRuleRepository;
         }
         public async Task<Unit> Handle(ProcessOrderRewardCommand command, CancellationToken cancellationToken)
         {
             var request = command.Request;
             var loyaltyAccount = await _loyaltyAccountRepository.GetByIdAsync(request.Id);
-            var point = await CalculatePointHelper.CalculatePoint(_membershipTierCache,loyaltyAccount!.CurrentTierId, request.OrderAmount);
+            var point = await CalculatePointHelper.CalculatePoint(_membershipTierRepository, _membershipTierCache, loyaltyAccount!.CurrentTierId, request.OrderAmount);
+
+            //Update
             loyaltyAccount.TotalSpent += request.OrderAmount;
             loyaltyAccount.AvailablePoints += point;
+
+            //Lấy tier mới nếu có
+            var newTierId = await CheckTierUpgrade(loyaltyAccount.TotalSpent);
+            if (newTierId != loyaltyAccount.CurrentTierId)
+            {
+                loyaltyAccount.CurrentTierId = newTierId;
+            }
+
+            var allRules = await _pointRuleCache.GetOrSetAllAsync(async () =>
+            {
+                // Gọi Repository để lấy dữ liệu (IEnumerable)
+                var data = await _pointRuleRepository.GetAllAsync();
+
+                // Chuyển đổi sang List để khớp với yêu cầu của hàm Cache
+                return data.ToList();
+            });
+            await HandlePointLog.CreatePointLog(_pointLogRepository, loyaltyAccount, loyaltyAccount.AvailablePoints -  point, loyaltyAccount.AvailablePoints, point, request.OrderId, PointReasonCode.ORDER_COMPLETED, PointActionType.EARN, "Points earned for order completion", allRules);
+
             await _loyaltyAccountRepository.UpdateAsync(loyaltyAccount);
             return Unit.Value;
 
         }
 
+        private async Task<Guid> CheckTierUpgrade(decimal totalSpent)
+        {
+            var memberShipTiers = await _membershipTierCache.GetOrSetAllAsync(async () =>
+              {
+                  // Gọi Repository để lấy dữ liệu (IEnumerable)
+                  var data = await _membershipTierRepository.GetAllAsync();
+                  // Chuyển đổi sang List để khớp với yêu cầu của hàm Cache
+                  return data.ToList();
+              });
+            var newTier = memberShipTiers
+                    .OrderByDescending(t => t.MinSpendRequired)
+                    .FirstOrDefault(t => totalSpent >= t.MinSpendRequired);
+            if (newTier == null) throw new DirectoryNotFoundException(MembershipTierMsg.NotFound);
+            return newTier.Id;
+        }
     }
 }

@@ -24,6 +24,13 @@ const _ = grpc.SupportPackageIsVersion7
 type InventoryGrpcClient interface {
 	IncreaseStock(ctx context.Context, in *IncreaseStockRequest, opts ...grpc.CallOption) (*IncreaseStockResponse, error)
 	GetAllStock(ctx context.Context, in *GetAllStockReq, opts ...grpc.CallOption) (*GetAllStockRep, error)
+	// ── Cost Calculation (Test bằng Postman) ──
+	// Tính MAC (Moving Average Cost) cho 1 nguyên liệu
+	CaculateCostIngredientInStock(ctx context.Context, in *CaculateCostIngredientInStockRequest, opts ...grpc.CallOption) (*CaculateCostIngredientInStockResponse, error)
+	// Tính lại cost cho tất cả variant liên quan đến 1 ingredient
+	RecalculateVariantCostsByIngredient(ctx context.Context, in *RecalculateVariantCostsByIngredientRequest, opts ...grpc.CallOption) (*RecalculateVariantCostsByIngredientResponse, error)
+	// Đồng bộ giá vốn cho các nguyên liệu đang có cost = 0 từ SupplierService
+	SyncZeroCostIngredients(ctx context.Context, in *SyncZeroCostIngredientsRequest, opts ...grpc.CallOption) (*SyncZeroCostIngredientsResponse, error)
 }
 
 type inventoryGrpcClient struct {
@@ -52,12 +59,46 @@ func (c *inventoryGrpcClient) GetAllStock(ctx context.Context, in *GetAllStockRe
 	return out, nil
 }
 
+func (c *inventoryGrpcClient) CaculateCostIngredientInStock(ctx context.Context, in *CaculateCostIngredientInStockRequest, opts ...grpc.CallOption) (*CaculateCostIngredientInStockResponse, error) {
+	out := new(CaculateCostIngredientInStockResponse)
+	err := c.cc.Invoke(ctx, "/inventory.InventoryGrpc/CaculateCostIngredientInStock", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *inventoryGrpcClient) RecalculateVariantCostsByIngredient(ctx context.Context, in *RecalculateVariantCostsByIngredientRequest, opts ...grpc.CallOption) (*RecalculateVariantCostsByIngredientResponse, error) {
+	out := new(RecalculateVariantCostsByIngredientResponse)
+	err := c.cc.Invoke(ctx, "/inventory.InventoryGrpc/RecalculateVariantCostsByIngredient", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *inventoryGrpcClient) SyncZeroCostIngredients(ctx context.Context, in *SyncZeroCostIngredientsRequest, opts ...grpc.CallOption) (*SyncZeroCostIngredientsResponse, error) {
+	out := new(SyncZeroCostIngredientsResponse)
+	err := c.cc.Invoke(ctx, "/inventory.InventoryGrpc/SyncZeroCostIngredients", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // InventoryGrpcServer is the server API for InventoryGrpc service.
 // All implementations must embed UnimplementedInventoryGrpcServer
 // for forward compatibility
 type InventoryGrpcServer interface {
 	IncreaseStock(context.Context, *IncreaseStockRequest) (*IncreaseStockResponse, error)
 	GetAllStock(context.Context, *GetAllStockReq) (*GetAllStockRep, error)
+	// ── Cost Calculation (Test bằng Postman) ──
+	// Tính MAC (Moving Average Cost) cho 1 nguyên liệu
+	CaculateCostIngredientInStock(context.Context, *CaculateCostIngredientInStockRequest) (*CaculateCostIngredientInStockResponse, error)
+	// Tính lại cost cho tất cả variant liên quan đến 1 ingredient
+	RecalculateVariantCostsByIngredient(context.Context, *RecalculateVariantCostsByIngredientRequest) (*RecalculateVariantCostsByIngredientResponse, error)
+	// Đồng bộ giá vốn cho các nguyên liệu đang có cost = 0 từ SupplierService
+	SyncZeroCostIngredients(context.Context, *SyncZeroCostIngredientsRequest) (*SyncZeroCostIngredientsResponse, error)
 	mustEmbedUnimplementedInventoryGrpcServer()
 }
 
@@ -70,6 +111,15 @@ func (UnimplementedInventoryGrpcServer) IncreaseStock(context.Context, *Increase
 }
 func (UnimplementedInventoryGrpcServer) GetAllStock(context.Context, *GetAllStockReq) (*GetAllStockRep, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAllStock not implemented")
+}
+func (UnimplementedInventoryGrpcServer) CaculateCostIngredientInStock(context.Context, *CaculateCostIngredientInStockRequest) (*CaculateCostIngredientInStockResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CaculateCostIngredientInStock not implemented")
+}
+func (UnimplementedInventoryGrpcServer) RecalculateVariantCostsByIngredient(context.Context, *RecalculateVariantCostsByIngredientRequest) (*RecalculateVariantCostsByIngredientResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RecalculateVariantCostsByIngredient not implemented")
+}
+func (UnimplementedInventoryGrpcServer) SyncZeroCostIngredients(context.Context, *SyncZeroCostIngredientsRequest) (*SyncZeroCostIngredientsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SyncZeroCostIngredients not implemented")
 }
 func (UnimplementedInventoryGrpcServer) mustEmbedUnimplementedInventoryGrpcServer() {}
 
@@ -120,6 +170,60 @@ func _InventoryGrpc_GetAllStock_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _InventoryGrpc_CaculateCostIngredientInStock_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CaculateCostIngredientInStockRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InventoryGrpcServer).CaculateCostIngredientInStock(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/inventory.InventoryGrpc/CaculateCostIngredientInStock",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InventoryGrpcServer).CaculateCostIngredientInStock(ctx, req.(*CaculateCostIngredientInStockRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _InventoryGrpc_RecalculateVariantCostsByIngredient_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RecalculateVariantCostsByIngredientRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InventoryGrpcServer).RecalculateVariantCostsByIngredient(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/inventory.InventoryGrpc/RecalculateVariantCostsByIngredient",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InventoryGrpcServer).RecalculateVariantCostsByIngredient(ctx, req.(*RecalculateVariantCostsByIngredientRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _InventoryGrpc_SyncZeroCostIngredients_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SyncZeroCostIngredientsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InventoryGrpcServer).SyncZeroCostIngredients(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/inventory.InventoryGrpc/SyncZeroCostIngredients",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InventoryGrpcServer).SyncZeroCostIngredients(ctx, req.(*SyncZeroCostIngredientsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // InventoryGrpc_ServiceDesc is the grpc.ServiceDesc for InventoryGrpc service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -134,6 +238,18 @@ var InventoryGrpc_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAllStock",
 			Handler:    _InventoryGrpc_GetAllStock_Handler,
+		},
+		{
+			MethodName: "CaculateCostIngredientInStock",
+			Handler:    _InventoryGrpc_CaculateCostIngredientInStock_Handler,
+		},
+		{
+			MethodName: "RecalculateVariantCostsByIngredient",
+			Handler:    _InventoryGrpc_RecalculateVariantCostsByIngredient_Handler,
+		},
+		{
+			MethodName: "SyncZeroCostIngredients",
+			Handler:    _InventoryGrpc_SyncZeroCostIngredients_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

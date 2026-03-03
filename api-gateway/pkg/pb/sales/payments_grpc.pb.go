@@ -26,6 +26,8 @@ type PaymentGrpcClient interface {
 	CreatePayment(ctx context.Context, in *CreatePaymentRequest, opts ...grpc.CallOption) (*PaymentResponse, error)
 	// Lấy danh sách payment có phân trang
 	GetAllPayments(ctx context.Context, in *GetAllPaymentsRequest, opts ...grpc.CallOption) (*GetAllPaymentsReply, error)
+	// Lấy lịch sử thanh toán của customer (customer dashboard)
+	GetMyPaymentHistory(ctx context.Context, in *GetMyPaymentHistoryRequest, opts ...grpc.CallOption) (*GetMyPaymentHistoryReply, error)
 }
 
 type paymentGrpcClient struct {
@@ -54,6 +56,15 @@ func (c *paymentGrpcClient) GetAllPayments(ctx context.Context, in *GetAllPaymen
 	return out, nil
 }
 
+func (c *paymentGrpcClient) GetMyPaymentHistory(ctx context.Context, in *GetMyPaymentHistoryRequest, opts ...grpc.CallOption) (*GetMyPaymentHistoryReply, error) {
+	out := new(GetMyPaymentHistoryReply)
+	err := c.cc.Invoke(ctx, "/payment.PaymentGrpc/GetMyPaymentHistory", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PaymentGrpcServer is the server API for PaymentGrpc service.
 // All implementations must embed UnimplementedPaymentGrpcServer
 // for forward compatibility
@@ -62,6 +73,8 @@ type PaymentGrpcServer interface {
 	CreatePayment(context.Context, *CreatePaymentRequest) (*PaymentResponse, error)
 	// Lấy danh sách payment có phân trang
 	GetAllPayments(context.Context, *GetAllPaymentsRequest) (*GetAllPaymentsReply, error)
+	// Lấy lịch sử thanh toán của customer (customer dashboard)
+	GetMyPaymentHistory(context.Context, *GetMyPaymentHistoryRequest) (*GetMyPaymentHistoryReply, error)
 	mustEmbedUnimplementedPaymentGrpcServer()
 }
 
@@ -74,6 +87,9 @@ func (UnimplementedPaymentGrpcServer) CreatePayment(context.Context, *CreatePaym
 }
 func (UnimplementedPaymentGrpcServer) GetAllPayments(context.Context, *GetAllPaymentsRequest) (*GetAllPaymentsReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAllPayments not implemented")
+}
+func (UnimplementedPaymentGrpcServer) GetMyPaymentHistory(context.Context, *GetMyPaymentHistoryRequest) (*GetMyPaymentHistoryReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMyPaymentHistory not implemented")
 }
 func (UnimplementedPaymentGrpcServer) mustEmbedUnimplementedPaymentGrpcServer() {}
 
@@ -124,6 +140,24 @@ func _PaymentGrpc_GetAllPayments_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PaymentGrpc_GetMyPaymentHistory_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMyPaymentHistoryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PaymentGrpcServer).GetMyPaymentHistory(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/payment.PaymentGrpc/GetMyPaymentHistory",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PaymentGrpcServer).GetMyPaymentHistory(ctx, req.(*GetMyPaymentHistoryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PaymentGrpc_ServiceDesc is the grpc.ServiceDesc for PaymentGrpc service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -138,6 +172,10 @@ var PaymentGrpc_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAllPayments",
 			Handler:    _PaymentGrpc_GetAllPayments_Handler,
+		},
+		{
+			MethodName: "GetMyPaymentHistory",
+			Handler:    _PaymentGrpc_GetMyPaymentHistory_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

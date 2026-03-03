@@ -18,7 +18,7 @@ import (
 )
 
 // InitializeApp nằm ở package 'di', trả về 'bootstrap.App'
-func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, error) {
+func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, func(), error) {
 	wire.Build(
 		// 1. App
 		bootstrap.NewApp,
@@ -52,5 +52,5 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, erro
 		wire.Struct(new(routes.AppRouter), "*"),
 		routes.NewEngine,
 	)
-	return &bootstrap.App{}, nil
+	return &bootstrap.App{}, nil, nil
 }

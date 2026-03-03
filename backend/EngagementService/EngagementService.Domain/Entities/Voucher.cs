@@ -17,6 +17,8 @@ public partial class Voucher : SoftDeletedEntity, IEntity
 
     public decimal? DiscountValue { get; set; }
 
+    public decimal? MaxDiscountValue { get; set; }
+
     public decimal? MinOrderValue { get; set; }
 
     public decimal? PointCost { get; set; }
@@ -25,7 +27,7 @@ public partial class Voucher : SoftDeletedEntity, IEntity
 
     public int? CurrentQuantity { get; set; }
 
-    public int MaxUsagePerUser { get; set; }
+    public int? MaxUsagePerUser { get; set; }
 
     public bool? IsActive { get; set; }
 

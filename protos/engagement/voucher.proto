@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+option csharp_namespace = "EngagementService.Infrastructure.Protos";
+option go_package = "api-gateway/pkg/pb/engagement";
+
+package engagement;
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+// Service định nghĩa các hành động liên quan đến Voucher
+service VoucherGrpc {
+  // Hàm tạo Voucher nhận vào CreateVoucherRequest và trả về Empty
+  rpc CreateVoucher (CreateVoucherRequest) returns (google.protobuf.Empty);
+}
+
+// Định nghĩa các Enum dựa trên code C# của bạn
+enum VoucherCategory {
+  DISCOUNT = 0;
+  SHIPPING = 1;
+  GIFT = 2;
+}
+
+enum VoucherDiscountType {
+  PERCENTAGE = 0;
+  FIXED_AMOUNT = 1;
+  GIFT_ITEM = 2;
+}
+
+enum VoucherItemType {
+  ITEM_GIFT = 0;
+  ITEM_REQUIRED = 1;
+}
+
+// Message cho từng Item trong Voucher (CreateVoucherItemReq)
+message CreateVoucherItemReq {
+  string variant_id = 1; // Đại diện cho Guid
+  int32 quantity = 2;
+  VoucherItemType type = 3;
+}
+
+// Message Request chính cho CreateVoucher
+message CreateVoucherRequest {
+  string code = 1;
+  VoucherCategory category = 2;
+  VoucherDiscountType type = 3;
+  optional string discount_value = 4;
+  optional string max_discount_value = 5;
+  optional string min_order_value = 6;
+  optional string point_cost = 7;
+  
+  optional int32 init_quantity = 8;
+  optional int32 max_usage_per_user = 9;
+
+  // Sử dụng Timestamp cho DateTimeOffset?
+  google.protobuf.Timestamp end_date = 10;
+  
+  // Danh sách các VoucherItems (IEnumerable)
+  repeated CreateVoucherItemReq voucher_items = 11;
+}

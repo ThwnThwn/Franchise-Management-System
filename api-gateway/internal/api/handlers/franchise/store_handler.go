@@ -28,21 +28,20 @@ func NewStoreHandler(storeGW franchise.IStoreService) *StoreHandler {
 // @Success      200    {object}  map[string]interface{}  "List of stores"
 // @Failure      500    {object}  map[string]string       "Internal server error"
 // @Router       /stores [get]
-func (h *StoreHandler) GetStores(c *gin.Context) {
+func (h *StoreHandler) GetStores(c *gin.Context) error {
 	var req store.GetStoresRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	ctx := c.Request.Context()
 	res, err := h.storeGW.GetStores(ctx, &req)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, res)
+	return nil
 }
 
 // FindNearbyStores
@@ -55,21 +54,20 @@ func (h *StoreHandler) GetStores(c *gin.Context) {
 // @Success      200    {object}  map[string]interface{}         "List of nearby stores"
 // @Failure      400    {object}  map[string]string              "Validation error"
 // @Router       /stores/nearby [get]
-func (h *StoreHandler) FindNearbyStores(c *gin.Context) {
+func (h *StoreHandler) FindNearbyStores(c *gin.Context) error {
 	var req *store.FindNearbyStoresRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	ctx := c.Request.Context()
 	res, err := h.storeGW.FindNearbyStores(ctx, req)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, res)
+	return nil
 }
 
 // GetStoreDetail
@@ -83,22 +81,21 @@ func (h *StoreHandler) FindNearbyStores(c *gin.Context) {
 // @Failure      400  {object}  map[string]string      "Invalid ID format"
 // @Failure      404  {object}  map[string]string      "Store not found"
 // @Router       /stores/{id} [get]
-func (h *StoreHandler) GetStoreDetail(c *gin.Context) {
+func (h *StoreHandler) GetStoreDetail(c *gin.Context) error {
 	id := c.Param("id")
 	storeId, err := uuid.Parse(id)
 	if err != nil {
-		c.Error(errorcode.ErrInvalidId)
-		return
+		return errorcode.ErrInvalidId
 	}
 
 	ctx := c.Request.Context()
 	res, err := h.storeGW.GetStoreDetail(ctx, storeId)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, res)
+	return nil
 }
 
 // CheckStoreAvailability
@@ -111,23 +108,22 @@ func (h *StoreHandler) GetStoreDetail(c *gin.Context) {
 // @Success      200  {object}  map[string]interface{} "Availability status"
 // @Failure      400  {object}  map[string]string      "Invalid ID format"
 // @Router       /stores/{id}/availability [get]
-func (h *StoreHandler) CheckStoreAvailability(c *gin.Context) {
+func (h *StoreHandler) CheckStoreAvailability(c *gin.Context) error {
 	id := c.Param("id")
 	storeId, err := uuid.Parse(id)
 	if err != nil {
-		c.Error(errorcode.ErrInvalidId)
-		return
+		return errorcode.ErrInvalidId
 	}
 
 	ctx := c.Request.Context()
 	isAvailable, msg, err := h.storeGW.CheckStoreAvailability(ctx, storeId)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"isAvailable": isAvailable,
 		"message":     msg,
 	})
+	return nil
 }

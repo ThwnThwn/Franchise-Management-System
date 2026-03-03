@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+option csharp_namespace = "EngagementService.Grpc.Protos.MembershipTier";
+option go_package = "api-gateway/pkg/pb/engagement";
+
+import "google/protobuf/empty.proto";
+
+package engagement;
+
+service MembershipTierGrpc {
+  // Lấy toàn bộ danh sách hạng thành viên
+  rpc GetAllMembershipTiers (google.protobuf.Empty) returns (MembershipTierListResponse);
+
+  // Tạo mới hạng thành viên
+  rpc CreateMembershipTier (CreateMembershipTierRequest) returns (google.protobuf.Empty);
+
+  // Cập nhật hạng thành viên
+  rpc UpdateMembershipTier (UpdateMembershipTierRequest) returns (google.protobuf.Empty);
+
+  // Xóa hạng thành viên
+  rpc DeleteMembershipTier (DeleteMembershipTierRequest) returns (google.protobuf.Empty);
+}
+
+// Đối tượng trả về cho từng hạng thành viên
+message MembershipTierResponse {
+  string id = 1; // Sử dụng string cho Guid
+  string name = 2;
+  string min_spend_required = 3; // Dùng string để mapping với decimal
+  double discount_rate = 4;
+  string amount_per_point = 5;
+  string value_per_point = 6;
+}
+
+// Danh sách kết quả cho hàm GetAll
+message MembershipTierListResponse {
+  repeated MembershipTierResponse tiers = 1;
+}
+
+// Yêu cầu tạo mới
+message CreateMembershipTierRequest {
+  string name = 1;
+  string min_spend_required = 2;
+  double discount_rate = 3;
+  string amount_per_point = 4;
+  string value_per_point = 5;
+}
+
+// Yêu cầu cập nhật (Sử dụng optional cho các trường có thể null)
+message UpdateMembershipTierRequest {
+  string id = 1;
+  optional string name = 2;
+  optional string min_spend_required = 3;
+  optional double discount_rate = 4;
+  optional string amount_per_point = 5;
+  optional string value_per_point = 6;
+}
+
+// Yêu cầu xóa
+message DeleteMembershipTierRequest {
+  string id = 1;
+}

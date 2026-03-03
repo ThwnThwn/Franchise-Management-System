@@ -25,4 +25,10 @@ public static class KafkaTopics
 
     /// <summary>Sự kiện đơn hàng đã hủy (Inventory listen)</summary>
     public const string OrderCancelled = "order-cancelled";
+
+    /// <summary>Tạo Tier cho account từ Engagement</summary>
+    public const string LoyaltyTierAccount = "loyalty-account";
+
+    /// <summary>Cộng point cho account từ Engagement</summary>
+    public const string ProcessOrderReward = "process-order-reward";
 }

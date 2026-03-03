@@ -6,8 +6,15 @@ using System.Threading.Tasks;
 
 namespace EngagementService.Application.Dtos.Indentity
 {
-    public class UserIdRep
+    public class UserSimpleResp
     {
-        public Guid UserId { get; set; }    
+        public List<UserIDNameResp> UserIDNameResp { get; set; } = new List<UserIDNameResp>();
+
     }   
+
+    public class UserIDNameResp
+    {
+        public Guid UserId { get; set; }
+        public string UserName { get; set; } = string.Empty;
+    }
 }

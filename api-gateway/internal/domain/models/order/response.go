@@ -72,3 +72,38 @@ type OrderItem struct {
 	Sku         string  `json:"sku"`
 	ImageUrl    string  `json:"imageUrl"`
 }
+
+type GetRevenueReportReply struct {
+	FromDate            string         `json:"fromDate" example:"2024-01-01T00:00:00Z"`
+	ToDate              string         `json:"toDate" example:"2024-01-31T23:59:59Z"`
+	CategoryId          string         `json:"categoryId"`
+	Items               []*RevenueItem `json:"items"`
+	OverallTotalRevenue float64        `json:"overallTotalRevenue"`
+}
+
+type GetOrderVolumeReply struct {
+	Orders []*OrderVolumeADay `json:"orders"`
+}
+
+type RevenueItem struct {
+	StoreId      *string `json:"storeId"`
+	ProductName  string  `json:"productName"`
+	Sku          string  `json:"sku"`
+	QuantitySold int32   `json:"quantitySold"`
+	UnitPrice    float64 `json:"unitPrice"`
+	TotalRevenue float64 `json:"totalRevenue"`
+}
+
+type CsvFile struct {
+	CsvRaw      []byte `json:"csvRaw"`
+	CsvFileName string `json:"csvFileName"`
+}
+
+type OrderVolumeADay struct {
+	Date           string           `json:"date" example:"2024-05-20"`
+	TotalOrders    int32            `json:"totalOrders"`
+	CanceledOrder  int32            `json:"canceledOrder"`
+	CompletedOrder int32            `json:"completedOrder"`
+	StoreId        *string          `json:"storeId"`
+	StatusCounts   map[string]int32 `json:"statusCounts"`
+}

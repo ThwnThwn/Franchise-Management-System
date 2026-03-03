@@ -94,5 +94,33 @@ public sealed class PaymentRepository : IPaymentRepository
 
         return await _db.SaveChangesAsync();
     }
+
+    public async Task<PagedResult<Payment>> GetMyPaymentHistoryAsync(
+        Guid customerId,
+        int page,
+        int pageSize,
+        DateTime? startDate = null,
+        DateTime? endDate = null,
+        int? status = null,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _db.Payments
+            .Include(p => p.Order)
+            .Where(p => (p.IsDeleted == null || p.IsDeleted == false)
+                     && p.Order.CustomerId == customerId);
+
+        if (startDate.HasValue)
+            query = query.Where(p => p.CreatedAt >= startDate.Value);
+
+        if (endDate.HasValue)
+            query = query.Where(p => p.CreatedAt <= endDate.Value);
+
+        if (status.HasValue)
+            query = query.Where(p => p.Status == status.Value);
+
+        query = query.OrderByDescending(p => p.CreatedAt);
+
+        return await query.ToPagedListAsync(page, pageSize, cancellationToken);
+    }
 }
 

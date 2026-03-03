@@ -70,7 +70,7 @@ namespace FranchiseService.Infrastructure.Clients.Identity
         {
             try
             {
-                var request = new GetAllUserOrWithRoleRequest
+                var request = new GetAllUserWithFilterRequest
                 {
                     RoleSlug = roleSlug ?? "",
                     Page = 1,

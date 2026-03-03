@@ -53,6 +53,7 @@ public class ProductServiceClient : IProductServiceClient
                 VariantId = Guid.Parse(response.VariantId),
                 ProductName = response.ProductName,
                 Sku = response.Sku,
+                Attributes = response.Attributes,
                 BasePrice = (decimal)response.BasePrice,
                 ImageUrl = response.ImageUrl
             };
@@ -74,7 +75,7 @@ public class ProductServiceClient : IProductServiceClient
         try
         {
             var uniqueSkus = skus.Where(s => !string.IsNullOrWhiteSpace(s)).Distinct().ToList();
-            
+
             if (!uniqueSkus.Any())
             {
                 return new List<ProductVariantInfo>();
@@ -91,6 +92,7 @@ public class ProductServiceClient : IProductServiceClient
                 VariantId = Guid.Parse(v.VariantId),
                 ProductName = v.ProductName,
                 Sku = v.Sku,
+                Attributes = v.Attributes,
                 BasePrice = (decimal)v.BasePrice,
                 ImageUrl = v.ImageUrl
             }).ToList();

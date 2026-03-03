@@ -19,6 +19,27 @@ PROTOBUF_REGEX = \s*protobuf:"[^"]*"\s+json:"([^",]+),omitempty"
 REPLACE_REGEX  = json:"$1"
 
 # ==============================================================================
+# CROSS-PLATFORM COMMANDS (Tự động nhận diện HĐH)
+# ==============================================================================
+ifeq ($(OS),Windows_NT)
+    # Lệnh cho Windows (PowerShell, CMD)
+    MKDIR_P   = if not exist "$(subst /,\,$(GO_PB_DIR))" mkdir "$(subst /,\,$(GO_PB_DIR))"
+    RM_PB_DIR = del /q /s "$(subst /,\,$(GO_PB_DIR))\*.pb.go" 2>nul
+    RM_BIN    = del /q /f "$(subst /,\,$(GO_BIN_OUT))" 2>nul
+    RM_DOCS   = rmdir /s /q "$(subst /,\,$(SWAGGER_DOCS_DIR))" 2>nul
+else
+    # Lệnh cho Linux, macOS, hoặc Git Bash
+    MKDIR_P   = mkdir -p $(GO_PB_DIR)
+    RM_PB_DIR = rm -f $(GO_PB_DIR)/*/*.pb.go
+    RM_BIN    = rm -f $(GO_BIN_OUT)
+    RM_DOCS   = rm -rf $(SWAGGER_DOCS_DIR)
+endif
+
+# Dùng hàm của Make để tự tìm file .proto, không phụ thuộc vào shell (find hay dir)
+# Cú pháp này quét file .proto ở thư mục gốc và các thư mục con cấp 1
+PROTO_FILES := $(wildcard $(PROTO_SOURCE_DIR)/*.proto) $(wildcard $(PROTO_SOURCE_DIR)/*/*.proto)
+
+# ==============================================================================
 # COMMANDS
 # ==============================================================================
 
@@ -26,19 +47,34 @@ REPLACE_REGEX  = json:"$1"
 
 help:
 	@echo "PROJECT COMMANDS:"
-	@echo "  make swagger       : Generate Swagger documentation"
 	@echo "  make proto         : Generate gRPC code"
-	@echo "  make gen           : Generate gRPC code AND Swagger docs"
+	@echo "  make wire          : Generate Dependency Injection code (Google Wire)"
+	@echo "  make swagger       : Generate Swagger documentation"
+	@echo "  make gen           : Generate wire, gRPC code AND Swagger docs"
 	@echo "  make build         : Build the Go API Gateway executable"
 	@echo "  make run           : Build and Run the Go Gateway locally"
 	@echo "  make dev           : Full flow: Gen (Proto+Swagger) -> Build -> Run"
-	@echo "  make wire          : Generate Dependency Injection code (Google Wire)"
 	@echo "  make clean         : Clean generated PB files and binaries"
 	@echo "  make install-tools : Install necessary tools (swag, wire, protoc-gen-go)"
 
 # ------------------------------------------------------------------------------
-# 1. CODE GENERATION (PROTO + SWAGGER)
+# 1. CODE GENERATION (PROTO + WIRE + SWAGGER)
 # ------------------------------------------------------------------------------
+proto:
+	@echo "Generating code from $(PROTO_SOURCE_DIR) to $(GO_PB_DIR)..."
+	@$(MKDIR_P)
+	@protoc \
+		--proto_path=$(PROTO_SOURCE_DIR) \
+		--go_out=$(GO_PB_DIR) --go_opt=paths=source_relative \
+		--go-grpc_out=$(GO_PB_DIR) --go-grpc_opt=paths=source_relative \
+		$(PROTO_FILES)
+	@echo "Proto generation process finished! Check: $(GO_PB_DIR)"
+
+wire:
+	@echo "Running Google Wire..."
+	@wire $(if $(filter-out $@,$(MAKECMDGOALS)),$(WIRE_PATH)/$(filter-out $@,$(MAKECMDGOALS)),$(WIRE_PATH)/...)
+	@echo "Google Wire generation process finished!"
+
 swagger:
 	@echo "Regenerating Swagger documentation to $(SWAGGER_DOCS_DIR)..."
 	@swag init -g $(GO_MAIN_REL_PATH) \
@@ -46,20 +82,7 @@ swagger:
 		--parseDependency --parseInternal
 	@echo "Swagger docs updated! (Check ./$(SWAGGER_DOCS_DIR) folder)"
 
-proto:
-	@echo "Generating code from $(PROTO_SOURCE_DIR) to $(GO_PB_DIR)..."
-	@mkdir -p $(GO_PB_DIR)
-	@for file in $(shell find $(PROTO_SOURCE_DIR) -name "*.proto"); do \
-		echo "Compiling $$file..."; \
-		protoc \
-			--proto_path=$(PROTO_SOURCE_DIR) \
-			--go_out=$(GO_PB_DIR) --go_opt=paths=source_relative \
-			--go-grpc_out=$(GO_PB_DIR) --go-grpc_opt=paths=source_relative \
-			$$file || echo "Warning: Failed to compile $$file, skipping..."; \
-	done
-	@echo "Proto generation process finished! Check: $(GO_PB_DIR)"
-
-gen: swagger proto
+gen: proto wire swagger
 
 # ------------------------------------------------------------------------------
 # 2. GO BUILD
@@ -87,10 +110,6 @@ dev: gen run
 # ------------------------------------------------------------------------------
 test:
 	@go test -v ./...
-
-wire:
-	@echo "Running Google Wire..."
-	@wire $(if $(filter-out $@,$(MAKECMDGOALS)),$(WIRE_PATH)/$(filter-out $@,$(MAKECMDGOALS)),$(WIRE_PATH)/...)
 
 install-tools:
 	@echo "Installing tools..."

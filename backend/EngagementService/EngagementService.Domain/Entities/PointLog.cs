@@ -19,11 +19,13 @@ public partial class PointLog : IEntity
 
     public PointActionType ActionType { get; set; }
 
-    public string? ReasonCode { get; set; }
+    public PointReasonCode? ReasonCode { get; set; }
 
     public Guid? ReferenceId { get; set; }
 
     public string? Description { get; set; }
+
+    public DateTimeOffset? ExpiredAt { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; }
 

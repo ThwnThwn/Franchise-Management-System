@@ -38,5 +38,7 @@ namespace IdentityService.Application.Dtos.User.Request
 
         [Required]
         public string RoleSlug { get; set; } = null!;
+        public Guid? HomeStoreId { get; set; }
+        public decimal? CurrentHourlyWage { get; set; }
     }
 }

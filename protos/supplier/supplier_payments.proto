@@ -1,0 +1,104 @@
+syntax = "proto3";
+
+option csharp_namespace = "SupplierService.Grpc.Protos.Supplier";
+option go_package = "api-gateway/pkg/pb/supplier";
+
+package supplier;
+
+service SupplierPaymentGrpc {
+  // Ghi nhận thanh toán (Cash tức thì, VNPay trả về URL)
+  rpc CreatePoPayment (CreatePoPaymentRequest) returns (CreatePoPaymentReply);
+
+  // VNPay callback: xác thực chữ ký và cập nhật trạng thái
+  rpc HandleVnPayReturn (HandleVnPayReturnRequest) returns (HandleVnPayReturnReply);
+
+  // Lấy tất cả payments của 1 đơn nhập hàng
+  rpc GetPaymentsByPurchaseOrder (GetPaymentsByPurchaseOrderRequest) returns (GetPaymentsByPurchaseOrderReply);
+
+  // Lấy tất cả supplier payments (phân trang, lọc)
+  rpc GetAllSupplierPayments (GetAllSupplierPaymentsRequest) returns (GetAllSupplierPaymentsReply);
+}
+
+// ── Enums ────────────────────────────────────────────────────────────────────
+
+enum SupplierPaymentMethodType {
+  SUPPLIER_PAYMENT_METHOD_CASH   = 0;
+  SUPPLIER_PAYMENT_METHOD_VNPAY  = 1;
+}
+
+// ── CreatePoPayment ─────────────────────────────────────────────────────────────
+
+message CreatePoPaymentRequest {
+  string purchase_order_id = 1;
+  SupplierPaymentMethodType method = 2;
+  optional string return_url = 3;   // VNPay redirect URL sau khi thanh toán
+}
+
+message CreatePoPaymentReply {
+  string payment_id = 1;
+  string code       = 2;
+  string url        = 3;  // VNPay URL (empty nếu Cash)
+}
+
+// ── HandleVnPayReturn ──────────────────────────────────────────────────────────
+
+message HandleVnPayReturnRequest {
+  map<string, string> query_params = 1;
+}
+
+message HandleVnPayReturnReply {
+  bool   success          = 1;
+  string payment_id       = 2;
+  string purchase_order_id = 3;
+  string response_code    = 4;
+}
+
+// ── GetPaymentsByPurchaseOrder ────────────────────────────────────────────────
+
+message GetPaymentsByPurchaseOrderRequest {
+  string purchase_order_id = 1;
+}
+
+message GetPaymentsByPurchaseOrderReply {
+  repeated SupplierPaymentDto payments = 1;
+}
+
+// ── GetAllSupplierPayments ────────────────────────────────────────────────────
+
+message GetAllSupplierPaymentsRequest {
+  int32  page     = 1;
+  int32  page_size = 2;
+  optional string supplier_id       = 3;
+  optional string purchase_order_id = 4;
+}
+
+message GetAllSupplierPaymentsReply {
+  repeated SupplierPaymentSummaryDto payments = 1;
+  int32 total_count = 2;
+}
+
+// ── DTOs ─────────────────────────────────────────────────────────────────────
+
+message SupplierPaymentDto {
+  string id                = 1;
+  string purchase_order_id = 2;
+  string code              = 3;
+  double amount            = 4;
+  int32  method            = 5;
+  int32  status            = 6;
+  string notes             = 7;
+  string paid_at           = 8;
+  string created_at        = 9;
+}
+
+message SupplierPaymentSummaryDto {
+  string id                   = 1;
+  string purchase_order_id    = 2;
+  string purchase_order_code  = 3;
+  string code                 = 4;
+  double amount               = 5;
+  int32  method               = 6;
+  int32  status               = 7;
+  string paid_at              = 8;
+  string created_at           = 9;
+}
