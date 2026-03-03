@@ -24,11 +24,18 @@ func ProvideUserClient(f *identityClientFactory) idenGW.IUserService {
 func (u *UserGrpcClient) GetAll(ctx context.Context, req *user.GetAllUsersRequest) (
 	common.PaginationResult[*user.UserResponse], error,
 ) {
-	res, err := u.client.GetAll(ctx, &idenPb.GetAllUserOrWithRoleRequest{
-		RoleSlug: req.RoleSlug,
+	res, err := u.client.GetAll(ctx, &idenPb.GetAllUserWithFilterRequest{
 		Page:     req.Page,
 		PageSize: req.PageSize,
-		Keyword:  req.Keyword,
+
+		Keyword:       req.Keyword,
+		RoleSlug:      req.RoleSlug,
+		HasHourlyWage: req.HasHourlyWage,
+		HomeStoreId:   req.HomeStoreId,
+		TierId:        req.TierId,
+		OrderCount:    req.OrderCount,
+		StartAt:       req.StartAt,
+		EndAt:         req.EndAt,
 	})
 	if err != nil {
 		return common.PaginationResult[*user.UserResponse]{}, err
@@ -82,6 +89,9 @@ func (u *UserGrpcClient) Create(ctx context.Context, req *user.CreateUserRequest
 		LastName:    req.LastName,
 		Gender:      req.Gender,
 		DateOfBirth: req.DateOfBirth,
+
+		CurrentHourlyWage: req.CurrentHourlyWage,
+		HomeStoreId:       req.HomeStoreID,
 	})
 	if err != nil {
 		return nil, err
@@ -103,6 +113,9 @@ func (u *UserGrpcClient) Update(ctx context.Context, id uuid.UUID, req *user.Upd
 		FirstName:   req.FirstName,
 		LastName:    req.LastName,
 		RoleSlug:    req.RoleSlug,
+
+		CurrentHourlyWage: req.CurrentHourlyWage,
+		HomeStoreId:       req.HomeStoreID,
 	})
 	if err != nil {
 		return nil, err

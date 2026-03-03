@@ -26,11 +26,15 @@ type LoyaltyAccountGrpcClient interface {
 	// Hàm xử lý phần thưởng sau đơn hàng, không trả về dữ liệu (google.protobuf.Empty)
 	ProcessOrderReward(ctx context.Context, in *ProcessOrderRewardRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// Hàm lấy thông tin tài khoản qua số điện thoại
-	GetByUserPhoneOrEmail(ctx context.Context, in *GetByUserPhoneOrEmailRequest, opts ...grpc.CallOption) (*LoyaltyAccountResponse, error)
+	GetByUserPhoneOrEmail(ctx context.Context, in *GetByUserPhoneOrEmailRequest, opts ...grpc.CallOption) (*LoyaltyAccountsResponse, error)
+	// Hàm lấy thông tin tài khoản theo bộ lọc
+	GetByFilter(ctx context.Context, in *GetByFilterRequest, opts ...grpc.CallOption) (*LoyaltyAccountsResponse, error)
 	// Hàm Upsert nhận vào UpSertRequest và không trả ra gì
 	CreateLoyaltyAccount(ctx context.Context, in *CreateLoyaltyAccountRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// Hàm trừ điểm khi xử dụng
 	DeductPoints(ctx context.Context, in *DeductPointRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// RPC lấy báo cáo (trả về dữ liệu thô)
+	GetLoyaltyReport(ctx context.Context, in *GetLoyaltyReportRequest, opts ...grpc.CallOption) (*LoyaltyReportResponse, error)
 }
 
 type loyaltyAccountGrpcClient struct {
@@ -50,9 +54,18 @@ func (c *loyaltyAccountGrpcClient) ProcessOrderReward(ctx context.Context, in *P
 	return out, nil
 }
 
-func (c *loyaltyAccountGrpcClient) GetByUserPhoneOrEmail(ctx context.Context, in *GetByUserPhoneOrEmailRequest, opts ...grpc.CallOption) (*LoyaltyAccountResponse, error) {
-	out := new(LoyaltyAccountResponse)
+func (c *loyaltyAccountGrpcClient) GetByUserPhoneOrEmail(ctx context.Context, in *GetByUserPhoneOrEmailRequest, opts ...grpc.CallOption) (*LoyaltyAccountsResponse, error) {
+	out := new(LoyaltyAccountsResponse)
 	err := c.cc.Invoke(ctx, "/engagement.LoyaltyAccountGrpc/GetByUserPhoneOrEmail", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *loyaltyAccountGrpcClient) GetByFilter(ctx context.Context, in *GetByFilterRequest, opts ...grpc.CallOption) (*LoyaltyAccountsResponse, error) {
+	out := new(LoyaltyAccountsResponse)
+	err := c.cc.Invoke(ctx, "/engagement.LoyaltyAccountGrpc/GetByFilter", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -77,6 +90,15 @@ func (c *loyaltyAccountGrpcClient) DeductPoints(ctx context.Context, in *DeductP
 	return out, nil
 }
 
+func (c *loyaltyAccountGrpcClient) GetLoyaltyReport(ctx context.Context, in *GetLoyaltyReportRequest, opts ...grpc.CallOption) (*LoyaltyReportResponse, error) {
+	out := new(LoyaltyReportResponse)
+	err := c.cc.Invoke(ctx, "/engagement.LoyaltyAccountGrpc/GetLoyaltyReport", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // LoyaltyAccountGrpcServer is the server API for LoyaltyAccountGrpc service.
 // All implementations must embed UnimplementedLoyaltyAccountGrpcServer
 // for forward compatibility
@@ -84,11 +106,15 @@ type LoyaltyAccountGrpcServer interface {
 	// Hàm xử lý phần thưởng sau đơn hàng, không trả về dữ liệu (google.protobuf.Empty)
 	ProcessOrderReward(context.Context, *ProcessOrderRewardRequest) (*emptypb.Empty, error)
 	// Hàm lấy thông tin tài khoản qua số điện thoại
-	GetByUserPhoneOrEmail(context.Context, *GetByUserPhoneOrEmailRequest) (*LoyaltyAccountResponse, error)
+	GetByUserPhoneOrEmail(context.Context, *GetByUserPhoneOrEmailRequest) (*LoyaltyAccountsResponse, error)
+	// Hàm lấy thông tin tài khoản theo bộ lọc
+	GetByFilter(context.Context, *GetByFilterRequest) (*LoyaltyAccountsResponse, error)
 	// Hàm Upsert nhận vào UpSertRequest và không trả ra gì
 	CreateLoyaltyAccount(context.Context, *CreateLoyaltyAccountRequest) (*emptypb.Empty, error)
 	// Hàm trừ điểm khi xử dụng
 	DeductPoints(context.Context, *DeductPointRequest) (*emptypb.Empty, error)
+	// RPC lấy báo cáo (trả về dữ liệu thô)
+	GetLoyaltyReport(context.Context, *GetLoyaltyReportRequest) (*LoyaltyReportResponse, error)
 	mustEmbedUnimplementedLoyaltyAccountGrpcServer()
 }
 
@@ -99,14 +125,20 @@ type UnimplementedLoyaltyAccountGrpcServer struct {
 func (UnimplementedLoyaltyAccountGrpcServer) ProcessOrderReward(context.Context, *ProcessOrderRewardRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ProcessOrderReward not implemented")
 }
-func (UnimplementedLoyaltyAccountGrpcServer) GetByUserPhoneOrEmail(context.Context, *GetByUserPhoneOrEmailRequest) (*LoyaltyAccountResponse, error) {
+func (UnimplementedLoyaltyAccountGrpcServer) GetByUserPhoneOrEmail(context.Context, *GetByUserPhoneOrEmailRequest) (*LoyaltyAccountsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetByUserPhoneOrEmail not implemented")
+}
+func (UnimplementedLoyaltyAccountGrpcServer) GetByFilter(context.Context, *GetByFilterRequest) (*LoyaltyAccountsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetByFilter not implemented")
 }
 func (UnimplementedLoyaltyAccountGrpcServer) CreateLoyaltyAccount(context.Context, *CreateLoyaltyAccountRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateLoyaltyAccount not implemented")
 }
 func (UnimplementedLoyaltyAccountGrpcServer) DeductPoints(context.Context, *DeductPointRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeductPoints not implemented")
+}
+func (UnimplementedLoyaltyAccountGrpcServer) GetLoyaltyReport(context.Context, *GetLoyaltyReportRequest) (*LoyaltyReportResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetLoyaltyReport not implemented")
 }
 func (UnimplementedLoyaltyAccountGrpcServer) mustEmbedUnimplementedLoyaltyAccountGrpcServer() {}
 
@@ -157,6 +189,24 @@ func _LoyaltyAccountGrpc_GetByUserPhoneOrEmail_Handler(srv interface{}, ctx cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LoyaltyAccountGrpc_GetByFilter_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetByFilterRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LoyaltyAccountGrpcServer).GetByFilter(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/engagement.LoyaltyAccountGrpc/GetByFilter",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LoyaltyAccountGrpcServer).GetByFilter(ctx, req.(*GetByFilterRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _LoyaltyAccountGrpc_CreateLoyaltyAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateLoyaltyAccountRequest)
 	if err := dec(in); err != nil {
@@ -193,6 +243,24 @@ func _LoyaltyAccountGrpc_DeductPoints_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LoyaltyAccountGrpc_GetLoyaltyReport_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetLoyaltyReportRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LoyaltyAccountGrpcServer).GetLoyaltyReport(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/engagement.LoyaltyAccountGrpc/GetLoyaltyReport",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LoyaltyAccountGrpcServer).GetLoyaltyReport(ctx, req.(*GetLoyaltyReportRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // LoyaltyAccountGrpc_ServiceDesc is the grpc.ServiceDesc for LoyaltyAccountGrpc service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -209,12 +277,20 @@ var LoyaltyAccountGrpc_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _LoyaltyAccountGrpc_GetByUserPhoneOrEmail_Handler,
 		},
 		{
+			MethodName: "GetByFilter",
+			Handler:    _LoyaltyAccountGrpc_GetByFilter_Handler,
+		},
+		{
 			MethodName: "CreateLoyaltyAccount",
 			Handler:    _LoyaltyAccountGrpc_CreateLoyaltyAccount_Handler,
 		},
 		{
 			MethodName: "DeductPoints",
 			Handler:    _LoyaltyAccountGrpc_DeductPoints_Handler,
+		},
+		{
+			MethodName: "GetLoyaltyReport",
+			Handler:    _LoyaltyAccountGrpc_GetLoyaltyReport_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

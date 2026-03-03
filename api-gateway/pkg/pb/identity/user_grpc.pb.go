@@ -27,10 +27,10 @@ type UserGrpcClient interface {
 	AdminCreate(ctx context.Context, in *AdminCreateUserRequest, opts ...grpc.CallOption) (*UserResponse, error)
 	GetById(ctx context.Context, in *GetUserByIdRequest, opts ...grpc.CallOption) (*UserResponse, error)
 	GetByIds(ctx context.Context, in *GetUserByIdsRequest, opts ...grpc.CallOption) (*GetUserByIdsResponse, error)
-	GetAll(ctx context.Context, in *GetAllUserOrWithRoleRequest, opts ...grpc.CallOption) (*GetAllUserOrWithRoleResponse, error)
+	GetAll(ctx context.Context, in *GetAllUserWithFilterRequest, opts ...grpc.CallOption) (*GetAllUserOrWithRoleResponse, error)
 	GetManager(ctx context.Context, in *GetManagerRequest, opts ...grpc.CallOption) (*UserResponse, error)
-	GetUserIdByPhone(ctx context.Context, in *GetUserIdByPhoneRequest, opts ...grpc.CallOption) (*UserIdResponse, error)
-	GetUserIdByEmail(ctx context.Context, in *GetUserIdByEmailRequest, opts ...grpc.CallOption) (*UserIdResponse, error)
+	GetUserIdByPhone(ctx context.Context, in *GetUserIdByPhoneRequest, opts ...grpc.CallOption) (*GetSimpleUsersRespone, error)
+	GetUserIdByEmail(ctx context.Context, in *GetUserIdByEmailRequest, opts ...grpc.CallOption) (*GetSimpleUsersRespone, error)
 	Update(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*UserResponse, error)
 	ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*UserResponse, error)
 	Delete(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error)
@@ -82,7 +82,7 @@ func (c *userGrpcClient) GetByIds(ctx context.Context, in *GetUserByIdsRequest, 
 	return out, nil
 }
 
-func (c *userGrpcClient) GetAll(ctx context.Context, in *GetAllUserOrWithRoleRequest, opts ...grpc.CallOption) (*GetAllUserOrWithRoleResponse, error) {
+func (c *userGrpcClient) GetAll(ctx context.Context, in *GetAllUserWithFilterRequest, opts ...grpc.CallOption) (*GetAllUserOrWithRoleResponse, error) {
 	out := new(GetAllUserOrWithRoleResponse)
 	err := c.cc.Invoke(ctx, "/identity.user.UserGrpc/GetAll", in, out, opts...)
 	if err != nil {
@@ -100,8 +100,8 @@ func (c *userGrpcClient) GetManager(ctx context.Context, in *GetManagerRequest, 
 	return out, nil
 }
 
-func (c *userGrpcClient) GetUserIdByPhone(ctx context.Context, in *GetUserIdByPhoneRequest, opts ...grpc.CallOption) (*UserIdResponse, error) {
-	out := new(UserIdResponse)
+func (c *userGrpcClient) GetUserIdByPhone(ctx context.Context, in *GetUserIdByPhoneRequest, opts ...grpc.CallOption) (*GetSimpleUsersRespone, error) {
+	out := new(GetSimpleUsersRespone)
 	err := c.cc.Invoke(ctx, "/identity.user.UserGrpc/GetUserIdByPhone", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -109,8 +109,8 @@ func (c *userGrpcClient) GetUserIdByPhone(ctx context.Context, in *GetUserIdByPh
 	return out, nil
 }
 
-func (c *userGrpcClient) GetUserIdByEmail(ctx context.Context, in *GetUserIdByEmailRequest, opts ...grpc.CallOption) (*UserIdResponse, error) {
-	out := new(UserIdResponse)
+func (c *userGrpcClient) GetUserIdByEmail(ctx context.Context, in *GetUserIdByEmailRequest, opts ...grpc.CallOption) (*GetSimpleUsersRespone, error) {
+	out := new(GetSimpleUsersRespone)
 	err := c.cc.Invoke(ctx, "/identity.user.UserGrpc/GetUserIdByEmail", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -171,10 +171,10 @@ type UserGrpcServer interface {
 	AdminCreate(context.Context, *AdminCreateUserRequest) (*UserResponse, error)
 	GetById(context.Context, *GetUserByIdRequest) (*UserResponse, error)
 	GetByIds(context.Context, *GetUserByIdsRequest) (*GetUserByIdsResponse, error)
-	GetAll(context.Context, *GetAllUserOrWithRoleRequest) (*GetAllUserOrWithRoleResponse, error)
+	GetAll(context.Context, *GetAllUserWithFilterRequest) (*GetAllUserOrWithRoleResponse, error)
 	GetManager(context.Context, *GetManagerRequest) (*UserResponse, error)
-	GetUserIdByPhone(context.Context, *GetUserIdByPhoneRequest) (*UserIdResponse, error)
-	GetUserIdByEmail(context.Context, *GetUserIdByEmailRequest) (*UserIdResponse, error)
+	GetUserIdByPhone(context.Context, *GetUserIdByPhoneRequest) (*GetSimpleUsersRespone, error)
+	GetUserIdByEmail(context.Context, *GetUserIdByEmailRequest) (*GetSimpleUsersRespone, error)
 	Update(context.Context, *UpdateUserRequest) (*UserResponse, error)
 	ChangePassword(context.Context, *ChangePasswordRequest) (*UserResponse, error)
 	Delete(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error)
@@ -199,16 +199,16 @@ func (UnimplementedUserGrpcServer) GetById(context.Context, *GetUserByIdRequest)
 func (UnimplementedUserGrpcServer) GetByIds(context.Context, *GetUserByIdsRequest) (*GetUserByIdsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetByIds not implemented")
 }
-func (UnimplementedUserGrpcServer) GetAll(context.Context, *GetAllUserOrWithRoleRequest) (*GetAllUserOrWithRoleResponse, error) {
+func (UnimplementedUserGrpcServer) GetAll(context.Context, *GetAllUserWithFilterRequest) (*GetAllUserOrWithRoleResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedUserGrpcServer) GetManager(context.Context, *GetManagerRequest) (*UserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetManager not implemented")
 }
-func (UnimplementedUserGrpcServer) GetUserIdByPhone(context.Context, *GetUserIdByPhoneRequest) (*UserIdResponse, error) {
+func (UnimplementedUserGrpcServer) GetUserIdByPhone(context.Context, *GetUserIdByPhoneRequest) (*GetSimpleUsersRespone, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserIdByPhone not implemented")
 }
-func (UnimplementedUserGrpcServer) GetUserIdByEmail(context.Context, *GetUserIdByEmailRequest) (*UserIdResponse, error) {
+func (UnimplementedUserGrpcServer) GetUserIdByEmail(context.Context, *GetUserIdByEmailRequest) (*GetSimpleUsersRespone, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserIdByEmail not implemented")
 }
 func (UnimplementedUserGrpcServer) Update(context.Context, *UpdateUserRequest) (*UserResponse, error) {
@@ -312,7 +312,7 @@ func _UserGrpc_GetByIds_Handler(srv interface{}, ctx context.Context, dec func(i
 }
 
 func _UserGrpc_GetAll_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetAllUserOrWithRoleRequest)
+	in := new(GetAllUserWithFilterRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -324,7 +324,7 @@ func _UserGrpc_GetAll_Handler(srv interface{}, ctx context.Context, dec func(int
 		FullMethod: "/identity.user.UserGrpc/GetAll",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserGrpcServer).GetAll(ctx, req.(*GetAllUserOrWithRoleRequest))
+		return srv.(UserGrpcServer).GetAll(ctx, req.(*GetAllUserWithFilterRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
