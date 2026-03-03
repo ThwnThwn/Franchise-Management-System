@@ -15,7 +15,7 @@
 //             isActive: true,
 //             categoryId: "b2c3d4e5-f6g7-h8i9-j0k1-l2m3n4o5p6q7",
 //             categoryName: "coffee",
-//             sizes: [
+//             variants: [
 //                 {
 //                     id: "8fb37172-3591-496a-8451-874246835263",
 //                     sku: "TEA-PCS-STD",
@@ -34,7 +34,7 @@
 //             isActive: true,
 //             categoryId: "b2c3d4e5-f6g7-h8i9-j0k1-l2m3n4o5p6q7",
 //             categoryName: "coffee",
-//             sizes: [
+//             variants: [
 //                 {
 //                     id: "8fb37172-3591-496a-8451-874246835263",
 //                     sku: "TEA-PCS-STD",
@@ -53,7 +53,7 @@
 //             isActive: true,
 //             categoryId: "b2c3d4e5-f6g7-h8i9-j0k1-l2m3n4o5p6q7",
 //             categoryName: "coffee",
-//             sizes: [
+//             variants: [
 //                 {
 //                     id: "8fb37172-3591-496a-8451-874246835263",
 //                     sku: "TEA-PCS-STD",
@@ -72,7 +72,7 @@
 //             isActive: true,
 //             categoryId: "b2c3d4e5-f6g7-h8i9-j0k1-l2m3n4o5p6q7",
 //             categoryName: "coffee",
-//             sizes: [
+//             variants: [
 //                 {
 //                     id: "8fb37172-3591-496a-8451-874246835263",
 //                     sku: "TEA-PCS-STD",
@@ -91,7 +91,7 @@
 //             isActive: true,
 //             categoryId: "b2c3d4e5-f6g7-h8i9-j0k1-l2m3n4o5p6q7",
 //             categoryName: "coffee",
-//             sizes: [
+//             variants: [
 //                 {
 //                     id: "8fb37172-3591-496a-8451-874246835263",
 //                     sku: "TEA-PCS-STD",
@@ -110,7 +110,7 @@
 //             isActive: true,
 //             categoryId: "b2c3d4e5-f6g7-h8i9-j0k1-l2m3n4o5p6q7",
 //             categoryName: "coffee",
-//             sizes: [
+//             variants: [
 //                 {
 //                     id: "8fb37172-3591-496a-8451-874246835263",
 //                     sku: "TEA-PCS-STD",

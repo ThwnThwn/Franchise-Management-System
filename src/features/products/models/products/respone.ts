@@ -8,10 +8,10 @@ export type Product = {
     isActive: boolean
     categoryId: UUID
     categoryName: string
-    sizes: ProductSize[]
+    variants: ProductVariant[]
 }
 
-export type ProductSize = {
+export type ProductVariant = {
     id: UUID
     sku: string
     name?: string

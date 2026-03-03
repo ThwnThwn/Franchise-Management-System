@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useEffect, useRef, useState } from "react"
-import { Divider } from "@heroui/react"
+import { addToast, Divider } from "@heroui/react"
 import { X, ShoppingBag, AlertTriangle } from "lucide-react"
 import { CartItem } from "./CartItem"
 import { ButtonIconStyled, ButtonStyled, CheckboxStyled } from "@/components"
@@ -171,7 +171,15 @@ export default function CartDrawer() {
     })
 
     const handleCheckout = async () => {
-        if (!currentStore || selectedItems.length === 0) return
+        if (!currentStore) {
+            addToast({
+                title: "Vui lòng chọn cửa hàng để tiếp tục!",
+                color: "warning"
+            })
+            return
+        }
+
+        if (selectedItems.length === 0) return
         setShortageMap({}) // Reset danh sách lỗi trước khi gửi yêu cầu thanh toán mới
 
         await createOrderMutation.mutateAsync({
@@ -237,16 +245,19 @@ export default function CartDrawer() {
                                     return (
                                         <div key={item.sku} className="flex flex-col gap-2 mb-0">
                                             <div
-                                                className={`flex items-center gap-2 p-2 rounded-2xl transition-all border-2 ${isShortage
-                                                    ? "bg-danger-50 border-danger-200"
-                                                    : "border-transparent"
-                                                    }`}
+                                                className={`flex items-center gap-2 p-2 rounded-2xl transition-all border-2 ${
+                                                    isShortage
+                                                        ? "bg-danger-50 border-danger-200"
+                                                        : "border-transparent"
+                                                }`}
                                                 onClick={() => handleSelectItem(item.sku)}
                                             >
                                                 <div onClick={(e) => e.stopPropagation()}>
                                                     <CheckboxStyled
                                                         isSelected={selectedKeys.has(item.sku)}
-                                                        onValueChange={() => handleSelectItem(item.sku)}
+                                                        onValueChange={() =>
+                                                            handleSelectItem(item.sku)
+                                                        }
                                                     />
                                                 </div>
                                                 <div className="flex-1">

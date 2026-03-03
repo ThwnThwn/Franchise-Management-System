@@ -8,7 +8,7 @@ import { useCartStore } from "@/features/cart/store"
 import { parseAttributes } from "@/features/products/utils/utils"
 import { useTokenStore } from "@/hooks"
 import { useAddToCart } from "@/features/cart/hooks/useCartQuery"
-import { Product, ProductSize } from "@/features/products/models/products/respone"
+import { Product, ProductVariant } from "@/features/products/models/products/respone"
 import { RoleSlug } from "@/constants/enums"
 
 type ProductVariantsModalProps = {
@@ -25,7 +25,7 @@ export function ProductVariantsModal({
     storeId
 }: ProductVariantsModalProps) {
     const isCustomer = useTokenStore((s) => s.roleSlug === RoleSlug.Customer)
-    const [selectedSize, setSelectedSize] = useState<ProductSize | null>(null)
+    const [selectedSize, setSelectedSize] = useState<ProductVariant | null>(null)
     const [quantity, setQuantity] = useState<number>(1)
     const addItem = useCartStore((state) => state.addItem)
 
@@ -85,7 +85,7 @@ export function ProductVariantsModal({
 
     if (!product) return null
 
-    const sizes = product.sizes?.filter((s) => s.isActive) ?? []
+    const variants = product.variants?.filter((s) => s.isActive) ?? []
 
     return (
         <ModalStyled
@@ -112,7 +112,7 @@ export function ProductVariantsModal({
                     <div>
                         <p className="text-small text-default-500 mb-2">Chọn size</p>
                         <div className="flex flex-wrap gap-2">
-                            {sizes
+                            {variants
                                 .sort((a, b) => b.basePrice - a.basePrice)
                                 .map((size) => {
                                     const attrs = parseAttributes(size.attributes)

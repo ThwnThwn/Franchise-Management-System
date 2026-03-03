@@ -1,7 +1,7 @@
 import { create } from "zustand"
 import { persist, createJSONStorage } from "zustand/middleware"
 import { CartItem } from "@/features/cart/models/types"
-import { StoreDetailDto } from "@/features/stores"
+import { storeApi, StoreDetailDto } from "@/features/stores"
 
 export interface CartState {
     items: Omit<CartItem, "id" | "customerId">[]
@@ -16,6 +16,7 @@ export interface CartState {
     clearCart: () => void
     // setStoreId: (id: string | null) => void
     setStore: (store: StoreDetailDto | null) => void
+    revalidateStore: () => Promise<void>
 }
 
 const calculateSummary = (items: Omit<CartItem, "id" | "customerId">[]) => {
@@ -51,21 +52,6 @@ export const useCartStore = create<CartState>()(
             },
 
             addItem: (item) => {
-                // const currentItems = get().items
-
-                // if (
-                //     currentItems.length > 0 &&
-                //     item.store &&
-                //     currentItems[0].store &&
-                //     item.store !== currentItems[0].store
-                // ) {
-                //     set({ items: [], total: 0, count: 0 })
-                // }
-
-                // if (item.store) {
-                //     set({ currentStore: item.store })
-                // }
-
                 const freshItems = get().items
                 const existingItemIndex = freshItems.findIndex((i) => i.sku === item.sku)
 
@@ -119,11 +105,34 @@ export const useCartStore = create<CartState>()(
                     total: 0,
                     count: 0
                 })
+            },
+
+            revalidateStore: async () => {
+                const store = get().currentStore
+                if (!store?.id) return
+
+                try {
+                    const freshStore = await storeApi.getDetail(store.id)
+
+                    set({ currentStore: freshStore })
+                } catch {
+                    set({ currentStore: null })
+                }
             }
         }),
         {
             name: "cart-storage",
             storage: createJSONStorage(() => localStorage),
+
+            onRehydrateStorage: () => {
+                // Trả về một function sẽ chạy SAU KHI dữ liệu đã được đổ vào RAM
+                return (state) => {
+                    if (state) {
+                        // Gọi revalidate để check lại ID và sync lại Name/DTO
+                        state.revalidateStore()
+                    }
+                }
+            },
 
             partialize: (state) => ({
                 items: state.items,

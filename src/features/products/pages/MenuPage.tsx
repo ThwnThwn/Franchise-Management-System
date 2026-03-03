@@ -158,7 +158,7 @@ export default function MenuPage() {
 
             {isTyping ? (
                 <div className="w-full text-center">
-                    <Spinner />
+                    <Spinner className="mt-10" />
                 </div>
             ) : (
                 <>
@@ -174,9 +174,10 @@ export default function MenuPage() {
                                     transition={{ duration: 0.4 }}
                                     className="text-gray-500 mt-10 text-lg font-medium text-center w-full"
                                 >
-                                    {!selectedStore
+                                    {/* {!selectedStore
                                         ? "Vui lòng chọn cửa hàng để xem menu"
-                                        : MENU_ERRORS.NOT_HAVE_PRODUCT}
+                                        : MENU_ERRORS.NOT_HAVE_PRODUCT} */}
+                                    {MENU_ERRORS.NOT_HAVE_PRODUCT}
                                 </motion.div>
                             ) : (
                                 <motion.div

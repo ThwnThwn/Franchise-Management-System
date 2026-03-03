@@ -42,7 +42,7 @@ export default function ProductFormPageView({ productId }: { productId?: string 
     const categories = categoriesData || []
 
     // Lấy sẵn tất cả recipes của product khi ở Edit Mode
-    const variantIds = product?.sizes?.map((s) => s.id) ?? []
+    const variantIds = product?.variants?.map((s) => s.id) ?? []
     const { data: allRecipes = [] } = useGetRecipes({
         req: { variantIds },
         enabled: isEditMode && variantIds.length > 0
@@ -66,7 +66,7 @@ export default function ProductFormPageView({ productId }: { productId?: string 
                 categoryId: product.categoryId,
                 isActive: product.isActive ?? true,
                 variants:
-                    product.sizes?.map((v) => ({
+                    product.variants?.map((v) => ({
                         sku: v.sku,
                         name: v.name || "",
                         basePrice: v.basePrice,
@@ -174,7 +174,9 @@ export default function ProductFormPageView({ productId }: { productId?: string 
                         {isEditMode ? "Cập nhật sản phẩm" : "Thêm sản phẩm mới"}
                     </h1>
                     {isEditMode && product && (
-                        <p className="text-gray-500 text-sm">SKU Gốc: {product.sizes?.[0]?.sku}</p>
+                        <p className="text-gray-500 text-sm">
+                            SKU Gốc: {product.variants?.[0]?.sku}
+                        </p>
                     )}
                 </div>
                 {/* Switch Active */}
@@ -282,7 +284,7 @@ export default function ProductFormPageView({ productId }: { productId?: string 
                                                         remove={() => variantHelpers.remove(index)}
                                                         variantId={
                                                             isEditMode
-                                                                ? product?.sizes?.[index]?.id
+                                                                ? product?.variants?.[index]?.id
                                                                 : undefined
                                                         }
                                                         recipes={allRecipes}

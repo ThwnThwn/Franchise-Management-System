@@ -16,7 +16,7 @@ import {
     TableHeader,
     TableColumn
 } from "@heroui/react"
-import { Product, ProductSize } from "@/features/products/models/products/respone"
+import { Product, ProductVariant } from "@/features/products/models/products/respone"
 
 type ProductTableProps = {
     products: Product[]
@@ -36,12 +36,12 @@ export function ProductTable({
     isRefetching = false
 }: ProductTableProps) {
     // --- HELPERS ---
-    // 1. Tính khoảng giá: Tìm giá thấp nhất và cao nhất trong danh sách sizes
-    const getPriceDisplay = (sizes: ProductSize[]) => {
-        if (!sizes || sizes.length === 0)
+    // 1. Tính khoảng giá: Tìm giá thấp nhất và cao nhất trong danh sách variants
+    const getPriceDisplay = (variants: ProductVariant[]) => {
+        if (!variants || variants.length === 0)
             return <span className="text-slate-400 italic">Chưa thiết lập giá</span>
 
-        const prices = sizes.map((s) => s.basePrice)
+        const prices = variants.map((s) => s.basePrice)
         const min = Math.min(...prices)
         const max = Math.max(...prices)
 
@@ -61,7 +61,7 @@ export function ProductTable({
 
     // 2. Parse Attributes JSON để hiển thị tên đẹp hơn
     // Ví dụ: attributes = '{"color": "Đỏ", "material": "Cotton"}' -> "Đỏ, Cotton"
-    const getSizeName = (size: ProductSize) => {
+    const getSizeName = (size: ProductVariant) => {
         if (size.name) return size.name // Ưu tiên tên nếu có
 
         if (size.attributes) {
@@ -78,12 +78,12 @@ export function ProductTable({
     }
 
     // 3. Render nội dung Tooltip cho cột Sizes
-    const renderSizeTooltip = (sizes?: ProductSize[]) => {
+    const renderSizeTooltip = (variants?: ProductVariant[]) => {
         return (
             <div className="px-1 py-2">
                 <div className="text-xs font-bold mb-2 text-slate-300">Danh sách phân loại:</div>
                 <div className="flex flex-col gap-1">
-                    {(sizes || []).map((s) => (
+                    {(variants || []).map((s) => (
                         <div key={s.id} className="flex justify-between gap-4 text-xs">
                             <span className="text-white font-medium">{getSizeName(s)}</span>
                             <span className="text-emerald-400">
@@ -161,12 +161,12 @@ export function ProductTable({
                 </TableCell>
 
                 {/* Cột 3: Giá bán (Khoảng giá) */}
-                <TableCell>{getPriceDisplay(item.sizes)}</TableCell>
+                <TableCell>{getPriceDisplay(item.variants)}</TableCell>
 
                 {/* Cột 4: Sizes / Phân loại */}
                 <TableCell>
                     <Tooltip
-                        content={renderSizeTooltip(item.sizes)}
+                        content={renderSizeTooltip(item.variants)}
                         placement="right"
                         classNames={{
                             content: "bg-slate-900 text-white rounded-lg shadow-xl"
@@ -178,7 +178,7 @@ export function ProductTable({
                             color="secondary"
                             className="cursor-pointer"
                         >
-                            {(item.sizes || []).length} phân loại
+                            {(item.variants || []).length} phân loại
                         </Chip>
                     </Tooltip>
                 </TableCell>

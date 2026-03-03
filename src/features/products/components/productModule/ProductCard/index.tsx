@@ -35,7 +35,7 @@ type ProductCardProps = {
 export function ProductCard({ product, onClick }: ProductCardProps) {
     // Find base price (usually the smallest size or first variant)
     const basePrice =
-        product.sizes.length > 0 ? Math.min(...product.sizes.map((s) => s.basePrice)) : 0
+        product.variants.length > 0 ? Math.min(...product.variants.map((s) => s.basePrice)) : 0
 
     return (
         <div className="pt-12 mb-4 w-full max-w-56 group">
