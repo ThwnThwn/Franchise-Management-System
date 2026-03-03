@@ -3,9 +3,9 @@ using Ardalis.Result;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using SalesService.API.ControllerResult;
+using SalesService.Application.Features.Orders.Queries.GetById;
 using SalesService.Application.Features.Orders.Commands.Create;
 using SalesService.Application.Features.Orders.Commands.PayWithWallet;
-using SalesService.Application.Features.Orders.GetById;
 
 namespace SalesService.API.Controllers;
 
@@ -52,7 +52,6 @@ public class OrdersController : ControllerBase
             return BadRequest(result.ValidationErrors);
 
         return StatusCode(500, result.Errors);
-
     }
 
     [HttpPost("{orderId}/pay-with-wallet")]

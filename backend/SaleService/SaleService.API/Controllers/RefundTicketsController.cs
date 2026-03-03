@@ -1,7 +1,6 @@
 ﻿using System.Security.Claims;
 using Ardalis.Result;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SalesService.API.ControllerResult;
 using SalesService.Application.Features.RefundTickets.Command.ApproveRefund;
@@ -20,7 +19,6 @@ namespace SalesService.API.Controllers;
 
 [ApiController]
 [Route("api/refund-tickets")]
-//[Authorize]
 public class RefundTicketsController : ControllerBase
 {
     private readonly IMediator _mediator;

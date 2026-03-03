@@ -6,8 +6,6 @@ using SalesService.Application.Persisitences.Orders;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
 using SalesService.Infrastructure.ApplicationDbContext;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace SalesService.Infrastructure.Repositories.Orders;
 
@@ -121,6 +119,7 @@ public class OrderRepository : IOrderRepository
 
         return (items, totalCount);
     }
+
     public async Task SaveAsync(CancellationToken cancellationToken = default)
     {
         await _context.SaveChangesAsync(cancellationToken);
@@ -201,6 +200,7 @@ public class OrderRepository : IOrderRepository
 
         return aggregatedResult;
     }
+
     public async Task<List<OrderVolumePerDayDto>> GetOrderVolumeAsync(
         DateOnly fromDate,
         DateOnly toDate,
