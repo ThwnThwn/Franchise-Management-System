@@ -31,7 +31,7 @@ public sealed class GetMyPaymentHistoryHandler
         var items = paged.Items.Select(p => new PaymentHistoryItemDto
         {
             Id = p.Id,
-            OrderId = p.OrderId,
+            OrderId = p.OrderId ?? Guid.Empty,
             OrderCode = p.Order?.Code ?? string.Empty,
             Amount = p.Amount,
             Currency = p.Currency,

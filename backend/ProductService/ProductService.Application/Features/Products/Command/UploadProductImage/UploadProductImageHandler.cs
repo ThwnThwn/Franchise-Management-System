@@ -21,20 +21,15 @@ public class UploadProductImageHandler(
 
     public async Task<Result<UploadProductImageResponse>> Handle(UploadProductImageCommand request, CancellationToken cancellationToken)
     {
-        // 1. Lấy Product (Kèm cả Variant nếu repository của bro chưa Include mặc định)
+        // Lấy Product (Kèm cả Variant nếu repository của bro chưa Include mặc định)
         var product = await _productRepository.GetProductByIdAsync(request.ProductId);
         if (product is null)
         {
             return Result.NotFound("Product not found");
         }
+        var oldPublicId = product.ImagePublicId;
 
-        // 2. Xóa ảnh cũ trên Cloudinary
-        if (!string.IsNullOrWhiteSpace(product.ImagePublicId))
-        {
-            await _cloudinaryService.DeleteImageAsync(product.ImagePublicId);
-        }
-
-        // 3. Upload ảnh mới
+        // Upload ảnh mới
         var uploadResult = await _cloudinaryService.UploadImageFromBytesAsync(
             request.ImageData,
             request.FileName,
@@ -44,7 +39,7 @@ public class UploadProductImageHandler(
         product.ImageUrl = uploadResult.Url;
         product.ImagePublicId = uploadResult.PublicId;
 
-        // 4. BẮT ĐẦU TRANSACTION ĐỂ LƯU DB VÀ BẮN KAFKA
+        // BẮT ĐẦU TRANSACTION ĐỂ LƯU DB VÀ BẮN KAFKA
         await _uow.BeginTransactionAsync(cancellationToken);
 
         try
@@ -72,6 +67,12 @@ public class UploadProductImageHandler(
 
             await _eventBus.PublishAsync("product.persisted", integrationEvent, cancellationToken);
             await _uow.SaveChangesAsync(cancellationToken);
+
+            // Xóa ảnh cũ trên Cloudinary
+            if (!string.IsNullOrWhiteSpace(oldPublicId))
+            {
+                await _cloudinaryService.DeleteImageAsync(oldPublicId);
+            }
 
             return Result.Success(new UploadProductImageResponse(
                 ProductId: product.Id,

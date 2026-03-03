@@ -90,7 +90,7 @@ public sealed class UpdateOrderStatusCommandHandler
                     return "No pending payment found for this order.";
                 }
                 payment.Status = (int)PaymentStatus.Paid;
-
+                order.PaidAt = DateTime.UtcNow;
                 //OrderPaidEvent → InventoryService (trừ kho)
                 var orderPaidEvent = OrderToKafka.MapToOrderPaidEvent(payment.Order);
                 _outboxRepository.AddEvent(orderPaidEvent, KafkaTopics.OrderPaid);

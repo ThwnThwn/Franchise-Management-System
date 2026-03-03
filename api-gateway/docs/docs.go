@@ -4178,8 +4178,28 @@ const docTemplate = `{
                 "summary": "Get All Users",
                 "parameters": [
                     {
+                        "type": "number",
+                        "name": "endAt",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "name": "hasHourlyWage",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "homeStoreId",
+                        "in": "query"
+                    },
+                    {
                         "type": "string",
                         "name": "keyword",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "orderCount",
                         "in": "query"
                     },
                     {
@@ -4195,6 +4215,16 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "name": "roleSlug",
+                        "in": "query"
+                    },
+                    {
+                        "type": "number",
+                        "name": "startAt",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "tierId",
                         "in": "query"
                     }
                 ],

@@ -13,11 +13,11 @@ public class InventoryServiceClient : IInventoryServiceClient
 
     public InventoryServiceClient(IConfiguration configuration)
     {
-        var rawUrl = configuration["INVENTORY_SERVICE_URL"] ?? "https://localhost:5005";
+        var rawUrl = configuration["INVENTORY_SERVICE_URL"] ?? "http://localhost:5005";
         var inventoryServiceUrl = rawUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
                                   rawUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
             ? rawUrl
-            : $"https://{rawUrl}";
+            : $"http://{rawUrl}";
 
         var httpHandler = new HttpClientHandler
         {

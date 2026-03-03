@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option csharp_namespace = "EngagementService.Infrastructure.Protos";
+option csharp_namespace = "EngagementService.Grpc.Protos.PointLogGrpc";
 option go_package = "api-gateway/pkg/pb/engagement";
 
 import "google/protobuf/empty.proto";

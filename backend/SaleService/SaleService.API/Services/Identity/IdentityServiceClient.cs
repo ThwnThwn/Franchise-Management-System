@@ -6,9 +6,8 @@ namespace SalesService.API.Services.Identity;
 
 public class IdentityServiceClient : IIdentityServiceClient
 {
-    private readonly UserGrpc.UserGrpcClient _client;
+    private readonly UserGrpc.UserGrpcClient _UserClient;
     private readonly string _identityServiceUrl;
-
     public IdentityServiceClient(IConfiguration configuration)
     {
         var rawUrl = configuration["IDENTITY_SERVICE_URL"] ?? "http://localhost:5001";
@@ -17,7 +16,7 @@ public class IdentityServiceClient : IIdentityServiceClient
         _identityServiceUrl = rawUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
                               rawUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
             ? rawUrl
-            : $"https://{rawUrl}";
+            : $"http://{rawUrl}";
 
         var httpHandler = new HttpClientHandler
         {
@@ -30,7 +29,7 @@ public class IdentityServiceClient : IIdentityServiceClient
             HttpHandler = httpHandler
         });
 
-        _client = new UserGrpc.UserGrpcClient(channel);
+        _UserClient = new UserGrpc.UserGrpcClient(channel);
     }
 
     public async Task<UserInfo?> GetUserByIdAsync(Guid userId)
@@ -38,7 +37,7 @@ public class IdentityServiceClient : IIdentityServiceClient
         try
         {
             var request = new GetUserByIdRequest { Id = userId.ToString() };
-            var response = await _client.GetByIdAsync(request);
+            var response = await _UserClient.GetByIdAsync(request);
 
             if (response == null)
                 return null;
@@ -48,7 +47,13 @@ public class IdentityServiceClient : IIdentityServiceClient
                 Id = Guid.Parse(response.Id),
                 Email = response.Email,
                 Username = response.Username,
-                Phone = response.Phone
+                Phone = response.Phone,
+                Role = response.Role != null ? new UserRole
+                {
+                    Id = Guid.Parse(response.Role.Id),
+                    RoleName = response.Role.Name,
+                    Slug=response.Role.Slug
+                } : null
             };
         }
         catch (Exception ex)
@@ -57,4 +62,7 @@ public class IdentityServiceClient : IIdentityServiceClient
             return null; // Return null instead of throwing - order can continue without email
         }
     }
+
+   
+
 }

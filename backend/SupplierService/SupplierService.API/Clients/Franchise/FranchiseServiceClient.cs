@@ -9,11 +9,11 @@ namespace SupplierService.API.Clients.Franchise
         private readonly StoreGrpcService.StoreGrpcServiceClient _grpcClient;
         public FranchiseServiceClient(IConfiguration configuration)
         {
-            var rawUrl = configuration["FRANCHISE_SERVICE_URL"] ?? "https://localhost:5006";
+            var rawUrl = configuration["FRANCHISE_SERVICE_URL"] ?? "http://localhost:5006";
             var storeServiceUrl = rawUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
                                       rawUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
                 ? rawUrl
-                : $"https://{rawUrl}";
+                : $"http://{rawUrl}";
 
             var httpHandler = new HttpClientHandler
             {

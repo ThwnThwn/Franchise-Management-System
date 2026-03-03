@@ -1,22 +1,22 @@
-using AutoMapper;
-using Google.Protobuf;
-using Grpc.Core;
-using InventoryService.Grpc.Protos.Inventory.Internal;
-using MediatR;
-using SalesService.API;
-using SalesService.Application.Features.Orders.Commands.Create;
-using SalesService.Application.Features.Orders.Commands.Update;
-using SalesService.Application.Features.Orders.Commands.UpdateOrderStatus;
-using SalesService.Application.Features.Orders.GetById;
-using SalesService.Application.Features.Orders.Queries.GetMyOrders;
-using SalesService.Application.Features.Orders.Queries.GetOrders;
-using SalesService.Application.Features.Orders.Queries.GetOrderVolume;
-using SalesService.Application.Features.Reports.Queries.GetRevenueReport;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AutoMapper;
+using Google.Protobuf;
+using Grpc.Core;
+using MediatR;
+using SalesService.Application.Features.Orders.Commands.Create;
+using SalesService.Application.Features.Orders.Commands.PayWithWallet;
+using SalesService.Application.Features.Orders.Commands.Update;
+using SalesService.Application.Features.Orders.Commands.UpdateOrderStatus;
+using SalesService.Application.Features.Orders.Queries.GetById;
+using SalesService.Application.Features.Orders.Queries.GetByIds;
+using SalesService.Application.Features.Orders.Queries.GetMyOrders;
+using SalesService.Application.Features.Orders.Queries.GetOrders;
+using SalesService.Application.Features.Orders.Queries.GetOrderVolume;
+using SalesService.Application.Features.Reports.Queries.GetRevenueReport;
 
 namespace SalesService.API.Services.Orders;
 
@@ -531,5 +531,99 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             };
         }
         return reply;
+    }
+
+    public override async Task<PayOrderWithWalletReply> PayOrderWithWallet(
+    PayOrderWithWalletRequest request,
+    ServerCallContext context)
+    {
+        // 1️⃣ Validate OrderId
+        if (!Guid.TryParse(request.OrderId, out var orderId))
+        {
+            throw new RpcException(new Status(
+                StatusCode.InvalidArgument,
+                "Invalid order_id"));
+        }
+
+        // 2️⃣ Lấy CustomerId từ metadata
+        var userIdEntry = context.RequestHeaders.FirstOrDefault(h =>
+            h.Key.Equals("x-user-id", StringComparison.OrdinalIgnoreCase));
+
+        if (userIdEntry == null)
+        {
+            throw new RpcException(new Status(
+                StatusCode.Unauthenticated,
+                "Missing x-user-id in request headers"));
+        }
+
+        var customerId = Guid.Parse(userIdEntry.Value);
+
+        // 3️⃣ Send command
+        var command = new PayOrderWithWalletCommand(orderId, customerId);
+        var result = await _mediator.Send(command, context.CancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            throw new RpcException(new Status(
+                StatusCode.Internal,
+                result.Errors.FirstOrDefault() ?? "Failed to pay order"));
+        }
+
+        var dto = result.Value;
+
+        // 4️⃣ Map sang gRPC reply
+        return new PayOrderWithWalletReply
+        {
+            OrderId = dto.OrderId.ToString(),
+            OrderCode = dto.OrderCode,
+
+            CustomerWalletId = dto.CustomerWalletId.ToString(),
+            ShopWalletId = dto.ShopWalletId.ToString(),
+
+            Amount = (double)dto.Amount,
+
+            CustomerBalanceBefore = (double)dto.CustomerBalanceBefore,
+            CustomerBalanceAfter = (double)dto.CustomerBalanceAfter,
+
+            ShopBalanceBefore = (double)dto.ShopBalanceBefore,
+            ShopBalanceAfter = (double)dto.ShopBalanceAfter,
+
+            CustomerTransactionId = dto.CustomerTransactionId.ToString(),
+            ShopTransactionId = dto.ShopTransactionId.ToString(),
+
+            CustomerTransactionCode = dto.CustomerTransactionCode,
+            ShopTransactionCode = dto.ShopTransactionCode,
+
+            PaidAt = dto.PaidAt.ToString("O")
+        };
+    }    
+    
+    public override async Task<GetCountOrderByUserIdsResponse>GetCountOrderByUserIds(GetCountOrderByUserIdsRequest request,ServerCallContext context)
+    {
+        if (request.UserId == null || request.UserId.Count == 0)
+            return new GetCountOrderByUserIdsResponse();
+
+        // Convert string → Guid safely
+        var userIds = request.UserId
+            .Where(id => Guid.TryParse(id, out _))
+            .Select(Guid.Parse)
+            .ToList();
+
+        var result = await _mediator.Send(
+            new GetByUserIdsQuery
+            {
+                UserIds = userIds
+            });
+
+        var response = new GetCountOrderByUserIdsResponse();
+
+        response.UserCountOrder.AddRange(
+            result.Select(x => new CountOrderByUserId
+            {
+                UserId = x.UserId.ToString(),
+                OrderCount = x.OrderCount
+            }));
+
+        return response;
     }
 }

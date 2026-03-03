@@ -134,7 +134,7 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
         return response;
     }
 
-    public override async Task<GetAllUserOrWithRoleResponse> GetAll(GetAllUserOrWithRoleRequest request, ServerCallContext context)
+    public override async Task<GetAllUserOrWithRoleResponse> GetAll(GetAllUserWithFilterRequest request, ServerCallContext context)
     {
         var userEntry = context.RequestHeaders.FirstOrDefault(h =>
            h.Key.Equals("x-user-id", StringComparison.OrdinalIgnoreCase));
@@ -146,10 +146,13 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
         var query = new GetAllUsersQuery()
         {
             RoleSlug = request.RoleSlug,
-            Id = Guid.Parse(userEntry.Value),
             StoreId = Guid.TryParse(request.HomeStoreId, out var storeId)? storeId: null,
             HasHourlyWage = request.HasHourlyWage,
             Keyword = request.Keyword,
+            OrderCount = request.HasOrderCount ? request.OrderCount : null,
+            TierId = Guid.TryParse(request.TierId, out var parsed)? parsed: null,
+            StartAt = request.HasStartAt ? (decimal)request.StartAt : null,
+            EndAt = request.HasEndAt? (decimal)request.EndAt : null,
             Page = request.Page,
             PageSize = request.PageSize
         };
@@ -318,7 +321,27 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
                     Name = user.Role.Name ?? "",
                     Slug = user.Role.Slug ?? ""
                 },
-            AvatarUrl = user.AvatarUrl ?? ""
+            AvatarUrl = user.AvatarUrl ?? "",
+            OrderCount = user.OrderCount ?? 0,
+            Loyalty = user.LoyaltyTier == null
+            ? null
+            : new LoyaltyResponse
+            {
+                Id = user.LoyaltyTier.Id.ToString(),
+                AvailablePoints = user.LoyaltyTier.AvailablePoints.ToString(),
+                TotalSpent = user.LoyaltyTier.TotalSpent.ToString(),
+                CurrentTier = user.LoyaltyTier.CurrentTier == null
+                    ? null
+                    : new MembershipTier
+                    {
+                        Id = user.LoyaltyTier.CurrentTier.Id.ToString(),
+                        Name = user.LoyaltyTier.CurrentTier.Name ?? "",
+                        MinSpendRequired = user.LoyaltyTier.CurrentTier.MinSpendRequired.ToString(),
+                        DiscountRate = user.LoyaltyTier.CurrentTier.DiscountRate,
+                        AmountPerPoint = user.LoyaltyTier.CurrentTier.AmountPerPoint.ToString(),
+                        ValuePerPoint = user.LoyaltyTier.CurrentTier.ValuePerPoint.ToString()
+                    }
+            }
         };
     }
     public override async Task<GetSimpleUsersRespone> GetUserIdByPhone(GetUserIdByPhoneRequest request, ServerCallContext context)

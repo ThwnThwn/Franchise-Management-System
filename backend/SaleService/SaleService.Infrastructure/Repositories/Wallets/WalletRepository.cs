@@ -278,5 +278,65 @@ namespace SalesService.Infrastructure.Repositories
                 _ => false
             };
         }
+
+        public async Task<Wallet?> GetForUpdateAsync(
+        Guid walletId,
+        CancellationToken cancellationToken = default)
+        {
+            return await _dbSet
+                .FirstOrDefaultAsync(
+                    w => w.Id == walletId && !w.IsDeleted,
+                    cancellationToken);
+        }
+
+        public async Task<bool> UpdateBalanceAsync(
+            Guid walletId,
+            decimal newBalance,
+            byte[] rowVersion,
+            CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var wallet = await _dbSet
+                    .FirstOrDefaultAsync(
+                        w => w.Id == walletId && !w.IsDeleted,
+                        cancellationToken);
+
+                if (wallet == null)
+                    return false;
+
+                // ✅ CRITICAL: Optimistic concurrency check
+                // Compare provided rowVersion with current rowVersion
+                if (!wallet.RowVersion.SequenceEqual(rowVersion))
+                {
+                    // RowVersion mismatch = another transaction modified this wallet
+                    throw new DbUpdateConcurrencyException(
+                        $"Wallet {walletId} was modified by another transaction. " +
+                        "Current balance may have changed. Please retry.");
+                }
+
+                // ✅ Update balance
+                wallet.Balance = newBalance;
+                wallet.UpdatedAt = DateTimeOffset.UtcNow;
+
+                // ✅ EF Core will automatically increment RowVersion on save
+                await _context.SaveChangesAsync(cancellationToken);
+
+                return true;
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                // ✅ Re-throw concurrency exception for caller to handle
+                throw;
+            }
+            catch (Exception ex)
+            {
+                // ✅ Log unexpected errors
+                // _logger.LogError(ex, "Failed to update balance for wallet {WalletId}", walletId);
+                throw new InvalidOperationException(
+                    $"Failed to update balance for wallet {walletId}", ex);
+            }
+        }
+
     }
 }

@@ -72,4 +72,14 @@ public interface IWalletRepository : IGenericRepository<Wallet>
         CancellationToken cancellationToken = default);
 
 
+    Task<Wallet?> GetForUpdateAsync(
+        Guid walletId,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> UpdateBalanceAsync(
+        Guid walletId,
+        decimal newBalance,
+        byte[] rowVersion,
+        CancellationToken cancellationToken = default);
 }
+

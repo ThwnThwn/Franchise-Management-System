@@ -1,12 +1,11 @@
 using Microsoft.EntityFrameworkCore;
+using SalesService.Application.Features.Orders.Queries.GetByIds;
 using SalesService.Application.Features.Orders.Queries.GetOrderVolume;
 using SalesService.Application.Features.Reports.Queries.GetRevenueReport;
 using SalesService.Application.Persisitences.Orders;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
 using SalesService.Infrastructure.ApplicationDbContext;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace SalesService.Infrastructure.Repositories.Orders;
 
@@ -120,6 +119,7 @@ public class OrderRepository : IOrderRepository
 
         return (items, totalCount);
     }
+
     public async Task SaveAsync(CancellationToken cancellationToken = default)
     {
         await _context.SaveChangesAsync(cancellationToken);
@@ -200,6 +200,7 @@ public class OrderRepository : IOrderRepository
 
         return aggregatedResult;
     }
+
     public async Task<List<OrderVolumePerDayDto>> GetOrderVolumeAsync(
         DateOnly fromDate,
         DateOnly toDate,
@@ -260,6 +261,32 @@ public class OrderRepository : IOrderRepository
                 s => s.Status,
                 s => s.Count
             )
+        }).ToList();
+    }
+
+    public async Task<IEnumerable<GetByUserIdsRes>> GetByUserIdsAsync(List<Guid> userIds, CancellationToken cancellationToken = default)
+    {
+        if (userIds == null || !userIds.Any())
+            return new List<GetByUserIdsRes>();
+
+        var orderCounts = await _context.Orders
+        .AsNoTracking()
+        .Where(o => o.CustomerId.HasValue &&
+            userIds.Contains(o.CustomerId.Value))
+        .GroupBy(o => o.CustomerId.Value)
+        .Select(g => new
+        {
+            UserId = g.Key,
+            Count = g.Count()
+        })
+        .ToListAsync(cancellationToken);
+
+        var dictionary = orderCounts.ToDictionary(x => x.UserId, x => x.Count);
+
+        return userIds.Select(id => new GetByUserIdsRes
+        {
+            UserId = id,
+            OrderCount = dictionary.TryGetValue(id, out var count) ? count : 0
         }).ToList();
     }
 }

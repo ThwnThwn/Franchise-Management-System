@@ -101,7 +101,7 @@ func LoadConfig() *Config {
 		JwtAccessTokenExpirationMinutes: getEnvInt("JWT_ACCESS_TOKEN_EXPIRATION_MINUTES", 15),
 
 		MaxUploadSizeMb:       getEnvInt("MAX_UPLOAD_SIZE_MB", 10),
-		GatewayTimeoutSeconds: getEnvInt("GATEWAY_TIMEOUT_SECONDS", 15),
+		GatewayTimeoutSeconds: getEnvInt("GATEWAY_TIMEOUT_SECONDS", 180),
 	}
 	return cfg
 }

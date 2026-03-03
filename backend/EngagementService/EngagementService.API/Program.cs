@@ -18,6 +18,10 @@ using Npgsql;
 using Npgsql.NameTranslation; // Thêm namespace này
 using QuestPDF.Infrastructure;
 using SharedKernel.Infrastructure.Kafka;
+using EngagementService.Grpc.Protos.LoyaltyAccountGrpc;
+using EngagementService.Grpc.Protos.MembershipTier;
+using EngagementService.Grpc.Protos.PointLogGrpc;
+using EngagementService.API.Services.PointLog;
 namespace EngagementService.API;
 
 public class Program
@@ -47,7 +51,7 @@ public class Program
             options.ConfigureEndpointDefaults(listenOptions =>
             {
                 // Allow both HTTP/1.1 (REST) and HTTP/2 (gRPC)
-                listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2;
+                listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2;
             });
         });
 

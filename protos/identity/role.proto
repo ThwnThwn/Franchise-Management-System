@@ -61,3 +61,4 @@ message RoleUserResponse {
   string name = 2;
   string slug = 3;
 }
+

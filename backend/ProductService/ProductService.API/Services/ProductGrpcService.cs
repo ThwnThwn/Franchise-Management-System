@@ -2,7 +2,6 @@ using Ardalis.Result;
 using AutoMapper;
 using Grpc.Core;
 using MediatR;
-using ProductService.API.Interceptors;
 using ProductService.Application.Features.Products.Command.CreateProduct;
 using ProductService.Application.Features.Products.Command.DeleteProduct;
 using ProductService.Application.Features.Products.Command.UpdateProduct;
@@ -13,28 +12,18 @@ using ProductService.Application.Features.Products.Queries.GetByProductName;
 using ProductService.Application.Features.Products.Queries.GetList;
 using ProductService.Application.Interfaces;
 using ProductService.Application.Repositories;
-using ProductService.Domain.Entities;
 
 namespace ProductService.API.Services;
 
-public class ProductGrpcService : ProductGrpc.ProductGrpcBase
+public class ProductGrpcService(
+    IMediator mediator,
+    IMapper mapper,
+    IProductRepository productRepository
+) : ProductGrpc.ProductGrpcBase
 {
-    private readonly IMediator _mediator;
-    private readonly IMapper _mapper;
-    private readonly ICloudinaryService _cloudinaryService;
-    private readonly IProductRepository _productRepository;
-
-    public ProductGrpcService(
-        IMediator mediator,
-        IMapper mapper,
-        ICloudinaryService cloudinaryService,
-        IProductRepository productRepository)
-    {
-        _mediator = mediator;
-        _mapper = mapper;
-        _cloudinaryService = cloudinaryService;
-        _productRepository = productRepository;
-    }
+    private readonly IMediator _mediator = mediator;
+    private readonly IMapper _mapper = mapper;
+    private readonly IProductRepository _productRepository = productRepository;
 
     public override async Task<GetProductsReply> GetProducts(
         GetProductsRequest request,
@@ -375,43 +364,43 @@ public class ProductGrpcService : ProductGrpc.ProductGrpcBase
         return reply;
     }
 
-    public override async Task<UploadImageReply> UploadImage(
-        UploadImageRequest request,
-        ServerCallContext context)
-    {
-        // Validate request
-        if (request.ImageData == null || request.ImageData.Length == 0)
-        {
-            throw new RpcException(
-                new Status(StatusCode.InvalidArgument, "Image data is required"));
-        }
+    //public override async Task<UploadImageReply> UploadImage(
+    //    UploadImageRequest request,
+    //    ServerCallContext context)
+    //{
+    //    // Validate request
+    //    if (request.ImageData == null || request.ImageData.Length == 0)
+    //    {
+    //        throw new RpcException(
+    //            new Status(StatusCode.InvalidArgument, "Image data is required"));
+    //    }
 
-        if (string.IsNullOrWhiteSpace(request.FileName))
-        {
-            throw new RpcException(
-                new Status(StatusCode.InvalidArgument, "File name is required"));
-        }
+    //    if (string.IsNullOrWhiteSpace(request.FileName))
+    //    {
+    //        throw new RpcException(
+    //            new Status(StatusCode.InvalidArgument, "File name is required"));
+    //    }
 
-        try
-        {
-            // Upload image to Cloudinary
-            var uploadResult = await _cloudinaryService.UploadImageFromBytesAsync(
-                request.ImageData.ToByteArray(),
-                request.FileName,
-                request.ContentType ?? "image/png");
+    //    try
+    //    {
+    //        // Upload image to Cloudinary
+    //        var uploadResult = await _cloudinaryService.UploadImageFromBytesAsync(
+    //            request.ImageData.ToByteArray(),
+    //            request.FileName,
+    //            request.ContentType ?? "image/png");
 
-            return new UploadImageReply
-            {
-                Url = uploadResult.Url,
-                PublicId = uploadResult.PublicId
-            };
-        }
-        catch (Exception ex)
-        {
-            throw new RpcException(
-                new Status(StatusCode.Internal, $"Upload image failed: {ex.Message}"));
-        }
-    }
+    //        return new UploadImageReply
+    //        {
+    //            Url = uploadResult.Url,
+    //            PublicId = uploadResult.PublicId
+    //        };
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        throw new RpcException(
+    //            new Status(StatusCode.Internal, $"Upload image failed: {ex.Message}"));
+    //    }
+    //}
 
     public override async Task<UploadProductImageReply> UploadProductImage(
         UploadProductImageRequest request,

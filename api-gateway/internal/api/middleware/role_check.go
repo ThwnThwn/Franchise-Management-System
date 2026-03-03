@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"api-gateway/internal/application/constants/errorcode"
+	"api-gateway/pkg/utils/contextutils"
 	"slices"
 
 	"github.com/gin-gonic/gin"
@@ -9,8 +10,8 @@ import (
 
 func RequireRoles(allowedRoles ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		roleSlug := c.GetString("roleSlug")
-		if roleSlug == "" {
+		roleSlug, err := contextutils.GetRoleSlug(c)
+		if err != nil {
 			c.Error(errorcode.ErrInvalidAccessToken)
 			c.Abort()
 			return

@@ -1,203 +1,553 @@
-﻿
-using Confluent.Kafka;
+﻿using Ardalis.Result;
 using Grpc.Core;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using SalesService.Application.Features.Wallets.Command.AddBalance;
 using SalesService.Application.Features.Wallets.Command.Create;
 using SalesService.Application.Features.Wallets.Command.DeductBalance;
 using SalesService.Application.Features.Wallets.Commands.UpdateStatus;
+using SalesService.Application.Features.Wallets.Deposit;
 using SalesService.Application.Features.Wallets.Queries.GetByUserId;
+using SalesService.Application.Features.Wallets.Withdraw;
 using SalesService.Grpc;
-using DomainWalletStatus = SalesService.Domain.Enums.WalletStatus;
-using GrpcWalletStatus = SalesService.Grpc.WalletStatus;
 
-namespace SalesService.API.Services.Wallets
+namespace SalesService.API.Services.Wallets;
+
+public sealed class WalletGrpcService : WalletGrpc.WalletGrpcBase
 {
-    public sealed class WalletGrpcService : WalletGrpc.WalletGrpcBase
+    private readonly IMediator _mediator;
+    private readonly ILogger<WalletGrpcService> _logger;
+
+    public WalletGrpcService(IMediator mediator, ILogger<WalletGrpcService> logger)
     {
-        private readonly IMediator _mediator;
+        _mediator = mediator;
+        _logger = logger;
+    }
 
-        public WalletGrpcService(IMediator mediator)
+    public override async Task<CreateWalletResponse> CreateWallet(
+        CreateWalletRequest request,
+        ServerCallContext context)
+    {
+        if (!Guid.TryParse(request.UserId, out var userId))
+            throw new RpcException(new Status(
+                StatusCode.InvalidArgument,
+                "Invalid user_id format"));
+
+        var command = new CreateWalletCommand(userId);
+        var result = await _mediator.Send(command, context.CancellationToken);
+
+        if (!result.IsSuccess)
         {
-            _mediator = mediator;
+            if (result.Status == ResultStatus.Invalid)
+            {
+                var message = string.Join(" | ",
+                    result.ValidationErrors.Select(e =>
+                        $"{e.Identifier}: {e.ErrorMessage}"));
+
+                _logger.LogWarning("Validation failed: {Message}", message);
+
+                throw new RpcException(new Status(
+                    StatusCode.InvalidArgument,
+                    message));
+            }
+
+            var errorMessage = string.Join(" | ", result.Errors);
+
+            _logger.LogError("Business error: {Error}", errorMessage);
+
+            throw new RpcException(new Status(
+                StatusCode.FailedPrecondition,
+                errorMessage));
         }
 
-        public override async Task<CreateWalletResponse> CreateWallet(
-            CreateWalletRequest request,
-            ServerCallContext context)
+        var data = result.Value;
+
+        return new CreateWalletResponse
         {
-            var command = new CreateWalletCommand
-            {
-                UserId = Guid.Parse(request.UserId)
-            };
+            WalletId = data.WalletId.ToString(),
+            UserId = data.UserId.ToString(),
+            Balance = data.Balance.ToString("F2"), // ✅ String for precision
+            Status = MapDomainStatusToGrpc(data.Status),
+            CreatedAt = data.CreatedAt.ToString("O")
+        };
+    }
 
-            var walletId = await _mediator.Send(command);
-
-            return new CreateWalletResponse
-            {
-                WalletId = walletId.ToString()
-            };
-        }
-
-        public override async Task<AddBalanceResponse> AddBalance(
+    public override async Task<AddBalanceResponse> AddBalance(
         AddBalanceRequest request,
         ServerCallContext context)
+    {
+        // ✅ Only validate user_id (wallet lookup by user_id internally)
+        if (!Guid.TryParse(request.UserId, out var userId))
+            throw new RpcException(new Status(
+                StatusCode.InvalidArgument,
+                "Invalid user_id format"));
+
+        // ✅ Parse and validate amount
+        if (!decimal.TryParse(request.Amount, out var amount) || amount <= 0)
+            throw new RpcException(new Status(
+                StatusCode.InvalidArgument,
+                "Invalid amount. Must be a positive number"));
+
+        // ✅ Retry loop for optimistic concurrency
+        const int maxRetries = 3;
+        for (int attempt = 1; attempt <= maxRetries; attempt++)
         {
-            var command = new AddBalanceCommand(Guid.Parse(request.WalletId),
-                new AddBalanceCommand.AddBalanceCommandRequest
-                {
-                    Amount = (decimal)request.Amount,
-                    RowVersion = request.RowVersion.ToByteArray()
-                });
-
-            var result = await _mediator.Send(command, context.CancellationToken);
-
-            if (!result.IsSuccess)
+            try
             {
+                // Get current wallet (includes current row_version)
+                var walletQuery = new GetWalletByUserIdQuery(userId);
+                var walletResult = await _mediator.Send(walletQuery, context.CancellationToken);
+
+                if (walletResult.Status == Ardalis.Result.ResultStatus.NotFound)
+                    throw new RpcException(new Status(
+                        StatusCode.NotFound,
+                        "Wallet not found for user"));
+
+                var wallet = walletResult.Value;
+
+                // ✅ Create command with current row_version
+                var command = new AddBalanceCommand(
+                    wallet.Id,
+                    userId,
+                    new AddBalanceCommand.AddBalanceCommandRequest
+                    {
+                        Amount = amount,
+                        RowVersion = wallet.RowVersion, // Current version from DB
+                        Description = request.Description,
+                        PaymentMethod = MapGrpcPaymentMethodToDomain(request.PaymentMethod),
+                        ExternalTransactionId = string.IsNullOrWhiteSpace(request.ExternalTransactionId)
+                            ? null
+                            : request.ExternalTransactionId
+                    });
+
+                var result = await _mediator.Send(command, context.CancellationToken);
+
+                if (!result.IsSuccess)
+                {
+                    if (result.Status == ResultStatus.Invalid)
+                    {
+                        var message = string.Join(" | ",
+                            result.ValidationErrors.Select(e =>
+                                $"{e.Identifier}: {e.ErrorMessage}"));
+
+                        _logger.LogWarning("Validation failed: {Message}", message);
+
+                        throw new RpcException(new Status(
+                            StatusCode.InvalidArgument,
+                            message));
+                    }
+
+                    var errorMessage = string.Join(" | ", result.Errors);
+
+                    _logger.LogError("Business error: {Error}", errorMessage);
+
+                    throw new RpcException(new Status(
+                        StatusCode.FailedPrecondition,
+                        errorMessage));
+                }
+
+                var data = result.Value;
+
                 return new AddBalanceResponse
                 {
-                    Success = false,
-                    Message = result.Errors.FirstOrDefault() ?? "Failed to add balance."
+                    WalletId = data.WalletId.ToString(),
+                    UserId = data.UserId.ToString(),
+                    BalanceBefore = data.BalanceBefore.ToString("F2"),
+                    BalanceAfter = data.BalanceAfter.ToString("F2"),
+                    AmountAdded = data.AmountAdded.ToString("F2"),
+                    TransactionId = data.TransactionId.ToString(),
+                    UpdatedAt = data.UpdatedAt.ToString("O")
                 };
             }
-
-            var data = result.Value;
-
-            return new AddBalanceResponse
+            catch (DbUpdateConcurrencyException ex)
             {
-                Success = true,
-                Message = "Balance added successfully.",
+                _logger.LogWarning(ex,
+                    "Concurrency conflict on attempt {Attempt}/{MaxRetries} for user {UserId}",
+                    attempt, maxRetries, userId);
 
-                WalletId = data.WalletId.ToString(),
-                UserId = data.UserId.ToString(),
+                if (attempt == maxRetries)
+                    throw new RpcException(new Status(
+                        StatusCode.Aborted,
+                        "Concurrency conflict: Another operation modified the wallet. Please retry."));
 
-                BalanceBefore = (double)data.BalanceBefore,
-                BalanceAfter = (double)data.BalanceAfter,
-                AmountAdded = (double)data.AmountAdded,
-
-                TransactionId = data.TransactionId?.ToString() ?? string.Empty,
-                NewRowVersion = Google.Protobuf.ByteString.CopyFrom(data.NewRowVersion),
-
-                UpdatedAt = data.UpdatedAt.ToString("O")
-            };
+                // Brief delay before retry
+                await Task.Delay(TimeSpan.FromMilliseconds(50 * attempt), context.CancellationToken);
+            }
         }
-        
-        public override async Task<DeductBalanceResponse> DeductBalance(
+
+        // Should never reach here
+        throw new RpcException(new Status(
+            StatusCode.Internal,
+            "Unexpected error in AddBalance"));
+    }
+
+    public override async Task<DeductBalanceResponse> DeductBalance(
         DeductBalanceRequest request,
         ServerCallContext context)
+    {
+        if (!Guid.TryParse(request.UserId, out var userId))
+            throw new RpcException(new Status(
+                StatusCode.InvalidArgument,
+                "Invalid user_id format"));
+
+        if (!decimal.TryParse(request.Amount, out var amount) || amount <= 0)
+            throw new RpcException(new Status(
+                StatusCode.InvalidArgument,
+                "Invalid amount. Must be a positive number"));
+
+        // ✅ Retry loop for optimistic concurrency
+        const int maxRetries = 3;
+        for (int attempt = 1; attempt <= maxRetries; attempt++)
         {
-            var command = new DeductBalanceCommand(Guid.Parse(request.WalletId),
-                new DeductBalanceCommand.DeductBalanceCommandRequest
-                {
-                    Amount = (decimal)request.Amount,
-                    RowVersion = request.RowVersion.ToByteArray()
-                });
-
-            var result = await _mediator.Send(command, context.CancellationToken);
-
-            if (!result.IsSuccess)
+            try
             {
+                var walletQuery = new GetWalletByUserIdQuery(userId);
+                var walletResult = await _mediator.Send(walletQuery, context.CancellationToken);
+
+                if (walletResult.Status == Ardalis.Result.ResultStatus.NotFound)
+                    throw new RpcException(new Status(
+                        StatusCode.NotFound,
+                        "Wallet not found for user"));
+
+                var wallet = walletResult.Value;
+
+                var command = new DeductBalanceCommand(
+                    wallet.Id,
+                    userId,
+                    new DeductBalanceCommand.DeductBalanceCommandRequest
+                    {
+                        Amount = amount,
+                        RowVersion = wallet.RowVersion,
+                        Description = request.Description,
+                        PaymentMethod = MapGrpcPaymentMethodToDomain(request.PaymentMethod),
+                        ExternalTransactionId = string.IsNullOrWhiteSpace(request.ExternalTransactionId)
+                            ? null
+                            : request.ExternalTransactionId
+                    });
+
+                var result = await _mediator.Send(command, context.CancellationToken);
+
+                if (!result.IsSuccess)
+                {
+                    if (result.Status == ResultStatus.Invalid)
+                    {
+                        var message = string.Join(" | ",
+                            result.ValidationErrors.Select(e =>
+                                $"{e.Identifier}: {e.ErrorMessage}"));
+
+                        _logger.LogWarning("Validation failed: {Message}", message);
+
+                        throw new RpcException(new Status(
+                            StatusCode.InvalidArgument,
+                            message));
+                    }
+
+                    var errorMessage = string.Join(" | ", result.Errors);
+
+                    _logger.LogError("Business error: {Error}", errorMessage);
+
+                    throw new RpcException(new Status(
+                        StatusCode.FailedPrecondition,
+                        errorMessage));
+                }
+
+                var data = result.Value;
+
                 return new DeductBalanceResponse
                 {
-                    Success = false,
-                    Message = result.Errors.FirstOrDefault() ?? "Failed to deduct balance."
+                    WalletId = data.WalletId.ToString(),
+                    UserId = data.UserId.ToString(),
+                    BalanceBefore = data.BalanceBefore.ToString("F2"),
+                    BalanceAfter = data.BalanceAfter.ToString("F2"),
+                    AmountDeducted = data.AmountDeducted.ToString("F2"),
+                    TransactionId = data.TransactionId.ToString(),
+                    UpdatedAt = data.UpdatedAt.ToString("O")
                 };
             }
-
-            var data = result.Value;
-
-            return new DeductBalanceResponse
+            catch (DbUpdateConcurrencyException ex)
             {
-                Success = true,
-                Message = "Balance deducted successfully.",
+                _logger.LogWarning(ex,
+                    "Concurrency conflict on attempt {Attempt}/{MaxRetries} for user {UserId}",
+                    attempt, maxRetries, userId);
 
-                WalletId = data.WalletId.ToString(),
-                UserId = data.UserId.ToString(),
+                if (attempt == maxRetries)
+                    throw new RpcException(new Status(
+                        StatusCode.Aborted,
+                        "Concurrency conflict: Another operation modified the wallet. Please retry."));
 
-                BalanceBefore = (double)data.BalanceBefore,
-                BalanceAfter = (double)data.BalanceAfter,
-                AmountDeducted = (double)data.AmountDeducted,
-
-                TransactionId = data.TransactionId?.ToString() ?? string.Empty,
-                NewRowVersion = Google.Protobuf.ByteString.CopyFrom(data.NewRowVersion),
-
-                UpdatedAt = data.UpdatedAt.ToString("O")
-            };
+                await Task.Delay(TimeSpan.FromMilliseconds(50 * attempt), context.CancellationToken);
+            }
         }
 
-        public override async Task<UpdateWalletStatusResponse> UpdateWalletStatus(
+        throw new RpcException(new Status(
+            StatusCode.Internal,
+            "Unexpected error in DeductBalance"));
+    }
+
+    public override async Task<UpdateWalletStatusResponse> UpdateWalletStatus(
         UpdateWalletStatusRequest request,
         ServerCallContext context)
-        {
-            var command = new UpdateWalletStatusCommand(Guid.Parse(request.WalletId),
-                new UpdateWalletStatusCommand.UpdateWalletStatusRequest
-                {
-                    NewStatus = (DomainWalletStatus)request.NewStatus,
-                    Reason = string.IsNullOrWhiteSpace(request.Reason)
-                        ? null
-                        : request.Reason
-                });
+    {
+        if (!Guid.TryParse(request.WalletId, out var walletId))
+            throw new RpcException(new Status(
+                StatusCode.InvalidArgument,
+                "Invalid wallet_id format"));
 
-            var result = await _mediator.Send(command, context.CancellationToken);
+        if (!Guid.TryParse(request.AdminId, out var adminId))
+            throw new RpcException(new Status(
+                StatusCode.InvalidArgument,
+                "Invalid admin_id format"));
 
-            if (!result.IsSuccess)
+        var command = new UpdateWalletStatusCommand(
+            walletId,
+            adminId,
+            new UpdateWalletStatusCommand.UpdateWalletStatusRequest
             {
-                throw new RpcException(
-                    new Status(
-                        StatusCode.FailedPrecondition,
-                        string.Join("; ", result.Errors)
-                    )
-                );
+                NewStatus = MapGrpcStatusToDomain((Grpc.WalletStatus)request.NewStatus),
+                Reason = request.Reason,
+                AdminNotes = request.AdminNotes
+            });
+
+        var result = await _mediator.Send(command, context.CancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            if (result.Status == ResultStatus.Invalid)
+            {
+                var message = string.Join(" | ",
+                    result.ValidationErrors.Select(e =>
+                        $"{e.Identifier}: {e.ErrorMessage}"));
+
+                _logger.LogWarning("Validation failed: {Message}", message);
+
+                throw new RpcException(new Status(
+                    StatusCode.InvalidArgument,
+                    message));
             }
 
-            var data = result.Value;
+            var errorMessage = string.Join(" | ", result.Errors);
 
-            return new UpdateWalletStatusResponse
-            {
-                Success = true,
-                Message = "Balance Status updated successfully.",
-                WalletId = data.WalletId.ToString(),
-                OldStatus = (GrpcWalletStatus)data.OldStatus,
-                NewStatus = (GrpcWalletStatus)data.NewStatus,
-                UpdatedAt = data.UpdatedAt.ToString("O")
-            };
+            _logger.LogError("Business error: {Error}", errorMessage);
+
+            throw new RpcException(new Status(
+                StatusCode.FailedPrecondition,
+                errorMessage));
         }
 
-        public override async Task<GetWalletByUserIdResponse> GetWalletByUserId(
+        var data = result.Value;
+
+        return new UpdateWalletStatusResponse
+        {
+            WalletId = data.WalletId.ToString(),
+            OldStatus = MapDomainStatusToGrpc(data.OldStatus),
+            NewStatus = MapDomainStatusToGrpc(data.NewStatus),
+            Reason = data.Reason ?? "",
+            UpdatedBy = data.UpdatedBy.ToString(),
+            UpdatedAt = data.UpdatedAt.ToString("O")
+        };
+    }
+
+    public override async Task<GetWalletByUserIdResponse> GetWalletByUserId(
         GetWalletByUserIdRequest request,
         ServerCallContext context)
+    {
+        if (!Guid.TryParse(request.UserId, out var userId))
+            throw new RpcException(new Status(
+                StatusCode.InvalidArgument,
+                "Invalid user_id format"));
+
+        var result = await _mediator.Send(
+            new GetWalletByUserIdQuery(userId),
+            context.CancellationToken);
+
+        if (result.Status == Ardalis.Result.ResultStatus.NotFound)
+            throw new RpcException(new Status(
+                StatusCode.NotFound,
+                result.Errors.FirstOrDefault() ?? "Wallet not found"));
+
+        var wallet = result.Value;
+
+        return new GetWalletByUserIdResponse
         {
-            if (!Guid.TryParse(request.UserId, out var userId))
+            Id = wallet.Id.ToString(),
+            UserId = wallet.UserId.ToString(),
+            Balance = wallet.Balance.ToString("F2"),
+            Status = MapDomainStatusToGrpc((Domain.Enums.WalletStatus)wallet.Status),
+            CreatedAt = wallet.CreatedAt.ToString("O"),
+            UpdatedAt = wallet.UpdatedAt.ToString("O")
+        };
+    }
+
+    // ===== DEPOSIT =====
+    public override async Task<DepositWalletResponse> DepositWallet(
+        DepositWalletRequest request,
+        ServerCallContext context)
+    {
+        if (!Guid.TryParse(request.UserId, out var userId))
+            throw new RpcException(new Status(
+                StatusCode.InvalidArgument,
+                "Invalid user_id format"));
+
+        var command = new DepositWalletCommand(
+            userId,
+            new DepositWalletReq
             {
-                throw new RpcException(
-                    new Status(StatusCode.InvalidArgument, "Invalid user id"));
+                Amount = (decimal)request.Amount,
+                ReturnUrl = string.IsNullOrEmpty(request.ReturnUrl) ? null : request.ReturnUrl
+            });
+
+        var result = await _mediator.Send(command, context.CancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            if (result.Status == ResultStatus.Invalid)
+            {
+                var message = string.Join(" | ",
+                    result.ValidationErrors.Select(e =>
+                        $"{e.Identifier}: {e.ErrorMessage}"));
+
+                _logger.LogWarning("DepositWallet validation failed: {Message}", message);
+
+                throw new RpcException(new Status(StatusCode.InvalidArgument, message));
             }
 
-            var result = await _mediator.Send(
-                new GetWalletByUserIdQuery(userId),
-                context.CancellationToken);
+            var errorMessage = string.Join(" | ", result.Errors);
+            _logger.LogError("DepositWallet business error: {Error}", errorMessage);
 
-            if (result.Status == Ardalis.Result.ResultStatus.NotFound)
-            {
-                throw new RpcException(
-                    new Status(StatusCode.NotFound, result.Errors.First()));
-            }
-
-            var wallet = result.Value;
-
-            return new GetWalletByUserIdResponse
-            {
-                Id = wallet.Id.ToString(),
-                UserId = wallet.UserId.ToString(),
-                Balance = (double)wallet.Balance,
-                Status = wallet.Status,
-                RowVersion = wallet.RowVersion is null
-                    ? Google.Protobuf.ByteString.Empty
-                    : Google.Protobuf.ByteString.CopyFrom(wallet.RowVersion),
-                CreatedAt = wallet.CreatedAt.ToString("O"),
-                UpdatedAt = wallet.UpdatedAt.ToString("O")
-            };
+            throw new RpcException(new Status(StatusCode.FailedPrecondition, errorMessage));
         }
+
+        return new DepositWalletResponse
+        {
+            PaymentUrl = result.Value.PaymentUrl
+        };
+    }
+
+    // ===== DEPOSIT VNPAY RETURN =====
+    public override async Task<DepositVnPayReturnResponse> DepositVnPayReturn(
+        DepositVnPayReturnRequest request,
+        ServerCallContext context)
+    {
+        var command = new DepositVnPayReturnCommand(
+            request.QueryParams.ToDictionary(kv => kv.Key, kv => kv.Value));
+
+        var result = await _mediator.Send(command, context.CancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            var errorMessage = string.Join(" | ", result.Errors);
+            _logger.LogError("DepositVnPayReturn error: {Error}", errorMessage);
+
+            throw new RpcException(new Status(StatusCode.FailedPrecondition, errorMessage));
+        }
+
+        return new DepositVnPayReturnResponse
+        {
+            Success = result.Value.Success,
+            WalletTransactionId = result.Value.WalletTransactionId.ToString(),
+            Amount = (double)result.Value.Amount,
+            NewBalance = (double)result.Value.NewBalance
+        };
+    }
+
+    // ===== WITHDRAW =====
+    public override async Task<WithdrawWalletResponse> WithdrawWallet(
+        WithdrawWalletRequest request,
+        ServerCallContext context)
+    {
+        if (!Guid.TryParse(request.UserId, out var userId))
+            throw new RpcException(new Status(
+                StatusCode.InvalidArgument,
+                "Invalid user_id format"));
+
+
+        var command = new WithdrawWalletCommand(
+            userId,
+            new WithdrawWalletReq
+            {
+                Amount = (decimal)request.Amount,
+                Reason = request.Reason
+            });
+
+        var result = await _mediator.Send(command, context.CancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            if (result.Status == ResultStatus.Invalid)
+            {
+                var message = string.Join(" | ",
+                    result.ValidationErrors.Select(e =>
+                        $"{e.Identifier}: {e.ErrorMessage}"));
+
+                _logger.LogWarning("WithdrawWallet validation failed: {Message}", message);
+
+                throw new RpcException(new Status(StatusCode.InvalidArgument, message));
+            }
+
+            if (result.Status == ResultStatus.NotFound)
+                throw new RpcException(new Status(
+                    StatusCode.NotFound,
+                    result.Errors.FirstOrDefault() ?? "Not found"));
+
+            if (result.Status == ResultStatus.Forbidden)
+                throw new RpcException(new Status(
+                    StatusCode.PermissionDenied,
+                    result.Errors.FirstOrDefault() ?? "Forbidden"));
+
+            var errorMessage = string.Join(" | ", result.Errors);
+            _logger.LogError("WithdrawWallet business error: {Error}", errorMessage);
+
+            throw new RpcException(new Status(StatusCode.FailedPrecondition, errorMessage));
+        }
+
+        return new WithdrawWalletResponse
+        {
+            WithdrawTransactionId = result.Value.WithdrawTransactionId.ToString(),
+            Amount = (double)result.Value.Amount,
+            Message = result.Value.Message,
+            Status = result.Value.Status
+        };
+    }
+
+    // ========== MAPPING HELPERS ==========
+
+    private static WalletStatus MapDomainStatusToGrpc(Domain.Enums.WalletStatus domainStatus)
+    {
+        return domainStatus switch
+        {
+            Domain.Enums.WalletStatus.Inactive => WalletStatus.Inactive,
+            Domain.Enums.WalletStatus.Active => WalletStatus.Active,
+            Domain.Enums.WalletStatus.Locked => WalletStatus.Locked,
+            Domain.Enums.WalletStatus.Suspended => WalletStatus.Suspended,
+            _ => WalletStatus.Unspecified
+        };
+    }
+
+    private static Domain.Enums.WalletStatus MapGrpcStatusToDomain(Grpc.WalletStatus grpcStatus)
+    {
+        return grpcStatus switch
+        {
+            Grpc.WalletStatus.Inactive => Domain.Enums.WalletStatus.Inactive,
+            Grpc.WalletStatus.Active => Domain.Enums.WalletStatus.Active,
+            Grpc.WalletStatus.Locked => Domain.Enums.WalletStatus.Locked,
+            Grpc.WalletStatus.Suspended => Domain.Enums.WalletStatus.Suspended,
+            _ => throw new RpcException(new Status(
+                StatusCode.InvalidArgument,
+                "Invalid wallet status"))
+        };
+    }
+
+    private static Domain.Enums.PaymentMethod? MapGrpcPaymentMethodToDomain(
+        WalletPaymentMethod grpcMethod)
+    {
+        return grpcMethod switch
+        {
+            WalletPaymentMethod.PaymentMethodCash => Domain.Enums.PaymentMethod.Cash,
+            WalletPaymentMethod.PaymentMethodVnpay => Domain.Enums.PaymentMethod.VNPay,
+            WalletPaymentMethod.PaymentMethodWallet => Domain.Enums.PaymentMethod.Wallet,
+            WalletPaymentMethod.PaymentMethodUnspecified => null,
+            _ => null
+        };
     }
 }
 

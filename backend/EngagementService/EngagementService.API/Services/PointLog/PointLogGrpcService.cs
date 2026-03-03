@@ -1,5 +1,5 @@
 ﻿using EngagementService.Application.Features.PointLog.Queries;
-using EngagementService.Infrastructure.Protos;
+using EngagementService.Grpc.Protos.PointLogGrpc;
 using Grpc.Core;
 using MediatR;
 

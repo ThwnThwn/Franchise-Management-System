@@ -11,7 +11,7 @@ import (
 
 // GetUserId lấy userID từ context
 func GetUserId(c *gin.Context) (uuid.UUID, error) {
-	val, exists := c.Get("userID")
+	val, exists := c.Get(CtxUserId)
 	if !exists {
 		return uuid.Nil, errorcode.ErrInvalidToken
 	}
@@ -26,7 +26,7 @@ func GetUserId(c *gin.Context) (uuid.UUID, error) {
 
 // GetRoleSlug lấy vai trò của người dùng
 func GetRoleSlug(c *gin.Context) (string, error) {
-	val, exists := c.Get("roleSlug")
+	val, exists := c.Get(CtxRoleSlug)
 	if !exists {
 		return "", errorcode.ErrInvalidToken
 	}
@@ -41,7 +41,7 @@ func GetRoleSlug(c *gin.Context) (string, error) {
 
 // GetStoreId lấy storeID từ context (Dành cho Manager/Staff bị giới hạn theo Store)
 func GetStoreId(c *gin.Context) (uuid.UUID, error) {
-	val, exists := c.Get("storeId")
+	val, exists := c.Get(CtxStoreId)
 	if !exists {
 		return uuid.Nil, nil
 	}

@@ -192,7 +192,7 @@ public sealed class VnPayReturnHandler
         {
             Success = responseCode == "00",
             PaymentId = payment.Id,
-            OrderId = payment.OrderId,
+            OrderId = payment.OrderId.Value,
             ResponseCode = responseCode ?? string.Empty
         });
     }

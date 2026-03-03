@@ -86,7 +86,6 @@ public sealed class UpdateProductCommandHandler(
             // Bắn vào Outbox
             await _eventBus.PublishAsync("product.persisted", integrationEvent, cancellationToken);
 
-            // 5. CHỐT SỔ (Lưu DB + Commit Outbox)
             await _uow.SaveChangesAsync(cancellationToken);
 
             return Result.Success(_mapper.Map<UpdateProductCommandResponse>(produdctRes));

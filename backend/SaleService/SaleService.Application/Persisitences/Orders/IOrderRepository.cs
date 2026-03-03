@@ -1,7 +1,9 @@
+using SalesService.Application.Features.Orders.Queries.GetByIds;
 using SalesService.Application.Features.Orders.Queries.GetOrderVolume;
 using SalesService.Application.Features.Reports.Queries.GetRevenueReport;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
+using System.Collections.Generic;
 
 namespace SalesService.Application.Persisitences.Orders;
 
@@ -12,7 +14,7 @@ public interface IOrderRepository
     Task<Order?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
     Task<List<Order>> GetOrdersByCustomerIdAsync(Guid customerId, int page, int pageSize, CancellationToken cancellationToken = default);
-
+    Task<IEnumerable<GetByUserIdsRes>> GetByUserIdsAsync(List<Guid> userIds, CancellationToken cancellationToken = default);
     Task<int> CountOrdersByCustomerIdAsync(Guid customerId, CancellationToken cancellationToken = default);
 
     Task<(List<Order> Items, int TotalCount)> GetOrdersAsync(
