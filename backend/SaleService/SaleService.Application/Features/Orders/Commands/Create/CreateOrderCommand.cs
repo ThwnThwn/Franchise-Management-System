@@ -1,6 +1,7 @@
 using Ardalis.Result;
 using MediatR;
 using SalesService.Application.Dtos.Inventory;
+using SalesService.Domain.Enums;
 
 namespace SalesService.Application.Features.Orders.Commands.Create;
 
@@ -13,6 +14,7 @@ public sealed class CreateOrderRequestDto
     public string? Notes { get; set; }
     public Guid? CustomerId { get; set; }
     public Guid? StoreId { get; set; }
+    public OrderType? Type { get; set; }
 }
 
 public sealed class CartItemDto
@@ -31,6 +33,7 @@ public sealed class CreateOrderResponseDto
     public Guid? StoreId { get; set; }
     public decimal? TotalAmount { get; set; }
     public CheckEnoughStockRes CheckEnoughStockRes { get; set; } = new();
+    public OrderType? Type { get; set; }
 }
 public sealed class OrderItemDto
 {

@@ -24,6 +24,7 @@ public partial class Order : SoftDeletedEntity, IEntity
     public DateTimeOffset PaidAt { get; set; }
 
     public string? Notes { get; set; }
+    public OrderType? Type { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; }
 

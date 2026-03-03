@@ -23,6 +23,7 @@ public class GetOrdersQueryHandler : IRequestHandler<GetOrdersQuery, Result<GetO
             request.ToDate,
             request.Status,
             request.PaymentMethod,
+            request.Type,
             request.Page,
             request.PageSize,
             cancellationToken);
@@ -35,6 +36,7 @@ public class GetOrdersQueryHandler : IRequestHandler<GetOrdersQuery, Result<GetO
             o.TotalAmount,
             o.PaidAmount,
             (int?)o.PaymentMethod,
+            (int?)o.Type,
             (int)o.Status,
             o.PaidAt,
             o.Notes,

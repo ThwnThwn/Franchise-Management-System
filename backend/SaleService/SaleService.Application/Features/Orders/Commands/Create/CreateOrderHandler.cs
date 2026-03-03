@@ -66,6 +66,12 @@ public sealed class CreateOrderHandler
             return Result.Error("StoreId is required. Please select a store before placing an order.");
         }
 
+        //check orderType
+        if (!request.Request.Type.HasValue ||!Enum.IsDefined(typeof(OrderType), request.Request.Type.Value))
+        {
+            return Result.Error("Invalid OrderType.");
+        }
+
         //kiểm tra xem còn đủ hàng trong kho không
         var skus = request.Request.Items.Select(i => i.Sku).ToList();
 
@@ -165,7 +171,8 @@ public sealed class CreateOrderHandler
             Status = OrderStatus.PaymentPending, // 0 = Ordered
             Notes = request.Request.Notes,
             CustomerId = request.Request.CustomerId,
-            IsDeleted = false
+            IsDeleted = false,
+            Type = request.Request.Type.Value,
         };
 
         // Set OrderId cho các OrderItems
@@ -202,6 +209,7 @@ public sealed class CreateOrderHandler
                 UnitPrice = x.UnitPrice
             }).ToList(),
             StoreId = request.Request.StoreId,
+            Type = createdOrder.Type,
             TotalAmount = createdOrder.TotalAmount,
             CheckEnoughStockRes = { IsEnough = true, ShortageItems = { } }
         });

@@ -51,6 +51,7 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             Notes = string.IsNullOrWhiteSpace(request.Notes) ? null : request.Notes,
             CustomerId = customerId,
             StoreId = string.IsNullOrWhiteSpace(request.StoreId) ? null : Guid.Parse(request.StoreId),
+            Type = (SalesService.Domain.Enums.OrderType)request.Type,
             Items = request.Items.Select(item => new CartItemDto
             {
                 Sku = item.Sku,
@@ -74,6 +75,7 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             OrderCode = result.Value.OrderCode ?? string.Empty, // Tránh lỗi null cũ
             TotalAmount = (double)result.Value.TotalAmount,
             CustomerId = customerId.ToString(),
+            Type=(OrderType)result.Value.Type , 
             CheckStockRespone = new CheckEnoughStockResponse
             {
                 IsEnough = result.Value.CheckEnoughStockRes.IsEnough
@@ -149,7 +151,8 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             CreatedAt = dto.CreatedAt.ToString("O"),
             UpdatedAt = dto.UpdatedAt.ToString("O"),
             CustomerId = dto.CustomerId.ToString(),
-            StoreId = dto.StoreId?.ToString() ?? string.Empty
+            StoreId = dto.StoreId?.ToString() ?? string.Empty,
+            Type = (OrderType)dto.Type
         };
 
         orderMessage.Items.AddRange(dto.Items.Select(i => new OrderItem
@@ -218,7 +221,8 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
                 //dùng -1 cho NULL (chưa thanh toán)
                 Tax = order.Tax.HasValue ? (double)order.Tax.Value : -1,
                 PaidAmount = order.PaidAmount.HasValue ? (double)order.PaidAmount.Value : -1,
-                PaymentMethod = order.PaymentMethod ?? -1
+                PaymentMethod = order.PaymentMethod ?? -1,
+                Type= (OrderType)order.OrderType
             };
 
             if (!string.IsNullOrEmpty(order.Notes))
@@ -347,7 +351,7 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
         var toDate = string.IsNullOrEmpty(request.ToDate) ? (DateOnly?)null : DateOnly.Parse(request.ToDate);
         var status = request.HasStatus ? (Domain.Enums.OrderStatus?)request.Status : null;
         var paymentMethod = request.HasPaymentMethod ? (Domain.Enums.PaymentMethod?)request.PaymentMethod : null;
-
+        var type = request.HasType ? (Domain.Enums.OrderType?)request.Type : null;
         var query = new GetOrdersQuery(
             storeId,
             request.Code,
@@ -355,6 +359,7 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             toDate,
             status,
             paymentMethod,
+            type,
             request.Page > 0 ? request.Page : 1,
             request.PageSize > 0 ? request.PageSize : 10
         );
@@ -389,7 +394,8 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
                 Notes = order.Notes ?? string.Empty,
                 Tax = order.Tax.HasValue ? (double)order.Tax.Value : -1,
                 PaidAmount = order.PaidAmount.HasValue ? (double)order.PaidAmount.Value : -1,
-                PaymentMethod = order.PaymentMethod ?? -1
+                PaymentMethod = order.PaymentMethod ?? -1,
+                Type = (OrderType)order.OrderType
             };
 
             if (!string.IsNullOrEmpty(order.Notes))

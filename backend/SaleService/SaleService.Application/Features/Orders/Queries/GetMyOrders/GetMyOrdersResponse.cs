@@ -10,6 +10,7 @@
         decimal TotalAmount,
         decimal? PaidAmount,
         int? PaymentMethod,
+        int? OrderType,
         int Status,
         DateTimeOffset PaidAt,
         string? Notes,

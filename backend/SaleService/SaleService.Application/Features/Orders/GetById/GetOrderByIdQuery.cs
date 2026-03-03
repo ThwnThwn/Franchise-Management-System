@@ -1,5 +1,6 @@
 ﻿using Ardalis.Result;
 using MediatR;
+using SalesService.Domain.Enums;
 
 namespace SalesService.Application.Features.Orders.GetById
 {
@@ -22,6 +23,7 @@ namespace SalesService.Application.Features.Orders.GetById
         public DateTimeOffset UpdatedAt { get; set; }
         public Guid? CustomerId { get; set; }
         public Guid? StoreId { get; set; }
+        public OrderType? Type { get; set; }
 
         public List<OrderItemDto> Items { get; set; } = new();
     }
