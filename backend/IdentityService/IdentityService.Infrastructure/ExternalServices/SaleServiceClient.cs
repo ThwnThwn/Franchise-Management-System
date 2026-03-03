@@ -19,7 +19,7 @@ namespace IdentityService.Infrastructure.ExternalServices
         private readonly ILogger<IEngagementServiceClient> _logger;
         public SaleServiceClient(IConfiguration configuration, ILogger<IEngagementServiceClient> logger)
         {
-            var identityServiceUrl = configuration["SALES_SERVICE_URL"] ?? "https://localhost:5003";
+            var identityServiceUrl = configuration["SALES_SERVICE_URL"] ?? "http://localhost:5003";
             var channel = GrpcChannel.ForAddress(identityServiceUrl);
             _client = new OrderGrpc.OrderGrpcClient(channel);
             _logger = logger;

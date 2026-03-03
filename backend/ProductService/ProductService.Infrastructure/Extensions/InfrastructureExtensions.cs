@@ -96,7 +96,7 @@ namespace ProductService.Infrastructure.Extensions
                 // Bật Dashboard quản lý UI
                 x.UseDashboard(opt =>
                 {
-                    opt.PathMatch = "/cap-ui"; // Truy cập chính xác qua https://localhost:5002/cap-ui
+                    opt.PathMatch = "/cap-ui"; // Truy cập chính xác qua http://localhost:5002/cap-ui
                     opt.StatsPollingInterval = 2000; // 2 giây cập nhật data 1 lần
                 });
 

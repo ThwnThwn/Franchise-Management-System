@@ -62,16 +62,6 @@ public class Program
         // Add environment variables to configuration
         builder.Configuration.AddEnvironmentVariables();
 
-        // Configure Kestrel for gRPC (HTTPS + HTTP/2)
-        //var saleServicePort = int.Parse(builder.Configuration["SALES_PORT"] ?? "5003");
-        //builder.WebHost.ConfigureKestrel(options =>
-        //{
-        //    options.ListenLocalhost(saleServicePort, listenOptions =>
-        //    {
-        //        listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2;
-        //        listenOptions.UseHttps(); // Development certificate
-        //    });
-        //});
         builder.WebHost.ConfigureKestrel(options =>
         {
             options.ConfigureEndpointDefaults(listenOptions =>

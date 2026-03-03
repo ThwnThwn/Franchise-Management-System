@@ -11,12 +11,12 @@ namespace InventoryService.API.Services.Supplier
 
         public SupplierServiceClient(IConfiguration configuration)
         {
-            var rawUrl = configuration["GrpcSettings:SupplierServiceUrl"] ?? configuration["ServiceUrls:SupplierService"] ?? "https://localhost:5008";
+            var rawUrl = configuration["GrpcSettings:SupplierServiceUrl"] ?? configuration["ServiceUrls:SupplierService"] ?? "http://localhost:5008";
 
             var url = rawUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
                       rawUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
                 ? rawUrl
-                : $"https://{rawUrl}";
+                : $"http://{rawUrl}";
 
             var httpHandler = new HttpClientHandler
             {

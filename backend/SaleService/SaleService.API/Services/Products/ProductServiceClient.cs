@@ -14,12 +14,12 @@ public class ProductServiceClient : IProductServiceClient
 
     public ProductServiceClient(IConfiguration configuration)
     {
-        var rawUrl = configuration["PRODUCT_SERVICE_URL"] ?? "https://localhost:5002";
+        var rawUrl = configuration["PRODUCT_SERVICE_URL"] ?? "http://localhost:5002";
         // Cho phép env var values like "localhost:5002" bằng cách chuẩn hóa thành URI tuyệt đối.
         _productServiceUrl = rawUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
                              rawUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
             ? rawUrl
-            : $"https://{rawUrl}";
+            : $"http://{rawUrl}";
 
         var httpHandler = new HttpClientHandler
         {
