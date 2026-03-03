@@ -21,8 +21,11 @@ CREATE TYPE point_reason_code AS ENUM (
     'ORDER_RETURN_DEDUCT', -- Thu hồi điểm khi trả hàng
     'MANUAL_ADJUST'        -- Điều chỉnh thủ công bởi admin
 );
-CREATE TYPE voucher_category AS ENUM ('DISCOUNT', 'SHIPPING', 'GIFT');
-CREATE TYPE voucher_discount_type AS ENUM ('PERCENTAGE', 'FIXED_AMOUNT', 'GIFT_ITEM');
+CREATE TYPE voucher_type AS ENUM ('DISCOUNT_PERCENTAGE',
+                                    'DISCOUNT_FIXED_AMOUNT',
+                                    'SHIPPING_PERCENTAGE', 
+                                    'SHIPPING_FIXED_AMOUNT',
+                                    'GIFT');
 CREATE TYPE user_voucher_status AS ENUM ('AVAILABLE', 'USED', 'EXPIRED');
 CREATE TYPE voucher_item_type AS ENUM ('ITEM_GIFT', 'ITEM_REQUIRED');
 
@@ -96,8 +99,7 @@ CREATE TABLE "point_rules" (
 CREATE TABLE "vouchers" (
     "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     "code" VARCHAR(50) NOT NULL,
-    "category" voucher_category NOT NULL,
-    "type" voucher_discount_type,
+    "type" voucher_type NOT NULL,
     "discount_value" DECIMAL(15, 3) CHECK ("discount_value" >= 0),
     "max_discount_value" DECIMAL(15, 3) CHECK ("max_discount_value" >= 0),
     "min_order_value" DECIMAL(15, 3) DEFAULT 0 CHECK ("min_order_value" >= 0),

@@ -1,6 +1,7 @@
 ﻿using EngagementService.Application.Persistences.Repository;
 using EngagementService.Domain.Entities;
 using EngagementService.Infrastucture.AppDbContext;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +14,13 @@ namespace EngagementService.Infrastucture.Persistences.Repository
     {
         public VoucherItemRepository(IEngagementDbContext dbContext) : base(dbContext)
         {
+        }
+
+        public async Task<IEnumerable<VoucherItem>> GetByVoucherId(Guid voucherId)
+        {
+            return await _dbContext.VoucherItems
+                .Where(v => v.VoucherId == voucherId && v.IsDeleted == false)
+                .ToListAsync();
         }
     }
 }
