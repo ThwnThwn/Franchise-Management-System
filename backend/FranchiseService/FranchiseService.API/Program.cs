@@ -22,20 +22,12 @@ namespace FranchiseService.API
 
             // 2. Configure Kestrel (HTTP/2 for gRPC)
             var servicePort = int.Parse(builder.Configuration["FRANCHISE_PORT"] ?? "5006");
-            //builder.WebHost.ConfigureKestrel(options =>
-            //{
-            //    options.ListenLocalhost(servicePort, listenOptions =>
-            //    {
-            //        listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2;
-            //        listenOptions.UseHttps();
-            //    });
-            //});
+            
             builder.WebHost.ConfigureKestrel(options =>
             {
                 options.ConfigureEndpointDefaults(listenOptions =>
                 {
-                    // Hỗ trợ cả HTTP/1 (REST) và HTTP/2 (gRPC)
-                    listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2;
+                    listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2;
                 });
             });
 

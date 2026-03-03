@@ -44,21 +44,12 @@ namespace InventoryService.API
 
             // Configure Kestrel for gRPC (HTTPS + HTTP/2)
             var inventoryServicePort = int.Parse(builder.Configuration[Common.INVENTORY_PORT] ?? "5005");
-            //var inventoryServicePort = int.Parse(builder.Configuration["INVENTORY_PORT"] ?? "5005");
-            //builder.WebHost.ConfigureKestrel(options =>
-            //{
-            //    options.ListenLocalhost(inventoryServicePort, listenOptions =>
-            //    {
-            //        listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2;
-            //        listenOptions.UseHttps(); // Development certificate
-            //    });
-            //});
+            
             builder.WebHost.ConfigureKestrel(options =>
             {
                 options.ConfigureEndpointDefaults(listenOptions =>
                 {
-                    // Allow both HTTP/1.1 (REST) and HTTP/2 (gRPC)
-                    listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2;
+                    listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2;
                 });
             });
 

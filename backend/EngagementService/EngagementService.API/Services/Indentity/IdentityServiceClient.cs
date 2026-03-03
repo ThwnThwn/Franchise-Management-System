@@ -16,12 +16,12 @@ namespace EngagementService.API.Services.Identity
         {
             _configuration = configuration;
 
-            var rawUrl = configuration["IDENTITY_SERVICE_URL"] ?? "https://localhost:5001";
+            var rawUrl = configuration["IDENTITY_SERVICE_URL"] ?? "http://localhost:5001";
             // Allow env var values like "localhost:5002" by normalizing to an absolute URI.
             _identityServiceUrl = rawUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
                                  rawUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
                 ? rawUrl
-                : $"https://{rawUrl}";
+                : $"http://{rawUrl}";
 
             var httpHandler = new HttpClientHandler
             {

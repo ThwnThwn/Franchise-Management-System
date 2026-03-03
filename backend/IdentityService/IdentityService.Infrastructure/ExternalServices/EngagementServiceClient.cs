@@ -15,7 +15,7 @@ namespace IdentityService.Infrastructure.ExternalServices
         private readonly ILogger<IEngagementServiceClient> _logger;
         public EngagementServiceClient(IConfiguration configuration, ILogger<IEngagementServiceClient> logger)
         {
-            var identityServiceUrl = configuration["ENGAGEMENT_SERVICE_URL"] ?? "https://localhost:5007";
+            var identityServiceUrl = configuration["ENGAGEMENT_SERVICE_URL"] ?? "http://localhost:5007";
             var channel = GrpcChannel.ForAddress(identityServiceUrl);
             _client = new LoyaltyAccountGrpc.LoyaltyAccountGrpcClient(channel);
             _logger = logger;
