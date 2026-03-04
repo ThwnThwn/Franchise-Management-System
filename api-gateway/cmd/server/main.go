@@ -29,7 +29,7 @@ import (
 func main() {
 	// 1. Load Config
 	global.Config = config.LoadConfig()
-	errorcode.InitErrorMap()
+	errorcode.InitErrorMap(global.Config)
 	l := logger.New(global.Config.Logger)
 
 	// 2. Init App

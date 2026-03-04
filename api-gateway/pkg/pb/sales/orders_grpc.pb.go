@@ -38,6 +38,10 @@ type OrderGrpcClient interface {
 	GetRevenueReport(ctx context.Context, in *GetRevenueReportRequest, opts ...grpc.CallOption) (*GetRevenueReportReply, error)
 	// Lấy danh sách đơn hàng
 	GetOrderVolume(ctx context.Context, in *GetOrderVolumeRequest, opts ...grpc.CallOption) (*GetOrderVolumeReply, error)
+	// Thanh toán order bằng ví
+	PayOrderWithWallet(ctx context.Context, in *PayOrderWithWalletRequest, opts ...grpc.CallOption) (*PayOrderWithWalletReply, error)
+	// Lấy số đơn hàng
+	GetCountOrderByUserIds(ctx context.Context, in *GetCountOrderByUserIdsRequest, opts ...grpc.CallOption) (*GetCountOrderByUserIdsResponse, error)
 }
 
 type orderGrpcClient struct {
@@ -120,6 +124,24 @@ func (c *orderGrpcClient) GetOrderVolume(ctx context.Context, in *GetOrderVolume
 	return out, nil
 }
 
+func (c *orderGrpcClient) PayOrderWithWallet(ctx context.Context, in *PayOrderWithWalletRequest, opts ...grpc.CallOption) (*PayOrderWithWalletReply, error) {
+	out := new(PayOrderWithWalletReply)
+	err := c.cc.Invoke(ctx, "/order.OrderGrpc/PayOrderWithWallet", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *orderGrpcClient) GetCountOrderByUserIds(ctx context.Context, in *GetCountOrderByUserIdsRequest, opts ...grpc.CallOption) (*GetCountOrderByUserIdsResponse, error) {
+	out := new(GetCountOrderByUserIdsResponse)
+	err := c.cc.Invoke(ctx, "/order.OrderGrpc/GetCountOrderByUserIds", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // OrderGrpcServer is the server API for OrderGrpc service.
 // All implementations must embed UnimplementedOrderGrpcServer
 // for forward compatibility
@@ -140,6 +162,10 @@ type OrderGrpcServer interface {
 	GetRevenueReport(context.Context, *GetRevenueReportRequest) (*GetRevenueReportReply, error)
 	// Lấy danh sách đơn hàng
 	GetOrderVolume(context.Context, *GetOrderVolumeRequest) (*GetOrderVolumeReply, error)
+	// Thanh toán order bằng ví
+	PayOrderWithWallet(context.Context, *PayOrderWithWalletRequest) (*PayOrderWithWalletReply, error)
+	// Lấy số đơn hàng
+	GetCountOrderByUserIds(context.Context, *GetCountOrderByUserIdsRequest) (*GetCountOrderByUserIdsResponse, error)
 	mustEmbedUnimplementedOrderGrpcServer()
 }
 
@@ -170,6 +196,12 @@ func (UnimplementedOrderGrpcServer) GetRevenueReport(context.Context, *GetRevenu
 }
 func (UnimplementedOrderGrpcServer) GetOrderVolume(context.Context, *GetOrderVolumeRequest) (*GetOrderVolumeReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOrderVolume not implemented")
+}
+func (UnimplementedOrderGrpcServer) PayOrderWithWallet(context.Context, *PayOrderWithWalletRequest) (*PayOrderWithWalletReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PayOrderWithWallet not implemented")
+}
+func (UnimplementedOrderGrpcServer) GetCountOrderByUserIds(context.Context, *GetCountOrderByUserIdsRequest) (*GetCountOrderByUserIdsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCountOrderByUserIds not implemented")
 }
 func (UnimplementedOrderGrpcServer) mustEmbedUnimplementedOrderGrpcServer() {}
 
@@ -328,6 +360,42 @@ func _OrderGrpc_GetOrderVolume_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OrderGrpc_PayOrderWithWallet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PayOrderWithWalletRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderGrpcServer).PayOrderWithWallet(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/order.OrderGrpc/PayOrderWithWallet",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderGrpcServer).PayOrderWithWallet(ctx, req.(*PayOrderWithWalletRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OrderGrpc_GetCountOrderByUserIds_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCountOrderByUserIdsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderGrpcServer).GetCountOrderByUserIds(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/order.OrderGrpc/GetCountOrderByUserIds",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderGrpcServer).GetCountOrderByUserIds(ctx, req.(*GetCountOrderByUserIdsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // OrderGrpc_ServiceDesc is the grpc.ServiceDesc for OrderGrpc service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -366,6 +434,14 @@ var OrderGrpc_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetOrderVolume",
 			Handler:    _OrderGrpc_GetOrderVolume_Handler,
+		},
+		{
+			MethodName: "PayOrderWithWallet",
+			Handler:    _OrderGrpc_PayOrderWithWallet_Handler,
+		},
+		{
+			MethodName: "GetCountOrderByUserIds",
+			Handler:    _OrderGrpc_GetCountOrderByUserIds_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

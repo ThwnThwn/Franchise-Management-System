@@ -35,6 +35,12 @@ func NewEngine(cfg *config.Config, aR *AppRouter) *gin.Engine {
 
 	MainGroup := r.Group("/api")
 	{
+		// Engagement
+		aR.LoyaltyRouter.Init(MainGroup)
+		aR.MembershipTierRouter.Init(MainGroup)
+		aR.PointLogRouter.Init(MainGroup)
+		aR.VoucherRouter.Init(MainGroup)
+
 		// Franchise
 		aR.StoreRouter.Init(MainGroup)
 		aR.MyShiftsRouter.Init(MainGroup)

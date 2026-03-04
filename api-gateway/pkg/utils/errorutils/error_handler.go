@@ -2,7 +2,6 @@ package errorutils
 
 import (
 	"api-gateway/internal/application/constants/errorcode"
-	"api-gateway/internal/domain/models/errormodel"
 	"errors"
 	"net/http"
 
@@ -11,7 +10,7 @@ import (
 )
 
 func MapErrorToProblem(err error) (int, string, string) {
-	var appErr *errormodel.BackendError
+	var appErr *errorcode.ErrorResponse
 	if errors.As(err, &appErr) {
 		return appErr.Status, appErr.Title, appErr.Detail
 	}

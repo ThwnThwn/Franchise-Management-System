@@ -1,7 +1,7 @@
 package errorcode
 
 import (
-	"api-gateway/global"
+	"api-gateway/config"
 	"errors"
 	"fmt"
 	"net/http"
@@ -38,17 +38,11 @@ var (
 	ErrUnexpectedSigningToken error
 )
 
-type ErrorResponse struct {
-	Status int
-	Title  string
-	Detail string
-}
-
 var InternalErrorMap map[error]ErrorResponse
 
 // InitErrorMap initializes all error variables and their corresponding HTTP mapping.
 // This must be called AFTER global.LoadConfig() in main.go.
-func InitErrorMap() {
+func InitErrorMap(cfg *config.Config) {
 	// --- 400 Bad Request ---
 	ErrInvalidId = errors.New("Id không hợp lệ")
 	ErrInvalidImageFormat = errors.New("Vui lòng chỉ upload ảnh định dạng JPG, PNG hoặc WebP")
@@ -67,7 +61,7 @@ func InitErrorMap() {
 
 	// --- 413 Payload Too Large ---
 	// Dynamically generated based on Environment Variable
-	ErrFileTooLarge = fmt.Errorf("Vui lòng chọn tệp nhỏ hơn %d MB", global.Config.MaxUploadSizeMb)
+	ErrFileTooLarge = fmt.Errorf("Vui lòng chọn tệp nhỏ hơn %d MB", cfg.MaxUploadSizeMb)
 
 	// --- 429 Too Many Requests ---
 	ErrOTPRateLimit = errors.New("Quá số lần gửi OTP")

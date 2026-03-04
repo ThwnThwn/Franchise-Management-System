@@ -29,3 +29,11 @@ func Int32ToIntPtr(i *int32) *int {
 	v := int(*i)
 	return &v
 }
+
+func EnumPtrToInt32Ptr[T ~int32](enumPtr *T) *int32 {
+	if enumPtr == nil {
+		return nil
+	}
+	val := int32(*enumPtr)
+	return &val
+}

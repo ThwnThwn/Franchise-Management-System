@@ -7,7 +7,11 @@ import (
 )
 
 func (o *OrderRouter) Init(r *gin.RouterGroup) {
-	// 🚀 Nhóm gốc của Orders
+	publicOrderApi := r.Group("/orders")
+	{
+		publicOrderApi.GET("/vnpay/return", api.WrapHandler(o.paymentHl.ProcessVnPayReturn))
+	}
+
 	orderApi := r.Group("/orders")
 	orderApi.Use(o.authMW.ValidateToken([]byte(o.cfg.JwtSecret)))
 	{
@@ -38,8 +42,9 @@ func (o *OrderRouter) Init(r *gin.RouterGroup) {
 			api.WrapHandler(o.orderHl.UpdateOrder))
 		orderApi.PATCH("/:id/status", o.authMW.PermissionCheck("order.update"),
 			api.WrapHandler(o.orderHl.UpdateOrderStatus))
+
 		orderApi.POST("/:id/payment", o.authMW.PermissionCheck("order.payment"),
-			api.WrapHandler(o.orderHl.CreatePaymentUrl))
+			api.WrapHandler(o.paymentHl.CreatePaymentUrl))
 	}
 
 	// 👤 Nhóm dành cho khách hàng tự xem đơn của mình

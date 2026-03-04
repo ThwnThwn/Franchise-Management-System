@@ -150,6 +150,17 @@ definitions:
       name:
         type: string
     type: object
+  api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_point_LogResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/api-gateway_internal_domain_models_point.LogResponse'
+        type: array
+      totalCount:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
   api-gateway_internal_domain_models_ingredient.CreateIngreCateReq:
     properties:
       description:
@@ -194,6 +205,102 @@ definitions:
       categoryId:
         type: string
       name:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_loyalty.LoyaltyAccountResponse:
+    properties:
+      availablePoints:
+        type: string
+      currentTier:
+        $ref: '#/definitions/api-gateway_internal_domain_models_loyalty.MembershipTier'
+      id:
+        type: string
+      totalSpent:
+        type: string
+      userName:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_loyalty.LoyaltyReportResponse:
+    properties:
+      fileContent:
+        items:
+          type: integer
+        type: array
+      fileName:
+        type: string
+      tierDistribution:
+        items:
+          $ref: '#/definitions/api-gateway_internal_domain_models_loyalty.TierDistribution'
+        type: array
+      totalMembers:
+        type: integer
+      totalPointsEarned:
+        type: number
+      totalPointsRedeemed:
+        type: number
+    type: object
+  api-gateway_internal_domain_models_loyalty.MembershipTier:
+    properties:
+      amountPerPoint:
+        type: string
+      discountRate:
+        type: number
+      id:
+        type: string
+      minSpendRequired:
+        type: string
+      name:
+        type: string
+      valuePerPoint:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_loyalty.TierDistribution:
+    properties:
+      memberCount:
+        type: integer
+      tierName:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_membershiptier.CreateMembershipTierRequest:
+    properties:
+      amountPerPoint:
+        type: string
+      discountRate:
+        type: number
+      minSpendRequired:
+        type: string
+      name:
+        type: string
+      valuePerPoint:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_membershiptier.MembershipTierResponse:
+    properties:
+      amountPerPoint:
+        type: string
+      discountRate:
+        type: number
+      id:
+        type: string
+      minSpendRequired:
+        description: Dùng string để mapping với decimal
+        type: string
+      name:
+        type: string
+      valuePerPoint:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_membershiptier.UpdateMembershipTierRequest:
+    properties:
+      amountPerPoint:
+        type: string
+      discountRate:
+        type: number
+      minSpendRequired:
+        type: string
+      name:
+        type: string
+      valuePerPoint:
         type: string
     type: object
   api-gateway_internal_domain_models_order.CartItem:
@@ -309,6 +416,31 @@ definitions:
       description:
         type: string
       name:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_point.LogResponse:
+    properties:
+      actionType:
+        type: string
+      amount:
+        type: string
+      balanceAfter:
+        type: string
+      balanceBefore:
+        type: string
+      createdAt:
+        type: string
+      description:
+        type: string
+      expiredAt:
+        type: string
+      id:
+        type: string
+      reasonCode:
+        type: string
+      referenceId:
+        type: string
+      userId:
         type: string
     type: object
   api-gateway_internal_domain_models_product.CreateProductRequest:
@@ -845,6 +977,122 @@ definitions:
         type: string
     required:
     - roleSlug
+    type: object
+  api-gateway_internal_domain_models_voucher.CreateVoucherItemReq:
+    properties:
+      quantity:
+        type: integer
+      type:
+        type: integer
+      variant_id:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_voucher.CreateVoucherRequest:
+    properties:
+      code:
+        type: string
+      discount_value:
+        type: string
+      end_date:
+        type: string
+      init_quantity:
+        type: integer
+      max_discount_value:
+        type: string
+      max_usage_per_user:
+        type: integer
+      min_order_value:
+        type: string
+      point_cost:
+        type: string
+      type:
+        type: integer
+      voucher_items:
+        items:
+          $ref: '#/definitions/api-gateway_internal_domain_models_voucher.CreateVoucherItemReq'
+        type: array
+    type: object
+  api-gateway_internal_domain_models_voucher.UpdateVoucherItemReq:
+    properties:
+      id:
+        type: string
+      quantity:
+        type: integer
+      type:
+        type: integer
+      variant_id:
+        description: Đại diện cho Guid
+        type: string
+    type: object
+  api-gateway_internal_domain_models_voucher.UpdateVoucherRequest:
+    properties:
+      discount_value:
+        type: string
+      end_date:
+        type: string
+      max_discount_value:
+        type: string
+      max_usage_per_user:
+        type: integer
+      min_order_value:
+        type: string
+      point_cost:
+        type: string
+      voucher_items:
+        items:
+          $ref: '#/definitions/api-gateway_internal_domain_models_voucher.UpdateVoucherItemReq'
+        type: array
+    type: object
+  api-gateway_internal_domain_models_voucher.UpdateVoucherStatusRequest:
+    properties:
+      is_active:
+        type: boolean
+    type: object
+  api-gateway_internal_domain_models_voucher.VoucherItemResponse:
+    properties:
+      id:
+        type: string
+      quantity:
+        type: integer
+      type:
+        type: integer
+      variant_id:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_voucher.VoucherResponse:
+    properties:
+      code:
+        type: string
+      created_at:
+        type: string
+      current_quantity:
+        type: integer
+      discount_value:
+        type: string
+      end_date:
+        type: string
+      id:
+        type: string
+      init_quantity:
+        type: integer
+      is_active:
+        type: boolean
+      max_discount_value:
+        type: string
+      max_usage_per_user:
+        type: integer
+      min_order_value:
+        type: string
+      point_cost:
+        type: string
+      type:
+        type: integer
+      updated_at:
+        type: string
+      voucher_items:
+        items:
+          $ref: '#/definitions/api-gateway_internal_domain_models_voucher.VoucherItemResponse'
+        type: array
     type: object
   gin.H:
     additionalProperties: {}
@@ -1600,6 +1848,81 @@ paths:
       summary: Update Ingredient Category
       tags:
       - Ingredient Categories
+  /loyalty/accounts:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve loyalty accounts by user phone or email.
+      parameters:
+      - in: query
+        name: email
+        type: string
+      - in: query
+        name: phoneNumber
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of loyalty accounts
+          schema:
+            items:
+              $ref: '#/definitions/api-gateway_internal_domain_models_loyalty.LoyaltyAccountResponse'
+            type: array
+        "400":
+          description: Validation error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Search Loyalty Accounts
+      tags:
+      - Loyalty
+  /loyalty/reports:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve statistics about loyalty tiers, point distribution, and
+        member growth.
+      parameters:
+      - in: query
+        name: format
+        type: integer
+      - in: query
+        name: fromDate
+        type: string
+      - in: query
+        name: tierId
+        type: string
+      - in: query
+        name: toDate
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Loyalty report data
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_loyalty.LoyaltyReportResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get Loyalty Report
+      tags:
+      - Loyalty
   /me/cart:
     delete:
       consumes:
@@ -1711,6 +2034,43 @@ paths:
       summary: Get My Order History
       tags:
       - Orders
+  /me/points/logs:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve pagination list of point transaction logs for the current
+        authenticated user.
+      parameters:
+      - in: query
+        name: fromDate
+        type: string
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      - in: query
+        name: toDate
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of point logs
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_point_LogResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get My Point History
+      tags:
+      - Loyalty - Points
   /me/shift-availabilities:
     get:
       description: Truy xuất danh sách lịch rảnh/bận đã đăng ký của nhân viên hiện
@@ -1887,6 +2247,118 @@ paths:
       summary: Lấy lịch sử chấm công cá nhân
       tags:
       - 'Shifts: Staff'
+  /membership-tiers:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all available membership tiers
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of tiers
+          schema:
+            items:
+              $ref: '#/definitions/api-gateway_internal_domain_models_membershiptier.MembershipTierResponse'
+            type: array
+      summary: Get All Membership Tiers
+      tags:
+      - Membership Tiers
+    post:
+      consumes:
+      - application/json
+      description: Define a new membership tier with spending requirements and benefits.
+      parameters:
+      - description: Tier details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_membershiptier.CreateMembershipTierRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create Membership Tier
+      tags:
+      - Membership Tiers
+  /membership-tiers/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove a membership tier from the system.
+      parameters:
+      - description: Tier UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete Membership Tier
+      tags:
+      - Membership Tiers
+    patch:
+      consumes:
+      - application/json
+      description: Update benefits or requirements for an existing tier.
+      parameters:
+      - description: Tier UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_membershiptier.UpdateMembershipTierRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID or validation error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update Membership Tier
+      tags:
+      - Membership Tiers
   /orders:
     get:
       consumes:
@@ -2044,7 +2516,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Generate a payment link (e.g., VNPay, Momo) for the specific order.
+      description: Generate a payment link (VNPay) for the specific order.
       parameters:
       - description: Order UUID
         in: path
@@ -2274,6 +2746,45 @@ paths:
       summary: Export Order Volume (CSV)
       tags:
       - Orders
+  /orders/vnpay/return:
+    get:
+      consumes:
+      - application/json
+      description: Endpoint for VNPay to redirect the browser after payment. Verifies
+        the signature via gRPC and redirects to the Frontend UI.
+      parameters:
+      - description: Transaction Amount
+        in: query
+        name: vnp_Amount
+        type: string
+      - description: Bank Code
+        in: query
+        name: vnp_BankCode
+        type: string
+      - description: Order Information
+        in: query
+        name: vnp_OrderInfo
+        type: string
+      - description: VNPAY Response Code
+        in: query
+        name: vnp_ResponseCode
+        type: string
+      - description: Transaction Reference
+        in: query
+        name: vnp_TxnRef
+        type: string
+      - description: Security Hash
+        in: query
+        name: vnp_SecureHash
+        type: string
+      produces:
+      - text/html
+      responses:
+        "302":
+          description: Redirects to the Frontend React application
+      summary: Handle VNPay Return URL
+      tags:
+      - Payments
   /permissions:
     get:
       consumes:
@@ -3557,8 +4068,20 @@ paths:
       description: Retrieve a list of users with optional filtering (Admin).
       parameters:
       - in: query
+        name: endAt
+        type: number
+      - in: query
+        name: hasHourlyWage
+        type: boolean
+      - in: query
+        name: homeStoreId
+        type: string
+      - in: query
         name: keyword
         type: string
+      - in: query
+        name: orderCount
+        type: integer
       - in: query
         name: page
         type: integer
@@ -3567,6 +4090,12 @@ paths:
         type: integer
       - in: query
         name: roleSlug
+        type: string
+      - in: query
+        name: startAt
+        type: number
+      - in: query
+        name: tierId
         type: string
       produces:
       - application/json
@@ -3904,6 +4433,154 @@ paths:
       summary: Update Variant Recipe
       tags:
       - Recipes
+  /vouchers:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all vouchers available in the system.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of vouchers
+          schema:
+            items:
+              $ref: '#/definitions/api-gateway_internal_domain_models_voucher.VoucherResponse'
+            type: array
+      summary: Get All Vouchers
+      tags:
+      - Vouchers
+    post:
+      consumes:
+      - application/json
+      description: Create a new discount voucher with items and rules.
+      parameters:
+      - description: Voucher details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_voucher.CreateVoucherRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create New Voucher
+      tags:
+      - Vouchers
+  /vouchers/{id}:
+    delete:
+      description: Permanently remove a voucher from the system.
+      parameters:
+      - description: Voucher UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete Voucher
+      tags:
+      - Vouchers
+    patch:
+      consumes:
+      - application/json
+      description: Update details of an existing voucher. Fields are optional (patch-like
+        behavior).
+      parameters:
+      - description: Voucher UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated fields
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_voucher.UpdateVoucherRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update Voucher
+      tags:
+      - Vouchers
+  /vouchers/{id}/status:
+    patch:
+      consumes:
+      - application/json
+      description: Activate or deactivate a voucher.
+      parameters:
+      - description: Voucher UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: New status
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_voucher.UpdateVoucherStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update Voucher Status
+      tags:
+      - Vouchers
+  /vouchers/code/{code}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve voucher details using its unique string code (e.g., 'SALE50').
+      parameters:
+      - description: Voucher Code
+        in: path
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Voucher details
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_voucher.VoucherResponse'
+        "404":
+          description: Voucher not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get Voucher by Code
+      tags:
+      - Vouchers
 securityDefinitions:
   BearerAuth:
     description: 'Don''t forget to type "Bearer" before the token. For example: Bearer

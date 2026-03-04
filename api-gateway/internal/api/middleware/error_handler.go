@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"api-gateway/internal/domain/models/errormodel"
+	"api-gateway/internal/application/constants/errorcode"
 	"api-gateway/pkg/utils/errorutils"
 
 	"github.com/gin-gonic/gin"
@@ -17,7 +17,7 @@ func GlobalErrorHandler() gin.HandlerFunc {
 			status, title, detail := errorutils.MapErrorToProblem(err)
 
 			if !c.Writer.Written() {
-				c.JSON(status, errormodel.BackendError{
+				c.JSON(status, errorcode.ErrorResponse{
 					Title:  title,
 					Status: status,
 					Detail: detail,

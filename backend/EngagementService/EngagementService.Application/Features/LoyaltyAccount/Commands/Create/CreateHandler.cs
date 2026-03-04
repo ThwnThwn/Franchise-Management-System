@@ -47,11 +47,9 @@ namespace EngagementService.Application.Features.LoyaltyAccount.Commands.Create
                 CurrentTierId = defaultTier.Id,
             };
 
-            await _loyaltyAccountRepository.AddAsync(loyaltyAccount);
-
-            //có điểm ms ghi log
             if (point > 0)
             {
+                //sinh point log
                 var allRules = await _pointRuleCache.GetOrSetAllAsync(async () =>
                 {
                     // Gọi Repository để lấy dữ liệu (IEnumerable)
@@ -60,8 +58,16 @@ namespace EngagementService.Application.Features.LoyaltyAccount.Commands.Create
                     return data.ToList();
                 });
 
-                await HandlePointLog.CreatePointLog(_pointLogRepository, loyaltyAccount, 0, loyaltyAccount.AvailablePoints, point, request.OrderId, PointReasonCode.ORDER_COMPLETED, PointActionType.EARN, "Initial points", allRules);
+                var pointLog = HandlePointLog.CreatePointLog(loyaltyAccount, 0, loyaltyAccount.AvailablePoints, point, request.OrderId, PointReasonCode.ORDER_COMPLETED, PointActionType.EARN, "Initial points", allRules);
+            
+                loyaltyAccount.PointLogs.Add(pointLog);
             }
+
+
+            await _loyaltyAccountRepository.AddAsync(loyaltyAccount);
+
+            //có điểm ms ghi log
+            
             return Unit.Value;
         }
     }
