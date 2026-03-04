@@ -27,6 +27,7 @@ func MapUserPbToUserModel(userPb *identity.UserResponse) *user.UserResponse {
 		Role: &role.RoleUserResponse{
 			Id:   userPb.Role.Id,
 			Name: userPb.Role.Name,
+			Slug: userPb.Role.Slug,
 		},
 		CreatedAt: timeutils.ProtoToTimePtr(userPb.CreatedAt),
 		UpdatedAt: timeutils.ProtoToTimePtr(userPb.UpdatedAt),

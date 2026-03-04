@@ -45,7 +45,7 @@ public sealed class GetWalletTransactionsByUserIdQueryHandler
         var response = transactions.Items.Select(t => new WalletTransactionResponse
         {
             Id = t.Id,
-            WalletId = t.WalletId,
+            WalletId = t.WalletId.Value,
             UserId = t.UserId,
             OrderId = t.OrderId,
             InitiatedBy = t.InitiatedBy,

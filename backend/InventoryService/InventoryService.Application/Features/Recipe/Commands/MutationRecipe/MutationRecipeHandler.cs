@@ -17,21 +17,21 @@ namespace InventoryService.Application.Features.Recipe.Commands.MutationRecipe
         private readonly IRecipeRepository _recipeRepository;
         private readonly IProductServiceClient _productServiceClient;
         private readonly IInventoryDbContext _dbContext;
+
         public MutationRecipeHandler(IRecipeRepository recipeRepository, IProductServiceClient productServiceClient, IInventoryDbContext dbContext)
         {
             _recipeRepository = recipeRepository;
             _productServiceClient = productServiceClient;
             _dbContext = dbContext;
         }
+
         public async Task<Unit> Handle(MutationRecipeCommand command, CancellationToken cancellationToken)
         {
             var request = command.Request;
             //ktra variant có tồn tại hay k
-            var variant = await _productServiceClient.GetVariantById(request.VariantId);
-            if (variant == null)
-            {
-                throw new DirectoryNotFoundException(Message.ProductVariant.NotFound);
-            }
+            var variant = await _productServiceClient.GetVariantById(request.VariantId)
+                ?? throw new DirectoryNotFoundException(Message.ProductVariant.NotFound);
+
             //lấy recipe ra từ db
             var recipe = await _recipeRepository.GetRecipesByVariantIdAsync(request.VariantId, cancellationToken);
 

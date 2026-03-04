@@ -67,6 +67,10 @@ public partial class InventoryDbContext : DbContext, IInventoryDbContext
                 .HasMaxLength(50)
                 .HasColumnName("base_unit");
 
+            entity.Property(e => e.Cost)
+                .HasColumnName("cost")
+                .HasDefaultValue(0m);
+
             // Thay thế cột Category (string) cũ bằng CategoryId (Guid)
             entity.Property(e => e.CategoryId)
                 .HasColumnName("category_id");

@@ -18,12 +18,12 @@ namespace FranchiseService.Infrastructure.Clients.Identity
         {
             _httpContextAccessor = httpContextAccessor;
 
-            var rawUrl = configuration["GrpcSettings:IdentityServiceUrl"] ?? "https://localhost:5001";
+            var rawUrl = configuration["GrpcSettings:IdentityServiceUrl"] ?? "http://localhost:5001";
 
             var identityServiceUrl = rawUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
                                      rawUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
                 ? rawUrl
-                : $"https://{rawUrl}";
+                : $"http://{rawUrl}";
 
             // Cho phep self-signed certificate trong moi truong dev
             var httpHandler = new HttpClientHandler
@@ -70,7 +70,7 @@ namespace FranchiseService.Infrastructure.Clients.Identity
         {
             try
             {
-                var request = new GetAllUserOrWithRoleRequest
+                var request = new GetAllUserWithFilterRequest
                 {
                     RoleSlug = roleSlug ?? "",
                     Page = 1,

@@ -17,5 +17,7 @@ namespace ProductService.Application.Repositories
         Task DeleteRangeAsync(IEnumerable<Guid> ids); // to delete multiple entities at once
         void Remove(T entity);
         Task<T[]> GetByIdsAsync(Guid[] ids); // get multiple entities by their ids 
+        Task AddOnlyAsync(T entity);
+        Task DeleteOnlyAsync(Guid id);
     }
 }

@@ -14,12 +14,12 @@ public class ProductServiceClient : IProductServiceClient
 
     public ProductServiceClient(IConfiguration configuration)
     {
-        var rawUrl = configuration["PRODUCT_SERVICE_URL"] ?? "https://localhost:5002";
+        var rawUrl = configuration["PRODUCT_SERVICE_URL"] ?? "http://localhost:5002";
         // Cho phép env var values like "localhost:5002" bằng cách chuẩn hóa thành URI tuyệt đối.
         _productServiceUrl = rawUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
                              rawUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
             ? rawUrl
-            : $"https://{rawUrl}";
+            : $"http://{rawUrl}";
 
         var httpHandler = new HttpClientHandler
         {
@@ -53,6 +53,7 @@ public class ProductServiceClient : IProductServiceClient
                 VariantId = Guid.Parse(response.VariantId),
                 ProductName = response.ProductName,
                 Sku = response.Sku,
+                Attributes = response.Attributes,
                 BasePrice = (decimal)response.BasePrice,
                 ImageUrl = response.ImageUrl
             };
@@ -74,7 +75,7 @@ public class ProductServiceClient : IProductServiceClient
         try
         {
             var uniqueSkus = skus.Where(s => !string.IsNullOrWhiteSpace(s)).Distinct().ToList();
-            
+
             if (!uniqueSkus.Any())
             {
                 return new List<ProductVariantInfo>();
@@ -91,6 +92,7 @@ public class ProductServiceClient : IProductServiceClient
                 VariantId = Guid.Parse(v.VariantId),
                 ProductName = v.ProductName,
                 Sku = v.Sku,
+                Attributes = v.Attributes,
                 BasePrice = (decimal)v.BasePrice,
                 ImageUrl = v.ImageUrl
             }).ToList();

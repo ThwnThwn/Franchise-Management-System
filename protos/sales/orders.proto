@@ -31,8 +31,23 @@ service OrderGrpc {
   rpc GetOrderVolume (GetOrderVolumeRequest) returns (GetOrderVolumeReply);
 
   // Thanh toán order bằng ví
-  rpc PayOrderWithWallet (PayOrderWithWalletRequest)
-      returns (PayOrderWithWalletReply);
+  rpc PayOrderWithWallet (PayOrderWithWalletRequest) returns (PayOrderWithWalletReply);
+      
+  // Lấy số đơn hàng
+  rpc GetCountOrderByUserIds (GetCountOrderByUserIdsRequest) returns (GetCountOrderByUserIdsResponse);
+}
+
+message GetCountOrderByUserIdsRequest{
+  repeated string userId = 1;
+}
+
+message GetCountOrderByUserIdsResponse{
+  repeated CountOrderByUserId UserCountOrder = 1;
+}
+
+message CountOrderByUserId{
+  string userId = 1;
+  int32 OrderCount = 2;
 }
 
 message CreateOrderRequest {

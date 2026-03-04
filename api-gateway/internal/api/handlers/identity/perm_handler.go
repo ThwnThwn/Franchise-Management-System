@@ -31,14 +31,14 @@ func NewPermHandler(rolePermGW identity.IRolePermissionService) *PermHandler {
 // @Success      200  {object}  map[string]interface{} "List of permissions grouped by module"
 // @Failure      500  {object}  map[string]string      "Internal server error"
 // @Router       /permissions [get]
-func (h *PermHandler) GetAllPermissionsGrouped(c *gin.Context) {
+func (h *PermHandler) GetAllPermissionsGrouped(c *gin.Context) error {
 	ctx := c.Request.Context()
 	res, err := h.rolePermGW.GetAllPermissionsGrouped(ctx)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 	c.JSON(http.StatusOK, res)
+	return nil
 }
 
 // UpdatePermission
@@ -53,25 +53,23 @@ func (h *PermHandler) GetAllPermissionsGrouped(c *gin.Context) {
 // @Success      200      {object} map[string]interface{}                  "Success"
 // @Failure      400      {object} map[string]string                       "Validation error or Invalid ID"
 // @Router       /permissions/{id} [patch]
-func (h *PermHandler) UpdatePermission(c *gin.Context) {
+func (h *PermHandler) UpdatePermission(c *gin.Context) error {
 	id := c.Param("id")
 	permId, err := uuid.Parse(id)
 	if err != nil {
-		c.Error(errorcode.ErrInvalidId)
-		return
+		return errorcode.ErrInvalidId
 	}
 
 	var req permission.UpdatePermissionInfoRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(validation.TranslateValidationError(err))
-		return
+		return validation.TranslateValidationError(err)
 	}
 
 	ctx := c.Request.Context()
 	err = h.rolePermGW.UpdatePermissionInfo(ctx, permId, &req)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 	c.JSON(http.StatusOK, gin.H{})
+	return nil
 }

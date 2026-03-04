@@ -59,6 +59,10 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, RegisterR
         existingUser = await _userRepository.GetByUsernameAsync(request.Username);
         if (existingUser != null)
             throw new ConflictDuplicateException($"Username '{request.Username}' already exists");
+        //Check phone 
+        existingUser = await _userRepository.GetByPhoneAsync(request.Phone);
+        if (existingUser != null)
+            throw new ConflictDuplicateException($"Username '{request.Username}' already exists");
 
         var hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
 

@@ -124,7 +124,9 @@ public sealed class CreateOrderHandler
         foreach (var item in request.Request.Items)
         {
             // Gọi ProductService để lấy thông tin từ SKU
-            var productVariant = await _productServiceClient.GetProductVariantBySkuAsync(item.Sku);
+            //var productVariant = await _productServiceClient.GetProductVariantBySkuAsync(item.Sku);
+
+            var productVariant = variantInfo.FirstOrDefault(v => v.Sku == item.Sku);
 
             if (productVariant == null)
             {

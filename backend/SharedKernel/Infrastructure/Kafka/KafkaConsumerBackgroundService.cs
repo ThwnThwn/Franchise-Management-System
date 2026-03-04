@@ -87,7 +87,7 @@ public class KafkaConsumerBackgroundService : BackgroundService
             _logger.LogWarning("No handler registered for topic {Topic}", topic);
             return;
         }
-
+        _logger.LogWarning("RAW MESSAGE: {Json}", messageJson);
         try
         {
             var @event = JsonSerializer.Deserialize(messageJson, eventType);
@@ -106,6 +106,7 @@ public class KafkaConsumerBackgroundService : BackgroundService
             await task;
 
             _logger.LogInformation("Successfully processed message from {Topic} using {Handler}", topic, handlerType.Name);
+
         }
         catch (Exception ex)
         {

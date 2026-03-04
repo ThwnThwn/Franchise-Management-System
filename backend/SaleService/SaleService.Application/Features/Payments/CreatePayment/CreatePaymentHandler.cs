@@ -6,7 +6,6 @@ using SalesService.Application.Interfaces.Payments;
 using SalesService.Application.Mapping.Orders;
 using SalesService.Application.Persisitences.Orders;
 using SalesService.Application.Persisitences.Outbox;
-using SalesService.Application.Persisitences.WalletTransactions;
 using SalesService.Application.Signals;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
@@ -23,22 +22,19 @@ public sealed class CreatePaymentHandler
     private readonly IConfiguration _config;
     private readonly IOutboxRepository _outboxRepository;
     private readonly IOutboxSignal _outboxSignal;
-    private readonly IWalletTransactionRepository _walletTransactionRepository;
 
     public CreatePaymentHandler(
         IOrderRepository orderRepository,
         IPaymentRepository paymentRepository,
         IConfiguration config,
         IOutboxRepository outboxRepository,
-        IOutboxSignal outboxSignal,
-        IWalletTransactionRepository walletTransactionRepository)
+        IOutboxSignal outboxSignal)
     {
         _orderRepository = orderRepository;
         _paymentRepository = paymentRepository;
         _config = config;
         _outboxRepository = outboxRepository;
         _outboxSignal = outboxSignal;
-        _walletTransactionRepository = walletTransactionRepository;
     }
 
     public async Task<Result<CreatePaymentRes>> Handle(
@@ -71,10 +67,8 @@ public sealed class CreatePaymentHandler
             Code = $"PAY-{DateTime.UtcNow:yyyyMMddHHmmss}",
             Amount = order.TotalAmount,
             Currency = "VND",
-            Method = (int)request.PaymentMethod,
-            Status = request.PaymentMethod == PaymentMethod.VNPay
-                        ? (int)PaymentStatus.Pending
-                        : (int)PaymentStatus.Paid,
+            Method = (int)request.PaymentMethod,// 0 = Cash | 1 = VNPay
+            Status = (int)PaymentStatus.Pending,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             IsDeleted = false
@@ -87,27 +81,6 @@ public sealed class CreatePaymentHandler
         // ==========================================================
         if (request.PaymentMethod == PaymentMethod.Cash)
         {
-            // ===== CREATE WALLET TRANSACTION (NO BALANCE LOGIC HERE) =====
-            if (order.CustomerId.HasValue)
-            {
-                var walletTransaction = new WalletTransaction
-                {
-                    Id = Guid.NewGuid(),
-                    UserId = order.CustomerId.Value,
-                    TransactionCode = $"TRX-{DateTime.UtcNow:yyyyMMddHHmmss}",
-                    Amount = order.TotalAmount,
-                    TransactionType = TransactionType.Transfer,
-                    Status = TransactionStatus.Completed,
-                    ReferenceId = order.Id,
-                    ReferenceType = WalletReferenceType.Order,
-                    CreatedAt = DateTimeOffset.UtcNow,
-                    UpdatedAt = DateTimeOffset.UtcNow,
-                    CompletedAt = DateTimeOffset.UtcNow
-                };
-
-                await _walletTransactionRepository.AddAsync(walletTransaction, cancellationToken);
-            }
-
             // ===== UPDATE ORDER =====
             order.PaidAmount = order.TotalAmount;
             order.PaymentMethod = PaymentMethod.Cash;

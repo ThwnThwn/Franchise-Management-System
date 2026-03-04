@@ -77,10 +77,10 @@ public class ProductRepository : GenericRepository<Product>, IProductRepository
         return await _dbContext.Products
             .Include(p => p.Category)
             .Include(p => p.ProductVariants
-                .Where(pv => pv.IsActive == true && pv.IsDeleted == false))
+                .Where(pv => pv.IsDeleted == false))
             .FirstOrDefaultAsync(p =>
                 p.Id == id &&
-                p.IsActive == true &&
+                // p.IsActive == true &&
                 p.IsDeleted == false);
     }
 
@@ -132,8 +132,8 @@ public class ProductRepository : GenericRepository<Product>, IProductRepository
             .Include(p => p.Category)
             .Include(p => p.ProductVariants
                 .Where(pv => pv.IsActive == true && pv.IsDeleted == false))
-            .Where(p => p.IsActive == true && p.IsDeleted == false 
-                                            && p.Category.IsActive == true 
+            .Where(p => p.IsActive == true && p.IsDeleted == false
+                                            && p.Category.IsActive == true
                                             && p.Category.IsDeleted == false)
             .FirstOrDefaultAsync(p =>
                 p.ProductVariants.Any(pv =>
@@ -160,5 +160,72 @@ public class ProductRepository : GenericRepository<Product>, IProductRepository
                     pv.IsActive == true &&
                     pv.IsDeleted == false))
             .ToListAsync();
+    }
+
+    public async Task<Product> UpdateWithVariantsOnlyAsync(Product updatedProduct)
+    {
+        // 1. Fetch: Lấy dữ liệu kèm theo Variants hiện tại
+        var existingProduct = await _dbContext.Products
+            .Include(p => p.ProductVariants)
+            .FirstOrDefaultAsync(p => p.Id == updatedProduct.Id)
+            ?? throw new KeyNotFoundException($"Không tìm thấy sản phẩm Id: {updatedProduct.Id}");
+
+        // 2. Map Product Fields: Chỉ map những trường cần thiết
+        existingProduct.Name = updatedProduct.Name;
+        existingProduct.Description = updatedProduct.Description;
+        existingProduct.CategoryId = updatedProduct.CategoryId;
+        existingProduct.IsActive = updatedProduct.IsActive;
+        existingProduct.UpdatedAt = DateTime.UtcNow;
+
+        // 3. Sync Variants: Xử lý danh sách con
+        var currentVariants = existingProduct.ProductVariants.ToList();
+        var newVariants = updatedProduct.ProductVariants;
+
+        // --- A. Xóa (Delete): Những Sku có trong DB nhưng không có trong request ---
+        foreach (var oldV in currentVariants)
+        {
+            if (!newVariants.Any(nv => nv.Sku == oldV.Sku))
+            {
+                _dbContext.ProductVariants.Remove(oldV);
+            }
+        }
+
+        // --- B. Cập nhật & Thêm mới (Update & Add) ---
+        foreach (var newV in newVariants)
+        {
+            var existingV = currentVariants.FirstOrDefault(v => v.Sku == newV.Sku);
+
+            if (existingV != null)
+            {
+                // Map thủ công từng field cho Variant đã tồn tại
+                existingV.Name = newV.Name;
+                existingV.Attributes = newV.Attributes;
+                existingV.BasePrice = newV.BasePrice;
+                existingV.Cost = newV.Cost;
+                existingV.IsActive = newV.IsActive;
+                // Không gán Id hay ProductId ở đây để tránh lỗi tracking
+            }
+            else
+            {
+                // Thêm mới hoàn toàn
+                existingProduct.ProductVariants.Add(new ProductVariant
+                {
+                    Sku = newV.Sku,
+                    Name = newV.Name,
+                    Attributes = newV.Attributes,
+                    BasePrice = newV.BasePrice,
+                    Cost = newV.Cost,
+                    IsActive = newV.IsActive
+                });
+            }
+        }
+
+        return existingProduct;
+    }
+
+    public async Task UpdateWithVariantsAsync(Product updatedProduct)
+    {
+        await UpdateWithVariantsOnlyAsync(updatedProduct);
+        await _dbContext.SaveChangesAsync();
     }
 }

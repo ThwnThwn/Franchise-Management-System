@@ -32,21 +32,20 @@ func NewProductHandler(productGW prodGW.IProductService) *ProductHandler {
 // @Success      200    {object}  map[string]interface{}               "List of products"
 // @Failure      500    {object}  map[string]string                    "Internal server error"
 // @Router       /products [get]
-func (h *ProductHandler) GetProducts(c *gin.Context) {
+func (h *ProductHandler) GetProducts(c *gin.Context) error {
 	var req product.GetProductsByKeywordRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	ctx := c.Request.Context()
 	res, err := h.productGW.GetAllWithPagingBy(ctx, &req)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, res)
+	return nil
 }
 
 // GetProductById
@@ -60,22 +59,21 @@ func (h *ProductHandler) GetProducts(c *gin.Context) {
 // @Failure      400  {object}  map[string]string      "Invalid ID format"
 // @Failure      404  {object}  map[string]string      "Product not found"
 // @Router       /products/{id} [get]
-func (h *ProductHandler) GetProductById(c *gin.Context) {
+func (h *ProductHandler) GetProductById(c *gin.Context) error {
 	id := c.Param("id")
 	productId, err := uuid.Parse(id)
 	if err != nil {
-		c.Error(errorcode.ErrInvalidId)
-		return
+		return errorcode.ErrInvalidId
 	}
 
 	ctx := c.Request.Context()
 	res, err := h.productGW.GetProductById(ctx, productId)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, res)
+	return nil
 }
 
 // CreateProduct
@@ -89,21 +87,20 @@ func (h *ProductHandler) GetProductById(c *gin.Context) {
 // @Success      200     {object} map[string]interface{}        "Success"
 // @Failure      400     {object} map[string]string             "Validation error"
 // @Router       /products [post]
-func (h *ProductHandler) CreateProduct(c *gin.Context) {
+func (h *ProductHandler) CreateProduct(c *gin.Context) error {
 	var req product.CreateProductRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(validation.TranslateValidationError(err))
-		return
+		return validation.TranslateValidationError(err)
 	}
 
 	ctx := c.Request.Context()
 	err := h.productGW.CreateProduct(ctx, &req)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, gin.H{})
+	return nil
 }
 
 // UpdateProduct
@@ -118,28 +115,26 @@ func (h *ProductHandler) CreateProduct(c *gin.Context) {
 // @Success      200      {object} map[string]interface{}        "Success"
 // @Failure      400      {object} map[string]string             "Validation error or Invalid ID"
 // @Router       /products/{id} [patch]
-func (h *ProductHandler) UpdateProduct(c *gin.Context) {
+func (h *ProductHandler) UpdateProduct(c *gin.Context) error {
 	var req product.UpdateProductRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(validation.TranslateValidationError(err))
-		return
+		return validation.TranslateValidationError(err)
 	}
 
 	id := c.Param("id")
 	productId, err := uuid.Parse(id)
 	if err != nil {
-		c.Error(errorcode.ErrInvalidId)
-		return
+		return errorcode.ErrInvalidId
 	}
 
 	ctx := c.Request.Context()
 	err = h.productGW.UpdateProduct(ctx, productId, &req)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, gin.H{})
+	return nil
 }
 
 // DeleteProduct
@@ -153,22 +148,21 @@ func (h *ProductHandler) UpdateProduct(c *gin.Context) {
 // @Success      200  {object}  map[string]interface{}  "Success"
 // @Failure      400  {object}  map[string]string       "Invalid ID format"
 // @Router       /products/{id} [delete]
-func (h *ProductHandler) DeleteProduct(c *gin.Context) {
+func (h *ProductHandler) DeleteProduct(c *gin.Context) error {
 	id := c.Param("id")
 	productId, err := uuid.Parse(id)
 	if err != nil {
-		c.Error(errorcode.ErrInvalidId)
-		return
+		return errorcode.ErrInvalidId
 	}
 
 	ctx := c.Request.Context()
 	err = h.productGW.DeleteProduct(ctx, productId)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, gin.H{})
+	return nil
 }
 
 // UploadImage
@@ -186,27 +180,24 @@ func (h *ProductHandler) DeleteProduct(c *gin.Context) {
 // @Failure      413        {object}  map[string]string "Request entity too large"
 // @Failure      500        {object}  map[string]string "Internal server error"
 // @Router       /products/{id}/images [put]
-func (h *ProductHandler) UploadImage(c *gin.Context) {
+func (h *ProductHandler) UploadImage(c *gin.Context) error {
 	id := c.Param("id")
 	productId, err := uuid.Parse(id)
 	if err != nil {
-		c.Error(errorcode.ErrInvalidId)
-		return
+		return errorcode.ErrInvalidId
 	}
 
 	// 1. Lấy file từ form-data (key là "image")
 	file, header, err := c.Request.FormFile("image")
 	if err != nil {
-		c.Error(errorcode.ErrImageRequired)
-		return
+		return errorcode.ErrImageRequired
 	}
 	defer file.Close()
 
 	// 2. Đọc file vào byte slice
 	fileBytes, err := io.ReadAll(file)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	// 3. Validation: Kiểm tra xem có thực sự là ảnh không (Magic Bytes)
@@ -217,8 +208,7 @@ func (h *ProductHandler) UploadImage(c *gin.Context) {
 		"image/webp": true,
 	}
 	if !allowedTypes[contentType] {
-		c.Error(errorcode.ErrInvalidImageFormat)
-		return
+		return errorcode.ErrInvalidImageFormat
 	}
 
 	// 4. Sanitize tên file
@@ -241,12 +231,12 @@ func (h *ProductHandler) UploadImage(c *gin.Context) {
 	ctx := c.Request.Context()
 	url, err := h.productGW.UploadImage(ctx, productId, req)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	// 7. Trả kết quả
 	c.JSON(http.StatusOK, gin.H{
 		"url": url,
 	})
+	return nil
 }

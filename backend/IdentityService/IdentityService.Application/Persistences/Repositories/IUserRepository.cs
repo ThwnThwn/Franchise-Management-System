@@ -19,6 +19,9 @@ namespace IdentityService.Application.Persistences.Repositories
         Task<User?> AddWithRoleAsync(User? user);
         Task<User?> GetManagerByStoreIdAsync(Guid? storeId);
         Task<IEnumerable<User?>> GetUsersByRoleSlugAsync(string? roleSlug);
-        Task<PagedResult<User>> GetPagedUsersAsync(string? keyword,Guid? id, string? roleSlug, int pageIndex, int pageSize, CancellationToken cancellationToken);
+        Task<PagedResult<User>> GetPagedUsersAsync(string? keyword,List<Guid>? id, Guid? StoredId, bool? HasHourlyWage, string? roleSlug, int pageIndex, int pageSize, CancellationToken cancellationToken);
+
+        Task<List<User>> GetUsersByPhoneAsync(string? phone);
+        Task<List<User>> GetUsersByEmailAsync(string? email);
     }
 }

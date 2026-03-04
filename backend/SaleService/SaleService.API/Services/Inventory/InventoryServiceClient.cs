@@ -17,12 +17,12 @@ namespace SalesService.API.Services.Inventory
         {
             _configuration = configuration;
 
-            var rawUrl = configuration[Common.INVENTORY_SERVICE_URL] ?? "https://localhost:5005";
+            var rawUrl = configuration[Common.INVENTORY_SERVICE_URL] ?? "http://localhost:5005";
             // Allow env var values like "localhost:5002" by normalizing to an absolute URI.
             _inventoryServiceUrl = rawUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
                                  rawUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
                 ? rawUrl
-                : $"https://{rawUrl}";
+                : $"http://{rawUrl}";
 
             var httpHandler = new HttpClientHandler
             {

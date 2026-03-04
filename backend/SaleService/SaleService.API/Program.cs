@@ -3,6 +3,7 @@ using AutoMapper;
 using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -62,22 +63,17 @@ public class Program
         // Add environment variables to configuration
         builder.Configuration.AddEnvironmentVariables();
 
-        // Configure Kestrel for gRPC (HTTPS + HTTP/2)
-        //var saleServicePort = int.Parse(builder.Configuration["SALES_PORT"] ?? "5003");
-        //builder.WebHost.ConfigureKestrel(options =>
-        //{
-        //    options.ListenLocalhost(saleServicePort, listenOptions =>
-        //    {
-        //        listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2;
-        //        listenOptions.UseHttps(); // Development certificate
-        //    });
-        //});
+        var salesPort = int.Parse(builder.Configuration["SALES_PORT"] ?? "5003");
         builder.WebHost.ConfigureKestrel(options =>
         {
-            options.ConfigureEndpointDefaults(listenOptions =>
+            options.ListenAnyIP(salesPort, listenOptions =>
             {
-                // Allow both HTTP/1.1 (REST) and HTTP/2 (gRPC)
-                listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2;
+                listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2;
+            });
+
+            options.ListenAnyIP(5013, listenOptions =>
+            {
+                listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1;
             });
         });
 
@@ -162,6 +158,7 @@ public class Program
             registry.Register<OrderStatusEvent>(KafkaTopics.OrderNotifications, KafkaTopics.OrderNotifications);
             registry.Register<OrderPaidEvent>(KafkaTopics.OrderPaid, KafkaTopics.OrderPaid);
             registry.Register<OrderCancelledEvent>(KafkaTopics.OrderCancelled, KafkaTopics.OrderCancelled);
+            registry.Register<ProcessOrderRewardEvent>(KafkaTopics.ProcessOrderReward, KafkaTopics.ProcessOrderReward);
             return registry;
         });
 

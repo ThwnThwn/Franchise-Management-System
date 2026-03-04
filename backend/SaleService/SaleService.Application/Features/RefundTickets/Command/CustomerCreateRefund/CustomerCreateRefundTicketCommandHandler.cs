@@ -1,6 +1,7 @@
 ﻿using Ardalis.Result;
 using MediatR;
 using SalesService.Application.Persisitences;
+using SalesService.Application.Persisitences.Wallets;
 using SalesService.Application.Persisitences.WalletTransactions;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
@@ -12,13 +13,15 @@ public sealed class CustomerCreateRefundTicketCommandHandler
     : IRequestHandler<CustomerCreateRefundTicketCommand, Result<CustomerCreateRefundTicketResponse>>
 {
     private readonly IRefundTicketRepository _refundTicketRepository;
+    private readonly IWalletRepository _walletRepository;
     private readonly IWalletTransactionRepository _transactionRepository;
-
     public CustomerCreateRefundTicketCommandHandler(
         IRefundTicketRepository refundTicketRepository,
+        IWalletRepository walletRepository,
         IWalletTransactionRepository transactionRepository)
     {
         _refundTicketRepository = refundTicketRepository;
+        _walletRepository = walletRepository;
         _transactionRepository = transactionRepository;
     }
 
@@ -48,12 +51,40 @@ public sealed class CustomerCreateRefundTicketCommandHandler
             UpdatedAt = DateTimeOffset.UtcNow
         };
 
-        Console.WriteLine("wallet: "+refundTicket.WalletId);
-        Console.WriteLine("or walllet: "+refundTicket.OriginalTransactionId);
+       
 
+        var wallet = await _walletRepository.GetByUserIdAsync(command.CustomerId, cancellationToken);
+        if(wallet == null)
+        {
+            return Result.Error("Customer wallet not found");
+        }
+
+        if (wallet.Balance < request.Amount)
+            return Result.Invalid(new ValidationError(
+                nameof(request.Amount),
+                $"Insufficient wallet balance. Requested: {request.Amount:N2}, Available: {wallet.Balance:N2}"));
+
+        wallet.Balance -= request.Amount;
+        await _walletRepository.UpdateAsync(wallet, cancellationToken);
+        var transaction = new WalletTransaction
+        {
+            Id = Guid.NewGuid(),
+            WalletId = wallet.Id,
+            UserId = refundTicket.UserId,
+            Amount = -refundTicket.Amount,
+            TransactionType = TransactionType.Refund,
+            Status = TransactionStatus.Pending,
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow,
+            Notes = refundTicket.Notes,
+            TransactionCode = GenerateTransactionCode(TransactionType.Refund)
+        };
+        await _transactionRepository.AddAsync(transaction, cancellationToken);
+
+        refundTicket.TransactionId = transaction.Id;
         var refundTicketId = await _refundTicketRepository.AddAsync(
-            refundTicket,
-            cancellationToken);
+           refundTicket,
+           cancellationToken);
 
         if (refundTicketId == Guid.Empty)
         {
@@ -78,5 +109,22 @@ public sealed class CustomerCreateRefundTicketCommandHandler
         var shortGuid = Guid.NewGuid().ToString("N")[..8].ToUpper();
         var timestamp = DateTime.UtcNow.ToString("yyyyMMdd");
         return $"RFT-CUST-{timestamp}-{shortGuid}"; // ✅ CUST prefix for customer-created
+    }
+
+    private static string GenerateTransactionCode(TransactionType type)
+    {
+        var prefix = type switch
+        {
+            TransactionType.Deposit => "DEP",
+            TransactionType.Withdrawal => "WDR",
+            TransactionType.Payment => "PAY",
+            TransactionType.Refund => "REF",
+            TransactionType.Transfer => "TRF",
+            _ => "TXN"
+        };
+
+        var shortGuid = Guid.NewGuid().ToString("N")[..8].ToUpper();
+        var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+        return $"{prefix}-{timestamp}-{shortGuid}";
     }
 }

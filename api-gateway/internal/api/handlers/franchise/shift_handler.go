@@ -46,20 +46,19 @@ func NewShiftHandler(
 // @Param        status    query     int     false  "Trạng thái ca"
 // @Success      200       {array}   shift.ShiftResponse
 // @Router       /shifts [get]
-func (h *ShiftHandler) GetAll(c *gin.Context) {
+func (h *ShiftHandler) GetAll(c *gin.Context) error {
 	var params shift.GetShiftsParams
 	if err := c.ShouldBindQuery(&params); err != nil {
-		c.Error(validation.TranslateValidationError(err))
-		return
+		return validation.TranslateValidationError(err)
 	}
 
 	res, err := h.shiftGW.GetShifts(c.Request.Context(), &params)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, res)
+	return nil
 }
 
 // GetByID (Lấy chi tiết ca làm)
@@ -70,20 +69,19 @@ func (h *ShiftHandler) GetAll(c *gin.Context) {
 // @Param        id   path      string  true  "ID ca làm"
 // @Success      200  {object}  shift.ShiftResponse
 // @Router       /shifts/{id} [get]
-func (h *ShiftHandler) GetByID(c *gin.Context) {
+func (h *ShiftHandler) GetByID(c *gin.Context) error {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		c.Error(errorcode.ErrInvalidId)
-		return
+		return errorcode.ErrInvalidId
 	}
 
 	res, err := h.shiftGW.GetById(c.Request.Context(), id)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, res)
+	return nil
 }
 
 // Create (Tạo ca làm mới)
@@ -93,32 +91,29 @@ func (h *ShiftHandler) GetByID(c *gin.Context) {
 // @Security     BearerAuth
 // @Param        body body      shift.CreateShiftRequest true "Thông tin ca làm"
 // @Router       /shifts [post]
-func (h *ShiftHandler) Create(c *gin.Context) {
+func (h *ShiftHandler) Create(c *gin.Context) error {
 	var req shift.CreateShiftRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(validation.TranslateValidationError(err))
-		return
+		return validation.TranslateValidationError(err)
 	}
 
 	ctx, err := grpcutils.BuildAuthContext(c)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	userId, err := contextutils.GetUserId(c)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	err = h.shiftGW.Create(ctx, userId, &req)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, gin.H{})
+	return nil
 }
 
 // Update (Cập nhật ca làm - PATCH)
@@ -129,38 +124,34 @@ func (h *ShiftHandler) Create(c *gin.Context) {
 // @Param        id    path      string                   true  "ID ca làm"
 // @Param        body  body      shift.UpdateShiftRequest true  "Dữ liệu cập nhật"
 // @Router       /shifts/{id} [patch]
-func (h *ShiftHandler) Update(c *gin.Context) {
+func (h *ShiftHandler) Update(c *gin.Context) error {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		c.Error(errorcode.ErrInvalidId)
-		return
+		return errorcode.ErrInvalidId
 	}
 
 	var req shift.UpdateShiftRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(validation.TranslateValidationError(err))
-		return
+		return validation.TranslateValidationError(err)
 	}
 
 	ctx, err := grpcutils.BuildAuthContext(c)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	userId, err := contextutils.GetUserId(c)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	err = h.shiftGW.Update(ctx, id, userId, &req)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, gin.H{})
+	return nil
 }
 
 // Delete (Xóa ca làm)
@@ -170,20 +161,19 @@ func (h *ShiftHandler) Update(c *gin.Context) {
 // @Security     BearerAuth
 // @Param        id   path      string  true  "ID ca làm"
 // @Router       /shifts/{id} [delete]
-func (h *ShiftHandler) Delete(c *gin.Context) {
+func (h *ShiftHandler) Delete(c *gin.Context) error {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		c.Error(errorcode.ErrInvalidId)
-		return
+		return errorcode.ErrInvalidId
 	}
 
 	err = h.shiftGW.Delete(c.Request.Context(), id)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, gin.H{})
+	return nil
 }
 
 // Publish (Xuất bản ca lẻ)
@@ -192,20 +182,19 @@ func (h *ShiftHandler) Delete(c *gin.Context) {
 // @Tags         Shifts
 // @Param        id   path      string  true  "ID ca làm"
 // @Router       /shifts/{id}/publish [put]
-func (h *ShiftHandler) Publish(c *gin.Context) {
+func (h *ShiftHandler) Publish(c *gin.Context) error {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		c.Error(errorcode.ErrInvalidId)
-		return
+		return errorcode.ErrInvalidId
 	}
 
 	err = h.shiftGW.Publish(c.Request.Context(), id)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, gin.H{})
+	return nil
 }
 
 // GetAvailableStaffs (Gợi ý nhân viên)
@@ -216,21 +205,20 @@ func (h *ShiftHandler) Publish(c *gin.Context) {
 // @Param        shiftId path      string  true  "ID ca làm"
 // @Success      200     {array}   shift.StaffAssignmentCandidate
 // @Router       /stores/{storeId}/shifts/{shiftId}/candidates [get]
-func (h *ShiftHandler) GetAvailableStaffs(c *gin.Context) {
+func (h *ShiftHandler) GetAvailableStaffs(c *gin.Context) error {
 	storeID, err1 := uuid.Parse(c.Param("id"))
 	shiftID, err2 := uuid.Parse(c.Param("shiftId"))
 	if err1 != nil || err2 != nil {
-		c.Error(errorcode.ErrInvalidId)
-		return
+		return errorcode.ErrInvalidId
 	}
 
 	res, err := h.shiftGW.GetAvailableStaffs(c.Request.Context(), storeID, shiftID)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, res)
+	return nil
 }
 
 // UpdateAssignments (Cập nhật phân công)
@@ -240,26 +228,24 @@ func (h *ShiftHandler) GetAvailableStaffs(c *gin.Context) {
 // @Param        shiftId path      string    true  "ID ca làm"
 // @Param        body    body      []string  true  "Danh sách User ID"
 // @Router       /shifts/{shiftId}/assign [put]
-func (h *ShiftHandler) UpdateAssignments(c *gin.Context) {
+func (h *ShiftHandler) UpdateAssignments(c *gin.Context) error {
 	shiftID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		c.Error(errorcode.ErrInvalidId)
-		return
+		return errorcode.ErrInvalidId
 	}
 
 	var userIDs []uuid.UUID
 	if err := c.ShouldBindJSON(&userIDs); err != nil {
-		c.Error(validation.TranslateValidationError(err))
-		return
+		return validation.TranslateValidationError(err)
 	}
 
 	err = h.shiftGW.UpdateAssignments(c.Request.Context(), shiftID, userIDs)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, gin.H{})
+	return nil
 }
 
 // =====================
@@ -273,12 +259,11 @@ func (h *ShiftHandler) UpdateAssignments(c *gin.Context) {
 // @Security     BearerAuth
 // @Param        query  query    shift.GetTimeLogsParams  false  "Bộ lọc chấm công"
 // @Router       /shifts/time-logs [get]
-func (h *ShiftHandler) GetAllTimeLogs(c *gin.Context) {
+func (h *ShiftHandler) GetAllTimeLogs(c *gin.Context) error {
 	var params shift.GetTimeLogsParams
 	// 1. Bind Query Params từ URL
 	if err := c.ShouldBindQuery(&params); err != nil {
-		c.Error(validation.TranslateValidationError(err))
-		return
+		return validation.TranslateValidationError(err)
 	}
 
 	ctx := c.Request.Context()
@@ -287,13 +272,12 @@ func (h *ShiftHandler) GetAllTimeLogs(c *gin.Context) {
 	// Giả sử trả về: *common.PageResult{ Items: []*shift.TimeLogResponse, Total: int }
 	logRes, err := h.shiftGW.GetTimeLogs(ctx, &params)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	// if len(logRes.Items) == 0 {
 	// 	c.JSON(http.StatusOK, logRes)
-	// 	return
+	// 	return nil
 	// }
 
 	// 3. Gom danh sách ID nhân viên (Unique IDs) để chuẩn bị gọi Identity
@@ -312,7 +296,7 @@ func (h *ShiftHandler) GetAllTimeLogs(c *gin.Context) {
 	// 	// Ở Gateway, nếu Identity "die" nhưng Franchise vẫn có data,
 	// 	// mình vẫn nên trả về logs kèm ID nhân viên thay vì báo lỗi 500 (Graceful Degradation).
 	// 	c.JSON(http.StatusOK, logRes)
-	// 	return
+	// 	return nil
 	// }
 
 	// 5. Mapper Batch để trộn data từ users vào logRes.Items
@@ -320,6 +304,7 @@ func (h *ShiftHandler) GetAllTimeLogs(c *gin.Context) {
 	// logRes.Items = mapper.MapStaffToTimeLogsBatch(logRes.Items, users)
 
 	c.JSON(http.StatusOK, logRes)
+	return nil
 }
 
 // UpdateTimeLog (Duyệt/Cập nhật chấm công)
@@ -331,34 +316,31 @@ func (h *ShiftHandler) GetAllTimeLogs(c *gin.Context) {
 // @Param        body  body      shift.UpdateTimeLogRequest true "Dữ liệu cập nhật"
 // @Success      200   {object}  gin.H
 // @Router       /shifts/time-logs/{id} [patch]
-func (h *ShiftHandler) UpdateTimeLog(c *gin.Context) {
+func (h *ShiftHandler) UpdateTimeLog(c *gin.Context) error {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		c.Error(errorcode.ErrInvalidId)
-		return
+		return errorcode.ErrInvalidId
 	}
 
 	var req shift.UpdateTimeLogRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(validation.TranslateValidationError(err))
-		return
+		return validation.TranslateValidationError(err)
 	}
 
 	// Nếu status là Invalid (2) thì ManagerNote không được trống
 	if req.Status == enum.TimeLogStatus_INVALID && (req.ManagerNote == nil || *req.ManagerNote == "") {
-		c.Error(&errormodel.BackendError{
+		return &errormodel.BackendError{
 			Status: http.StatusBadRequest,
 			Title:  "Thao tác không thành công",
 			Detail: "Phải nhập lý do khi từ chối chấm công",
-		})
-		return
+		}
 	}
 
 	err = h.shiftGW.UpdateTimeLog(c.Request.Context(), id, &req)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, gin.H{})
+	return nil
 }

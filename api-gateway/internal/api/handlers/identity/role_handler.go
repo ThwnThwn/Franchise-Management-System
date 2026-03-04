@@ -36,14 +36,14 @@ func NewRoleHandler(
 // @Success      200  {object}  map[string]interface{} "List of roles"
 // @Failure      500  {object}  map[string]string      "Internal server error"
 // @Router       /roles [get]
-func (h *RoleHandler) GetAll(c *gin.Context) {
+func (h *RoleHandler) GetAll(c *gin.Context) error {
 	ctx := c.Request.Context()
 	res, err := h.roleGW.GetAll(ctx)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 	c.JSON(http.StatusOK, res)
+	return nil
 }
 
 // Create
@@ -57,20 +57,19 @@ func (h *RoleHandler) GetAll(c *gin.Context) {
 // @Success      200     {object} map[string]interface{}        "Success"
 // @Failure      400     {object} map[string]string             "Validation error"
 // @Router       /roles [post]
-func (h *RoleHandler) Create(c *gin.Context) {
+func (h *RoleHandler) Create(c *gin.Context) error {
 	var req role.CreateRoleRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(validation.TranslateValidationError(err))
-		return
+		return validation.TranslateValidationError(err)
 	}
 
 	ctx := c.Request.Context()
 	if err := h.roleGW.Create(ctx, &req); err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, gin.H{})
+	return nil
 }
 
 // Update
@@ -85,27 +84,25 @@ func (h *RoleHandler) Create(c *gin.Context) {
 // @Success      200      {object} map[string]interface{}        "Success"
 // @Failure      400      {object} map[string]string             "Validation error or Invalid ID"
 // @Router       /roles/{id} [patch]
-func (h *RoleHandler) Update(c *gin.Context) {
+func (h *RoleHandler) Update(c *gin.Context) error {
 	id := c.Param("id")
 	roleId, err := uuid.Parse(id)
 	if err != nil {
-		c.Error(errorcode.ErrInvalidId)
-		return
+		return errorcode.ErrInvalidId
 	}
 
 	var req role.UpdateRoleRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(validation.TranslateValidationError(err))
-		return
+		return validation.TranslateValidationError(err)
 	}
 
 	ctx := c.Request.Context()
 	if err := h.roleGW.Update(ctx, roleId, &req); err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, gin.H{})
+	return nil
 }
 
 // --- Role Perm ---
@@ -121,22 +118,21 @@ func (h *RoleHandler) Update(c *gin.Context) {
 // @Success      200  {object}  map[string]interface{} "List of permissions"
 // @Failure      400  {object}  map[string]string      "Invalid ID format"
 // @Router       /roles/{id}/permissions [get]
-func (h *RoleHandler) GetPermissionsByRoleId(c *gin.Context) {
+func (h *RoleHandler) GetPermissionsByRoleId(c *gin.Context) error {
 	id := c.Param("id")
 	roleId, err := uuid.Parse(id)
 	if err != nil {
-		c.Error(errorcode.ErrInvalidId)
-		return
+		return errorcode.ErrInvalidId
 	}
 
 	ctx := c.Request.Context()
 	res, err := h.rolePermGW.GetPermissionsByRoleId(ctx, roleId)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, res)
+	return nil
 }
 
 // UpdateRolePermissions
@@ -151,26 +147,24 @@ func (h *RoleHandler) GetPermissionsByRoleId(c *gin.Context) {
 // @Success      200      {object} map[string]interface{}         "Success"
 // @Failure      400      {object} map[string]string              "Validation error or Invalid ID"
 // @Router       /roles/{id}/permissions [put]
-func (h *RoleHandler) UpdateRolePermissions(c *gin.Context) {
+func (h *RoleHandler) UpdateRolePermissions(c *gin.Context) error {
 	id := c.Param("id")
 	roleId, err := uuid.Parse(id)
 	if err != nil {
-		c.Error(errorcode.ErrInvalidId)
-		return
+		return errorcode.ErrInvalidId
 	}
 
 	var req role.UpdateRolePermissionsRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(validation.TranslateValidationError(err))
-		return
+		return validation.TranslateValidationError(err)
 	}
 
 	ctx := c.Request.Context()
 	err = h.rolePermGW.UpdateRolePermissions(ctx, roleId, &req)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, gin.H{})
+	return nil
 }

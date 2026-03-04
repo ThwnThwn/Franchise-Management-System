@@ -100,3 +100,14 @@ func MapOrderPbToHeaderModel(orderPb *sales.Order) *order.OrderHeader {
 		},
 	}
 }
+
+func MapOrderCsvFilePbToModel(src *sales.CsvFile) *order.CsvFile {
+	if src == nil {
+		return nil
+	}
+
+	return &order.CsvFile{
+		CsvRaw:      src.CsvRaw,
+		CsvFileName: src.CsvFileName,
+	}
+}

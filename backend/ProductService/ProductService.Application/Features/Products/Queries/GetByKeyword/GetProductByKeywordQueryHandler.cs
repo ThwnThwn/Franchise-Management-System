@@ -3,39 +3,41 @@
 using AutoMapper;
 using BuildingBlocks.Core.Pagination;
 using MediatR;
-using ProductService.Application.Repositories;
+using ProductService.Application.Dtos;
+using ProductService.Application.SearchEngines;
 
-    public sealed class GetProductByKeywordQueryHandler:
-        IRequestHandler<GetProductByKeywordQuery, PagedResult<GetProductByKeywordQueryResponse>>
+public sealed class GetProductByKeywordQueryHandler :
+    IRequestHandler<GetProductByKeywordQuery, PagedResult<ProductDto>>
+{
+    private readonly IProductSearchEngine _productSearchEngine;
+    private readonly IMapper _mapper;
+
+    public GetProductByKeywordQueryHandler(IProductSearchEngine productSearchEngine, IMapper mapper)
     {
-        private readonly IProductRepository _productRepository;
-        private readonly IMapper _mapper;
-    public GetProductByKeywordQueryHandler(IProductRepository productRepository, IMapper mapper)
-        {
-            _productRepository = productRepository;
-            _mapper = mapper;
-        }
+        _productSearchEngine = productSearchEngine;
+        _mapper = mapper;
+    }
 
-    public async Task<PagedResult<GetProductByKeywordQueryResponse>> Handle(
+    public async Task<PagedResult<ProductDto>> Handle(
         GetProductByKeywordQuery query,
         CancellationToken cancellationToken)
     {
-        var pageResult = await _productRepository.GetAllProductWithPagingByAsync(
+        var pageResult = await _productSearchEngine.GetAllProductWithPagingByAsync(
             query.Keyword,
             query.CategoryId,
             query.Page,
             query.PageSize,
             cancellationToken);
 
-        var items = pageResult.Items
-            .Select(p => _mapper.Map<GetProductByKeywordQueryResponse>(p))
-            .ToList();
+        return pageResult;
+        //var items = pageResult.Items
+        //    .Select(p => _mapper.Map<ProductDto>(p))
+        //    .ToList();
 
-        return new PagedResult<GetProductByKeywordQueryResponse>(
-            items,
-            pageResult.TotalCount,
-            pageResult.Page,
-            pageResult.PageSize);
+        //return new PagedResult<ProductDto>(
+        //    items,
+        //    pageResult.TotalCount,
+        //    pageResult.Page,
+        //    pageResult.PageSize);
     }
 }
-

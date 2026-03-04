@@ -18,7 +18,7 @@ public class RegisterCommandValidator : AbstractValidator<RegisterCommand>
         RuleFor(x => x.Request.Phone)
             .NotEmpty().WithMessage("Phone is required");
 
-        RuleFor(x => x.Request.Address)
-            .NotEmpty().WithMessage("Address is required");
+        // RuleFor(x => x.Request.Address)
+        //     .NotEmpty().WithMessage("Address is required");
     }
 }

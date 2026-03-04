@@ -16,12 +16,12 @@ namespace InventoryService.API.Services.Product
         {
             _configuration = configuration;
 
-            var rawUrl = configuration[Common.PRODUCT_SERVICE_URL] ?? "https://localhost:5002";
+            var rawUrl = configuration[Common.PRODUCT_SERVICE_URL] ?? "http://localhost:5002";
             // Allow env var values like "localhost:5002" by normalizing to an absolute URI.
             _productServiceClient = rawUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
                                  rawUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
                 ? rawUrl
-                : $"https://{rawUrl}";
+                : $"http://{rawUrl}";
 
             var httpHandler = new HttpClientHandler
             {
@@ -54,6 +54,20 @@ namespace InventoryService.API.Services.Product
                 IsActive = respone.IsActive,
                 ProductId = Guid.Parse(respone.ProductId)
             };  
+        }
+
+        public async Task UpdateVariantCostsAsync(Dictionary<Guid, decimal> variantCosts, CancellationToken cancellationToken = default)
+        {
+            var request = new UpdateVariantCostsRequest();
+            foreach (var (variantId, newCost) in variantCosts)
+            {
+                request.Updates.Add(new VariantCostUpdate
+                {
+                    VariantId = variantId.ToString(),
+                    NewCost = (double)newCost
+                });
+            }
+            await _client.UpdateVariantCostsAsync(request, cancellationToken: cancellationToken);
         }
     }
 }

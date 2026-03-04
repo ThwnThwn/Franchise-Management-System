@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <Protobuf Include="..\..\..\protos\identity\*.proto" GrpcServices="Client" ProtoRoot="..\..\..\protos" />
+	<Protobuf Include="..\..\..\protos\engagement\*.proto" GrpcServices="Client" ProtoRoot="..\..\..\protos" />
   </ItemGroup>
 
   <PropertyGroup>

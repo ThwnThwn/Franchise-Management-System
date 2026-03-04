@@ -1,30 +1,24 @@
-using AutoMapper;
 using DotNetEnv;
-using InventoryService.API.Middleware;
 using InventoryService.API.Services.Identity;
+using InventoryService.API.Services.IngredientCategory;
+using InventoryService.API.Services.Inventory;
+using InventoryService.API.Services.Product;
+using InventoryService.API.Services.Recipe;
+using InventoryService.Application.Abstractions;
+using InventoryService.Application.ClientInterface;
 using InventoryService.Application.Constants;
 using InventoryService.Application.DependencyInjection;
-using InventoryService.Infrastructure.ApplicationDbContext; // Added back for concrete class
-using InventoryService.Infrastructure.Interceptor;
 using InventoryService.Application.Persistences.Repositories;
-using InventoryService.Infrastructure.Persistences.Repositories;
 
 //using InventoryService.Application.ExternalServices;
 //using InventoryService.Infrastructure.ExternalServices;
 using InventoryService.Application.Signals;
-using SharedKernel.Infrastructure.Kafka;
-using InventoryService.Application.Signals;
+using InventoryService.Infrastructure.ApplicationDbContext; // Added back for concrete class
+using InventoryService.Infrastructure.Interceptor;
+using InventoryService.Infrastructure.Persistences.Repositories;
 using InventoryService.Infrastructure.Signals;
-
-using InventoryService.API.BackgroundJobs;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics.Internal;
-using InventoryService.API.Services.Inventory;
-using InventoryService.Application.Abstractions;
-using InventoryService.API.Services.IngredientCategory;
-using InventoryService.API.Services.Recipe;
-using InventoryService.Application.ClientInterface;
-using InventoryService.API.Services.Product;
+using SharedKernel.Infrastructure.Kafka;
 
 namespace InventoryService.API
 {
@@ -50,21 +44,12 @@ namespace InventoryService.API
 
             // Configure Kestrel for gRPC (HTTPS + HTTP/2)
             var inventoryServicePort = int.Parse(builder.Configuration[Common.INVENTORY_PORT] ?? "5005");
-            //var inventoryServicePort = int.Parse(builder.Configuration["INVENTORY_PORT"] ?? "5005");
-            //builder.WebHost.ConfigureKestrel(options =>
-            //{
-            //    options.ListenLocalhost(inventoryServicePort, listenOptions =>
-            //    {
-            //        listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2;
-            //        listenOptions.UseHttps(); // Development certificate
-            //    });
-            //});
+            
             builder.WebHost.ConfigureKestrel(options =>
             {
                 options.ConfigureEndpointDefaults(listenOptions =>
                 {
-                    // Allow both HTTP/1.1 (REST) and HTTP/2 (gRPC)
-                    listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2;
+                    listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2;
                 });
             });
 
@@ -137,8 +122,10 @@ namespace InventoryService.API
             //add client
             builder.Services.AddScoped<IIdentityServiceClient, IdentityServiceClient>();
             builder.Services.AddScoped<IProductServiceClient, ProductServiceClient>();
+            builder.Services.AddScoped<ISupplierServiceClient, InventoryService.API.Services.Supplier.SupplierServiceClient>();
             // Kafka Producer Registry (for Outbox)
-            builder.Services.AddSingleton<KafkaProducerRegistry>(sp => {
+            builder.Services.AddSingleton<KafkaProducerRegistry>(sp =>
+            {
                 var registry = new KafkaProducerRegistry();
                 // Map "LowStockDetected" (stored in DB) -> LowStockEvent -> KafkaTopics.LowStockNotifications
                 registry.Register<SharedKernel.Events.LowStockEvent>(SharedKernel.Constants.KafkaTopics.LowStockNotifications, "LowStockDetected");

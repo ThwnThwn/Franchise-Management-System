@@ -26,31 +26,28 @@ func NewShiftBulkHandler(shiftGW franchise.IShiftService) *ShiftBulkHandler {
 // @Security     BearerAuth
 // @Param        body body shift.BulkCreateManualRequest true "Dữ liệu tạo hàng loạt"
 // @Router       /shifts/bulk-manual [post]
-func (h *ShiftBulkHandler) CreateManual(c *gin.Context) {
+func (h *ShiftBulkHandler) CreateManual(c *gin.Context) error {
 	var req shift.BulkCreateManualRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(validation.TranslateValidationError(err))
-		return
+		return validation.TranslateValidationError(err)
 	}
 
 	ctx, err := grpcutils.BuildAuthContext(c)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	userId, err := contextutils.GetUserId(c)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	if err := h.shiftGW.BulkCreateManual(ctx, userId, &req); err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusCreated, gin.H{})
+	return nil
 }
 
 // CreateFromTemplate
@@ -60,31 +57,28 @@ func (h *ShiftBulkHandler) CreateManual(c *gin.Context) {
 // @Security     BearerAuth
 // @Param        body body shift.BulkCreateFromTemplateRequest true "Dữ liệu tạo từ mẫu"
 // @Router       /shifts/bulk-template [post]
-func (h *ShiftBulkHandler) CreateFromTemplate(c *gin.Context) {
+func (h *ShiftBulkHandler) CreateFromTemplate(c *gin.Context) error {
 	var req shift.BulkCreateFromTemplateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(validation.TranslateValidationError(err))
-		return
+		return validation.TranslateValidationError(err)
 	}
 
 	ctx, err := grpcutils.BuildAuthContext(c)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	userId, err := contextutils.GetUserId(c)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 	err = h.shiftGW.BulkCreateFromTemplate(ctx, userId, &req)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusCreated, gin.H{})
+	return nil
 }
 
 // Publish
@@ -94,26 +88,24 @@ func (h *ShiftBulkHandler) CreateFromTemplate(c *gin.Context) {
 // @Security     BearerAuth
 // @Param        body body []string true "Danh sách ID các ca làm cần công khai"
 // @Router       /shifts/bulk-publish [put]
-func (h *ShiftBulkHandler) Publish(c *gin.Context) {
+func (h *ShiftBulkHandler) Publish(c *gin.Context) error {
 	var ids []string
 	if err := c.ShouldBindJSON(&ids); err != nil {
-		c.Error(validation.TranslateValidationError(err))
-		return
+		return validation.TranslateValidationError(err)
 	}
 
 	ctx, err := grpcutils.BuildAuthContext(c)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	err = h.shiftGW.BulkPublish(ctx, ids)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, gin.H{})
+	return nil
 }
 
 // Delete
@@ -123,24 +115,22 @@ func (h *ShiftBulkHandler) Publish(c *gin.Context) {
 // @Security     BearerAuth
 // @Param        body body []string true "Danh sách ID các ca làm cần xóa"
 // @Router       /shifts/bulk-delete [delete]
-func (h *ShiftBulkHandler) Delete(c *gin.Context) {
+func (h *ShiftBulkHandler) Delete(c *gin.Context) error {
 	var ids []string
 	if err := c.ShouldBindJSON(&ids); err != nil {
-		c.Error(validation.TranslateValidationError(err))
-		return
+		return validation.TranslateValidationError(err)
 	}
 
 	ctx, err := grpcutils.BuildAuthContext(c)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	err = h.shiftGW.BulkDelete(ctx, ids)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, gin.H{})
+	return nil
 }

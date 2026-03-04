@@ -1,9 +1,11 @@
-﻿using FluentValidation;
+﻿using EngagementService.Application.Abstraction;
 using EngagementService.Application.Behaviors;
+using EngagementService.Application.ClientInterface;
+using EngagementService.Application.Features.LoyaltyAccount.Queries.GetByIdsFilter;
+using EngagementService.Application.Persistences.Repository;
+using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
-using EngagementService.Application.Abstraction;
-using EngagementService.Application.ClientInterface;
 
 namespace EngagementService.Application.DependencyInjection;
 
@@ -12,6 +14,7 @@ public static class DependencyInjection
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         services.AddMediatR(typeof(DependencyInjection).Assembly);
+        services.AddMediatR(typeof(GetByFilterHandler).Assembly);
         // Validators
         services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
 
@@ -19,6 +22,9 @@ public static class DependencyInjection
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
         services.AddScoped<IMembershipTierSyncService, MembershipTierSyncService>();
+        services.AddScoped<IPointRuleSyncService, PointRuleSyncService>();
+        //Report
+        services.AddScoped<IReportService, ReportService>();
         return services;
     }
 }

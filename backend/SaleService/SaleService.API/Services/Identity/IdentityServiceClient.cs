@@ -16,7 +16,7 @@ public class IdentityServiceClient : IIdentityServiceClient
         _identityServiceUrl = rawUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
                               rawUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
             ? rawUrl
-            : $"https://{rawUrl}";
+            : $"http://{rawUrl}";
 
         var httpHandler = new HttpClientHandler
         {

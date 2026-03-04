@@ -1725,6 +1725,250 @@ const docTemplate = `{
                 }
             }
         },
+        "/orders/reports/revenue": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get detailed revenue breakdown by product and category for charts.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Get Revenue Report (JSON)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "categoryId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2024-01-01T00:00:00Z",
+                        "name": "fromDate",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "storeId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2024-01-31T23:59:59Z",
+                        "name": "toDate",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Revenue data",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_order.GetRevenueReportReply"
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/reports/revenue/export": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Download revenue report as a CSV file for bookkeeping.",
+                "produces": [
+                    "text/csv"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Export Revenue Report (CSV)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "categoryId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2024-01-01T00:00:00Z",
+                        "name": "fromDate",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "storeId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2024-01-31T23:59:59Z",
+                        "name": "toDate",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "CSV File",
+                        "schema": {
+                            "type": "file"
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/reports/volume": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get daily order counts and status breakdown for line charts.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Get Order Volume Statistics (JSON)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "2024-05-20",
+                        "name": "fromDate",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            0,
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6,
+                            7
+                        ],
+                        "type": "integer",
+                        "format": "int32",
+                        "x-enum-varnames": [
+                            "OrderStatus_PAYMENT_PENDING",
+                            "OrderStatus_CONFIRMATION_PENDING",
+                            "OrderStatus_CONFIRMED",
+                            "OrderStatus_PREPARING",
+                            "OrderStatus_READY_FOR_PICKUP",
+                            "OrderStatus_DELIVERING",
+                            "OrderStatus_COMPLETED",
+                            "OrderStatus_CANCEL"
+                        ],
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "storeId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2024-05-27",
+                        "name": "toDate",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Order volume data",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_order.GetOrderVolumeReply"
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/reports/volume/export": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Download daily order statistics as a CSV file.",
+                "produces": [
+                    "text/csv"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Export Order Volume (CSV)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "2024-05-20",
+                        "name": "fromDate",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            0,
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6,
+                            7
+                        ],
+                        "type": "integer",
+                        "format": "int32",
+                        "x-enum-varnames": [
+                            "OrderStatus_PAYMENT_PENDING",
+                            "OrderStatus_CONFIRMATION_PENDING",
+                            "OrderStatus_CONFIRMED",
+                            "OrderStatus_PREPARING",
+                            "OrderStatus_READY_FOR_PICKUP",
+                            "OrderStatus_DELIVERING",
+                            "OrderStatus_COMPLETED",
+                            "OrderStatus_CANCEL"
+                        ],
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "storeId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2024-05-27",
+                        "name": "toDate",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "CSV File",
+                        "schema": {
+                            "type": "file"
+                        }
+                    }
+                }
+            }
+        },
         "/orders/{id}": {
             "get": {
                 "security": [
@@ -3889,7 +4133,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "ID cửa hàng",
-                        "name": "storeId",
+                        "name": "id",
                         "in": "path",
                         "required": true
                     },
@@ -4283,6 +4527,60 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update a specific user info.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Update User",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "New User Info",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_user.UpdateUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated user details",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
             }
         },
         "/users/{id}/role": {
@@ -4419,12 +4717,18 @@ const docTemplate = `{
                 1,
                 2,
                 3,
-                4
+                4,
+                5,
+                6,
+                7
             ],
             "x-enum-varnames": [
                 "OrderStatus_PAYMENT_PENDING",
+                "OrderStatus_CONFIRMATION_PENDING",
+                "OrderStatus_CONFIRMED",
                 "OrderStatus_PREPARING",
-                "OrderStatus_READY",
+                "OrderStatus_READY_FOR_PICKUP",
+                "OrderStatus_DELIVERING",
                 "OrderStatus_COMPLETED",
                 "OrderStatus_CANCEL"
             ]
@@ -4653,6 +4957,9 @@ const docTemplate = `{
                 "ingredientId": {
                     "type": "string"
                 },
+                "minThreshold": {
+                    "type": "number"
+                },
                 "quantity": {
                     "type": "number"
                 }
@@ -4728,6 +5035,93 @@ const docTemplate = `{
                 },
                 "returnUrl": {
                     "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_order.GetOrderVolumeReply": {
+            "type": "object",
+            "properties": {
+                "orders": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api-gateway_internal_domain_models_order.OrderVolumeADay"
+                    }
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_order.GetRevenueReportReply": {
+            "type": "object",
+            "properties": {
+                "categoryId": {
+                    "type": "string"
+                },
+                "fromDate": {
+                    "type": "string",
+                    "example": "2024-01-01T00:00:00Z"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api-gateway_internal_domain_models_order.RevenueItem"
+                    }
+                },
+                "overallTotalRevenue": {
+                    "type": "number"
+                },
+                "toDate": {
+                    "type": "string",
+                    "example": "2024-01-31T23:59:59Z"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_order.OrderVolumeADay": {
+            "type": "object",
+            "properties": {
+                "canceledOrder": {
+                    "type": "integer"
+                },
+                "completedOrder": {
+                    "type": "integer"
+                },
+                "date": {
+                    "type": "string",
+                    "example": "2024-05-20"
+                },
+                "statusCounts": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer",
+                        "format": "int32"
+                    }
+                },
+                "storeId": {
+                    "type": "string"
+                },
+                "totalOrders": {
+                    "type": "integer"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_order.RevenueItem": {
+            "type": "object",
+            "properties": {
+                "productName": {
+                    "type": "string"
+                },
+                "quantitySold": {
+                    "type": "integer"
+                },
+                "sku": {
+                    "type": "string"
+                },
+                "storeId": {
+                    "type": "string"
+                },
+                "totalRevenue": {
+                    "type": "number"
+                },
+                "unitPrice": {
+                    "type": "number"
                 }
             }
         },
@@ -5462,6 +5856,9 @@ const docTemplate = `{
                 "address": {
                     "type": "string"
                 },
+                "currentHourlyWage": {
+                    "type": "number"
+                },
                 "dateOfBirth": {
                     "type": "string"
                 },
@@ -5473,6 +5870,9 @@ const docTemplate = `{
                 },
                 "gender": {
                     "type": "integer"
+                },
+                "homeStoreId": {
+                    "type": "string"
                 },
                 "lastName": {
                     "type": "string"
@@ -5497,9 +5897,6 @@ const docTemplate = `{
                 "dateOfBirth": {
                     "type": "string"
                 },
-                "email": {
-                    "type": "string"
-                },
                 "firstName": {
                     "type": "string"
                 },
@@ -5510,6 +5907,46 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "phone": {
+                    "description": "Email       string ` + "`" + `json:\"email\"` + "`" + `",
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_user.UpdateUserRequest": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "currentHourlyWage": {
+                    "type": "number"
+                },
+                "dateOfBirth": {
+                    "type": "string"
+                },
+                "firstName": {
+                    "type": "string"
+                },
+                "gender": {
+                    "type": "integer"
+                },
+                "homeStoreId": {
+                    "type": "string"
+                },
+                "isBlocked": {
+                    "type": "boolean"
+                },
+                "lastName": {
+                    "type": "string"
+                },
+                "phone": {
+                    "description": "Email       string ` + "`" + `json:\"email\"` + "`" + `",
+                    "type": "string"
+                },
+                "roleSlug": {
+                    "type": "string"
+                },
+                "username": {
                     "type": "string"
                 }
             }

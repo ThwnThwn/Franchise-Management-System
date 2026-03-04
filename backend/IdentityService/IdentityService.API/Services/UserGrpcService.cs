@@ -20,6 +20,7 @@ using IdentityService.Grpc.Protos.User;
 using MediatR;
 using Sprache;
 using System.Globalization;
+using Google.Protobuf;
 
 namespace IdentityService.API.Services;
 
@@ -80,7 +81,10 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
             DateOfBirth = dob,
             Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone,
             Address = string.IsNullOrWhiteSpace(request.Address) ? null : request.Address,
-            RoleSlug = request.RoleSlug
+            RoleSlug = request.RoleSlug,
+            CurrentHourlyWage = request.HasCurrentHourlyWage? (decimal?)request.CurrentHourlyWage: null,
+            HomeStoreId = Guid.Parse(string.IsNullOrWhiteSpace(request.HomeStoreId) ? null : request.HomeStoreId)
+
         }));
 
         return MapUser(rep);
@@ -130,7 +134,7 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
         return response;
     }
 
-    public override async Task<GetAllUserOrWithRoleResponse> GetAll(GetAllUserOrWithRoleRequest request, ServerCallContext context)
+    public override async Task<GetAllUserOrWithRoleResponse> GetAll(GetAllUserWithFilterRequest request, ServerCallContext context)
     {
         var userEntry = context.RequestHeaders.FirstOrDefault(h =>
            h.Key.Equals("x-user-id", StringComparison.OrdinalIgnoreCase));
@@ -142,8 +146,13 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
         var query = new GetAllUsersQuery()
         {
             RoleSlug = request.RoleSlug,
-            Id = Guid.Parse(userEntry.Value),
+            StoreId = Guid.TryParse(request.HomeStoreId, out var storeId)? storeId: null,
+            HasHourlyWage = request.HasHourlyWage,
             Keyword = request.Keyword,
+            OrderCount = request.HasOrderCount ? request.OrderCount : null,
+            TierId = Guid.TryParse(request.TierId, out var parsed)? parsed: null,
+            StartAt = (decimal)request.StartAt,
+            EndAt = (decimal)request.EndAt,
             Page = request.Page,
             PageSize = request.PageSize
         };
@@ -208,7 +217,9 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
                 Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone,
                 Address = string.IsNullOrWhiteSpace(request.Address) ? null : request.Address,
                 IsBlocked = request.IsBlocked,
-                RoleSlug = request.RoleSlug
+                RoleSlug = request.RoleSlug,
+                CurrentHourlyWage = request.HasCurrentHourlyWage ? (decimal?)request.CurrentHourlyWage : null,
+                HomeStoreId = Guid.Parse(string.IsNullOrWhiteSpace(request.HomeStoreId) ? null : request.HomeStoreId)
             }
         ));
 
@@ -310,20 +321,52 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
                     Name = user.Role.Name ?? "",
                     Slug = user.Role.Slug ?? ""
                 },
-            AvatarUrl = user.AvatarUrl ?? ""
+            AvatarUrl = user.AvatarUrl ?? "",
+            OrderCount = user.OrderCount ?? 0,
+            Loyalty = user.LoyaltyTier == null
+            ? null
+            : new LoyaltyResponse
+            {
+                Id = user.LoyaltyTier.Id.ToString(),
+                AvailablePoints = user.LoyaltyTier.AvailablePoints.ToString(),
+                TotalSpent = user.LoyaltyTier.TotalSpent.ToString(),
+                CurrentTier = user.LoyaltyTier.CurrentTier == null
+                    ? null
+                    : new MembershipTier
+                    {
+                        Id = user.LoyaltyTier.CurrentTier.Id.ToString(),
+                        Name = user.LoyaltyTier.CurrentTier.Name ?? "",
+                        MinSpendRequired = user.LoyaltyTier.CurrentTier.MinSpendRequired.ToString(),
+                        DiscountRate = user.LoyaltyTier.CurrentTier.DiscountRate,
+                        AmountPerPoint = user.LoyaltyTier.CurrentTier.AmountPerPoint.ToString(),
+                        ValuePerPoint = user.LoyaltyTier.CurrentTier.ValuePerPoint.ToString()
+                    }
+            }
         };
     }
-    public override async Task<UserIdResponse> GetUserIdByPhone(GetUserIdByPhoneRequest request, ServerCallContext context)
+    public override async Task<GetSimpleUsersRespone> GetUserIdByPhone(GetUserIdByPhoneRequest request, ServerCallContext context)
     {
-        var req = new GetUserByPhoneQuery(PhoneNumber: request.Phone);
-        var user = await _mediator.Send(req);
-        return new UserIdResponse { Id = user.Id.ToString() };
+        var req = new GetUsersByPhoneQuery(PhoneNumber: request.Phone);
+        var users = await _mediator.Send(req);
+        var userRep = new GetSimpleUsersRespone();
+        userRep.UserRes.AddRange(users.Select(u => new UserIdNameResponse
+        {
+            Id = u.Id.ToString(),
+            Name = string.IsNullOrWhiteSpace(u.LastName) ? u.FirstName : u.LastName + " " + u.FirstName
+        }));
+        return userRep;
     }
 
-    public override async Task<UserIdResponse> GetUserIdByEmail(GetUserIdByEmailRequest request, ServerCallContext context)
+    public override async Task<GetSimpleUsersRespone> GetUserIdByEmail(GetUserIdByEmailRequest request, ServerCallContext context)
     {
-        var req = new GetByEmailQuery(Email: request.Email);
-        var user = await _mediator.Send(req);
-        return new UserIdResponse { Id = user.Id.ToString() };
+        var req = new GetUsersByEmailQuery(Email: request.Email);
+        var users = await _mediator.Send(req);
+        var userRep = new GetSimpleUsersRespone();
+        userRep.UserRes.AddRange(users.Select(u => new UserIdNameResponse
+        {
+            Id = u.Id.ToString(),
+            Name = string.IsNullOrWhiteSpace(u.LastName) ? u.FirstName : u.LastName + " " + u.FirstName
+        }));
+        return userRep;
     }
 }

@@ -53,7 +53,7 @@ public class VnPayController : ControllerBase
     /// <summary>
     /// VNPay return URL (client redirect) + server-side verification.
     /// </summary>
-    // Match: https://localhost:5003/api/vnpay/return
+    // Match: http://localhost:5003/api/vnpay/return
     [HttpGet("return")]
     public async Task<IActionResult> Return(CancellationToken ct)
     {

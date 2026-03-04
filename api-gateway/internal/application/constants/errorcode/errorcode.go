@@ -33,6 +33,8 @@ var (
 	ErrOTPTooManyAttempts error
 
 	// 500
+	ErrInternalServer         error
+	ErrExportFailed           error
 	ErrUnexpectedSigningToken error
 )
 
@@ -72,6 +74,8 @@ func InitErrorMap() {
 	ErrOTPTooManyAttempts = errors.New("Quá số lần nhập OTP")
 
 	// --- 500 Internal Server Error ---
+	ErrInternalServer = errors.New("Lỗi không mong muốn")
+	ErrExportFailed = errors.New("Lỗi xuất file")
 	ErrUnexpectedSigningToken = errors.New("Token không hợp lệ")
 
 	// Initialize the Internal Mapping Table
@@ -144,6 +148,16 @@ func InitErrorMap() {
 		},
 
 		// --- 500 ---
+		ErrInternalServer: {
+			Status: http.StatusInternalServerError,
+			Title:  "Lỗi hệ thống",
+			Detail: ErrInternalServer.Error(),
+		},
+		ErrExportFailed: {
+			Status: http.StatusInternalServerError,
+			Title:  "Lỗi hệ thống",
+			Detail: ErrExportFailed.Error(),
+		},
 		ErrUnexpectedSigningToken: {
 			Status: http.StatusInternalServerError,
 			Title:  "Lỗi hệ thống",

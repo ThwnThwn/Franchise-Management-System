@@ -1,4 +1,5 @@
 using AutoMapper;
+using ProductService.Application.Dtos;
 using ProductService.Application.Features.Products.Queries.GetById;
 using ProductService.Application.Features.Products.Queries.GetByKeyword;
 using ProductService.Application.Features.Products.Queries.GetByProductName;
@@ -11,7 +12,7 @@ public class ProductGrpcMappingProfile : Profile
 {
     public ProductGrpcMappingProfile()
     {
-        CreateMap<ProductSizeListItemDto, ProductSizeDto>()
+        CreateMap<ProductSizeListItemDto, Application.Dtos.ProductVariantDto>()
             .ForMember(d => d.Id, opt => opt.MapFrom(s => s.Id.ToString()))
             .ForMember(d => d.Sku, opt => opt.MapFrom(s => s.Sku ?? string.Empty))
             .ForMember(d => d.Name, opt => opt.MapFrom(s => s.Name ?? string.Empty))
@@ -20,7 +21,7 @@ public class ProductGrpcMappingProfile : Profile
             .ForMember(d => d.Cost, opt => opt.MapFrom(s => (double)s.Cost))
             .ForMember(d => d.IsActive, opt => opt.MapFrom(s => s.IsActive));
 
-        CreateMap<ProductSizeListItemDto, ProductService.API.ProductSize>()
+        CreateMap<ProductSizeListItemDto, ProductVariant>()
             .ForMember(d => d.Id, opt => opt.MapFrom(s => s.Id.ToString()))
             .ForMember(d => d.Sku, opt => opt.MapFrom(s => s.Sku ?? string.Empty))
             .ForMember(d => d.Name, opt => opt.MapFrom(s => s.Name ?? string.Empty))
@@ -37,18 +38,18 @@ public class ProductGrpcMappingProfile : Profile
             .ForMember(d => d.IsActive, opt => opt.MapFrom(s => s.IsActive))
             .ForMember(d => d.CategoryId, opt => opt.MapFrom(s => s.CategoryId.ToString()))
             .ForMember(d => d.CategoryName, opt => opt.MapFrom(s => s.CategoryName ?? string.Empty))
-            .ForMember(d => d.Sizes, opt => opt.MapFrom(s => s.Sizes));
+            .ForMember(d => d.Variants, opt => opt.MapFrom(s => s.Sizes));
 
-        CreateMap<ProductSizeDto, ProductSizeDto>()
-            .ForMember(d => d.Id, opt => opt.MapFrom(s => s.Id.ToString()))
-            .ForMember(d => d.Sku, opt => opt.MapFrom(s => s.Sku ?? string.Empty))
-            .ForMember(d => d.Name, opt => opt.MapFrom(s => s.Name ?? string.Empty))
-            .ForMember(d => d.Attributes, opt => opt.MapFrom(s => s.Attributes ?? string.Empty))
-            .ForMember(d => d.Cost, opt => opt.MapFrom(s => (double)s.Cost))
-            .ForMember(d => d.BasePrice, opt => opt.MapFrom(s => (double)s.BasePrice))
-            .ForMember(d => d.IsActive, opt => opt.MapFrom(s => s.IsActive));
+        //CreateMap<ProductSizeDto, ProductSizeDto>()
+        //    .ForMember(d => d.Id, opt => opt.MapFrom(s => s.Id.ToString()))
+        //    .ForMember(d => d.Sku, opt => opt.MapFrom(s => s.Sku ?? string.Empty))
+        //    .ForMember(d => d.Name, opt => opt.MapFrom(s => s.Name ?? string.Empty))
+        //    .ForMember(d => d.Attributes, opt => opt.MapFrom(s => s.Attributes ?? string.Empty))
+        //    .ForMember(d => d.Cost, opt => opt.MapFrom(s => (double)s.Cost))
+        //    .ForMember(d => d.BasePrice, opt => opt.MapFrom(s => (double)s.BasePrice))
+        //    .ForMember(d => d.IsActive, opt => opt.MapFrom(s => s.IsActive));
 
-        CreateMap<GetProductDetailDto, Product>()
+        CreateMap<ProductDto, Product>()
             .ForMember(d => d.Id, opt => opt.MapFrom(s => s.Id.ToString()))
             .ForMember(d => d.Name, opt => opt.MapFrom(s => s.Name ?? string.Empty))
             .ForMember(d => d.Description, opt => opt.MapFrom(s => s.Description ?? string.Empty))
@@ -56,10 +57,10 @@ public class ProductGrpcMappingProfile : Profile
             .ForMember(d => d.IsActive, opt => opt.MapFrom(s => s.IsActive))
             .ForMember(d => d.CategoryId, opt => opt.MapFrom(s => s.CategoryId.ToString()))
             .ForMember(d => d.CategoryName, opt => opt.MapFrom(s => s.CategoryName ?? string.Empty))
-            .ForMember(d => d.Sizes, opt => opt.MapFrom(s => s.Sizes));
+            .ForMember(d => d.Variants, opt => opt.MapFrom(s => s.Variants));
 
-        CreateMap<ProductVariant, ProductSizeDto>()
-            .ForMember(d => d.IsActive, opt => opt.MapFrom(s => s.IsActive ?? true));
+        CreateMap<ProductVariant, Application.Dtos.ProductVariantDto>()
+            .ForMember(d => d.IsActive, opt => opt.MapFrom(s => s.IsActive));
 
         CreateMap<GetProductByNameQueryResponse, Product>()
             .ForMember(d => d.Id, opt => opt.MapFrom(s => s.ProductId.ToString()))
@@ -71,12 +72,12 @@ public class ProductGrpcMappingProfile : Profile
             .ForMember(d => d.UpdatedAt, opt => opt.MapFrom(
                 s => s.UpdatedAt.HasValue ? s.UpdatedAt.Value.ToUnixTimeSeconds() : 0));
 
-        CreateMap<GetProductByKeywordQueryResponse, Product>()
+        CreateMap<ProductDto, Product>()
             .ForMember(d => d.Id, opt => opt.MapFrom(s => s.Id.ToString()))
             .ForMember(d => d.Name, opt => opt.MapFrom(s => s.Name))
             .ForMember(d => d.Description, opt => opt.MapFrom(s => s.Description))
             .ForMember(d => d.ImageUrl, opt => opt.MapFrom(s => s.ImageUrl))
             .ForMember(d => d.IsActive, opt => opt.MapFrom(s => s.IsActive))
-            .ForMember(d => d.Sizes, opt => opt.MapFrom(s => s.Variants));
+            .ForMember(d => d.Variants, opt => opt.MapFrom(s => s.Variants));
     }
 }

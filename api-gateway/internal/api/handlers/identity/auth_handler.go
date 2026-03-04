@@ -7,6 +7,7 @@ import (
 	"api-gateway/internal/domain/constants/jwttype"
 	"api-gateway/internal/domain/models/auth"
 	"api-gateway/internal/domain/models/user"
+	"api-gateway/pkg/utils/contextutils"
 	"api-gateway/pkg/utils/jwtutils"
 	"api-gateway/pkg/utils/validation"
 	"net/http"
@@ -40,27 +41,26 @@ func NewAuthHandler(
 // @Success      200  {object}  map[string]interface{}
 // @Failure      400  {object}  map[string]string
 // @Router       /auth/login [post]
-func (h *AuthHandler) Login(c *gin.Context) {
+func (h *AuthHandler) Login(c *gin.Context) error {
 	var req auth.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(validation.TranslateValidationError(err))
-		return
+		return validation.TranslateValidationError(err)
 	}
 
 	ctx := c.Request.Context()
 	res, err := h.authGW.Login(ctx, &req)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
-	c.SetCookie("refresh_token", res.RefreshToken,
+	c.SetCookie(contextutils.CookieRefreshToken, res.RefreshToken,
 		60*60*24*global.Config.JwtRefreshTokenExpDays, "/", "", false, true)
 
 	c.JSON(http.StatusOK, gin.H{
 		"accessToken": res.AccessToken,
 		"user":        res.User,
 	})
+	return nil
 }
 
 // Logout
@@ -73,16 +73,14 @@ func (h *AuthHandler) Login(c *gin.Context) {
 // @Success      200  {object}  map[string]interface{}  "Returns success status"
 // @Failure      401  {object}  map[string]string       "Unauthorized or invalid token"
 // @Router       /auth/logout [post]
-func (h *AuthHandler) Logout(c *gin.Context) {
-	accessToken, exists := c.Get("accessToken")
+func (h *AuthHandler) Logout(c *gin.Context) error {
+	accessToken, exists := c.Get(contextutils.CtxAccessToken)
 	if !exists {
-		c.Error(errorcode.ErrInvalidAccessToken)
-		return
+		return errorcode.ErrInvalidAccessToken
 	}
-	refreshToken, err := c.Cookie("refresh_token")
+	refreshToken, err := c.Cookie(contextutils.CookieRefreshToken)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	ctx := c.Request.Context()
@@ -91,14 +89,14 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 		RefreshToken: refreshToken,
 	})
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
-	c.SetCookie("refresh_token", "", -1, "/", "", false, true)
+	c.SetCookie(contextutils.CookieRefreshToken, "", -1, "/", "", false, true)
 	c.JSON(http.StatusOK, gin.H{
 		"success": res,
 	})
+	return nil
 }
 
 // RefreshToken
@@ -111,11 +109,10 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 // @Failure      400  {object}  map[string]string       "Missing cookie"
 // @Failure      401  {object}  map[string]string       "Invalid refresh token"
 // @Router       /auth/refresh-token [post]
-func (h *AuthHandler) RefreshToken(c *gin.Context) {
-	refreshToken, err := c.Cookie("refresh_token")
+func (h *AuthHandler) RefreshToken(c *gin.Context) error {
+	refreshToken, err := c.Cookie(contextutils.CookieRefreshToken)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	ctx := c.Request.Context()
@@ -123,16 +120,16 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 		RefreshToken: refreshToken,
 	})
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
-	c.SetCookie("refresh_token", res.RefreshToken,
+	c.SetCookie(contextutils.CookieRefreshToken, res.RefreshToken,
 		60*60*24*global.Config.JwtRefreshTokenExpDays, "/", "", false, true)
 
 	c.JSON(http.StatusOK, gin.H{
 		"accessToken": res.AccessToken,
 	})
+	return nil
 }
 
 // Register
@@ -148,11 +145,10 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 // @Failure      400  {object}  map[string]string      "Validation error"
 // @Failure      500  {object}  map[string]string      "Internal server error"
 // @Router       /auth/register [post]
-func (h *AuthHandler) Register(c *gin.Context) {
+func (h *AuthHandler) Register(c *gin.Context) error {
 	var req auth.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(validation.TranslateValidationError(err))
-		return
+		return validation.TranslateValidationError(err)
 	}
 
 	ctx := c.Request.Context()
@@ -170,13 +166,13 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	})
 
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": res,
 	})
+	return nil
 }
 
 // ConfirmRegisterOtp
@@ -189,11 +185,10 @@ func (h *AuthHandler) Register(c *gin.Context) {
 // @Success      200  {object}  map[string]interface{} "Returns success status and message"
 // @Failure      400  {object}  map[string]string      "Invalid OTP or validation error"
 // @Router       /auth/register/confirm-otp [post]
-func (h *AuthHandler) ConfirmRegisterOtp(c *gin.Context) {
+func (h *AuthHandler) ConfirmRegisterOtp(c *gin.Context) error {
 	var req auth.ConfirmOtpRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(validation.TranslateValidationError(err))
-		return
+		return validation.TranslateValidationError(err)
 	}
 
 	ctx := c.Request.Context()
@@ -203,14 +198,14 @@ func (h *AuthHandler) ConfirmRegisterOtp(c *gin.Context) {
 	})
 
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": success,
 		"message": msg,
 	})
+	return nil
 }
 
 // ReSendRegisterOtp
@@ -223,23 +218,22 @@ func (h *AuthHandler) ConfirmRegisterOtp(c *gin.Context) {
 // @Success      200  {object}  map[string]interface{} "Returns success message"
 // @Failure      400  {object}  map[string]string      "Validation error"
 // @Router       /auth/register/resend-otp [post]
-func (h *AuthHandler) ReSendRegisterOtp(c *gin.Context) {
+func (h *AuthHandler) ReSendRegisterOtp(c *gin.Context) error {
 	var req auth.SendOtpRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(validation.TranslateValidationError(err))
-		return
+		return validation.TranslateValidationError(err)
 	}
 
 	ctx := c.Request.Context()
 	msg, err := h.authGW.ReSendOtp(ctx, req.Email, jwttype.Register)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": msg,
 	})
+	return nil
 }
 
 // Forgot password
@@ -255,24 +249,23 @@ func (h *AuthHandler) ReSendRegisterOtp(c *gin.Context) {
 // @Failure      400  {object}  map[string]string      "Validation error"
 // @Failure      500  {object}  map[string]string      "Internal server error"
 // @Router       /auth/forgot-password [post]
-func (h *AuthHandler) ForgotPassword(c *gin.Context) {
+func (h *AuthHandler) ForgotPassword(c *gin.Context) error {
 	var req auth.SendOtpRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(validation.TranslateValidationError(err))
-		return
+		return validation.TranslateValidationError(err)
 	}
 
 	ctx := c.Request.Context()
 	msg, err := h.authGW.ForgotPassword(ctx, req.Email)
 
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": msg,
 	})
+	return nil
 }
 
 // ConfirmForgotPasswordOtp
@@ -285,11 +278,10 @@ func (h *AuthHandler) ForgotPassword(c *gin.Context) {
 // @Success      200  {object}  map[string]interface{} "Returns success message and sets cookie"
 // @Failure      400  {object}  map[string]string      "Invalid OTP or validation error"
 // @Router       /auth/forgot-password/confirm-otp [post]
-func (h *AuthHandler) ConfirmForgotPasswordOtp(c *gin.Context) {
+func (h *AuthHandler) ConfirmForgotPasswordOtp(c *gin.Context) error {
 	var req auth.ConfirmOtpRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(validation.TranslateValidationError(err))
-		return
+		return validation.TranslateValidationError(err)
 	}
 
 	ctx := c.Request.Context()
@@ -299,16 +291,16 @@ func (h *AuthHandler) ConfirmForgotPasswordOtp(c *gin.Context) {
 	})
 
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
-	c.SetCookie("forgot_password_token", token,
+	c.SetCookie(contextutils.CookieForgotPasswordToken, token,
 		60*global.Config.JwtAccessTokenExpirationMinutes, "/", "", false, true)
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Xác thực OTP thành công",
 	})
+	return nil
 }
 
 // NewPassword
@@ -322,41 +314,38 @@ func (h *AuthHandler) ConfirmForgotPasswordOtp(c *gin.Context) {
 // @Failure      400  {object}  map[string]string      "Missing cookie or validation error"
 // @Failure      401  {object}  map[string]string      "Invalid or expired token"
 // @Router       /auth/forgot-password/new-password [post]
-func (h *AuthHandler) NewPassword(c *gin.Context) {
+func (h *AuthHandler) NewPassword(c *gin.Context) error {
 	var req auth.NewPasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(validation.TranslateValidationError(err))
-		return
+		return validation.TranslateValidationError(err)
 	}
 
-	token, err := c.Cookie("forgot_password_token")
+	token, err := c.Cookie(contextutils.CookieForgotPasswordToken)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	claims, err := jwtutils.ValidateToken([]byte(global.Config.JwtSecret), token, jwttype.ForgotPassword)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	md := metadata.Pairs(
-		"x-email", claims.Subject,
+		contextutils.HeaderEmail, claims.Subject,
 	)
 	ctx := metadata.NewOutgoingContext(c.Request.Context(), md)
 	success, msg, err := h.authGW.NewPassword(ctx, req.NewPassword)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
-	c.SetCookie("forgot_password_token", "", -1, "/", "", false, true)
+	c.SetCookie(contextutils.CookieForgotPasswordToken, "", -1, "/", "", false, true)
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": success,
 		"message": msg,
 	})
+	return nil
 }
 
 // ReSendForgotPasswordOtp
@@ -369,23 +358,22 @@ func (h *AuthHandler) NewPassword(c *gin.Context) {
 // @Success      200  {object}  map[string]interface{} "Returns success message"
 // @Failure      400  {object}  map[string]string      "Validation error"
 // @Router       /auth/forgot-password/resend-otp [post]
-func (h *AuthHandler) ReSendForgotPasswordOtp(c *gin.Context) {
+func (h *AuthHandler) ReSendForgotPasswordOtp(c *gin.Context) error {
 	var req auth.SendOtpRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(validation.TranslateValidationError(err))
-		return
+		return validation.TranslateValidationError(err)
 	}
 
 	ctx := c.Request.Context()
 	msg, err := h.authGW.ReSendOtp(ctx, req.Email, jwttype.ForgotPassword)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": msg,
 	})
+	return nil
 }
 
 // Change password
@@ -402,25 +390,23 @@ func (h *AuthHandler) ReSendForgotPasswordOtp(c *gin.Context) {
 // @Failure      400  {object}  map[string]string      "Validation error"
 // @Failure      401  {object}  map[string]string      "Unauthorized or missing token"
 // @Router       /auth/change-password [post]
-func (h *AuthHandler) ChangePassword(c *gin.Context) {
+func (h *AuthHandler) ChangePassword(c *gin.Context) error {
 	var req user.ChangePasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(validation.TranslateValidationError(err))
-		return
+		return validation.TranslateValidationError(err)
 	}
 
-	accessToken := c.GetString("accessToken")
+	accessToken := c.GetString(contextutils.CtxAccessToken)
 	if accessToken == "" {
-		c.Error(errorcode.ErrMissingTokenInfo)
-		return
+		return errorcode.ErrMissingTokenInfo
 	}
 
 	ctx := c.Request.Context()
 	res, err := h.userGW.ChangePassword(ctx, accessToken, &req)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	c.JSON(http.StatusOK, res)
+	return nil
 }

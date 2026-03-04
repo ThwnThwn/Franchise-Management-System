@@ -94,7 +94,7 @@ public sealed class DepositVnPayReturnHandler
 
         // ===== STEP 6: GET WALLET =====
         var wallet = await _walletRepository
-            .GetByIdAsync(walletTransaction.WalletId, cancellationToken);
+            .GetByIdAsync(walletTransaction.WalletId.Value, cancellationToken);
 
         if (wallet == null)
             return Result.NotFound("Wallet not found");

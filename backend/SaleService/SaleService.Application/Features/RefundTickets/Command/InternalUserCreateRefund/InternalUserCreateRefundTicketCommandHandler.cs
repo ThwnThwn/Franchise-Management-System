@@ -18,175 +18,57 @@ public sealed class InternalUserCreateRefundTicketCommandHandler
     private readonly IRefundTicketRepository _refundTicketRepository;
     private readonly IWalletRepository _walletRepository;
     private readonly IWalletTransactionRepository _transactionRepository;
-    private readonly IRefundAuthorizationService _authorizationService;
-    private readonly IIdentityServiceClient _identityServiceClient;
     public InternalUserCreateRefundTicketCommandHandler(
         IRefundTicketRepository refundTicketRepository,
         IWalletRepository walletRepository,
-        IWalletTransactionRepository transactionRepository,
-        IRefundAuthorizationService authorizationService,
-        IIdentityServiceClient identityServiceClient)
+        IWalletTransactionRepository transactionRepository)
     {
         _refundTicketRepository = refundTicketRepository;
         _walletRepository = walletRepository;
         _transactionRepository = transactionRepository;
-        _authorizationService = authorizationService;
-        _identityServiceClient = identityServiceClient;
     }
 
     public async Task<Result<InternalUserCreateRefundTicketResponse>> Handle(
-        InternalUserCreateRefundTicketCommand command,
-        CancellationToken cancellationToken)
+    InternalUserCreateRefundTicketCommand command,
+    CancellationToken cancellationToken)
     {
         var request = command.Request;
-        var InternalUserOverride = command.InternalUserOverride;
-
-        var userRole = await _identityServiceClient.GetUserByIdAsync(command.UserId);
-
-        if (InternalUserOverride != null)
-        {
-            var OriginalTransaction = await _transactionRepository.GetByIdAsync(
-                request.OriginalTransactionId,
-                cancellationToken);
-
-            if (OriginalTransaction == null)
-                return Result.NotFound("Original transaction not found");
-
-            // ✅ Call authorization service
-            //var authResult = _authorizationService.ValidateInternalUserOverridePermissions(
-            //    userRole.Role.RoleName,
-            //    InternalUserOverride,
-            //    request.Amount,
-            //    OriginalTransaction.Amount,
-            //    OriginalTransaction.CreatedAt);
-
-            //if (!authResult.IsSuccess)
-            //    return Result<InternalUserCreateRefundTicketResponse>.Forbidden(authResult.Errors.ToArray());
-        }
-        // ===== BASIC VALIDATIONS (Always Required) =====
+        var internalUserOverride = command.InternalUserOverride;
 
         if (request.Amount <= 0)
             return Result.Invalid(new ValidationError(
                 nameof(request.Amount),
                 "Amount must be greater than zero"));
 
-        // ✅ Validate wallet exists
-        var wallet = await _walletRepository.GetByIdAsync(
-            request.WalletId,
-            cancellationToken);
+        var wallet = await _walletRepository.GetByUserIdAsync(
+            command.UserId, cancellationToken);
 
         if (wallet == null)
             return Result.NotFound("Wallet not found");
 
-        // ✅ Validate wallet belongs to target user
-        if (wallet.UserId != command.UserId)
-            return Result.Invalid(new ValidationError(
-                nameof(request.WalletId),
-                "Wallet does not belong to target user"));
-
-        // ✅ Validate wallet status
         if (wallet.Status != WalletStatus.Active)
             return Result.Invalid(new ValidationError(
-                nameof(request.WalletId),
+                nameof(wallet.Id),
                 "Wallet is not active"));
 
-        // ✅ Validate original transaction exists
-        var originalTransaction = await _transactionRepository.GetByIdAsync(
-            request.OriginalTransactionId,
-            cancellationToken);
-
-        if (originalTransaction == null)
-            return Result.NotFound("Original transaction not found");
-
-        // ✅ Validate transaction belongs to wallet
-        if (originalTransaction.WalletId != request.WalletId)
-            return Result.Invalid(new ValidationError(
-                nameof(request.OriginalTransactionId),
-                "Transaction does not belong to this wallet"));
-
-        // ✅ Validate transaction type
-        if (originalTransaction.TransactionType != TransactionType.Payment)
-            return Result.Invalid(new ValidationError(
-                nameof(request.OriginalTransactionId),
-                "Only payment transactions can be refunded"));
-
-        // ✅ Validate transaction status
-        if (originalTransaction.Status != TransactionStatus.Completed)
-            return Result.Invalid(new ValidationError(
-                nameof(request.OriginalTransactionId),
-                "Only completed transactions can be refunded"));
-
-        // ===== CONDITIONAL VALIDATIONS (Can be bypassed by InternalUser) =====
-
-        // ✅ Time limit validation (unless bypassed)
-        if (!InternalUserOverride.BypassTimeLimit)
+        // ✅ Không cần originalTransaction, chỉ validate amount vs wallet balance
+        if (!internalUserOverride.BypassAmountValidation)
         {
-            var refundDeadline = originalTransaction.CreatedAt.AddDays(30);
-            if (DateTimeOffset.UtcNow > refundDeadline)
-                return Result.Invalid(new ValidationError(
-                    nameof(request.OriginalTransactionId),
-                    $"Refund window expired (deadline: {refundDeadline:yyyy-MM-dd}). " +
-                    $"InternalUser can use BypassTimeLimit flag to override."));
-        }
-
-        // ✅ Check for existing pending refund
-        if (await _refundTicketRepository.ExistingRefundWithPendingStatusAsync(
-            request.OriginalTransactionId,
-            cancellationToken))
-            return Result.Invalid(new ValidationError(
-                nameof(request.OriginalTransactionId),
-                "A pending refund already exists for this transaction"));
-
-        // ✅ Amount validation (unless bypassed)
-
-        var originalAmount = Math.Abs(originalTransaction.Amount);
-
-        var totalRefunded = await _refundTicketRepository
-            .GetTotalRefundedAmountByTransactionIdAsync(
-                originalTransaction.Id,
-                cancellationToken);
-
-        var remainingRefundable = originalAmount - totalRefunded;
-
-        if (!InternalUserOverride.BypassAmountValidation)
-        {
-            if (request.Amount > remainingRefundable)
+            if (request.Amount > wallet.Balance)
                 return Result.Invalid(new ValidationError(
                     nameof(request.Amount),
-                    $"Refund amount exceeds remaining refundable amount. " +
-                    $"Original: {originalAmount:N2}, " +
-                    $"Already refunded: {totalRefunded:N2}, " +
-                    $"Remaining: {remainingRefundable:N2}. " +
+                    $"Refund amount ({request.Amount:N2}) exceeds wallet balance ({wallet.Balance:N2}). " +
                     $"InternalUser can use BypassAmountValidation flag to override."));
         }
-        else
-        {
-            // ✅ Even with bypass, get total for audit purposes
-            totalRefunded = await _refundTicketRepository
-                .GetTotalRefundedAmountByTransactionIdAsync(
-                    request.OriginalTransactionId,
-                    cancellationToken);
-            remainingRefundable = originalTransaction.Amount - totalRefunded;
-        }
 
-        // ===== CREATE REFUND TICKET =====
-
-        // ✅ Generate unique ticket code
         var ticketCode = GenerateTicketCode();
 
-        // ✅ Determine initial status based on AutoApprove flag
-        var initialStatus = InternalUserOverride.AutoApprove
+        var initialStatus = internalUserOverride.AutoApprove
             ? RefundTicketStatus.Approved
             : RefundTicketStatus.Pending;
 
-        // ✅ Build audit notes
-        var auditNotes = BuildAuditNotes(
-            InternalUserOverride,
-            totalRefunded,
-            remainingRefundable,
-            originalTransaction.Amount);
+        var auditNotes = BuildAuditNotes(internalUserOverride, wallet.Balance, request.Amount);
 
-        // ✅ Create refund ticket entity
         var refundTicket = new RefundTicket
         {
             Id = Guid.NewGuid(),
@@ -194,61 +76,82 @@ public sealed class InternalUserCreateRefundTicketCommandHandler
             Amount = request.Amount,
             RefundAmount = request.Amount,
             Reason = request.Reason,
-            WalletId = request.WalletId,
+            WalletId = wallet.Id,
             UserId = command.UserId,
-            OriginalTransactionId = request.OriginalTransactionId,
             Status = initialStatus,
-
-            // ✅ InternalUser-specific fields
-            RefundReason = InternalUserOverride.RefundReason,
-            InternalNotes = InternalUserOverride.InternalNotes,
-            CreatedByInternalUserId = InternalUserOverride.InternalUserId,
-
-            // ✅ Audit trail
+            RefundReason = internalUserOverride.RefundReason,
+            InternalNotes = internalUserOverride.InternalNotes,
+            CreatedByInternalUserId = internalUserOverride.InternalUserId,
             Notes = auditNotes,
-
-            // ✅ Auto-approval fields
-            ApprovedBy = InternalUserOverride.AutoApprove ? InternalUserOverride.InternalUserId : null,
-            ApprovedAt = InternalUserOverride.AutoApprove ? DateTime.UtcNow : null,
-            ApprovalNotes = InternalUserOverride.AutoApprove
-                ? $"Auto-approved by InternalUser. Reason: {InternalUserOverride.RefundReason}"
+            ApprovedBy = internalUserOverride.AutoApprove ? internalUserOverride.InternalUserId : null,
+            ApprovedAt = internalUserOverride.AutoApprove ? DateTime.UtcNow : null,
+            ApprovalNotes = internalUserOverride.AutoApprove
+                ? $"Auto-approved by InternalUser. Reason: {internalUserOverride.RefundReason}"
                 : null,
-
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow
         };
 
-        // ✅ Save to repository
-        var refundTicketId = await _refundTicketRepository.AddAsync(
-            refundTicket,
-            cancellationToken);
+        if (internalUserOverride.AutoApprove)
+            wallet.Balance -= request.Amount;
+        await _walletRepository.UpdateAsync(wallet, cancellationToken);
+
+        var transaction = new WalletTransaction
+        {
+            Id = Guid.NewGuid(),
+            WalletId = wallet.Id,
+            UserId = refundTicket.UserId,
+            Amount = +refundTicket.Amount,
+            TransactionType = TransactionType.Refund,
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow,
+            Notes = refundTicket.Notes,
+            TransactionCode = GenerateTransactionCode(TransactionType.Refund)
+        };
+
+        await _transactionRepository.AddAsync(transaction, cancellationToken);
+        refundTicket.TransactionId = transaction.Id;
+
+        var refundTicketId = await _refundTicketRepository.AddAsync(refundTicket, cancellationToken);
 
         if (refundTicketId == Guid.Empty)
             return Result.Error("Failed to create refund ticket");
 
-        // ✅ TODO: Send notifications
-        // - Notify user about refund creation
-        // - Notify InternalUser team for approval queue (if not auto-approved)
-        // - Log to audit system
-
-        // ✅ Map to response
-        var response = new InternalUserCreateRefundTicketResponse
+        return Result.Success(new InternalUserCreateRefundTicketResponse
         {
             Id = refundTicket.Id,
             TicketCode = refundTicket.TicketCode,
             Amount = refundTicket.Amount,
             Reason = refundTicket.Reason,
-            WalletId = refundTicket.WalletId.Value,
             TransactionId = refundTicket.TransactionId,
-            OriginalTransactionId = refundTicket.OriginalTransactionId.Value,
             Status = refundTicket.Status,
             CreatedAt = refundTicket.CreatedAt
-        };
-
-        return Result.Success(response);
+        });
     }
 
-    // ===== PRIVATE HELPER METHODS =====
+    private static string BuildAuditNotes(
+        InternalUserOverrideInfo internalUserOverride,
+        decimal walletBalance,
+        decimal refundAmount)
+    {
+        var notes = new System.Text.StringBuilder();
+        notes.AppendLine($"[InternalUser REFUND] Created by: {internalUserOverride.InternalUserId}");
+        notes.AppendLine($"Wallet Balance: {walletBalance:N2}");
+        notes.AppendLine($"Refund Amount: {refundAmount:N2}");
+
+        if (internalUserOverride.AutoApprove)
+            notes.AppendLine("✓ Auto-Approved");
+        if (internalUserOverride.BypassAmountValidation)
+            notes.AppendLine("⚠ BYPASS: Amount Validation");
+        if (internalUserOverride.BypassTimeLimit)
+            notes.AppendLine("⚠ BYPASS: Time Limit");
+        if (internalUserOverride.RefundReason.HasValue)
+            notes.AppendLine($"Reason Type: {internalUserOverride.RefundReason.Value}");
+        if (!string.IsNullOrWhiteSpace(internalUserOverride.InternalNotes))
+            notes.AppendLine($"InternalUser Notes: {internalUserOverride.InternalNotes}");
+
+        return notes.ToString();
+    }
 
     private static string GenerateTicketCode()
     {
@@ -257,34 +160,20 @@ public sealed class InternalUserCreateRefundTicketCommandHandler
         return $"RFT-ADM-{timestamp}-{shortGuid}"; // ✅ "ADM" prefix for InternalUser-created
     }
 
-    private static string BuildAuditNotes(
-        InternalUserOverrideInfo InternalUserOverride,
-        decimal totalRefunded,
-        decimal remainingRefundable,
-        decimal originalAmount)
+    private static string GenerateTransactionCode(TransactionType type)
     {
-        var notes = new System.Text.StringBuilder();
+        var prefix = type switch
+        {
+            TransactionType.Deposit => "DEP",
+            TransactionType.Withdrawal => "WDR",
+            TransactionType.Payment => "PAY",
+            TransactionType.Refund => "REF",
+            TransactionType.Transfer => "TRF",
+            _ => "TXN"
+        };
 
-        notes.AppendLine($"[InternalUser REFUND] Created by InternalUser: {InternalUserOverride.InternalUserId}");
-        notes.AppendLine($"Original Transaction Amount: {originalAmount:N2}");
-        notes.AppendLine($"Previously Refunded: {totalRefunded:N2}");
-        notes.AppendLine($"Remaining Refundable: {remainingRefundable:N2}");
-
-        if (InternalUserOverride.AutoApprove)
-            notes.AppendLine("✓ Auto-Approved");
-
-        if (InternalUserOverride.BypassTimeLimit)
-            notes.AppendLine("⚠ BYPASS: Time Limit");
-
-        if (InternalUserOverride.BypassAmountValidation)
-            notes.AppendLine("⚠ BYPASS: Amount Validation");
-
-        if (InternalUserOverride.RefundReason.HasValue)
-            notes.AppendLine($"Reason Type: {InternalUserOverride.RefundReason.Value}");
-
-        if (!string.IsNullOrWhiteSpace(InternalUserOverride.InternalNotes))
-            notes.AppendLine($"InternalUser Notes: {InternalUserOverride.InternalNotes}");
-
-        return notes.ToString();
+        var shortGuid = Guid.NewGuid().ToString("N")[..8].ToUpper();
+        var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+        return $"{prefix}-{timestamp}-{shortGuid}";
     }
 }

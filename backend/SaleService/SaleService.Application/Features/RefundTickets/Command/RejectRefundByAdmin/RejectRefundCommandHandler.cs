@@ -5,6 +5,7 @@ using SalesService.Application.Interfaces.Identity;
 using SalesService.Application.Persisitences;
 using SalesService.Application.Persisitences.Wallets;
 using SalesService.Application.Persisitences.WalletTransactions;
+using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
 using static SalesService.Application.Features.RefundTickets.Command.RejectRefundByAdmin.RejectRefundCommand;
 
@@ -16,18 +17,15 @@ public sealed class RejectRefundCommandHandler
     private readonly IRefundTicketRepository _refundTicketRepository;
     private readonly IWalletRepository _walletRepository;
     private readonly IWalletTransactionRepository _transactionRepository;
-    private readonly IIdentityServiceClient _identityServiceClient;
 
     public RejectRefundCommandHandler(
         IRefundTicketRepository refundTicketRepository,
         IWalletRepository walletRepository,
-        IWalletTransactionRepository transactionRepository,
-        IIdentityServiceClient identityServiceClient)
+        IWalletTransactionRepository transactionRepository)
     {
         _refundTicketRepository = refundTicketRepository;
         _walletRepository = walletRepository;
         _transactionRepository = transactionRepository;
-        _identityServiceClient = identityServiceClient;
     }
 
     public async Task<Result<RejectRefundResponse>> Handle(
@@ -36,28 +34,15 @@ public sealed class RejectRefundCommandHandler
     {
         var request = command.Request;
 
-        Console.WriteLine($"[Reject] Looking for RefundTicketId: {command.RefundTicketId}");
         var refundTicket = await _refundTicketRepository.GetByTicketIdAsync(
             command.RefundTicketId,
             cancellationToken);
-        Console.WriteLine($"[Reject] Result: {(refundTicket == null ? "NULL" : refundTicket.Id.ToString())}");
 
 
         if (refundTicket == null)
         {
             return Result.NotFound("Refund ticket not found");
         }
-
-        //var userRole = await _identityServiceClient.GetUserByIdAsync(command.InternalUserId);
-
-        //var role = userRole?.Role?.Slug?.Trim().ToLower();
-        //Console.WriteLine($"User Role: {role}"); 
-        //var isAdmin = role == "admin";
-
-        //if (!isAdmin)
-        //{
-        //    return Result.Forbidden("Only Admin can reject refund requests");
-        //}
 
 
         if (refundTicket.Status != RefundTicketStatus.Pending)
@@ -68,11 +53,32 @@ public sealed class RejectRefundCommandHandler
 
         // Reject
         refundTicket.Status = RefundTicketStatus.Rejected;
-        refundTicket.RejectedBy = command.InternalUserId;
         refundTicket.RejectedAt = DateTimeOffset.UtcNow;
         refundTicket.UpdatedAt = DateTimeOffset.UtcNow;
         refundTicket.RejectionReason = request.RejectNotes;
 
+        var wallet = await _walletRepository.GetByUserIdAsync(refundTicket.UserId, cancellationToken);
+        if (wallet == null)
+        {
+            return Result.Error("Customer wallet not found");
+        }
+        wallet.Balance += refundTicket.Amount;
+        await _walletRepository.UpdateAsync(wallet, cancellationToken);
+        var transaction= new WalletTransaction
+        {
+            Id = Guid.NewGuid(),
+            WalletId = wallet.Id,
+            UserId = refundTicket.UserId,
+            Amount = +refundTicket.Amount,
+            TransactionType = TransactionType.Refund,
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow,
+            Notes = refundTicket.Notes,
+            Status = TransactionStatus.Completed,
+            TransactionCode = GenerateTransactionCode(TransactionType.Refund)
+        };
+        await _transactionRepository.AddAsync(transaction, cancellationToken);
+        refundTicket.TransactionId=transaction.Id;
         await _refundTicketRepository.UpdateAsync(refundTicket, cancellationToken);
 
         var response = new RejectRefundResponse
@@ -82,13 +88,28 @@ public sealed class RejectRefundCommandHandler
             Status = refundTicket.Status,
             Amount = refundTicket.Amount,
             CustomerId = refundTicket.UserId,
-            RejectdBy = command.InternalUserId,
             RejectdAt = refundTicket.RejectedAt!.Value,
             RejectNotes = request.RejectNotes,
-            NextSteps = "Refund request rejected. No money will be returned."
+            NextSteps = "Refund request rejected. Your balance has been restored."
         };
 
         return Result.Success(response);
     }
 
+    private static string GenerateTransactionCode(TransactionType type)
+    {
+        var prefix = type switch
+        {
+            TransactionType.Deposit => "DEP",
+            TransactionType.Withdrawal => "WDR",
+            TransactionType.Payment => "PAY",
+            TransactionType.Refund => "REF",
+            TransactionType.Transfer => "TRF",
+            _ => "TXN"
+        };
+
+        var shortGuid = Guid.NewGuid().ToString("N")[..8].ToUpper();
+        var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+        return $"{prefix}-{timestamp}-{shortGuid}";
+    }
 }

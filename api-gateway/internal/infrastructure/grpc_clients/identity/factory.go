@@ -2,36 +2,20 @@ package identity
 
 import (
 	"api-gateway/config"
-	"crypto/tls"
-	"fmt"
+	"api-gateway/pkg/logger"
+	"api-gateway/pkg/utils/grpcutils"
 
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
 )
 
 type identityClientFactory struct {
 	conn *grpc.ClientConn
 }
 
-func NewIdentityClientFactory(url config.IdentityServiceUrl) (*identityClientFactory, error) {
-	// 1. Tạo config TLS chấp nhận mọi chứng chỉ (kể cả chứng chỉ đểu/tự ký)
-	tlsConfig := &tls.Config{
-		InsecureSkipVerify: true,
-	}
-
-	// 2. Tạo credentials từ config trên
-	creds := credentials.NewTLS(tlsConfig)
-
-	conn, err := grpc.NewClient(string(url),
-		grpc.WithTransportCredentials(creds),
-		grpc.WithDefaultServiceConfig(`{"loadBalancingConfig": [{"round_robin":{}}]}`),
-	)
-	// conn, err := grpc.NewClient(string(url),
-	// 	grpc.WithTransportCredentials(insecure.NewCredentials()),
-	// 	grpc.WithDefaultServiceConfig(`{"loadBalancingConfig": [{"round_robin":{}}]}`),
-	// )
+func NewIdentityClientFactory(url config.IdentityServiceUrl, l logger.Interface) (*identityClientFactory, func(), error) {
+	conn, cleanup, err := grpcutils.NewClientConn(string(url), "Identity Service", l)
 	if err != nil {
-		return nil, fmt.Errorf("Cannot connect to gRPC server at %s: %w", url, err)
+		return nil, nil, err
 	}
-	return &identityClientFactory{conn: conn}, nil
+	return &identityClientFactory{conn: conn}, cleanup, nil
 }

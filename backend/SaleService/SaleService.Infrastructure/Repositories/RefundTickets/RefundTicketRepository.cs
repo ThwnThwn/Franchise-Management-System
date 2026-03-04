@@ -59,16 +59,7 @@ namespace SalesService.Infrastructure.Repositories
                 .ToListAsync(cancellationToken);
         }
 
-        public async Task<PagedResult<RefundTicket>> GetAllRefundsAsync(
-        int page,
-        int pageSize,
-        CancellationToken cancellationToken = default)
-        {
-            var query = _context.Set<RefundTicket>()
-                .OrderByDescending(rt => rt.CreatedAt);
-
-            return await query.ToPagedListAsync(page, pageSize, cancellationToken);
-        }
+        
 
         public async Task<int> UpdateStatusAsync(
             Guid id,
@@ -246,6 +237,18 @@ namespace SalesService.Infrastructure.Repositories
                 .OrderByDescending(rt => rt.CreatedAt);
 
             return await query.ToPagedListAsync(pageIndex, pageSize, cancellationToken);
+        }
+
+        public async Task<PagedResult<RefundTicket>> GetAllRefundsAsync(Guid? userId, RefundTicketStatus? status, int page, int pageSize, CancellationToken cancellationToken)
+        {
+            var query = _context.Set<RefundTicket>()
+                .AsNoTracking()
+                .Where(rt => (!userId.HasValue || rt.UserId == userId.Value) &&
+                            (!status.HasValue || rt.Status == status.Value) &&
+                            !rt.IsDeleted)
+                .OrderByDescending(rt => rt.CreatedAt);
+
+            return await query.ToPagedListAsync(page, pageSize, cancellationToken); 
         }
     }
 }

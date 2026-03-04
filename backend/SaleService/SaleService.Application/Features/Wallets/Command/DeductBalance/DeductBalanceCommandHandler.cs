@@ -92,7 +92,7 @@ public sealed class DeductBalanceCommandHandler
 
                 return Result.Success(new DeductBalanceCommandResponse
                 {
-                    WalletId = existingTxn.WalletId,
+                    WalletId = existingTxn.WalletId.Value,
                     UserId = existingTxn.UserId,
                     BalanceBefore = existingTxn.BalanceBefore ?? 0,
                     BalanceAfter = existingTxn.BalanceAfter ?? 0,

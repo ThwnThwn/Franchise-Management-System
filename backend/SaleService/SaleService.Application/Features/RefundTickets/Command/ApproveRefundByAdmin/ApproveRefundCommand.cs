@@ -7,7 +7,6 @@ namespace SalesService.Application.Features.RefundTickets.Command.ApproveRefund;
 
 public sealed record ApproveRefundCommand(
     Guid RefundTicketId,
-    Guid InternalUserId, 
     ApproveRefundRequest Request
 ) : IRequest<Result<ApproveRefundResponse>>
 {
@@ -24,7 +23,6 @@ public sealed record ApproveRefundCommand(
         public RefundTicketStatus Status { get; set; }
         public decimal Amount { get; set; } 
         public Guid CustomerId { get; set; } 
-        public Guid ApprovedBy { get; set; }
         public DateTimeOffset ApprovedAt { get; set; }
         public string? ApprovalNotes { get; set; }
         public string NextSteps { get; set; } = null!; 

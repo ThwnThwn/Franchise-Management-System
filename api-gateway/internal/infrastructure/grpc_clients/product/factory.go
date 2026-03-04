@@ -2,35 +2,31 @@ package product
 
 import (
 	"api-gateway/config"
-	"api-gateway/global"
-	"crypto/tls"
-	"fmt"
+	"api-gateway/pkg/logger"
+	"api-gateway/pkg/utils/grpcutils"
 
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
 )
 
 type clientFactory struct {
 	conn *grpc.ClientConn
 }
 
-func NewProductClientFactory(url config.ProductServiceUrl) (*clientFactory, error) {
-	// 1. Tạo config TLS chấp nhận mọi chứng chỉ (kể cả chứng chỉ đểu/tự ký)
-	tlsConfig := &tls.Config{
-		InsecureSkipVerify: true,
-	}
+func NewProductClientFactory(url config.ProductServiceUrl, cfg *config.Config, l logger.Interface) (*clientFactory, func(), error) {
+	maxSize := cfg.MaxUploadSizeMb * 1024 * 1024
 
-	// 2. Tạo credentials từ config trên
-	creds := credentials.NewTLS(tlsConfig)
-
-	conn, err := grpc.NewClient(string(url),
-		grpc.WithTransportCredentials(creds),
-		grpc.WithDefaultServiceConfig(`{"loadBalancingConfig": [{"round_robin":{}}]}`),
+	conn, cleanup, err := grpcutils.NewClientConn(
+		string(url),
+		"Product Service",
+		l,
 		grpc.WithDefaultCallOptions(
-			grpc.MaxCallSendMsgSize(global.Config.MaxUploadSizeMb*1024*1024)),
+			grpc.MaxCallSendMsgSize(maxSize),
+			grpc.MaxCallRecvMsgSize(maxSize),
+		),
 	)
+
 	if err != nil {
-		return nil, fmt.Errorf("Cannot connect to gRPC server at %s: %w", url, err)
+		return nil, nil, err
 	}
-	return &clientFactory{conn: conn}, nil
+	return &clientFactory{conn: conn}, cleanup, nil
 }

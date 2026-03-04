@@ -18,7 +18,6 @@ namespace SalesService.API.Services.CartItems
         private readonly IMediator _mediator;
         private readonly IProductServiceClient _productServiceClient;
 
-
         public CartItemGrpcService(IMediator mediator, IProductServiceClient productServiceClient)
         {
             _mediator = mediator;
@@ -26,7 +25,7 @@ namespace SalesService.API.Services.CartItems
         }
 
         //Add Cart Item
-        public override async Task<CartItemReply> AddToCart(AddToCartRequest request,ServerCallContext context)
+        public override async Task<CartItemReply> AddToCart(AddToCartRequest request, ServerCallContext context)
         {
             var userIdEntry = context.RequestHeaders.FirstOrDefault(h =>
             h.Key.Equals("x-user-id", StringComparison.OrdinalIgnoreCase));
@@ -44,7 +43,7 @@ namespace SalesService.API.Services.CartItems
 
             if (!productVariant.BasePrice.HasValue || productVariant.BasePrice <= 0)
             {
-                throw new RpcException(new Status(StatusCode.Internal,$"Product variant with SKU '{request.Sku}' has invalid price."));
+                throw new RpcException(new Status(StatusCode.Internal, $"Product variant with SKU '{request.Sku}' has invalid price."));
             }
             var command = new CreateCartItemCommand(new CreateCartItemReq
             {
@@ -67,7 +66,7 @@ namespace SalesService.API.Services.CartItems
         }
 
         //Update Quantity
-        public override async Task<CartItemReply> UpdateCartItem(UpdateCartItemRequest request,ServerCallContext context)
+        public override async Task<CartItemReply> UpdateCartItem(UpdateCartItemRequest request, ServerCallContext context)
         {
             var userIdEntry = context.RequestHeaders.FirstOrDefault(h =>
             h.Key.Equals("x-user-id", StringComparison.OrdinalIgnoreCase));
@@ -98,7 +97,7 @@ namespace SalesService.API.Services.CartItems
         }
 
         //Delete Single Cart Item
-        public override async Task<BoolReply> DeleteListCartItem(DeleteListCartItemRequest request,ServerCallContext context)
+        public override async Task<BoolReply> DeleteListCartItem(DeleteListCartItemRequest request, ServerCallContext context)
         {
             var userIdEntry = context.RequestHeaders.FirstOrDefault(h =>
             h.Key.Equals("x-user-id", StringComparison.OrdinalIgnoreCase));
@@ -148,15 +147,20 @@ namespace SalesService.API.Services.CartItems
                 CustomerId = customerId.ToString(),
                 Sku = x.Sku,
                 ProductName = x.ProductName,
+                Attributes = x.Attributes,
+                ImageUrl = x.ImageUrl,
                 Quantity = x.Quantity,
-                BasePrice =(double) x.BasePrice
+                BasePrice = (double)x.BasePrice,
+
+                CreatedAt = x.CreatedAt.ToString("o"),
+                UpdatedAt = x.UpdatedAt.ToString("o")
             }));
 
             return reply;
         }
 
         //Clear Cart
-        public override async Task<BoolReply> ClearCart(Empty request,ServerCallContext context)
+        public override async Task<BoolReply> ClearCart(Empty request, ServerCallContext context)
         {
             var userIdEntry = context.RequestHeaders.FirstOrDefault(h =>
             h.Key.Equals("x-user-id", StringComparison.OrdinalIgnoreCase));
@@ -171,7 +175,7 @@ namespace SalesService.API.Services.CartItems
                 new DeleteAllCartItemReq
                 {
                     CustomerId = customerId
-                }   
+                }
             );
 
             var success = await _mediator.Send(command);

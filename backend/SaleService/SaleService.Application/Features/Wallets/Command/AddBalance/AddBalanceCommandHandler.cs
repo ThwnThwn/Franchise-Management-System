@@ -87,7 +87,7 @@ public sealed class AddBalanceCommandHandler
                 // Idempotent return
                 return Result.Success(new AddBalanceCommandResponse
                 {
-                    WalletId = existingTxn.WalletId,
+                    WalletId = existingTxn.WalletId.Value,
                     UserId = existingTxn.UserId,
                     BalanceBefore = existingTxn.BalanceBefore ?? 0,
                     BalanceAfter = existingTxn.BalanceAfter ?? 0,

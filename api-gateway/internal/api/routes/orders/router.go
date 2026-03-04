@@ -7,23 +7,46 @@ import (
 )
 
 func (o *OrderRouter) Init(r *gin.RouterGroup) {
+	// 🚀 Nhóm gốc của Orders
 	orderApi := r.Group("/orders")
-
-	privateApi := orderApi.Group("")
-	privateApi.Use(o.authMW.ValidateToken([]byte(o.cfg.JwtSecret)))
+	orderApi.Use(o.authMW.ValidateToken([]byte(o.cfg.JwtSecret)))
 	{
-		privateApi.GET("", api.WrapHandler(o.orderHl.GetOrders))
-		privateApi.POST("", o.orderHl.CreateOrder)
+		// Nhóm Report (Nên đưa lên đầu và có thể thêm MW check Role)
+		// Chỉ Admin/Manager/Staff mới được vào đây
+		reportApi := orderApi.Group("/reports")
+		{
+			reportApi.GET("/revenue", o.authMW.PermissionCheck("order.report.read"),
+				api.WrapHandler(o.orderHl.GetRevenueReport))
+			reportApi.GET("/volume", o.authMW.PermissionCheck("order.report.read"),
+				api.WrapHandler(o.orderHl.GetOrderVolume))
+			reportApi.GET("/revenue/export", o.authMW.PermissionCheck("order.report.read"),
+				api.WrapHandler(o.orderHl.ExportRevenueReport))
+			reportApi.GET("/volume/export", o.authMW.PermissionCheck("order.report.read"),
+				api.WrapHandler(o.orderHl.ExportOrderVolume))
+		}
 
-		privateApi.GET("/:id", api.WrapHandler(o.orderHl.GetOrderById))
-		privateApi.PUT("/:id", o.orderHl.UpdateOrder)
-		privateApi.PATCH("/:id/status", o.orderHl.UpdateOrderStatus)
-		privateApi.POST("/:id/payment", o.orderHl.CreatePaymentUrl)
+		// Nhóm CRUD thông thường (Khai báo Static trước)
+		orderApi.GET("", o.authMW.PermissionCheck("order.read"),
+			api.WrapHandler(o.orderHl.GetOrders))
+		orderApi.POST("", o.authMW.PermissionCheck("order.create"),
+			api.WrapHandler(o.orderHl.CreateOrder))
+
+		//  Nhóm có tham số ID (Khai báo cuối cùng)
+		orderApi.GET("/:id", o.authMW.PermissionCheck("order.read"),
+			api.WrapHandler(o.orderHl.GetOrderById))
+		orderApi.PUT("/:id", o.authMW.PermissionCheck("order.update"),
+			api.WrapHandler(o.orderHl.UpdateOrder))
+		orderApi.PATCH("/:id/status", o.authMW.PermissionCheck("order.update"),
+			api.WrapHandler(o.orderHl.UpdateOrderStatus))
+		orderApi.POST("/:id/payment", o.authMW.PermissionCheck("order.payment"),
+			api.WrapHandler(o.orderHl.CreatePaymentUrl))
 	}
 
+	// 👤 Nhóm dành cho khách hàng tự xem đơn của mình
 	myOrderApi := r.Group("/me/orders")
 	myOrderApi.Use(o.authMW.ValidateToken([]byte(o.cfg.JwtSecret)))
 	{
-		myOrderApi.GET("", api.WrapHandler(o.orderHl.GetMyOrders))
+		myOrderApi.GET("", o.authMW.PermissionCheck("order.read"),
+			api.WrapHandler(o.orderHl.GetMyOrders))
 	}
 }

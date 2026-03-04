@@ -10,13 +10,13 @@ public class GetCartItemsByCustomerIdHandler
     private readonly ICartItemRepository _cartRepo;
     private readonly IProductServiceClient _productClient;
 
-    public GetCartItemsByCustomerIdHandler(ICartItemRepository cartRepo,IProductServiceClient productClient)
+    public GetCartItemsByCustomerIdHandler(ICartItemRepository cartRepo, IProductServiceClient productClient)
     {
         _cartRepo = cartRepo;
         _productClient = productClient;
     }
 
-    public async Task<List<CartItemRep>> Handle(GetCartItemsByCustomerIdQuery request,CancellationToken cancellationToken)
+    public async Task<List<CartItemRep>> Handle(GetCartItemsByCustomerIdQuery request, CancellationToken cancellationToken)
     {
         var cartItems = await _cartRepo.GetByCustomerIdAsync(request.CustomerId);
 
@@ -25,9 +25,9 @@ public class GetCartItemsByCustomerIdHandler
         foreach (var item in cartItems)
         {
             var product = await _productClient.GetProductVariantBySkuAsync(item.Sku);
-            if(product == null)
+            if (product == null)
             {
-                continue; 
+                continue;
             }
             result.Add(new CartItemRep
             {
@@ -35,6 +35,8 @@ public class GetCartItemsByCustomerIdHandler
                 CustomerId = item.CustomerId,
                 Sku = item.Sku,
                 ProductName = product.ProductName,
+                Attributes = product.Attributes,
+                ImageUrl = product.ImageUrl,
                 Quantity = item.Quantity,
                 BasePrice = item.BasePrice,
                 CreatedAt = item.CreatedAt,

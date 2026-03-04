@@ -1,13 +1,15 @@
 package roles
 
 import (
+	"api-gateway/internal/api"
+
 	"github.com/gin-gonic/gin"
 )
 
 func (rR *RoleRouter) Init(r *gin.RouterGroup) {
 	roleApi := r.Group("/roles")
 	{
-		roleApi.GET("", rR.roleHl.GetAll)
+		roleApi.GET("", api.WrapHandler(rR.roleHl.GetAll))
 	}
 
 	privateApi := roleApi.Group("")
@@ -15,19 +17,19 @@ func (rR *RoleRouter) Init(r *gin.RouterGroup) {
 	{
 		privateApi.POST("",
 			rR.authMW.PermissionCheck("role.create"),
-			rR.roleHl.Create)
+			api.WrapHandler(rR.roleHl.Create))
 		privateApi.PATCH("/:id",
 			rR.authMW.PermissionCheck("role.update"),
-			rR.roleHl.Update)
+			api.WrapHandler(rR.roleHl.Update))
 	}
 
 	rolePermApi := privateApi.Group("/:id/permissions")
 	{
 		rolePermApi.GET("",
 			rR.authMW.PermissionCheck("role.read_permission"),
-			rR.roleHl.GetPermissionsByRoleId)
+			api.WrapHandler(rR.roleHl.GetPermissionsByRoleId))
 		rolePermApi.PUT("",
 			rR.authMW.PermissionCheck("role.update_permission"),
-			rR.roleHl.UpdateRolePermissions)
+			api.WrapHandler(rR.roleHl.UpdateRolePermissions))
 	}
 }
