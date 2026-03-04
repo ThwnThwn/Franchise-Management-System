@@ -24,7 +24,11 @@ public class GetUserByIdQueryHandler : IRequestHandler<GetUserByIdQuery, UserRep
     public async Task<UserRep?> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
     {
         var user = await _userRepository.GetByIdAsync(request.Id);
-        var loyalty = await _engagementServiceClient.GetLoyaltyByEmail(user.Email);
+        LoyaltyRes? loyalty = null;
+        if(user != null)
+        {
+            loyalty = await _engagementServiceClient.GetLoyaltyByEmail(user.Email);
+        }
 
 
         return new UserRep
