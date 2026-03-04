@@ -72,8 +72,8 @@ public class RefundTicketsController : ControllerBase
 
         var commandRequest = new InternalUserCreateRefundTicketRequest
         {
-            WalletId = request.WalletId,
-            OriginalTransactionId = request.OriginalTransactionId,
+            //WalletId = request.WalletId,
+            //OriginalTransactionId = request.OriginalTransactionId,
             Amount = request.Amount,
             Reason = request.Reason,
             Notes = request.InternalNotes
@@ -99,9 +99,8 @@ public class RefundTicketsController : ControllerBase
             TicketCode = result.Value.TicketCode,
             Amount = result.Value.Amount,
             Reason = result.Value.Reason,
-            WalletId = result.Value.WalletId,
+            //WalletId = result.Value.WalletId,
             TransactionId = result.Value.TransactionId,
-            OriginalTransactionId = result.Value.OriginalTransactionId,
             Status = result.Value.Status,
             CreatedAt = result.Value.CreatedAt
         };
@@ -124,7 +123,7 @@ public class RefundTicketsController : ControllerBase
             AutoComplete = request.AutoComplete
         };
 
-        var command = new ApproveRefundCommand(refundTicketId, internalUserId, requestData);
+        var command = new ApproveRefundCommand(refundTicketId, requestData);
         var result = await _mediator.Send(command, cancellationToken);
 
         if (!result.IsSuccess)
@@ -137,7 +136,7 @@ public class RefundTicketsController : ControllerBase
             Status = result.Value.Status,
             Amount = result.Value.Amount,
             CustomerId = result.Value.CustomerId,
-            ApprovedBy = result.Value.ApprovedBy,
+            //ApprovedBy = result.Value.ApprovedBy,
             ApprovedAt = result.Value.ApprovedAt,
             ApprovalNotes = result.Value.ApprovalNotes,
             NextSteps = result.Value.NextSteps
@@ -160,7 +159,7 @@ public class RefundTicketsController : ControllerBase
             RejectNotes = request.RejectNotes
         };
 
-        var command = new RejectRefundCommand(refundTicketId, internalUserId, requestData);
+        var command = new RejectRefundCommand(refundTicketId, requestData);
         var result = await _mediator.Send(command, cancellationToken);
 
         if (!result.IsSuccess)
@@ -173,7 +172,7 @@ public class RefundTicketsController : ControllerBase
             Status = result.Value.Status,
             Amount = result.Value.Amount,
             CustomerId = result.Value.CustomerId,
-            RejectedBy = result.Value.RejectdBy,
+            //RejectedBy = result.Value.RejectdBy,
             RejectedAt = result.Value.RejectdAt,
             RejectNotes = result.Value.RejectNotes,
             NextSteps = result.Value.NextSteps
@@ -195,7 +194,7 @@ public class RefundTicketsController : ControllerBase
             CancellationReason = request.CancellationReason
         };
 
-        var command = new CancelRefundCommand(refundTicketId, customerId, requestData);
+        var command = new CancelRefundCommand(refundTicketId, requestData);
         var result = await _mediator.Send(command, cancellationToken);
 
         if (!result.IsSuccess)
@@ -252,57 +251,57 @@ public class RefundTicketsController : ControllerBase
         return Ok(response);
     }
 
-    [HttpGet]
+    //[HttpGet]
     //[Authorize(Roles = "admin")]
-    public async Task<IActionResult> GetAll(
-        [FromQuery] int pageIndex = 1,
-        [FromQuery] int pageSize = 20,
-        CancellationToken cancellationToken = default)
-    {
-        var internalUserId = GetUserIdFromClaims();
-        var query = new GetAllRefundsQuery(internalUserId, pageIndex, pageSize);
-        var result = await _mediator.Send(query, cancellationToken);
+    //public async Task<IActionResult> GetAll(
+    //    [FromQuery] int pageIndex = 1,
+    //    [FromQuery] int pageSize = 20,
+    //    CancellationToken cancellationToken = default)
+    //{
+    //    var internalUserId = GetUserIdFromClaims();
+    //    var query = new GetAllRefundsQuery(UserId,, pageIndex, pageSize);
+    //    var result = await _mediator.Send(query, cancellationToken);
 
-        if (!result.IsSuccess)
-            return BadRequest(new { errors = result.Errors });
+    //    if (!result.IsSuccess)
+    //        return BadRequest(new { errors = result.Errors });
 
-        var response = new PagedRefundListResponseDto
-        {
-            Items = result.Value.Items.Select(MapToListItem).ToList(),
-            PageIndex = result.Value.Page,
-            PageSize = result.Value.PageSize,
-            TotalCount = (int)result.Value.TotalCount,
-            TotalPages = result.Value.TotalPages
-        };
+    //    var response = new PagedRefundListResponseDto
+    //    {
+    //        Items = result.Value.Items.Select(MapToListItem).ToList(),
+    //        PageIndex = result.Value.Page,
+    //        PageSize = result.Value.PageSize,
+    //        TotalCount = (int)result.Value.TotalCount,
+    //        TotalPages = result.Value.TotalPages
+    //    };
 
-        return Ok(response);
-    }
+    //    return Ok(response);
+    //}
 
-    [HttpGet("status/{status}")]
-    public async Task<IActionResult> GetByStatus(
-        [FromRoute] RefundTicketStatus status,
-        [FromQuery] int pageIndex = 1,
-        [FromQuery] int pageSize = 20,
-        CancellationToken cancellationToken = default)
-    {
-        var userId = GetUserIdFromClaims();
-        var query = new GetRefundByStatusQuery(userId, status, pageIndex, pageSize);
-        var result = await _mediator.Send(query, cancellationToken);
+    //[HttpGet("status/{status}")]
+    //public async Task<IActionResult> GetByStatus(
+    //    [FromRoute] RefundTicketStatus status,
+    //    [FromQuery] int pageIndex = 1,
+    //    [FromQuery] int pageSize = 20,
+    //    CancellationToken cancellationToken = default)
+    //{
+    //    var userId = GetUserIdFromClaims();
+    //    var query = new GetRefundByStatusQuery(userId, status, pageIndex, pageSize);
+    //    var result = await _mediator.Send(query, cancellationToken);
 
-        if (!result.IsSuccess)
-            return result.ToActionResult();
+    //    if (!result.IsSuccess)
+    //        return result.ToActionResult();
 
-        var response = new PagedRefundListResponseDto
-        {
-            Items = result.Value.Items.Select(MapToListItem).ToList(),
-            PageIndex = result.Value.Page,
-            PageSize = result.Value.PageSize,
-            TotalCount = (int)result.Value.TotalCount,
-            TotalPages = result.Value.TotalPages
-        };
+    //    var response = new PagedRefundListResponseDto
+    //    {
+    //        Items = result.Value.Items.Select(MapToListItem).ToList(),
+    //        PageIndex = result.Value.Page,
+    //        PageSize = result.Value.PageSize,
+    //        TotalCount = (int)result.Value.TotalCount,
+    //        TotalPages = result.Value.TotalPages
+    //    };
 
-        return Ok(response);
-    }
+    //    return Ok(response);
+    //}
 
     [HttpGet("users/{userId}")]
     public async Task<IActionResult> GetByUserId(

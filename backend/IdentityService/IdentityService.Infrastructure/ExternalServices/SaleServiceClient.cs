@@ -1,4 +1,4 @@
-﻿using Grpc.Net.Client;
+using Grpc.Net.Client;
 using IdentityService.Application.Dtos.Order.Response;
 using IdentityService.Application.ExternalServices;
 using Microsoft.Extensions.Configuration;

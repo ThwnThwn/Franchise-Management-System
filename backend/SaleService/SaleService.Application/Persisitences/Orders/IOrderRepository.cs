@@ -24,6 +24,7 @@ public interface IOrderRepository
         DateOnly? toDate,
         OrderStatus? status,
         PaymentMethod? paymentMethod,
+        OrderType? type,
         int page,
         int pageSize,
         CancellationToken cancellationToken = default);
@@ -44,4 +45,7 @@ public interface IOrderRepository
         Guid? storeId,
         OrderStatus? status,
         CancellationToken cancellationToken);
+
+    Task<List<Order>> GetOrdersByTypeAsync(OrderType type, CancellationToken cancellationToken = default);
+    Task<bool> ExistsOrderTypeAsync(OrderType type, CancellationToken cancellationToken = default);
 }

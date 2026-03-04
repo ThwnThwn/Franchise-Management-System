@@ -4,11 +4,16 @@ using SalesService.Domain.Enums;
 
 namespace SalesService.Application.Features.RefundTickets.Queries.GetAll;
 
-public sealed record GetAllRefundsQuery(Guid InternalUserId,
+public sealed record GetAllRefundsQuery(
+    GetAllRefundsQueryRequest Request,
     int PageIndex = 1,
     int PageSize = 20
 ) : IRequest<Result<BuildingBlocks.Core.Pagination.PagedResult<GetAllRefundsResponse>>>;
-
+public sealed record GetAllRefundsQueryRequest
+{
+    public Guid? UserId { get; init; }
+    public RefundTicketStatus? Status { get; init; }
+};
 public sealed class GetAllRefundsResponse
 {
     public Guid Id { get; set; }
@@ -19,12 +24,10 @@ public sealed class GetAllRefundsResponse
     public string? Reason { get; set; }
     public RefundReasonType? RefundReason { get; set; }
 
-    public Guid WalletId { get; set; }
     public Guid UserId { get; set; }
 
     public Guid? OrderId { get; set; }
     public Guid? TransactionId { get; set; }
-    public Guid OriginalTransactionId { get; set; }
 
     public RefundTicketStatus Status { get; set; }
     public RefundTicketMethod? RefundTicketMethod { get; set; }

@@ -35,6 +35,7 @@ namespace SalesService.Application.Features.Orders.Queries.GetMyOrders
                 o.TotalAmount,
                 o.PaidAmount,
                 (int?)o.PaymentMethod,
+                (int?)o.Type,
                 (int)o.Status,
                 o.PaidAt,
                 o.Notes,

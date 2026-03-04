@@ -31,6 +31,7 @@ type RefundTicketGrpcServiceClient interface {
 	GetAllRefunds(ctx context.Context, in *GetAllRefundsRequest, opts ...grpc.CallOption) (*GetAllRefundsResponse, error)
 	GetRefundByStatus(ctx context.Context, in *GetRefundByStatusRequest, opts ...grpc.CallOption) (*GetRefundByStatusResponse, error)
 	GetRefundByUserId(ctx context.Context, in *GetRefundByUserIdRequest, opts ...grpc.CallOption) (*GetRefundByUserIdResponse, error)
+	SetCompleteRefund(ctx context.Context, in *SetCompleteRefundRequest, opts ...grpc.CallOption) (*SetCompleteRefundResponse, error)
 }
 
 type refundTicketGrpcServiceClient struct {
@@ -122,6 +123,15 @@ func (c *refundTicketGrpcServiceClient) GetRefundByUserId(ctx context.Context, i
 	return out, nil
 }
 
+func (c *refundTicketGrpcServiceClient) SetCompleteRefund(ctx context.Context, in *SetCompleteRefundRequest, opts ...grpc.CallOption) (*SetCompleteRefundResponse, error) {
+	out := new(SetCompleteRefundResponse)
+	err := c.cc.Invoke(ctx, "/refund.RefundTicketGrpcService/SetCompleteRefund", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RefundTicketGrpcServiceServer is the server API for RefundTicketGrpcService service.
 // All implementations must embed UnimplementedRefundTicketGrpcServiceServer
 // for forward compatibility
@@ -135,6 +145,7 @@ type RefundTicketGrpcServiceServer interface {
 	GetAllRefunds(context.Context, *GetAllRefundsRequest) (*GetAllRefundsResponse, error)
 	GetRefundByStatus(context.Context, *GetRefundByStatusRequest) (*GetRefundByStatusResponse, error)
 	GetRefundByUserId(context.Context, *GetRefundByUserIdRequest) (*GetRefundByUserIdResponse, error)
+	SetCompleteRefund(context.Context, *SetCompleteRefundRequest) (*SetCompleteRefundResponse, error)
 	mustEmbedUnimplementedRefundTicketGrpcServiceServer()
 }
 
@@ -168,6 +179,9 @@ func (UnimplementedRefundTicketGrpcServiceServer) GetRefundByStatus(context.Cont
 }
 func (UnimplementedRefundTicketGrpcServiceServer) GetRefundByUserId(context.Context, *GetRefundByUserIdRequest) (*GetRefundByUserIdResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetRefundByUserId not implemented")
+}
+func (UnimplementedRefundTicketGrpcServiceServer) SetCompleteRefund(context.Context, *SetCompleteRefundRequest) (*SetCompleteRefundResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetCompleteRefund not implemented")
 }
 func (UnimplementedRefundTicketGrpcServiceServer) mustEmbedUnimplementedRefundTicketGrpcServiceServer() {
 }
@@ -345,6 +359,24 @@ func _RefundTicketGrpcService_GetRefundByUserId_Handler(srv interface{}, ctx con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _RefundTicketGrpcService_SetCompleteRefund_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetCompleteRefundRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RefundTicketGrpcServiceServer).SetCompleteRefund(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/refund.RefundTicketGrpcService/SetCompleteRefund",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RefundTicketGrpcServiceServer).SetCompleteRefund(ctx, req.(*SetCompleteRefundRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // RefundTicketGrpcService_ServiceDesc is the grpc.ServiceDesc for RefundTicketGrpcService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -387,6 +419,10 @@ var RefundTicketGrpcService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetRefundByUserId",
 			Handler:    _RefundTicketGrpcService_GetRefundByUserId_Handler,
+		},
+		{
+			MethodName: "SetCompleteRefund",
+			Handler:    _RefundTicketGrpcService_SetCompleteRefund_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

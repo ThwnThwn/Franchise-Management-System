@@ -6,7 +6,6 @@ namespace SalesService.Application.Features.RefundTickets.Command.RejectRefundBy
 
 public sealed record RejectRefundCommand(
 Guid RefundTicketId,
-Guid InternalUserId,
 RejectRefundRequest Request
 ) : IRequest<Result<RejectRefundResponse>>
 {
@@ -21,7 +20,6 @@ RejectRefundRequest Request
         public RefundTicketStatus Status { get; set; }
         public decimal Amount { get; set; }
         public Guid CustomerId { get; set; }
-        public Guid RejectdBy { get; set; }
         public DateTimeOffset RejectdAt { get; set; }
         public string? RejectNotes { get; set; }
         public string NextSteps { get; set; } = null!;

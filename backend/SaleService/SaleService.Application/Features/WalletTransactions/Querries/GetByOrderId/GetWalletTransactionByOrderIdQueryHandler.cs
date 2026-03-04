@@ -44,7 +44,7 @@ namespace SalesService.Application.Features.WalletTransactions.Querries.GetByOrd
             var response = transactions.Select(t => new WalletTransactionResponse
             {
                 Id = t.Id,
-                WalletId = t.WalletId,
+                WalletId = t.WalletId.Value,
                 UserId = t.UserId,
                 OrderId = t.OrderId,
                 InitiatedBy = t.InitiatedBy,

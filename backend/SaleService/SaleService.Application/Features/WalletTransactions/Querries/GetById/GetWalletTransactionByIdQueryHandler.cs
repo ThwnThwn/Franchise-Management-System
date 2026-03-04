@@ -59,7 +59,7 @@ public sealed class GetWalletTransactionByIdQueryHandler
         var response = new WalletTransactionResponse
         {
             Id = transaction.Id,
-            WalletId = transaction.WalletId,
+            WalletId = transaction.WalletId.Value,
             UserId = transaction.UserId,
 
             TransactionCode = transaction.TransactionCode,

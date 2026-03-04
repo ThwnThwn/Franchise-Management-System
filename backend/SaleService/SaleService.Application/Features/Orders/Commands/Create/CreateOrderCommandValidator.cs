@@ -13,7 +13,9 @@ public class CreateOrderCommandValidator : AbstractValidator<CreateOrderCommand>
         RuleForEach(x => x.Request.Items)
             .SetValidator(new CartItemDtoValidator());
 
-        // Tax is always calculated as 10% in handler
+        RuleFor(x => x.Request.Type)
+            .NotEmpty()
+            .WithMessage("Order type cannot be empty");
     }
 }
 

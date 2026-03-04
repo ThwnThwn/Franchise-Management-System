@@ -6,12 +6,14 @@ using SalesService.Application.Features.RefundTickets.Command.CancelRefund;
 using SalesService.Application.Features.RefundTickets.Command.CreateRefund.Customer;
 using SalesService.Application.Features.RefundTickets.Command.InternalUserCreateRefund;
 using SalesService.Application.Features.RefundTickets.Command.RejectRefundByAdmin;
+using SalesService.Application.Features.RefundTickets.Command.SetCompleteRefund;
 using SalesService.Application.Features.RefundTickets.Queries.GetAll;
 using SalesService.Application.Features.RefundTickets.Queries.GetById;
 using SalesService.Application.Features.RefundTickets.Queries.GetByStatus;
 using SalesService.Application.Features.RefundTickets.Queries.GetByUserId;
 using SalesService.Grpc;
 using static SalesService.Application.Features.RefundTickets.Command.InternalUserCreateRefund.InternalUserCreateRefundTicketCommand;
+using static SalesService.Application.Features.RefundTickets.Command.SetCompleteRefund.SetCompleteRefundCommand;
 using DomainRefundMethod = SalesService.Domain.Enums.RefundTicketMethod;
 using DomainRefundReason = SalesService.Domain.Enums.RefundReasonType;
 using DomainRefundStatus = SalesService.Domain.Enums.RefundTicketStatus;
@@ -35,11 +37,18 @@ public sealed class RefundGrpcService : RefundTicketGrpcService.RefundTicketGrpc
         CustomerCreateRefundRequest request,
         ServerCallContext context)
     {
-        if (!Guid.TryParse(request.CustomerId, out var customerId))
+        var userEntry = context.RequestHeaders.FirstOrDefault(h =>
+           h.Key.Equals("x-user-id", StringComparison.OrdinalIgnoreCase));
+        if (userEntry == null)
+        {
+            throw new RpcException(new Status(StatusCode.Unauthenticated, "Missing x-user-id in request headers"));
+        }
+        if (!Guid.TryParse(userEntry.Value, out var userId))
+        {
             throw new RpcException(new Status(
                 StatusCode.InvalidArgument,
-                "Invalid customer_id format"));
-
+                "Invalid x-user-id format"));
+        }
 
         if (!decimal.TryParse(request.Amount, out var amount) || amount <= 0)
             throw new RpcException(new Status(
@@ -51,7 +60,7 @@ public sealed class RefundGrpcService : RefundTicketGrpcService.RefundTicketGrpc
             Reason = request.Reason
         };
         var command = new CustomerCreateRefundTicketCommand(
-        customerId,
+        userId,
         commandRequest);
 
         var result = await _mediator.Send(command, context.CancellationToken);
@@ -97,29 +106,37 @@ public sealed class RefundGrpcService : RefundTicketGrpcService.RefundTicketGrpc
         InternalCreateRefundRequest request,
         ServerCallContext context)
     {
+        var userEntry = context.RequestHeaders.FirstOrDefault(h =>
+           h.Key.Equals("x-internal-id", StringComparison.OrdinalIgnoreCase));
+        if (userEntry == null)
+        {
+            throw new RpcException(new Status(StatusCode.Unauthenticated, "Missing x-internal-id in request headers"));
+        }
+
         if (!Guid.TryParse(request.UserId, out var userId))
             throw new RpcException(new Status(
                 StatusCode.InvalidArgument,
                 "Invalid user_id format"));
 
-        if (!Guid.TryParse(request.OriginalTransactionId, out var originalTransactionId))
-            throw new RpcException(new Status(
-                StatusCode.InvalidArgument,
-                "Invalid original_transaction_id format"));
 
         if (!decimal.TryParse(request.Amount, out var amount) || amount <= 0)
             throw new RpcException(new Status(
                 StatusCode.InvalidArgument,
                 "Invalid amount. Must be a positive number"));
 
+        if (!Guid.TryParse(userEntry.Value, out var approvedBy))
+        {
+            throw new RpcException(new Status(
+                StatusCode.InvalidArgument,
+                "Invalid x-internal-id format"));
+        }
 
         var commandRequest = new InternalUserCreateRefundTicketRequest
         {
-            WalletId = Guid.Parse(request.WalletId),
-            OriginalTransactionId = Guid.Parse(request.OriginalTransactionId),
             Amount = decimal.Parse(request.Amount),
             Reason = request.Reason,
             Notes = request.InternalNotes
+            
         };
 
         var overrideInfo = new Application.Common.Models.InternalUserOverrideInfo
@@ -171,9 +188,7 @@ public sealed class RefundGrpcService : RefundTicketGrpcService.RefundTicketGrpc
             TicketCode = data.TicketCode,
             Amount = data.Amount.ToString("F2"),
             Reason = data.Reason ?? "",
-            WalletId = data.WalletId.ToString(),
             TransactionId = data.TransactionId?.ToString() ?? "",
-            OriginalTransactionId = data.OriginalTransactionId.ToString(),
             Status = MapDomainStatusToGrpc(data.Status),
             CreatedAt = data.CreatedAt.ToString("O")
         };
@@ -188,19 +203,27 @@ public sealed class RefundGrpcService : RefundTicketGrpcService.RefundTicketGrpc
                 StatusCode.InvalidArgument,
                 "Invalid refund_ticket_id format"));
 
-        if (!Guid.TryParse(request.InternalUserId, out var internalUserId))
+        var userEntry = context.RequestHeaders.FirstOrDefault(h =>
+           h.Key.Equals("x-internal-id", StringComparison.OrdinalIgnoreCase));
+        if (userEntry == null)
+        {
+            throw new RpcException(new Status(StatusCode.Unauthenticated, "Missing x-internal-id in request headers"));
+        }
+
+        if (!Guid.TryParse(userEntry.Value, out var approvedBy))
+        {
             throw new RpcException(new Status(
                 StatusCode.InvalidArgument,
-                "Invalid internal_user_id format"));
+                "Invalid x-internal-id format"));
+        }
 
         var requestData = new ApproveRefundCommand.ApproveRefundRequest
         {
-            ApprovalNotes = request.ApprovalNotes,
-            AutoComplete = request.AutoComplete
+            ApprovalNotes=request.ApprovalNotes
         };
 
         var command = new ApproveRefundCommand
-        (refundTicketId, internalUserId, requestData);
+        (refundTicketId, requestData);
 
         var result = await _mediator.Send(command, context.CancellationToken);
 
@@ -237,9 +260,8 @@ public sealed class RefundGrpcService : RefundTicketGrpcService.RefundTicketGrpc
             Status = MapDomainStatusToGrpc(data.Status),
             Amount = data.Amount.ToString("F2"),
             CustomerId = data.CustomerId.ToString(),
-            ApprovedBy = data.ApprovedBy.ToString(),
+            ApprovedBy = approvedBy.ToString(),
             ApprovedAt = data.ApprovedAt.ToString("O"),
-            ApprovalNotes = data.ApprovalNotes ?? "",
             NextSteps = data.NextSteps ?? ""
         };
     }
@@ -253,10 +275,19 @@ public sealed class RefundGrpcService : RefundTicketGrpcService.RefundTicketGrpc
                 StatusCode.InvalidArgument,
                 "Invalid refund_ticket_id format"));
 
-        if (!Guid.TryParse(request.InternalUserId, out var internalUserId))
+        var userEntry = context.RequestHeaders.FirstOrDefault(h =>
+           h.Key.Equals("x-internal-id", StringComparison.OrdinalIgnoreCase));
+        if (userEntry == null)
+        {
+            throw new RpcException(new Status(StatusCode.Unauthenticated, "Missing x-internal-id in request headers"));
+        }
+
+        if (!Guid.TryParse(userEntry.Value, out var rejectedBy))
+        {
             throw new RpcException(new Status(
                 StatusCode.InvalidArgument,
-                "Invalid internal_user_id format"));
+                "Invalid x-internal-id format"));
+        }
 
         var requestData = new RejectRefundCommand.RejectRefundRequest
         {
@@ -264,7 +295,7 @@ public sealed class RefundGrpcService : RefundTicketGrpcService.RefundTicketGrpc
         };
 
         var command = new RejectRefundCommand
-       (refundTicketId, internalUserId, requestData);
+       (refundTicketId, requestData);
 
         var result = await _mediator.Send(command, context.CancellationToken);
 
@@ -301,7 +332,7 @@ public sealed class RefundGrpcService : RefundTicketGrpcService.RefundTicketGrpc
             Status = MapDomainStatusToGrpc(data.Status),
             Amount = data.Amount.ToString("F2"),
             CustomerId = data.CustomerId.ToString(),
-            RejectedBy = data.RejectdBy.ToString(),
+            RejectedBy = rejectedBy.ToString(),
             RejectedAt = data.RejectdAt.ToString("O"),
             RejectNotes = data.RejectNotes ?? "",
             NextSteps = data.NextSteps ?? ""
@@ -317,16 +348,25 @@ public sealed class RefundGrpcService : RefundTicketGrpcService.RefundTicketGrpc
                 StatusCode.InvalidArgument,
                 "Invalid refund_ticket_id format"));
 
-        if (!Guid.TryParse(request.CustomerId, out var customerId))
+        var userEntry = context.RequestHeaders.FirstOrDefault(h =>
+           h.Key.Equals("x-user-id", StringComparison.OrdinalIgnoreCase));
+        if (userEntry == null)
+        {
+            throw new RpcException(new Status(StatusCode.Unauthenticated, "Missing x-user-id in request headers"));
+        }
+
+        if (!Guid.TryParse(userEntry.Value, out var cancelleddBy))
+        {
             throw new RpcException(new Status(
                 StatusCode.InvalidArgument,
-                "Invalid customer_id format"));
+                "Invalid x-user-id format"));
+        }
         var requestData = new CancelRefundCommand.CancelRefundRequest
         {
             CancellationReason = request.CancellationReason
         };
         var command = new CancelRefundCommand
-        (refundTicketId, customerId, requestData);
+        (refundTicketId, requestData);
 
         var result = await _mediator.Send(command, context.CancellationToken);
 
@@ -440,13 +480,24 @@ public sealed class RefundGrpcService : RefundTicketGrpcService.RefundTicketGrpc
         GetAllRefundsRequest request,
         ServerCallContext context)
     {
-        if (!Guid.TryParse(request.InternalUserId, out var internalUserId))
-            throw new RpcException(new Status(
-                StatusCode.InvalidArgument,
-                "Invalid internal_user_id format"));
+        var userEntry = context.RequestHeaders.FirstOrDefault(h =>
+            h.Key.Equals("x-internal-id", StringComparison.OrdinalIgnoreCase));
+        if (userEntry == null)
+        {
+            throw new RpcException(new Status(StatusCode.Unauthenticated, "Missing x-internal-id in request headers"));
+        }
+        var appRequest = new GetAllRefundsQueryRequest
+        {
+            UserId = string.IsNullOrWhiteSpace(request.UserId)
+        ? null
+        : Guid.Parse(request.UserId),
 
+            Status = request.Status == RefundTicketStatus.RefundStatusUnspecified
+        ? null
+        : (Domain.Enums.RefundTicketStatus)request.Status
+        };
         var query = new GetAllRefundsQuery
-            (internalUserId,
+            (appRequest,
             request.Paging?.PageIndex ?? 1,
             request.Paging?.PageSize ?? 20
         );
@@ -494,128 +545,163 @@ public sealed class RefundGrpcService : RefundTicketGrpcService.RefundTicketGrpc
         return response;
     }
 
-    public override async Task<GetRefundByStatusResponse> GetRefundByStatus(
-        GetRefundByStatusRequest request,
+    public override async Task<Grpc.SetCompleteRefundResponse> SetCompleteRefund(
+        Grpc.SetCompleteRefundRequest grpcRequest,
         ServerCallContext context)
     {
-        if (!Guid.TryParse(request.UserId, out var userId))
-            throw new RpcException(new Status(
-                StatusCode.InvalidArgument,
-                "Invalid user_id format"));
+        if (!Guid.TryParse(grpcRequest.RefundTicketId, out var refundTicketId))
+            throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid RefundTicketId format"));
 
-        var query = new GetRefundByStatusQuery
-            (userId,
-            MapGrpcStatusToDomain(request.Status),
-            request.Paging?.PageIndex ?? 1,
-            request.Paging?.PageSize ?? 20
+        var command = new SetCompleteRefundCommand(
+            new SetCompleteRefundCommand.SetCompleteRefundRequest
+            {
+                RefundTicketId = refundTicketId,
+                Status = (Domain.Enums.RefundTicketStatus)grpcRequest.Status,
+                CompleteNotes = grpcRequest.HasCompleteNotes ? grpcRequest.CompleteNotes : null
+            }
         );
 
-        var result = await _mediator.Send(query, context.CancellationToken);
+        var result = await _mediator.Send(command, context.CancellationToken);
+
+        if (result.IsNotFound())
+            throw new RpcException(new Status(StatusCode.NotFound, string.Join(", ", result.Errors)));
 
         if (!result.IsSuccess)
+            throw new RpcException(new Status(StatusCode.Internal, string.Join(", ", result.Errors)));
+
+        return new Grpc.SetCompleteRefundResponse
         {
-            if (result.Status == ResultStatus.Invalid)
-            {
-                var message = string.Join(" | ",
-                    result.ValidationErrors.Select(e =>
-                        $"{e.Identifier}: {e.ErrorMessage}"));
-
-                _logger.LogWarning("Validation failed: {Message}", message);
-
-                throw new RpcException(new Status(
-                    StatusCode.InvalidArgument,
-                    message));
-            }
-
-            var errorMessage = string.Join(" | ", result.Errors);
-
-            _logger.LogError("Business error: {Error}", errorMessage);
-
-            throw new RpcException(new Status(
-                StatusCode.FailedPrecondition,
-                errorMessage));
-        }
-
-        var response = new GetRefundByStatusResponse
-        {
-            Meta = new PagedResponseMeta
-            {
-                PageIndex = result.Value.Page,
-                PageSize = result.Value.PageSize,
-                TotalCount = (int)result.Value.TotalCount,
-                TotalPages = result.Value.TotalPages
-            }
+            RefundTicketId = result.Value.RefundTicketId.ToString(),
+            Status = (Grpc.RefundTicketStatus)result.Value.Status,
+            CompleteNotes = result.Value.CompleteNotes ?? string.Empty
         };
-
-        response.Items.AddRange(
-            result.Value.Items.Select(MapToRefundListItem));
-
-        return response;
     }
 
-    public override async Task<Grpc.GetRefundByUserIdResponse> GetRefundByUserId(
-        GetRefundByUserIdRequest request,
-        ServerCallContext context)
-    {
-        if (!Guid.TryParse(request.UserIdToSearch, out var userIdToSearch))
-            throw new RpcException(new Status(
-                StatusCode.InvalidArgument,
-                "Invalid user_id_to_search format"));
+    //public override async Task<GetRefundByStatusResponse> GetRefundByStatus(
+    //    GetRefundByStatusRequest request,
+    //    ServerCallContext context)
+    //{
+    //    if (!Guid.TryParse(request.UserId, out var userId))
+    //        throw new RpcException(new Status(
+    //            StatusCode.InvalidArgument,
+    //            "Invalid user_id format"));
 
-        if (!Guid.TryParse(request.LoggedUserId, out var loggedUserId))
-            throw new RpcException(new Status(
-                StatusCode.InvalidArgument,
-                "Invalid logged_user_id format"));
+    //    var query = new GetRefundByStatusQuery
+    //        (userId,
+    //        MapGrpcStatusToDomain(request.Status),
+    //        request.Paging?.PageIndex ?? 1,
+    //        request.Paging?.PageSize ?? 20
+    //    );
 
-        var query = new GetRefundByUserIdQuery
-        (userIdToSearch,
-          loggedUserId,
-           request.Paging?.PageIndex ?? 1,
-            request.Paging?.PageSize ?? 20
-        );
+    //    var result = await _mediator.Send(query, context.CancellationToken);
 
-        var result = await _mediator.Send(query, context.CancellationToken);
+    //    if (!result.IsSuccess)
+    //    {
+    //        if (result.Status == ResultStatus.Invalid)
+    //        {
+    //            var message = string.Join(" | ",
+    //                result.ValidationErrors.Select(e =>
+    //                    $"{e.Identifier}: {e.ErrorMessage}"));
 
-        if (!result.IsSuccess)
-        {
-            if (result.Status == ResultStatus.Invalid)
-            {
-                var message = string.Join(" | ",
-                    result.ValidationErrors.Select(e =>
-                        $"{e.Identifier}: {e.ErrorMessage}"));
+    //            _logger.LogWarning("Validation failed: {Message}", message);
 
-                _logger.LogWarning("Validation failed: {Message}", message);
+    //            throw new RpcException(new Status(
+    //                StatusCode.InvalidArgument,
+    //                message));
+    //        }
 
-                throw new RpcException(new Status(
-                    StatusCode.InvalidArgument,
-                    message));
-            }
+    //        var errorMessage = string.Join(" | ", result.Errors);
 
-            var errorMessage = string.Join(" | ", result.Errors);
+    //        _logger.LogError("Business error: {Error}", errorMessage);
 
-            _logger.LogError("Business error: {Error}", errorMessage);
+    //        throw new RpcException(new Status(
+    //            StatusCode.FailedPrecondition,
+    //            errorMessage));
+    //    }
 
-            throw new RpcException(new Status(
-                StatusCode.FailedPrecondition,
-                errorMessage));
-        }
+    //    var response = new GetRefundByStatusResponse
+    //    {
+    //        Meta = new PagedResponseMeta
+    //        {
+    //            PageIndex = result.Value.Page,
+    //            PageSize = result.Value.PageSize,
+    //            TotalCount = (int)result.Value.TotalCount,
+    //            TotalPages = result.Value.TotalPages
+    //        }
+    //    };
 
-        var response = new Grpc.GetRefundByUserIdResponse
-        {
-            Meta = new PagedResponseMeta
-            {
-                PageIndex = result.Value.Page,
-                PageSize = result.Value.PageSize,
-                TotalCount = (int)result.Value.TotalCount,
-                TotalPages = result.Value.TotalPages
-            }
-        };
+    //    response.Items.AddRange(
+    //        result.Value.Items.Select(MapToRefundListItem));
 
-        response.Items.AddRange(
-            result.Value.Items.Select(MapToRefundListItem));
+    //    return response;
+    //}
 
-        return response;
-    }
+    //public override async Task<Grpc.GetRefundByUserIdResponse> GetRefundByUserId(
+    //    GetRefundByUserIdRequest request,
+    //    ServerCallContext context)
+    //{
+    //    if (!Guid.TryParse(request.UserIdToSearch, out var userIdToSearch))
+    //        throw new RpcException(new Status(
+    //            StatusCode.InvalidArgument,
+    //            "Invalid user_id_to_search format"));
+
+    //    if (!Guid.TryParse(request.LoggedUserId, out var loggedUserId))
+    //        throw new RpcException(new Status(
+    //            StatusCode.InvalidArgument,
+    //            "Invalid logged_user_id format"));
+
+    //    var query = new GetRefundByUserIdQuery
+    //    (userIdToSearch,
+    //      loggedUserId,
+    //       request.Paging?.PageIndex ?? 1,
+    //        request.Paging?.PageSize ?? 20
+    //    );
+
+    //    var result = await _mediator.Send(query, context.CancellationToken);
+
+    //    if (!result.IsSuccess)
+    //    {
+    //        if (result.Status == ResultStatus.Invalid)
+    //        {
+    //            var message = string.Join(" | ",
+    //                result.ValidationErrors.Select(e =>
+    //                    $"{e.Identifier}: {e.ErrorMessage}"));
+
+    //            _logger.LogWarning("Validation failed: {Message}", message);
+
+    //            throw new RpcException(new Status(
+    //                StatusCode.InvalidArgument,
+    //                message));
+    //        }
+
+    //        var errorMessage = string.Join(" | ", result.Errors);
+
+    //        _logger.LogError("Business error: {Error}", errorMessage);
+
+    //        throw new RpcException(new Status(
+    //            StatusCode.FailedPrecondition,
+    //            errorMessage));
+    //    }
+
+    //    var response = new Grpc.GetRefundByUserIdResponse
+    //    {
+    //        Meta = new PagedResponseMeta
+    //        {
+    //            PageIndex = result.Value.Page,
+    //            PageSize = result.Value.PageSize,
+    //            TotalCount = (int)result.Value.TotalCount,
+    //            TotalPages = result.Value.TotalPages
+    //        }
+    //    };
+
+    //    response.Items.AddRange(
+    //        result.Value.Items.Select(MapToRefundListItem));
+
+    //    return response;
+    //}
+
+
+
 
     // ========== MAPPING HELPERS ==========
 
@@ -628,10 +714,8 @@ public sealed class RefundGrpcService : RefundTicketGrpcService.RefundTicketGrpc
             Amount = refund.Amount.ToString("F2"),
             RefundAmount = refund.RefundAmount.ToString("F2"),
             Reason = refund.Reason ?? "",
-            WalletId = refund.WalletId.ToString(),
             UserId = refund.UserId.ToString(),
             TransactionId = refund.TransactionId?.ToString() ?? "",
-            OriginalTransactionId = refund.OriginalTransactionId?.ToString() ?? "",
             Status = MapDomainStatusToGrpc(refund.Status),
             CreatedAt = refund.CreatedAt.ToString("O"),
             UpdatedAt = refund.UpdatedAt.ToString("O")

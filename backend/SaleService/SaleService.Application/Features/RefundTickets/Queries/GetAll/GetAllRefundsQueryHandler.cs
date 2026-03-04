@@ -21,13 +21,11 @@ public sealed class GetAllRefundsHandler
         GetAllRefundsQuery request,
         CancellationToken cancellationToken)
     {
-        //var userRole = await _identityServiceClient.GetUserByIdAsync(request.InternalUserId);
-        //if (userRole.Role.Slug != "admin" && userRole.Role.Slug != "manager")
-        //{
-        //    return Result.Forbidden("You do not have permission!!!");
-        //}
+       
 
         var pagedResult = await _ticketRepository.GetAllRefundsAsync(
+            request.Request.UserId,
+            request.Request.Status,
             request.PageIndex,
             request.PageSize,
             cancellationToken);
@@ -47,11 +45,9 @@ public sealed class GetAllRefundsHandler
             Reason = ticket.Reason,
             RefundReason = ticket.RefundReason,
 
-            WalletId = ticket.WalletId.Value,
             UserId = ticket.UserId,
 
             TransactionId = ticket.TransactionId,
-            OriginalTransactionId = ticket.OriginalTransactionId.Value,
 
             Status = ticket.Status,
             RefundTicketMethod = ticket.RefundTicketMethod,

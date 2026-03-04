@@ -1,7 +1,5 @@
-﻿using System.Text.Json;
-using Ardalis.Result;
+﻿using Ardalis.Result;
 using MediatR;
-using SalesService.Application.Interfaces.Identity;
 using SalesService.Application.Persisitences.WalletTransactions;
 
 namespace SalesService.Application.Features.WalletTransactions.Queries.GetAll;
@@ -10,13 +8,11 @@ public sealed class GetAllWalletTransactionsQueryHandler
     : IRequestHandler<GetAllWalletTransactionsQuery, Result<BuildingBlocks.Core.Pagination.PagedResult<WalletTransactionResponse>>>
 {
     private readonly IWalletTransactionRepository _walletTransactionRepository;
-    private readonly IIdentityServiceClient _identityServiceClient;
 
     public GetAllWalletTransactionsQueryHandler(
-        IWalletTransactionRepository walletTransactionRepository, IIdentityServiceClient identityServiceClient)
+        IWalletTransactionRepository walletTransactionRepository)
     {
         _walletTransactionRepository = walletTransactionRepository;
-        _identityServiceClient = identityServiceClient;
     }
 
     public async Task<Result<BuildingBlocks.Core.Pagination.PagedResult<WalletTransactionResponse>>> Handle(
@@ -32,7 +28,6 @@ public sealed class GetAllWalletTransactionsQueryHandler
         var response = transactions.Items.Select(t => new WalletTransactionResponse
         {
             Id = t.Id,
-            WalletId = t.WalletId,
             UserId = t.UserId,
             OrderId = t.OrderId,
             InitiatedBy = t.InitiatedBy,

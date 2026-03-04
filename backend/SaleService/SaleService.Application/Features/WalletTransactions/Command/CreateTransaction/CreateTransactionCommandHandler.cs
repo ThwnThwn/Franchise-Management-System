@@ -405,7 +405,7 @@ public sealed class CreateTransactionCommandHandler
         {
             Id = transaction.Id,
             TransactionCode = transaction.TransactionCode,
-            WalletId = transaction.WalletId,
+            WalletId = transaction.WalletId.Value,
             Amount = transaction.Amount,
             TransactionType = transaction.TransactionType,
             Status = transaction.Status,

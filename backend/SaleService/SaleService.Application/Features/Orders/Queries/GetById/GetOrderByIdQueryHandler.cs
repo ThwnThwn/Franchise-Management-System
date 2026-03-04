@@ -47,6 +47,7 @@ public sealed class GetOrderByIdQueryHandler
                 ? (int)order.PaymentMethod.Value
                 : null,
             Status = (int)order.Status,
+            Type = order.Type,
             PaidAt = order.PaidAt,
             Notes = order.Notes,
             CreatedAt = order.CreatedAt,

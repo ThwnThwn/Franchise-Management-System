@@ -35,6 +35,8 @@ type LoyaltyAccountGrpcClient interface {
 	DeductPoints(ctx context.Context, in *DeductPointRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// RPC lấy báo cáo (trả về dữ liệu thô)
 	GetLoyaltyReport(ctx context.Context, in *GetLoyaltyReportRequest, opts ...grpc.CallOption) (*LoyaltyReportResponse, error)
+	// Rpc Redeem voucher
+	RedeemVoucher(ctx context.Context, in *RedeemVoucherRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type loyaltyAccountGrpcClient struct {
@@ -99,6 +101,15 @@ func (c *loyaltyAccountGrpcClient) GetLoyaltyReport(ctx context.Context, in *Get
 	return out, nil
 }
 
+func (c *loyaltyAccountGrpcClient) RedeemVoucher(ctx context.Context, in *RedeemVoucherRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/engagement.LoyaltyAccountGrpc/RedeemVoucher", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // LoyaltyAccountGrpcServer is the server API for LoyaltyAccountGrpc service.
 // All implementations must embed UnimplementedLoyaltyAccountGrpcServer
 // for forward compatibility
@@ -115,6 +126,8 @@ type LoyaltyAccountGrpcServer interface {
 	DeductPoints(context.Context, *DeductPointRequest) (*emptypb.Empty, error)
 	// RPC lấy báo cáo (trả về dữ liệu thô)
 	GetLoyaltyReport(context.Context, *GetLoyaltyReportRequest) (*LoyaltyReportResponse, error)
+	// Rpc Redeem voucher
+	RedeemVoucher(context.Context, *RedeemVoucherRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedLoyaltyAccountGrpcServer()
 }
 
@@ -139,6 +152,9 @@ func (UnimplementedLoyaltyAccountGrpcServer) DeductPoints(context.Context, *Dedu
 }
 func (UnimplementedLoyaltyAccountGrpcServer) GetLoyaltyReport(context.Context, *GetLoyaltyReportRequest) (*LoyaltyReportResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetLoyaltyReport not implemented")
+}
+func (UnimplementedLoyaltyAccountGrpcServer) RedeemVoucher(context.Context, *RedeemVoucherRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RedeemVoucher not implemented")
 }
 func (UnimplementedLoyaltyAccountGrpcServer) mustEmbedUnimplementedLoyaltyAccountGrpcServer() {}
 
@@ -261,6 +277,24 @@ func _LoyaltyAccountGrpc_GetLoyaltyReport_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LoyaltyAccountGrpc_RedeemVoucher_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RedeemVoucherRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LoyaltyAccountGrpcServer).RedeemVoucher(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/engagement.LoyaltyAccountGrpc/RedeemVoucher",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LoyaltyAccountGrpcServer).RedeemVoucher(ctx, req.(*RedeemVoucherRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // LoyaltyAccountGrpc_ServiceDesc is the grpc.ServiceDesc for LoyaltyAccountGrpc service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -291,6 +325,10 @@ var LoyaltyAccountGrpc_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetLoyaltyReport",
 			Handler:    _LoyaltyAccountGrpc_GetLoyaltyReport_Handler,
+		},
+		{
+			MethodName: "RedeemVoucher",
+			Handler:    _LoyaltyAccountGrpc_RedeemVoucher_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

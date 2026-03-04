@@ -129,6 +129,8 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
             entity.Property(e => e.PaymentMethod)
                 .HasDefaultValue(PaymentMethod.Cash)
                 .HasColumnName("payment_method");
+            entity.Property(e => e.Type)
+                .HasColumnName("type");
             entity.Property(e => e.Status)
                 .HasDefaultValue(OrderStatus.PaymentPending)
                 .HasColumnName("status");

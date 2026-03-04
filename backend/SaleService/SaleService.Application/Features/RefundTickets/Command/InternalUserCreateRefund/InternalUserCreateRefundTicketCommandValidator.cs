@@ -23,13 +23,6 @@ public sealed class InternalUserCreateRefundTicketCommandValidator
 
         When(x => x.Request != null, () =>
         {
-            RuleFor(x => x.Request.WalletId)
-                .NotEmpty()
-                .WithMessage("WalletId is required.");
-
-            RuleFor(x => x.Request.OriginalTransactionId)
-                .NotEmpty()
-                .WithMessage("OriginalTransactionId is required.");
 
             RuleFor(x => x.Request.Amount)
                 .GreaterThan(0)

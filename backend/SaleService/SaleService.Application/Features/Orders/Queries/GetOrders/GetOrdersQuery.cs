@@ -11,6 +11,7 @@ public record GetOrdersQuery(
     DateOnly? ToDate = null,
     OrderStatus? Status = null,
     PaymentMethod? PaymentMethod = null,
+    OrderType? Type = null,
     int Page = 1,
     int PageSize = 10
 ) : IRequest<Result<GetOrdersResponse>>;

@@ -26,6 +26,8 @@ namespace SalesService.Application.Persisitences
         CancellationToken cancellationToken);
 
         Task<PagedResult<RefundTicket>> GetAllRefundsAsync(
+        Guid? userId,
+        RefundTicketStatus? status,
         int page,
         int pageSize,
         CancellationToken cancellationToken = default);

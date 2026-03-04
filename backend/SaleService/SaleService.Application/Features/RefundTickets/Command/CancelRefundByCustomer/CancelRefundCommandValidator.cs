@@ -7,9 +7,6 @@ namespace SalesService.Application.Features.RefundTickets.Command.CancelRefund
     {
         public CancelRefundCommandValidator()
         {
-            RuleFor(x => x.CustomerId)
-             .NotEmpty()
-             .WithMessage("CustomerId is required.");
 
             RuleFor(x => x.RefundTicketId)
                 .NotEmpty()

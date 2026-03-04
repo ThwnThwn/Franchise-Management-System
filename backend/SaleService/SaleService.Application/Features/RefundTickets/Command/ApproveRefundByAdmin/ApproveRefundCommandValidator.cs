@@ -7,9 +7,7 @@ namespace SalesService.Application.Features.RefundTickets.Command.ApproveRefund
     {
         public ApproveRefundCommandValidator()
         {
-            RuleFor(x => x.InternalUserId)
-                .NotEmpty()
-                .WithMessage("InternalUserId is required");
+           
 
             RuleFor(x => x.RefundTicketId)
                 .NotEmpty()

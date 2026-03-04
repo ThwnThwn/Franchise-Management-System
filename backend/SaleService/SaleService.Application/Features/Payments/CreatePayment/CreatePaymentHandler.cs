@@ -6,7 +6,6 @@ using SalesService.Application.Interfaces.Payments;
 using SalesService.Application.Mapping.Orders;
 using SalesService.Application.Persisitences.Orders;
 using SalesService.Application.Persisitences.Outbox;
-using SalesService.Application.Persisitences.WalletTransactions;
 using SalesService.Application.Signals;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
@@ -25,7 +24,6 @@ public sealed class CreatePaymentHandler
     private readonly IConfiguration _config;
     private readonly IOutboxRepository _outboxRepository;
     private readonly IOutboxSignal _outboxSignal;
-    private readonly IWalletTransactionRepository _walletTransactionRepository;
 
 
     public CreatePaymentHandler(
@@ -34,8 +32,7 @@ public sealed class CreatePaymentHandler
         IKafkaProducer kafkaProducer,
         IConfiguration config,
         IOutboxRepository outboxRepository,
-        IOutboxSignal outboxSignal,
-        IWalletTransactionRepository walletTransactionRepository)
+        IOutboxSignal outboxSignal)
     {
         _orderRepository = orderRepository;
         _paymentRepository = paymentRepository;
@@ -43,7 +40,6 @@ public sealed class CreatePaymentHandler
         _config = config;
         _outboxRepository = outboxRepository;
         _outboxSignal = outboxSignal;
-        _walletTransactionRepository = walletTransactionRepository;
     }
 
     public async Task<Result<CreatePaymentRes>> Handle(

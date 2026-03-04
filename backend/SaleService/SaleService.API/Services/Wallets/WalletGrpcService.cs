@@ -451,63 +451,63 @@ public sealed class WalletGrpcService : WalletGrpc.WalletGrpcBase
     }
 
     // ===== WITHDRAW =====
-    public override async Task<WithdrawWalletResponse> WithdrawWallet(
-        WithdrawWalletRequest request,
-        ServerCallContext context)
-    {
-        if (!Guid.TryParse(request.UserId, out var userId))
-            throw new RpcException(new Status(
-                StatusCode.InvalidArgument,
-                "Invalid user_id format"));
+    //public override async Task<WithdrawWalletResponse> WithdrawWallet(
+    //    WithdrawWalletRequest request,
+    //    ServerCallContext context)
+    //{
+    //    if (!Guid.TryParse(request.UserId, out var userId))
+    //        throw new RpcException(new Status(
+    //            StatusCode.InvalidArgument,
+    //            "Invalid user_id format"));
 
 
-        var command = new WithdrawWalletCommand(
-            userId,
-            new WithdrawWalletReq
-            {
-                Amount = (decimal)request.Amount,
-                Reason = request.Reason
-            });
+    //    var command = new WithdrawWalletCommand(
+    //        userId,
+    //        new WithdrawWalletReq
+    //        {
+    //            Amount = (decimal)request.Amount,
+    //            Reason = request.Reason
+    //        });
 
-        var result = await _mediator.Send(command, context.CancellationToken);
+    //    var result = await _mediator.Send(command, context.CancellationToken);
 
-        if (!result.IsSuccess)
-        {
-            if (result.Status == ResultStatus.Invalid)
-            {
-                var message = string.Join(" | ",
-                    result.ValidationErrors.Select(e =>
-                        $"{e.Identifier}: {e.ErrorMessage}"));
+    //    if (!result.IsSuccess)
+    //    {
+    //        if (result.Status == ResultStatus.Invalid)
+    //        {
+    //            var message = string.Join(" | ",
+    //                result.ValidationErrors.Select(e =>
+    //                    $"{e.Identifier}: {e.ErrorMessage}"));
 
-                _logger.LogWarning("WithdrawWallet validation failed: {Message}", message);
+    //            _logger.LogWarning("WithdrawWallet validation failed: {Message}", message);
 
-                throw new RpcException(new Status(StatusCode.InvalidArgument, message));
-            }
+    //            throw new RpcException(new Status(StatusCode.InvalidArgument, message));
+    //        }
 
-            if (result.Status == ResultStatus.NotFound)
-                throw new RpcException(new Status(
-                    StatusCode.NotFound,
-                    result.Errors.FirstOrDefault() ?? "Not found"));
+    //        if (result.Status == ResultStatus.NotFound)
+    //            throw new RpcException(new Status(
+    //                StatusCode.NotFound,
+    //                result.Errors.FirstOrDefault() ?? "Not found"));
 
-            if (result.Status == ResultStatus.Forbidden)
-                throw new RpcException(new Status(
-                    StatusCode.PermissionDenied,
-                    result.Errors.FirstOrDefault() ?? "Forbidden"));
+    //        if (result.Status == ResultStatus.Forbidden)
+    //            throw new RpcException(new Status(
+    //                StatusCode.PermissionDenied,
+    //                result.Errors.FirstOrDefault() ?? "Forbidden"));
 
-            var errorMessage = string.Join(" | ", result.Errors);
-            _logger.LogError("WithdrawWallet business error: {Error}", errorMessage);
+    //        var errorMessage = string.Join(" | ", result.Errors);
+    //        _logger.LogError("WithdrawWallet business error: {Error}", errorMessage);
 
-            throw new RpcException(new Status(StatusCode.FailedPrecondition, errorMessage));
-        }
+    //        throw new RpcException(new Status(StatusCode.FailedPrecondition, errorMessage));
+    //    }
 
-        return new WithdrawWalletResponse
-        {
-            WithdrawTransactionId = result.Value.WithdrawTransactionId.ToString(),
-            Amount = (double)result.Value.Amount,
-            Message = result.Value.Message,
-            Status = result.Value.Status
-        };
-    }
+    //    return new WithdrawWalletResponse
+    //    {
+    //        WithdrawTransactionId = result.Value.WithdrawTransactionId.ToString(),
+    //        Amount = (double)result.Value.Amount,
+    //        Message = result.Value.Message,
+    //        Status = result.Value.Status
+    //    };
+    //}
 
     // ========== MAPPING HELPERS ==========
 

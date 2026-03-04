@@ -54,6 +54,7 @@ message CreateOrderRequest {
   repeated CartItem items = 1;
   string notes = 2;
   string storeId = 3;
+  OrderType type =4;
 }
 
 message CartItem {
@@ -70,6 +71,7 @@ message OrderReply {
 
   repeated OrderItemReply items = 6;
   CheckEnoughStockResponse check_stock_respone = 7;
+  optional OrderType type=8;
 }
 
 message OrderItemReply {
@@ -102,6 +104,7 @@ message Order {
   string customer_id = 13;
   string store_id = 14;
   repeated OrderItem items = 15;
+  OrderType type=16;
 }
 
 
@@ -141,6 +144,7 @@ message OrderSummary {
   string updated_at = 12;
   string customer_id = 13;
   string store_id = 14;
+  OrderType type=15;
 }
 
 
@@ -164,6 +168,11 @@ enum OrderStatus{
   Delivering = 5; 
   Completed = 6; 
   Cancelled = 7;
+}
+
+enum OrderType{
+  Delivery=0;
+  Pickup=1;
 }
 
 message UpdateOrderStatusRequest {
@@ -194,6 +203,7 @@ message GetOrdersRequest {
   optional string to_date = 6;   // YYYY-MM-DD
   optional int32 page = 7;
   optional int32 page_size = 8;
+  optional OrderType  type=9;
 }
 
 message GetOrdersReply {

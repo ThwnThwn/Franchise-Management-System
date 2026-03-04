@@ -69,6 +69,7 @@ public class OrderRepository : IOrderRepository
         DateOnly? toDate,
         OrderStatus? status,
         PaymentMethod? paymentMethod,
+        OrderType? type,
         int page,
         int pageSize,
         CancellationToken cancellationToken = default)
@@ -93,6 +94,10 @@ public class OrderRepository : IOrderRepository
         if (paymentMethod.HasValue)
         {
             query = query.Where(o => o.PaymentMethod == paymentMethod.Value);
+        }
+        if (type.HasValue)
+        {
+            query = query.Where(o => o.Type == type.Value);
         }
 
         if (fromDate.HasValue)
@@ -264,6 +269,22 @@ public class OrderRepository : IOrderRepository
         }).ToList();
     }
 
+
+    public async Task<List<Order>> GetOrdersByTypeAsync(OrderType type, CancellationToken cancellationToken)
+    {
+        return await _context.Orders
+            .Where(o => o.Type == type && !o.IsDeleted)
+            .OrderByDescending(o => o.CreatedAt)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<bool> ExistsOrderTypeAsync(OrderType type, CancellationToken cancellationToken)
+    {
+        return await _context.Orders
+            .AnyAsync(o => o.Type == type && !o.IsDeleted, cancellationToken);
+    }
+
+
     public async Task<IEnumerable<GetByUserIdsRes>> GetByUserIdsAsync(List<Guid> userIds, CancellationToken cancellationToken = default)
     {
         if (userIds == null || !userIds.Any())
@@ -290,3 +311,4 @@ public class OrderRepository : IOrderRepository
         }).ToList();
     }
 }
+

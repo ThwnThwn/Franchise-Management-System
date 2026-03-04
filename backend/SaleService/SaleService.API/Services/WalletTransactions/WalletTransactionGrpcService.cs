@@ -28,129 +28,129 @@ public sealed class WalletTransactionGrpcService : WalletTransactionGrpc.WalletT
         _logger = logger;
     }
 
-    public override async Task<Grpc.CreateTransactionResponse> CreateTransaction(
-        Grpc.CreateTransactionRequest request,
-        ServerCallContext context)
-    {
-        if (!Guid.TryParse(request.UserId, out var userId))
-            throw new RpcException(new Status(
-                StatusCode.InvalidArgument,
-                "Invalid user_id format"));
+    //public override async Task<Grpc.CreateTransactionResponse> CreateTransaction(
+    //    Grpc.CreateTransactionRequest request,
+    //    ServerCallContext context)
+    //{
+    //    if (!Guid.TryParse(request.UserId, out var userId))
+    //        throw new RpcException(new Status(
+    //            StatusCode.InvalidArgument,
+    //            "Invalid user_id format"));
 
-        if (!Guid.TryParse(request.WalletId, out var walletId))
-            throw new RpcException(new Status(
-                StatusCode.InvalidArgument,
-                "Invalid wallet_id format"));
+    //    if (!Guid.TryParse(request.WalletId, out var walletId))
+    //        throw new RpcException(new Status(
+    //            StatusCode.InvalidArgument,
+    //            "Invalid wallet_id format"));
 
-        if (!decimal.TryParse(request.Amount, out var amount) || amount <= 0)
-            throw new RpcException(new Status(
-                StatusCode.InvalidArgument,
-                "Invalid amount. Must be positive"));
+    //    if (!decimal.TryParse(request.Amount, out var amount) || amount <= 0)
+    //        throw new RpcException(new Status(
+    //            StatusCode.InvalidArgument,
+    //            "Invalid amount. Must be positive"));
 
-        Guid? referenceId = null;
-        if (!string.IsNullOrWhiteSpace(request.ReferenceId))
-        {
-            if (!Guid.TryParse(request.ReferenceId, out var parsedRefId))
-                throw new RpcException(new Status(
-                    StatusCode.InvalidArgument,
-                    "Invalid reference_id format"));
-            referenceId = parsedRefId;
-        }
+    //    Guid? referenceId = null;
+    //    if (!string.IsNullOrWhiteSpace(request.ReferenceId))
+    //    {
+    //        if (!Guid.TryParse(request.ReferenceId, out var parsedRefId))
+    //            throw new RpcException(new Status(
+    //                StatusCode.InvalidArgument,
+    //                "Invalid reference_id format"));
+    //        referenceId = parsedRefId;
+    //    }
 
-        Guid? destinationWalletId = null;
-        if (!string.IsNullOrWhiteSpace(request.DestinationWalletId))
-        {
-            if (!Guid.TryParse(request.DestinationWalletId, out var parsedDestId))
-                throw new RpcException(new Status(
-                    StatusCode.InvalidArgument,
-                    "Invalid destination_wallet_id format"));
-            destinationWalletId = parsedDestId;
-        }
+    //    Guid? destinationWalletId = null;
+    //    if (!string.IsNullOrWhiteSpace(request.DestinationWalletId))
+    //    {
+    //        if (!Guid.TryParse(request.DestinationWalletId, out var parsedDestId))
+    //            throw new RpcException(new Status(
+    //                StatusCode.InvalidArgument,
+    //                "Invalid destination_wallet_id format"));
+    //        destinationWalletId = parsedDestId;
+    //    }
 
-        Guid? adminId = null;
-        if (request.AdminOverride != null)
-        {
-            if (!Guid.TryParse(request.AdminOverride.AdminId, out var parsedAdminId))
-                throw new RpcException(new Status(
-                    StatusCode.InvalidArgument,
-                    "Invalid admin_id format"));
-            adminId = parsedAdminId;
-        }
+    //    Guid? adminId = null;
+    //    if (request.AdminOverride != null)
+    //    {
+    //        if (!Guid.TryParse(request.AdminOverride.AdminId, out var parsedAdminId))
+    //            throw new RpcException(new Status(
+    //                StatusCode.InvalidArgument,
+    //                "Invalid admin_id format"));
+    //        adminId = parsedAdminId;
+    //    }
 
-        var innerRequest = new CreateTransactionCommand.CreateTransactionRequest
-        {
-            WalletId = walletId,
-            Amount = amount,
-            TransactionType = MapGrpcTransactionTypeToDomain(request.TransactionType),
-            PaymentMethod = MapGrpcPaymentMethodToDomain(request.PaymentMethod),
-            ReferenceId = referenceId,
-            ReferenceType = MapGrpcReferenceTypeToDomain(request.ReferenceType),
-            Description = request.Description,
-            Notes = request.Notes,
-            ExternalTransactionId = request.ExternalTransactionId,
-            DestinationWalletId = destinationWalletId,
-            Metadata = request.Metadata
-        };
+    //    var innerRequest = new CreateTransactionCommand.CreateTransactionRequest
+    //    {
+    //        WalletId = walletId,
+    //        Amount = amount,
+    //        TransactionType = MapGrpcTransactionTypeToDomain(request.TransactionType),
+    //        PaymentMethod = MapGrpcPaymentMethodToDomain(request.PaymentMethod),
+    //        ReferenceId = referenceId,
+    //        ReferenceType = MapGrpcReferenceTypeToDomain(request.ReferenceType),
+    //        Description = request.Description,
+    //        Notes = request.Notes,
+    //        ExternalTransactionId = request.ExternalTransactionId,
+    //        DestinationWalletId = destinationWalletId,
+    //        Metadata = request.Metadata
+    //    };
 
-        var command = new CreateTransactionCommand(
-            userId,
-            innerRequest,
-            request.AdminOverride != null
-                ? new CreateTransactionCommand.HasAdminOverride
-                {
-                    AdminId = adminId!.Value,
-                    AutoComplete = request.AdminOverride.AutoComplete,
-                    BypassBalanceCheck = request.AdminOverride.BypassBalanceCheck,
-                    BypassTransactionLimits = request.AdminOverride.BypassTransactionLimits,
-                    InternalNotes = request.AdminOverride.InternalNotes
-                }
-                : null
-        );
+    //    var command = new CreateTransactionCommand(
+    //        userId,
+    //        innerRequest,
+    //        request.AdminOverride != null
+    //            ? new CreateTransactionCommand.HasAdminOverride
+    //            {
+    //                AdminId = adminId!.Value,
+    //                AutoComplete = request.AdminOverride.AutoComplete,
+    //                BypassBalanceCheck = request.AdminOverride.BypassBalanceCheck,
+    //                BypassTransactionLimits = request.AdminOverride.BypassTransactionLimits,
+    //                InternalNotes = request.AdminOverride.InternalNotes
+    //            }
+    //            : null
+    //    );
 
-        var result = await _mediator.Send(command, context.CancellationToken);
+    //    var result = await _mediator.Send(command, context.CancellationToken);
 
-        if (!result.IsSuccess)
-        {
-            if (result.Status == ResultStatus.Invalid)
-            {
-                var message = string.Join(" | ",
-                    result.ValidationErrors.Select(e =>
-                        $"{e.Identifier}: {e.ErrorMessage}"));
+    //    if (!result.IsSuccess)
+    //    {
+    //        if (result.Status == ResultStatus.Invalid)
+    //        {
+    //            var message = string.Join(" | ",
+    //                result.ValidationErrors.Select(e =>
+    //                    $"{e.Identifier}: {e.ErrorMessage}"));
 
-                _logger.LogWarning("Validation failed: {Message}", message);
+    //            _logger.LogWarning("Validation failed: {Message}", message);
 
-                throw new RpcException(new Status(
-                    StatusCode.InvalidArgument,
-                    message));
-            }
+    //            throw new RpcException(new Status(
+    //                StatusCode.InvalidArgument,
+    //                message));
+    //        }
 
-            var errorMessage = string.Join(" | ", result.Errors);
+    //        var errorMessage = string.Join(" | ", result.Errors);
 
-            _logger.LogError("Business error: {Error}", errorMessage);
+    //        _logger.LogError("Business error: {Error}", errorMessage);
 
-            throw new RpcException(new Status(
-                StatusCode.FailedPrecondition,
-                errorMessage));
-        }
+    //        throw new RpcException(new Status(
+    //            StatusCode.FailedPrecondition,
+    //            errorMessage));
+    //    }
 
-        var data = result.Value;
+    //    var data = result.Value;
 
-        return new Grpc.CreateTransactionResponse
-        {
-            Id = data.Id.ToString(),
-            TransactionCode = data.TransactionCode,
-            WalletId = data.WalletId.ToString(),
-            Amount = data.Amount.ToString("F2"),
-            TransactionType = MapDomainTransactionTypeToGrpc(data.TransactionType),
-            Status = MapDomainTransactionStatusToGrpc(data.Status),
-            BalanceBefore = data.BalanceBefore.ToString("F2"),
-            BalanceAfter = data.BalanceAfter.ToString("F2"),
-            ReferenceId = data.ReferenceId?.ToString() ?? "",
-            ReferenceType = MapDomainReferenceTypeToGrpc(data.ReferenceType),
-            PaymentMethod = MapDomainPaymentMethodToGrpc(data.PaymentMethod),
-            CreatedAt = data.CreatedAt.ToString("O")
-        };
-    }
+    //    return new Grpc.CreateTransactionResponse
+    //    {
+    //        Id = data.Id.ToString(),
+    //        TransactionCode = data.TransactionCode,
+    //        WalletId = data.WalletId.ToString(),
+    //        Amount = data.Amount.ToString("F2"),
+    //        TransactionType = MapDomainTransactionTypeToGrpc(data.TransactionType),
+    //        Status = MapDomainTransactionStatusToGrpc(data.Status),
+    //        BalanceBefore = data.BalanceBefore.ToString("F2"),
+    //        BalanceAfter = data.BalanceAfter.ToString("F2"),
+    //        ReferenceId = data.ReferenceId?.ToString() ?? "",
+    //        ReferenceType = MapDomainReferenceTypeToGrpc(data.ReferenceType),
+    //        PaymentMethod = MapDomainPaymentMethodToGrpc(data.PaymentMethod),
+    //        CreatedAt = data.CreatedAt.ToString("O")
+    //    };
+    //}
 
     public override async Task<GetAllWalletTransactionsResponse> GetAll(
         GetAllWalletTransactionsRequest request,
