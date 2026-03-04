@@ -1969,6 +1969,64 @@ const docTemplate = `{
                 }
             }
         },
+        "/orders/vnpay/return": {
+            "get": {
+                "description": "Endpoint for VNPay to redirect the browser after payment. Verifies the signature via gRPC and redirects to the Frontend UI.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/html"
+                ],
+                "tags": [
+                    "Payments"
+                ],
+                "summary": "Handle VNPay Return URL",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Transaction Amount",
+                        "name": "vnp_Amount",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bank Code",
+                        "name": "vnp_BankCode",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Order Information",
+                        "name": "vnp_OrderInfo",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "VNPAY Response Code",
+                        "name": "vnp_ResponseCode",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Transaction Reference",
+                        "name": "vnp_TxnRef",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Security Hash",
+                        "name": "vnp_SecureHash",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "302": {
+                        "description": "Redirects to the Frontend React application"
+                    }
+                }
+            }
+        },
         "/orders/{id}": {
             "get": {
                 "security": [
@@ -2089,7 +2147,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Generate a payment link (e.g., VNPay, Momo) for the specific order.",
+                "description": "Generate a payment link (VNPay) for the specific order.",
                 "consumes": [
                     "application/json"
                 ],

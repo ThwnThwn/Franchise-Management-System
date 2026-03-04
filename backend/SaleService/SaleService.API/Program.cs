@@ -62,11 +62,24 @@ public class Program
         // Add environment variables to configuration
         builder.Configuration.AddEnvironmentVariables();
 
+        //builder.WebHost.ConfigureKestrel(options =>
+        //{
+        //    options.ConfigureEndpointDefaults(listenOptions =>
+        //    {
+        //        listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2;
+        //    });
+        //});
+        var salesPort = int.Parse(builder.Configuration["SALES_PORT"] ?? "5003");
         builder.WebHost.ConfigureKestrel(options =>
         {
-            options.ConfigureEndpointDefaults(listenOptions =>
+            options.ListenAnyIP(salesPort, listenOptions =>
             {
                 listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2;
+            });
+
+            options.ListenAnyIP(5013, listenOptions =>
+            {
+                listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1;
             });
         });
 
@@ -109,7 +122,11 @@ public class Program
             kafkaBootstrap = "localhost:9092";  // Use localhost when running outside Docker
         }
         builder.Configuration["KAFKA_BOOTSTRAP_SERVERS"] = kafkaBootstrap;
-
+        // KAFKA CONSUMER (Generic)
+        builder.Services.AddKafkaConsumer(config =>
+        {
+            config.Register<UserRegisteredEvent>(KafkaTopics.WalletAccount, typeof(SalesService.Application.EventHandler.CreateWalletEvent.CreateWalletEventConsumer));
+        });
         // Configure AutoMapper
         var applicationAssembly = typeof(OrderMappingProfile).Assembly;
 

@@ -87,6 +87,7 @@ public class OrderStatusHandler : IIntegrationEventHandler<OrderStatusEvent>
             ReferenceId = @event.OrderId.ToString(), // Lưu lại OrderId để check duplicate
             CreatedAt = DateTime.UtcNow
         };
+        
         await _repository.CreateAsync(log);
         if (string.IsNullOrEmpty(@event.CustomerEmail))
         {
@@ -95,10 +96,10 @@ public class OrderStatusHandler : IIntegrationEventHandler<OrderStatusEvent>
         }
         try
         {
+            var items = MapToOrderPlacedEmail(@event);
             switch (@event.NewOrderStatus)
             {
                 case OrderStatus.ConfirmationPending:
-                    var items = MapToOrderPlacedEmail(@event);
                     await _emailSender.SendOrderPlacedEmailAsync(@event.CustomerEmail, items);
                     break;
 
@@ -134,14 +135,14 @@ public class OrderStatusHandler : IIntegrationEventHandler<OrderStatusEvent>
             TotalAmount = @event.TotalAmount,
             Tax = @event.Tax,
             Items = @event.Items == null
-                ? new List<NotificationService.Application.Model.CartItemDto>()
+                ? new List<Model.CartItemDto>()
                 : MapCartItems(@event.Items)
         };
     }
-    private static List<NotificationService.Application.Model.CartItemDto> MapCartItems(
-    List<SharedKernel.Events.OrderStatusEvent.CartItemDto> items)
+    private static List<Model.CartItemDto> MapCartItems(
+    List<OrderStatusEvent.CartItemDto> items)
     {
-        return items.Select(i => new NotificationService.Application.Model.CartItemDto
+        return items.Select(i => new Model.CartItemDto
         {
             Sku = i.Sku,
             Quantity = i.Quantity,
