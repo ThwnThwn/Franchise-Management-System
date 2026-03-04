@@ -36,4 +36,12 @@ func (v *VoucherRouter) Init(r *gin.RouterGroup) {
 		privateApi.DELETE("/:id", v.authMW.PermissionCheck("voucher.delete"),
 			api.WrapHandler(v.voucherHl.DeleteVoucher))
 	}
+
+	meApi := r.Group("/me")
+	meApi.Use(v.authMW.ValidateToken([]byte(v.cfg.JwtSecret)))
+	{
+		// POST /me/vouchers/redeem/:id
+		meApi.POST("/vouchers/redeem/:id", v.authMW.PermissionCheck("voucher.redeem"),
+			api.WrapHandler(v.voucherHl.RedeemVoucher))
+	}
 }

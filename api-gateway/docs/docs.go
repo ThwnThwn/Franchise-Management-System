@@ -1213,7 +1213,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retrieve statistics about loyalty tiers, point distribution, and member growth.",
+                "description": "Get statistics like total members, points, and tier distribution for dashboard.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1223,7 +1223,7 @@ const docTemplate = `{
                 "tags": [
                     "Loyalty"
                 ],
-                "summary": "Get Loyalty Report",
+                "summary": "Get Loyalty Report Summary (JSON)",
                 "parameters": [
                     {
                         "type": "integer",
@@ -1248,18 +1248,63 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Loyalty report data",
+                        "description": "Loyalty summary data",
                         "schema": {
                             "$ref": "#/definitions/api-gateway_internal_domain_models_loyalty.LoyaltyReportResponse"
                         }
+                    }
+                }
+            }
+        },
+        "/loyalty/reports/export": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Download loyalty statistics as a PDF or CSV file.",
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "Loyalty"
+                ],
+                "summary": "Export Loyalty Report (PDF/CSV)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "format",
+                        "in": "query"
                     },
-                    "401": {
-                        "description": "Unauthorized",
+                    {
+                        "type": "string",
+                        "name": "fromDate",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "tierId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "toDate",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "1 for PDF, 2 for CSV",
+                        "name": "format",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Report file",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "type": "file"
                         }
                     }
                 }
@@ -1458,7 +1503,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Loyalty - Points"
+                    "Points"
                 ],
                 "summary": "Get My Point History",
                 "parameters": [
@@ -1775,6 +1820,62 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {}
+            }
+        },
+        "/me/vouchers/redeem/{id}": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Allows the authenticated user to redeem their accumulated points to claim a specific voucher.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Vouchers"
+                ],
+                "summary": "Redeem Points for Voucher",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Voucher UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Redemption successful",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid Voucher ID format",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - Valid token required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
             }
         },
         "/membership-tiers": {
@@ -5700,15 +5801,6 @@ const docTemplate = `{
         "api-gateway_internal_domain_models_loyalty.LoyaltyReportResponse": {
             "type": "object",
             "properties": {
-                "fileContent": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
-                },
-                "fileName": {
-                    "type": "string"
-                },
                 "tierDistribution": {
                     "type": "array",
                     "items": {

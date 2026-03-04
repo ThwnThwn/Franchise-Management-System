@@ -49,8 +49,11 @@ func MapErrorToProblem(err error) (int, string, string) {
 		case codes.DeadlineExceeded: // 4 -> 504 (hoặc 408)
 			return http.StatusGatewayTimeout, "Hết thời gian chờ", "Yêu cầu bị huỷ do tốn quá nhiều thời gian"
 
+		case codes.Unimplemented: // 12 -> 501
+			return http.StatusNotImplemented, "Tính năng chưa được hỗ trợ", "Phương thức này chưa được triển khai trên hệ thống"
+
 		case codes.Unavailable: // 14 -> 503
-			return http.StatusServiceUnavailable, "Dịch vụ tạm thời gián đoạn", detail
+			return http.StatusServiceUnavailable, "Dịch vụ tạm thời gián đoạn", "Vui lòng làm mới trang hoặc thử lại sau"
 
 		case codes.Aborted: // 10 -> 409
 			return http.StatusConflict, "Thao tác bị hủy", detail

@@ -76,10 +76,10 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, func
 	membershipTierHandler := engagement2.NewMembershipTierHandler(iMembershipTierService)
 	membershipTierRouter := membershiptiers.NewRouter(cfg, authMiddleware, membershipTierHandler)
 	iPointLogService := engagement.ProvidePointLogClient(clientFactory)
-	pointLogHandler := engagement2.NewPointLogHandler(iPointLogService)
-	pointLogRouter := points.NewRouter(cfg, authMiddleware, pointLogHandler)
+	pointHandler := engagement2.NewPointHandler(iPointLogService)
+	pointLogRouter := points.NewRouter(cfg, authMiddleware, pointHandler)
 	iVoucherService := engagement.ProvideVoucherClient(clientFactory)
-	voucherHandler := engagement2.NewVoucherHandler(iVoucherService)
+	voucherHandler := engagement2.NewVoucherHandler(iVoucherService, iLoyaltyAccountService)
 	voucherRouter := vouchers.NewRouter(cfg, authMiddleware, voucherHandler)
 	franchiseServiceUrl := cfg.FranchiseServiceUrl
 	franchiseClientFactory, cleanup3, err := franchise.NewFranchiseClientFactory(franchiseServiceUrl, l)
