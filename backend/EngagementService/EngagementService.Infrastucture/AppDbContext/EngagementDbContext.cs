@@ -172,7 +172,7 @@ public partial class EngagementDbContext : DbContext, IEngagementDbContext
             entity.Property(e => e.Id).HasDefaultValueSql("uuid_generate_v4()").HasColumnName("id");
             entity.Property(e => e.AcquiredAt).HasDefaultValueSql("CURRENT_TIMESTAMP").HasColumnName("acquired_at");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").HasColumnName("created_at");
-            entity.Property(e => e.ExpiresAt).HasColumnName("expires_at");
+            //entity.Property(e => e.ExpiresAt).HasColumnName("expires_at");
             entity.Property(e => e.IsDeleted).HasDefaultValue(false).HasColumnName("is_deleted");
 
             // Cấu hình Mapping Enum cho Status
@@ -213,14 +213,14 @@ public partial class EngagementDbContext : DbContext, IEngagementDbContext
 
             entity.Property(e => e.Code).HasMaxLength(50).HasColumnName("code");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").HasColumnName("created_at");
-            entity.Property(e => e.CurrentQuantity).HasDefaultValue(0).HasColumnName("current_quantity");
+            entity.Property(e => e.CurrentQuantity).HasColumnName("current_quantity");
             entity.Property(e => e.DiscountValue).HasPrecision(15, 3).HasColumnName("discount_value");
             entity.Property(e => e.MaxDiscountValue).HasPrecision(15, 3).HasColumnName("max_discount_value");
             entity.Property(e => e.EndDate).HasColumnName("end_date");
-            entity.Property(e => e.InitQuantity).HasDefaultValue(0).HasColumnName("init_quantity");
+            entity.Property(e => e.InitQuantity).HasColumnName("init_quantity");
             entity.Property(e => e.IsActive).HasDefaultValue(true).HasColumnName("is_active");
             entity.Property(e => e.IsDeleted).HasDefaultValue(false).HasColumnName("is_deleted");
-            entity.Property(e => e.MaxUsagePerUser).HasDefaultValue(1).HasColumnName("max_usage_per_user");
+            entity.Property(e => e.MaxUsagePerUser).HasColumnName("max_usage_per_user");
             entity.Property(e => e.MinOrderValue).HasPrecision(15, 3).HasDefaultValueSql("0").HasColumnName("min_order_value");
             entity.Property(e => e.PointCost).HasPrecision(15, 3).HasDefaultValueSql("0").HasColumnName("point_cost");
             entity.Property(e => e.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").HasColumnName("updated_at");

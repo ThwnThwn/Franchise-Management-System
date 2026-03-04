@@ -32,6 +32,12 @@ namespace EngagementService.Application.Features.Voucher.Commands.Create
             }
             else code = GenerateVoucherCode();
 
+            if (request.InitQuantity < 0)
+                throw new ArgumentException(VoucherMsg.InvalidInitQuantity);
+
+            if (request.MaxUsagePerUser <= 0)
+                throw new ArgumentException(VoucherMsg.InvalidMaxUsagePerUser);
+
             Domain.Entities.Voucher newVoucher;
             switch (request.Type)
             {
@@ -40,14 +46,11 @@ namespace EngagementService.Application.Features.Voucher.Commands.Create
                 case VoucherType.DISCOUNT_PERCENTAGE:
                 case VoucherType.DISCOUNT_FIXED_AMOUNT:
 
-                    if(request.DiscountValue == null || request.DiscountValue <= 0)
+                    if (request.DiscountValue == null || request.DiscountValue <= 0)
                         throw new ArgumentException(VoucherMsg.InvalidDiscountValue);
 
                     if ((request.Type == VoucherType.DISCOUNT_PERCENTAGE || request.Type == VoucherType.SHIPPING_PERCENTAGE) && (request.DiscountValue <= 0 || request.DiscountValue > 100))
                         throw new ArgumentException(VoucherMsg.InvalidDiscountValue);
-
-                    if (request.EndDate < DateTimeOffset.UtcNow)
-                        throw new ArgumentException(VoucherMsg.InvalidEndDate);
 
                     newVoucher = await CreateSimpleVoucher(request, code);
                     await _voucherRepository.AddAsync(newVoucher);
@@ -58,15 +61,16 @@ namespace EngagementService.Application.Features.Voucher.Commands.Create
                     if (request.VoucherItems == null || !request.VoucherItems.Any() || !request.VoucherItems.Any(t => t.Type == VoucherItemType.ITEM_REQUIRED) || !request.VoucherItems.Any(t => t.Type == VoucherItemType.ITEM_GIFT))
                         throw new ArgumentException(VoucherMsg.EmptyVoucherItems);
 
-                    if (!request.VoucherItems.All(item => item.Quantity > 0)) 
+                    if (!request.VoucherItems.All(item => item.Quantity > 0))
                         throw new ArgumentException(VoucherMsg.InvalidVoucherItemQuantity);
-                    
+
                     //tạo voucher mới
                     newVoucher = await CreateSimpleVoucher(request, code);
 
                     //tạo voucher item
                     var voucherItems = request.VoucherItems.Select(item => new VoucherItem()
                     {
+                        
                         Id = Guid.NewGuid(),
                         VariantId = item.VariantId,
                         Quantity = item.Quantity,
@@ -77,6 +81,7 @@ namespace EngagementService.Application.Features.Voucher.Commands.Create
 
                     await _voucherRepository.AddAsync(newVoucher);
                     break;
+
                 default:
                     throw new ArgumentException(VoucherMsg.InvalidType);
             }
@@ -86,10 +91,10 @@ namespace EngagementService.Application.Features.Voucher.Commands.Create
 
         private async Task<Domain.Entities.Voucher> CreateSimpleVoucher(CreateVoucherRequest request, string code)
         {
-            if((request.Type == VoucherType.DISCOUNT_PERCENTAGE || request.Type == VoucherType.SHIPPING_PERCENTAGE) && (!request.DiscountValue.HasValue || request.DiscountValue <= 0 || request.DiscountValue > 100))
+            if ((request.Type == VoucherType.DISCOUNT_PERCENTAGE || request.Type == VoucherType.SHIPPING_PERCENTAGE) && (!request.DiscountValue.HasValue || request.DiscountValue <= 0 || request.DiscountValue > 100))
                 throw new ArgumentException(VoucherMsg.InvalidDiscountValue);
-            
-            if(request.EndDate < DateTimeOffset.UtcNow)
+
+            if (request.EndDate < DateTimeOffset.UtcNow)
                 throw new ArgumentException(VoucherMsg.InvalidEndDate);
 
             return new Domain.Entities.Voucher()

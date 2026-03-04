@@ -17,7 +17,7 @@ public partial class UserVoucher : SoftDeletedEntity, IEntity
 
     public DateTimeOffset? AcquiredAt { get; set; }
 
-    public DateTimeOffset? ExpiresAt { get; set; }
+    //public DateTimeOffset? ExpiresAt { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; }
 

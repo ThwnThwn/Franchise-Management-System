@@ -1,5 +1,6 @@
 ﻿using EngagementService.Application.Abstraction;
 using EngagementService.Application.Constants;
+using EngagementService.Application.Features.LoyaltyAccount.Commands.RedeemVoucher;
 using EngagementService.Application.Features.LoyaltyAccount.Queries.GetById;
 using EngagementService.Application.Features.LoyaltyAccount.Queries.GetByIdsFilter;
 using EngagementService.Application.Features.LoyaltyAccount.Queries.GetLoyaltyReport;
@@ -181,7 +182,7 @@ namespace EngagementService.API.Services.LoyaltyAccount
             return response;
         }
 
-        public override async Task<LoyaltyAccountsResponse> GetByFilter(GetByFilterRequest request,ServerCallContext context)
+        public override async Task<LoyaltyAccountsResponse> GetByFilter(GetByFilterRequest request, ServerCallContext context)
         {
             Guid? tierId = string.IsNullOrEmpty(request.TierId)
                 ? null
@@ -218,6 +219,19 @@ namespace EngagementService.API.Services.LoyaltyAccount
             }
 
             return response;
+        }
+
+        public override async Task<Empty> RedeemVoucher(RedeemVoucherRequest request, ServerCallContext context)
+        {
+            var req = new Application.Dtos.LoyaltyAccount.RedeemVoucherRequest
+            {
+                LoyaltyAccountId = Guid.Parse(request.AccountId),
+                VoucherId = Guid.Parse(request.VoucherId)
+            };
+
+            await _mediator.Send(new RedeemVoucherCommand(req));
+
+            return new Empty();
         }
     }
 }

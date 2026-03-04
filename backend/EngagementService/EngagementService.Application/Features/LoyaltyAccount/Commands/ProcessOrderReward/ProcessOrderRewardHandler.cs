@@ -47,6 +47,7 @@ namespace EngagementService.Application.Features.LoyaltyAccount.Commands.Process
                 loyaltyAccount.CurrentTierId = newTierId;
             }
 
+            //sinh point log
             var allRules = await _pointRuleCache.GetOrSetAllAsync(async () =>
             {
                 // Gọi Repository để lấy dữ liệu (IEnumerable)
@@ -55,11 +56,13 @@ namespace EngagementService.Application.Features.LoyaltyAccount.Commands.Process
                 // Chuyển đổi sang List để khớp với yêu cầu của hàm Cache
                 return data.ToList();
             });
-            await HandlePointLog.CreatePointLog(_pointLogRepository, loyaltyAccount, loyaltyAccount.AvailablePoints -  point, loyaltyAccount.AvailablePoints, point, request.OrderId, PointReasonCode.ORDER_COMPLETED, PointActionType.EARN, "Points earned for order completion", allRules);
+            var pointLog = HandlePointLog.CreatePointLog(loyaltyAccount, loyaltyAccount.AvailablePoints - point, loyaltyAccount.AvailablePoints, point, request.OrderId, PointReasonCode.ORDER_COMPLETED, PointActionType.EARN, "Points earned for order completion", allRules);
+
+            loyaltyAccount.PointLogs.Add(pointLog);
 
             await _loyaltyAccountRepository.UpdateAsync(loyaltyAccount);
-            return Unit.Value;
 
+            return Unit.Value;
         }
 
         private async Task<Guid> CheckTierUpgrade(decimal totalSpent)

@@ -1,15 +1,9 @@
-﻿using EngagementService.Grpc.Protos.LoyaltyAccountGrpc;
-using Grpc.Net.Client;
+﻿using Grpc.Net.Client;
 using IdentityService.Application.Dtos.Order.Response;
 using IdentityService.Application.ExternalServices;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using SalesService.API;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace IdentityService.Infrastructure.ExternalServices
 {
