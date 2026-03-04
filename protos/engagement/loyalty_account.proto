@@ -28,6 +28,9 @@ service LoyaltyAccountGrpc {
 
   // RPC lấy báo cáo (trả về dữ liệu thô)
   rpc GetLoyaltyReport (GetLoyaltyReportRequest) returns (LoyaltyReportResponse);
+
+  // Rpc Redeem voucher
+  rpc RedeemVoucher (RedeemVoucherRequest) returns (google.protobuf.Empty);
 }
 
   // Định nghĩa Request
@@ -115,4 +118,10 @@ message LoyaltyReportResponse {
   repeated TierDistribution tier_distribution = 4;
   bytes file_content = 5; 
   string file_name = 6;
+}
+
+
+message RedeemVoucherRequest {
+  string account_id = 1;
+  string voucher_id = 2;
 }

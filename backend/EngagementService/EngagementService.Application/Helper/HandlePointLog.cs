@@ -12,7 +12,7 @@ namespace EngagementService.Application.Helper
 {
     public static class HandlePointLog
     {
-        public async static Task CreatePointLog(IPointLogRepository _repo,
+        public static PointLog CreatePointLog(
             LoyaltyAccount account
             , decimal pointBefore, decimal pointAfter, decimal points, Guid? orderId,
             PointReasonCode reasonCode, PointActionType type, string description, List<PointRule> pointRuleCache)
@@ -22,7 +22,6 @@ namespace EngagementService.Application.Helper
 
             var pointLog = new PointLog
             {
-                Id = Guid.NewGuid(),
                 UserId = account.Id,
                 Amount = points,
                 BalanceBefore = pointBefore,
@@ -34,7 +33,7 @@ namespace EngagementService.Application.Helper
                 ExpiredAt = DateTime.UtcNow.AddDays(expiredDays),
                 User = account,
             };
-            await _repo.AddAsync(pointLog);
+            return pointLog;
         }
     }
 }

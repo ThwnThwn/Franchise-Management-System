@@ -28,4 +28,9 @@ namespace EngagementService.Application.Dtos.LoyaltyAccount
         public Guid? OrderId { get; set; } = null;
     }
 
+    public class RedeemVoucherRequest
+    {
+        public Guid LoyaltyAccountId { get; set; }
+        public Guid VoucherId { get; set; }
+    }
 }

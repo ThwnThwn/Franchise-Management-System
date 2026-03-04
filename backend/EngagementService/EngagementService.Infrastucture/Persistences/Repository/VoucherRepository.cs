@@ -5,6 +5,7 @@ using EngagementService.Domain.Constants;
 using EngagementService.Domain.Entities;
 using EngagementService.Infrastucture.AppDbContext;
 using Microsoft.EntityFrameworkCore;
+using Org.BouncyCastle.Asn1.Ocsp;
 
 namespace EngagementService.Infrastucture.Persistences.Repository
 {
@@ -28,15 +29,16 @@ namespace EngagementService.Infrastucture.Persistences.Repository
                 .FirstOrDefault();
             if (voucherDb == null)
                 throw new ArgumentException(VoucherMsg.NotFound);
-
             if(voucherDb.IsActive)
                 throw new ArgumentException(VoucherMsg.ActiveVoucher);
 
             UpdateVoucher(voucherDb, voucherUpdate);
+
             if (voucherDb.Type == VoucherType.GIFT && (voucherUpdate.VoucherItems != null || voucherUpdate.VoucherItems!.Count() > 0))
             {
                 UpdateVoucherItem(voucherDb, voucherUpdate.VoucherItems!);
             }
+
             await _dbContext.SaveChangesAsync();
         }
 
@@ -80,31 +82,57 @@ namespace EngagementService.Infrastucture.Persistences.Repository
         {
             if (updateRequest.DiscountValue != null)
             {
+                if(updateRequest.DiscountValue <= 0)
+                    throw new ArgumentException(VoucherMsg.InvalidDiscountValue);
+
                 if (dbVoucher.Type == VoucherType.DISCOUNT_PERCENTAGE || dbVoucher.Type == VoucherType.SHIPPING_PERCENTAGE)
                 {
                     if (updateRequest.DiscountValue > 0 && updateRequest.DiscountValue <= 100)
-                        updateRequest.DiscountValue = updateRequest.DiscountValue;
+                        dbVoucher.DiscountValue = updateRequest.DiscountValue;
                 }
                 else
                 {
-                    updateRequest.DiscountValue = updateRequest.DiscountValue;
+                    dbVoucher.DiscountValue = updateRequest.DiscountValue;
                 }
             }
 
             if (updateRequest.MaxDiscountValue != null)
+            {
+                if(updateRequest.MaxDiscountValue <= 0)
+                    throw new ArgumentException(VoucherMsg.InvalidMaxDiscountValue);
                 dbVoucher.MaxDiscountValue = updateRequest.MaxDiscountValue;
+            }
+                
 
             if (updateRequest.PointCost != null)
+            {
+                if (updateRequest.PointCost < 0)
+                    throw new ArgumentException(VoucherMsg.InvalidPointCost);
                 dbVoucher.PointCost = updateRequest.PointCost;
+            }
+                
 
             if (updateRequest.MinOrderValue != null)
+            {
+                if (updateRequest.MinOrderValue < 0)
+                    throw new ArgumentException(VoucherMsg.InvalidMinOrderValue);
                 dbVoucher.MinOrderValue = updateRequest.MinOrderValue;
+            }
+                
 
             if (updateRequest.MaxUsagePerUser != null)
+            {
+                if (updateRequest.MaxUsagePerUser <= 0)
+                    throw new ArgumentException(VoucherMsg.InvalidMaxUsagePerUser);
                 dbVoucher.MaxUsagePerUser = updateRequest.MaxUsagePerUser;
-
+            }
+                
             if (updateRequest.EndDate != null)
+            {
+                if (updateRequest.EndDate < DateTimeOffset.UtcNow)
+                    throw new ArgumentException(VoucherMsg.InvalidEndDate);
                 dbVoucher.EndDate = updateRequest.EndDate;
+            }
         }
     }
 }

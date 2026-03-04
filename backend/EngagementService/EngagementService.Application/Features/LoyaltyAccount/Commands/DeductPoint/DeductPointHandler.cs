@@ -34,8 +34,8 @@ namespace EngagementService.Application.Features.LoyaltyAccount.Commands.DetuctP
                 throw new InvalidOperationException(LoyaltyAccountMsg.InsufficientPoints);
 
             account.AvailablePoints -= request.PointToDeduct;
-            await _loyaltyAccountRepository.UpdateAsync(account);
 
+            //sinh point log
             var allRules = await _pointRuleCache.GetOrSetAllAsync(async () =>
             {
                 // Gọi Repository để lấy dữ liệu (IEnumerable)
@@ -44,7 +44,14 @@ namespace EngagementService.Application.Features.LoyaltyAccount.Commands.DetuctP
                 // Chuyển đổi sang List để khớp với yêu cầu của hàm Cache
                 return data.ToList();
             });
-            await HandlePointLog.CreatePointLog(_pointLogRepository, account, account.AvailablePoints + request.PointToDeduct, account.AvailablePoints, request.PointToDeduct, request.OrderId, PointReasonCode.POINT_REDEEM, PointActionType.REDEEM, "Points deducted", allRules);
+            var pointLog = HandlePointLog.CreatePointLog(account, account.AvailablePoints + request.PointToDeduct, account.AvailablePoints, request.PointToDeduct, request.OrderId, PointReasonCode.POINT_REDEEM, PointActionType.REDEEM, "Points deducted for order " + request.OrderId, allRules);
+
+            account.PointLogs.Add(pointLog);
+
+            await _loyaltyAccountRepository.UpdateAsync(account);
+
+            
+            
 
             return Unit.Value;
         }
