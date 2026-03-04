@@ -63,9 +63,3 @@ BEGIN
         ON CONFLICT (id) DO NOTHING;
     END LOOP;
 END $$;
-
--- 4. Vouchers mẫu
-INSERT INTO "vouchers" ("code", "category", "type", "discount_value", "min_order_value", "point_cost", "init_quantity", "current_quantity", "end_date") VALUES
-('WELCOME2026', 'DISCOUNT_GIFT', 'FIXED_AMOUNT', 50000.000, 200000.000, 0, 1000, 950, '2026-12-31'),
-('FREESHIP', 'SHIPPING', 'FIXED_AMOUNT', 30000.000, 0.000, 50, 500, 480, '2026-06-01')
-ON CONFLICT (code) WHERE is_deleted IS FALSE DO NOTHING;

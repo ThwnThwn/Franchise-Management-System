@@ -27,22 +27,40 @@ namespace EngagementService.Application.Features.Voucher.Commands.Create
                 var existingVoucher = await _voucherRepository.GetVoucherByCodeAsync(code);
                 if (existingVoucher != null)
                 {
-                    throw new ArgumentException(VoucherCodeMsg.CodeExisted);
+                    throw new ArgumentException(VoucherMsg.CodeExisted);
                 }
             }
             else code = GenerateVoucherCode();
 
             Domain.Entities.Voucher newVoucher;
-            switch (request.Category)
+            switch (request.Type)
             {
-                case VoucherCategory.SHIPPING:
-                case VoucherCategory.DISCOUNT:
+                case VoucherType.SHIPPING_FIXED_AMOUNT:
+                case VoucherType.SHIPPING_PERCENTAGE:
+                case VoucherType.DISCOUNT_PERCENTAGE:
+                case VoucherType.DISCOUNT_FIXED_AMOUNT:
+
+                    if(request.DiscountValue == null || request.DiscountValue <= 0)
+                        throw new ArgumentException(VoucherMsg.InvalidDiscountValue);
+
+                    if ((request.Type == VoucherType.DISCOUNT_PERCENTAGE || request.Type == VoucherType.SHIPPING_PERCENTAGE) && (request.DiscountValue <= 0 || request.DiscountValue > 100))
+                        throw new ArgumentException(VoucherMsg.InvalidDiscountValue);
+
+                    if (request.EndDate < DateTimeOffset.UtcNow)
+                        throw new ArgumentException(VoucherMsg.InvalidEndDate);
 
                     newVoucher = await CreateSimpleVoucher(request, code);
                     await _voucherRepository.AddAsync(newVoucher);
                     break;
-                case VoucherCategory.GIFT:
 
+                case VoucherType.GIFT:
+
+                    if (request.VoucherItems == null || !request.VoucherItems.Any() || !request.VoucherItems.Any(t => t.Type == VoucherItemType.ITEM_REQUIRED) || !request.VoucherItems.Any(t => t.Type == VoucherItemType.ITEM_GIFT))
+                        throw new ArgumentException(VoucherMsg.EmptyVoucherItems);
+
+                    if (!request.VoucherItems.All(item => item.Quantity > 0)) 
+                        throw new ArgumentException(VoucherMsg.InvalidVoucherItemQuantity);
+                    
                     //tạo voucher mới
                     newVoucher = await CreateSimpleVoucher(request, code);
 
@@ -60,47 +78,24 @@ namespace EngagementService.Application.Features.Voucher.Commands.Create
                     await _voucherRepository.AddAsync(newVoucher);
                     break;
                 default:
-                    throw new ArgumentException("Invalid voucher category");
+                    throw new ArgumentException(VoucherMsg.InvalidType);
             }
             return Unit.Value;
         }
 
-        //private async Task<Domain.Entities.Voucher> CreateGiftVoucher(CreateVoucherRequest request, string code)
-        //{
-        //    var voucherId = Guid.NewGuid();
-        //    var voucherItems = request.VoucherItems.Select(item => new VoucherItem()
-        //    {
-        //        Id = Guid.NewGuid(),
-        //        VariantId = item.VariantId,
-        //        Quantity = item.Quantity,
-        //        Type = item.Type,
-        //    }).ToList();
-        //    var newVoucher = new Domain.Entities.Voucher()
-        //    {
-        //        Id = voucherId,
-        //        Code = code,
-        //        Category = request.Category,
-        //        Type = request.Type,
-        //        DiscountValue = request.DiscountValue,
-        //        MaxDiscountValue = request.MaxDiscountValue,
-        //        PointCost = request.PointCost,
-        //        MinOrderValue = request.MinOrderValue,
-        //        InitQuantity = request.InitQuantity,
-        //        CurrentQuantity = request.InitQuantity,
-        //        MaxUsagePerUser = request.MaxUsagePerUser,
-        //        EndDate = request.EndDate,
-        //        VoucherItems = voucherItems
-        //    };
-
-        //}
 
         private async Task<Domain.Entities.Voucher> CreateSimpleVoucher(CreateVoucherRequest request, string code)
         {
+            if((request.Type == VoucherType.DISCOUNT_PERCENTAGE || request.Type == VoucherType.SHIPPING_PERCENTAGE) && (!request.DiscountValue.HasValue || request.DiscountValue <= 0 || request.DiscountValue > 100))
+                throw new ArgumentException(VoucherMsg.InvalidDiscountValue);
+            
+            if(request.EndDate < DateTimeOffset.UtcNow)
+                throw new ArgumentException(VoucherMsg.InvalidEndDate);
+
             return new Domain.Entities.Voucher()
             {
                 Id = Guid.NewGuid(),
                 Code = code,
-                Category = request.Category,
                 Type = request.Type,
                 DiscountValue = request.DiscountValue,
                 MaxDiscountValue = request.MaxDiscountValue,
@@ -110,9 +105,7 @@ namespace EngagementService.Application.Features.Voucher.Commands.Create
                 CurrentQuantity = request.InitQuantity,
                 MaxUsagePerUser = request.MaxUsagePerUser,
                 EndDate = request.EndDate
-
             };
-            //await _voucherRepository.AddAsync(newVoucher);
         }
 
         private string GenerateVoucherCode(int length = 10)

@@ -13,9 +13,9 @@ public partial class VoucherItem : SoftDeletedEntity, IEntity
 
     public Guid VariantId { get; set; }
 
-    public int? Quantity { get; set; }
+    public int Quantity { get; set; }
 
-    public VoucherItemType? Type { get; set; }
+    public VoucherItemType Type { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; }
 

@@ -12,6 +12,9 @@ using IdentityService.Infrastructure.ExternalServices;
 using IdentityService.Infrastructure.Persistences.Cache;
 using IdentityService.Infrastructure.Settings;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+using SharedKernel.Constants;
+using SharedKernel.Events;
+using SharedKernel.Infrastructure.Kafka;
 
 namespace IdentityService.API
 {
@@ -78,7 +81,7 @@ namespace IdentityService.API
                 kafkaBootstrap = "localhost:9092";  // Use localhost when running outside Docker
             }
             builder.Configuration["KAFKA_BOOTSTRAP_SERVERS"] = kafkaBootstrap;
-
+            
             // --- APP SERVICES ---
             builder.Services.AddApplication();
             builder.Services.AddScoped<ITokenBlacklist, TokenBlacklist>();
