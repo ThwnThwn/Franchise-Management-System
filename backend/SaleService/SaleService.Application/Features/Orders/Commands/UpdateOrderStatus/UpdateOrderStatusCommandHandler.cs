@@ -5,6 +5,7 @@ using SalesService.Application.Interfaces.Payments;
 using SalesService.Application.Mapping.Orders;
 using SalesService.Application.Persisitences.Orders;
 using SalesService.Application.Persisitences.Outbox;
+using SalesService.Application.Persisitences.Wallets;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
 using SharedKernel.Constants;
@@ -23,11 +24,12 @@ public sealed class UpdateOrderStatusCommandHandler
     private readonly IOutboxRepository _outboxRepository;
     private readonly ILogger<UpdateOrderStatusCommandHandler> _logger;
     private readonly IInventoryServiceClient _inventoryServiceClient;
+    private readonly IWalletRepository _walletRepository;
 
     public UpdateOrderStatusCommandHandler(IOrderRepository orderRepository, IPaymentRepository paymentRepository,
         IOutboxRepository outboxRepository,
         ILogger<UpdateOrderStatusCommandHandler> logger,
-        IKafkaProducer kafkaProducer, IInventoryServiceClient inventoryServiceClient)
+        IKafkaProducer kafkaProducer, IInventoryServiceClient inventoryServiceClient, IWalletRepository walletRepository)
     {
         _orderRepository = orderRepository;
         _paymentRepository = paymentRepository;
@@ -35,6 +37,7 @@ public sealed class UpdateOrderStatusCommandHandler
         _logger = logger;
         _kafkaProducer = kafkaProducer;
         _inventoryServiceClient = inventoryServiceClient;
+        _walletRepository = walletRepository;
     }
 
     public async Task<string> Handle(UpdateOrderStatusCommand commnad, CancellationToken cancellationToken)
@@ -54,12 +57,17 @@ public sealed class UpdateOrderStatusCommandHandler
         {
             return $"Order with id '{request.OrderId}' not found.";
         }
+        if (order.CustomerId == null)
+        {
+            return ("CustomerId is null");  
+        }
+
         if (!OrderStatusTransitionPolicy.CanTransition(order.Status, request.Status))
         {
             return $"Invalid order status transition from {order.Status} to {request.Status}";
         }
 
-        // Đơn hàng hủy thì xóa queue 
+        // Đơn hàng hủy thì xóa queue  || Bù vào wallet nếu đã thanh toán
         if(request.Status == OrderStatus.Cancelled)
         {
             await _inventoryServiceClient.ReleaseStockAsync(new ReleaseStockReq
@@ -67,8 +75,20 @@ public sealed class UpdateOrderStatusCommandHandler
                 OrderId = order.Id,
                 StoreId = order.StoreId!.Value
             });
+            if(order.Status == OrderStatus.ConfirmationPending && order.PaymentMethod == PaymentMethod.VNPay)
+            {
+                var wallet = await _walletRepository.GetByUserIdAsync(order.CustomerId.Value);
+                if(wallet == null || wallet.RowVersion == null)
+                {
+                    return "Cancel fail due to no wallet found";
+                }
+                if(order.PaidAmount == null)
+                {
+                    return $"Cancel fail due to no PaidAmout found in order with ID {order.Id}";
+                }
+                await _walletRepository.AddBalanceAsync(wallet.Id,order.PaidAmount.Value,wallet.RowVersion);
+            }
         }
-
         // Đơn hàng hoàn thành
         if (request.Status == OrderStatus.Completed)
         {

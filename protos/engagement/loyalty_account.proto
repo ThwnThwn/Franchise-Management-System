@@ -44,9 +44,9 @@ message GetByUserPhoneOrEmailRequest {
 }
 
 message GetByFilterRequest {
-  optional string tierId = 2;
-  optional double startAt = 3;
-  optional double endAt = 4;
+  optional string tierId = 1;
+  optional double startAt = 2;
+  optional double endAt = 3;
 }
 // Thông tin tài khoản Loyalty trả về
 message LoyaltyAccountResponse {
