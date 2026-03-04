@@ -137,8 +137,7 @@ public sealed class CreateOrderHandler
 
             orderItems.Add(new OrderItem
             {
-                Id = Guid.NewGuid(),
-                OrderId = Guid.NewGuid(),
+                OrderId = orderId,
                 ProductId = productVariant.ProductId,
                 VariantId = productVariant.VariantId,
                 Quantity = item.Quantity,
@@ -171,11 +170,11 @@ public sealed class CreateOrderHandler
         };
 
         // Set OrderId cho các OrderItems
-        foreach (var orderItem in orderItems)
-        {
-            orderItem.OrderId = order.Id;
-            order.OrderItems.Add(orderItem);
-        }
+        //foreach (var orderItem in orderItems)
+        //{
+        //    orderItem.OrderId = order.Id;
+        //    order.OrderItems.Add(orderItem);
+        //}
 
         // 1. Prepare Outbox Message (BEFORE saving order)
         // Outbox: KHÔNG publish OrderStatusEvent khi PaymentPending
