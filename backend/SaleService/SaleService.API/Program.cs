@@ -109,7 +109,11 @@ public class Program
             kafkaBootstrap = "localhost:9092";  // Use localhost when running outside Docker
         }
         builder.Configuration["KAFKA_BOOTSTRAP_SERVERS"] = kafkaBootstrap;
-
+        // KAFKA CONSUMER (Generic)
+        builder.Services.AddKafkaConsumer(config =>
+        {
+            config.Register<UserRegisteredEvent>(KafkaTopics.WalletAccount, typeof(SalesService.Application.EventHandler.CreateWalletEvent.CreateWalletEventConsumer));
+        });
         // Configure AutoMapper
         var applicationAssembly = typeof(OrderMappingProfile).Assembly;
 
@@ -152,6 +156,7 @@ public class Program
             registry.Register<OrderPaidEvent>(KafkaTopics.OrderPaid, KafkaTopics.OrderPaid);
             registry.Register<OrderCancelledEvent>(KafkaTopics.OrderCancelled, KafkaTopics.OrderCancelled);
             registry.Register<ProcessOrderRewardEvent>(KafkaTopics.ProcessOrderReward, KafkaTopics.ProcessOrderReward);
+            registry.Register<UserRegisteredEvent>(KafkaTopics.WalletAccount, KafkaTopics.WalletAccount);
             return registry;
         });
 
