@@ -248,7 +248,7 @@ public class SmtpEmailSender : IEmailSender
 
         <div style='text-align: center; margin-bottom: 25px;'>
             <h1 style='margin: 0; font-size: 28px; color: #4b2e2a;'>
-                Cà Hông Bạn
+                Cà Hong Bạn
             </h1>
             <p style='margin: 6px 0 0; font-size: 13px; color: #a67c52;'>
                 Fresh drinks. Order status updated.
