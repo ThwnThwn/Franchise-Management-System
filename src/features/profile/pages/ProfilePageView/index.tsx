@@ -5,13 +5,14 @@ import { Gender } from "@/constants/enums"
 import { GenderLabels } from "@/constants/labels"
 import { NAME_REGEX, PHONE_REGEX } from "@/constants/regexs"
 import { AUTH_ERRORS } from "@/features"
-import { useGetMe, useUpdateMe } from "@/features/profile/hooks/useProfile"
+import { useGetMe, useGetMyLoyalty, useUpdateMe } from "@/features/profile/hooks/useProfile"
 import { UserUpdateReq } from "@/features/profile/models/request"
 import { useUserHelper } from "@/hooks/reuseable/useUserHelper"
 import { EnumPicker } from "@/components/modules/EnumPicker"
 import { useFormik } from "formik"
-import { Coffee, Mail, MapPin, Phone, User, Pencil, Save, X } from "lucide-react"
+import { Coffee, Mail, MapPin, Phone, User, Pencil, Save, X, ChevronRight } from "lucide-react"
 import React, { useCallback, useState } from "react"
+import Link from "next/link"
 import * as Yup from "yup"
 import { motion } from "framer-motion"
 import { parseDate } from "@internationalized/date"
@@ -22,7 +23,7 @@ export default function ProfilePageView() {
     const updateMeMutation = useUpdateMe({ onSuccess: undefined })
     const { toFullName } = useUserHelper()
     const { data: user } = useGetMe()
-    // const { toDate, formatDateTime } = useDay({ defaultFormat: "YYYY-MM-DD" })
+    const { data: loyalty } = useGetMyLoyalty(user?.email)
 
     const handleUpdateMe = useCallback(
         async (values: UserUpdateReq) => {
@@ -84,10 +85,15 @@ export default function ProfilePageView() {
                             </h2>
                             <p className="text-amber-600 font-medium">@{user.username}</p>
 
-                            <div className="mt-4 flex gap-2">
+                            <div className="mt-4 flex flex-wrap gap-2 justify-center">
                                 <span className="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-semibold uppercase tracking-wider">
                                     {user.role?.name || "Khách hàng thân thiết"}
                                 </span>
+                                {loyalty?.currentTier?.name && (
+                                    <span className="px-3 py-1 bg-yellow-50 text-yellow-700 border border-yellow-200 rounded-full text-xs font-semibold flex items-center gap-1">
+                                        ⭐ {loyalty.currentTier.name}
+                                    </span>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -278,8 +284,8 @@ export default function ProfilePageView() {
                                     value={
                                         updateMeFormik.values.dateOfBirth
                                             ? parseDate(
-                                                  updateMeFormik.values.dateOfBirth.split("T")[0]
-                                              )
+                                                updateMeFormik.values.dateOfBirth.split("T")[0]
+                                            )
                                             : undefined
                                     }
                                     onChange={(date) => {
@@ -325,17 +331,50 @@ export default function ProfilePageView() {
                     </div>
 
                     {/* Fun Stats or Banner */}
-                    <div className="mt-8 bg-linear-to-r from-amber-700 to-amber-900 rounded-3xl p-8 text-white shadow-xl flex items-center justify-between relative overflow-hidden">
+                    <div className="mt-8 bg-linear-to-r from-amber-700 to-amber-900 rounded-3xl p-8 text-white shadow-xl flex flex-col md:flex-row md:items-center justify-between relative overflow-hidden gap-6">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
-                        <div className="relative z-10">
-                            <h3 className="text-2xl font-bold mb-2">Thành Viên Thân Thiết</h3>
+                        <div className="relative z-10 flex-1">
+                            <h3 className="text-2xl font-bold mb-2">Thành Viên {loyalty?.currentTier?.name || "Thân Thiết"}</h3>
                             <p className="text-amber-100 max-w-md">
-                                Cập nhật đầy đủ thông tin để nhận thêm ưu đãi đặc biệt từ Cà phê Của
-                                Bạn.
+                                Cập nhật đầy đủ thông tin để nhận thêm ưu đãi đặc biệt từ Cà phê Của Bạn.
                             </p>
+                            {loyalty && (
+                                <div>
+                                    <div className="mt-4 flex flex-wrap gap-3 text-sm font-medium">
+                                        <div className="bg-white/20 px-3 py-1.5 rounded-xl backdrop-blur-xs border border-white/10">
+                                            Điểm hiện có: <span className="text-amber-200 font-bold ml-1">{loyalty.availablePoints || 0}</span>
+                                        </div>
+                                        <div className="bg-white/20 px-3 py-1.5 rounded-xl backdrop-blur-xs border border-white/10">
+                                            Đã chi tiêu: <span className="text-amber-200 font-bold ml-1">{Number(loyalty.totalSpent || 0).toLocaleString()}đ</span>
+                                        </div>
+                                    </div>
+                                    <div className="mt-5">
+                                        <Link href="/loyalty" className="inline-flex items-center gap-2 bg-amber-900/40 hover:bg-amber-800/60 transition-colors px-4 py-2 rounded-xl text-white font-medium text-sm backdrop-blur-md border border-white/10 shadow-sm group">
+                                            Chi tiết quyền lợi <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                                        </Link>
+                                    </div>
+                                </div>
+                            )}
                         </div>
-                        <div className="hidden md:flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl border border-white/30">
-                            <Coffee size={32} className="text-amber-100" />
+                        <div className="relative z-10 hidden md:flex flex-col items-center justify-center shrink-0">
+                            {loyalty?.currentTier?.name ? (
+                                <div className="w-28 h-28 bg-gradient-to-br from-white/30 to-white/5 backdrop-blur-sm shadow-[0_0_20px_rgba(255,255,255,0.1)] rounded-full p-2 border border-white/20 transform hover:scale-105 transition-transform duration-300 flex items-center justify-center">
+                                    <img
+                                        src={`/images/tiers/${loyalty.currentTier.name.toLowerCase().includes('bạc') || loyalty.currentTier.name.toLowerCase().includes('silver') ? 'silver.png' :
+                                            loyalty.currentTier.name.toLowerCase().includes('vàng') || loyalty.currentTier.name.toLowerCase().includes('gold') ? 'gold.png' :
+                                                loyalty.currentTier.name.toLowerCase().includes('kim cương') || loyalty.currentTier.name.toLowerCase().includes('platinum') || loyalty.currentTier.name.toLowerCase().includes('diamond') ? 'platinum.png' :
+                                                    'bronze.png' // default
+                                            }`}
+                                        alt={loyalty.currentTier.name}
+                                        className="w-full h-full object-contain drop-shadow-[0_10px_10px_rgba(0,0,0,0.3)]"
+                                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                                    />
+                                </div>
+                            ) : (
+                                <div className="flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-md rounded-2xl border border-white/30 shadow-lg">
+                                    <Coffee size={40} className="text-amber-100" />
+                                </div>
+                            )}
                         </div>
                     </div>
                 </motion.div>

@@ -18,5 +18,8 @@ export const QUERY_KEYS = {
     SHIFT_TEMPLATES: "shift-templates" as const,
     SHIFT_RULES: "shift-rules" as const,
     SHIFT_AVAILABILITIES: "shift-availabilities" as const,
-    TIME_LOGS: "time-logs" as const
+    TIME_LOGS: "time-logs" as const,
+    LOYALTY_ACCOUNT: "loyalty-account" as const,
+    MEMBERSHIP_TIERS: "membership-tiers" as const,
+    POINT_LOGS: "point-logs" as const
 }

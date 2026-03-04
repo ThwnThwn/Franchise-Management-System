@@ -8,6 +8,35 @@ import { STRINGS } from "@/constants/strings"
 import { BackendError } from "@/models/common/respone"
 import { User } from "@/models/user"
 
+export const useGetMyLoyalty = (email?: string) => {
+    return useQuery({
+        queryKey: [QUERY_KEYS.LOYALTY_ACCOUNT, email],
+        queryFn: () => profileApi.getMyLoyalty(email!),
+        enabled: !!email,
+        staleTime: 5 * 60 * 1000,
+        select: (data) => data?.[0] ?? null  // lấy record đầu tiên
+    })
+}
+
+export const useGetMembershipTiers = () => {
+    return useQuery({
+        queryKey: [QUERY_KEYS.MEMBERSHIP_TIERS],
+        queryFn: () => profileApi.getMembershipTiers(),
+        staleTime: 10 * 60 * 1000, // 10 phút vì ít thay đổi
+    })
+}
+
+export const useGetMyPointLogs = (params?: any) => {
+    const isLogined = useTokenStore((s) => !!s.accessToken)
+    return useQuery({
+        queryKey: [QUERY_KEYS.POINT_LOGS, params],
+        queryFn: () => profileApi.getMyPointLogs(params),
+        enabled: isLogined,
+        staleTime: 3 * 60 * 1000, // 3 phút
+    })
+}
+
+
 export const useGetMe = () => {
     const isLogined = useTokenStore((s) => !!s.accessToken)
 
