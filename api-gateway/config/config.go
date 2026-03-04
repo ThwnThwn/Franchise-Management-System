@@ -9,12 +9,13 @@ type Config struct {
 	Port           string
 	FrontEndOrigin string
 
-	CalcServiceUrl      CalcServiceUrl
-	IdentityServiceUrl  IdentityServiceUrl
-	ProductServiceUrl   ProductServiceUrl
-	SalesServiceUrl     SalesServiceUrl
-	FranchiseServiceUrl FranchiseServiceUrl
-	InventoryServiceUrl InventoryServiceUrl
+	CalcServiceUrl       CalcServiceUrl
+	IdentityServiceUrl   IdentityServiceUrl
+	ProductServiceUrl    ProductServiceUrl
+	SalesServiceUrl      SalesServiceUrl
+	FranchiseServiceUrl  FranchiseServiceUrl
+	InventoryServiceUrl  InventoryServiceUrl
+	EngagementServiceUrl EngagementServiceUrl
 
 	JwtRefreshTokenExpDays          int
 	JwtSecret                       string
@@ -59,6 +60,7 @@ type ProductServiceUrl string
 type SalesServiceUrl string
 type FranchiseServiceUrl string
 type InventoryServiceUrl string
+<<<<<<< HEAD
 <<<<<<< HEAD
 
 func LoadConfig() *Config {
@@ -155,3 +157,6 @@ func getEnvBool(key string, fallback bool) bool {
 }
 =======
 >>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
+=======
+type EngagementServiceUrl string
+>>>>>>> 62648aa7a56b46631a1a4ae7906bbbe8dfe772f9

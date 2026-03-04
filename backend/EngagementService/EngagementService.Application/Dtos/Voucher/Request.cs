@@ -12,13 +12,7 @@ namespace EngagementService.Application.Dtos.Voucher
     {
         public string Code { get; set; } = null!;
 
-<<<<<<< HEAD
-        public VoucherCategory Category { get; set; }
-
-        public VoucherDiscountType Type { get; set; }
-=======
         public VoucherType Type { get; set; }
->>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
 
         public decimal? DiscountValue { get; set; }
 
@@ -44,13 +38,11 @@ namespace EngagementService.Application.Dtos.Voucher
 
         public VoucherItemType Type { get; set; }
     }
-<<<<<<< HEAD
-=======
 
     public class UpdateVoucherRequest
     {
         public Guid Id { get; set; }
-        
+
         //public bool? IsActive { get; set; }
         public decimal? DiscountValue { get; set; }
 
@@ -79,5 +71,4 @@ namespace EngagementService.Application.Dtos.Voucher
         public Guid Id { get; set; }
         public bool IsActive { get; set; }
     }
->>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
 }

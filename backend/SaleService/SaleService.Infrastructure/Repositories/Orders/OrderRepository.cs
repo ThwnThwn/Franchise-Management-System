@@ -1,3 +1,6 @@
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using SalesService.Application.Features.Orders.Queries.GetByIds;
 using SalesService.Application.Features.Orders.Queries.GetOrderVolume;
@@ -124,7 +127,6 @@ public class OrderRepository : IOrderRepository
 
         return (items, totalCount);
     }
-
     public async Task SaveAsync(CancellationToken cancellationToken = default)
     {
         await _context.SaveChangesAsync(cancellationToken);
@@ -205,7 +207,6 @@ public class OrderRepository : IOrderRepository
 
         return aggregatedResult;
     }
-
     public async Task<List<OrderVolumePerDayDto>> GetOrderVolumeAsync(
         DateOnly fromDate,
         DateOnly toDate,
@@ -269,8 +270,6 @@ public class OrderRepository : IOrderRepository
         }).ToList();
     }
 
-<<<<<<< HEAD
-
     public async Task<List<Order>> GetOrdersByTypeAsync(OrderType type, CancellationToken cancellationToken)
     {
         return await _context.Orders
@@ -285,9 +284,6 @@ public class OrderRepository : IOrderRepository
             .AnyAsync(o => o.Type == type && !o.IsDeleted, cancellationToken);
     }
 
-
-=======
->>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
     public async Task<IEnumerable<GetByUserIdsRes>> GetByUserIdsAsync(List<Guid> userIds, CancellationToken cancellationToken = default)
     {
         if (userIds == null || !userIds.Any())
@@ -313,9 +309,5 @@ public class OrderRepository : IOrderRepository
             OrderCount = dictionary.TryGetValue(id, out var count) ? count : 0
         }).ToList();
     }
-<<<<<<< HEAD
-}
 
-=======
 }
->>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960

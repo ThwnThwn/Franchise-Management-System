@@ -55,11 +55,12 @@ func LoadConfig() *Config {
 
 		CalcServiceUrl: CalcServiceUrl(getEnv("CALC_SERVICE_URL", "localhost:5099")),
 
-		IdentityServiceUrl:  IdentityServiceUrl(getEnvUrl("IDENTITY_SERVICE_URL", "localhost:5001")),
-		ProductServiceUrl:   ProductServiceUrl(getEnvUrl("PRODUCT_SERVICE_URL", "localhost:5002")),
-		SalesServiceUrl:     SalesServiceUrl(getEnvUrl("SALES_SERVICE_URL", "localhost:5003")),
-		InventoryServiceUrl: InventoryServiceUrl(getEnvUrl("INVENTORY_SERVICE_URL", "localhost:5005")),
-		FranchiseServiceUrl: FranchiseServiceUrl(getEnvUrl("FRANCHISE_SERVICE_URL", "localhost:5006")),
+		IdentityServiceUrl:   IdentityServiceUrl(getEnvUrl("IDENTITY_SERVICE_URL", "localhost:5001")),
+		ProductServiceUrl:    ProductServiceUrl(getEnvUrl("PRODUCT_SERVICE_URL", "localhost:5002")),
+		SalesServiceUrl:      SalesServiceUrl(getEnvUrl("SALES_SERVICE_URL", "localhost:5003")),
+		InventoryServiceUrl:  InventoryServiceUrl(getEnvUrl("INVENTORY_SERVICE_URL", "localhost:5005")),
+		FranchiseServiceUrl:  FranchiseServiceUrl(getEnvUrl("FRANCHISE_SERVICE_URL", "localhost:5006")),
+		EngagementServiceUrl: EngagementServiceUrl(getEnvUrl("ENGAGEMENT_SERVICE_URL", "localhost:5007")),
 
 		JwtRefreshTokenExpDays:          getEnvInt("JWT_REFRESH_TOKEN_EXPIRATION_DAYS", 7),
 		JwtSecret:                       getEnv("JWT_SECRET", ""),

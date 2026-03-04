@@ -71,12 +71,7 @@ public class Program
         dataSourceBuilder.MapEnum<PointActionType>("point_action_type", translator);
         dataSourceBuilder.MapEnum<PointReasonCode>("point_reason_code", translator);
         dataSourceBuilder.MapEnum<UserVoucherStatus>("user_voucher_status", translator);
-<<<<<<< HEAD
-        dataSourceBuilder.MapEnum<VoucherCategory>("voucher_category", translator);
-        dataSourceBuilder.MapEnum<VoucherDiscountType>("voucher_discount_type", translator);
-=======
         dataSourceBuilder.MapEnum<VoucherType>("voucher_type", translator);
->>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
         dataSourceBuilder.MapEnum<VoucherItemType>("voucher_item_type", translator);
 
         // 4. Xây dựng DataSource

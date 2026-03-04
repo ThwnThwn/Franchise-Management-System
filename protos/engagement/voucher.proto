@@ -12,21 +12,6 @@ import "google/protobuf/timestamp.proto";
 service VoucherGrpc {
   // Hàm tạo Voucher nhận vào CreateVoucherRequest và trả về Empty
   rpc CreateVoucher (CreateVoucherRequest) returns (google.protobuf.Empty);
-<<<<<<< HEAD
-}
-
-// Định nghĩa các Enum dựa trên code C# của bạn
-enum VoucherCategory {
-  DISCOUNT = 0;
-  SHIPPING = 1;
-  GIFT = 2;
-}
-
-enum VoucherDiscountType {
-  PERCENTAGE = 0;
-  FIXED_AMOUNT = 1;
-  GIFT_ITEM = 2;
-=======
 
   //Hàm update Voucher
   rpc UpdateVoucher (UpdateVoucherRequest) returns (google.protobuf.Empty);
@@ -51,7 +36,6 @@ enum VoucherType {
   SHIPPING_PERCENTAGE = 2;
   SHIPPING_FIXED_AMOUNT = 3;
   GIFT = 4;
->>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
 }
 
 enum VoucherItemType {
@@ -69,12 +53,7 @@ message CreateVoucherItemReq {
 // Message Request chính cho CreateVoucher
 message CreateVoucherRequest {
   string code = 1;
-<<<<<<< HEAD
-  VoucherCategory category = 2;
-  VoucherDiscountType type = 3;
-=======
   VoucherType type = 2;
->>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
   optional string discount_value = 4;
   optional string max_discount_value = 5;
   optional string min_order_value = 6;
@@ -88,8 +67,6 @@ message CreateVoucherRequest {
   
   // Danh sách các VoucherItems (IEnumerable)
   repeated CreateVoucherItemReq voucher_items = 11;
-<<<<<<< HEAD
-=======
 }
 
 message UpdateVoucherRequest {
@@ -163,5 +140,4 @@ message GetVoucherByCodeRequest {
 
 message DeleteVoucherRequest{
   string id = 1;
->>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
 }

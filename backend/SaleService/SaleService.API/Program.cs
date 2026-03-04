@@ -3,7 +3,6 @@ using AutoMapper;
 using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -63,8 +62,6 @@ public class Program
         // Add environment variables to configuration
         builder.Configuration.AddEnvironmentVariables();
 
-<<<<<<< HEAD
-=======
         //builder.WebHost.ConfigureKestrel(options =>
         //{
         //    options.ConfigureEndpointDefaults(listenOptions =>
@@ -72,7 +69,6 @@ public class Program
         //        listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2;
         //    });
         //});
->>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
         var salesPort = int.Parse(builder.Configuration["SALES_PORT"] ?? "5003");
         builder.WebHost.ConfigureKestrel(options =>
         {
@@ -97,7 +93,7 @@ public class Program
 
         // Add API documentation
         builder.Services.AddEndpointsApiExplorer();
-        
+
 
         // Interceptors
         builder.Services.AddScoped<UpdateTimestampInterceptor>();
@@ -267,7 +263,7 @@ public class Program
                 Encoding.UTF8.GetBytes(secret)
             ),
 
-           RoleClaimType = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+            RoleClaimType = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
         };
 
         options.Events = new JwtBearerEvents

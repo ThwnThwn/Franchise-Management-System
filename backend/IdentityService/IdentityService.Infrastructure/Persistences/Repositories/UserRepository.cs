@@ -125,15 +125,11 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
                 .AsNoTracking()
                 .Where(u => !u.IsDeleted);
 
-<<<<<<< HEAD
-            query = query.Where(u => ids.Contains(u.Id));
-=======
             // Nếu mà không null thì tức đang có filter loyalty 
             if (ids != null && ids.Any())
             {
                 query = query.Where(u => ids.Contains(u.Id));
             }
->>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
 
             if (!string.IsNullOrEmpty(keyword))
             {
@@ -152,12 +148,12 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
                 query = query.Where(u => u.Role.Slug == roleSlug);
             }
             // Filter by StoreId
-            if(!string.IsNullOrEmpty(StoredId.ToString()))
+            if (!string.IsNullOrEmpty(StoredId.ToString()))
             {
                 query = query.Where(u => u.HomeStoreId == StoredId);
             }
             // Filter by bool CurrentHourlyWage
-            if(HasHourlyWage == true)
+            if (HasHourlyWage == true)
             {
                 query = query.Where(u => u.CurrentHourlyWage != null);
             }
@@ -172,8 +168,8 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
                 return null;
 
             // 2. Thực hiện truy vấn an toàn
-            var customer =  await _dbContext.Users
-                .AsNoTracking() 
+            var customer = await _dbContext.Users
+                .AsNoTracking()
                 .FirstOrDefaultAsync(u => u.Phone != null && u.Phone == phone);
             return customer;
         }
@@ -193,7 +189,7 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
         public async Task<List<User>> GetUsersByEmailAsync(string? email)
         {
             // 2. Thực hiện truy vấn an toàn
-            if(string.IsNullOrWhiteSpace(email))
+            if (string.IsNullOrWhiteSpace(email))
                 email = "";
 
             var customers = await _dbContext.Users

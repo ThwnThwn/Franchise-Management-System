@@ -1,10 +1,4 @@
-<<<<<<< HEAD
-﻿using EngagementService.Infrastructure.Protos;
-using Google.Protobuf.WellKnownTypes;
-using Grpc.Core;
-using MediatR;
-=======
-﻿using EngagementService.Application.Features.Voucher.Commands.Create;
+using EngagementService.Application.Features.Voucher.Commands.Create;
 using EngagementService.Application.Features.Voucher.Commands.Delete;
 using EngagementService.Application.Features.Voucher.Commands.Update;
 using EngagementService.Application.Features.Voucher.Commands.UpdateVoucherStatus;
@@ -17,7 +11,6 @@ using Grpc.Core;
 using MediatR;
 using Microsoft.AspNetCore.HttpOverrides;
 using System.Runtime.CompilerServices;
->>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
 
 namespace EngagementService.API.Services.Voucher
 {
@@ -35,17 +28,6 @@ namespace EngagementService.API.Services.Voucher
             var createReq = new Application.Dtos.Voucher.CreateVoucherRequest()
             {
                 Code = request.Code,
-<<<<<<< HEAD
-                Category = (Domain.Constants.VoucherCategory)request.Category,
-                DiscountValue = string.IsNullOrEmpty(request.DiscountValue) ? null : decimal.Parse(request.DiscountValue),
-                MaxDiscountValue = string.IsNullOrEmpty(request.MaxDiscountValue) ? null : decimal.Parse(request.MaxDiscountValue),
-                MinOrderValue = string.IsNullOrEmpty(request.MinOrderValue) ? null : decimal.Parse(request.MinOrderValue),
-                PointCost = string.IsNullOrEmpty(request.PointCost) ? null : decimal.Parse(request.PointCost),
-                InitQuantity = request.InitQuantity == 0 ? null : request.InitQuantity,
-                MaxUsagePerUser = request.MaxUsagePerUser == 0 ? null : request.MaxUsagePerUser,
-                EndDate = request.EndDate != null ? request.EndDate.ToDateTimeOffset() : null,
-                Type = (Domain.Constants.VoucherDiscountType)request.Type,
-=======
                 Type = (Domain.Constants.VoucherType)request.Type,
 
                 DiscountValue = string.IsNullOrEmpty(request.DiscountValue) ? null : decimal.Parse(request.DiscountValue),
@@ -62,7 +44,6 @@ namespace EngagementService.API.Services.Voucher
 
                 EndDate = request.EndDate != null ? request.EndDate.ToDateTimeOffset() : null,
 
->>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
                 VoucherItems = request.VoucherItems.Select(item => new Application.Dtos.Voucher.CreateVoucherItemReq()
                 {
                     VariantId = Guid.Parse(item.VariantId),
@@ -71,11 +52,6 @@ namespace EngagementService.API.Services.Voucher
                 }).ToList()
             };
 
-<<<<<<< HEAD
-            await _mediator.Send(new Application.Features.Voucher.Commands.Create.CreateVoucherCommand(Request: createReq));
-            return new Empty();
-        }
-=======
             await _mediator.Send(new CreateVoucherCommand(Request: createReq));
             return new Empty();
         }
@@ -183,8 +159,7 @@ namespace EngagementService.API.Services.Voucher
         public async override Task<Empty> DeleteVoucher(DeleteVoucherRequest request, ServerCallContext context)
         {
             await _mediator.Send(new DeleteVoucherCommand(Guid.Parse(request.Id)));
-            return new Empty(); 
+            return new Empty();
         }
->>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
     }
 }

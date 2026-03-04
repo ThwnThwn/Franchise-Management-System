@@ -14,11 +14,8 @@ service PaymentGrpc {
 
   // Lấy lịch sử thanh toán của customer (customer dashboard)
   rpc GetMyPaymentHistory (GetMyPaymentHistoryRequest) returns (GetMyPaymentHistoryReply);
-<<<<<<< HEAD
-=======
 
   rpc ProcessVnPayReturn (VnPayReturnRequest) returns (VnPayReturnResponse);
->>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
 }
 
 enum PaymentMethodType {
@@ -89,8 +86,6 @@ message GetMyPaymentHistoryReply {
   int32  page_size   = 3;
   int64  total_count = 4;
   int32  total_pages = 5;
-<<<<<<< HEAD
-=======
 }
 
 message VnPayReturnRequest {
@@ -100,5 +95,4 @@ message VnPayReturnRequest {
 message VnPayReturnResponse {
   bool is_success = 1;
   string message = 2;
->>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
 }

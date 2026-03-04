@@ -7,6 +7,11 @@ type LoyaltyResponse struct {
 	CurrentTier     *MembershipTier `json:"currentTier"`
 }
 
+type LoyaltyAccountResponse struct {
+	LoyaltyResponse
+	UserName string `json:"userName"`
+}
+
 type MembershipTier struct {
 	Id               string  `json:"id"`
 	Name             string  `json:"name"`
@@ -14,4 +19,18 @@ type MembershipTier struct {
 	DiscountRate     float64 `json:"discountRate"`
 	AmountPerPoint   string  `json:"amountPerPoint"`
 	ValuePerPoint    string  `json:"valuePerPoint"`
+}
+
+type LoyaltyReportResponse struct {
+	TotalMembers        int32               `json:"totalMembers"`
+	TotalPointsEarned   float64             `json:"totalPointsEarned"`
+	TotalPointsRedeemed float64             `json:"totalPointsRedeemed"`
+	TierDistribution    []*TierDistribution `json:"tierDistribution"`
+	FileContent         []byte              `json:"fileContent"`
+	FileName            string              `json:"fileName"`
+}
+
+type TierDistribution struct {
+	TierName    string `json:"tierName"`
+	MemberCount int32  `json:"memberCount"`
 }

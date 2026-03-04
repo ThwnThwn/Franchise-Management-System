@@ -82,7 +82,7 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
             Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone,
             Address = string.IsNullOrWhiteSpace(request.Address) ? null : request.Address,
             RoleSlug = request.RoleSlug,
-            CurrentHourlyWage = request.HasCurrentHourlyWage? (decimal?)request.CurrentHourlyWage: null,
+            CurrentHourlyWage = request.HasCurrentHourlyWage ? (decimal?)request.CurrentHourlyWage : null,
             HomeStoreId = Guid.Parse(string.IsNullOrWhiteSpace(request.HomeStoreId) ? null : request.HomeStoreId)
 
         }));
@@ -146,18 +146,13 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
         var query = new GetAllUsersQuery()
         {
             RoleSlug = request.RoleSlug,
-            StoreId = Guid.TryParse(request.HomeStoreId, out var storeId)? storeId: null,
+            StoreId = Guid.TryParse(request.HomeStoreId, out var storeId) ? storeId : null,
             HasHourlyWage = request.HasHourlyWage,
             Keyword = request.Keyword,
             OrderCount = request.HasOrderCount ? request.OrderCount : null,
-            TierId = Guid.TryParse(request.TierId, out var parsed)? parsed: null,
-<<<<<<< HEAD
-            StartAt = (decimal)request.StartAt,
-            EndAt = (decimal)request.EndAt,
-=======
+            TierId = Guid.TryParse(request.TierId, out var parsed) ? parsed : null,
             StartAt = request.HasStartAt ? (decimal)request.StartAt : null,
-            EndAt = request.HasEndAt? (decimal)request.EndAt : null,
->>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
+            EndAt = request.HasEndAt ? (decimal)request.EndAt : null,
             Page = request.Page,
             PageSize = request.PageSize
         };
