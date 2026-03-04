@@ -276,46 +276,6 @@ func (h *OrderHandler) UpdateOrderStatus(c *gin.Context) error {
 	return nil
 }
 
-// CreatePaymentUrl
-// @Summary      Generate Payment URL
-// @Description  Generate a payment link (e.g., VNPay, Momo) for the specific order.
-// @Tags         Orders
-// @Accept       json
-// @Produce      json
-// @Security     BearerAuth
-// @Param        id       path     string                    true  "Order UUID"
-// @Param        request  body     order.CreatePaymentRequest true "Payment details"
-// @Success      200      {object} map[string]interface{}    "Payment URL"
-// @Failure      400      {object} map[string]string         "Validation error"
-// @Router       /orders/{id}/payment [post]
-func (h *OrderHandler) CreatePaymentUrl(c *gin.Context) error {
-	var req order.CreatePaymentRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		return validation.TranslateValidationError(err)
-	}
-
-	id := c.Param("id")
-	orderId, err := uuid.Parse(id)
-	if err != nil {
-		return errorcode.ErrInvalidId
-	}
-
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
-	res, err := h.orderGW.CreatePaymentUrl(ctx, orderId, &req)
-	if err != nil {
-		return err
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"paymentUrl": res,
-	})
-	return nil
-}
-
 // GetRevenueReport
 // @Summary      Get Revenue Report (JSON)
 // @Description  Get detailed revenue breakdown by product and category for charts.

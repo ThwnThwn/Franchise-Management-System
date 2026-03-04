@@ -1,7 +1,6 @@
 package sales
 
 import (
-	"api-gateway/global"
 	salesGW "api-gateway/internal/application/gateways/sales"
 	"api-gateway/internal/domain/constants/enum"
 	"api-gateway/internal/domain/models/common"
@@ -14,15 +13,13 @@ import (
 )
 
 type OrderGrpcClient struct {
-	client        salesPb.OrderGrpcClient
-	paymentClient salesPb.PaymentGrpcClient
+	client salesPb.OrderGrpcClient
 }
 
 // ProvideOrderClient trích xuất Order Client từ Factory
 func ProvideOrderClient(f *salesClientFactory) salesGW.IOrderService {
 	return &OrderGrpcClient{
-		client:        salesPb.NewOrderGrpcClient(f.conn),
-		paymentClient: salesPb.NewPaymentGrpcClient(f.conn),
+		client: salesPb.NewOrderGrpcClient(f.conn),
 	}
 }
 
@@ -166,29 +163,6 @@ func (o *OrderGrpcClient) UpdateStatus(ctx context.Context, id uuid.UUID, status
 	})
 
 	return err
-}
-
-// CreatePaymentUrl implements sales.IOrderService.
-func (o *OrderGrpcClient) CreatePaymentUrl(ctx context.Context,
-	id uuid.UUID, req *order.CreatePaymentRequest,
-) (string, error) {
-	var returnUrl string
-	if req.ReturnUrl != nil {
-		returnUrl = *req.ReturnUrl
-	} else {
-		returnUrl = global.Config.FrontEndOrigin + "/orders"
-	}
-
-	res, err := o.paymentClient.CreatePayment(ctx, &salesPb.CreatePaymentRequest{
-		OrderId:       id.String(),
-		ReturnUrl:     &returnUrl,
-		PaymentMethod: salesPb.PaymentMethodType(req.PaymentMethod),
-	})
-	if err != nil {
-		return "", err
-	}
-
-	return res.Url, nil
 }
 
 // GetOrderVolume implements sales.IOrderService.

@@ -134,7 +134,9 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, func
 	}
 	iOrderService := sales.ProvideOrderClient(salesClientFactory)
 	orderHandler := sales2.NewOrderHandler(iOrderService, iStoreService)
-	orderRouter := orders.NewRouter(cfg, authMiddleware, orderHandler)
+	iPaymentService := sales.ProvidePaymentClient(salesClientFactory, cfg)
+	paymentHandler := sales2.NewPaymentHandler(cfg, iPaymentService)
+	orderRouter := orders.NewRouter(cfg, authMiddleware, orderHandler, paymentHandler)
 	iCartService := sales.ProvideCartClient(salesClientFactory)
 	cartHandler := sales2.NewCartHandler(iCartService)
 	cartRouter := carts.NewRouter(cfg, authMiddleware, cartHandler)
