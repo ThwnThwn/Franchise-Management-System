@@ -7,6 +7,7 @@ using IdentityService.Application.Dtos.User.Respone;
 using IdentityService.Application.ExternalServices;
 using IdentityService.Application.Persistences.Repositories;
 using MediatR;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 
 namespace IdentityService.Application.Features.Users.Queries.GetAllUser;
 
@@ -30,6 +31,7 @@ public class GetAllUsersQueryHandler : IRequestHandler<GetAllUsersQuery, PagedRe
     public async Task<PagedResult<UserRep>> Handle(GetAllUsersQuery query, CancellationToken cancellationToken)
     {
         List<Guid>? filteredUserIds = null;
+<<<<<<< HEAD
         var role = await _roleRepository.GetBySlugAsync(query.RoleSlug);
         var roleResponse = _mapper.Map<RoleUserRep>(role);
         // Lấy all User theo Field tier + range money 
@@ -40,6 +42,23 @@ public class GetAllUsersQueryHandler : IRequestHandler<GetAllUsersQuery, PagedRe
         {
             Console.WriteLine(id);
         }
+=======
+        IEnumerable<LoyaltyRes> loyaltyResponse = null;
+
+        var role = await _roleRepository.GetBySlugAsync(query.RoleSlug);
+        var roleResponse = _mapper.Map<RoleUserRep>(role);
+        // Lấy all User theo Field tier + range money 
+        if (query.TierId != null  || query.StartAt != null || query.EndAt != null)
+        {
+            loyaltyResponse = await _engagementServiceClient.GetByFilter(query.TierId, query.StartAt, query.EndAt);
+            filteredUserIds = loyaltyResponse.Select(x => x.Id).ToList();
+        }
+        //Console.WriteLine("IDs sent to Users table:");
+        //foreach (var id in loyaltyResponse.Select(x => x.Id))
+        //{
+        //    Console.WriteLine(id);
+        //}
+>>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
         // Lấy all OrderCountUser 
         var orderCounts = await _saleServiceClient.GetCountOrderByUserIds(filteredUserIds ?? new List<Guid>());
         if (query.OrderCount.HasValue)
@@ -53,7 +72,11 @@ public class GetAllUsersQueryHandler : IRequestHandler<GetAllUsersQuery, PagedRe
             filteredUserIds = matchedUsers;
         }
         // Lưu map key Id - value loyaltyResponse
+<<<<<<< HEAD
         var loyaltyDict = loyaltyResponse.ToDictionary(x => x.Id);
+=======
+        var loyaltyDict = loyaltyResponse?.ToDictionary(x => x.Id)?? new Dictionary<Guid, LoyaltyRes>();
+>>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
         // Lưu Map key Id - value CountOrder
         var UserCountOrdersDict = orderCounts.ToDictionary(x => x.UserId, x => x.OrderCount);
 

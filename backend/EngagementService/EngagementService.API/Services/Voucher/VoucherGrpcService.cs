@@ -1,7 +1,23 @@
+<<<<<<< HEAD
 ﻿using EngagementService.Infrastructure.Protos;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using MediatR;
+=======
+﻿using EngagementService.Application.Features.Voucher.Commands.Create;
+using EngagementService.Application.Features.Voucher.Commands.Delete;
+using EngagementService.Application.Features.Voucher.Commands.Update;
+using EngagementService.Application.Features.Voucher.Commands.UpdateVoucherStatus;
+using EngagementService.Application.Features.Voucher.Queries.GetAll;
+using EngagementService.Application.Features.Voucher.Queries.GetByCode;
+using EngagementService.Domain.Constants;
+using EngagementService.Infrastructure.Protos;
+using Google.Protobuf.WellKnownTypes;
+using Grpc.Core;
+using MediatR;
+using Microsoft.AspNetCore.HttpOverrides;
+using System.Runtime.CompilerServices;
+>>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
 
 namespace EngagementService.API.Services.Voucher
 {
@@ -19,6 +35,7 @@ namespace EngagementService.API.Services.Voucher
             var createReq = new Application.Dtos.Voucher.CreateVoucherRequest()
             {
                 Code = request.Code,
+<<<<<<< HEAD
                 Category = (Domain.Constants.VoucherCategory)request.Category,
                 DiscountValue = string.IsNullOrEmpty(request.DiscountValue) ? null : decimal.Parse(request.DiscountValue),
                 MaxDiscountValue = string.IsNullOrEmpty(request.MaxDiscountValue) ? null : decimal.Parse(request.MaxDiscountValue),
@@ -28,6 +45,24 @@ namespace EngagementService.API.Services.Voucher
                 MaxUsagePerUser = request.MaxUsagePerUser == 0 ? null : request.MaxUsagePerUser,
                 EndDate = request.EndDate != null ? request.EndDate.ToDateTimeOffset() : null,
                 Type = (Domain.Constants.VoucherDiscountType)request.Type,
+=======
+                Type = (Domain.Constants.VoucherType)request.Type,
+
+                DiscountValue = string.IsNullOrEmpty(request.DiscountValue) ? null : decimal.Parse(request.DiscountValue),
+
+                MaxDiscountValue = string.IsNullOrEmpty(request.MaxDiscountValue) ? null : decimal.Parse(request.MaxDiscountValue),
+
+                MinOrderValue = string.IsNullOrEmpty(request.MinOrderValue) ? null : decimal.Parse(request.MinOrderValue),
+
+                PointCost = string.IsNullOrEmpty(request.PointCost) ? null : decimal.Parse(request.PointCost),
+
+                InitQuantity = request.InitQuantity == 0 ? null : request.InitQuantity,
+
+                MaxUsagePerUser = request.MaxUsagePerUser == 0 ? null : request.MaxUsagePerUser,
+
+                EndDate = request.EndDate != null ? request.EndDate.ToDateTimeOffset() : null,
+
+>>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
                 VoucherItems = request.VoucherItems.Select(item => new Application.Dtos.Voucher.CreateVoucherItemReq()
                 {
                     VariantId = Guid.Parse(item.VariantId),
@@ -36,8 +71,120 @@ namespace EngagementService.API.Services.Voucher
                 }).ToList()
             };
 
+<<<<<<< HEAD
             await _mediator.Send(new Application.Features.Voucher.Commands.Create.CreateVoucherCommand(Request: createReq));
             return new Empty();
         }
+=======
+            await _mediator.Send(new CreateVoucherCommand(Request: createReq));
+            return new Empty();
+        }
+
+        public async override Task<Empty> UpdateVoucher(UpdateVoucherRequest request, ServerCallContext context)
+        {
+            var updateVoucher = new Application.Dtos.Voucher.UpdateVoucherRequest()
+            {
+                Id = Guid.Parse(request.Id),
+
+                DiscountValue = string.IsNullOrEmpty(request.DiscountValue) ? null : decimal.Parse(request.DiscountValue),
+
+                MaxDiscountValue = string.IsNullOrEmpty(request.MaxDiscountValue) ? null : decimal.Parse(request.MaxDiscountValue),
+
+                MinOrderValue = string.IsNullOrEmpty(request.MinOrderValue) ? null : decimal.Parse(request.MinOrderValue),
+
+                PointCost = string.IsNullOrEmpty(request.PointCost) ? null : decimal.Parse(request.PointCost),
+
+                MaxUsagePerUser = request.MaxUsagePerUser == 0 ? null : request.MaxUsagePerUser,
+
+                EndDate = request.EndDate != null ? request.EndDate.ToDateTimeOffset() : null,
+
+                VoucherItems = request.VoucherItems.Select(item => new Application.Dtos.Voucher.UpdateVoucherItemReq()
+                {
+                    Id = string.IsNullOrEmpty(item.Id) ? null : Guid.Parse(item.Id),
+                    VariantId = Guid.Parse(item.VariantId),
+                    Quantity = item.Quantity,
+                    Type = (Domain.Constants.VoucherItemType)item.Type
+                }).ToList()
+            };
+
+            await _mediator.Send(new UpdateVoucherCommand(Request: updateVoucher));
+            return new Empty();
+        }
+
+        public async override Task<Empty> UpdateVoucherStatus(UpdateVoucherStatusRequest request, ServerCallContext context)
+        {
+            var updateReq = new Application.Dtos.Voucher.UpdateVoucherStatusRequest()
+            {
+                Id = Guid.Parse(request.Id),
+                IsActive = request.IsActive
+            };
+            await _mediator.Send(new UpdateVoucherStatusCommand(Request: updateReq));
+            return new Empty();
+        }
+
+        public async override Task<VoucherListResponse> GetAllVouchers(Empty request, ServerCallContext context)
+        {
+            var vouchers = await _mediator.Send(new GetAllVoucherQuery());
+            var response = new VoucherListResponse();
+            response.Vouchers.AddRange(vouchers.Select(v => new VoucherResponse()
+            {
+                Id = v.Id.ToString(),
+                Code = v.Code,
+                Type = (Infrastructure.Protos.VoucherType)v.Type,
+                DiscountValue = v.DiscountValue?.ToString() ?? "",
+                MaxDiscountValue = v.MaxDiscountValue?.ToString() ?? "",
+                MinOrderValue = v.MinOrderValue?.ToString() ?? "",
+                PointCost = v.PointCost?.ToString() ?? "",
+                InitQuantity = v.InitQuantity ?? 0,
+                MaxUsagePerUser = v.MaxUsagePerUser ?? 0,
+                EndDate = v.EndDate != null ? Timestamp.FromDateTimeOffset(v.EndDate.Value) : null,
+                IsActive = v.IsActive,
+                CurrentQuantity = v.CurrentQuantity ?? 0,
+                CreatedAt = Timestamp.FromDateTimeOffset(v.CreatedAt),
+                UpdatedAt = Timestamp.FromDateTimeOffset(v.UpdatedAt),
+                VoucherItems = { v.VoucherItems.Select(vi => new VoucherItemResponse()
+                                {
+                                    Id = vi.Id.ToString(),
+                                    VariantId = vi.VariantId.ToString(),
+                                    Quantity = vi.Quantity,
+                                    Type = (Infrastructure.Protos.VoucherItemType)vi.Type,
+                                }).ToList()
+                }
+            }).ToList());
+
+            return response;
+        }
+
+        public async override Task<VoucherResponse> GetVoucherByCode(GetVoucherByCodeRequest request, ServerCallContext context)
+        {
+            var voucher = await _mediator.Send(new GetVoucherByCodeQuery(request.Code));
+            var response = new VoucherResponse()
+            {
+                Id = voucher.Id.ToString(),
+                Code = voucher.Code,
+                Type = (Infrastructure.Protos.VoucherType)voucher.Type,
+                DiscountValue = voucher.DiscountValue?.ToString() ?? "",
+                MaxDiscountValue = voucher.MaxDiscountValue?.ToString() ?? "",
+                MinOrderValue = voucher.MinOrderValue?.ToString() ?? "",
+                EndDate = voucher.EndDate != null ? Timestamp.FromDateTimeOffset(voucher.EndDate.Value) : null,
+                VoucherItems = { voucher.VoucherItems.Select(vi => new VoucherItemResponse()
+                                {
+                                    Id = vi.Id.ToString(),
+                                    VariantId = vi.VariantId.ToString(),
+                                    Quantity = vi.Quantity,
+                                    Type = (Infrastructure.Protos.VoucherItemType)vi.Type,
+                                }).ToList()
+                }
+            };
+
+            return response;
+        }
+
+        public async override Task<Empty> DeleteVoucher(DeleteVoucherRequest request, ServerCallContext context)
+        {
+            await _mediator.Send(new DeleteVoucherCommand(Guid.Parse(request.Id)));
+            return new Empty(); 
+        }
+>>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
     }
 }

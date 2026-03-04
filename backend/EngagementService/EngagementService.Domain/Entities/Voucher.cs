@@ -11,9 +11,7 @@ public partial class Voucher : SoftDeletedEntity, IEntity
 
     public string Code { get; set; } = null!;
 
-    public VoucherCategory Category { get; set; }
-
-    public VoucherDiscountType Type { get; set; }
+    public VoucherType Type { get; set; }
 
     public decimal? DiscountValue { get; set; }
 
@@ -29,7 +27,7 @@ public partial class Voucher : SoftDeletedEntity, IEntity
 
     public int? MaxUsagePerUser { get; set; }
 
-    public bool? IsActive { get; set; }
+    public bool IsActive { get; set; }
 
     public DateTimeOffset? EndDate { get; set; }
 

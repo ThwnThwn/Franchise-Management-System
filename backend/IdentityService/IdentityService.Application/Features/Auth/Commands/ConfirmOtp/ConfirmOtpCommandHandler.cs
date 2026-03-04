@@ -102,7 +102,15 @@ namespace IdentityService.Application.Features.Auth.Commands.ConfirmOtp
             {
                 CustomerId = user.Id
             });
+<<<<<<< HEAD
 
+=======
+            //Create Wallet Account through kafka
+            await _kafkaProducer.PublishAsync(KafkaTopics.WalletAccount, new UserRegisteredEvent
+            {
+                CustomerId = user.Id
+            });
+>>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
             return Unit.Value;
         }
     }

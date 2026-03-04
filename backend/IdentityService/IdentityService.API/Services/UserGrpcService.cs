@@ -151,8 +151,13 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
             Keyword = request.Keyword,
             OrderCount = request.HasOrderCount ? request.OrderCount : null,
             TierId = Guid.TryParse(request.TierId, out var parsed)? parsed: null,
+<<<<<<< HEAD
             StartAt = (decimal)request.StartAt,
             EndAt = (decimal)request.EndAt,
+=======
+            StartAt = request.HasStartAt ? (decimal)request.StartAt : null,
+            EndAt = request.HasEndAt? (decimal)request.EndAt : null,
+>>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
             Page = request.Page,
             PageSize = request.PageSize
         };

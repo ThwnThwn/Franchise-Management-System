@@ -143,8 +143,7 @@ public sealed class CreateOrderHandler
 
             orderItems.Add(new OrderItem
             {
-                Id = Guid.NewGuid(),
-                OrderId = Guid.NewGuid(),
+                OrderId = orderId,
                 ProductId = productVariant.ProductId,
                 VariantId = productVariant.VariantId,
                 Quantity = item.Quantity,
@@ -177,10 +176,9 @@ public sealed class CreateOrderHandler
             Type = request.Request.Type.Value,
         };
 
-        // Set OrderId cho các OrderItems
+        // Add OrderItems
         foreach (var orderItem in orderItems)
         {
-            orderItem.OrderId = order.Id;
             order.OrderItems.Add(orderItem);
         }
 

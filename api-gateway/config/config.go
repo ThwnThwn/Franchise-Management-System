@@ -1,18 +1,10 @@
 package config
 
-import (
-	"log"
-	"os"
-	"strconv"
-	"strings"
-
-	"github.com/joho/godotenv"
-)
-
 type Config struct {
 	Logger Logger
 
 	Redis Redis
+	VNPay VNPay
 
 	Port           string
 	FrontEndOrigin string
@@ -49,12 +41,25 @@ type Redis struct {
 	PermDb     int
 }
 
+type VNPay struct {
+	// 1. Luồng Khách hàng (SalesService)
+	ReturnUrl       string
+	ClientReturnUrl string
+	IpnUrl          string
+
+	// 2. Luồng Nhập hàng (SupplierService)
+	SupplierReturnUrl       string
+	SupplierClientReturnUrl string
+	SupplierIpnUrl          string
+}
+
 type CalcServiceUrl string
 type IdentityServiceUrl string
 type ProductServiceUrl string
 type SalesServiceUrl string
 type FranchiseServiceUrl string
 type InventoryServiceUrl string
+<<<<<<< HEAD
 
 func LoadConfig() *Config {
 	err := godotenv.Load(".env")
@@ -148,3 +153,5 @@ func getEnvBool(key string, fallback bool) bool {
 	}
 	return fallback
 }
+=======
+>>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960

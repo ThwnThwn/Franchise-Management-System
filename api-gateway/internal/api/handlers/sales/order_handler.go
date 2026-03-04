@@ -276,13 +276,14 @@ func (h *OrderHandler) UpdateOrderStatus(c *gin.Context) error {
 	return nil
 }
 
-// CreatePaymentUrl
-// @Summary      Generate Payment URL
-// @Description  Generate a payment link (e.g., VNPay, Momo) for the specific order.
+// GetRevenueReport
+// @Summary      Get Revenue Report (JSON)
+// @Description  Get detailed revenue breakdown by product and category for charts.
 // @Tags         Orders
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
+<<<<<<< HEAD
 // @Param        id       path     string                    true  "Order UUID"
 // @Param        request  body     order.CreatePaymentRequest true "Payment details"
 // @Success      200      {object} map[string]interface{}    "Payment URL"
@@ -298,6 +299,15 @@ func (h *OrderHandler) CreatePaymentUrl(c *gin.Context) error {
 	orderId, err := uuid.Parse(id)
 	if err != nil {
 		return errorcode.ErrInvalidId
+=======
+// @Param        query  query    order.GetRevenueReportRequest  false  "Filter params (fromDate, toDate, storeId, categoryId)"
+// @Success      200    {object} order.GetRevenueReportReply    "Revenue data"
+// @Router       /orders/reports/revenue [get]
+func (h *OrderHandler) GetRevenueReport(c *gin.Context) error {
+	var req order.GetRevenueReportRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		return validation.TranslateValidationError(err)
+>>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
 	}
 
 	ctx, err := grpcutils.BuildAuthContext(c)
@@ -305,11 +315,15 @@ func (h *OrderHandler) CreatePaymentUrl(c *gin.Context) error {
 		return err
 	}
 
-	res, err := h.orderGW.CreatePaymentUrl(ctx, orderId, &req)
+	// Phân quyền: Manager/Staff chỉ được xem store của mình
+	contextutils.ApplyStoreBoundaries(c, &req.StoreId)
+
+	res, _, err := h.orderGW.GetRevenueReport(ctx, &req, false)
 	if err != nil {
 		return err
 	}
 
+<<<<<<< HEAD
 	c.JSON(http.StatusOK, gin.H{
 		"paymentUrl": res,
 	})
@@ -345,6 +359,8 @@ func (h *OrderHandler) GetRevenueReport(c *gin.Context) error {
 		return err
 	}
 
+=======
+>>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
 	c.JSON(http.StatusOK, res)
 	return nil
 }

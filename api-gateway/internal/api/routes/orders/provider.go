@@ -7,19 +7,23 @@ import (
 )
 
 type OrderRouter struct {
-	authMW  *middleware.AuthMiddleware
-	cfg     *config.Config
-	orderHl *sales.OrderHandler
+	authMW *middleware.AuthMiddleware
+	cfg    *config.Config
+
+	orderHl   *sales.OrderHandler
+	paymentHl *sales.PaymentHandler
 }
 
 func NewRouter(
 	cfg *config.Config,
 	authMW *middleware.AuthMiddleware,
 	orderHl *sales.OrderHandler,
+	paymentHl *sales.PaymentHandler,
 ) *OrderRouter {
 	return &OrderRouter{
-		cfg:     cfg,
-		authMW:  authMW,
-		orderHl: orderHl,
+		cfg:       cfg,
+		authMW:    authMW,
+		orderHl:   orderHl,
+		paymentHl: paymentHl,
 	}
 }

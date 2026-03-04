@@ -26,6 +26,12 @@ public static class KafkaTopics
     /// <summary>Sự kiện đơn hàng đã hủy (Inventory listen)</summary>
     public const string OrderCancelled = "order-cancelled";
 
+<<<<<<< HEAD
+=======
+    /// <summary>Tạo Wallet cho account từ Sale</summary>
+    public const string WalletAccount = "wallet-account-create";
+
+>>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
     /// <summary>Tạo Tier cho account từ Engagement</summary>
     public const string LoyaltyTierAccount = "loyalty-account";
 

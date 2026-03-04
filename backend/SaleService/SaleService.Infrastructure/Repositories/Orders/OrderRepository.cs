@@ -269,6 +269,7 @@ public class OrderRepository : IOrderRepository
         }).ToList();
     }
 
+<<<<<<< HEAD
 
     public async Task<List<Order>> GetOrdersByTypeAsync(OrderType type, CancellationToken cancellationToken)
     {
@@ -285,6 +286,8 @@ public class OrderRepository : IOrderRepository
     }
 
 
+=======
+>>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
     public async Task<IEnumerable<GetByUserIdsRes>> GetByUserIdsAsync(List<Guid> userIds, CancellationToken cancellationToken = default)
     {
         if (userIds == null || !userIds.Any())
@@ -310,5 +313,9 @@ public class OrderRepository : IOrderRepository
             OrderCount = dictionary.TryGetValue(id, out var count) ? count : 0
         }).ToList();
     }
+<<<<<<< HEAD
 }
 
+=======
+}
+>>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960

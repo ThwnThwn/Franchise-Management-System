@@ -1,7 +1,6 @@
 package sales
 
 import (
-	"api-gateway/global"
 	salesGW "api-gateway/internal/application/gateways/sales"
 	"api-gateway/internal/domain/constants/enum"
 	"api-gateway/internal/domain/models/common"
@@ -14,15 +13,13 @@ import (
 )
 
 type OrderGrpcClient struct {
-	client        salesPb.OrderGrpcClient
-	paymentClient salesPb.PaymentGrpcClient
+	client salesPb.OrderGrpcClient
 }
 
 // ProvideOrderClient trích xuất Order Client từ Factory
 func ProvideOrderClient(f *salesClientFactory) salesGW.IOrderService {
 	return &OrderGrpcClient{
-		client:        salesPb.NewOrderGrpcClient(f.conn),
-		paymentClient: salesPb.NewPaymentGrpcClient(f.conn),
+		client: salesPb.NewOrderGrpcClient(f.conn),
 	}
 }
 
@@ -168,27 +165,79 @@ func (o *OrderGrpcClient) UpdateStatus(ctx context.Context, id uuid.UUID, status
 	return err
 }
 
-// CreatePaymentUrl implements sales.IOrderService.
-func (o *OrderGrpcClient) CreatePaymentUrl(ctx context.Context,
-	id uuid.UUID, req *order.CreatePaymentRequest,
-) (string, error) {
-	var returnUrl string
-	if req.ReturnUrl != nil {
-		returnUrl = *req.ReturnUrl
-	} else {
-		returnUrl = global.Config.FrontEndOrigin + "/orders"
-	}
-
-	res, err := o.paymentClient.CreatePayment(ctx, &salesPb.CreatePaymentRequest{
-		OrderId:       id.String(),
-		ReturnUrl:     &returnUrl,
-		PaymentMethod: salesPb.PaymentMethodType(req.PaymentMethod),
+// GetOrderVolume implements sales.IOrderService.
+func (o *OrderGrpcClient) GetOrderVolume(ctx context.Context, req *order.GetOrderVolumeRequest, includeCsv bool) (
+	*order.GetOrderVolumeReply, *order.CsvFile, error,
+) {
+	res, err := o.client.GetOrderVolume(ctx, &salesPb.GetOrderVolumeRequest{
+		FromDate:   req.FromDate,
+		ToDate:     req.ToDate,
+		StoreId:    req.StoreId,
+		Status:     (*salesPb.OrderStatus)(req.Status),
+		IncludeCsv: &includeCsv,
 	})
 	if err != nil {
-		return "", err
+		return nil, nil, err
 	}
 
-	return res.Url, nil
+	orders := make([]*order.OrderVolumeADay, 0, len(res.Orders))
+	for _, item := range res.Orders {
+		orders = append(orders, &order.OrderVolumeADay{
+			Date:           item.Date,
+			TotalOrders:    item.TotalOrders,
+			CanceledOrder:  item.CanceledOrder,
+			CompletedOrder: item.CompletedOrder,
+			StoreId:        item.StoreId,
+			StatusCounts:   item.StatusCounts,
+			// CsvFile:        mapper.MapOrderCsvFilePbToModel(item.CsvFile),
+		})
+	}
+
+	if includeCsv {
+		return nil, mapper.MapOrderCsvFilePbToModel(res.CsvFile), nil
+	}
+	return &order.GetOrderVolumeReply{
+		Orders: orders,
+	}, nil, nil
+}
+
+// GetRevenueReport implements sales.IOrderService.
+func (o *OrderGrpcClient) GetRevenueReport(ctx context.Context, req *order.GetRevenueReportRequest, includeCsv bool) (
+	*order.GetRevenueReportReply, *order.CsvFile, error,
+) {
+	res, err := o.client.GetRevenueReport(ctx, &salesPb.GetRevenueReportRequest{
+		FromDate:   req.FromDate,
+		ToDate:     req.ToDate,
+		CategoryId: req.CategoryId,
+		StoreId:    req.StoreId,
+		IncludeCsv: includeCsv,
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+
+	items := make([]*order.RevenueItem, 0, len(res.Items))
+	for _, item := range res.Items {
+		items = append(items, &order.RevenueItem{
+			StoreId:      item.StoreId,
+			ProductName:  item.ProductName,
+			Sku:          item.Sku,
+			QuantitySold: item.QuantitySold,
+			UnitPrice:    item.UnitPrice,
+			TotalRevenue: item.TotalRevenue,
+		})
+	}
+
+	if includeCsv {
+		return nil, mapper.MapOrderCsvFilePbToModel(res.CsvFile), nil
+	}
+	return &order.GetRevenueReportReply{
+		FromDate:            res.FromDate,
+		ToDate:              res.ToDate,
+		CategoryId:          res.CategoryId,
+		Items:               items,
+		OverallTotalRevenue: res.OverallTotalRevenue,
+	}, nil, nil
 }
 
 // GetOrderVolume implements sales.IOrderService.

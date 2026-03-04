@@ -4,6 +4,10 @@ using MediatR;
 using SalesService.Application.Features.Payments.CreatePayment;
 using SalesService.Application.Features.Payments.GetAll;
 using SalesService.Application.Features.Payments.GetMyPaymentHistory;
+<<<<<<< HEAD
+=======
+using SalesService.Application.Features.Payments.VnPayReturn;
+>>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
 using SalesService.Domain.Enums;
 
 namespace SalesService.API.Services.Payments;
@@ -169,4 +173,31 @@ public class PaymentGrpcService : PaymentGrpc.PaymentGrpcBase
 
         return reply;
     }
+<<<<<<< HEAD
 }
+=======
+
+    public override async Task<VnPayReturnResponse> ProcessVnPayReturn(VnPayReturnRequest request, ServerCallContext context)
+    {
+        var queryDict = request.QueryParams.ToDictionary(k => k.Key, v => v.Value);
+
+        var cmd = new VnPayReturnCommand(queryDict);
+        var result = await _mediator.Send(cmd);
+
+        if (result.IsSuccess && result.Value != null)
+        {
+            return new VnPayReturnResponse
+            {
+                IsSuccess = result.Value.Success,
+                Message = "Processed successfully"
+            };
+        }
+
+        return new VnPayReturnResponse
+        {
+            IsSuccess = false,
+            Message = string.Join(", ", result.Errors)
+        };
+    }
+}
+>>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960

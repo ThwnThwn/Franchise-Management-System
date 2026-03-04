@@ -19,6 +19,7 @@ PROTOBUF_REGEX = \s*protobuf:"[^"]*"\s+json:"([^",]+),omitempty"
 REPLACE_REGEX  = json:"$1"
 
 # ==============================================================================
+<<<<<<< HEAD
 # CROSS-PLATFORM COMMANDS (Tự động nhận diện HĐH)
 # ==============================================================================
 ifeq ($(OS),Windows_NT)
@@ -29,6 +30,27 @@ ifeq ($(OS),Windows_NT)
     RM_DOCS   = rmdir /s /q "$(subst /,\,$(SWAGGER_DOCS_DIR))" 2>nul
 else
     # Lệnh cho Linux, macOS, hoặc Git Bash
+=======
+# CROSS-PLATFORM COMMANDS (Tự động nhận diện HĐH & Terminal)
+# ==============================================================================
+ifeq ($(OS),Windows_NT)
+    ifneq ($(MSYSTEM),)
+        # 1. Đang chạy bằng Git Bash trên Windows -> Bắt buộc dùng lệnh Linux
+        MKDIR_P   = mkdir -p $(GO_PB_DIR)
+        RM_PB_DIR = rm -f $(GO_PB_DIR)/*/*.pb.go
+        RM_BIN    = rm -f $(GO_BIN_OUT)
+        RM_DOCS   = rm -rf $(SWAGGER_DOCS_DIR)
+    else
+        # 2. Đang chạy bằng CMD hoặc PowerShell nguyên thủy -> Dùng lệnh Windows
+        SHELL := cmd.exe
+        MKDIR_P   = if not exist "$(subst /,\,$(GO_PB_DIR))" mkdir "$(subst /,\,$(GO_PB_DIR))"
+        RM_PB_DIR = del /q /s "$(subst /,\,$(GO_PB_DIR))\*.pb.go" 2>nul
+        RM_BIN    = del /q /f "$(subst /,\,$(GO_BIN_OUT))" 2>nul
+        RM_DOCS   = rmdir /s /q "$(subst /,\,$(SWAGGER_DOCS_DIR))" 2>nul
+    endif
+else
+    # 3. Lệnh cho Linux, macOS xịn
+>>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
     MKDIR_P   = mkdir -p $(GO_PB_DIR)
     RM_PB_DIR = rm -f $(GO_PB_DIR)/*/*.pb.go
     RM_BIN    = rm -f $(GO_BIN_OUT)

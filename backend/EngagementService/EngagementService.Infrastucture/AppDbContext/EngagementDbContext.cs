@@ -48,8 +48,12 @@ public partial class EngagementDbContext : DbContext, IEngagementDbContext
         modelBuilder.HasPostgresEnum<PointActionType>("point_action_type");
         modelBuilder.HasPostgresEnum<PointReasonCode>("point_reason_code");
         modelBuilder.HasPostgresEnum<UserVoucherStatus>("user_voucher_status");
+<<<<<<< HEAD
         modelBuilder.HasPostgresEnum<VoucherCategory>("voucher_category");
         modelBuilder.HasPostgresEnum<VoucherDiscountType>("voucher_discount_type");
+=======
+        modelBuilder.HasPostgresEnum<VoucherType>("voucher_type");
+>>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
         modelBuilder.HasPostgresEnum<VoucherItemType>("voucher_item_type");
 
         modelBuilder.HasPostgresExtension("uuid-ossp");
@@ -208,12 +212,8 @@ public partial class EngagementDbContext : DbContext, IEngagementDbContext
             entity.Property(e => e.Id).HasDefaultValueSql("uuid_generate_v4()").HasColumnName("id");
 
             // Cấu hình Mapping Enum cho Voucher
-            entity.Property(e => e.Category)
-                .HasColumnType("voucher_category")
-                .HasColumnName("category");
-
             entity.Property(e => e.Type)
-                .HasColumnType("voucher_discount_type")
+                .HasColumnType("voucher_category")
                 .HasColumnName("type");
 
             entity.Property(e => e.Code).HasMaxLength(50).HasColumnName("code");

@@ -21,10 +21,23 @@ namespace EngagementService.Application.Constants
         public const string AlreadyExists = "Tài khoản đã tồn tại";
     }
 
+<<<<<<< HEAD
     public static class VoucherCodeMsg
     {
         public const string NotFound = "Không tìm thấy mã giảm giá";
         public const string CodeExisted = "Mã giảm giá đã tồn tại";
+=======
+    public static class VoucherMsg
+    {
+        public const string NotFound = "Không tìm thấy mã giảm giá";
+        public const string CodeExisted = "Mã giảm giá đã tồn tại";
+        public const string ActiveVoucher = "Không thể Xoá/cập nhật mã giảm giá đang hoạt động";
+        public const string InvalidDiscountValue = "Giá trị giảm giá không hợp lệ";
+        public const string InvalidEndDate = "Ngày kết thúc không được trước hiện tại";
+        public const string InvalidType = "Loại mã giảm giá không hợp lệ";
+        public const string EmptyVoucherItems = "Mã giảm giá loại quà tặng phải có ít nhất một voucher item yêu cầu và voucher item quà tặng";
+        public const string InvalidVoucherItemQuantity = "Số lượng trong voucher item phải lớn hơn 0";
+>>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
     }
     public static class CommonMsg
     {

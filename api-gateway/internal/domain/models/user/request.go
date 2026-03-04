@@ -2,6 +2,18 @@ package user
 
 import "api-gateway/internal/domain/models/common"
 
+type GetAllUsersRequest struct {
+	common.PaginationQuery
+	RoleSlug      string   `form:"roleSlug"`
+	Keyword       string   `form:"keyword"`
+	HasHourlyWage *bool    `form:"hasHourlyWage"`
+	HomeStoreId   *string  `form:"homeStoreId"`
+	TierId        *string  `form:"tierId"`
+	OrderCount    *int32   `form:"orderCount"`
+	StartAt       *float64 `form:"startAt"`
+	EndAt         *float64 `form:"endAt"`
+}
+
 type CreateUserRequest struct {
 	Username    string `json:"username" binding:"required"`
 	Email       string `json:"email" binding:"required,email"`
@@ -52,10 +64,4 @@ type ChangePasswordRequest struct {
 	NewPassword        string `json:"newPassword" binding:"required,min=6,max=30"`
 	ConfirmNewPassword string `json:"confirmNewPassword" binding:"required,eqfield=NewPassword"`
 	ForgetAll          bool   `json:"forgetAll"`
-}
-
-type GetAllUsersRequest struct {
-	common.PaginationQuery
-	RoleSlug string `form:"roleSlug"`
-	Keyword  string `form:"keyword"`
 }

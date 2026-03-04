@@ -16,7 +16,10 @@ type IOrderService interface {
 	CreateOrder(ctx context.Context, req *order.CreateOrderRequest) (*order.OrderReply, error)
 	UpdateOrder(ctx context.Context, id uuid.UUID, items []*order.UpdateOrderItem) (*order.OrderReply, error)
 	UpdateStatus(ctx context.Context, id uuid.UUID, status enum.OrderStatus) error
+<<<<<<< HEAD
 	CreatePaymentUrl(ctx context.Context, id uuid.UUID, req *order.CreatePaymentRequest) (string, error)
+=======
+>>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
 
 	GetRevenueReport(ctx context.Context, req *order.GetRevenueReportRequest, includeCsv bool) (*order.GetRevenueReportReply, *order.CsvFile, error)
 	GetOrderVolume(ctx context.Context, req *order.GetOrderVolumeRequest, includeCsv bool) (*order.GetOrderVolumeReply, *order.CsvFile, error)

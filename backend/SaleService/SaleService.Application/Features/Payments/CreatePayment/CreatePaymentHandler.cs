@@ -11,6 +11,7 @@ using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
 using SharedKernel.Constants;
 using SharedKernel.Infrastructure.Extensions;
+using SharedKernel.Infrastructure.Kafka;
 
 namespace SalesService.Application.Features.Payments.CreatePayment;
 
@@ -19,19 +20,23 @@ public sealed class CreatePaymentHandler
 {
     private readonly IOrderRepository _orderRepository;
     private readonly IPaymentRepository _paymentRepository;
+    private readonly IKafkaProducer _kafkaProducer;
     private readonly IConfiguration _config;
     private readonly IOutboxRepository _outboxRepository;
     private readonly IOutboxSignal _outboxSignal;
 
+
     public CreatePaymentHandler(
         IOrderRepository orderRepository,
         IPaymentRepository paymentRepository,
+        IKafkaProducer kafkaProducer,
         IConfiguration config,
         IOutboxRepository outboxRepository,
         IOutboxSignal outboxSignal)
     {
         _orderRepository = orderRepository;
         _paymentRepository = paymentRepository;
+        _kafkaProducer = kafkaProducer;
         _config = config;
         _outboxRepository = outboxRepository;
         _outboxSignal = outboxSignal;
@@ -95,6 +100,7 @@ public sealed class CreatePaymentHandler
             {
                 var orderStatusEvent = OrderToKafka.MapToOrderStatusEvent(order);
                 _outboxRepository.AddEvent(orderStatusEvent, KafkaTopics.OrderNotifications);
+                await _kafkaProducer.PublishAsync(KafkaTopics.OrderNotifications, orderStatusEvent);
 
                 // 2. OrderPaidEvent → InventoryService (trừ kho)
                 var orderPaidEvent = OrderToKafka.MapToOrderPaidEvent(order);

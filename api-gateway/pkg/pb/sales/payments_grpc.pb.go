@@ -28,6 +28,10 @@ type PaymentGrpcClient interface {
 	GetAllPayments(ctx context.Context, in *GetAllPaymentsRequest, opts ...grpc.CallOption) (*GetAllPaymentsReply, error)
 	// Lấy lịch sử thanh toán của customer (customer dashboard)
 	GetMyPaymentHistory(ctx context.Context, in *GetMyPaymentHistoryRequest, opts ...grpc.CallOption) (*GetMyPaymentHistoryReply, error)
+<<<<<<< HEAD
+=======
+	ProcessVnPayReturn(ctx context.Context, in *VnPayReturnRequest, opts ...grpc.CallOption) (*VnPayReturnResponse, error)
+>>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
 }
 
 type paymentGrpcClient struct {
@@ -65,6 +69,18 @@ func (c *paymentGrpcClient) GetMyPaymentHistory(ctx context.Context, in *GetMyPa
 	return out, nil
 }
 
+<<<<<<< HEAD
+=======
+func (c *paymentGrpcClient) ProcessVnPayReturn(ctx context.Context, in *VnPayReturnRequest, opts ...grpc.CallOption) (*VnPayReturnResponse, error) {
+	out := new(VnPayReturnResponse)
+	err := c.cc.Invoke(ctx, "/payment.PaymentGrpc/ProcessVnPayReturn", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+>>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
 // PaymentGrpcServer is the server API for PaymentGrpc service.
 // All implementations must embed UnimplementedPaymentGrpcServer
 // for forward compatibility
@@ -75,6 +91,10 @@ type PaymentGrpcServer interface {
 	GetAllPayments(context.Context, *GetAllPaymentsRequest) (*GetAllPaymentsReply, error)
 	// Lấy lịch sử thanh toán của customer (customer dashboard)
 	GetMyPaymentHistory(context.Context, *GetMyPaymentHistoryRequest) (*GetMyPaymentHistoryReply, error)
+<<<<<<< HEAD
+=======
+	ProcessVnPayReturn(context.Context, *VnPayReturnRequest) (*VnPayReturnResponse, error)
+>>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
 	mustEmbedUnimplementedPaymentGrpcServer()
 }
 
@@ -91,6 +111,12 @@ func (UnimplementedPaymentGrpcServer) GetAllPayments(context.Context, *GetAllPay
 func (UnimplementedPaymentGrpcServer) GetMyPaymentHistory(context.Context, *GetMyPaymentHistoryRequest) (*GetMyPaymentHistoryReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMyPaymentHistory not implemented")
 }
+<<<<<<< HEAD
+=======
+func (UnimplementedPaymentGrpcServer) ProcessVnPayReturn(context.Context, *VnPayReturnRequest) (*VnPayReturnResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ProcessVnPayReturn not implemented")
+}
+>>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
 func (UnimplementedPaymentGrpcServer) mustEmbedUnimplementedPaymentGrpcServer() {}
 
 // UnsafePaymentGrpcServer may be embedded to opt out of forward compatibility for this service.
@@ -158,6 +184,27 @@ func _PaymentGrpc_GetMyPaymentHistory_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+<<<<<<< HEAD
+=======
+func _PaymentGrpc_ProcessVnPayReturn_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(VnPayReturnRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PaymentGrpcServer).ProcessVnPayReturn(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/payment.PaymentGrpc/ProcessVnPayReturn",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PaymentGrpcServer).ProcessVnPayReturn(ctx, req.(*VnPayReturnRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+>>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
 // PaymentGrpc_ServiceDesc is the grpc.ServiceDesc for PaymentGrpc service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -177,6 +224,13 @@ var PaymentGrpc_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetMyPaymentHistory",
 			Handler:    _PaymentGrpc_GetMyPaymentHistory_Handler,
 		},
+<<<<<<< HEAD
+=======
+		{
+			MethodName: "ProcessVnPayReturn",
+			Handler:    _PaymentGrpc_ProcessVnPayReturn_Handler,
+		},
+>>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "sales/payments.proto",

@@ -27,6 +27,9 @@ type WalletGrpcClient interface {
 	DeductBalance(ctx context.Context, in *DeductBalanceRequest, opts ...grpc.CallOption) (*DeductBalanceResponse, error)
 	UpdateWalletStatus(ctx context.Context, in *UpdateWalletStatusRequest, opts ...grpc.CallOption) (*UpdateWalletStatusResponse, error)
 	GetWalletByUserId(ctx context.Context, in *GetWalletByUserIdRequest, opts ...grpc.CallOption) (*GetWalletByUserIdResponse, error)
+	DepositWallet(ctx context.Context, in *DepositWalletRequest, opts ...grpc.CallOption) (*DepositWalletResponse, error)
+	DepositVnPayReturn(ctx context.Context, in *DepositVnPayReturnRequest, opts ...grpc.CallOption) (*DepositVnPayReturnResponse, error)
+	WithdrawWallet(ctx context.Context, in *WithdrawWalletRequest, opts ...grpc.CallOption) (*WithdrawWalletResponse, error)
 }
 
 type walletGrpcClient struct {
@@ -82,6 +85,33 @@ func (c *walletGrpcClient) GetWalletByUserId(ctx context.Context, in *GetWalletB
 	return out, nil
 }
 
+func (c *walletGrpcClient) DepositWallet(ctx context.Context, in *DepositWalletRequest, opts ...grpc.CallOption) (*DepositWalletResponse, error) {
+	out := new(DepositWalletResponse)
+	err := c.cc.Invoke(ctx, "/wallet.WalletGrpc/DepositWallet", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *walletGrpcClient) DepositVnPayReturn(ctx context.Context, in *DepositVnPayReturnRequest, opts ...grpc.CallOption) (*DepositVnPayReturnResponse, error) {
+	out := new(DepositVnPayReturnResponse)
+	err := c.cc.Invoke(ctx, "/wallet.WalletGrpc/DepositVnPayReturn", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *walletGrpcClient) WithdrawWallet(ctx context.Context, in *WithdrawWalletRequest, opts ...grpc.CallOption) (*WithdrawWalletResponse, error) {
+	out := new(WithdrawWalletResponse)
+	err := c.cc.Invoke(ctx, "/wallet.WalletGrpc/WithdrawWallet", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // WalletGrpcServer is the server API for WalletGrpc service.
 // All implementations must embed UnimplementedWalletGrpcServer
 // for forward compatibility
@@ -91,6 +121,9 @@ type WalletGrpcServer interface {
 	DeductBalance(context.Context, *DeductBalanceRequest) (*DeductBalanceResponse, error)
 	UpdateWalletStatus(context.Context, *UpdateWalletStatusRequest) (*UpdateWalletStatusResponse, error)
 	GetWalletByUserId(context.Context, *GetWalletByUserIdRequest) (*GetWalletByUserIdResponse, error)
+	DepositWallet(context.Context, *DepositWalletRequest) (*DepositWalletResponse, error)
+	DepositVnPayReturn(context.Context, *DepositVnPayReturnRequest) (*DepositVnPayReturnResponse, error)
+	WithdrawWallet(context.Context, *WithdrawWalletRequest) (*WithdrawWalletResponse, error)
 	mustEmbedUnimplementedWalletGrpcServer()
 }
 
@@ -112,6 +145,15 @@ func (UnimplementedWalletGrpcServer) UpdateWalletStatus(context.Context, *Update
 }
 func (UnimplementedWalletGrpcServer) GetWalletByUserId(context.Context, *GetWalletByUserIdRequest) (*GetWalletByUserIdResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetWalletByUserId not implemented")
+}
+func (UnimplementedWalletGrpcServer) DepositWallet(context.Context, *DepositWalletRequest) (*DepositWalletResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DepositWallet not implemented")
+}
+func (UnimplementedWalletGrpcServer) DepositVnPayReturn(context.Context, *DepositVnPayReturnRequest) (*DepositVnPayReturnResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DepositVnPayReturn not implemented")
+}
+func (UnimplementedWalletGrpcServer) WithdrawWallet(context.Context, *WithdrawWalletRequest) (*WithdrawWalletResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method WithdrawWallet not implemented")
 }
 func (UnimplementedWalletGrpcServer) mustEmbedUnimplementedWalletGrpcServer() {}
 
@@ -216,6 +258,60 @@ func _WalletGrpc_GetWalletByUserId_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _WalletGrpc_DepositWallet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DepositWalletRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WalletGrpcServer).DepositWallet(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/wallet.WalletGrpc/DepositWallet",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WalletGrpcServer).DepositWallet(ctx, req.(*DepositWalletRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _WalletGrpc_DepositVnPayReturn_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DepositVnPayReturnRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WalletGrpcServer).DepositVnPayReturn(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/wallet.WalletGrpc/DepositVnPayReturn",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WalletGrpcServer).DepositVnPayReturn(ctx, req.(*DepositVnPayReturnRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _WalletGrpc_WithdrawWallet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WithdrawWalletRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WalletGrpcServer).WithdrawWallet(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/wallet.WalletGrpc/WithdrawWallet",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WalletGrpcServer).WithdrawWallet(ctx, req.(*WithdrawWalletRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // WalletGrpc_ServiceDesc is the grpc.ServiceDesc for WalletGrpc service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -242,6 +338,18 @@ var WalletGrpc_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetWalletByUserId",
 			Handler:    _WalletGrpc_GetWalletByUserId_Handler,
+		},
+		{
+			MethodName: "DepositWallet",
+			Handler:    _WalletGrpc_DepositWallet_Handler,
+		},
+		{
+			MethodName: "DepositVnPayReturn",
+			Handler:    _WalletGrpc_DepositVnPayReturn_Handler,
+		},
+		{
+			MethodName: "WithdrawWallet",
+			Handler:    _WalletGrpc_WithdrawWallet_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
