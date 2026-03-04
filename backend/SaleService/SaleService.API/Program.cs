@@ -156,7 +156,6 @@ public class Program
             registry.Register<OrderPaidEvent>(KafkaTopics.OrderPaid, KafkaTopics.OrderPaid);
             registry.Register<OrderCancelledEvent>(KafkaTopics.OrderCancelled, KafkaTopics.OrderCancelled);
             registry.Register<ProcessOrderRewardEvent>(KafkaTopics.ProcessOrderReward, KafkaTopics.ProcessOrderReward);
-            registry.Register<UserRegisteredEvent>(KafkaTopics.WalletAccount, KafkaTopics.WalletAccount);
             return registry;
         });
 
