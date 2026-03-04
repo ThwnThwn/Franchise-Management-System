@@ -9,12 +9,13 @@ type Config struct {
 	Port           string
 	FrontEndOrigin string
 
-	CalcServiceUrl      CalcServiceUrl
-	IdentityServiceUrl  IdentityServiceUrl
-	ProductServiceUrl   ProductServiceUrl
-	SalesServiceUrl     SalesServiceUrl
-	FranchiseServiceUrl FranchiseServiceUrl
-	InventoryServiceUrl InventoryServiceUrl
+	CalcServiceUrl       CalcServiceUrl
+	IdentityServiceUrl   IdentityServiceUrl
+	ProductServiceUrl    ProductServiceUrl
+	SalesServiceUrl      SalesServiceUrl
+	FranchiseServiceUrl  FranchiseServiceUrl
+	InventoryServiceUrl  InventoryServiceUrl
+	EngagementServiceUrl EngagementServiceUrl
 
 	JwtRefreshTokenExpDays          int
 	JwtSecret                       string
@@ -59,3 +60,4 @@ type ProductServiceUrl string
 type SalesServiceUrl string
 type FranchiseServiceUrl string
 type InventoryServiceUrl string
+type EngagementServiceUrl string

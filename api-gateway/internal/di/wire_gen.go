@@ -8,6 +8,7 @@ package di
 
 import (
 	"api-gateway/config"
+	engagement2 "api-gateway/internal/api/handlers/engagement"
 	franchise2 "api-gateway/internal/api/handlers/franchise"
 	identity2 "api-gateway/internal/api/handlers/identity"
 	inventory2 "api-gateway/internal/api/handlers/inventory"
@@ -20,9 +21,12 @@ import (
 	categories2 "api-gateway/internal/api/routes/categories"
 	"api-gateway/internal/api/routes/ingredients"
 	"api-gateway/internal/api/routes/ingredients/categories"
+	"api-gateway/internal/api/routes/loyalty"
+	"api-gateway/internal/api/routes/membershiptiers"
 	"api-gateway/internal/api/routes/myshifts"
 	"api-gateway/internal/api/routes/orders"
 	"api-gateway/internal/api/routes/permissions"
+	"api-gateway/internal/api/routes/points"
 	"api-gateway/internal/api/routes/products"
 	"api-gateway/internal/api/routes/recipes"
 	"api-gateway/internal/api/routes/roles"
@@ -31,9 +35,11 @@ import (
 	"api-gateway/internal/api/routes/stores/stock"
 	"api-gateway/internal/api/routes/users"
 	"api-gateway/internal/api/routes/variants"
+	"api-gateway/internal/api/routes/vouchers"
 	"api-gateway/internal/application/usecases"
 	"api-gateway/internal/bootstrap"
 	"api-gateway/internal/infrastructure/cache"
+	"api-gateway/internal/infrastructure/grpc_clients/engagement"
 	"api-gateway/internal/infrastructure/grpc_clients/franchise"
 	"api-gateway/internal/infrastructure/grpc_clients/identity"
 	"api-gateway/internal/infrastructure/grpc_clients/inventory"
@@ -57,17 +63,37 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, func
 	iBlacklistCache := cache.NewBlacklistCache(redis, l)
 	iBlacklistUseCase := usecases.NewBlacklistUseCase(iBlacklistCache, l)
 	authMiddleware := middleware.NewAuthMiddleware(iPermCache, iRolePermissionService, iBlacklistUseCase)
-	franchiseServiceUrl := cfg.FranchiseServiceUrl
-	clientFactory, cleanup2, err := franchise.NewFranchiseClientFactory(franchiseServiceUrl, l)
+	engagementServiceUrl := cfg.EngagementServiceUrl
+	clientFactory, cleanup2, err := engagement.NewEngagementClientFactory(engagementServiceUrl, l)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
 	}
-	iStoreService := franchise.ProvideStoreClient(clientFactory)
+	iLoyaltyAccountService := engagement.ProvideLoyaltyAccountClient(clientFactory)
+	loyaltyHandler := engagement2.NewLoyaltyHandler(iLoyaltyAccountService)
+	loyaltyRouter := loyalty.NewRouter(cfg, authMiddleware, loyaltyHandler)
+	iMembershipTierService := engagement.ProvideMembershipTierClient(clientFactory)
+	membershipTierHandler := engagement2.NewMembershipTierHandler(iMembershipTierService)
+	membershipTierRouter := membershiptiers.NewRouter(cfg, authMiddleware, membershipTierHandler)
+	iPointLogService := engagement.ProvidePointLogClient(clientFactory)
+	pointLogHandler := engagement2.NewPointLogHandler(iPointLogService)
+	pointLogRouter := points.NewRouter(cfg, authMiddleware, pointLogHandler)
+	iVoucherService := engagement.ProvideVoucherClient(clientFactory)
+	voucherHandler := engagement2.NewVoucherHandler(iVoucherService)
+	voucherRouter := vouchers.NewRouter(cfg, authMiddleware, voucherHandler)
+	franchiseServiceUrl := cfg.FranchiseServiceUrl
+	franchiseClientFactory, cleanup3, err := franchise.NewFranchiseClientFactory(franchiseServiceUrl, l)
+	if err != nil {
+		cleanup2()
+		cleanup()
+		return nil, nil, err
+	}
+	iStoreService := franchise.ProvideStoreClient(franchiseClientFactory)
 	storeHandler := franchise2.NewStoreHandler(iStoreService)
 	inventoryServiceUrl := cfg.InventoryServiceUrl
-	inventoryClientFactory, cleanup3, err := inventory.NewInventoryClientFactory(inventoryServiceUrl, l)
+	inventoryClientFactory, cleanup4, err := inventory.NewInventoryClientFactory(inventoryServiceUrl, l)
 	if err != nil {
+		cleanup3()
 		cleanup2()
 		cleanup()
 		return nil, nil, err
@@ -76,17 +102,17 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, func
 	stockHandler := inventory2.NewStockHandler(iStockService)
 	stockRouter := stock.NewRouter(cfg, authMiddleware, stockHandler)
 	storeRouter := stores.NewRouter(cfg, authMiddleware, storeHandler, stockRouter)
-	iShiftService := franchise.ProvideShiftClient(clientFactory)
+	iShiftService := franchise.ProvideShiftClient(franchiseClientFactory)
 	iUserService := identity.ProvideUserClient(identityClientFactory)
 	shiftStaffHandler := franchise2.NewShiftStaffHandler(iShiftService, iUserService)
-	iShiftAvailabilityService := franchise.ProvideShiftAvailabilityClient(clientFactory)
+	iShiftAvailabilityService := franchise.ProvideShiftAvailabilityClient(franchiseClientFactory)
 	shiftAvailabilityHandler := franchise2.NewShiftAvailabilityHandler(iShiftAvailabilityService)
 	myShiftsRouter := myshifts.NewRouter(cfg, authMiddleware, shiftStaffHandler, shiftAvailabilityHandler)
 	shiftHandler := franchise2.NewShiftHandler(iShiftService, iUserService)
 	shiftBulkHandler := franchise2.NewShiftBulkHandler(iShiftService)
-	iShiftRuleService := franchise.ProvideShiftRuleClient(clientFactory)
+	iShiftRuleService := franchise.ProvideShiftRuleClient(franchiseClientFactory)
 	shiftRuleHandler := franchise2.NewShiftRuleHandler(iShiftRuleService)
-	iShiftTemplateService := franchise.ProvideShiftTemplateClient(clientFactory)
+	iShiftTemplateService := franchise.ProvideShiftTemplateClient(franchiseClientFactory)
 	shiftTemplateHandler := franchise2.NewShiftTemplateHandler(iShiftTemplateService)
 	shiftsRouter := shifts.NewRouter(cfg, authMiddleware, shiftHandler, shiftAvailabilityHandler, shiftBulkHandler, shiftRuleHandler, shiftTemplateHandler)
 	iAuthService := identity.ProvideAuthClient(identityClientFactory)
@@ -109,8 +135,9 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, func
 	recipeHandler := inventory2.NewRecipeHandler(iRecipeService)
 	recipeRouter := recipes.NewRouter(cfg, authMiddleware, recipeHandler)
 	productServiceUrl := cfg.ProductServiceUrl
-	productClientFactory, cleanup4, err := product.NewProductClientFactory(productServiceUrl, cfg, l)
+	productClientFactory, cleanup5, err := product.NewProductClientFactory(productServiceUrl, cfg, l)
 	if err != nil {
+		cleanup4()
 		cleanup3()
 		cleanup2()
 		cleanup()
@@ -124,8 +151,9 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, func
 	categoryRouter := categories2.NewRouter(cfg, authMiddleware, categoryHandler)
 	variantRouter := variants.NewRouter(cfg, authMiddleware, recipeHandler)
 	salesServiceUrl := cfg.SalesServiceUrl
-	salesClientFactory, cleanup5, err := sales.NewSalesClientFactory(salesServiceUrl, l)
+	salesClientFactory, cleanup6, err := sales.NewSalesClientFactory(salesServiceUrl, l)
 	if err != nil {
+		cleanup5()
 		cleanup4()
 		cleanup3()
 		cleanup2()
@@ -141,24 +169,29 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, func
 	cartHandler := sales2.NewCartHandler(iCartService)
 	cartRouter := carts.NewRouter(cfg, authMiddleware, cartHandler)
 	appRouter := &routes.AppRouter{
-		StoreRouter:      storeRouter,
-		MyShiftsRouter:   myShiftsRouter,
-		ShiftsRouter:     shiftsRouter,
-		AuthRouter:       authRouter,
-		UserRouter:       userRouter,
-		RoleRouter:       roleRouter,
-		PermissionRouter: permissionRouter,
-		IngredientRouter: ingredientRouter,
-		RecipeRouter:     recipeRouter,
-		ProductRouter:    productRouter,
-		CategoryRouter:   categoryRouter,
-		VariantRouter:    variantRouter,
-		OrderRouter:      orderRouter,
-		CartRouter:       cartRouter,
+		LoyaltyRouter:        loyaltyRouter,
+		MembershipTierRouter: membershipTierRouter,
+		PointLogRouter:       pointLogRouter,
+		VoucherRouter:        voucherRouter,
+		StoreRouter:          storeRouter,
+		MyShiftsRouter:       myShiftsRouter,
+		ShiftsRouter:         shiftsRouter,
+		AuthRouter:           authRouter,
+		UserRouter:           userRouter,
+		RoleRouter:           roleRouter,
+		PermissionRouter:     permissionRouter,
+		IngredientRouter:     ingredientRouter,
+		RecipeRouter:         recipeRouter,
+		ProductRouter:        productRouter,
+		CategoryRouter:       categoryRouter,
+		VariantRouter:        variantRouter,
+		OrderRouter:          orderRouter,
+		CartRouter:           cartRouter,
 	}
 	engine := routes.NewEngine(cfg, appRouter)
 	app := bootstrap.NewApp(cfg, engine)
 	return app, func() {
+		cleanup6()
 		cleanup5()
 		cleanup4()
 		cleanup3()

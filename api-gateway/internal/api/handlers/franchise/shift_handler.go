@@ -5,7 +5,6 @@ import (
 	"api-gateway/internal/application/gateways/franchise"
 	"api-gateway/internal/application/gateways/identity"
 	"api-gateway/internal/domain/constants/enum"
-	"api-gateway/internal/domain/models/errormodel"
 	"api-gateway/internal/domain/models/shift"
 	"api-gateway/pkg/utils/contextutils"
 	"api-gateway/pkg/utils/grpcutils"
@@ -329,7 +328,7 @@ func (h *ShiftHandler) UpdateTimeLog(c *gin.Context) error {
 
 	// Nếu status là Invalid (2) thì ManagerNote không được trống
 	if req.Status == enum.TimeLogStatus_INVALID && (req.ManagerNote == nil || *req.ManagerNote == "") {
-		return &errormodel.BackendError{
+		return &errorcode.ErrorResponse{
 			Status: http.StatusBadRequest,
 			Title:  "Thao tác không thành công",
 			Detail: "Phải nhập lý do khi từ chối chấm công",

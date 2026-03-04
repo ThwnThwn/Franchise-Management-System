@@ -6,9 +6,12 @@ import (
 	"api-gateway/internal/api/routes/categories"
 	"api-gateway/internal/api/routes/ingredients"
 	ingreCate "api-gateway/internal/api/routes/ingredients/categories"
+	"api-gateway/internal/api/routes/loyalty"
+	"api-gateway/internal/api/routes/membershiptiers"
 	"api-gateway/internal/api/routes/myshifts"
 	"api-gateway/internal/api/routes/orders"
 	"api-gateway/internal/api/routes/permissions"
+	"api-gateway/internal/api/routes/points"
 	"api-gateway/internal/api/routes/products"
 	"api-gateway/internal/api/routes/recipes"
 	"api-gateway/internal/api/routes/roles"
@@ -17,11 +20,18 @@ import (
 	"api-gateway/internal/api/routes/stores/stock"
 	"api-gateway/internal/api/routes/users"
 	"api-gateway/internal/api/routes/variants"
+	"api-gateway/internal/api/routes/vouchers"
 
 	"github.com/google/wire"
 )
 
 type AppRouter struct {
+	// Engagement
+	*loyalty.LoyaltyRouter
+	*membershiptiers.MembershipTierRouter
+	*points.PointLogRouter
+	*vouchers.VoucherRouter
+
 	// Franchise
 	*stores.StoreRouter
 	*myshifts.MyShiftsRouter
@@ -48,6 +58,12 @@ type AppRouter struct {
 }
 
 var RouterSet = wire.NewSet(
+	// Engagement
+	loyalty.NewRouter,
+	membershiptiers.NewRouter,
+	points.NewRouter,
+	vouchers.NewRouter,
+
 	// Franchise
 	stores.NewRouter,
 	myshifts.NewRouter,

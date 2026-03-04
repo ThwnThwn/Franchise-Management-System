@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"api-gateway/internal/api/handlers/engagement"
 	"api-gateway/internal/api/handlers/franchise"
 	"api-gateway/internal/api/handlers/identity"
 	"api-gateway/internal/api/handlers/inventory"
@@ -11,6 +12,8 @@ import (
 )
 
 type AppHandlers struct {
+	engagement.EngagementHandlers
+
 	// Franchise
 	franchise.FranchiseHandlers
 
@@ -29,6 +32,8 @@ type AppHandlers struct {
 
 // Gom nhóm tất cả Handler lại
 var HandlerSet = wire.NewSet(
+	engagement.ProviderSet,
+
 	// Franchise
 	franchise.ProviderSet,
 

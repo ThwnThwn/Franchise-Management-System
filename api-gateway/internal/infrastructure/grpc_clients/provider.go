@@ -1,6 +1,7 @@
 package grpc_clients
 
 import (
+	"api-gateway/internal/infrastructure/grpc_clients/engagement"
 	"api-gateway/internal/infrastructure/grpc_clients/franchise"
 	"api-gateway/internal/infrastructure/grpc_clients/identity"
 	"api-gateway/internal/infrastructure/grpc_clients/inventory"
@@ -11,6 +12,13 @@ import (
 )
 
 var ClientSet = wire.NewSet(
+	// Engagement Service
+	engagement.NewEngagementClientFactory,
+	engagement.ProvideLoyaltyAccountClient,
+	engagement.ProvideMembershipTierClient,
+	engagement.ProvidePointLogClient,
+	engagement.ProvideVoucherClient,
+
 	// Franchise Service
 	franchise.NewFranchiseClientFactory,
 	franchise.ProvideShiftAvailabilityClient,

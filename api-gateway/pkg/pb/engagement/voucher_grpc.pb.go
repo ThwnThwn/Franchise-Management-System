@@ -25,6 +25,16 @@ const _ = grpc.SupportPackageIsVersion7
 type VoucherGrpcClient interface {
 	// Hàm tạo Voucher nhận vào CreateVoucherRequest và trả về Empty
 	CreateVoucher(ctx context.Context, in *CreateVoucherRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// Hàm update Voucher
+	UpdateVoucher(ctx context.Context, in *UpdateVoucherRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// Hàm update voucher status
+	UpdateVoucherStatus(ctx context.Context, in *UpdateVoucherStatusRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// Hàm lấy danh sách tất cả Voucher
+	GetAllVouchers(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*VoucherListResponse, error)
+	// Hàm lấy voucher theo code
+	GetVoucherByCode(ctx context.Context, in *GetVoucherByCodeRequest, opts ...grpc.CallOption) (*VoucherResponse, error)
+	// Xoá voucher
+	DeleteVoucher(ctx context.Context, in *DeleteVoucherRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type voucherGrpcClient struct {
@@ -44,12 +54,67 @@ func (c *voucherGrpcClient) CreateVoucher(ctx context.Context, in *CreateVoucher
 	return out, nil
 }
 
+func (c *voucherGrpcClient) UpdateVoucher(ctx context.Context, in *UpdateVoucherRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/engagement.VoucherGrpc/UpdateVoucher", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *voucherGrpcClient) UpdateVoucherStatus(ctx context.Context, in *UpdateVoucherStatusRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/engagement.VoucherGrpc/UpdateVoucherStatus", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *voucherGrpcClient) GetAllVouchers(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*VoucherListResponse, error) {
+	out := new(VoucherListResponse)
+	err := c.cc.Invoke(ctx, "/engagement.VoucherGrpc/GetAllVouchers", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *voucherGrpcClient) GetVoucherByCode(ctx context.Context, in *GetVoucherByCodeRequest, opts ...grpc.CallOption) (*VoucherResponse, error) {
+	out := new(VoucherResponse)
+	err := c.cc.Invoke(ctx, "/engagement.VoucherGrpc/GetVoucherByCode", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *voucherGrpcClient) DeleteVoucher(ctx context.Context, in *DeleteVoucherRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/engagement.VoucherGrpc/DeleteVoucher", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // VoucherGrpcServer is the server API for VoucherGrpc service.
 // All implementations must embed UnimplementedVoucherGrpcServer
 // for forward compatibility
 type VoucherGrpcServer interface {
 	// Hàm tạo Voucher nhận vào CreateVoucherRequest và trả về Empty
 	CreateVoucher(context.Context, *CreateVoucherRequest) (*emptypb.Empty, error)
+	// Hàm update Voucher
+	UpdateVoucher(context.Context, *UpdateVoucherRequest) (*emptypb.Empty, error)
+	// Hàm update voucher status
+	UpdateVoucherStatus(context.Context, *UpdateVoucherStatusRequest) (*emptypb.Empty, error)
+	// Hàm lấy danh sách tất cả Voucher
+	GetAllVouchers(context.Context, *emptypb.Empty) (*VoucherListResponse, error)
+	// Hàm lấy voucher theo code
+	GetVoucherByCode(context.Context, *GetVoucherByCodeRequest) (*VoucherResponse, error)
+	// Xoá voucher
+	DeleteVoucher(context.Context, *DeleteVoucherRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedVoucherGrpcServer()
 }
 
@@ -59,6 +124,21 @@ type UnimplementedVoucherGrpcServer struct {
 
 func (UnimplementedVoucherGrpcServer) CreateVoucher(context.Context, *CreateVoucherRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateVoucher not implemented")
+}
+func (UnimplementedVoucherGrpcServer) UpdateVoucher(context.Context, *UpdateVoucherRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateVoucher not implemented")
+}
+func (UnimplementedVoucherGrpcServer) UpdateVoucherStatus(context.Context, *UpdateVoucherStatusRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateVoucherStatus not implemented")
+}
+func (UnimplementedVoucherGrpcServer) GetAllVouchers(context.Context, *emptypb.Empty) (*VoucherListResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAllVouchers not implemented")
+}
+func (UnimplementedVoucherGrpcServer) GetVoucherByCode(context.Context, *GetVoucherByCodeRequest) (*VoucherResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetVoucherByCode not implemented")
+}
+func (UnimplementedVoucherGrpcServer) DeleteVoucher(context.Context, *DeleteVoucherRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteVoucher not implemented")
 }
 func (UnimplementedVoucherGrpcServer) mustEmbedUnimplementedVoucherGrpcServer() {}
 
@@ -91,6 +171,96 @@ func _VoucherGrpc_CreateVoucher_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _VoucherGrpc_UpdateVoucher_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateVoucherRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VoucherGrpcServer).UpdateVoucher(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/engagement.VoucherGrpc/UpdateVoucher",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VoucherGrpcServer).UpdateVoucher(ctx, req.(*UpdateVoucherRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _VoucherGrpc_UpdateVoucherStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateVoucherStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VoucherGrpcServer).UpdateVoucherStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/engagement.VoucherGrpc/UpdateVoucherStatus",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VoucherGrpcServer).UpdateVoucherStatus(ctx, req.(*UpdateVoucherStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _VoucherGrpc_GetAllVouchers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VoucherGrpcServer).GetAllVouchers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/engagement.VoucherGrpc/GetAllVouchers",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VoucherGrpcServer).GetAllVouchers(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _VoucherGrpc_GetVoucherByCode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetVoucherByCodeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VoucherGrpcServer).GetVoucherByCode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/engagement.VoucherGrpc/GetVoucherByCode",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VoucherGrpcServer).GetVoucherByCode(ctx, req.(*GetVoucherByCodeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _VoucherGrpc_DeleteVoucher_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteVoucherRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VoucherGrpcServer).DeleteVoucher(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/engagement.VoucherGrpc/DeleteVoucher",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VoucherGrpcServer).DeleteVoucher(ctx, req.(*DeleteVoucherRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // VoucherGrpc_ServiceDesc is the grpc.ServiceDesc for VoucherGrpc service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -101,6 +271,26 @@ var VoucherGrpc_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateVoucher",
 			Handler:    _VoucherGrpc_CreateVoucher_Handler,
+		},
+		{
+			MethodName: "UpdateVoucher",
+			Handler:    _VoucherGrpc_UpdateVoucher_Handler,
+		},
+		{
+			MethodName: "UpdateVoucherStatus",
+			Handler:    _VoucherGrpc_UpdateVoucherStatus_Handler,
+		},
+		{
+			MethodName: "GetAllVouchers",
+			Handler:    _VoucherGrpc_GetAllVouchers_Handler,
+		},
+		{
+			MethodName: "GetVoucherByCode",
+			Handler:    _VoucherGrpc_GetVoucherByCode_Handler,
+		},
+		{
+			MethodName: "DeleteVoucher",
+			Handler:    _VoucherGrpc_DeleteVoucher_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

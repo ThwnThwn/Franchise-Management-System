@@ -1,7 +1,7 @@
 package validation
 
 import (
-	"api-gateway/internal/domain/models/errormodel"
+	"api-gateway/internal/application/constants/errorcode"
 	"errors"
 	"fmt"
 	"net/http"
@@ -46,7 +46,7 @@ func init() {
 	}
 }
 
-func TranslateValidationError(err error) *errormodel.BackendError {
+func TranslateValidationError(err error) *errorcode.ErrorResponse {
 	var ve validator.ValidationErrors
 	if errors.As(err, &ve) {
 		msgs := []string{}
@@ -83,7 +83,7 @@ func TranslateValidationError(err error) *errormodel.BackendError {
 			}
 			msgs = append(msgs, msg)
 		}
-		return &errormodel.BackendError{
+		return &errorcode.ErrorResponse{
 			Status: http.StatusBadRequest,
 			Title:  "Thao tác không thành công",
 			Detail: strings.Join(msgs, "; "),
@@ -91,14 +91,14 @@ func TranslateValidationError(err error) *errormodel.BackendError {
 	}
 
 	if strings.Contains(err.Error(), "unmarshal") {
-		return &errormodel.BackendError{
+		return &errorcode.ErrorResponse{
 			Status: http.StatusBadRequest,
 			Title:  "Dữ liệu không đúng định dạng",
 			Detail: "Giá trị số quá lớn hoặc kiểu dữ liệu không hợp lệ",
 		}
 	}
 
-	return &errormodel.BackendError{
+	return &errorcode.ErrorResponse{
 		Status: http.StatusBadRequest,
 		Title:  "Thao tác không thành công",
 		Detail: err.Error(),

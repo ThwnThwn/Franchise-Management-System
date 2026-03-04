@@ -1145,6 +1145,126 @@ const docTemplate = `{
                 }
             }
         },
+        "/loyalty/accounts": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve loyalty accounts by user phone or email.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Loyalty"
+                ],
+                "summary": "Search Loyalty Accounts",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "email",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "phoneNumber",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of loyalty accounts",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/api-gateway_internal_domain_models_loyalty.LoyaltyAccountResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/loyalty/reports": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve statistics about loyalty tiers, point distribution, and member growth.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Loyalty"
+                ],
+                "summary": "Get Loyalty Report",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "format",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "fromDate",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "tierId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "toDate",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Loyalty report data",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_loyalty.LoyaltyReportResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/me/cart": {
             "get": {
                 "security": [
@@ -1309,6 +1429,65 @@ const docTemplate = `{
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/me/points/logs": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve pagination list of point transaction logs for the current authenticated user.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Loyalty - Points"
+                ],
+                "summary": "Get My Point History",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "fromDate",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "toDate",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of point logs",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_point_LogResponse"
                         }
                     },
                     "401": {
@@ -1596,6 +1775,180 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {}
+            }
+        },
+        "/membership-tiers": {
+            "get": {
+                "description": "Retrieve a list of all available membership tiers",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Membership Tiers"
+                ],
+                "summary": "Get All Membership Tiers",
+                "responses": {
+                    "200": {
+                        "description": "List of tiers",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/api-gateway_internal_domain_models_membershiptier.MembershipTierResponse"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Define a new membership tier with spending requirements and benefits.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Membership Tiers"
+                ],
+                "summary": "Create Membership Tier",
+                "parameters": [
+                    {
+                        "description": "Tier details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_membershiptier.CreateMembershipTierRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/membership-tiers/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Remove a membership tier from the system.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Membership Tiers"
+                ],
+                "summary": "Delete Membership Tier",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Tier UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID format",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update benefits or requirements for an existing tier.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Membership Tiers"
+                ],
+                "summary": "Update Membership Tier",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Tier UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_membershiptier.UpdateMembershipTierRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID or validation error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
             }
         },
         "/orders": {
@@ -4794,6 +5147,235 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/vouchers": {
+            "get": {
+                "description": "Retrieve a list of all vouchers available in the system.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Vouchers"
+                ],
+                "summary": "Get All Vouchers",
+                "responses": {
+                    "200": {
+                        "description": "List of vouchers",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/api-gateway_internal_domain_models_voucher.VoucherResponse"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a new discount voucher with items and rules.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Vouchers"
+                ],
+                "summary": "Create New Voucher",
+                "parameters": [
+                    {
+                        "description": "Voucher details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_voucher.CreateVoucherRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/vouchers/code/{code}": {
+            "get": {
+                "description": "Retrieve voucher details using its unique string code (e.g., 'SALE50').",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Vouchers"
+                ],
+                "summary": "Get Voucher by Code",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Voucher Code",
+                        "name": "code",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Voucher details",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_voucher.VoucherResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Voucher not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/vouchers/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Permanently remove a voucher from the system.",
+                "tags": [
+                    "Vouchers"
+                ],
+                "summary": "Delete Voucher",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Voucher UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update details of an existing voucher. Fields are optional (patch-like behavior).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Vouchers"
+                ],
+                "summary": "Update Voucher",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Voucher UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated fields",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_voucher.UpdateVoucherRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/vouchers/{id}/status": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Activate or deactivate a voucher.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Vouchers"
+                ],
+                "summary": "Update Voucher Status",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Voucher UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "New status",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_voucher.UpdateVoucherStatusRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -5007,6 +5589,23 @@ const docTemplate = `{
                 }
             }
         },
+        "api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_point_LogResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api-gateway_internal_domain_models_point.LogResponse"
+                    }
+                },
+                "totalCount": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
+                }
+            }
+        },
         "api-gateway_internal_domain_models_ingredient.CreateIngreCateReq": {
             "type": "object",
             "required": [
@@ -5074,6 +5673,153 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_loyalty.LoyaltyAccountResponse": {
+            "type": "object",
+            "properties": {
+                "availablePoints": {
+                    "type": "string"
+                },
+                "currentTier": {
+                    "$ref": "#/definitions/api-gateway_internal_domain_models_loyalty.MembershipTier"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "totalSpent": {
+                    "type": "string"
+                },
+                "userName": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_loyalty.LoyaltyReportResponse": {
+            "type": "object",
+            "properties": {
+                "fileContent": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "fileName": {
+                    "type": "string"
+                },
+                "tierDistribution": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api-gateway_internal_domain_models_loyalty.TierDistribution"
+                    }
+                },
+                "totalMembers": {
+                    "type": "integer"
+                },
+                "totalPointsEarned": {
+                    "type": "number"
+                },
+                "totalPointsRedeemed": {
+                    "type": "number"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_loyalty.MembershipTier": {
+            "type": "object",
+            "properties": {
+                "amountPerPoint": {
+                    "type": "string"
+                },
+                "discountRate": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "minSpendRequired": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "valuePerPoint": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_loyalty.TierDistribution": {
+            "type": "object",
+            "properties": {
+                "memberCount": {
+                    "type": "integer"
+                },
+                "tierName": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_membershiptier.CreateMembershipTierRequest": {
+            "type": "object",
+            "properties": {
+                "amountPerPoint": {
+                    "type": "string"
+                },
+                "discountRate": {
+                    "type": "number"
+                },
+                "minSpendRequired": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "valuePerPoint": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_membershiptier.MembershipTierResponse": {
+            "type": "object",
+            "properties": {
+                "amountPerPoint": {
+                    "type": "string"
+                },
+                "discountRate": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "minSpendRequired": {
+                    "description": "Dùng string để mapping với decimal",
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "valuePerPoint": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_membershiptier.UpdateMembershipTierRequest": {
+            "type": "object",
+            "properties": {
+                "amountPerPoint": {
+                    "type": "string"
+                },
+                "discountRate": {
+                    "type": "number"
+                },
+                "minSpendRequired": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "valuePerPoint": {
                     "type": "string"
                 }
             }
@@ -5247,6 +5993,44 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_point.LogResponse": {
+            "type": "object",
+            "properties": {
+                "actionType": {
+                    "type": "string"
+                },
+                "amount": {
+                    "type": "string"
+                },
+                "balanceAfter": {
+                    "type": "string"
+                },
+                "balanceBefore": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "expiredAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "reasonCode": {
+                    "type": "string"
+                },
+                "referenceId": {
+                    "type": "string"
+                },
+                "userId": {
                     "type": "string"
                 }
             }
@@ -6047,6 +6831,183 @@ const docTemplate = `{
             "properties": {
                 "roleSlug": {
                     "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_voucher.CreateVoucherItemReq": {
+            "type": "object",
+            "properties": {
+                "quantity": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "integer"
+                },
+                "variant_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_voucher.CreateVoucherRequest": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "discount_value": {
+                    "type": "string"
+                },
+                "end_date": {
+                    "type": "string"
+                },
+                "init_quantity": {
+                    "type": "integer"
+                },
+                "max_discount_value": {
+                    "type": "string"
+                },
+                "max_usage_per_user": {
+                    "type": "integer"
+                },
+                "min_order_value": {
+                    "type": "string"
+                },
+                "point_cost": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "integer"
+                },
+                "voucher_items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api-gateway_internal_domain_models_voucher.CreateVoucherItemReq"
+                    }
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_voucher.UpdateVoucherItemReq": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "integer"
+                },
+                "variant_id": {
+                    "description": "Đại diện cho Guid",
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_voucher.UpdateVoucherRequest": {
+            "type": "object",
+            "properties": {
+                "discount_value": {
+                    "type": "string"
+                },
+                "end_date": {
+                    "type": "string"
+                },
+                "max_discount_value": {
+                    "type": "string"
+                },
+                "max_usage_per_user": {
+                    "type": "integer"
+                },
+                "min_order_value": {
+                    "type": "string"
+                },
+                "point_cost": {
+                    "type": "string"
+                },
+                "voucher_items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api-gateway_internal_domain_models_voucher.UpdateVoucherItemReq"
+                    }
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_voucher.UpdateVoucherStatusRequest": {
+            "type": "object",
+            "properties": {
+                "is_active": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_voucher.VoucherItemResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "integer"
+                },
+                "variant_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_voucher.VoucherResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "current_quantity": {
+                    "type": "integer"
+                },
+                "discount_value": {
+                    "type": "string"
+                },
+                "end_date": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "init_quantity": {
+                    "type": "integer"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "max_discount_value": {
+                    "type": "string"
+                },
+                "max_usage_per_user": {
+                    "type": "integer"
+                },
+                "min_order_value": {
+                    "type": "string"
+                },
+                "point_cost": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "voucher_items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api-gateway_internal_domain_models_voucher.VoucherItemResponse"
+                    }
                 }
             }
         },
