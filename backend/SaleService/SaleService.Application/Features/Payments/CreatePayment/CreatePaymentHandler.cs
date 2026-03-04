@@ -71,7 +71,7 @@ public sealed class CreatePaymentHandler : IRequestHandler<CreatePaymentCommand,
             Amount = order.TotalAmount,
             Currency = "VND",
             Method = (int)request.PaymentMethod,// 0 = Cash | 1 = VNPay
-            Status = (int)PaymentStatus.Pending,     
+            Status = (int)PaymentStatus.Pending,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             IsDeleted = false

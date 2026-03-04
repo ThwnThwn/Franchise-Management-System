@@ -110,6 +110,24 @@ services:
     networks:
       - chb-network
 
+  # ==========================================
+  # 6. NGROK TẠO TUNNEL CHO VNPAY (Expose API chạy ở localhost:5103 ra net)
+  # ==========================================
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: chb_ngrok
+    restart: always
+    environment:
+      - NGROK_AUTHTOKEN=3ASdhW1JxLBlplNk7cZsKoRhXmP_4MyUWrCApRxaPArhXSRJt
+    command:
+      - "http"
+      - "--host-header=rewrite"
+      - "https://host.docker.internal:5003"
+    ports:
+      - "4040:4040"
+    networks:
+      - chb-network
+
 # ==========================================
 # VOLUMES & NETWORKS
 # ==========================================

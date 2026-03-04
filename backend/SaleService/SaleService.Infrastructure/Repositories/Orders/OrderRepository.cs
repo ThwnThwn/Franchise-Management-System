@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using SalesService.Application.Features.Reports.Queries.GetSalesTrend;
 using SalesService.Application.Features.Orders.Queries.GetByIds;
 using SalesService.Application.Features.Orders.Queries.GetOrderVolume;
 using SalesService.Application.Features.Reports.Queries.GetRevenueReport;
@@ -288,5 +289,104 @@ public class OrderRepository : IOrderRepository
             UserId = id,
             OrderCount = dictionary.TryGetValue(id, out var count) ? count : 0
         }).ToList();
+    }
+
+    public async Task<List<SalesTrendDataPointDto>> GetSalesTrendAsync(
+        DateTimeOffset fromDate,
+        DateTimeOffset toDate,
+        TimeAggregation aggregation,
+        List<string>? categorySkus,
+        Guid? storeId,
+        CancellationToken cancellationToken = default)
+    {
+        var fromUtc = fromDate.ToUniversalTime();
+        var toUtc = toDate.ToUniversalTime();
+
+        var query = _context.Orders
+            .AsNoTracking()
+            .Where(o => o.CreatedAt >= fromUtc && o.CreatedAt <= toUtc && o.Status == OrderStatus.Completed && !o.IsDeleted);
+
+        if (storeId.HasValue)
+            query = query.Where(o => o.StoreId == storeId.Value);
+
+        if (categorySkus != null && categorySkus.Any())
+        {
+            query = query.Where(o => o.OrderItems.Any(oi => categorySkus.Contains(oi.Sku)));
+        }
+
+        // Offset to Vietnam Time (+7)
+        var offsetQuery = query.Select(o => new
+        {
+            LocalTime = o.CreatedAt.AddHours(7),
+            Amount = o.TotalAmount
+        });
+
+        if (aggregation == TimeAggregation.Hour)
+        {
+            var grouped = await offsetQuery
+                .GroupBy(x => new { x.LocalTime.Date, x.LocalTime.Hour })
+                .Select(g => new
+                {
+                    Date = g.Key.Date,
+                    Hour = g.Key.Hour,
+                    Volume = g.Count(),
+                    Revenue = g.Sum(x => x.Amount)
+                })
+                .ToListAsync(cancellationToken);
+
+            return grouped.Select(x => new SalesTrendDataPointDto
+            {
+                TimeLabel = $"{x.Date:yyyy-MM-dd} {x.Hour:D2}:00",
+                OrderVolume = x.Volume,
+                Revenue = x.Revenue
+            }).OrderBy(x => x.TimeLabel).ToList();
+        }
+
+        // For both Day and Week, we fetch daily aggregations first
+        var dailyGrouped = await offsetQuery
+            .GroupBy(x => x.LocalTime.Date)
+            .Select(g => new
+            {
+                Date = g.Key,
+                Volume = g.Count(),
+                Revenue = g.Sum(x => x.Amount)
+            })
+            .ToListAsync(cancellationToken);
+
+        if (aggregation == TimeAggregation.Day)
+        {
+            return dailyGrouped.Select(x => new SalesTrendDataPointDto
+            {
+                TimeLabel = x.Date.ToString("yyyy-MM-dd"),
+                OrderVolume = x.Volume,
+                Revenue = x.Revenue
+            }).OrderBy(x => x.TimeLabel).ToList();
+        }
+
+        // Week aggregation: group the daily summaries in-memory.
+        // This avoids fetching millions of raw orders. We only process max ~365 rows in memory.
+        var weekGrouped = dailyGrouped
+            .GroupBy(x => GetIso8601YearAndWeek(x.Date))
+            .Select(g => new SalesTrendDataPointDto
+            {
+                TimeLabel = $"Week {g.Key.Week}, {g.Key.Year}",
+                OrderVolume = g.Sum(x => x.Volume),
+                Revenue = g.Sum(x => x.Revenue)
+            })
+            .OrderBy(x => x.TimeLabel)
+            .ToList();
+
+        return weekGrouped;
+    }
+
+    private static (int Year, int Week) GetIso8601YearAndWeek(DateTime time)
+    {
+        var day = System.Globalization.CultureInfo.InvariantCulture.Calendar.GetDayOfWeek(time);
+        if (day >= DayOfWeek.Monday && day <= DayOfWeek.Wednesday)
+        {
+            time = time.AddDays(3);
+        }
+        var week = System.Globalization.CultureInfo.InvariantCulture.Calendar.GetWeekOfYear(time, System.Globalization.CalendarWeekRule.FirstFourDayWeek, DayOfWeek.Monday);
+        return (time.Year, week);
     }
 }

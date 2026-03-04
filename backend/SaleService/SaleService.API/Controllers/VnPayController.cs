@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using MediatR;
 using SalesService.Application.Features.Payments.VnPayReturn;
 using SalesService.Application.Features.Payments.CreatePayment;
+using SalesService.Application.Features.Payments.VnPayIpn;
 
 namespace SalesService.API.Controllers;
 
@@ -85,6 +86,31 @@ public class VnPayController : ControllerBase
         var redirectUrl = $"{targetUrl}{queryString}{separator}payment_status={paymentStatus}";
 
         return Redirect(redirectUrl);
+    }
+
+    /// <summary>
+    /// VNPay IPN (Instant Payment Notification) - Server to Server callback.
+    /// VNPay will call this endpoint to update payment status.
+    /// </summary>
+    // Match: https://<domain>/api/vnpay/ipn
+    [HttpGet("ipn")]
+    public async Task<IActionResult> Ipn(CancellationToken ct)
+    {
+        var queryDict = HttpContext.Request.Query
+            .ToDictionary(k => k.Key, v => v.Value.ToString());
+
+        var cmd = new VnPayIpnCommand(queryDict);
+        var result = await _mediator.Send(cmd, ct);
+
+        if (result.IsSuccess)
+        {
+            return Ok(result.Value); // Trả về JSON: { "RspCode": "...", "Message": "..." }
+        }
+
+        // Nếu lỗi do logic của ta (ví dụ không lấy được config), vẫn phải trả về format JSON của VNPay.
+        // Tuy nhiên theo chuẩn VNPay, ta nên handle tất cả trong Handler và luôn Success với RspCode phù hợp.
+        // Đoạn này dự phòng:
+        return Ok(new { RspCode = "99", Message = "Unknown error" });
     }
 }
 
