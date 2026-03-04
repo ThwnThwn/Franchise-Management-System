@@ -35,6 +35,9 @@ service OrderGrpc {
       
   // Lấy số đơn hàng
   rpc GetCountOrderByUserIds (GetCountOrderByUserIdsRequest) returns (GetCountOrderByUserIdsResponse);
+
+  // Lấy dữ liệu biểu đồ phân tích xu hướng doanh thu và lượng đơn
+  rpc GetSalesTrend (GetSalesTrendRequest) returns (GetSalesTrendReply);
 }
 
 message GetCountOrderByUserIdsRequest{
@@ -256,6 +259,25 @@ message OrderVolumeADay{
 message CsvFile{
   bytes csv_raw = 1;
   string csv_file_name = 2;
+}
+message GetSalesTrendRequest {
+  string from_date = 1; // DateTimeOffset format (ISO 8601)
+  string to_date = 2;   // DateTimeOffset format (ISO 8601)
+  int32 aggregation = 3; // 0 = Hour, 1 = Day, 2 = Week
+  optional string store_id = 4;
+  optional string category_id = 5;
+}
+
+message SalesTrendDataPoint {
+  string time_label = 1;
+  int32 order_volume = 2;
+  double revenue = 3;
+}
+
+message GetSalesTrendReply {
+  repeated SalesTrendDataPoint data_points = 1;
+  optional string peak_period_label = 2;
+  optional string slow_period_label = 3;
 }
 
 message PayOrderWithWalletRequest {
