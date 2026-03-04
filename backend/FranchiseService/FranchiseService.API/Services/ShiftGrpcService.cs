@@ -18,6 +18,7 @@ using FranchiseService.Application.Features.Shifts.Commands.BulkCreateFromTempla
 using FranchiseService.Application.Features.Shifts.Commands.BulkPublish;
 using FranchiseService.Application.Features.Shifts.Commands.BulkDelete;
 using FranchiseService.Application.Features.Shifts.Commands.BulkOpenShifts;
+using FranchiseService.Application.Features.Shifts.Commands.AutoFillShifts;
 using Dtos = FranchiseService.Application.Features.Shifts.DTOs;
 using Grpc.Core;
 using MediatR;
@@ -749,6 +750,43 @@ namespace FranchiseService.API.Services
                     OpenedCount = result.OpenedCount
                 };
                 response.SkippedIds.AddRange(result.SkippedIds.Select(id => id.ToString()));
+
+                return response;
+            }
+            catch (InvalidOperationException ex)
+            {
+                throw new RpcException(new Status(StatusCode.FailedPrecondition, ex.Message));
+            }
+            catch (FormatException ex)
+            {
+                throw new RpcException(new Status(StatusCode.InvalidArgument,
+                    $"Dinh dang du lieu khong hop le: {ex.Message}"));
+            }
+        }
+
+        // Tu dong xep ca cho cua hang trong khoang ngay
+        public override async Task<AutoFillShiftsResponse> AutoFillShifts(
+            AutoFillShiftsRequest request, ServerCallContext context)
+        {
+            try
+            {
+                var command = new AutoFillShiftsCommand
+                {
+                    StoreId = Guid.Parse(request.StoreId),
+                    StartDate = DateOnly.Parse(request.StartDate),
+                    EndDate = DateOnly.Parse(request.EndDate)
+                };
+
+                var result = await _mediator.Send(command);
+
+                var response = new AutoFillShiftsResponse
+                {
+                    Success = true,
+                    FilledCount = result.FilledCount,
+                    TotalSlots = result.TotalSlots
+                };
+                response.UnfilledShiftIds.AddRange(
+                    result.UnfilledShiftIds.Select(id => id.ToString()));
 
                 return response;
             }

@@ -60,9 +60,7 @@ namespace FranchiseService.Application.Features.Shifts.Queries.GetAvailableStaff
             var allUsers = await _identityClient.GetAllUsersAsync("staff");
 
             // 4. Chuẩn bị dữ liệu để tính Weekly Hours và Overlap (Batch Fetching)
-            int daysSinceMonday = (int)shift.ShiftDate.DayOfWeek - (int)DayOfWeek.Monday;
-            if (daysSinceMonday < 0) daysSinceMonday += 7;
-            var startOfWeek = shift.ShiftDate.AddDays(-daysSinceMonday);
+            var startOfWeek = ShiftCalculationHelper.GetMondayOfWeek(shift.ShiftDate);
             var endOfWeek = startOfWeek.AddDays(6);
 
             var assignmentMap = (await _shiftRepository.GetAssignmentsByUsersAsync(
@@ -91,7 +89,7 @@ namespace FranchiseService.Application.Features.Shifts.Queries.GetAvailableStaff
                 // Kiểm tra lịch khả dụng cá nhân của nhân viên
                 if (availabilityMap.TryGetValue(user.Id, out var userAvails))
                 {
-                    var overlapping = userAvails.Where(a => IShiftValidationService.IsOverlap(
+                    var overlapping = userAvails.Where(a => ShiftCalculationHelper.IsOverlap(
                         shift.StartTime, shift.EndTime, a.StartTime, a.EndTime)).ToList();
                     var busyRule = overlapping.FirstOrDefault(a => !a.IsAvailable);
                     if (busyRule != null) { isAvailable = false; note = busyRule.Note; }

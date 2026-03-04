@@ -24,7 +24,7 @@ namespace FranchiseService.Application.Services
                 userId, shift.ShiftDate, shift.ShiftDate, ct);
             foreach (var existing in dailyAssignments)
             {
-                if (IShiftValidationService.IsOverlap(shift.StartTime, shift.EndTime,
+                if (ShiftCalculationHelper.IsOverlap(shift.StartTime, shift.EndTime,
                     existing.Shift.StartTime, existing.Shift.EndTime))
                 {
                     warnings.Add(new ValidationWarning
@@ -49,20 +49,18 @@ namespace FranchiseService.Application.Services
                 });
             }
             // 3. Check Max Hours → WARNING
-            int daysSinceMonday = (int)shift.ShiftDate.DayOfWeek - (int)DayOfWeek.Monday;
-            if (daysSinceMonday < 0) daysSinceMonday += 7;
-            var startOfWeek = shift.ShiftDate.AddDays(-daysSinceMonday);
+            var startOfWeek = ShiftCalculationHelper.GetMondayOfWeek(shift.ShiftDate);
             var endOfWeek = startOfWeek.AddDays(6);
             var weeklyAssignments = await _shiftRepo.GetAssignmentsByUserAsync(
                 userId, startOfWeek, endOfWeek, ct);
             double totalHours = weeklyAssignments
-                                .Sum(a => IShiftValidationService
+                                .Sum(a => ShiftCalculationHelper
                                             .CalculateNetHours(
                                              a.Shift.StartTime,
                                              a.Shift.EndTime,
                                              a.Shift.BreakDurationMinutes));
 
-            double newHours = IShiftValidationService.CalculateNetHours(
+            double newHours = ShiftCalculationHelper.CalculateNetHours(
                 shift.StartTime, shift.EndTime, shift.BreakDurationMinutes);
 
             if (totalHours + newHours > maxHoursPerWeek)
@@ -87,7 +85,7 @@ namespace FranchiseService.Application.Services
             // Overlap
             result.IsConflict = userAssignments.Any(a =>
                 a.Shift.ShiftDate == shift.ShiftDate && a.ShiftId != shift.Id &&
-                IShiftValidationService.IsOverlap(shift.StartTime, shift.EndTime,
+                ShiftCalculationHelper.IsOverlap(shift.StartTime, shift.EndTime,
                     a.Shift.StartTime, a.Shift.EndTime));
 
 
@@ -101,9 +99,9 @@ namespace FranchiseService.Application.Services
             // Weekly Hours
             double weeklyHours = userAssignments
                 .Where(a => a.ShiftId != shift.Id)
-                .Sum(a => IShiftValidationService.CalculateNetHours(
+                .Sum(a => ShiftCalculationHelper.CalculateNetHours(
                     a.Shift.StartTime, a.Shift.EndTime, a.Shift.BreakDurationMinutes));
-            double newHours = IShiftValidationService.CalculateNetHours(
+            double newHours = ShiftCalculationHelper.CalculateNetHours(
                 shift.StartTime, shift.EndTime, shift.BreakDurationMinutes);
             result.IsOverLimit = (weeklyHours + newHours) > maxHoursPerWeek;
             result.WeeklyHours = weeklyHours;

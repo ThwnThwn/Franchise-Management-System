@@ -64,9 +64,7 @@ public class GetApplicationsByShiftHandler
 
         // 4. Xac dinh khoang tuan cua ca (Mon-Sun)
         DateOnly shiftDate = shift?.ShiftDate ?? DateOnly.FromDateTime(DateTime.Today);
-        int daysSinceMonday = (int)shiftDate.DayOfWeek - (int)DayOfWeek.Monday;
-        if (daysSinceMonday < 0) daysSinceMonday += 7;
-        var startOfWeek = shiftDate.AddDays(-daysSinceMonday);
+        var startOfWeek = ShiftCalculationHelper.GetMondayOfWeek(shiftDate);
         var endOfWeek = startOfWeek.AddDays(6);
 
         // 5. Batch fetch: lay assignments cua TAT CA ung vien trong 1 query duy nhat
@@ -96,7 +94,7 @@ public class GetApplicationsByShiftHandler
             // Tinh so gio da lam trong tuan
             assignmentsByUser.TryGetValue(app.UserId, out var userAssignments);
             double weeklyHours = userAssignments?.Sum(a =>
-                IShiftValidationService.CalculateNetHours(
+                ShiftCalculationHelper.CalculateNetHours(
                     a.Shift.StartTime, a.Shift.EndTime, a.Shift.BreakDurationMinutes)) ?? 0;
 
             // CostScore: luong thap => diem cao (tiet kiem chi phi cho cua hang)

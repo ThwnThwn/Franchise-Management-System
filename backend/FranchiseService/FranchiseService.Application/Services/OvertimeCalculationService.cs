@@ -7,39 +7,6 @@ using System.Linq.Expressions;
 namespace FranchiseService.Application.Services;
 
 /// <summary>
-/// Ket qua tra ve sau khi tinh toan OT cho mot ca lam viec.
-/// </summary>
-public class OvertimeResult
-{
-    /// <summary>
-    /// So phut lam viec thuong (trong nguong cho phep).
-    /// </summary>
-    public int RegularMinutes { get; set; }
-
-    /// <summary>
-    /// So phut tang ca trong ngay (vuot nguong DailyOtThresholdHours).
-    /// </summary>
-    public int DailyOtMinutes { get; set; }
-
-    /// <summary>
-    /// So phut tang ca trong tuan (vuot nguong WeeklyOtThresholdHours).
-    /// </summary>
-    public int WeeklyOtMinutes { get; set; }
-}
-
-/// <summary>
-/// Interface dich vu tinh toan Overtime.
-/// Tach rieng de tai su dung o ca CheckOutHandler va UpdateTimeLogHandler.
-/// </summary>
-public interface IOvertimeCalculationService
-{
-    /// <summary>
-    /// Tinh toan phan bo so phut lam viec thanh Regular, Daily OT, Weekly OT.
-    /// </summary>
-    Task<OvertimeResult> CalculateAsync(TimeLog timeLog, Shift shift, ShiftRule? rule, Guid userId);
-}
-
-/// <summary>
 /// Service tinh toan Overtime.
 /// Cong thuc:
 ///   1. totalWorkedMinutes = CheckOutAt - EffectiveStart - BreakDuration
@@ -86,10 +53,8 @@ public class OvertimeCalculationService : IOvertimeCalculationService
         int dailyOtThisShift = Math.Max(0, totalWorkedMinutes - maxRegularPerDay);
 
         // Buoc 2: Tinh Weekly OT
-        // Xac dinh khoang thoi gian cua tuan (Thu 2 den Chu Nhat)
-        int daysSinceMonday = (int)shift.ShiftDate.DayOfWeek - (int)DayOfWeek.Monday;
-        if (daysSinceMonday < 0) daysSinceMonday += 7;
-        var startOfWeek = shift.ShiftDate.AddDays(-daysSinceMonday);
+        // Dung ShiftCalculationHelper.GetMondayOfWeek thay vi tinh truc tiep
+        var startOfWeek = ShiftCalculationHelper.GetMondayOfWeek(shift.ShiftDate);
         var endOfWeek = startOfWeek.AddDays(6);
 
         // Truy van tat ca TimeLogs da duoc duyet (Valid) cua user trong tuan nay

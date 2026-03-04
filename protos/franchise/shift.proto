@@ -56,6 +56,10 @@ service ShiftGrpcService {
   // --- CHO CA (Shift Pool) ---
   // Mo nhieu ca ra Cho Ca (Draft -> Open)
   rpc BulkOpenShifts (BulkOpenShiftsRequest) returns (BulkOpenShiftsResponse);
+
+  // --- TU DONG XEP CA ---
+  // He thong tu dong tim nhan vien phu hop va gan vao cac ca Draft chua du nguoi
+  rpc AutoFillShifts (AutoFillShiftsRequest) returns (AutoFillShiftsResponse);
 }
 
 // ----------------------------------------------------
@@ -450,3 +454,16 @@ message BulkOpenShiftsResponse {
   repeated string skipped_ids = 3;
 }
 
+// --- Tu dong xep ca (Auto-Fill) ---
+message AutoFillShiftsRequest {
+  string store_id = 1;
+  string start_date = 2;
+  string end_date = 3;
+}
+
+message AutoFillShiftsResponse {
+  bool success = 1;
+  int32 filled_count = 2;
+  int32 total_slots = 3;
+  repeated string unfilled_shift_ids = 4;
+}
