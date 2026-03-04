@@ -123,7 +123,7 @@ public class SmtpEmailSender : IEmailSender
         message.To.Add(new MailboxAddress("", toEmail));
 
         // Subject depends on event
-        message.Subject = "Order status updated";
+        message.Subject = orderEvent.Title;
 
         var mainMessage =  $"Order <b>#{orderEvent.OrderCode}</b> is now <b>{orderEvent.NewOrderStatus}</b>.";
         var itemsHtml = string.Join("", orderEvent.Items.Select(i => $@"

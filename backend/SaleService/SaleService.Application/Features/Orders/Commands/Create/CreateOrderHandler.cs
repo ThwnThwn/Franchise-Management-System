@@ -169,12 +169,11 @@ public sealed class CreateOrderHandler
             IsDeleted = false
         };
 
-        // Set OrderId cho các OrderItems
-        //foreach (var orderItem in orderItems)
-        //{
-        //    orderItem.OrderId = order.Id;
-        //    order.OrderItems.Add(orderItem);
-        //}
+        // Add OrderItems
+        foreach (var orderItem in orderItems)
+        {
+            order.OrderItems.Add(orderItem);
+        }
 
         // 1. Prepare Outbox Message (BEFORE saving order)
         // Outbox: KHÔNG publish OrderStatusEvent khi PaymentPending

@@ -1,4 +1,5 @@
-﻿using SharedKernel.Events;
+﻿using SalesService.Application.Features.Orders.Commands.UpdateOrderStatus;
+using SharedKernel.Events;
 
 namespace SalesService.Application.Mapping.Orders
 {
@@ -69,6 +70,7 @@ namespace SalesService.Application.Mapping.Orders
                 OrderId = order.Id,
                 OrderCode = order.Code,
                 CustomerId = order.CustomerId,
+                Title = DictionaryOrderTileEmail.GetTitle(order.Status),
                 CustomerEmail = string.Empty,
                 NewOrderStatus = MapOrderStatus(order.Status),
                 Items = MapOrderItems(order.OrderItems ?? []),

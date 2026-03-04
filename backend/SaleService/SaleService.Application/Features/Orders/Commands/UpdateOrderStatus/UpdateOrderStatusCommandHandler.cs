@@ -120,7 +120,7 @@ public sealed class UpdateOrderStatusCommandHandler
             TotalAmount = order.TotalAmount,
             CreatedAt = DateTimeOffset.UtcNow
         };
-
+        orderEvent.Title = DictionaryOrderTileEmail.GetTitle(order.Status);
         // Serialize to JSON
         var eventJson = System.Text.Json.JsonSerializer.Serialize(orderEvent);
 

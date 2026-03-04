@@ -14,6 +14,7 @@ public class OrderStatusEvent
     /// OrderCode 
     /// </summary>
     public string OrderCode { get; set; } = default!;
+    public string? Title { get; set; }
     public Guid? CustomerId { get; set; }
     /// <summary>
     /// Email khách hàng (để gửi xác nhận)
