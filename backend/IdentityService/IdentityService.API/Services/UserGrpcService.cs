@@ -82,9 +82,8 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
             Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone,
             Address = string.IsNullOrWhiteSpace(request.Address) ? null : request.Address,
             RoleSlug = request.RoleSlug,
-            CurrentHourlyWage = request.HasCurrentHourlyWage? (decimal?)request.CurrentHourlyWage: null,
+            CurrentHourlyWage = request.HasCurrentHourlyWage ? (decimal?)request.CurrentHourlyWage : null,
             HomeStoreId = Guid.Parse(string.IsNullOrWhiteSpace(request.HomeStoreId) ? null : request.HomeStoreId)
-
         }));
 
         return MapUser(rep);
@@ -146,13 +145,13 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
         var query = new GetAllUsersQuery()
         {
             RoleSlug = request.RoleSlug,
-            StoreId = Guid.TryParse(request.HomeStoreId, out var storeId)? storeId: null,
+            StoreId = Guid.TryParse(request.HomeStoreId, out var storeId) ? storeId : null,
             HasHourlyWage = request.HasHourlyWage,
             Keyword = request.Keyword,
             OrderCount = request.HasOrderCount ? request.OrderCount : null,
-            TierId = Guid.TryParse(request.TierId, out var parsed)? parsed: null,
+            TierId = Guid.TryParse(request.TierId, out var parsed) ? parsed : null,
             StartAt = request.HasStartAt ? (decimal)request.StartAt : null,
-            EndAt = request.HasEndAt? (decimal)request.EndAt : null,
+            EndAt = request.HasEndAt ? (decimal)request.EndAt : null,
             Page = request.Page,
             PageSize = request.PageSize
         };
@@ -210,7 +209,7 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
             {
                 Username = string.IsNullOrWhiteSpace(request.Username) ? null : request.Username,
                 Email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email,
-                FirstName = request.FirstName,
+                FirstName = string.IsNullOrWhiteSpace(request.FirstName) ? null : request.FirstName,
                 LastName = string.IsNullOrWhiteSpace(request.LastName) ? null : request.LastName,
                 Gender = request.Gender,
                 DateOfBirth = dob,
@@ -219,12 +218,10 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
                 IsBlocked = request.IsBlocked,
                 RoleSlug = request.RoleSlug,
                 CurrentHourlyWage = request.HasCurrentHourlyWage ? (decimal?)request.CurrentHourlyWage : null,
-                HomeStoreId = Guid.Parse(string.IsNullOrWhiteSpace(request.HomeStoreId) ? null : request.HomeStoreId)
+                HomeStoreId = string.IsNullOrWhiteSpace(request.HomeStoreId)
+                                ? null : Guid.Parse(request.HomeStoreId)
             }
-        ));
-
-        if (rep == null)
-            throw new RpcException(new Status(StatusCode.NotFound, "User not found"));
+        )) ?? throw new RpcException(new Status(StatusCode.NotFound, "User not found"));
 
         return MapUser(rep);
     }
@@ -344,6 +341,7 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
             }
         };
     }
+
     public override async Task<GetSimpleUsersRespone> GetUserIdByPhone(GetUserIdByPhoneRequest request, ServerCallContext context)
     {
         var req = new GetUsersByPhoneQuery(PhoneNumber: request.Phone);

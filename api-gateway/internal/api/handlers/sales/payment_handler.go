@@ -117,8 +117,12 @@ func (h *PaymentHandler) ProcessVnPayReturn(c *gin.Context) error {
 		strings.Contains(strings.ToLower(redirectTo), "http://") ||
 		strings.Contains(strings.ToLower(redirectTo), "https://") {
 
-		// Fallback an toàn tuyệt đối
-		redirectTo = "/orders"
+		parsedUrl, err := url.Parse(h.cfg.VNPay.ClientReturnUrl)
+		if err == nil && parsedUrl.Path != "" {
+			redirectTo = parsedUrl.Path
+		} else {
+			redirectTo = "/orders"
+		}
 	}
 
 	// 3. Gọi gRPC xuống .NET để verify chữ ký (Chỉ mang theo vnpayParams)

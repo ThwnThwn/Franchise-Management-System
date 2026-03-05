@@ -29,6 +29,7 @@ import (
 	"api-gateway/internal/api/routes/points"
 	"api-gateway/internal/api/routes/products"
 	"api-gateway/internal/api/routes/recipes"
+	"api-gateway/internal/api/routes/refunds"
 	"api-gateway/internal/api/routes/roles"
 	"api-gateway/internal/api/routes/shifts"
 	"api-gateway/internal/api/routes/stores"
@@ -36,6 +37,7 @@ import (
 	"api-gateway/internal/api/routes/users"
 	"api-gateway/internal/api/routes/variants"
 	"api-gateway/internal/api/routes/vouchers"
+	"api-gateway/internal/api/routes/wallets"
 	"api-gateway/internal/application/usecases"
 	"api-gateway/internal/bootstrap"
 	"api-gateway/internal/infrastructure/cache"
@@ -168,6 +170,14 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, func
 	iCartService := sales.ProvideCartClient(salesClientFactory)
 	cartHandler := sales2.NewCartHandler(iCartService)
 	cartRouter := carts.NewRouter(cfg, authMiddleware, cartHandler)
+	iWalletService := sales.ProvideWalletClient(salesClientFactory, cfg)
+	walletHandler := sales2.NewWalletHandler(iWalletService, cfg)
+	iWalletTransactionService := sales.ProvideWalletTransactionClient(salesClientFactory)
+	walletTransactionHandler := sales2.NewWalletTransactionHandler(iWalletTransactionService)
+	walletRouter := wallets.NewRouter(walletHandler, walletTransactionHandler, authMiddleware, cfg)
+	iRefundTicketService := sales.ProvideRefundTicketClient(salesClientFactory, cfg)
+	refundTicketHandler := sales2.NewRefundTicketHandler(iRefundTicketService)
+	refundRouter := refunds.NewRouter(refundTicketHandler, authMiddleware, cfg)
 	appRouter := &routes.AppRouter{
 		LoyaltyRouter:        loyaltyRouter,
 		MembershipTierRouter: membershipTierRouter,
@@ -187,6 +197,8 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, func
 		VariantRouter:        variantRouter,
 		OrderRouter:          orderRouter,
 		CartRouter:           cartRouter,
+		WalletRouter:         walletRouter,
+		RefundRouter:         refundRouter,
 	}
 	engine := routes.NewEngine(cfg, appRouter)
 	app := bootstrap.NewApp(cfg, engine)

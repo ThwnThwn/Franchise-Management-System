@@ -24,7 +24,7 @@ public sealed class GetWalletTransactionsByUserIdQueryHandler
         CancellationToken cancellationToken)
     {
         var transactions = await _walletTransactionRepository
-            .GetByUserIdAsync(request.UserIdToSearch,request.PageIndex, request.PageSize,cancellationToken);
+            .GetByUserIdAsync(request.UserIdToSearch, request.PageIndex, request.PageSize, cancellationToken);
 
         if (transactions == null)
             return Result.NotFound("No wallet transactions found.");
@@ -45,7 +45,7 @@ public sealed class GetWalletTransactionsByUserIdQueryHandler
         var response = transactions.Items.Select(t => new WalletTransactionResponse
         {
             Id = t.Id,
-            WalletId = t.WalletId.Value,
+            WalletId = t.WalletId ?? Guid.Empty,
             UserId = t.UserId,
             OrderId = t.OrderId,
             InitiatedBy = t.InitiatedBy,

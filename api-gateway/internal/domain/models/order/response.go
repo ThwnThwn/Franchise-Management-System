@@ -107,3 +107,15 @@ type OrderVolumeADay struct {
 	StoreId        *string          `json:"storeId"`
 	StatusCounts   map[string]int32 `json:"statusCounts"`
 }
+
+type GetSalesTrendReply struct {
+	DataPoints      []*SalesTrendDataPoint `json:"dataPoints"`
+	PeakPeriodLabel *string                `json:"peakPeriodLabel"`
+	SlowPeriodLabel *string                `json:"slowPeriodLabel"`
+}
+
+type SalesTrendDataPoint struct {
+	TimeLabel   string  `json:"timeLabel"`
+	OrderVolume int32   `json:"orderVolume"`
+	Revenue     float64 `json:"revenue"`
+}

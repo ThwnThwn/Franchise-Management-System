@@ -51,10 +51,14 @@ func (v *voucherGrpcClient) GetByCode(ctx context.Context, code string) (*vouche
 
 // Create implements engagement.IVoucherService.
 func (v *voucherGrpcClient) Create(ctx context.Context, req *voucher.CreateVoucherRequest) error {
+	if req == nil {
+		return errorcode.NewBadRequest("Request data is missing")
+	}
+
 	items := make([]*engagementPb.CreateVoucherItemReq, 0, len(req.VoucherItems))
 	for _, item := range req.VoucherItems {
-		if _, ok := engagementPb.VoucherItemType_name[int32(item.Type)]; !ok {
-			return errorcode.NewBadRequest("Kiểu voucher item không hợp lệ")
+		if item == nil {
+			continue
 		}
 
 		items = append(items, &engagementPb.CreateVoucherItemReq{
@@ -64,9 +68,6 @@ func (v *voucherGrpcClient) Create(ctx context.Context, req *voucher.CreateVouch
 		})
 	}
 
-	if _, ok := engagementPb.VoucherType_name[int32(req.Type)]; !ok {
-		return errorcode.NewBadRequest("Kiểu voucher không hợp lệ")
-	}
 	_, err := v.client.CreateVoucher(ctx, &engagementPb.CreateVoucherRequest{
 		Code:             req.Code,
 		Type:             engagementPb.VoucherType(req.Type),
@@ -84,25 +85,21 @@ func (v *voucherGrpcClient) Create(ctx context.Context, req *voucher.CreateVouch
 }
 
 func (v *voucherGrpcClient) Update(ctx context.Context, id uuid.UUID, req *voucher.UpdateVoucherRequest) error {
+	if req == nil {
+		return errorcode.NewBadRequest("Request data is missing")
+	}
+
 	items := make([]*engagementPb.UpdateVoucherItemReq, 0, len(req.VoucherItems))
 	for _, item := range req.VoucherItems {
-		var grpcTypePtr *engagementPb.VoucherItemType = nil
-
-		if item.Type != nil {
-			val := int32(*item.Type)
-			if _, ok := engagementPb.VoucherItemType_name[val]; !ok {
-				return errorcode.NewBadRequest("Kiểu voucher item không hợp lệ")
-			}
-
-			t := engagementPb.VoucherItemType(val)
-			grpcTypePtr = &t
+		if item == nil {
+			continue
 		}
 
 		items = append(items, &engagementPb.UpdateVoucherItemReq{
 			Id:        item.Id,
 			VariantId: item.VariantId,
 			Quantity:  item.Quantity,
-			Type:      grpcTypePtr,
+			Type:      (*engagementPb.VoucherItemType)(item.Type),
 		})
 	}
 

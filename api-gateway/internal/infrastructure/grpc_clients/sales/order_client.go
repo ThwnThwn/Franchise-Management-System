@@ -239,3 +239,32 @@ func (o *OrderGrpcClient) GetRevenueReport(ctx context.Context, req *order.GetRe
 		OverallTotalRevenue: res.OverallTotalRevenue,
 	}, nil, nil
 }
+
+// GetSalesTrend implements sales.IOrderService.
+func (o *OrderGrpcClient) GetSalesTrend(ctx context.Context, req *order.GetSalesTrendRequest) (*order.GetSalesTrendReply, error) {
+	res, err := o.client.GetSalesTrend(ctx, &salesPb.GetSalesTrendRequest{
+		FromDate:    req.FromDate,
+		ToDate:      req.ToDate,
+		Aggregation: req.Aggregation,
+		StoreId:     req.StoreId,
+		CategoryId:  req.CategoryId,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	points := make([]*order.SalesTrendDataPoint, 0, len(res.DataPoints))
+	for _, item := range res.DataPoints {
+		points = append(points, &order.SalesTrendDataPoint{
+			TimeLabel:   item.TimeLabel,
+			OrderVolume: item.OrderVolume,
+			Revenue:     item.Revenue,
+		})
+	}
+
+	return &order.GetSalesTrendReply{
+		DataPoints:      points,
+		PeakPeriodLabel: res.PeakPeriodLabel,
+		SlowPeriodLabel: res.SlowPeriodLabel,
+	}, nil
+}

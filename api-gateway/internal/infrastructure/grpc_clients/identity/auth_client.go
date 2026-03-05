@@ -43,7 +43,11 @@ func (a *AuthGrpcClient) Logout(ctx context.Context, req *auth.LogoutRequest) (b
 		AccessToken:  req.AccessToken,
 		RefreshToken: req.RefreshToken,
 	})
-	return res.Success, err
+	if err != nil {
+		return false, err
+	}
+
+	return res.Success, nil
 }
 
 // RefreshToken implements identity.IAuthService.

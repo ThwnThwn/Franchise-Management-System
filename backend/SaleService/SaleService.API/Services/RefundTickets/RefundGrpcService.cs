@@ -38,11 +38,9 @@ public sealed class RefundGrpcService : RefundTicketGrpcService.RefundTicketGrpc
         ServerCallContext context)
     {
         var userEntry = context.RequestHeaders.FirstOrDefault(h =>
-           h.Key.Equals("x-user-id", StringComparison.OrdinalIgnoreCase));
-        if (userEntry == null)
-        {
-            throw new RpcException(new Status(StatusCode.Unauthenticated, "Missing x-user-id in request headers"));
-        }
+           h.Key.Equals("x-user-id", StringComparison.OrdinalIgnoreCase))
+            ?? throw new RpcException(new Status(StatusCode.Unauthenticated, "Missing x-user-id in request headers"));
+
         if (!Guid.TryParse(userEntry.Value, out var userId))
         {
             throw new RpcException(new Status(
@@ -54,14 +52,17 @@ public sealed class RefundGrpcService : RefundTicketGrpcService.RefundTicketGrpc
             throw new RpcException(new Status(
                 StatusCode.InvalidArgument,
                 "Invalid amount. Must be a positive number"));
+
         var commandRequest = new CustomerCreateRefundTicketCommand.CustomerCreateRefundTicketRequest
         {
             Amount = amount,
             Reason = request.Reason
         };
+
         var command = new CustomerCreateRefundTicketCommand(
-        userId,
-        commandRequest);
+            userId,
+            commandRequest
+        );
 
         var result = await _mediator.Send(command, context.CancellationToken);
 
@@ -118,7 +119,6 @@ public sealed class RefundGrpcService : RefundTicketGrpcService.RefundTicketGrpc
                 StatusCode.InvalidArgument,
                 "Invalid user_id format"));
 
-
         if (!decimal.TryParse(request.Amount, out var amount) || amount <= 0)
             throw new RpcException(new Status(
                 StatusCode.InvalidArgument,
@@ -136,7 +136,6 @@ public sealed class RefundGrpcService : RefundTicketGrpcService.RefundTicketGrpc
             Amount = decimal.Parse(request.Amount),
             Reason = request.Reason,
             Notes = request.InternalNotes
-            
         };
 
         var overrideInfo = new Application.Common.Models.InternalUserOverrideInfo
@@ -156,8 +155,8 @@ public sealed class RefundGrpcService : RefundTicketGrpcService.RefundTicketGrpc
 
         var result = await _mediator.Send(command, context.CancellationToken);
 
-        if(!result.IsSuccess)
-{
+        if (!result.IsSuccess)
+        {
             if (result.Status == ResultStatus.Invalid)
             {
                 var message = string.Join(" | ",
@@ -219,7 +218,7 @@ public sealed class RefundGrpcService : RefundTicketGrpcService.RefundTicketGrpc
 
         var requestData = new ApproveRefundCommand.ApproveRefundRequest
         {
-            ApprovalNotes=request.ApprovalNotes
+            ApprovalNotes = request.ApprovalNotes
         };
 
         var command = new ApproveRefundCommand
@@ -480,22 +479,17 @@ public sealed class RefundGrpcService : RefundTicketGrpcService.RefundTicketGrpc
         GetAllRefundsRequest request,
         ServerCallContext context)
     {
-        var userEntry = context.RequestHeaders.FirstOrDefault(h =>
-            h.Key.Equals("x-internal-id", StringComparison.OrdinalIgnoreCase));
-        if (userEntry == null)
-        {
-            throw new RpcException(new Status(StatusCode.Unauthenticated, "Missing x-internal-id in request headers"));
-        }
         var appRequest = new GetAllRefundsQueryRequest
         {
             UserId = string.IsNullOrWhiteSpace(request.UserId)
-        ? null
-        : Guid.Parse(request.UserId),
+                ? null
+                : Guid.Parse(request.UserId),
 
             Status = request.Status == RefundTicketStatus.RefundStatusUnspecified
-        ? null
-        : (Domain.Enums.RefundTicketStatus)request.Status
+                ? null
+                : (Domain.Enums.RefundTicketStatus)request.Status
         };
+
         var query = new GetAllRefundsQuery
             (appRequest,
             request.Paging?.PageIndex ?? 1,
@@ -699,9 +693,6 @@ public sealed class RefundGrpcService : RefundTicketGrpcService.RefundTicketGrpc
 
     //    return response;
     //}
-
-
-
 
     // ========== MAPPING HELPERS ==========
 

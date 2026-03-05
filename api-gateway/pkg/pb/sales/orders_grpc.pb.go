@@ -42,6 +42,8 @@ type OrderGrpcClient interface {
 	PayOrderWithWallet(ctx context.Context, in *PayOrderWithWalletRequest, opts ...grpc.CallOption) (*PayOrderWithWalletReply, error)
 	// Lấy số đơn hàng
 	GetCountOrderByUserIds(ctx context.Context, in *GetCountOrderByUserIdsRequest, opts ...grpc.CallOption) (*GetCountOrderByUserIdsResponse, error)
+	// Lấy dữ liệu biểu đồ phân tích xu hướng doanh thu và lượng đơn
+	GetSalesTrend(ctx context.Context, in *GetSalesTrendRequest, opts ...grpc.CallOption) (*GetSalesTrendReply, error)
 }
 
 type orderGrpcClient struct {
@@ -142,6 +144,15 @@ func (c *orderGrpcClient) GetCountOrderByUserIds(ctx context.Context, in *GetCou
 	return out, nil
 }
 
+func (c *orderGrpcClient) GetSalesTrend(ctx context.Context, in *GetSalesTrendRequest, opts ...grpc.CallOption) (*GetSalesTrendReply, error) {
+	out := new(GetSalesTrendReply)
+	err := c.cc.Invoke(ctx, "/order.OrderGrpc/GetSalesTrend", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // OrderGrpcServer is the server API for OrderGrpc service.
 // All implementations must embed UnimplementedOrderGrpcServer
 // for forward compatibility
@@ -166,6 +177,8 @@ type OrderGrpcServer interface {
 	PayOrderWithWallet(context.Context, *PayOrderWithWalletRequest) (*PayOrderWithWalletReply, error)
 	// Lấy số đơn hàng
 	GetCountOrderByUserIds(context.Context, *GetCountOrderByUserIdsRequest) (*GetCountOrderByUserIdsResponse, error)
+	// Lấy dữ liệu biểu đồ phân tích xu hướng doanh thu và lượng đơn
+	GetSalesTrend(context.Context, *GetSalesTrendRequest) (*GetSalesTrendReply, error)
 	mustEmbedUnimplementedOrderGrpcServer()
 }
 
@@ -202,6 +215,9 @@ func (UnimplementedOrderGrpcServer) PayOrderWithWallet(context.Context, *PayOrde
 }
 func (UnimplementedOrderGrpcServer) GetCountOrderByUserIds(context.Context, *GetCountOrderByUserIdsRequest) (*GetCountOrderByUserIdsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCountOrderByUserIds not implemented")
+}
+func (UnimplementedOrderGrpcServer) GetSalesTrend(context.Context, *GetSalesTrendRequest) (*GetSalesTrendReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetSalesTrend not implemented")
 }
 func (UnimplementedOrderGrpcServer) mustEmbedUnimplementedOrderGrpcServer() {}
 
@@ -396,6 +412,24 @@ func _OrderGrpc_GetCountOrderByUserIds_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OrderGrpc_GetSalesTrend_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSalesTrendRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderGrpcServer).GetSalesTrend(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/order.OrderGrpc/GetSalesTrend",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderGrpcServer).GetSalesTrend(ctx, req.(*GetSalesTrendRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // OrderGrpc_ServiceDesc is the grpc.ServiceDesc for OrderGrpc service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -442,6 +476,10 @@ var OrderGrpc_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetCountOrderByUserIds",
 			Handler:    _OrderGrpc_GetCountOrderByUserIds_Handler,
+		},
+		{
+			MethodName: "GetSalesTrend",
+			Handler:    _OrderGrpc_GetSalesTrend_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

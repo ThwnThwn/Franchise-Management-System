@@ -413,3 +413,40 @@ func (h *OrderHandler) ExportOrderVolume(c *gin.Context) error {
 	c.Data(http.StatusOK, "text/csv", csv.CsvRaw)
 	return nil
 }
+
+// GetSalesTrend
+// @Summary      Lấy biểu đồ xu hướng doanh thu
+// @Description  Lấy dữ liệu xu hướng doanh thu (doanh thu, lượng đơn hàng) trong một khoảng thời gian được gom nhóm (giờ/ngày/tuần).
+// @Description  LƯU Ý VỀ PHÂN QUYỀN (StoreId):
+// @Description  - Nếu là Admin: Có thể truyền tham số storeId để xem cụ thể một cửa hàng, hoặc không truyền (bỏ trống) để xem dữ liệu của toàn hệ thống.
+// @Description  - Nếu là Manager/Staff: Truyền storeId hay không thì hệ thống cũng sẽ tự động ghi đè (override) bằng ID cửa hàng của tài khoản đang đăng nhập.
+// @Tags         Orders
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        query  query     order.GetSalesTrendRequest  true  "Các tham số lọc (fromDate, toDate, aggregation, storeId...)"
+// @Success      200    {object}  order.GetSalesTrendReply    "Dữ liệu xu hướng và nhãn thời gian cao điểm/thấp điểm"
+// @Failure      400    {object}  map[string]string           "Lỗi dữ liệu đầu vào (Bad Request)"
+// @Failure      401    {object}  map[string]string           "Lỗi xác thực (Unauthorized)"
+// @Router       /orders/reports/sales-trend [get]
+func (h *OrderHandler) GetSalesTrend(c *gin.Context) error {
+	var req order.GetSalesTrendRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		return validation.TranslateValidationError(err)
+	}
+
+	ctx, err := grpcutils.BuildAuthContext(c)
+	if err != nil {
+		return err
+	}
+
+	contextutils.ApplyStoreBoundaries(c, &req.StoreId)
+
+	res, err := h.orderGW.GetSalesTrend(ctx, &req)
+	if err != nil {
+		return err
+	}
+
+	c.JSON(http.StatusOK, res)
+	return nil
+}

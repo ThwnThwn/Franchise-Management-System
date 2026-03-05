@@ -43,12 +43,14 @@ type Redis struct {
 }
 
 type VNPay struct {
-	// 1. Luồng Khách hàng (SalesService)
 	ReturnUrl       string
 	ClientReturnUrl string
 	IpnUrl          string
 
-	// 2. Luồng Nhập hàng (SupplierService)
+	WalletReturnUrl       string
+	WalletClientReturnUrl string
+	WalletIpnUrl          string
+
 	SupplierReturnUrl       string
 	SupplierClientReturnUrl string
 	SupplierIpnUrl          string

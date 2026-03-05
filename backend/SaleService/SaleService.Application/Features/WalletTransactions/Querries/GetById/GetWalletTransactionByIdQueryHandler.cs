@@ -22,9 +22,8 @@ public sealed class GetWalletTransactionByIdQueryHandler
         GetWalletTransactionByIdQuery query,
         CancellationToken cancellationToken)
     {
-        var userRole=await _identityServiceClient.GetUserByIdAsync(query.LoggedUserId);
-        Console.WriteLine($"RoleName: '{userRole?.Role?.RoleName}'");
-        Console.WriteLine($"Slug: '{userRole?.Role?.Slug}'");
+        var userRole = await _identityServiceClient.GetUserByIdAsync(query.LoggedUserId);
+
         var transaction = await _transactionRepository.GetByIdAsync(
             query.TransactionId,
             cancellationToken);
@@ -34,17 +33,8 @@ public sealed class GetWalletTransactionByIdQueryHandler
             return Result.NotFound("Transaction not found");
         }
 
-        if (userRole != null)
-        {
-            Console.WriteLine("userRole not null");
-        }
-        else
-        {
-            Console.WriteLine("userRole is null");
-        }
-
         var isOwner = query.LoggedUserId == transaction.UserId;
-        var role = userRole?.Role?.RoleName?.Trim().ToLower();
+        var role = userRole?.Role?.Slug?.Trim().ToLower();
 
         var isInternalUser = role == "administrator"
                         || role == "manager"
@@ -55,11 +45,10 @@ public sealed class GetWalletTransactionByIdQueryHandler
             return Result.Forbidden("You do not have permission!!!");
         }
 
-
         var response = new WalletTransactionResponse
         {
             Id = transaction.Id,
-            WalletId = transaction.WalletId.Value,
+            WalletId = transaction.WalletId ?? Guid.Empty,
             UserId = transaction.UserId,
 
             TransactionCode = transaction.TransactionCode,
