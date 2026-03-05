@@ -96,6 +96,34 @@ public class VnPayController : ControllerBase
     [HttpGet("ipn")]
     public async Task<IActionResult> Ipn(CancellationToken ct)
     {
+        var orderInfo = HttpContext.Request.Query["vnp_OrderInfo"].ToString();
+
+        // -------------------------------------------------------------------------
+        // WORKAROUND DÙNG CHUNG TMNCODE: 
+        // Phân luồng request về SupplierService (vì IPN từ VNPay cấu hình chung 1 URL)
+        // -------------------------------------------------------------------------
+        if (orderInfo.Contains("don nhap hang", StringComparison.OrdinalIgnoreCase) || 
+            orderInfo.Contains("PO-", StringComparison.OrdinalIgnoreCase))
+        {
+            var queryString = HttpContext.Request.QueryString.Value;
+            
+            // Đọc cấu hình từ .env (SUPPLIER_REST_URL -> http://localhost:5023)
+            var config = HttpContext.RequestServices.GetService<Microsoft.Extensions.Configuration.IConfiguration>();
+            var supplierRestUrl = config?["SUPPLIER_REST_URL"] ?? "http://localhost:5023";
+            
+            using var httpClient = new HttpClient();
+            try 
+            {
+                var response = await httpClient.GetAsync($"{supplierRestUrl}/api/vnpay/ipn{queryString}", ct);
+                var content = await response.Content.ReadAsStringAsync(ct);
+                return Content(content, "application/json"); // Trả về JSON của SupplierService cho VNPay
+            }
+            catch (Exception ex)
+            {
+                return Ok(new { RspCode = "99", Message = "Forward to SupplierService failed: " + ex.Message });
+            }
+        }
+
         var queryDict = HttpContext.Request.Query
             .ToDictionary(k => k.Key, v => v.Value.ToString());
 

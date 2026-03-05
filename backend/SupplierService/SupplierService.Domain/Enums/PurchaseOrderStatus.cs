@@ -3,9 +3,10 @@ namespace SupplierService.Domain.Enums;
 public enum PurchaseOrderStatus
 {
     Pending = 0,
-    Processing = 1,
-    Completed = 2,
-    Cancelled = 3
+    ConfirmPending = 1,
+    Confirmed = 2,
+    Completed = 3,
+    Cancelled = 4
 }
 
 public enum PaymentStatus

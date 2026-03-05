@@ -57,8 +57,8 @@ public class SupplierPaymentGrpcService : SupplierPaymentGrpc.SupplierPaymentGrp
 
         return new CreatePoPaymentReply
         {
-            PaymentId = result.Value.PaymentId.ToString(),
-            Code = result.Value.Code,
+            //PaymentId = result.Value.PaymentId.ToString(),
+            //Code = result.Value.Code,
             Url = result.Value.Url
         };
     }

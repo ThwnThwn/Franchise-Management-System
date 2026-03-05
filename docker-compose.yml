@@ -111,7 +111,10 @@ services:
       - chb-network
 
   # ==========================================
-  # 6. NGROK TẠO TUNNEL CHO VNPAY (Expose API chạy ở localhost:5103 ra net)
+  # 6. NGROK TẠO TUNNEL CHO VNPAY (Sale + Supplier Service)
+  #    Dashboard: http://localhost:4040
+  #    Sale:     http://localhost:4040 → Tunnels → sale_service
+  #    Supplier: http://localhost:4040 → Tunnels → supplier_service
   # ==========================================
   ngrok:
     image: ngrok/ngrok:latest
@@ -119,10 +122,13 @@ services:
     restart: always
     environment:
       - NGROK_AUTHTOKEN=3ASdhW1JxLBlplNk7cZsKoRhXmP_4MyUWrCApRxaPArhXSRJt
+    volumes:
+      - ./ngrok.yml:/etc/ngrok.yml
     command:
-      - "http"
-      - "--host-header=rewrite"
-      - "https://host.docker.internal:5003"
+      - "start"
+      - "--all"
+      - "--config"
+      - "/etc/ngrok.yml"
     ports:
       - "4040:4040"
     networks:

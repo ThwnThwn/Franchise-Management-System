@@ -50,6 +50,7 @@ public static class VNPayHelper
 
     /// <summary>
     /// Verify VNPay signature with given parameters and secure hash.
+    /// VNPay signs using WebUtility.UrlEncode (space → +), sorted by key.
     /// </summary>
     public static bool VerifySignature(
         string hashSecret,
@@ -149,6 +150,6 @@ public static class VNPayHelper
 
         return computedHash.Equals(receivedHash, StringComparison.OrdinalIgnoreCase);
     }
-    
+
 }
 

@@ -185,8 +185,8 @@ public sealed class VnPayIpnHandler
 
         return Result.Success(new VnPayIpnResponse
         {
-             RspCode = "00",
-             Message = "Confirm Success"
+            RspCode = "00",
+            Message = "Confirm Success"
         });
     }
 
