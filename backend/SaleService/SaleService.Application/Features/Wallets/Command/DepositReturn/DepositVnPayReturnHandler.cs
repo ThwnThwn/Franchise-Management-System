@@ -1,4 +1,5 @@
-﻿using Ardalis.Result;
+﻿using System.Text.Json;
+using Ardalis.Result;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using SalesService.Application.Helpers;
@@ -6,10 +7,14 @@ using SalesService.Application.Interfaces.Payments;
 using SalesService.Application.Persisitences.Wallets;
 using SalesService.Application.Persisitences.WalletTransactions;
 using SalesService.Domain.Enums;
-using System.Text.Json;
 
 namespace SalesService.Application.Features.Wallets.Deposit;
 
+/// <summary>
+/// Xử lý Return URL của VNPay sau khi user thanh toán nạp ví.
+/// Cập nhật DB trực tiếp từ Return URL (fallback nếu IPN không đến).
+/// Có idempotency check: không cập nhật lại nếu IPN đã xử lý trước rồi.
+/// </summary>
 public sealed class DepositVnPayReturnHandler
     : IRequestHandler<DepositVnPayReturnCommand, Result<DepositVnPayReturnRes>>
 {
@@ -72,6 +77,31 @@ public sealed class DepositVnPayReturnHandler
         if (payment == null)
             return Result.NotFound("Payment not found");
 
+        // ===== STEP 3.5: IDEMPOTENCY — IPN đã xử lý trước rồi thì bỏ qua =====
+        if (payment.Status == (int)PaymentStatus.Paid || payment.Status == (int)PaymentStatus.Failed)
+        {
+            var isSuccessAlready = payment.Status == (int)PaymentStatus.Paid;
+            decimal currentBalance = 0;
+
+            if (payment.ReferenceId.HasValue)
+            {
+                var walletTxn = await _walletTransactionRepository.GetByIdAsync(payment.ReferenceId.Value, cancellationToken);
+                if (walletTxn != null)
+                {
+                    var walletIdem = await _walletRepository.GetByIdAsync(walletTxn.WalletId!.Value, cancellationToken);
+                    if (walletIdem != null) currentBalance = walletIdem.Balance;
+                }
+            }
+
+            return Result.Success(new DepositVnPayReturnRes
+            {
+                Success = isSuccessAlready,
+                WalletTransactionId = payment.ReferenceId ?? Guid.Empty,
+                Amount = payment.Amount,
+                NewBalance = currentBalance
+            });
+        }
+
         // ===== STEP 4: VALIDATE AMOUNT =====
         if (long.TryParse(amountStr, out var vnpAmount))
         {
@@ -87,38 +117,35 @@ public sealed class DepositVnPayReturnHandler
 
         // ===== STEP 5: GET WALLET TRANSACTION =====
         var walletTransaction = await _walletTransactionRepository
-            .GetByIdAsync(payment.ReferenceId.Value, cancellationToken);
+            .GetByIdAsync(payment.ReferenceId!.Value, cancellationToken);
 
         if (walletTransaction == null)
             return Result.NotFound("Wallet transaction not found");
 
         // ===== STEP 6: GET WALLET =====
         var wallet = await _walletRepository
-            .GetByIdAsync(walletTransaction.WalletId.Value, cancellationToken);
+            .GetByIdAsync(walletTransaction.WalletId!.Value, cancellationToken);
 
         if (wallet == null)
             return Result.NotFound("Wallet not found");
 
         // ===== STEP 7: PROCESS RESULT =====
-        if (responseCode == "00") // ✅ Thành công
+        if (responseCode == "00") // Thành công
         {
-            // Cộng tiền vào ví
             wallet.Balance += payment.Amount;
             wallet.UpdatedAt = DateTimeOffset.UtcNow;
 
-            // Cập nhật WalletTransaction
             walletTransaction.Status = TransactionStatus.Completed;
             walletTransaction.CompletedAt = DateTimeOffset.UtcNow;
             walletTransaction.UpdatedAt = DateTimeOffset.UtcNow;
 
-            // Cập nhật Payment
             payment.Status = (int)PaymentStatus.Paid;
             payment.PaidAt = DateTime.UtcNow;
             payment.Provider = "vnpay";
             payment.ProviderTxnId = transactionNo;
             payment.ProviderPayload = JsonSerializer.Serialize(query);
         }
-        else // ❌ Thất bại
+        else // Thất bại
         {
             walletTransaction.Status = TransactionStatus.Failed;
             walletTransaction.UpdatedAt = DateTimeOffset.UtcNow;
@@ -131,10 +158,11 @@ public sealed class DepositVnPayReturnHandler
 
         await _paymentRepository.SaveChangesAsync(cancellationToken);
 
+        var isSuccess = responseCode == "00";
         return Result.Success(new DepositVnPayReturnRes
         {
-            Success = responseCode == "00",
-            WalletTransactionId = walletTransaction.Id,
+            Success = isSuccess,
+            WalletTransactionId = payment.ReferenceId ?? Guid.Empty,
             Amount = payment.Amount,
             NewBalance = wallet.Balance
         });

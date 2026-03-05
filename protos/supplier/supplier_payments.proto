@@ -22,8 +22,8 @@ service SupplierPaymentGrpc {
 // ── Enums ────────────────────────────────────────────────────────────────────
 
 enum SupplierPaymentMethodType {
-  SUPPLIER_PAYMENT_METHOD_CASH   = 0;
-  SUPPLIER_PAYMENT_METHOD_VNPAY  = 1;
+  CASH   = 0;
+  VNPAY  = 1;
 }
 
 // ── CreatePoPayment ─────────────────────────────────────────────────────────────

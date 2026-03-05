@@ -32,8 +32,8 @@ public class SupplierPaymentGrpcService : SupplierPaymentGrpc.SupplierPaymentGrp
 
         var method = request.Method switch
         {
-            SupplierPaymentMethodType.SupplierPaymentMethodCash  => SupplierPaymentMethod.Cash,
-            SupplierPaymentMethodType.SupplierPaymentMethodVnpay => SupplierPaymentMethod.VNPay,
+            SupplierPaymentMethodType.Cash => SupplierPaymentMethod.Cash,
+            SupplierPaymentMethodType.Vnpay => SupplierPaymentMethod.VNPay,
             _ => throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid payment method"))
         };
 

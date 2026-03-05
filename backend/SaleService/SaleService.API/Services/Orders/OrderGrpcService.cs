@@ -17,6 +17,7 @@ using SalesService.Application.Features.Orders.Queries.GetMyOrders;
 using SalesService.Application.Features.Orders.Queries.GetOrders;
 using SalesService.Application.Features.Orders.Queries.GetOrderVolume;
 using SalesService.Application.Features.Reports.Queries.GetRevenueReport;
+using SalesService.Application.Features.Reports.Queries.GetSalesTrend;
 
 namespace SalesService.API.Services.Orders;
 
@@ -631,5 +632,62 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             }));
 
         return response;
+    }
+
+    public override async Task<GetSalesTrendReply> GetSalesTrend(GetSalesTrendRequest request, ServerCallContext context)
+    {
+        DateTimeOffset fromDate;
+        if (!DateTimeOffset.TryParse(request.FromDate, out fromDate))
+        {
+            if (DateTime.TryParse(request.FromDate, out var dt))
+                fromDate = new DateTimeOffset(dt, TimeSpan.FromHours(7));
+            else
+                throw new RpcException(new Status(StatusCode.InvalidArgument, $"Invalid from_date format: {request.FromDate}"));
+        }
+
+        DateTimeOffset toDate;
+        if (!DateTimeOffset.TryParse(request.ToDate, out toDate))
+        {
+            if (DateTime.TryParse(request.ToDate, out var dt))
+                toDate = new DateTimeOffset(dt, TimeSpan.FromHours(7));
+            else
+                throw new RpcException(new Status(StatusCode.InvalidArgument, $"Invalid to_date format: {request.ToDate}"));
+        }
+
+        var aggregation = (TimeAggregation)request.Aggregation;
+
+        Guid? storeId = string.IsNullOrEmpty(request.StoreId) ? null : Guid.Parse(request.StoreId);
+        Guid? categoryId = string.IsNullOrEmpty(request.CategoryId) ? null : Guid.Parse(request.CategoryId);
+
+        var query = new GetSalesTrendQuery
+        {
+            FromDate = fromDate,
+            ToDate = toDate,
+            Aggregation = aggregation,
+            StoreId = storeId,
+            CategoryId = categoryId
+        };
+
+        var result = await _mediator.Send(query, context.CancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            throw new RpcException(new Status(StatusCode.Internal, result.Errors.FirstOrDefault() ?? "Failed to get sales trend"));
+        }
+
+        var reply = new GetSalesTrendReply
+        {
+            PeakPeriodLabel = result.Value.PeakPeriodLabel ?? string.Empty,
+            SlowPeriodLabel = result.Value.SlowPeriodLabel ?? string.Empty
+        };
+
+        reply.DataPoints.AddRange(result.Value.DataPoints.Select(dp => new SalesTrendDataPoint
+        {
+            TimeLabel = dp.TimeLabel,
+            OrderVolume = dp.OrderVolume,
+            Revenue = (double)dp.Revenue
+        }));
+
+        return reply;
     }
 }
