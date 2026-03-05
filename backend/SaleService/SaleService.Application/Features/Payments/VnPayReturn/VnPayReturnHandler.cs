@@ -21,8 +21,6 @@ public sealed class VnPayReturnHandler
 {
     private readonly IPaymentRepository _paymentRepository;
     private readonly IConfiguration _config;
-    private readonly IOutboxRepository _outboxRepository;
-    private readonly IOutboxSignal _outboxSignal;
     private readonly ILogger<VnPayReturnHandler> _logger;
 
     public VnPayReturnHandler(
@@ -34,8 +32,6 @@ public sealed class VnPayReturnHandler
     {
         _paymentRepository = paymentRepository;
         _config = config;
-        _outboxRepository = outboxRepository;
-        _outboxSignal = outboxSignal;
         _logger = logger;
     }
 
@@ -108,113 +104,27 @@ public sealed class VnPayReturnHandler
             return Result.NotFound("Payment not found");
         }
 
-        // xác thực số tiền
-        if (long.TryParse(amountStr, out var vnpAmount))
+        // Chỉ kiểm tra logic để hiển thị cho UI (KHÔNG LƯU DB, KHÔNG BẮN KAFKA)
+        // Mọi việc cập nhật dữ liệu để VnPayIpnHandler lo gánh
+        var isSuccess = responseCode == "00";
+
+        if (isSuccess)
         {
-            var expected = (long)(payment.Amount * 100);
-            if (expected != vnpAmount)
-            {
-                await AddPaymentEvent(payment.Id, "VNPAY_AMOUNT_MISMATCH", query, cancellationToken);
-
-                payment.Status = (int)PaymentStatus.Failed;
-                payment.Provider = "vnpay";
-                payment.ProviderPayload = JsonSerializer.Serialize(query);
-
-                await _paymentRepository.SaveChangesAsync(cancellationToken);
-
-                return Result.Error("Amount mismatch");
-            }
-        }
-
-        // cập nhật trạng thái payment
-        if (responseCode == "00") // 00 = Thanh toán thành công
-        {
-            payment.Status = (int)PaymentStatus.Paid;
-            payment.PaidAt = DateTime.UtcNow;
-            payment.Provider = "vnpay";
-            payment.ProviderTxnId = transactionNo;
-            payment.ProviderPayload = JsonSerializer.Serialize(query);
-
-            if (payment.Order != null)
-            {
-                payment.Order.Status = OrderStatus.ConfirmationPending;
-                payment.Order.PaidAt = DateTimeOffset.UtcNow;
-                payment.Order.PaidAmount = payment.Amount;
-                payment.Order.PaymentMethod = PaymentMethod.VNPay;
-
-                // PUBLISH OrderPaidEvent
-                if (payment.Order.OrderItems != null && payment.Order.OrderItems.Any())
-                {
-                    // 1. OrderStatusEvent → NotificationService (thông báo khách hàng)
-                    var orderStatusEvent = OrderToKafka.MapToOrderStatusEvent(payment.Order);
-                    _outboxRepository.AddEvent(orderStatusEvent, KafkaTopics.OrderNotifications);
-
-                    // 2. OrderPaidEvent → InventoryService (trừ kho)
-                    var orderPaidEvent = OrderToKafka.MapToOrderPaidEvent(payment.Order);
-                    _outboxRepository.AddEvent(orderPaidEvent, KafkaTopics.OrderPaid);
-
-                    _logger.LogInformation("Outbox: OrderStatusEvent + OrderPaidEvent cho Order {OrderId}", payment.Order.Id);
-                }
-            }
-
-            await AddPaymentEvent(payment.Id, "VNPAY_CALLBACK_SUCCESS", query, cancellationToken);
+            _logger.LogInformation("VNPay Return: Giao dịch thành công cho PaymentId {PaymentId}. Chờ IPN xử lý DB.", payment.Id);
         }
         else
         {
-            payment.Status = (int)PaymentStatus.Failed;
-            payment.Provider = "vnpay";
-            payment.ProviderTxnId = transactionNo;
-            payment.ProviderPayload = JsonSerializer.Serialize(query);
-
-            if (payment.Order != null)
-            {
-                // OrderCancelledEvent → InventoryService (giải phóng giữ chỗ)
-                var cancelledEvent = new OrderCancelledEvent
-                {
-                    OrderId = payment.Order.Id,
-                    CancelledAt = DateTimeOffset.UtcNow,
-                    Reason = $"Payment Failed: {responseCode}"
-                };
-
-                _outboxRepository.AddEvent(cancelledEvent, KafkaTopics.OrderCancelled);
-            }
-
-            await AddPaymentEvent(payment.Id, "VNPAY_CALLBACK_FAILED", query, cancellationToken);
+            _logger.LogWarning("VNPay Return: Giao dịch thất bại cho PaymentId {PaymentId} (Mã: {ResponseCode}).", payment.Id, responseCode);
         }
-
-        await _paymentRepository.SaveChangesAsync(cancellationToken);
-
-
-        // Pulse Outbox Worker
-        _outboxSignal.Pulse();
 
         return Result.Success(new VnPayReturnResponse
         {
-            Success = responseCode == "00",
+            Success = isSuccess,
             PaymentId = payment.Id,
             OrderId = payment.OrderId.Value,
             ResponseCode = responseCode ?? string.Empty
         });
     }
 
-    private async Task AddPaymentEvent(
-        Guid paymentId,
-        string eventType,
-        IDictionary<string, string> query,
-        CancellationToken cancellationToken)
-    {
-        var payloadJson = JsonSerializer.Serialize(query);
-
-        var evt = new PaymentEvent
-        {
-            Id = Guid.NewGuid(),
-            PaymentId = paymentId,
-            EventType = eventType,
-            Payload = payloadJson,
-            CreatedAt = DateTime.UtcNow
-        };
-
-        await _paymentRepository.AddEventAsync(evt, cancellationToken);
-    }
 }
 
