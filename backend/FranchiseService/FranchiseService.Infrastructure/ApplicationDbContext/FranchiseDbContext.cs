@@ -46,6 +46,11 @@ public partial class FranchiseDbContext : DbContext, IFranchiseDbContext
     /// </summary>
     public virtual DbSet<ShiftApplication> ShiftApplications { get; set; }
 
+    /// <summary>
+    /// Yeu cau doi ca giua 2 nhan vien
+    /// </summary>
+    public virtual DbSet<ShiftSwapRequest> ShiftSwapRequests { get; set; }
+
     public new DbSet<T> Set<T>() where T : class, IEntity => base.Set<T>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -501,6 +506,34 @@ public partial class FranchiseDbContext : DbContext, IFranchiseDbContext
             entity.HasOne(e => e.Shift).WithMany()
                 .HasForeignKey(e => e.ShiftId)
                 .HasConstraintName("fk_applications_shift");
+        });
+
+        // Cau hinh bang shift_swap_requests (Yeu cau doi ca)
+        modelBuilder.Entity<ShiftSwapRequest>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("shift_swap_requests_pkey");
+            entity.ToTable("shift_swap_requests");
+
+            entity.HasIndex(e => new { e.SourceUserId, e.Status }, "idx_swap_source_user");
+            entity.HasIndex(e => new { e.TargetUserId, e.Status }, "idx_swap_target_user");
+
+            entity.Property(e => e.Id).HasDefaultValueSql("uuid_generate_v4()").HasColumnName("id");
+            entity.Property(e => e.SourceAssignmentId).HasColumnName("source_assignment_id");
+            entity.Property(e => e.SourceUserId).HasColumnName("source_user_id");
+            entity.Property(e => e.TargetUserId).HasColumnName("target_user_id");
+            entity.Property(e => e.Status).HasDefaultValue(0).HasColumnName("status");
+            entity.Property(e => e.Reason).HasMaxLength(500).HasColumnName("reason");
+            entity.Property(e => e.RejectReason).HasMaxLength(500).HasColumnName("reject_reason");
+            entity.Property(e => e.ExpiresAt).HasColumnName("expires_at");
+            entity.Property(e => e.ReviewedBy).HasColumnName("reviewed_by");
+            entity.Property(e => e.ReviewedAt).HasColumnName("reviewed_at");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").HasColumnName("updated_at");
+            entity.Property(e => e.IsDeleted).HasDefaultValue(false).HasColumnName("is_deleted");
+
+            entity.HasOne(e => e.SourceAssignment).WithMany()
+                .HasForeignKey(e => e.SourceAssignmentId)
+                .HasConstraintName("fk_swap_source_assignment");
         });
 
         foreach (var entity in modelBuilder.Model.GetEntityTypes())

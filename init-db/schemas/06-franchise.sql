@@ -355,3 +355,42 @@ CREATE INDEX idx_applications_shift ON shift_applications(shift_id);
 
 -- Index de truy van nhanh theo nhan vien (xem lich su dang ky cua 1 nguoi)
 CREATE INDEX idx_applications_user ON shift_applications(user_id);
+
+-- ========================================================
+-- 10. SHIFT SWAP REQUESTS (Yeu cau doi ca)
+-- ========================================================
+CREATE TABLE IF NOT EXISTS shift_swap_requests (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+
+    -- A: nguoi gui yeu cau doi ca
+    source_assignment_id UUID NOT NULL,
+    source_user_id UUID NOT NULL,
+
+    -- B: nguoi duoc yeu cau nhan ca
+    target_user_id UUID NOT NULL,
+
+    -- Trang thai State Machine (0=PendingTarget, 1=PendingManager, 2=Approved, 3=Rejected, 4=Expired, 5=Cancelled)
+    status INT NOT NULL DEFAULT 0,
+
+    -- Ly do gui yeu cau (bat buoc)
+    reason VARCHAR(500) NOT NULL,
+
+    -- Ly do tu choi
+    reject_reason VARCHAR(500),
+
+    -- Thoi han B phai tra loi
+    expires_at TIMESTAMPTZ NOT NULL,
+
+    -- Ai duyet (Manager)
+    reviewed_by UUID,
+    reviewed_at TIMESTAMPTZ,
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
+
+    CONSTRAINT fk_swap_source_assignment FOREIGN KEY (source_assignment_id) REFERENCES shift_assignments(id)
+);
+
+CREATE INDEX idx_swap_source_user ON shift_swap_requests(source_user_id, status);
+CREATE INDEX idx_swap_target_user ON shift_swap_requests(target_user_id, status);

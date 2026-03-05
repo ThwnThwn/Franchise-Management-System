@@ -85,6 +85,7 @@ namespace FranchiseService.API
             builder.Services.AddScoped<IShiftValidationService, ShiftValidationService>();
             builder.Services.AddScoped<IShiftRuleService, ShiftRuleService>();
             builder.Services.AddScoped<IOvertimeCalculationService, OvertimeCalculationService>();
+            builder.Services.AddScoped<FranchiseService.Application.Features.ShiftSwaps.Helpers.SwapValidationHelper>();
 
 
             // Rest API Controllers
@@ -123,6 +124,7 @@ namespace FranchiseService.API
             app.MapGrpcService<Services.ShiftRuleGrpcService>();
             app.MapGrpcService<Services.ShiftTemplateGrpcService>();
             app.MapGrpcService<Services.ShiftApplicationGrpcService>();
+            app.MapGrpcService<Services.ShiftSwapGrpcService>();
             app.MapGrpcReflectionService();
 
 

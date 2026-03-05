@@ -70,6 +70,7 @@ run_sql_script "inventory_db" "/docker-entrypoint-initdb.d/seeding/realease-init
 run_sql_script "product_db" "/docker-entrypoint-initdb.d/seeding/realease-init-product.sql"
 run_sql_script "identity_db" "/docker-entrypoint-initdb.d/seeding/realease-init-identity.sql"
 run_sql_script "franchise_db" "/docker-entrypoint-initdb.d/seeding/realease-init-franchise.sql"
+run_sql_script "franchise_db" "/docker-entrypoint-initdb.d/seeding/09-seeding-swap-test.sql"
 run_sql_script "engagement_db" "/docker-entrypoint-initdb.d/seeding/realease-init-engagement.sql"
 run_sql_script "supplier_db" "/docker-entrypoint-initdb.d/seeding/08-seeding-supplier.sql"
 
