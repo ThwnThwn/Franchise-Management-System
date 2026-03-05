@@ -3,30 +3,25 @@ using MediatR;
 using Microsoft.Extensions.Configuration;
 using SalesService.Application.Helpers;
 using SalesService.Application.Interfaces.Payments;
-using SalesService.Application.Persisitences.Wallets;
-using SalesService.Application.Persisitences.WalletTransactions;
-using SalesService.Domain.Enums;
-using System.Text.Json;
 
 namespace SalesService.Application.Features.Wallets.Deposit;
 
+/// <summary>
+/// Xử lý Return URL của VNPay sau khi user thanh toán nạp ví.
+/// KHÔNG update DB ở đây — mọi cập nhật DB đã được VnPayIpnHandler lo.
+/// Handler này chỉ xác thực chữ ký và trả kết quả để redirect UI.
+/// </summary>
 public sealed class DepositVnPayReturnHandler
     : IRequestHandler<DepositVnPayReturnCommand, Result<DepositVnPayReturnRes>>
 {
     private readonly IPaymentRepository _paymentRepository;
-    private readonly IWalletRepository _walletRepository;
-    private readonly IWalletTransactionRepository _walletTransactionRepository;
     private readonly IConfiguration _config;
 
     public DepositVnPayReturnHandler(
         IPaymentRepository paymentRepository,
-        IWalletRepository walletRepository,
-        IWalletTransactionRepository walletTransactionRepository,
         IConfiguration config)
     {
         _paymentRepository = paymentRepository;
-        _walletRepository = walletRepository;
-        _walletTransactionRepository = walletTransactionRepository;
         _config = config;
     }
 
@@ -57,7 +52,6 @@ public sealed class DepositVnPayReturnHandler
         // ===== STEP 2: PARSE PARAMS =====
         query.TryGetValue("vnp_TxnRef", out var txnRef);
         query.TryGetValue("vnp_ResponseCode", out var responseCode);
-        query.TryGetValue("vnp_TransactionNo", out var transactionNo);
         query.TryGetValue("vnp_Amount", out var amountStr);
 
         if (!Guid.TryParse(txnRef, out var paymentId))
@@ -67,76 +61,20 @@ public sealed class DepositVnPayReturnHandler
                 ErrorMessage = "Invalid vnp_TxnRef"
             });
 
-        // ===== STEP 3: GET PAYMENT =====
+        // ===== STEP 3: GET PAYMENT (chỉ để lấy amount hiển thị UI) =====
         var payment = await _paymentRepository.GetByIdAsync(paymentId, cancellationToken);
         if (payment == null)
             return Result.NotFound("Payment not found");
 
-        // ===== STEP 4: VALIDATE AMOUNT =====
-        if (long.TryParse(amountStr, out var vnpAmount))
-        {
-            var expected = (long)(payment.Amount * 100);
-            if (expected != vnpAmount)
-            {
-                payment.Status = (int)PaymentStatus.Failed;
-                payment.ProviderPayload = JsonSerializer.Serialize(query);
-                await _paymentRepository.SaveChangesAsync(cancellationToken);
-                return Result.Error("Amount mismatch");
-            }
-        }
-
-        // ===== STEP 5: GET WALLET TRANSACTION =====
-        var walletTransaction = await _walletTransactionRepository
-            .GetByIdAsync(payment.ReferenceId.Value, cancellationToken);
-
-        if (walletTransaction == null)
-            return Result.NotFound("Wallet transaction not found");
-
-        // ===== STEP 6: GET WALLET =====
-        var wallet = await _walletRepository
-            .GetByIdAsync(walletTransaction.WalletId, cancellationToken);
-
-        if (wallet == null)
-            return Result.NotFound("Wallet not found");
-
-        // ===== STEP 7: PROCESS RESULT =====
-        if (responseCode == "00") // ✅ Thành công
-        {
-            // Cộng tiền vào ví
-            wallet.Balance += payment.Amount;
-            wallet.UpdatedAt = DateTimeOffset.UtcNow;
-
-            // Cập nhật WalletTransaction
-            walletTransaction.Status = TransactionStatus.Completed;
-            walletTransaction.CompletedAt = DateTimeOffset.UtcNow;
-            walletTransaction.UpdatedAt = DateTimeOffset.UtcNow;
-
-            // Cập nhật Payment
-            payment.Status = (int)PaymentStatus.Paid;
-            payment.PaidAt = DateTime.UtcNow;
-            payment.Provider = "vnpay";
-            payment.ProviderTxnId = transactionNo;
-            payment.ProviderPayload = JsonSerializer.Serialize(query);
-        }
-        else // ❌ Thất bại
-        {
-            walletTransaction.Status = TransactionStatus.Failed;
-            walletTransaction.UpdatedAt = DateTimeOffset.UtcNow;
-
-            payment.Status = (int)PaymentStatus.Failed;
-            payment.Provider = "vnpay";
-            payment.ProviderTxnId = transactionNo;
-            payment.ProviderPayload = JsonSerializer.Serialize(query);
-        }
-
-        await _paymentRepository.SaveChangesAsync(cancellationToken);
-
+        // ===== STEP 4: TRẢ KẾT QUẢ CHO UI =====
+        // DB sẽ được cập nhật bởi IPN (VnPayIpnHandler), không update ở đây.
+        var isSuccess = responseCode == "00";
         return Result.Success(new DepositVnPayReturnRes
         {
-            Success = responseCode == "00",
-            WalletTransactionId = walletTransaction.Id,
+            Success = isSuccess,
+            WalletTransactionId = payment.ReferenceId ?? Guid.Empty,
             Amount = payment.Amount,
-            NewBalance = wallet.Balance
+            NewBalance = 0  // IPN sẽ update thực tế, UI lấy lại từ API riêng nếu cần
         });
     }
 }

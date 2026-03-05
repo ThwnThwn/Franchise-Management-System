@@ -94,8 +94,12 @@ public sealed class DepositWalletHandler
         var vnpSection = _config.GetSection("VNPay");
 
         var callbackUrl = vnpSection["WalletVNPayReturn"]!;
-        if (!string.IsNullOrEmpty(request.ReturnUrl))
-            callbackUrl += $"?redirectTo={Uri.EscapeDataString(request.ReturnUrl)}";
+        var frontendRedirectUrl = string.IsNullOrEmpty(request.ReturnUrl) 
+            ? vnpSection["WalletClientReturnUrl"] 
+            : request.ReturnUrl;
+
+        if (!string.IsNullOrEmpty(frontendRedirectUrl))
+            callbackUrl += $"?redirectTo={Uri.EscapeDataString(frontendRedirectUrl)}";
 
         var vnpParams = new Dictionary<string, string>
         {

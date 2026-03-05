@@ -7,6 +7,8 @@ using SalesService.Application.Helpers;
 using SalesService.Application.Interfaces.Payments;
 using SalesService.Application.Mapping.Orders;
 using SalesService.Application.Persisitences.Outbox;
+using SalesService.Application.Persisitences.Wallets;
+using SalesService.Application.Persisitences.WalletTransactions;
 using SalesService.Application.Signals;
 using SalesService.Domain.Enums;
 using SharedKernel.Constants;
@@ -19,6 +21,8 @@ public sealed class VnPayIpnHandler
     : IRequestHandler<VnPayIpnCommand, Result<VnPayIpnResponse>>
 {
     private readonly IPaymentRepository _paymentRepository;
+    private readonly IWalletRepository _walletRepository;
+    private readonly IWalletTransactionRepository _walletTransactionRepository;
     private readonly IConfiguration _config;
     private readonly IOutboxRepository _outboxRepository;
     private readonly IOutboxSignal _outboxSignal;
@@ -26,12 +30,16 @@ public sealed class VnPayIpnHandler
 
     public VnPayIpnHandler(
         IPaymentRepository paymentRepository,
+        IWalletRepository walletRepository,
+        IWalletTransactionRepository walletTransactionRepository,
         IConfiguration config,
         IOutboxRepository outboxRepository,
         IOutboxSignal outboxSignal,
         ILogger<VnPayIpnHandler> logger)
     {
         _paymentRepository = paymentRepository;
+        _walletRepository = walletRepository;
+        _walletTransactionRepository = walletTransactionRepository;
         _config = config;
         _outboxRepository = outboxRepository;
         _outboxSignal = outboxSignal;
@@ -98,6 +106,12 @@ public sealed class VnPayIpnHandler
         if (payment.Status == (int)PaymentStatus.Paid || payment.Status == (int)PaymentStatus.Failed)
         {
             return Result.Success(new VnPayIpnResponse { RspCode = "02", Message = "Order already confirmed" });
+        }
+
+        // ── PHÂN NHÁNH: Wallet Deposit vs Order ──────────────────────────────
+        if (payment.ReferenceType == PaymentReferenceType.Deposit && payment.ReferenceId.HasValue)
+        {
+            return await HandleWalletDepositIpnAsync(payment, responseCode, transactionNo, query, cancellationToken);
         }
 
         // xác thực số tiền
@@ -188,6 +202,70 @@ public sealed class VnPayIpnHandler
             RspCode = "00",
             Message = "Confirm Success"
         });
+    }
+
+    // ────────────────────────────────────────────────────────────────────────
+    // Wallet Deposit IPN handler
+    // ────────────────────────────────────────────────────────────────────────
+    private async Task<Result<VnPayIpnResponse>> HandleWalletDepositIpnAsync(
+        Payment payment,
+        string? responseCode,
+        string? transactionNo,
+        IDictionary<string, string> query,
+        CancellationToken cancellationToken)
+    {
+        // Lấy WalletTransaction tham chiếu từ payment
+        var walletTxn = await _walletTransactionRepository
+            .GetByIdAsync(payment.ReferenceId!.Value, cancellationToken);
+
+        if (walletTxn == null)
+        {
+            _logger.LogError("[WalletIPN] WalletTransaction not found for PaymentId {PaymentId}", payment.Id);
+            return Result.Success(new VnPayIpnResponse { RspCode = "01", Message = "Wallet transaction not found" });
+        }
+
+        var wallet = await _walletRepository.GetByIdAsync(walletTxn.WalletId, cancellationToken);
+        if (wallet == null)
+        {
+            _logger.LogError("[WalletIPN] Wallet not found for WalletId {WalletId}", walletTxn.WalletId);
+            return Result.Success(new VnPayIpnResponse { RspCode = "01", Message = "Wallet not found" });
+        }
+
+        if (responseCode == "00") // ✅ Thanh toán thành công
+        {
+            wallet.Balance += payment.Amount;
+            wallet.UpdatedAt = DateTimeOffset.UtcNow;
+
+            walletTxn.Status = TransactionStatus.Completed;
+            walletTxn.CompletedAt = DateTimeOffset.UtcNow;
+            walletTxn.UpdatedAt = DateTimeOffset.UtcNow;
+
+            payment.Status = (int)PaymentStatus.Paid;
+            payment.PaidAt = DateTime.UtcNow;
+            payment.Provider = "vnpay";
+            payment.ProviderTxnId = transactionNo;
+            payment.ProviderPayload = JsonSerializer.Serialize(query);
+
+            _logger.LogInformation("[WalletIPN] Nạp tiền thành công. WalletId={WalletId}, Amount={Amount}",
+                wallet.Id, payment.Amount);
+        }
+        else // ❌ Thất bại
+        {
+            walletTxn.Status = TransactionStatus.Failed;
+            walletTxn.UpdatedAt = DateTimeOffset.UtcNow;
+
+            payment.Status = (int)PaymentStatus.Failed;
+            payment.Provider = "vnpay";
+            payment.ProviderTxnId = transactionNo;
+            payment.ProviderPayload = JsonSerializer.Serialize(query);
+
+            _logger.LogWarning("[WalletIPN] Nạp tiền thất bại. WalletId={WalletId}, Code={Code}",
+                wallet.Id, responseCode);
+        }
+
+        await _paymentRepository.SaveChangesAsync(cancellationToken);
+
+        return Result.Success(new VnPayIpnResponse { RspCode = "00", Message = "Confirm Success" });
     }
 
     private async Task AddPaymentEvent(
