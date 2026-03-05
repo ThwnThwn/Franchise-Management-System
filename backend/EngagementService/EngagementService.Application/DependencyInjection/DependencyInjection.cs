@@ -23,6 +23,7 @@ public static class DependencyInjection
 
         services.AddScoped<IMembershipTierSyncService, MembershipTierSyncService>();
         services.AddScoped<IPointRuleSyncService, PointRuleSyncService>();
+        services.AddScoped<ILoyaltyAccountService, LoyaltyAccountService>();
         //Report
         services.AddScoped<IReportService, ReportService>();
         return services;

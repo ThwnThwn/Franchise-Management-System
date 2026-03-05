@@ -266,8 +266,8 @@ public partial class EngagementDbContext : DbContext, IEngagementDbContext
 
             entity.Property(e => e.Id).HasDefaultValueSql("uuid_generate_v4()").HasColumnName("id");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").HasColumnName("created_at");
-            entity.Property(e => e.ExpiresAt).HasColumnName("expires_at");
-            entity.Property(e => e.OrderId).HasColumnName("order_id");
+            //entity.Property(e => e.ExpiresAt).HasColumnName("expires_at");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
             entity.Property(e => e.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").HasColumnName("updated_at");
             entity.Property(e => e.VoucherId).HasColumnName("voucher_id");
 

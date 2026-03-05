@@ -14,6 +14,7 @@ namespace EngagementService.Application.Persistences.Repository
         // Hàm lấy dữ liệu thô phục vụ báo cáo
         Task<LoyaltyReportDto> GetLoyaltyReportDataAsync(DateTime? from, DateTime? to, string? tierId, CancellationToken ct);
     
-        Task RedeemVoucherAsync(IPointRuleCache _pointRuleCache, Guid accountId, Guid voucherId, CancellationToken ct);
+        Task RedeemVoucherAsync(IPointRuleCache _pointRuleCache, LoyaltyAccount account, Voucher voucher, CancellationToken ct);
+        Task<LoyaltyAccount?> GetForUpdateAsync(Guid accountId, CancellationToken ct);
     }
 }

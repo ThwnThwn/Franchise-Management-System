@@ -29,7 +29,7 @@ namespace EngagementService.Infrastucture.Persistences.Repository
                 .FirstOrDefault();
             if (voucherDb == null)
                 throw new ArgumentException(VoucherMsg.NotFound);
-            if(voucherDb.IsActive)
+            if (voucherDb.IsActive)
                 throw new ArgumentException(VoucherMsg.ActiveVoucher);
 
             UpdateVoucher(voucherDb, voucherUpdate);
@@ -63,7 +63,7 @@ namespace EngagementService.Infrastucture.Persistences.Repository
                     if (item.VariantId != null)
                         voucherItem.VariantId = (Guid)item.VariantId;
                     if (item.Type != null) ;
-                        voucherItem.Type = (VoucherItemType)item.Type!;
+                    voucherItem.Type = (VoucherItemType)item.Type!;
                 }
                 else
                 {
@@ -82,7 +82,7 @@ namespace EngagementService.Infrastucture.Persistences.Repository
         {
             if (updateRequest.DiscountValue != null)
             {
-                if(updateRequest.DiscountValue <= 0)
+                if (updateRequest.DiscountValue <= 0)
                     throw new ArgumentException(VoucherMsg.InvalidDiscountValue);
 
                 if (dbVoucher.Type == VoucherType.DISCOUNT_PERCENTAGE || dbVoucher.Type == VoucherType.SHIPPING_PERCENTAGE)
@@ -98,11 +98,11 @@ namespace EngagementService.Infrastucture.Persistences.Repository
 
             if (updateRequest.MaxDiscountValue != null)
             {
-                if(updateRequest.MaxDiscountValue <= 0)
+                if (updateRequest.MaxDiscountValue <= 0)
                     throw new ArgumentException(VoucherMsg.InvalidMaxDiscountValue);
                 dbVoucher.MaxDiscountValue = updateRequest.MaxDiscountValue;
             }
-                
+
 
             if (updateRequest.PointCost != null)
             {
@@ -110,7 +110,7 @@ namespace EngagementService.Infrastucture.Persistences.Repository
                     throw new ArgumentException(VoucherMsg.InvalidPointCost);
                 dbVoucher.PointCost = updateRequest.PointCost;
             }
-                
+
 
             if (updateRequest.MinOrderValue != null)
             {
@@ -118,7 +118,7 @@ namespace EngagementService.Infrastucture.Persistences.Repository
                     throw new ArgumentException(VoucherMsg.InvalidMinOrderValue);
                 dbVoucher.MinOrderValue = updateRequest.MinOrderValue;
             }
-                
+
 
             if (updateRequest.MaxUsagePerUser != null)
             {
@@ -126,13 +126,22 @@ namespace EngagementService.Infrastucture.Persistences.Repository
                     throw new ArgumentException(VoucherMsg.InvalidMaxUsagePerUser);
                 dbVoucher.MaxUsagePerUser = updateRequest.MaxUsagePerUser;
             }
-                
+
             if (updateRequest.EndDate != null)
             {
                 if (updateRequest.EndDate < DateTimeOffset.UtcNow)
                     throw new ArgumentException(VoucherMsg.InvalidEndDate);
                 dbVoucher.EndDate = updateRequest.EndDate;
             }
+        }
+
+        public async Task<Voucher?> GetForUpdateAsync(Guid voucherId, CancellationToken cancellationToken)
+        {
+            var voucher = await _dbContext.Vouchers
+                .FromSqlRaw("SELECT * FROM vouchers WHERE id = {0} FOR UPDATE", voucherId)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            return voucher;
         }
     }
 }
