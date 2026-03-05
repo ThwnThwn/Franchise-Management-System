@@ -34,6 +34,9 @@ message ShiftRuleResponse {
   int32 min_hours_between_shifts = 5;
   int32 max_hours_per_week = 6;
   string updated_at = 7;
+  int32 grace_period_minutes = 8;
+  int32 daily_ot_threshold_hours = 9;
+  int32 weekly_ot_threshold_hours = 10;
 }
 
 message SaveShiftRuleRequest {
@@ -43,6 +46,9 @@ message SaveShiftRuleRequest {
   int32 min_hours_between_shifts = 4;
   int32 max_hours_per_week = 5;
   string user_id = 6; // For permission logic
+  int32 grace_period_minutes = 7;
+  int32 daily_ot_threshold_hours = 8;
+  int32 weekly_ot_threshold_hours = 9;
 }
 
 message SaveShiftRuleResponse {

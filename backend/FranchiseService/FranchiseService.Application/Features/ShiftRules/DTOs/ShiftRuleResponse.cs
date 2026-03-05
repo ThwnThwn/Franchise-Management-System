@@ -8,5 +8,8 @@ public class ShiftRuleResponse
     public bool AllowShiftSwap { get; set; }
     public int MinHoursBetweenShifts { get; set; }
     public int MaxHoursPerWeek { get; set; }
+    public int GracePeriodMinutes { get; set; }
+    public int DailyOtThresholdHours { get; set; }
+    public int WeeklyOtThresholdHours { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
 }

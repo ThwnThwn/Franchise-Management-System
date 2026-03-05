@@ -1,6 +1,7 @@
 ﻿
 
 using DotNetEnv;
+using EngagementService.API.BackgroundJob;
 using EngagementService.API.Services.Identity;
 using EngagementService.API.Services.LoyaltyAccount;
 using EngagementService.API.Services.MemberShipTier;
@@ -18,10 +19,6 @@ using Npgsql;
 using Npgsql.NameTranslation; // Thêm namespace này
 using QuestPDF.Infrastructure;
 using SharedKernel.Infrastructure.Kafka;
-using EngagementService.Grpc.Protos.LoyaltyAccountGrpc;
-using EngagementService.Grpc.Protos.MembershipTier;
-using EngagementService.Grpc.Protos.PointLogGrpc;
-using EngagementService.API.Services.PointLog;
 namespace EngagementService.API;
 
 public class Program
@@ -132,6 +129,8 @@ public class Program
 
         // 1. Cấu hình bản quyền QuestPDF (Bắt buộc để không bị lỗi khi chạy)
         QuestPDF.Settings.License = LicenseType.Community;
+
+        builder.Services.AddHostedService<VoucherQueueWorker>();
 
         var app = builder.Build();
 

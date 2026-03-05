@@ -17,6 +17,8 @@ using FranchiseService.Application.Features.Shifts.Commands.BulkCreateManual;
 using FranchiseService.Application.Features.Shifts.Commands.BulkCreateFromTemplate;
 using FranchiseService.Application.Features.Shifts.Commands.BulkPublish;
 using FranchiseService.Application.Features.Shifts.Commands.BulkDelete;
+using FranchiseService.Application.Features.Shifts.Commands.BulkOpenShifts;
+using FranchiseService.Application.Features.Shifts.Commands.AutoFillShifts;
 using Dtos = FranchiseService.Application.Features.Shifts.DTOs;
 using Grpc.Core;
 using MediatR;
@@ -286,19 +288,32 @@ namespace FranchiseService.API.Services
             return new PublishShiftResponse { Success = true };
         }
 
-        // ASSIGN STAFF (SYNC)
+        // Đồng bộ danh sách nhân viên và xử lý cảnh báo ghi đè
         public override async Task<AssignStaffResponse> AssignStaff(AssignStaffRequest request, ServerCallContext context)
         {
-            var userIds = request.UserIds.Select(Guid.Parse).ToList();
-
             var command = new UpdateShiftAssignmentCommand
             {
                 ShiftId = Guid.Parse(request.ShiftId),
-                UserIds = userIds
+                UserIds = request.UserIds.Select(Guid.Parse).ToList(),
+                ForceOverride = request.ForceOverride,
+                OverrideReason = request.OverrideReason,
+                OverriddenBy = string.IsNullOrEmpty(request.OverriddenBy)
+                    ? null : Guid.Parse(request.OverriddenBy)
             };
 
-            await _mediator.Send(command);
-            return new AssignStaffResponse { Success = true };
+            var result = await _mediator.Send(command);
+
+            var response = new AssignStaffResponse { Success = result.Success };
+            foreach (var w in result.Warnings)
+            {
+                response.Warnings.Add(new ValidationWarningDto
+                {
+                    Code = w.Code,
+                    Message = w.Message,
+                    Severity = w.Severity
+                });
+            }
+            return response;
         }
 
         // GET AVAILABLE STAFFS
@@ -715,6 +730,77 @@ namespace FranchiseService.API.Services
             }
         }
 
+        // Mo nhieu ca ra Cho Ca (Draft -> Open)
+        public override async Task<BulkOpenShiftsResponse> BulkOpenShifts(
+            BulkOpenShiftsRequest request, ServerCallContext context)
+        {
+            try
+            {
+                var command = new BulkOpenShiftsCommand
+                {
+                    ShiftIds = request.Ids.Select(Guid.Parse).ToList(),
+                    StoreId = Guid.Parse(request.StoreId)
+                };
+
+                var result = await _mediator.Send(command);
+
+                var response = new BulkOpenShiftsResponse
+                {
+                    Success = true,
+                    OpenedCount = result.OpenedCount
+                };
+                response.SkippedIds.AddRange(result.SkippedIds.Select(id => id.ToString()));
+
+                return response;
+            }
+            catch (InvalidOperationException ex)
+            {
+                throw new RpcException(new Status(StatusCode.FailedPrecondition, ex.Message));
+            }
+            catch (FormatException ex)
+            {
+                throw new RpcException(new Status(StatusCode.InvalidArgument,
+                    $"Dinh dang du lieu khong hop le: {ex.Message}"));
+            }
+        }
+
+        // Tu dong xep ca cho cua hang trong khoang ngay
+        public override async Task<AutoFillShiftsResponse> AutoFillShifts(
+            AutoFillShiftsRequest request, ServerCallContext context)
+        {
+            try
+            {
+                var command = new AutoFillShiftsCommand
+                {
+                    StoreId = Guid.Parse(request.StoreId),
+                    StartDate = DateOnly.Parse(request.StartDate),
+                    EndDate = DateOnly.Parse(request.EndDate)
+                };
+
+                var result = await _mediator.Send(command);
+
+                var response = new AutoFillShiftsResponse
+                {
+                    Success = true,
+                    FilledCount = result.FilledCount,
+                    TotalSlots = result.TotalSlots
+                };
+                response.UnfilledShiftIds.AddRange(
+                    result.UnfilledShiftIds.Select(id => id.ToString()));
+
+                return response;
+            }
+            catch (InvalidOperationException ex)
+            {
+                throw new RpcException(new Status(StatusCode.FailedPrecondition, ex.Message));
+            }
+            catch (FormatException ex)
+            {
+                throw new RpcException(new Status(StatusCode.InvalidArgument,
+                    $"Dinh dang du lieu khong hop le: {ex.Message}"));
+            }
+        }
+
         // PRIVATE MAPPER
         private static TimeLogDetailDto MapToProtoTimeLog(Dtos.TimeLogDto dto)
         {
@@ -722,7 +808,7 @@ namespace FranchiseService.API.Services
             {
                 Id = dto.Id.ToString(),
                 ShiftAssignmentId = dto.ShiftAssignmentId.ToString(),
-                Status = dto.Status,
+                Status = dto.Status ?? 0,
                 CreatedAt = dto.CreatedAt.ToString("o"),
                 UpdatedAt = dto.UpdatedAt.ToString("o"),
                 Staff = new TimeLogStaffInfo
@@ -751,7 +837,9 @@ namespace FranchiseService.API.Services
             if (dto.CheckInLong.HasValue) proto.CheckInLong = (double)dto.CheckInLong.Value;
             if (dto.CheckOutLat.HasValue) proto.CheckOutLat = (double)dto.CheckOutLat.Value;
             if (dto.CheckOutLong.HasValue) proto.CheckOutLong = (double)dto.CheckOutLong.Value;
-            if (dto.TotalWorkMinutes.HasValue) proto.TotalWorkMinutes = dto.TotalWorkMinutes.Value;
+            if (dto.RegularMinutes != 0) proto.RegularMinutes = dto.RegularMinutes;
+            if (dto.DailyOtMinutes != 0) proto.DailyOtMinutes = dto.DailyOtMinutes;
+            if (dto.WeeklyOtMinutes != 0) proto.WeeklyOtMinutes = dto.WeeklyOtMinutes;
             if (dto.ManagerNote != null) proto.ManagerNote = dto.ManagerNote;
 
             return proto;
