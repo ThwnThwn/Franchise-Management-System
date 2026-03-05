@@ -39,7 +39,10 @@ namespace FranchiseService.API.Services
                 AllowShuttle = request.AllowShuttle,
                 AllowShiftSwap = request.AllowShiftSwap,
                 MinHoursBetweenShifts = request.MinHoursBetweenShifts,
-                MaxHoursPerWeek = request.MaxHoursPerWeek
+                MaxHoursPerWeek = request.MaxHoursPerWeek,
+                GracePeriodMinutes = request.GracePeriodMinutes,
+                DailyOtThresholdHours = request.DailyOtThresholdHours,
+                WeeklyOtThresholdHours = request.WeeklyOtThresholdHours
             };
 
             Guid userId = Guid.Parse(request.UserId);
@@ -78,6 +81,9 @@ namespace FranchiseService.API.Services
                 AllowShiftSwap = rule.AllowShiftSwap,
                 MinHoursBetweenShifts = rule.MinHoursBetweenShifts,
                 MaxHoursPerWeek = rule.MaxHoursPerWeek,
+                GracePeriodMinutes = rule.GracePeriodMinutes,
+                DailyOtThresholdHours = rule.DailyOtThresholdHours,
+                WeeklyOtThresholdHours = rule.WeeklyOtThresholdHours,
                 UpdatedAt = rule.UpdatedAt.ToString("O")
             };
         }

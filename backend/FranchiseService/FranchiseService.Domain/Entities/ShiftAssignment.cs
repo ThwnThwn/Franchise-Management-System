@@ -30,6 +30,11 @@ namespace FranchiseService.Domain.Entities
         /// </summary>
         public decimal? HourlyWage { get; set; }
 
+        public bool IsOverridden { get; set; }
+        public string? OverrideReason { get; set; }
+        public Guid? OverriddenBy { get; set; }
+
+
         public DateTimeOffset CreatedAt { get; set; }
         public DateTimeOffset UpdatedAt { get; set; }
 

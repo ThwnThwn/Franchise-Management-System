@@ -1,12 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-<<<<<<< HEAD
-# Visual Studio Version 17
-VisualStudioVersion = 17.14.36414.22
-=======
 # Visual Studio Version 18
 VisualStudioVersion = 18.3.11429.125
->>>>>>> be/addSupplierService
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ProductService", "ProductService", "{A34CC3A8-8231-4AC6-8070-DC0A6C42C07E}"
 EndProject
@@ -76,7 +71,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NotificationService.API", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AppHost", "AppHost\AppHost.csproj", "{4B0F4B5C-40AF-45E2-8E15-AC95A84AF3FD}"
 EndProject
-<<<<<<< HEAD
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "EngagementService", "EngagementService", "{DD99F07E-D47D-40F7-B0E6-06C79B298A11}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EngagementService.API", "EngagementService\EngagementService.API\EngagementService.API.csproj", "{253A3F39-B810-70E9-8763-A4A6FDF6AD26}"
@@ -86,7 +80,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EngagementService.Domain", "EngagementService\EngagementService.Domain\EngagementService.Domain.csproj", "{A5414C7F-BC10-43E4-8364-27E614695D75}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EngagementService.Infrastucture", "EngagementService\EngagementService.Infrastucture\EngagementService.Infrastucture.csproj", "{9872F6ED-10D0-4969-B716-6444DF60EAD5}"
-=======
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SupplierService", "SupplierService", "{BF866AE3-6022-5273-F327-D874661DDBAA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SupplierService.Domain", "SupplierService\SupplierService.Domain\SupplierService.Domain.csproj", "{01BBC08C-48C0-4FE6-BCA6-C862889B2D9E}"
@@ -96,7 +89,7 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SupplierService.Infrastructure", "SupplierService\SupplierService.Infrastructure\SupplierService.Infrastructure.csproj", "{7314933A-6C4E-4884-8FB7-E72F6B0E049A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SupplierService.API", "SupplierService\SupplierService.API\SupplierService.API.csproj", "{BF8EFCDD-14BA-4AA2-8212-6B5B164C4615}"
->>>>>>> be/addSupplierService
+EndProject
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -432,7 +425,6 @@ Global
 		{4B0F4B5C-40AF-45E2-8E15-AC95A84AF3FD}.Release|x64.Build.0 = Release|Any CPU
 		{4B0F4B5C-40AF-45E2-8E15-AC95A84AF3FD}.Release|x86.ActiveCfg = Release|Any CPU
 		{4B0F4B5C-40AF-45E2-8E15-AC95A84AF3FD}.Release|x86.Build.0 = Release|Any CPU
-<<<<<<< HEAD
 		{253A3F39-B810-70E9-8763-A4A6FDF6AD26}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{253A3F39-B810-70E9-8763-A4A6FDF6AD26}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{253A3F39-B810-70E9-8763-A4A6FDF6AD26}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -481,7 +473,6 @@ Global
 		{9872F6ED-10D0-4969-B716-6444DF60EAD5}.Release|x64.Build.0 = Release|Any CPU
 		{9872F6ED-10D0-4969-B716-6444DF60EAD5}.Release|x86.ActiveCfg = Release|Any CPU
 		{9872F6ED-10D0-4969-B716-6444DF60EAD5}.Release|x86.Build.0 = Release|Any CPU
-=======
 		{01BBC08C-48C0-4FE6-BCA6-C862889B2D9E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{01BBC08C-48C0-4FE6-BCA6-C862889B2D9E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{01BBC08C-48C0-4FE6-BCA6-C862889B2D9E}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -530,7 +521,7 @@ Global
 		{BF8EFCDD-14BA-4AA2-8212-6B5B164C4615}.Release|x64.Build.0 = Release|Any CPU
 		{BF8EFCDD-14BA-4AA2-8212-6B5B164C4615}.Release|x86.ActiveCfg = Release|Any CPU
 		{BF8EFCDD-14BA-4AA2-8212-6B5B164C4615}.Release|x86.Build.0 = Release|Any CPU
->>>>>>> be/addSupplierService
+	EndGlobalSection
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -561,17 +552,15 @@ Global
 		{9EF093AD-6A30-48CD-A6F3-9D7E945EBE2A} = {0BAE62A9-2200-0262-2CB5-8EE825167370}
 		{7FF6C8A4-2FF4-40C4-BE7A-643D2F892A4B} = {0BAE62A9-2200-0262-2CB5-8EE825167370}
 		{071246C1-DC31-417A-986B-1BCEF4650070} = {0BAE62A9-2200-0262-2CB5-8EE825167370}
-<<<<<<< HEAD
 		{253A3F39-B810-70E9-8763-A4A6FDF6AD26} = {DD99F07E-D47D-40F7-B0E6-06C79B298A11}
 		{2F38DE17-1C14-4047-9414-6D04E7873CDC} = {DD99F07E-D47D-40F7-B0E6-06C79B298A11}
 		{A5414C7F-BC10-43E4-8364-27E614695D75} = {DD99F07E-D47D-40F7-B0E6-06C79B298A11}
 		{9872F6ED-10D0-4969-B716-6444DF60EAD5} = {DD99F07E-D47D-40F7-B0E6-06C79B298A11}
-=======
 		{01BBC08C-48C0-4FE6-BCA6-C862889B2D9E} = {BF866AE3-6022-5273-F327-D874661DDBAA}
 		{87E8C2E1-9ADB-465C-8A6F-422D26BF3713} = {BF866AE3-6022-5273-F327-D874661DDBAA}
 		{7314933A-6C4E-4884-8FB7-E72F6B0E049A} = {BF866AE3-6022-5273-F327-D874661DDBAA}
 		{BF8EFCDD-14BA-4AA2-8212-6B5B164C4615} = {BF866AE3-6022-5273-F327-D874661DDBAA}
->>>>>>> be/addSupplierService
+	EndGlobalSection
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2DB63413-FEB7-4A0C-9C26-7F390B41E944}

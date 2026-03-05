@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace FranchiseService.Domain.Enums
+﻿namespace FranchiseService.Domain.Enums
 {
     public enum StoreType
     {
@@ -24,8 +18,9 @@ namespace FranchiseService.Domain.Enums
     {
         Draft = 0,      // Nháp
         Published = 1,  // Đã chốt
-        Completed = 2,  // Hoàn thành
-        Cancelled = 3   // Đã hủy
+        Completed = 2,  // Hoàn thành   
+        Cancelled = 3,  // Đã hủy
+        Open = 4        // Đang mở cho nhân viên đăng ký từ Chợ Ca
     }
 
     // Trạng thái phân công nhân viên vào ca
@@ -42,5 +37,28 @@ namespace FranchiseService.Domain.Enums
         Valid = 1,      // Hợp lệ
         Invalid = 2,    // Lỗi/Quên checkout
         Approved = 3    // Đã duyệt
+    }
+
+    /// <summary>
+    /// Trạng thái đơn đăng ký nhận ca từ Chợ Ca (Shift Pool)
+    /// </summary>
+    public enum ShiftApplicationStatus
+    {
+        Pending = 0,    // Đang chờ Manager duyệt
+        Approved = 1,   // Đã duyệt, tự động tạo ShiftAssignment
+        Rejected = 2    // Manager từ chối
+    }
+
+    /// <summary>
+    /// Trang thai yeu cau doi ca (State Machine)
+    /// </summary>
+    public enum SwapRequestStatus
+    {
+        PendingTarget = 0,   // Cho B xac nhan
+        PendingManager = 1,  // B dong y, cho Manager duyet
+        Approved = 2,        // Manager da duyet, swap thanh cong
+        Rejected = 3,        // B hoac Manager tu choi
+        Expired = 4,         // Qua han 24h
+        Cancelled = 5        // A tu huy
     }
 }

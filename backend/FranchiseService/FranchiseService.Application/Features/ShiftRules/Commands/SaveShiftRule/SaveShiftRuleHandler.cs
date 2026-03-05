@@ -60,6 +60,9 @@ public class SaveShiftRuleHandler : IRequestHandler<SaveShiftRuleCommand, Unit>
             existingRule.AllowShiftSwap = req.AllowShiftSwap;
             existingRule.MinHoursBetweenShifts = req.MinHoursBetweenShifts;
             existingRule.MaxHoursPerWeek = req.MaxHoursPerWeek;
+            existingRule.GracePeriodMinutes = req.GracePeriodMinutes;
+            existingRule.DailyOtThresholdHours = req.DailyOtThresholdHours;
+            existingRule.WeeklyOtThresholdHours = req.WeeklyOtThresholdHours;
             existingRule.UpdatedAt = DateTimeOffset.UtcNow;
 
             await _repository.UpdateAsync(existingRule);
@@ -75,6 +78,9 @@ public class SaveShiftRuleHandler : IRequestHandler<SaveShiftRuleCommand, Unit>
                 AllowShiftSwap = req.AllowShiftSwap,
                 MinHoursBetweenShifts = req.MinHoursBetweenShifts,
                 MaxHoursPerWeek = req.MaxHoursPerWeek,
+                GracePeriodMinutes = req.GracePeriodMinutes,
+                DailyOtThresholdHours = req.DailyOtThresholdHours,
+                WeeklyOtThresholdHours = req.WeeklyOtThresholdHours,
                 CreatedAt = DateTimeOffset.UtcNow,
                 UpdatedAt = DateTimeOffset.UtcNow
             };

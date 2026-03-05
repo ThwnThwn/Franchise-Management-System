@@ -35,6 +35,11 @@ namespace FranchiseService.Domain.Entities
         /// </summary>
         public int MaxHoursPerWeek { get; set; }
 
+        public int GracePeriodMinutes { get; set; }
+        public int DailyOtThresholdHours { get; set; }
+        public int WeeklyOtThresholdHours { get; set; }
+
+
         public DateTimeOffset CreatedAt { get; set; }
         public DateTimeOffset UpdatedAt { get; set; }
 
