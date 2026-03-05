@@ -54,7 +54,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     // - Không có quyền (bao gồm cả Staff đang đứng ở /dashboard đợi redirect)
     if (isLoading || !isAuthorized) {
         return (
-            <div className="flex h-screen w-full items-center justify-center bg-white/50 backdrop-blur-md">
+            <div className="flex h-screen w-full items-center justify-center backdrop-blur-md">
                 <SpinnerStyled />
             </div>
         )

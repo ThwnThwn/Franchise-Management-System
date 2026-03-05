@@ -28,7 +28,7 @@ export default function UserManagementPageView() {
     const currStoreId = useTokenStore((s) => s.storeId) || undefined
     const roleSlug = useTokenStore((s) => s.roleSlug)
 
-    // const isAdmin = roleSlug === RoleSlug.Admin
+    const isAdmin = roleSlug === RoleSlug.Admin
 
     const { defaultManageRole, manageRoleLabels } = useMemo(() => {
         switch (roleSlug) {
@@ -45,11 +45,7 @@ export default function UserManagementPageView() {
             case RoleSlug.Staff:
                 return {
                     defaultManageRole: RoleSlug.Customer,
-                    manageRoleLabels: omitRecord(RoleSlugLabels, [
-                        RoleSlug.Admin,
-                        RoleSlug.Manager,
-                        RoleSlug.Customer
-                    ])
+                    manageRoleLabels: omitRecord(RoleSlugLabels, [RoleSlug.Admin, RoleSlug.Manager])
                 }
             default:
                 return {
@@ -63,7 +59,7 @@ export default function UserManagementPageView() {
     // Assuming useGetAllUsers has 'params' and 'pagination' in its dependency array
     const [filter, setFilter] = useState<UserFilterParams>({
         roleSlug: defaultManageRole,
-        storeId: currStoreId
+        homeStoreId: defaultManageRole === RoleSlug.Customer ? undefined : currStoreId
     })
     const [pagination, setPagination] = useState<PaginationParams>({ page: 1, pageSize: 10 })
     const { data, isLoading } = useGetAllUsers({
@@ -72,10 +68,23 @@ export default function UserManagementPageView() {
         enabled: true
     })
 
-    const handleSetFilter = useCallback((newFilter: UserFilterParams) => {
-        setPagination({ page: 1, pageSize: 10 })
-        setFilter(newFilter)
-    }, [])
+    const handleSetFilter = useCallback(
+        (newFilter: UserFilterParams) => {
+            setPagination({ page: 1 })
+
+            const resolvedRoleSlug =
+                !isAdmin && newFilter.roleSlug === undefined
+                    ? defaultManageRole
+                    : newFilter.roleSlug
+
+            setFilter({
+                ...newFilter,
+                roleSlug: resolvedRoleSlug,
+                homeStoreId: resolvedRoleSlug === RoleSlug.Customer ? undefined : currStoreId
+            })
+        },
+        [currStoreId, defaultManageRole, isAdmin]
+    )
 
     const [isTyping, setIsTyping] = useState(false)
     const debouncedSearch = useMemo(
@@ -134,6 +143,7 @@ export default function UserManagementPageView() {
                     isReadOnly={isLoading}
                     className="w-70"
                     aria-label="Chọn vai trò"
+                    isClearable={isAdmin}
                     // hidden={!isAdmin}
                 />
 

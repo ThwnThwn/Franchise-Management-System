@@ -22,7 +22,7 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
                         placement="top-center"
                         toastProps={{
                             variant: "flat",
-                            timeout: 1500,
+                            timeout: 2000,
                             classNames: {
                                 closeButton: "opacity-100 absolute right-4 top-1/2 -translate-y-1/2"
                             },

@@ -9,6 +9,7 @@ import { RoleSlug } from "@/constants/enums"
 import { useGetInfiniteStores } from "@/features/stores"
 import { useInView } from "react-intersection-observer"
 import { AutocompleteItem } from "@heroui/react"
+import { formatCurrency } from "@/utils/helpers/currency"
 
 interface UserFormProps {
     formik: ReturnType<typeof useFormik<UserFormValues>>
@@ -18,6 +19,9 @@ interface UserFormProps {
 
 export const UserForm = ({ formik, isEditMode, manageRoleLabels }: UserFormProps) => {
     const isAdmin = useTokenStore((s) => s.roleSlug === RoleSlug.Admin)
+    const isEditable = useTokenStore(
+        (s) => s.roleSlug === RoleSlug.Admin || s.roleSlug === RoleSlug.Manager
+    )
     const { isInvalid, getErrorMessage } = useFormikHelpers(formik)
 
     // Infinite scroll cho Stores
@@ -51,8 +55,6 @@ export const UserForm = ({ formik, isEditMode, manageRoleLabels }: UserFormProps
                     label="Họ"
                     {...formik.getFieldProps("lastName")}
                     isReadOnly={isEditMode}
-                    // isInvalid={isInvalid("lastName")}
-                    // errorMessage={getErrorMessage("lastName")}
                 />
                 <InputStyled
                     label="Tên"
@@ -110,6 +112,7 @@ export const UserForm = ({ formik, isEditMode, manageRoleLabels }: UserFormProps
                     value={formik.values.roleSlug}
                     onChange={(val) => formik.setFieldValue("roleSlug", val)}
                     isClearable={false}
+                    isReadOnly={!isEditable}
                     isRequired
                 />
 
@@ -137,11 +140,22 @@ export const UserForm = ({ formik, isEditMode, manageRoleLabels }: UserFormProps
                 {showWageInput && (
                     <InputStyled
                         label="Lương mỗi giờ (VNĐ)"
-                        type="number"
-                        {...formik.getFieldProps("currentHourlyWage")}
+                        type="text"
+                        name="currentHourlyWage"
+                        value={formatCurrency(formik.values.currentHourlyWage ?? 0)}
+                        onChange={(e) => {
+                            const rawValue = e.target.value.replace(/\D/g, "")
+
+                            formik.setFieldValue(
+                                "currentHourlyWage",
+                                rawValue ? Number(rawValue) : ""
+                            )
+                        }}
+                        onBlur={formik.handleBlur}
                         isInvalid={isInvalid("currentHourlyWage")}
                         errorMessage={getErrorMessage("currentHourlyWage")}
                         isRequired
+                        isReadOnly={!isEditable}
                     />
                 )}
             </div>

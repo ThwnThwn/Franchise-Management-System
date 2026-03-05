@@ -159,7 +159,7 @@ export const CurrentShiftCard = () => {
     if (!shift?.hasShiftToday)
         return (
             <Card className="bg-default-50 border-none p-6 text-center text-default-400">
-                Hôm nay bạn không có ca làm việc nào.
+                Hôm nay bạn không có ca làm việc nào hoặc chưa đến giờ check-in.
             </Card>
         )
 

@@ -12,11 +12,11 @@ export const useAgendaLogic = () => {
 
     const dateRange = useMemo(() => {
         return {
-            startDate: currentDate.startOf("month").format("YYYY-MM-DD"),
-            endDate: currentDate.endOf("month").format("YYYY-MM-DD")
+            startDate: currentDate.startOf("isoWeek").format("YYYY-MM-DD"),
+            endDate: currentDate.endOf("isoWeek").add(1, "day").format("YYYY-MM-DD")
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentDate.format("YYYY-MM")])
+    }, [currentDate.format("YYYY-MM-DD")])
 
     // ĐIỀU HƯỚNG THÔNG MINH:
     // - List mode: Nhảy 1 ngày

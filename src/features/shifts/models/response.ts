@@ -247,3 +247,7 @@ export interface TimeLogResponse {
         note?: string
     }
 }
+
+export interface StaffShiftAgendaWithLog extends StaffShiftAgenda {
+    timeLog?: TimeLogResponse
+}

@@ -158,6 +158,7 @@ export const ShiftForm = ({ formik, isSubmitable }: ShiftFormProps) => {
                     className="w-xl"
                     isClearable={false}
                     isReadOnly={!isSubmitable}
+                    isDisabled={formik.values.id === undefined}
                 />
                 <NumberInputStyled
                     label="Số nhân viên cần"

@@ -131,11 +131,11 @@ export const useGetMyAgenda = (params: GetAgendaParams, enabled = true) => {
 export const useGetMyTimeLogHistory = ({
     query,
     pagination,
-    enabled
+    enabled = true
 }: {
     query: GetTimeLogsParams
     pagination: PaginationParams
-    enabled: boolean
+    enabled?: boolean
 }) => {
     return useQuery({
         queryKey: [QUERY_KEYS.ME, QUERY_KEYS.SHIFTS, QUERY_KEYS.TIME_LOGS, query, pagination],

@@ -37,29 +37,24 @@ export const useLogin = ({
     })
 }
 
-export const useLogout = ({ onSuccess }: { onSuccess?: () => void }) => {
+export const useLogout = ({ onSuccess }: { onSuccess?: () => void } = {}) => {
     const removeAccessToken = useTokenStore((s) => s.removeAccessToken)
     const removeMeQuery = useRemoveMeQuery()
 
     return useMutation({
         mutationFn: authApi.logout,
-        onSuccess: () => {
-            onSuccess?.()
+        onSettled: () => {
             removeAccessToken()
             removeMeQuery()
+
             addToast({
                 title: AUTH_TEXT.RESPONE_TEXT.SUCCESS,
                 description: AUTH_TEXT.STRINGS.SUCCESS_LOGOUT,
                 color: "success"
             })
+
+            onSuccess?.()
         }
-        // onError: (error: BackendError) => {
-        //     addToast({
-        //         title: error.title || AUTH_TEXT.RESPONE_TEXT.ERROR,
-        //         description: error.detail,
-        //         color: "danger"
-        //     })
-        // }
     })
 }
 
