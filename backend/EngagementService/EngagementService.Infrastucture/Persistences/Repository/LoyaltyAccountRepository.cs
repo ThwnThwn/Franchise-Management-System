@@ -1,14 +1,11 @@
-﻿using EngagementService.Application.Constants;
-using EngagementService.Application.Dtos.LoyaltyAccount;
+﻿using EngagementService.Application.Dtos.LoyaltyAccount;
 using EngagementService.Application.Helper;
 using EngagementService.Application.Persistences.Cache;
 using EngagementService.Application.Persistences.Repository;
 using EngagementService.Domain.Constants;
 using EngagementService.Domain.Entities;
 using EngagementService.Infrastucture.AppDbContext;
-using EngagementService.Infrastucture.Persistences.Cache;
 using Microsoft.EntityFrameworkCore;
-using Org.BouncyCastle.Asn1.Ocsp;
 
 namespace EngagementService.Infrastucture.Persistences.Repository
 {
@@ -19,8 +16,6 @@ namespace EngagementService.Infrastucture.Persistences.Repository
         {
 
         }
-
-
 
         public async Task<LoyaltyAccount?> GetByUserIdAsync(Guid userId)
         {
@@ -124,17 +119,8 @@ namespace EngagementService.Infrastucture.Persistences.Repository
             return await query.ToListAsync();
         }
 
-        public async Task RedeemVoucherAsync(IPointRuleCache _pointRuleCache,Guid accountId, Guid voucherId, CancellationToken ct)
+        public async Task RedeemVoucherAsync(IPointRuleCache _pointRuleCache, LoyaltyAccount account, Voucher voucher, CancellationToken ct)
         {
-            var account = _dbContext.LoyaltyAccounts
-                .Include(a => a.UserVouchers)
-                .Include(a => a.PointLogs)
-                .FirstOrDefault(a => a.Id == accountId);
-            
-            var voucher = _dbContext.Vouchers.FirstOrDefault(v => v.Id == voucherId);
-
-            VerifyAccountAndVoucher(account, voucher);
-
             var balanceBefore = account!.AvailablePoints;
             var balanceAfter = account.AvailablePoints - (voucher!.PointCost ?? 0);
             var pointToDeduct = voucher.PointCost ?? 0;
@@ -157,39 +143,58 @@ namespace EngagementService.Infrastucture.Persistences.Repository
                 // Chuyển đổi sang List để khớp với yêu cầu của hàm Cache
                 return data.ToList();
             });
-            var pointLog = HandlePointLog.CreatePointLog(account, balanceBefore, balanceAfter, pointToDeduct, voucherId, PointReasonCode.POINT_REDEEM, PointActionType.REDEEM, "Points deducted for voucher " + voucher.Code, allRules);
+            var pointLog = HandlePointLog.CreatePointLog(account, balanceBefore, balanceAfter, pointToDeduct, voucher.Id, PointReasonCode.POINT_REDEEM, PointActionType.REDEEM, "Points deducted for voucher " + voucher.Code, allRules);
 
             account.PointLogs.Add(pointLog);
-
-            if (voucher.CurrentQuantity.HasValue) voucher.CurrentQuantity -= 1;
         }
 
-        private void VerifyAccountAndVoucher(LoyaltyAccount? account, Voucher? voucher)
+        //private void VerifyAccountAndVoucher(LoyaltyAccount? account, Voucher? voucher)
+        //{
+        //    if (account == null)
+        //        throw new ArgumentException(LoyaltyAccountMsg.NotFound);
+
+        //    if (voucher == null)
+        //        throw new ArgumentException(VoucherMsg.NotFound);
+
+        //    if (!voucher.IsActive)
+        //        throw new InvalidOperationException(VoucherMsg.InactiveVoucher);
+
+        //    if (voucher.EndDate.HasValue && voucher.EndDate.Value < DateTimeOffset.UtcNow)
+        //        throw new InvalidOperationException(VoucherMsg.ExpiredVoucher);
+
+        //    if (voucher.MaxUsagePerUser.HasValue)
+        //    {
+        //        var usageCount = account.UserVouchers.Count(uv => uv.VoucherId == voucher.Id);
+        //        if (usageCount >= voucher.MaxUsagePerUser.Value)
+        //            throw new InvalidOperationException(VoucherMsg.UsageLimitReached);
+        //    }
+
+        //    if (voucher.PointCost != null && account.AvailablePoints < voucher.PointCost)
+        //        throw new InvalidOperationException(LoyaltyAccountMsg.InsufficientPoints);
+
+        //    if (voucher.CurrentQuantity <= 0)
+        //        throw new InvalidOperationException(VoucherMsg.OutOfStock);
+        //}
+
+        public async Task<LoyaltyAccount?> GetForUpdateAsync(Guid accountId, CancellationToken ct)
         {
-            if (account == null)
-                throw new ArgumentException(LoyaltyAccountMsg.NotFound);
+            var account = await _dbContext.LoyaltyAccounts
+                           .FromSqlRaw("SELECT * FROM loyalty_accounts WHERE id = {0} FOR UPDATE", accountId)
+                           .FirstOrDefaultAsync(ct);
 
-            if (voucher == null)
-                throw new ArgumentException(VoucherMsg.NotFound);
-
-            if (!voucher.IsActive)
-                throw new InvalidOperationException(VoucherMsg.InactiveVoucher);
-
-            if (voucher.EndDate.HasValue && voucher.EndDate.Value < DateTimeOffset.UtcNow)
-                throw new InvalidOperationException(VoucherMsg.ExpiredVoucher);
-
-            if (voucher.MaxUsagePerUser.HasValue)
+            // 2. Nạp thêm các bảng liên quan (thay thế cho .Include)
+            if (account != null)
             {
-                var usageCount = account.UserVouchers.Count(uv => uv.VoucherId == voucher.Id);
-                if (usageCount >= voucher.MaxUsagePerUser.Value)
-                    throw new InvalidOperationException(VoucherMsg.UsageLimitReached);
+                account.UserVouchers ??= new List<UserVoucher>();
+                account.PointLogs ??= new List<PointLog>();
+
+                await _dbContext.Entry(account).Collection(a => a.UserVouchers).LoadAsync(ct);
             }
 
-            if (voucher.PointCost != null && account.AvailablePoints < voucher.PointCost)
-                throw new InvalidOperationException(LoyaltyAccountMsg.InsufficientPoints);
-
-            if (voucher.CurrentQuantity <= 0)
-                throw new InvalidOperationException(VoucherMsg.OutOfStock);
+            return account;
         }
     }
+
 }
+
+
