@@ -3,6 +3,8 @@ package engagement
 import (
 	"api-gateway/internal/domain/models/loyalty"
 	"context"
+
+	"github.com/google/uuid"
 )
 
 type ILoyaltyAccountService interface {
@@ -10,5 +12,7 @@ type ILoyaltyAccountService interface {
 		[]*loyalty.LoyaltyAccountResponse, error)
 
 	GetLoyaltyReport(ctx context.Context, req *loyalty.GetLoyaltyReportRequest) (
-		*loyalty.LoyaltyReportResponse, error)
+		*loyalty.LoyaltyReportResponse, *loyalty.LoyaltyExportResponse, error)
+
+	RedeemVoucher(ctx context.Context, userId, voucherId uuid.UUID) error
 }

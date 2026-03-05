@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using MediatR;
 using SalesService.Application.Features.Payments.VnPayReturn;
 using SalesService.Application.Features.Payments.CreatePayment;
+using SalesService.Application.Features.Payments.VnPayIpn;
 
 namespace SalesService.API.Controllers;
 
@@ -85,6 +86,54 @@ public class VnPayController : ControllerBase
         var redirectUrl = $"{targetUrl}{queryString}{separator}payment_status={paymentStatus}";
 
         return Redirect(redirectUrl);
+    }
+
+    /// <summary>
+    /// VNPay IPN (Instant Payment Notification) - Server to Server callback.
+    /// VNPay will call this endpoint to update payment status.
+    /// </summary>
+    // Match: https://<domain>/api/vnpay/ipn
+    [HttpGet("ipn")]
+    public async Task<IActionResult> Ipn(CancellationToken ct)
+    {
+        var orderInfo = HttpContext.Request.Query["vnp_OrderInfo"].ToString();
+
+        // WORKAROUND DÙNG CHUNG TMNCODE: 
+        // Phân luồng request về SupplierServic
+        if (orderInfo.Contains("don nhap hang", StringComparison.OrdinalIgnoreCase) || 
+            orderInfo.Contains("PO-", StringComparison.OrdinalIgnoreCase))
+        {
+            var queryString = HttpContext.Request.QueryString.Value;
+            
+            // Đọc cấu hình từ .env (SUPPLIER_REST_URL -> http://localhost:5023)
+            var config = HttpContext.RequestServices.GetService<Microsoft.Extensions.Configuration.IConfiguration>();
+            var supplierRestUrl = config?["SUPPLIER_REST_URL"] ?? "http://localhost:5023";
+            
+            using var httpClient = new HttpClient();
+            try 
+            {
+                var response = await httpClient.GetAsync($"{supplierRestUrl}/api/vnpay/ipn{queryString}", ct);
+                var content = await response.Content.ReadAsStringAsync(ct);
+                return Content(content, "application/json"); // Trả về JSON của SupplierService cho VNPay
+            }
+            catch (Exception ex)
+            {
+                return Ok(new { RspCode = "99", Message = "Forward to SupplierService failed: " + ex.Message });
+            }
+        }
+
+        var queryDict = HttpContext.Request.Query
+            .ToDictionary(k => k.Key, v => v.Value.ToString());
+
+        var cmd = new VnPayIpnCommand(queryDict);
+        var result = await _mediator.Send(cmd, ct);
+
+        if (result.IsSuccess)
+        {
+            return Ok(result.Value); // Trả về JSON: { "RspCode": "...", "Message": "..." }
+        }
+        // Đoạn này dự phòng:
+        return Ok(new { RspCode = "99", Message = "Unknown error" });
     }
 }
 

@@ -5,20 +5,20 @@ import "github.com/google/wire"
 type EngagementHandlers struct {
 	*LoyaltyHandler
 	*MembershipTierHandler
-	*PointLogHandler
+	*PointHandler
 	*VoucherHandler
 }
 
 func NewEngagementHandlers(
 	loyaltyHandler *LoyaltyHandler,
 	tierHandler *MembershipTierHandler,
-	pointHandler *PointLogHandler,
+	pointHandler *PointHandler,
 	voucherHandler *VoucherHandler,
 ) EngagementHandlers {
 	return EngagementHandlers{
 		LoyaltyHandler:        loyaltyHandler,
 		MembershipTierHandler: tierHandler,
-		PointLogHandler:       pointHandler,
+		PointHandler:          pointHandler,
 		VoucherHandler:        voucherHandler,
 	}
 }
@@ -26,7 +26,7 @@ func NewEngagementHandlers(
 var ProviderSet = wire.NewSet(
 	NewLoyaltyHandler,
 	NewMembershipTierHandler,
-	NewPointLogHandler,
+	NewPointHandler,
 	NewVoucherHandler,
 
 	NewEngagementHandlers,

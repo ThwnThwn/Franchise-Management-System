@@ -1,0 +1,15 @@
+version: "3"
+
+# Định nghĩa các tunnel cần mở
+tunnels:
+  # Tunnel cho SaleService REST (VNPay ReturnUrl + IPN)
+  sale_service:
+    proto: http
+    addr: host.docker.internal:5013
+    host_header: rewrite
+
+  # Tunnel cho SupplierService REST (VNPay ReturnUrl + IPN)
+  supplier_service:
+    proto: http
+    addr: host.docker.internal:5023
+    host_header: rewrite

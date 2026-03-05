@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using SalesService.API.GrpcServices;
 using SalesService.API.Middleware;
+using Yarp.ReverseProxy.Configuration;
 using SalesService.API.Services.CartItems;
 using SalesService.API.Services.Identity;
 using SalesService.API.Services.Inventory;
@@ -91,6 +92,40 @@ public class Program
         });
         builder.Services.AddGrpcReflection(); // Enable gRPC Server Reflection
         builder.Services.AddControllers();
+
+        // ===== YARP REVERSE PROXY (Dev: Forward SupplierService VNPay callbacks) =====
+        // Ngrok chỉ có 1 domain trỏ vào SaleService:5013
+        // Các request có path /api/supplier/vnpay/* sẽ được forward sang SupplierService
+        var supplierServiceUrl = builder.Configuration["SUPPLIER_SERVICE_URL"] ?? "http://localhost:5008";
+        builder.Services.AddReverseProxy()
+            .LoadFromMemory(
+                routes: new[]
+                {
+                    new RouteConfig
+                    {
+                        RouteId    = "supplier_vnpay_route",
+                        ClusterId  = "supplier_cluster",
+                        Match      = new RouteMatch { Path = "/api/supplier/vnpay/{**catch-all}" },
+                        Transforms = new[]
+                        {
+                            // /api/supplier/vnpay/{catch-all} → /api/vnpay/{catch-all}
+                            // PathRemovePrefix bị thiếu /api nên dùng PathPattern thay thế
+                            new Dictionary<string, string> { ["PathPattern"] = "/api/vnpay/{**catch-all}" }
+                        }
+                    }
+                },
+                clusters: new[]
+                {
+                    new ClusterConfig
+                    {
+                        ClusterId    = "supplier_cluster",
+                        Destinations = new Dictionary<string, DestinationConfig>(StringComparer.OrdinalIgnoreCase)
+                        {
+                            ["supplier_dest"] = new DestinationConfig { Address = supplierServiceUrl }
+                        }
+                    }
+                }
+            );
 
         // Add API documentation
         builder.Services.AddEndpointsApiExplorer();
@@ -320,6 +355,8 @@ public class Program
         app.UseAuthentication();
         app.UseAuthorization();
 
+        // Map YARP TRƯỚC controllers để /api/supplier/vnpay/* được bắt trước
+        app.MapReverseProxy();
         app.MapControllers();
         app.MapGrpcService<OrderGrpcService>();
         app.MapGrpcService<PaymentGrpcService>();
