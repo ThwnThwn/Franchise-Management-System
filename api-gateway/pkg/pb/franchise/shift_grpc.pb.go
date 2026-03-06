@@ -54,6 +54,12 @@ type ShiftGrpcServiceClient interface {
 	BulkCreateFromTemplate(ctx context.Context, in *BulkCreateFromTemplateRequest, opts ...grpc.CallOption) (*BulkCreateResponse, error)
 	BulkPublish(ctx context.Context, in *BulkPublishRequest, opts ...grpc.CallOption) (*BulkActionResponse, error)
 	BulkDelete(ctx context.Context, in *BulkDeleteRequest, opts ...grpc.CallOption) (*BulkActionResponse, error)
+	// --- CHO CA (Shift Pool) ---
+	// Mo nhieu ca ra Cho Ca (Draft -> Open)
+	BulkOpenShifts(ctx context.Context, in *BulkOpenShiftsRequest, opts ...grpc.CallOption) (*BulkOpenShiftsResponse, error)
+	// --- TU DONG XEP CA ---
+	// He thong tu dong tim nhan vien phu hop va gan vao cac ca Draft chua du nguoi
+	AutoFillShifts(ctx context.Context, in *AutoFillShiftsRequest, opts ...grpc.CallOption) (*AutoFillShiftsResponse, error)
 }
 
 type shiftGrpcServiceClient struct {
@@ -226,6 +232,24 @@ func (c *shiftGrpcServiceClient) BulkDelete(ctx context.Context, in *BulkDeleteR
 	return out, nil
 }
 
+func (c *shiftGrpcServiceClient) BulkOpenShifts(ctx context.Context, in *BulkOpenShiftsRequest, opts ...grpc.CallOption) (*BulkOpenShiftsResponse, error) {
+	out := new(BulkOpenShiftsResponse)
+	err := c.cc.Invoke(ctx, "/franchise.ShiftGrpcService/BulkOpenShifts", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shiftGrpcServiceClient) AutoFillShifts(ctx context.Context, in *AutoFillShiftsRequest, opts ...grpc.CallOption) (*AutoFillShiftsResponse, error) {
+	out := new(AutoFillShiftsResponse)
+	err := c.cc.Invoke(ctx, "/franchise.ShiftGrpcService/AutoFillShifts", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ShiftGrpcServiceServer is the server API for ShiftGrpcService service.
 // All implementations must embed UnimplementedShiftGrpcServiceServer
 // for forward compatibility
@@ -262,6 +286,12 @@ type ShiftGrpcServiceServer interface {
 	BulkCreateFromTemplate(context.Context, *BulkCreateFromTemplateRequest) (*BulkCreateResponse, error)
 	BulkPublish(context.Context, *BulkPublishRequest) (*BulkActionResponse, error)
 	BulkDelete(context.Context, *BulkDeleteRequest) (*BulkActionResponse, error)
+	// --- CHO CA (Shift Pool) ---
+	// Mo nhieu ca ra Cho Ca (Draft -> Open)
+	BulkOpenShifts(context.Context, *BulkOpenShiftsRequest) (*BulkOpenShiftsResponse, error)
+	// --- TU DONG XEP CA ---
+	// He thong tu dong tim nhan vien phu hop va gan vao cac ca Draft chua du nguoi
+	AutoFillShifts(context.Context, *AutoFillShiftsRequest) (*AutoFillShiftsResponse, error)
 	mustEmbedUnimplementedShiftGrpcServiceServer()
 }
 
@@ -322,6 +352,12 @@ func (UnimplementedShiftGrpcServiceServer) BulkPublish(context.Context, *BulkPub
 }
 func (UnimplementedShiftGrpcServiceServer) BulkDelete(context.Context, *BulkDeleteRequest) (*BulkActionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method BulkDelete not implemented")
+}
+func (UnimplementedShiftGrpcServiceServer) BulkOpenShifts(context.Context, *BulkOpenShiftsRequest) (*BulkOpenShiftsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BulkOpenShifts not implemented")
+}
+func (UnimplementedShiftGrpcServiceServer) AutoFillShifts(context.Context, *AutoFillShiftsRequest) (*AutoFillShiftsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AutoFillShifts not implemented")
 }
 func (UnimplementedShiftGrpcServiceServer) mustEmbedUnimplementedShiftGrpcServiceServer() {}
 
@@ -660,6 +696,42 @@ func _ShiftGrpcService_BulkDelete_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ShiftGrpcService_BulkOpenShifts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BulkOpenShiftsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShiftGrpcServiceServer).BulkOpenShifts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/franchise.ShiftGrpcService/BulkOpenShifts",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShiftGrpcServiceServer).BulkOpenShifts(ctx, req.(*BulkOpenShiftsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShiftGrpcService_AutoFillShifts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AutoFillShiftsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShiftGrpcServiceServer).AutoFillShifts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/franchise.ShiftGrpcService/AutoFillShifts",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShiftGrpcServiceServer).AutoFillShifts(ctx, req.(*AutoFillShiftsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ShiftGrpcService_ServiceDesc is the grpc.ServiceDesc for ShiftGrpcService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -738,6 +810,14 @@ var ShiftGrpcService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "BulkDelete",
 			Handler:    _ShiftGrpcService_BulkDelete_Handler,
+		},
+		{
+			MethodName: "BulkOpenShifts",
+			Handler:    _ShiftGrpcService_BulkOpenShifts_Handler,
+		},
+		{
+			MethodName: "AutoFillShifts",
+			Handler:    _ShiftGrpcService_AutoFillShifts_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -10,6 +10,7 @@ type SalesHandlers struct {
 	*RefundTicketHandler
 	*WalletHandler
 	*WalletTransactionHandler
+	*WithdrawalHandler
 }
 
 func NewSalesHandlers(
@@ -20,6 +21,7 @@ func NewSalesHandlers(
 	refund *RefundTicketHandler,
 	wallet *WalletHandler,
 	walletTransaction *WalletTransactionHandler,
+	withdrawal *WithdrawalHandler,
 ) SalesHandlers {
 	return SalesHandlers{
 		OrderHandler:   order,
@@ -29,6 +31,7 @@ func NewSalesHandlers(
 		RefundTicketHandler:      refund,
 		WalletHandler:            wallet,
 		WalletTransactionHandler: walletTransaction,
+		WithdrawalHandler:        withdrawal,
 	}
 }
 
@@ -40,6 +43,7 @@ var ProviderSet = wire.NewSet(
 	NewRefundTicketHandler,
 	NewWalletHandler,
 	NewWalletTransactionHandler,
+	NewWithdrawalHandler,
 
 	NewSalesHandlers,
 )

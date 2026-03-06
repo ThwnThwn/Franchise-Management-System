@@ -19,8 +19,12 @@ func NewEngine(cfg *config.Config, aR *AppRouter) *gin.Engine {
 
 	// Apply Global Middleware
 	r.Use(middleware.GlobalErrorHandler())
+
 	r.Use(middleware.CORSMiddleware())
 	r.Use(middleware.GlobalTimeoutMiddleware(time.Duration(cfg.GatewayTimeoutSeconds) * time.Second))
+
+	r.Use(middleware.RateLimitMiddleware(2, 1000))
+	middleware.StartCleanupJob(5*time.Minute, 1*time.Minute)
 
 	// Health check cho Gateway
 	r.GET("/health", func(c *gin.Context) {
@@ -66,6 +70,7 @@ func NewEngine(cfg *config.Config, aR *AppRouter) *gin.Engine {
 		aR.CartRouter.Init(MainGroup)
 		aR.WalletRouter.Init(MainGroup)
 		aR.RefundRouter.Init(MainGroup)
+		aR.WithdrawalRouter.Init(MainGroup)
 	}
 
 	return r

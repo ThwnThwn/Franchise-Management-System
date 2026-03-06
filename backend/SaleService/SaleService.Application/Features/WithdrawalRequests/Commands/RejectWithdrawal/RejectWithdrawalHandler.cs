@@ -23,8 +23,8 @@ public class RejectWithdrawalHandler(
             var item = await repo.GetByIdAsync(request.RequestId, ct)
                 ?? throw new KeyNotFoundException("Không tìm thấy yêu cầu.");
 
-            if (item.Status != WithdrawalStatus.Pending && item.Status != WithdrawalStatus.Approved)
-                throw new InvalidOperationException("Không thể từ chối yêu cầu ở trạng thái này.");
+            if (item.Status != WithdrawalStatus.Pending)
+                throw new InvalidOperationException("Chỉ có thể từ chối yêu cầu đang ở trạng thái chờ.");
 
             // 1. Cập nhật lệnh rút
             item.Status = WithdrawalStatus.Rejected;

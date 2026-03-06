@@ -23,6 +23,7 @@ import (
 	"api-gateway/internal/api/routes/variants"
 	"api-gateway/internal/api/routes/vouchers"
 	"api-gateway/internal/api/routes/wallets"
+	"api-gateway/internal/api/routes/withdrawals"
 
 	"github.com/google/wire"
 )
@@ -59,6 +60,7 @@ type AppRouter struct {
 	*carts.CartRouter
 	*wallets.WalletRouter
 	*refunds.RefundRouter
+	*withdrawals.WithdrawalRouter
 }
 
 var RouterSet = wire.NewSet(
@@ -95,4 +97,5 @@ var RouterSet = wire.NewSet(
 	carts.NewRouter,
 	wallets.NewRouter,
 	refunds.NewRouter,
+	withdrawals.NewRouter,
 )
