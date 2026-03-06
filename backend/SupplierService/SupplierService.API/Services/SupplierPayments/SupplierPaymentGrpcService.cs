@@ -1,6 +1,7 @@
 using Grpc.Core;
 using MediatR;
 using SupplierService.Application.Features.SupplierPayments.Commands.CreatePoPayment;
+using SupplierService.Application.Features.SupplierPayments.Commands.VnPayIpn;
 using SupplierService.Application.Features.SupplierPayments.Commands.VnPayReturn;
 using SupplierService.Application.Features.SupplierPayments.Queries.GetAllSupplierPayments;
 using SupplierService.Application.Features.SupplierPayments.Queries.GetPaymentsByPurchaseOrder;
@@ -154,5 +155,34 @@ public class SupplierPaymentGrpcService : SupplierPaymentGrpc.SupplierPaymentGrp
         }));
 
         return reply;
+    }
+
+    /// <summary>
+    /// VNPay IPN: xác thực chữ ký và cập nhật trạng thái payment + PO.
+    /// Gateway gọi xuống sau khi nhận IPN callback từ VNPay.
+    /// </summary>
+    public override async Task<HandleVnPayIpnReply> HandleVnPayIpn(
+        HandleVnPayIpnRequest request,
+        ServerCallContext context)
+    {
+        var queryParams = request.QueryParams.ToDictionary(kv => kv.Key, kv => kv.Value);
+        var command = new VnPayIpnCommand(queryParams);
+
+        var result = await _mediator.Send(command, context.CancellationToken);
+
+        if (result.IsSuccess && result.Value != null)
+        {
+            return new HandleVnPayIpnReply
+            {
+                RspCode = result.Value.RspCode,
+                Message = result.Value.Message
+            };
+        }
+
+        return new HandleVnPayIpnReply
+        {
+            RspCode = "99",
+            Message = result.Errors.FirstOrDefault() ?? "Unknown error"
+        };
     }
 }

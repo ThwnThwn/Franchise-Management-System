@@ -12,6 +12,9 @@ service SupplierPaymentGrpc {
   // VNPay callback: xác thực chữ ký và cập nhật trạng thái
   rpc HandleVnPayReturn (HandleVnPayReturnRequest) returns (HandleVnPayReturnReply);
 
+  // VNPay IPN (Instant Payment Notification) - Gateway gọi xuống sau khi nhận callback từ VNPay
+  rpc HandleVnPayIpn (HandleVnPayIpnRequest) returns (HandleVnPayIpnReply);
+
   // Lấy tất cả payments của 1 đơn nhập hàng
   rpc GetPaymentsByPurchaseOrder (GetPaymentsByPurchaseOrderRequest) returns (GetPaymentsByPurchaseOrderReply);
 
@@ -51,6 +54,17 @@ message HandleVnPayReturnReply {
   string payment_id       = 2;
   string purchase_order_id = 3;
   string response_code    = 4;
+}
+
+// ── HandleVnPayIpn ────────────────────────────────────────────────────────────
+
+message HandleVnPayIpnRequest {
+  map<string, string> query_params = 1;
+}
+
+message HandleVnPayIpnReply {
+  string rsp_code = 1;
+  string message  = 2;
 }
 
 // ── GetPaymentsByPurchaseOrder ────────────────────────────────────────────────
