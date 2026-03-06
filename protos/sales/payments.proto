@@ -16,6 +16,9 @@ service PaymentGrpc {
   rpc GetMyPaymentHistory (GetMyPaymentHistoryRequest) returns (GetMyPaymentHistoryReply);
 
   rpc ProcessVnPayReturn (VnPayReturnRequest) returns (VnPayReturnResponse);
+
+  // VNPay IPN (Instant Payment Notification) - Gateway gọi xuống sau khi nhận callback từ VNPay
+  rpc ProcessVnPayIpn (VnPayIpnRequest) returns (VnPayIpnResponse);
 }
 
 enum PaymentMethodType {
@@ -95,4 +98,15 @@ message VnPayReturnRequest {
 message VnPayReturnResponse {
   bool is_success = 1;
   string message = 2;
+}
+
+// ── VnPayIpn ─────────────────────────────────────────────────────────────────
+
+message VnPayIpnRequest {
+  map<string, string> query_params = 1;
+}
+
+message VnPayIpnResponse {
+  string rsp_code = 1;
+  string message  = 2;
 }

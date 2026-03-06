@@ -80,6 +80,10 @@ public sealed class VnPayIpnHandler
 
         // xác thực chữ ký
         var isValidSignature = VNPayHelper.VerifySignature(hashSecret, vnpParams, vnpSecureHash);
+        
+        // muốn test trên grpc xem hàm viết đúng không 
+        // thì cmt lại cái check valid này lại 
+        
         if (!isValidSignature)
         {
             return Result.Success(new VnPayIpnResponse { RspCode = "97", Message = "Invalid signature" });
