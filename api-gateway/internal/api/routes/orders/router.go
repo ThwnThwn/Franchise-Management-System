@@ -8,6 +8,7 @@ import (
 
 func (o *OrderRouter) Init(r *gin.RouterGroup) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	// 🚀 Nhóm gốc của Orders
 	orderApi := r.Group("/orders")
 	orderApi.Use(o.authMW.ValidateToken([]byte(o.cfg.JwtSecret)))
@@ -44,6 +45,8 @@ func (o *OrderRouter) Init(r *gin.RouterGroup) {
 	}
 
 =======
+=======
+>>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 	publicOrderApi := r.Group("/orders")
 	{
 		publicOrderApi.GET("/vnpay/return", api.WrapHandler(o.paymentHl.ProcessVnPayReturn))
@@ -84,7 +87,10 @@ func (o *OrderRouter) Init(r *gin.RouterGroup) {
 			api.WrapHandler(o.paymentHl.CreatePaymentUrl))
 	}
 
+<<<<<<< HEAD
 >>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
+=======
+>>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 	// 👤 Nhóm dành cho khách hàng tự xem đơn của mình
 	myOrderApi := r.Group("/me/orders")
 	myOrderApi.Use(o.authMW.ValidateToken([]byte(o.cfg.JwtSecret)))

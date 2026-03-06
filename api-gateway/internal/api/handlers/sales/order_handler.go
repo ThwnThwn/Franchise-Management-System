@@ -284,6 +284,7 @@ func (h *OrderHandler) UpdateOrderStatus(c *gin.Context) error {
 // @Produce      json
 // @Security     BearerAuth
 <<<<<<< HEAD
+<<<<<<< HEAD
 // @Param        id       path     string                    true  "Order UUID"
 // @Param        request  body     order.CreatePaymentRequest true "Payment details"
 // @Success      200      {object} map[string]interface{}    "Payment URL"
@@ -337,6 +338,8 @@ func (h *OrderHandler) GetRevenueReport(c *gin.Context) error {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
+=======
+>>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 // @Param        query  query    order.GetRevenueReportRequest  false  "Filter params (fromDate, toDate, storeId, categoryId)"
 // @Success      200    {object} order.GetRevenueReportReply    "Revenue data"
 // @Router       /orders/reports/revenue [get]
@@ -359,8 +362,11 @@ func (h *OrderHandler) GetRevenueReport(c *gin.Context) error {
 		return err
 	}
 
+<<<<<<< HEAD
 =======
 >>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
+=======
+>>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 	c.JSON(http.StatusOK, res)
 	return nil
 }

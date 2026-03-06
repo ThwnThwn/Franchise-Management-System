@@ -2747,7 +2747,10 @@ paths:
       tags:
       - Orders
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
   /orders/vnpay/return:
     get:
       consumes:
@@ -2787,7 +2790,10 @@ paths:
       summary: Handle VNPay Return URL
       tags:
       - Payments
+<<<<<<< HEAD
 >>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
+=======
+>>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
   /permissions:
     get:
       consumes:

@@ -17,6 +17,8 @@ using SalesService.Application.Features.Orders.Queries.GetMyOrders;
 using SalesService.Application.Features.Orders.Queries.GetOrders;
 using SalesService.Application.Features.Orders.Queries.GetOrderVolume;
 using SalesService.Application.Features.Reports.Queries.GetRevenueReport;
+using SalesService.Application.Features.Reports.Queries.ProductPerformance;
+using SalesService.Domain.Enums;
 
 namespace SalesService.API.Services.Orders;
 
@@ -631,5 +633,70 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             }));
 
         return response;
+    }
+
+    public override async Task<GetProductPerformanceReply> GetProductPerformance(
+       GetProductPerformanceRequest grpcRequest,
+        ServerCallContext context)
+    {
+        if (!Guid.TryParse(grpcRequest.StoreId, out var storeId))
+            throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid StoreId format"));
+
+        DateTimeOffset? fromDate = null;
+        if (grpcRequest.HasFromDate && DateTimeOffset.TryParse(grpcRequest.FromDate, out var parsedFrom))
+            fromDate = parsedFrom;
+
+        DateTimeOffset? toDate = null;
+        if (grpcRequest.HasToDate && DateTimeOffset.TryParse(grpcRequest.ToDate, out var parsedTo))
+            toDate = parsedTo;
+
+        Guid? categoryId = null;
+        if (grpcRequest.HasCategoryId && Guid.TryParse(grpcRequest.CategoryId, out var parsedCategoryId))
+            categoryId = parsedCategoryId;
+
+        var query = new GetProductPerformanceQuery(
+            StoreId: storeId,
+            FromDate: fromDate,
+            ToDate: toDate,
+            CategoryId: categoryId,
+            SortBy: grpcRequest.HasSortBy ? grpcRequest.SortBy : null,
+            SortOrder: grpcRequest.HasSortOrder ? grpcRequest.SortOrder : null,
+            PageIndex: grpcRequest.PageIndex > 0 ? grpcRequest.PageIndex : 1,
+            PageSize: grpcRequest.PageSize > 0 ? grpcRequest.PageSize : 20
+        );
+
+        var result = await _mediator.Send(query, context.CancellationToken);
+
+        if (!result.IsSuccess)
+            throw new RpcException(new Status(StatusCode.Internal,
+                string.Join(", ", result.Errors)));
+
+        var reply = new GetProductPerformanceReply
+        {
+            TotalCount = result.Value.TotalPages,
+            PageIndex = result.Value.Page,
+            PageSize = result.Value.PageSize
+        };
+
+        reply.Items.AddRange(result.Value.Items.Select(item => new ProductPerformanceItem
+        {
+            ProductId = item.ProductId.ToString(),
+            ProductName = item.ProductName,
+            CategoryId = item.CategoryId.ToString(),
+            CategoryName = item.CategoryName ?? string.Empty,
+            UnitsSold = item.UnitsSold,
+            Revenue = (double)item.Revenue,
+            CancelledRate = (double)item.CancelledRate,
+            TotalOrders = item.TotalOrders,
+            TotalCancelled = item.TotalCancelled,
+            Tag = item.Tag switch
+            {
+                Domain.Enums.PerformanceTag.Top => API.PerformanceTag.Top,
+                Domain.Enums.PerformanceTag.Bottom => API.PerformanceTag.Bottom,
+                _ => API.PerformanceTag.Normal
+            }
+        }));
+
+        return reply;
     }
 }

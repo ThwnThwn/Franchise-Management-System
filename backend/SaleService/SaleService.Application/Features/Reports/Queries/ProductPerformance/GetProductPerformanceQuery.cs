@@ -13,19 +13,20 @@ public sealed record GetProductPerformanceQuery(
     string? SortOrder,     // "asc" | "desc"
     int PageIndex,
     int PageSize
-) : IRequest<Result<PagedResult<ProductPerformanceResponse>>>;
+) : IRequest<Result<BuildingBlocks.Core.Pagination.PagedResult<ProductPerformanceResponse>>>;
 
 // Response
 public sealed class ProductPerformanceResponse
 {
     public Guid ProductId { get; set; }
     public string ProductName { get; set; } = null!;
+    public Guid CategoryId { get; set; }
     public string? CategoryName { get; set; }
     public int UnitsSold { get; set; }
     public decimal Revenue { get; set; }
-    public decimal ReturnRate { get; set; }       // % số đơn bị refund
+    public decimal CancelledRate { get; set; }       // % số đơn bị refund
     public int TotalOrders { get; set; }
-    public int TotalRefunds { get; set; }
+    public int TotalCancelled { get; set; }
     public PerformanceTag Tag { get; set; }        // Top ban chay nhat| Bottom ban it nhat | Normal
 }
 

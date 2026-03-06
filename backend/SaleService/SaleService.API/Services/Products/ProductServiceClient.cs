@@ -119,4 +119,59 @@ public class ProductServiceClient : IProductServiceClient
             throw;
         }
     }
+
+    public async Task<List<ProductInfo>> GetProductsByCategoryAsync(Guid categoryId)
+    {
+        try
+        {
+            var request = new GetProductsRequest { CategoryId = categoryId.ToString() };
+            var response = await _client.GetProductsAsync(request);
+
+            return response.Products.Select(p => new ProductInfo
+            {
+                ProductId = Guid.Parse(p.Id),
+                ProductName = p.Name,
+                Description = p.Description,
+                ImageUrl = p.ImageUrl,
+                CategoryId = Guid.Parse(p.CategoryId),
+                CategoryName = p.CategoryName,
+                IsActive = p.IsActive
+            }).ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error calling ProductService GetProductsByCategory ({_productServiceUrl}): {ex.Message}");
+            throw;
+        }
+    }
+
+    public async Task<List<ProductInfo>> GetProductsByIdsAsync(List<Guid> productIds)
+    {
+        if (productIds == null || !productIds.Any())
+            return new List<ProductInfo>();
+
+        try
+        {
+            var request = new GetProductsByIdsRequest();
+            request.ProductIds.AddRange(productIds.Select(id => id.ToString()));
+
+            var response = await _client.GetProductsByIdsAsync(request);
+
+            return response.Products.Select(p => new ProductInfo
+            {
+                ProductId = Guid.Parse(p.Id),
+                ProductName = p.Name,
+                Description = p.Description,
+                ImageUrl = p.ImageUrl,
+                CategoryId = Guid.Parse(p.CategoryId),
+                CategoryName = p.CategoryName,
+                IsActive = p.IsActive
+            }).ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error calling ProductService GetProductsByIds ({_productServiceUrl}): {ex.Message}");
+            throw;
+        }
+    }
 }

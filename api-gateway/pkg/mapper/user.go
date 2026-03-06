@@ -68,6 +68,7 @@ func MapUserPbToUserModel(userPb *identity.UserResponse) *user.UserResponse {
 		OrderCount: userPb.OrderCount,
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 		Role: &role.RoleUserResponse{
 			Id:   userPb.Role.Id,
 			Name: userPb.Role.Name,
@@ -75,6 +76,8 @@ func MapUserPbToUserModel(userPb *identity.UserResponse) *user.UserResponse {
 		},
 =======
 >>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
+=======
+>>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 		CreatedAt: timeutils.ProtoToTimePtr(userPb.CreatedAt),
 		UpdatedAt: timeutils.ProtoToTimePtr(userPb.UpdatedAt),
 	}

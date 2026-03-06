@@ -49,3 +49,5 @@ public interface IOrderRepository
     Task<List<Order>> GetOrdersByTypeAsync(OrderType type, CancellationToken cancellationToken = default);
     Task<bool> ExistsOrderTypeAsync(OrderType type, CancellationToken cancellationToken = default);
 }
+
+    

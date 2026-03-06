@@ -2323,7 +2323,10 @@ const docTemplate = `{
             }
         },
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
         "/orders/vnpay/return": {
             "get": {
                 "description": "Endpoint for VNPay to redirect the browser after payment. Verifies the signature via gRPC and redirects to the Frontend UI.",
@@ -2382,7 +2385,10 @@ const docTemplate = `{
                 }
             }
         },
+<<<<<<< HEAD
 >>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
+=======
+>>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
         "/orders/{id}": {
             "get": {
                 "security": [

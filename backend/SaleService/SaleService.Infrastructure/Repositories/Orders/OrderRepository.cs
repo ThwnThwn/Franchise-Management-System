@@ -284,6 +284,7 @@ public class OrderRepository : IOrderRepository
             .AnyAsync(o => o.Type == type && !o.IsDeleted, cancellationToken);
     }
 
+
     public async Task<IEnumerable<GetByUserIdsRes>> GetByUserIdsAsync(List<Guid> userIds, CancellationToken cancellationToken = default)
     {
         if (userIds == null || !userIds.Any())
@@ -310,4 +311,7 @@ public class OrderRepository : IOrderRepository
         }).ToList();
     }
 
+    
 }
+
+

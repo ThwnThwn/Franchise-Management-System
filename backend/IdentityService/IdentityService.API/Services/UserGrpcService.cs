@@ -150,9 +150,9 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
             HasHourlyWage = request.HasHourlyWage,
             Keyword = request.Keyword,
             OrderCount = request.HasOrderCount ? request.OrderCount : null,
-            TierId = Guid.TryParse(request.TierId, out var parsed) ? parsed : null,
+            TierId = Guid.TryParse(request.TierId, out var parsed)? parsed: null,
             StartAt = request.HasStartAt ? (decimal)request.StartAt : null,
-            EndAt = request.HasEndAt ? (decimal)request.EndAt : null,
+            EndAt = request.HasEndAt? (decimal)request.EndAt : null,
             Page = request.Page,
             PageSize = request.PageSize
         };

@@ -20,6 +20,7 @@ REPLACE_REGEX  = json:"$1"
 
 # ==============================================================================
 <<<<<<< HEAD
+<<<<<<< HEAD
 # CROSS-PLATFORM COMMANDS (Tự động nhận diện HĐH)
 # ==============================================================================
 ifeq ($(OS),Windows_NT)
@@ -31,6 +32,8 @@ ifeq ($(OS),Windows_NT)
 else
     # Lệnh cho Linux, macOS, hoặc Git Bash
 =======
+=======
+>>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 # CROSS-PLATFORM COMMANDS (Tự động nhận diện HĐH & Terminal)
 # ==============================================================================
 ifeq ($(OS),Windows_NT)
@@ -50,7 +53,10 @@ ifeq ($(OS),Windows_NT)
     endif
 else
     # 3. Lệnh cho Linux, macOS xịn
+<<<<<<< HEAD
 >>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
+=======
+>>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
     MKDIR_P   = mkdir -p $(GO_PB_DIR)
     RM_PB_DIR = rm -f $(GO_PB_DIR)/*/*.pb.go
     RM_BIN    = rm -f $(GO_BIN_OUT)

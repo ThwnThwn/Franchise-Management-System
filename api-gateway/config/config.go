@@ -62,6 +62,7 @@ type FranchiseServiceUrl string
 type InventoryServiceUrl string
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 func LoadConfig() *Config {
 	err := godotenv.Load(".env")
@@ -160,3 +161,6 @@ func getEnvBool(key string, fallback bool) bool {
 =======
 type EngagementServiceUrl string
 >>>>>>> 62648aa7a56b46631a1a4ae7906bbbe8dfe772f9
+=======
+type EngagementServiceUrl string
+>>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05

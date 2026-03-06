@@ -59,7 +59,9 @@ public class GetAllUsersQueryHandler : IRequestHandler<GetAllUsersQuery, PagedRe
             filteredUserIds = matchedUsers;
         }
         // Lưu map key Id - value loyaltyResponse
-        var loyaltyDict = loyaltyResponse?.ToDictionary(x => x.Id) ?? new Dictionary<Guid, LoyaltyRes>();
+
+        var loyaltyDict = loyaltyResponse?.ToDictionary(x => x.Id)?? new Dictionary<Guid, LoyaltyRes>();
+
         // Lưu Map key Id - value CountOrder
         var UserCountOrdersDict = orderCounts.ToDictionary(x => x.UserId, x => x.OrderCount);
 

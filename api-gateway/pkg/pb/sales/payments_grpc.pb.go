@@ -29,9 +29,13 @@ type PaymentGrpcClient interface {
 	// Lấy lịch sử thanh toán của customer (customer dashboard)
 	GetMyPaymentHistory(ctx context.Context, in *GetMyPaymentHistoryRequest, opts ...grpc.CallOption) (*GetMyPaymentHistoryReply, error)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 	ProcessVnPayReturn(ctx context.Context, in *VnPayReturnRequest, opts ...grpc.CallOption) (*VnPayReturnResponse, error)
 >>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
+=======
+	ProcessVnPayReturn(ctx context.Context, in *VnPayReturnRequest, opts ...grpc.CallOption) (*VnPayReturnResponse, error)
+>>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 }
 
 type paymentGrpcClient struct {
@@ -70,7 +74,10 @@ func (c *paymentGrpcClient) GetMyPaymentHistory(ctx context.Context, in *GetMyPa
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 func (c *paymentGrpcClient) ProcessVnPayReturn(ctx context.Context, in *VnPayReturnRequest, opts ...grpc.CallOption) (*VnPayReturnResponse, error) {
 	out := new(VnPayReturnResponse)
 	err := c.cc.Invoke(ctx, "/payment.PaymentGrpc/ProcessVnPayReturn", in, out, opts...)
@@ -80,7 +87,10 @@ func (c *paymentGrpcClient) ProcessVnPayReturn(ctx context.Context, in *VnPayRet
 	return out, nil
 }
 
+<<<<<<< HEAD
 >>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
+=======
+>>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 // PaymentGrpcServer is the server API for PaymentGrpc service.
 // All implementations must embed UnimplementedPaymentGrpcServer
 // for forward compatibility
@@ -92,9 +102,13 @@ type PaymentGrpcServer interface {
 	// Lấy lịch sử thanh toán của customer (customer dashboard)
 	GetMyPaymentHistory(context.Context, *GetMyPaymentHistoryRequest) (*GetMyPaymentHistoryReply, error)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 	ProcessVnPayReturn(context.Context, *VnPayReturnRequest) (*VnPayReturnResponse, error)
 >>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
+=======
+	ProcessVnPayReturn(context.Context, *VnPayReturnRequest) (*VnPayReturnResponse, error)
+>>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 	mustEmbedUnimplementedPaymentGrpcServer()
 }
 
@@ -112,11 +126,17 @@ func (UnimplementedPaymentGrpcServer) GetMyPaymentHistory(context.Context, *GetM
 	return nil, status.Errorf(codes.Unimplemented, "method GetMyPaymentHistory not implemented")
 }
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 func (UnimplementedPaymentGrpcServer) ProcessVnPayReturn(context.Context, *VnPayReturnRequest) (*VnPayReturnResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ProcessVnPayReturn not implemented")
 }
 >>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
+=======
+func (UnimplementedPaymentGrpcServer) ProcessVnPayReturn(context.Context, *VnPayReturnRequest) (*VnPayReturnResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ProcessVnPayReturn not implemented")
+}
+>>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 func (UnimplementedPaymentGrpcServer) mustEmbedUnimplementedPaymentGrpcServer() {}
 
 // UnsafePaymentGrpcServer may be embedded to opt out of forward compatibility for this service.
@@ -185,7 +205,10 @@ func _PaymentGrpc_GetMyPaymentHistory_Handler(srv interface{}, ctx context.Conte
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 func _PaymentGrpc_ProcessVnPayReturn_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(VnPayReturnRequest)
 	if err := dec(in); err != nil {
@@ -204,7 +227,10 @@ func _PaymentGrpc_ProcessVnPayReturn_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+<<<<<<< HEAD
 >>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
+=======
+>>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 // PaymentGrpc_ServiceDesc is the grpc.ServiceDesc for PaymentGrpc service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -225,12 +251,18 @@ var PaymentGrpc_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _PaymentGrpc_GetMyPaymentHistory_Handler,
 		},
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 		{
 			MethodName: "ProcessVnPayReturn",
 			Handler:    _PaymentGrpc_ProcessVnPayReturn_Handler,
 		},
+<<<<<<< HEAD
 >>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
+=======
+>>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "sales/payments.proto",

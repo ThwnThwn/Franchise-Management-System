@@ -35,6 +35,9 @@ service OrderGrpc {
       
   // Lấy số đơn hàng
   rpc GetCountOrderByUserIds (GetCountOrderByUserIdsRequest) returns (GetCountOrderByUserIdsResponse);
+
+  // Thống kê Product Performance
+  rpc GetProductPerformance (GetProductPerformanceRequest) returns (GetProductPerformanceReply);
 }
 
 message GetCountOrderByUserIdsRequest{
@@ -294,4 +297,41 @@ message PayOrderWithWalletReply {
   string shop_transaction_code = 13;
 
   string paid_at = 14;
+}
+
+message GetProductPerformanceRequest {
+  string store_id = 1;
+  optional string from_date = 2;
+  optional string to_date = 3;
+  optional string category_id = 4;
+  optional string sort_by = 5;
+  optional string sort_order = 6;
+  int32 page_index = 7;
+  int32 page_size = 8;
+}
+
+message GetProductPerformanceReply {
+  repeated ProductPerformanceItem items = 1;
+  int32 total_count = 2;
+  int32 page_index = 3;
+  int32 page_size = 4;
+}
+
+message ProductPerformanceItem {
+  string product_id = 1;
+  string product_name = 2;
+  string category_id = 3;
+  string category_name = 4;
+  int32 units_sold = 5;
+  double revenue = 6;
+  double cancelled_rate = 7;
+  int32 total_orders = 8;
+  int32 total_cancelled = 9;
+  PerformanceTag tag = 10;
+}
+
+enum PerformanceTag {
+  PERFORMANCE_TAG_NORMAL = 0;
+  PERFORMANCE_TAG_TOP = 1;
+  PERFORMANCE_TAG_BOTTOM = 2;
 }

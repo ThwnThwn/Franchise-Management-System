@@ -683,7 +683,10 @@ func (x *GetMyPaymentHistoryReply) GetTotalPages() int32 {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 type VnPayReturnRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -786,7 +789,10 @@ func (x *VnPayReturnResponse) GetMessage() string {
 	return ""
 }
 
+<<<<<<< HEAD
 >>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
+=======
+>>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 var File_sales_payments_proto protoreflect.FileDescriptor
 
 var file_sales_payments_proto_rawDesc = []byte{
@@ -878,6 +884,7 @@ var file_sales_payments_proto_rawDesc = []byte{
 	0x6f, 0x75, 0x6e, 0x74, 0x12, 0x1f, 0x0a, 0x0b, 0x74, 0x6f, 0x74, 0x61, 0x6c, 0x5f, 0x70, 0x61,
 	0x67, 0x65, 0x73, 0x18, 0x05, 0x20, 0x01, 0x28, 0x05, 0x52, 0x0a, 0x74, 0x6f, 0x74, 0x61, 0x6c,
 <<<<<<< HEAD
+<<<<<<< HEAD
 	0x50, 0x61, 0x67, 0x65, 0x73, 0x2a, 0x28, 0x0a, 0x11, 0x50, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74,
 	0x4d, 0x65, 0x74, 0x68, 0x6f, 0x64, 0x54, 0x79, 0x70, 0x65, 0x12, 0x08, 0x0a, 0x04, 0x43, 0x41,
 	0x53, 0x48, 0x10, 0x00, 0x12, 0x09, 0x0a, 0x05, 0x56, 0x4e, 0x50, 0x41, 0x59, 0x10, 0x01, 0x32,
@@ -902,6 +909,8 @@ var file_sales_payments_proto_rawDesc = []byte{
 	0x61, 0x6c, 0x65, 0x73, 0xaa, 0x02, 0x10, 0x53, 0x61, 0x6c, 0x65, 0x73, 0x53, 0x65, 0x72, 0x76,
 	0x69, 0x63, 0x65, 0x2e, 0x41, 0x50, 0x49, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 =======
+=======
+>>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 	0x50, 0x61, 0x67, 0x65, 0x73, 0x22, 0xa5, 0x01, 0x0a, 0x12, 0x56, 0x6e, 0x50, 0x61, 0x79, 0x52,
 	0x65, 0x74, 0x75, 0x72, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x4f, 0x0a, 0x0c,
 	0x71, 0x75, 0x65, 0x72, 0x79, 0x5f, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x18, 0x01, 0x20, 0x03,
@@ -946,7 +955,10 @@ var file_sales_payments_proto_rawDesc = []byte{
 	0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x70, 0x62, 0x2f, 0x73, 0x61, 0x6c, 0x65, 0x73, 0xaa, 0x02, 0x10,
 	0x53, 0x61, 0x6c, 0x65, 0x73, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x41, 0x50, 0x49,
 	0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+<<<<<<< HEAD
 >>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
+=======
+>>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 }
 
 var (
@@ -963,10 +975,14 @@ func file_sales_payments_proto_rawDescGZIP() []byte {
 
 var file_sales_payments_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 <<<<<<< HEAD
+<<<<<<< HEAD
 var file_sales_payments_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 =======
 var file_sales_payments_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 >>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
+=======
+var file_sales_payments_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+>>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 var file_sales_payments_proto_goTypes = []interface{}{
 	(PaymentMethodType)(0),             // 0: payment.PaymentMethodType
 	(*CreatePaymentRequest)(nil),       // 1: payment.CreatePaymentRequest
@@ -977,6 +993,7 @@ var file_sales_payments_proto_goTypes = []interface{}{
 	(*GetMyPaymentHistoryRequest)(nil), // 6: payment.GetMyPaymentHistoryRequest
 	(*PaymentHistoryItemDto)(nil),      // 7: payment.PaymentHistoryItemDto
 	(*GetMyPaymentHistoryReply)(nil),   // 8: payment.GetMyPaymentHistoryReply
+<<<<<<< HEAD
 <<<<<<< HEAD
 }
 var file_sales_payments_proto_depIdxs = []int32{
@@ -995,6 +1012,8 @@ var file_sales_payments_proto_depIdxs = []int32{
 	3, // [3:3] is the sub-list for extension extendee
 	0, // [0:3] is the sub-list for field type_name
 =======
+=======
+>>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 	(*VnPayReturnRequest)(nil),         // 9: payment.VnPayReturnRequest
 	(*VnPayReturnResponse)(nil),        // 10: payment.VnPayReturnResponse
 	nil,                                // 11: payment.VnPayReturnRequest.QueryParamsEntry
@@ -1017,7 +1036,10 @@ var file_sales_payments_proto_depIdxs = []int32{
 	4,  // [4:4] is the sub-list for extension type_name
 	4,  // [4:4] is the sub-list for extension extendee
 	0,  // [0:4] is the sub-list for field type_name
+<<<<<<< HEAD
 >>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
+=======
+>>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 }
 
 func init() { file_sales_payments_proto_init() }
@@ -1123,7 +1145,10 @@ func file_sales_payments_proto_init() {
 			}
 		}
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 		file_sales_payments_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*VnPayReturnRequest); i {
 			case 0:
@@ -1148,7 +1173,10 @@ func file_sales_payments_proto_init() {
 				return nil
 			}
 		}
+<<<<<<< HEAD
 >>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
+=======
+>>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 	}
 	file_sales_payments_proto_msgTypes[0].OneofWrappers = []interface{}{}
 	file_sales_payments_proto_msgTypes[5].OneofWrappers = []interface{}{}
@@ -1159,10 +1187,14 @@ func file_sales_payments_proto_init() {
 			RawDescriptor: file_sales_payments_proto_rawDesc,
 			NumEnums:      1,
 <<<<<<< HEAD
+<<<<<<< HEAD
 			NumMessages:   8,
 =======
 			NumMessages:   11,
 >>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
+=======
+			NumMessages:   11,
+>>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 			NumExtensions: 0,
 			NumServices:   1,
 		},
