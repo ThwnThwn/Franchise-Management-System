@@ -22,5 +22,6 @@ namespace SalesService.Application.Persisitences
         Task DeleteRangeAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken); // to delete multiple entities at once
         void Remove(T entity);
         Task<T[]> GetByIdsAsync(Guid[] ids, CancellationToken cancellationToken); // get multiple entities by their ids 
+        void Add(T entity);
     }
 }

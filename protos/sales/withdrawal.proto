@@ -1,0 +1,159 @@
+syntax = "proto3";
+
+package wallet;
+option csharp_namespace = "SalesService.API";
+option go_package = "api-gateway/pkg/pb/sales";
+
+import "google/protobuf/empty.proto";
+
+// ==============================================================================
+// ENUMS
+// ==============================================================================
+enum WithdrawalStatus {
+    WITHDRAWAL_STATUS_UNSPECIFIED = 0;  // Vung dem an toan cho Golang
+    WITHDRAWAL_STATUS_PENDING = 1;      // Khach vua tao, cho Ke toan duyet
+    WITHDRAWAL_STATUS_APPROVED = 2;     // Ke toan da duyet, chuan bi chuyen tien
+    WITHDRAWAL_STATUS_PROCESSING = 3;   // Dang goi API ngan hang de chuyen
+    WITHDRAWAL_STATUS_COMPLETED = 4;    // Tien da vao tai khoan khach hang
+    WITHDRAWAL_STATUS_FAILED = 5;       // Loi tu phia Ngan hang
+    WITHDRAWAL_STATUS_REJECTED = 6;     // Ke toan tu choi
+    WITHDRAWAL_STATUS_CANCELLED = 7;    // Khach hang hoac Admin tu huy lenh
+}
+
+// ==============================================================================
+// WITHDRAWAL SERVICE INTERFACE
+// ==============================================================================
+service WithdrawalService {
+    // ----------------------------------------------------------------------
+    // NHOM END-USER (Khach hang)
+    // ----------------------------------------------------------------------
+    rpc CreateWithdrawal(CreateWithdrawalRequest) returns (WithdrawalBaseResponse);
+    rpc GetMyWithdrawals(GetMyWithdrawalsRequest) returns (WithdrawalListResponse);
+    rpc CancelMyWithdrawal(CancelMyWithdrawalRequest) returns (google.protobuf.Empty);
+
+    // ----------------------------------------------------------------------
+    // NHOM ADMIN (Ke toan / Quan tri vien)
+    // ----------------------------------------------------------------------
+    rpc GetAllWithdrawals(GetAllWithdrawalsRequest) returns (WithdrawalListResponse);
+    rpc GetWithdrawalById(GetWithdrawalByIdRequest) returns (WithdrawalDetailResponse);
+    
+    // Nhom Cap nhat trang thai
+    rpc ApproveWithdrawal(ApproveWithdrawalRequest) returns (google.protobuf.Empty);
+    rpc RejectWithdrawal(RejectWithdrawalRequest) returns (google.protobuf.Empty);
+    rpc CancelWithdrawal(CancelWithdrawalRequest) returns (google.protobuf.Empty);
+    rpc CompleteWithdrawal(CompleteWithdrawalRequest) returns (google.protobuf.Empty);
+}
+
+// ==============================================================================
+// MESSAGES (Data Transfer Objects)
+// ==============================================================================
+
+// --- REQUESTS ---
+
+message CreateWithdrawalRequest {
+    double amount = 1;
+    optional string bank_code = 2;
+    string bank_name = 3;
+    string account_name = 4;
+    string account_number = 5;        // FE gui plain-text, .NET tu bam AES
+    string notes = 6;
+}
+
+message GetMyWithdrawalsRequest {
+    int32 page_index = 1;
+    int32 page_size = 2;
+    WithdrawalStatus status = 3;      // Optional: Loc theo trang thai
+}
+
+message CancelMyWithdrawalRequest {
+    string request_id = 1;
+    string cancellation_reason = 2;
+}
+
+message GetAllWithdrawalsRequest {
+    optional string user_id = 1;      // De Admin loc rieng giao dich cua 1 khach
+    WithdrawalStatus status = 2;      // 0: All, 1: Pending, 2: Approved...
+    int32 page_index = 3;
+    int32 page_size = 4;
+}
+
+message GetWithdrawalByIdRequest {
+    string request_id = 1;
+}
+
+message ApproveWithdrawalRequest {
+    string request_id = 1;
+    string approval_notes = 2;
+}
+
+message RejectWithdrawalRequest {
+    string request_id = 1;
+    string rejection_reason = 2;
+}
+
+message CancelWithdrawalRequest {
+    string request_id = 1;
+    string cancellation_reason = 2;
+}
+
+message CompleteWithdrawalRequest {
+    string request_id = 1;
+    optional bytes receipt_file = 2; 
+}
+
+// --- RESPONSES ---
+
+message WithdrawalBaseResponse {
+    string id = 1;
+    string message = 2;
+}
+
+// Tra ve cho danh sach (Chi co Masked Account)
+message WithdrawalSummary {
+    string id = 1;
+    string request_code = 2;
+    string user_id = 3; 
+    double amount = 4;
+    double fee_amount = 5;
+    optional string bank_code = 6;
+    string bank_name = 7;
+    string account_name = 8;
+    string masked_account_number = 9;
+    WithdrawalStatus status = 10;
+    string created_at = 11;
+}
+
+message WithdrawalListResponse {
+    repeated WithdrawalSummary items = 1;
+    int32 total_count = 2;
+    int32 total_pages = 3;
+}
+
+// Tra ve cho chi tiet (Co Raw Account de Ke toan copy)
+// Tra ve cho chi tiet (Day du thong tin nhat)
+message WithdrawalDetailResponse {
+    string id = 1;
+    string request_code = 2;
+    string user_id = 3;
+    double amount = 4;
+    double fee_amount = 5;
+    
+    optional string bank_code = 6;
+    string bank_name = 7;
+    string account_name = 8;
+    string masked_account_number = 9;
+    string raw_account_number = 10;     // .NET da giai ma AES tu DB ra day
+    
+    WithdrawalStatus status = 11;
+    string notes = 12;                  // Khach ghi chu
+    string internal_notes = 13;         // Ke toan ghi chu noi bo
+    string approval_notes = 14;         // Ghi chu luc duyet
+    string rejection_reason = 15;       // Ly do tu choi
+    string cancellation_reason = 16;    // Ly do huy
+    
+    string receipt_image_url = 17;      // Link bill tu Cloudinary
+    string transaction_id = 18;         // Link sang wallet_transactions
+    
+    string created_at = 19;
+    string updated_at = 20;
+}

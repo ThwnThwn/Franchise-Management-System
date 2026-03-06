@@ -81,5 +81,7 @@ public interface IWalletRepository : IGenericRepository<Wallet>
         decimal newBalance,
         byte[] rowVersion,
         CancellationToken cancellationToken = default);
+    void ApplyAddBalance(Wallet wallet, decimal amount, byte[] rowVersion);
+    void ApplyDeductBalance(Wallet wallet, decimal amount, byte[] rowVersion);
 }
 
