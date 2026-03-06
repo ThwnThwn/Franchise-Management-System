@@ -182,6 +182,41 @@ definitions:
     - WalletTransactionPaymentMethod_PAYMENT_METHOD_CASH
     - WalletTransactionPaymentMethod_PAYMENT_METHOD_VNPAY
     - WalletTransactionPaymentMethod_PAYMENT_METHOD_WALLET
+  api-gateway_internal_domain_constants_enum.WithdrawalStatus:
+    enum:
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    format: int32
+    type: integer
+    x-enum-comments:
+      WithdrawalStatusApproved: Đã duyệt
+      WithdrawalStatusCancelled: Đã hủy
+      WithdrawalStatusCompleted: Thành công
+      WithdrawalStatusFailed: Thất bại
+      WithdrawalStatusPending: Chờ duyệt
+      WithdrawalStatusProcessing: Đang xử lý
+      WithdrawalStatusRejected: Từ chối
+    x-enum-descriptions:
+    - Chờ duyệt
+    - Đã duyệt
+    - Đang xử lý
+    - Thành công
+    - Thất bại
+    - Từ chối
+    - Đã hủy
+    x-enum-varnames:
+    - WithdrawalStatusPending
+    - WithdrawalStatusApproved
+    - WithdrawalStatusProcessing
+    - WithdrawalStatusCompleted
+    - WithdrawalStatusFailed
+    - WithdrawalStatusRejected
+    - WithdrawalStatusCancelled
   api-gateway_internal_domain_models_auth.ConfirmOtpRequest:
     properties:
       email:
@@ -311,6 +346,17 @@ definitions:
       items:
         items:
           $ref: '#/definitions/api-gateway_internal_domain_models_wallet.WalletTransactionResponse'
+        type: array
+      totalCount:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_withdrawal_WithdrawalSummary:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/api-gateway_internal_domain_models_withdrawal.WithdrawalSummary'
         type: array
       totalCount:
         type: integer
@@ -1430,6 +1476,127 @@ definitions:
       userId:
         type: string
       walletId:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_withdrawal.ApproveWithdrawalReq:
+    properties:
+      approvalNotes:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_withdrawal.CancelMyWithdrawalReq:
+    properties:
+      cancellationReason:
+        type: string
+    required:
+    - cancellationReason
+    type: object
+  api-gateway_internal_domain_models_withdrawal.CancelWithdrawalReq:
+    properties:
+      cancellationReason:
+        type: string
+    required:
+    - cancellationReason
+    type: object
+  api-gateway_internal_domain_models_withdrawal.CreateWithdrawalReq:
+    properties:
+      accountName:
+        type: string
+      accountNumber:
+        type: string
+      amount:
+        type: number
+      bankCode:
+        type: string
+      bankName:
+        type: string
+      notes:
+        type: string
+    required:
+    - accountName
+    - accountNumber
+    - amount
+    - bankName
+    type: object
+  api-gateway_internal_domain_models_withdrawal.RejectWithdrawalReq:
+    properties:
+      rejectionReason:
+        type: string
+    required:
+    - rejectionReason
+    type: object
+  api-gateway_internal_domain_models_withdrawal.WithdrawalBaseRes:
+    properties:
+      id:
+        type: string
+      message:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_withdrawal.WithdrawalDetailRes:
+    properties:
+      accountName:
+        type: string
+      amount:
+        type: number
+      approvalNotes:
+        type: string
+      bankCode:
+        type: string
+      bankName:
+        type: string
+      cancellationReason:
+        type: string
+      createdAt:
+        type: string
+      feeAmount:
+        type: number
+      id:
+        type: string
+      internalNotes:
+        type: string
+      maskedAccountNumber:
+        type: string
+      notes:
+        type: string
+      rawAccountNumber:
+        type: string
+      receiptImageUrl:
+        type: string
+      rejectionReason:
+        type: string
+      requestCode:
+        type: string
+      status:
+        $ref: '#/definitions/api-gateway_internal_domain_constants_enum.WithdrawalStatus'
+      transactionId:
+        type: string
+      updatedAt:
+        type: string
+      userId:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_withdrawal.WithdrawalSummary:
+    properties:
+      accountName:
+        type: string
+      amount:
+        type: number
+      bankCode:
+        type: string
+      bankName:
+        type: string
+      createdAt:
+        type: string
+      feeAmount:
+        type: number
+      id:
+        type: string
+      maskedAccountNumber:
+        type: string
+      requestCode:
+        type: string
+      status:
+        $ref: '#/definitions/api-gateway_internal_domain_constants_enum.WithdrawalStatus'
+      userId:
         type: string
     type: object
   gin.H:
@@ -2843,6 +3010,130 @@ paths:
       summary: Xem lịch sử giao dịch ví của tôi
       tags:
       - Wallet Transactions
+  /me/withdrawals:
+    get:
+      description: Lấy lịch sử rút tiền của chính người dùng đang đăng nhập (có phân
+        trang).
+      parameters:
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      - enum:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        - 7
+        format: int32
+        in: query
+        name: status
+        type: integer
+        x-enum-comments:
+          WithdrawalStatusApproved: Đã duyệt
+          WithdrawalStatusCancelled: Đã hủy
+          WithdrawalStatusCompleted: Thành công
+          WithdrawalStatusFailed: Thất bại
+          WithdrawalStatusPending: Chờ duyệt
+          WithdrawalStatusProcessing: Đang xử lý
+          WithdrawalStatusRejected: Từ chối
+        x-enum-descriptions:
+        - Chờ duyệt
+        - Đã duyệt
+        - Đang xử lý
+        - Thành công
+        - Thất bại
+        - Từ chối
+        - Đã hủy
+        x-enum-varnames:
+        - WithdrawalStatusPending
+        - WithdrawalStatusApproved
+        - WithdrawalStatusProcessing
+        - WithdrawalStatusCompleted
+        - WithdrawalStatusFailed
+        - WithdrawalStatusRejected
+        - WithdrawalStatusCancelled
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Danh sách yêu cầu
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_withdrawal_WithdrawalSummary'
+      security:
+      - BearerAuth: []
+      summary: Xem danh sách yêu cầu rút tiền của tôi
+      tags:
+      - Withdrawals
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Khách hàng tạo yêu cầu rút tiền từ ví vào tài khoản ngân hàng. Tiền sẽ bị tạm trừ ngay lập tức.
+        Dùng api https://api.vietqr.io/v2/banks để lấy bank code và name cho khách chọn
+        Vẫn cho 1 ô nhập tên ngân hàng nếu api lỗi hoặc khách ko thấy trong danh sách
+        Trường hợp khách nhập tên ngân hàng thủ công thì ko cần code
+      parameters:
+      - description: Thông tin yêu cầu rút tiền
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_withdrawal.CreateWithdrawalReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Tạo thành công
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_withdrawal.WithdrawalBaseRes'
+        "400":
+          description: Dữ liệu không hợp lệ
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Tạo yêu cầu rút tiền mới
+      tags:
+      - Withdrawals
+  /me/withdrawals/{id}/cancel:
+    patch:
+      consumes:
+      - application/json
+      description: Người dùng tự hủy lệnh khi chưa được Admin xử lý (Trạng thái PENDING).
+        Tiền hoàn về ví.
+      parameters:
+      - description: UUID của yêu cầu rút tiền
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Lý do hủy
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_withdrawal.CancelMyWithdrawalReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Hủy thành công
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Khách hàng tự hủy yêu cầu rút tiền
+      tags:
+      - Withdrawals
   /membership-tiers:
     get:
       consumes:
@@ -5686,6 +5977,215 @@ paths:
       summary: Xử lý Callback VNPay Return (Nạp tiền ví)
       tags:
       - Wallets
+  /withdrawals:
+    get:
+      description: Dành cho quản trị viên xem và lọc danh sách rút tiền của toàn bộ
+        người dùng.
+      parameters:
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      - enum:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        - 7
+        format: int32
+        in: query
+        name: status
+        type: integer
+        x-enum-comments:
+          WithdrawalStatusApproved: Đã duyệt
+          WithdrawalStatusCancelled: Đã hủy
+          WithdrawalStatusCompleted: Thành công
+          WithdrawalStatusFailed: Thất bại
+          WithdrawalStatusPending: Chờ duyệt
+          WithdrawalStatusProcessing: Đang xử lý
+          WithdrawalStatusRejected: Từ chối
+        x-enum-descriptions:
+        - Chờ duyệt
+        - Đã duyệt
+        - Đang xử lý
+        - Thành công
+        - Thất bại
+        - Từ chối
+        - Đã hủy
+        x-enum-varnames:
+        - WithdrawalStatusPending
+        - WithdrawalStatusApproved
+        - WithdrawalStatusProcessing
+        - WithdrawalStatusCompleted
+        - WithdrawalStatusFailed
+        - WithdrawalStatusRejected
+        - WithdrawalStatusCancelled
+      - in: query
+        name: userId
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Danh sách yêu cầu
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_withdrawal_WithdrawalSummary'
+      security:
+      - BearerAuth: []
+      summary: Xem toàn bộ danh sách yêu cầu rút tiền (Admin)
+      tags:
+      - Withdrawals
+  /withdrawals/{id}:
+    get:
+      description: Lấy đầy đủ thông tin một yêu cầu rút tiền bao gồm số tài khoản
+        đầy đủ (Raw) và lịch sử xử lý.
+      parameters:
+      - description: UUID của yêu cầu rút tiền
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_withdrawal.WithdrawalDetailRes'
+        "404":
+          description: Không tìm thấy
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Xem chi tiết yêu cầu rút tiền
+      tags:
+      - Withdrawals
+  /withdrawals/{id}/approve:
+    patch:
+      consumes:
+      - application/json
+      description: (Admin) Xác nhận yêu cầu hợp lệ và chuẩn bị chuyển tiền. Trạng
+        thái chuyển sang APPROVED.
+      parameters:
+      - description: UUID của yêu cầu rút tiền
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Ghi chú duyệt
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_withdrawal.ApproveWithdrawalReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Thành công
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Duyệt yêu cầu rút tiền
+      tags:
+      - Withdrawals
+  /withdrawals/{id}/cancel:
+    patch:
+      description: Dùng để hủy lệnh ở bất kỳ giai đoạn nào (Pending, Approved, Processing)
+        TRỪ KHI đã thành công/hủy rồi. Hệ thống tự hoàn tiền vào ví.
+      parameters:
+      - description: ID yêu cầu
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Lý do hủy từ Admin
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_withdrawal.CancelWithdrawalReq'
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Admin hủy yêu cầu (Dành cho hầu hết trạng thái)
+      tags:
+      - Withdrawals
+  /withdrawals/{id}/complete:
+    patch:
+      consumes:
+      - multipart/form-data
+      description: (Admin) Xác nhận đã chuyển khoản thành công. Phải upload ảnh bill
+        (receiptFile) để minh chứng.
+      parameters:
+      - description: UUID của yêu cầu rút tiền
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Ảnh chụp biên lai chuyển khoản (Bill)
+        in: formData
+        name: receiptFile
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Hoàn tất
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Hoàn tất yêu cầu rút tiền (Kèm hóa đơn)
+      tags:
+      - Withdrawals
+  /withdrawals/{id}/reject:
+    patch:
+      description: Dùng để từ chối lệnh khi đang PENDING. Hệ thống tự hoàn tiền vào
+        ví.
+      parameters:
+      - description: ID yêu cầu
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Lý do từ chối
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_withdrawal.RejectWithdrawalReq'
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Admin từ chối yêu cầu (Chỉ dành cho lệnh PENDING)
+      tags:
+      - Withdrawals
 securityDefinitions:
   BearerAuth:
     description: 'Don''t forget to type "Bearer" before the token. For example: Bearer

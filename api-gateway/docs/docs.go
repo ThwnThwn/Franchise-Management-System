@@ -2173,6 +2173,180 @@ const docTemplate = `{
                 }
             }
         },
+        "/me/withdrawals": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lấy lịch sử rút tiền của chính người dùng đang đăng nhập (có phân trang).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Xem danh sách yêu cầu rút tiền của tôi",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6,
+                            7
+                        ],
+                        "type": "integer",
+                        "format": "int32",
+                        "x-enum-comments": {
+                            "WithdrawalStatusApproved": "Đã duyệt",
+                            "WithdrawalStatusCancelled": "Đã hủy",
+                            "WithdrawalStatusCompleted": "Thành công",
+                            "WithdrawalStatusFailed": "Thất bại",
+                            "WithdrawalStatusPending": "Chờ duyệt",
+                            "WithdrawalStatusProcessing": "Đang xử lý",
+                            "WithdrawalStatusRejected": "Từ chối"
+                        },
+                        "x-enum-descriptions": [
+                            "Chờ duyệt",
+                            "Đã duyệt",
+                            "Đang xử lý",
+                            "Thành công",
+                            "Thất bại",
+                            "Từ chối",
+                            "Đã hủy"
+                        ],
+                        "x-enum-varnames": [
+                            "WithdrawalStatusPending",
+                            "WithdrawalStatusApproved",
+                            "WithdrawalStatusProcessing",
+                            "WithdrawalStatusCompleted",
+                            "WithdrawalStatusFailed",
+                            "WithdrawalStatusRejected",
+                            "WithdrawalStatusCancelled"
+                        ],
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Danh sách yêu cầu",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_withdrawal_WithdrawalSummary"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Khách hàng tạo yêu cầu rút tiền từ ví vào tài khoản ngân hàng. Tiền sẽ bị tạm trừ ngay lập tức.\nDùng api https://api.vietqr.io/v2/banks để lấy bank code và name cho khách chọn\nVẫn cho 1 ô nhập tên ngân hàng nếu api lỗi hoặc khách ko thấy trong danh sách\nTrường hợp khách nhập tên ngân hàng thủ công thì ko cần code",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Tạo yêu cầu rút tiền mới",
+                "parameters": [
+                    {
+                        "description": "Thông tin yêu cầu rút tiền",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_withdrawal.CreateWithdrawalReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tạo thành công",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_withdrawal.WithdrawalBaseRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Dữ liệu không hợp lệ",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/me/withdrawals/{id}/cancel": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Người dùng tự hủy lệnh khi chưa được Admin xử lý (Trạng thái PENDING). Tiền hoàn về ví.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Khách hàng tự hủy yêu cầu rút tiền",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID của yêu cầu rút tiền",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Lý do hủy",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_withdrawal.CancelMyWithdrawalReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Hủy thành công",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/membership-tiers": {
             "get": {
                 "description": "Retrieve a list of all available membership tiers",
@@ -6538,6 +6712,315 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/withdrawals": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Dành cho quản trị viên xem và lọc danh sách rút tiền của toàn bộ người dùng.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Xem toàn bộ danh sách yêu cầu rút tiền (Admin)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6,
+                            7
+                        ],
+                        "type": "integer",
+                        "format": "int32",
+                        "x-enum-comments": {
+                            "WithdrawalStatusApproved": "Đã duyệt",
+                            "WithdrawalStatusCancelled": "Đã hủy",
+                            "WithdrawalStatusCompleted": "Thành công",
+                            "WithdrawalStatusFailed": "Thất bại",
+                            "WithdrawalStatusPending": "Chờ duyệt",
+                            "WithdrawalStatusProcessing": "Đang xử lý",
+                            "WithdrawalStatusRejected": "Từ chối"
+                        },
+                        "x-enum-descriptions": [
+                            "Chờ duyệt",
+                            "Đã duyệt",
+                            "Đang xử lý",
+                            "Thành công",
+                            "Thất bại",
+                            "Từ chối",
+                            "Đã hủy"
+                        ],
+                        "x-enum-varnames": [
+                            "WithdrawalStatusPending",
+                            "WithdrawalStatusApproved",
+                            "WithdrawalStatusProcessing",
+                            "WithdrawalStatusCompleted",
+                            "WithdrawalStatusFailed",
+                            "WithdrawalStatusRejected",
+                            "WithdrawalStatusCancelled"
+                        ],
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "userId",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Danh sách yêu cầu",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_withdrawal_WithdrawalSummary"
+                        }
+                    }
+                }
+            }
+        },
+        "/withdrawals/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lấy đầy đủ thông tin một yêu cầu rút tiền bao gồm số tài khoản đầy đủ (Raw) và lịch sử xử lý.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Xem chi tiết yêu cầu rút tiền",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID của yêu cầu rút tiền",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_withdrawal.WithdrawalDetailRes"
+                        }
+                    },
+                    "404": {
+                        "description": "Không tìm thấy",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/withdrawals/{id}/approve": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "(Admin) Xác nhận yêu cầu hợp lệ và chuẩn bị chuyển tiền. Trạng thái chuyển sang APPROVED.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Duyệt yêu cầu rút tiền",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID của yêu cầu rút tiền",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Ghi chú duyệt",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_withdrawal.ApproveWithdrawalReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/withdrawals/{id}/cancel": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Dùng để hủy lệnh ở bất kỳ giai đoạn nào (Pending, Approved, Processing) TRỪ KHI đã thành công/hủy rồi. Hệ thống tự hoàn tiền vào ví.",
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Admin hủy yêu cầu (Dành cho hầu hết trạng thái)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID yêu cầu",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Lý do hủy từ Admin",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_withdrawal.CancelWithdrawalReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/withdrawals/{id}/complete": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "(Admin) Xác nhận đã chuyển khoản thành công. Phải upload ảnh bill (receiptFile) để minh chứng.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Hoàn tất yêu cầu rút tiền (Kèm hóa đơn)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID của yêu cầu rút tiền",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Ảnh chụp biên lai chuyển khoản (Bill)",
+                        "name": "receiptFile",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Hoàn tất",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/withdrawals/{id}/reject": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Dùng để từ chối lệnh khi đang PENDING. Hệ thống tự hoàn tiền vào ví.",
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Admin từ chối yêu cầu (Chỉ dành cho lệnh PENDING)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID yêu cầu",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Lý do từ chối",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_withdrawal.RejectWithdrawalReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -6764,6 +7247,46 @@ const docTemplate = `{
                 "WalletTransactionPaymentMethod_PAYMENT_METHOD_WALLET"
             ]
         },
+        "api-gateway_internal_domain_constants_enum.WithdrawalStatus": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "x-enum-comments": {
+                "WithdrawalStatusApproved": "Đã duyệt",
+                "WithdrawalStatusCancelled": "Đã hủy",
+                "WithdrawalStatusCompleted": "Thành công",
+                "WithdrawalStatusFailed": "Thất bại",
+                "WithdrawalStatusPending": "Chờ duyệt",
+                "WithdrawalStatusProcessing": "Đang xử lý",
+                "WithdrawalStatusRejected": "Từ chối"
+            },
+            "x-enum-descriptions": [
+                "Chờ duyệt",
+                "Đã duyệt",
+                "Đang xử lý",
+                "Thành công",
+                "Thất bại",
+                "Từ chối",
+                "Đã hủy"
+            ],
+            "x-enum-varnames": [
+                "WithdrawalStatusPending",
+                "WithdrawalStatusApproved",
+                "WithdrawalStatusProcessing",
+                "WithdrawalStatusCompleted",
+                "WithdrawalStatusFailed",
+                "WithdrawalStatusRejected",
+                "WithdrawalStatusCancelled"
+            ]
+        },
         "api-gateway_internal_domain_models_auth.ConfirmOtpRequest": {
             "type": "object",
             "required": [
@@ -6956,6 +7479,23 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/api-gateway_internal_domain_models_wallet.WalletTransactionResponse"
+                    }
+                },
+                "totalCount": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_withdrawal_WithdrawalSummary": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api-gateway_internal_domain_models_withdrawal.WithdrawalSummary"
                     }
                 },
                 "totalCount": {
@@ -8647,6 +9187,190 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "walletId": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_withdrawal.ApproveWithdrawalReq": {
+            "type": "object",
+            "properties": {
+                "approvalNotes": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_withdrawal.CancelMyWithdrawalReq": {
+            "type": "object",
+            "required": [
+                "cancellationReason"
+            ],
+            "properties": {
+                "cancellationReason": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_withdrawal.CancelWithdrawalReq": {
+            "type": "object",
+            "required": [
+                "cancellationReason"
+            ],
+            "properties": {
+                "cancellationReason": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_withdrawal.CreateWithdrawalReq": {
+            "type": "object",
+            "required": [
+                "accountName",
+                "accountNumber",
+                "amount",
+                "bankName"
+            ],
+            "properties": {
+                "accountName": {
+                    "type": "string"
+                },
+                "accountNumber": {
+                    "type": "string"
+                },
+                "amount": {
+                    "type": "number"
+                },
+                "bankCode": {
+                    "type": "string"
+                },
+                "bankName": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_withdrawal.RejectWithdrawalReq": {
+            "type": "object",
+            "required": [
+                "rejectionReason"
+            ],
+            "properties": {
+                "rejectionReason": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_withdrawal.WithdrawalBaseRes": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_withdrawal.WithdrawalDetailRes": {
+            "type": "object",
+            "properties": {
+                "accountName": {
+                    "type": "string"
+                },
+                "amount": {
+                    "type": "number"
+                },
+                "approvalNotes": {
+                    "type": "string"
+                },
+                "bankCode": {
+                    "type": "string"
+                },
+                "bankName": {
+                    "type": "string"
+                },
+                "cancellationReason": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "feeAmount": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "internalNotes": {
+                    "type": "string"
+                },
+                "maskedAccountNumber": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "rawAccountNumber": {
+                    "type": "string"
+                },
+                "receiptImageUrl": {
+                    "type": "string"
+                },
+                "rejectionReason": {
+                    "type": "string"
+                },
+                "requestCode": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/api-gateway_internal_domain_constants_enum.WithdrawalStatus"
+                },
+                "transactionId": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_withdrawal.WithdrawalSummary": {
+            "type": "object",
+            "properties": {
+                "accountName": {
+                    "type": "string"
+                },
+                "amount": {
+                    "type": "number"
+                },
+                "bankCode": {
+                    "type": "string"
+                },
+                "bankName": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "feeAmount": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "maskedAccountNumber": {
+                    "type": "string"
+                },
+                "requestCode": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/api-gateway_internal_domain_constants_enum.WithdrawalStatus"
+                },
+                "userId": {
                     "type": "string"
                 }
             }

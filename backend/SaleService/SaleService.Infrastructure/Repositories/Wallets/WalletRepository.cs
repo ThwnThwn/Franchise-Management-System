@@ -1,16 +1,18 @@
-﻿
+﻿using BuildingBlocks.Core.Extensions;
+using BuildingBlocks.Core.Pagination;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.EntityFrameworkCore;
 using SalesService.Application.Persisitences.Wallets;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
 using SalesService.Infrastructure.ApplicationDbContext;
-using BuildingBlocks.Core.Extensions;
-using BuildingBlocks.Core.Pagination;
+
 namespace SalesService.Infrastructure.Repositories
 {
     public class WalletRepository : GenericRepository<Wallet>, IWalletRepository
     {
-        private readonly  ISalesDbContext _context;
+        private readonly ISalesDbContext _context;
+
         public WalletRepository(ISalesDbContext dbContext) : base(dbContext)
         {
             _context = dbContext;
@@ -37,50 +39,71 @@ namespace SalesService.Infrastructure.Repositories
                     cancellationToken);
         }
 
+        // =========================================================
+        // UNIT OF WORK HELPERS (Logic lõi - Đầy đủ Check & Exception)
+        // =========================================================
+
+        public void ApplyAddBalance(Wallet wallet, decimal amount, byte[] rowVersion)
+        {
+            if (amount <= 0)
+                throw new ArgumentException("Số tiền cộng vào phải lớn hơn 0.", nameof(amount));
+
+            // Optimistic concurrency check
+            if (wallet.RowVersion == null || !wallet.RowVersion.SequenceEqual(rowVersion))
+            {
+                throw new DbUpdateConcurrencyException(
+                    "Phiên bản ví không khớp hoặc dữ liệu đã bị thay đổi bởi giao dịch khác. Vui lòng thử lại.");
+            }
+
+            wallet.Balance += amount;
+        }
+
+        public void ApplyDeductBalance(Wallet wallet, decimal amount, byte[] rowVersion)
+        {
+            if (amount <= 0)
+                throw new ArgumentException("Số tiền trừ đi phải lớn hơn 0.", nameof(amount));
+
+            // Kiểm tra số dư khả dụng
+            if (wallet.Balance < amount)
+            {
+                throw new InvalidOperationException(
+                    $"Số dư không đủ. Hiện có: {wallet.Balance}, Cần rút: {amount}");
+            }
+
+            // Kiểm tra phiên bản dữ liệu
+            if (wallet.RowVersion == null || !wallet.RowVersion.SequenceEqual(rowVersion))
+            {
+                throw new DbUpdateConcurrencyException(
+                    "Phiên bản ví đã cũ. Ví đã được cập nhật bởi một tiến trình khác, vui lòng thử lại.");
+            }
+
+            wallet.Balance -= amount;
+        }
 
         public async Task<bool> AddBalanceAsync(
-            Guid walletId,
-            decimal amount,
-            byte[] rowVersion,
-            CancellationToken cancellationToken = default)
+        Guid walletId,
+        decimal amount,
+        byte[] rowVersion,
+        CancellationToken cancellationToken = default)
         {
             try
             {
-                if (amount <= 0)
-                {
-                    throw new ArgumentException("Amount must be greater than 0", nameof(amount));
-                }
+                var wallet = await _dbSet.FirstOrDefaultAsync(
+                    w => w.Id == walletId && !w.IsDeleted, cancellationToken);
 
-                var wallet = await _dbSet
-                    .FirstOrDefaultAsync(
-                        w => w.Id == walletId && !w.IsDeleted,
-                        cancellationToken);
+                if (wallet == null) return false;
 
-                if (wallet == null)
-                    return false;
-
-                // kiểm tra xem amount có bị cập nhật nào trước khi thực hiện feature gì đó về amount
-                if (!wallet.RowVersion.SequenceEqual(rowVersion))
-                {
-                    throw new DbUpdateConcurrencyException(
-                        "Wallet was modified by another transaction. Please retry.");
-                }
-
-                wallet.Balance += amount;
-                wallet.UpdatedAt = DateTime.UtcNow;
+                // Gọi hàm Apply để xử lý logic và check concurrency
+                ApplyAddBalance(wallet, amount, rowVersion);
 
                 await _context.SaveChangesAsync(cancellationToken);
-
                 return true;
             }
-            catch (DbUpdateConcurrencyException)
-            {
-                throw;
-            }
+            catch (DbUpdateConcurrencyException) { throw; }
+            catch (ArgumentException) { throw; }
             catch (Exception ex)
             {
-                throw new InvalidOperationException(
-                    $"Failed to add balance to wallet {walletId}", ex);
+                throw new InvalidOperationException($"Failed to add balance to wallet {walletId}", ex);
             }
         }
 
@@ -92,58 +115,25 @@ namespace SalesService.Infrastructure.Repositories
         {
             try
             {
-                if (amount <= 0)
-                {
-                    throw new ArgumentException("Amount must be greater than 0", nameof(amount));
-                }
+                var wallet = await _dbSet.FirstOrDefaultAsync(
+                    w => w.Id == walletId && !w.IsDeleted, cancellationToken);
 
-                // Get wallet
-                var wallet = await _dbSet
-                    .FirstOrDefaultAsync(
-                        w => w.Id == walletId && !w.IsDeleted,
-                        cancellationToken);
+                if (wallet == null) return false;
 
-                if (wallet == null)
-                    return false;
+                // Gọi hàm Apply để xử lý logic, check balance và concurrency
+                ApplyDeductBalance(wallet, amount, rowVersion);
 
-                // Check  balance đủ không
-                if (wallet.Balance < amount)
-                {
-                    throw new InvalidOperationException(
-                        $"Insufficient balance. Current: {wallet.Balance}, Required: {amount}");
-                }
-
-                // Optimistic concurrency check
-                if (!wallet.RowVersion.SequenceEqual(rowVersion))
-                {
-                    throw new DbUpdateConcurrencyException(
-                        "Wallet was modified by another transaction. Please retry.");
-                }
-
-                // Deduct balance
-                wallet.Balance -= amount;
-                wallet.UpdatedAt = DateTime.UtcNow;
-
-                // Save changes
                 await _context.SaveChangesAsync(cancellationToken);
-
                 return true;
             }
-            catch (DbUpdateConcurrencyException)
-            {
-                throw;
-            }
-            catch (InvalidOperationException)
-            {
-                throw;
-            }
+            catch (DbUpdateConcurrencyException) { throw; }
+            catch (InvalidOperationException) { throw; }
+            catch (ArgumentException) { throw; }
             catch (Exception ex)
             {
-                throw new InvalidOperationException(
-                    $"Failed to deduct balance from wallet {walletId}", ex);
+                throw new InvalidOperationException($"Failed to deduct balance from wallet {walletId}", ex);
             }
         }
-
 
         public async Task<bool> UpdateStatusAsync(
             Guid walletId,
@@ -170,7 +160,6 @@ namespace SalesService.Infrastructure.Repositories
             await _context.SaveChangesAsync(cancellationToken);
             return true;
         }
-
 
         public async Task<bool> HasSufficientBalanceAsync(
             Guid walletId,
@@ -210,7 +199,6 @@ namespace SalesService.Infrastructure.Repositories
 
             return hasPendingRefunds;
         }
-
 
         public async Task<PagedResult<Wallet>> GetByStatusAsync(
             WalletStatus status,
@@ -337,6 +325,5 @@ namespace SalesService.Infrastructure.Repositories
                     $"Failed to update balance for wallet {walletId}", ex);
             }
         }
-
     }
 }

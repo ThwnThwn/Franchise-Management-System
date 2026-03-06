@@ -31,6 +31,21 @@ namespace SalesService.Domain.Entities
         public string? Metadata { get; set; }
         public PaymentMethod? PaymentMethod { get; set; }
         public DateTimeOffset? ProcessedAt { get; set; }
-        public virtual Wallet? Wallet { get; set; }
+
+        public virtual ICollection<WalletTransaction> InverseParentTransaction { get; set; } = new List<WalletTransaction>();
+
+        public virtual Order? Order { get; set; }
+
+        public virtual WalletTransaction? ParentTransaction { get; set; }
+
+        public virtual ICollection<RefundTicket> RefundTicketOriginalTransactions { get; set; } = new List<RefundTicket>();
+
+        public virtual ICollection<RefundTicket> RefundTicketTransactions { get; set; } = new List<RefundTicket>();
+
+        public virtual Wallet Wallet { get; set; } = null!;
+
+        public virtual ICollection<WalletEvent> WalletEvents { get; set; } = new List<WalletEvent>();
+
+        public virtual ICollection<WithdrawalRequest> WithdrawalRequests { get; set; } = new List<WithdrawalRequest>();
     }
 }

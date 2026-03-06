@@ -38,6 +38,7 @@ import (
 	"api-gateway/internal/api/routes/variants"
 	"api-gateway/internal/api/routes/vouchers"
 	"api-gateway/internal/api/routes/wallets"
+	"api-gateway/internal/api/routes/withdrawals"
 	"api-gateway/internal/application/usecases"
 	"api-gateway/internal/bootstrap"
 	"api-gateway/internal/infrastructure/cache"
@@ -178,6 +179,9 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, func
 	iRefundTicketService := sales.ProvideRefundTicketClient(salesClientFactory, cfg)
 	refundTicketHandler := sales2.NewRefundTicketHandler(iRefundTicketService)
 	refundRouter := refunds.NewRouter(refundTicketHandler, authMiddleware, cfg)
+	iWithdrawalService := sales.ProvideWithdrawalClient(salesClientFactory, cfg)
+	withdrawalHandler := sales2.NewWithdrawalHandler(iWithdrawalService)
+	withdrawalRouter := withdrawals.NewRouter(cfg, authMiddleware, withdrawalHandler)
 	appRouter := &routes.AppRouter{
 		LoyaltyRouter:        loyaltyRouter,
 		MembershipTierRouter: membershipTierRouter,
@@ -199,6 +203,7 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, func
 		CartRouter:           cartRouter,
 		WalletRouter:         walletRouter,
 		RefundRouter:         refundRouter,
+		WithdrawalRouter:     withdrawalRouter,
 	}
 	engine := routes.NewEngine(cfg, appRouter)
 	app := bootstrap.NewApp(cfg, engine)

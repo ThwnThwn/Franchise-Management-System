@@ -260,9 +260,9 @@ func (s *shiftGrpcClient) GetTimeLogs(ctx context.Context, req *shift.GetTimeLog
 			CheckOutLat:      item.CheckOutLat,
 			CheckOutLong:     item.CheckOutLong,
 
-			TotalWorkMinutes: item.TotalWorkMinutes,
-			Status:           item.Status,
-			ManagerNote:      item.ManagerNote,
+			// TotalWorkMinutes: item.TotalWorkMinutes,
+			Status:      item.Status,
+			ManagerNote: item.ManagerNote,
 
 			CreatedAt: item.CreatedAt,
 			UpdatedAt: item.UpdatedAt,
