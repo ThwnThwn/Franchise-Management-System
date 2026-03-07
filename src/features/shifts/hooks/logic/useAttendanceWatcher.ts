@@ -4,17 +4,24 @@ import { useMemo, useEffect, useState } from "react"
 import dayjs from "dayjs"
 import { useTokenStore, useDay } from "@/hooks"
 import { RoleSlug } from "@/constants/enums"
-import { ATTENDANCE_CONFIG } from "@/features/shifts/constants/config"
-import { useGetCurrentShift } from "@/features/shifts/hooks"
+import { useActiveShiftRule, useGetCurrentShift } from "@/features/shifts/hooks"
+import { AttendanceStatus } from "../../types"
 
 export const useAttendanceWatcher = () => {
     const roleSlug = useTokenStore((s) => s.roleSlug)
-    const { dateNow } = useDay()
+
+    const { rule, isLoading: isRuleLoading } = useActiveShiftRule({
+        enabled: roleSlug === RoleSlug.Staff
+    })
+
     const {
         data: shift,
-        isLoading,
+        isLoading: isShiftLoading,
         refetch
     } = useGetCurrentShift(!!roleSlug && roleSlug === RoleSlug.Staff)
+
+    const isLoading = isRuleLoading || isShiftLoading
+    const { dateNow } = useDay()
     const [now, setNow] = useState(dayjs())
 
     useEffect(() => {
@@ -22,46 +29,59 @@ export const useAttendanceWatcher = () => {
         return () => clearInterval(timer)
     }, [])
 
-    const status = useMemo(() => {
-        if (!shift || !shift.hasShiftToday) return null
+    const status = useMemo<AttendanceStatus | undefined>(() => {
+        if (!shift || !shift.hasShiftToday) return undefined
+
+        const grace = rule?.gracePeriodMinutes ?? 15
 
         const today = dateNow()
         let start = dayjs(`${today} ${shift.startTime}`)
         let end = dayjs(`${today} ${shift.endTime}`)
 
-        // 1. Xử lý ca xuyên đêm (Vít lỗi End < Start)
         if (end.isBefore(start)) {
             end = end.add(1, "day")
         }
 
-        // 2. XỬ LÝ BẪY NỬA ĐÊM:
-        // Nếu bây giờ là 00:40 và ca làm là 22:00 - 06:00
-        // Lúc này 'start' (22:00 hôm nay) đang ở tương lai, nhưng thực tế ca đã bắt đầu từ hôm qua.
-        // Điều kiện: Nếu (Bây giờ < End) VÀ (Bây giờ < Start) VÀ (Ca này là ca xuyên đêm)
-        // if (now.isBefore(start) && now.isBefore(end) && shift.endTime < shift.startTime) {
-        //     start = start.subtract(1, "day")
-        //     end = end.subtract(1, "day")
-        // }
+        // 2. CÁC MỐC THỜI GIAN QUAN TRỌNG
+        const checkInStart = start.subtract(grace, "minute") // CHẶN DƯỚI: Mốc sớm nhất được vào
+        const checkInLateLimit = start.add(grace, "minute") // Mốc tính đi muộn
 
-        // 3. NGƯỠNG THỜI GIAN
-        const checkInThreshold = start.subtract(ATTENDANCE_CONFIG.CHECK_IN_BUFFER_MINUTES, "minute")
-        const checkOutDeadline = end.add(ATTENDANCE_CONFIG.CHECK_OUT_BUFFER_HOURS, "hour")
+        const checkOutStart = end.subtract(grace, "minute") // Mốc sớm nhất được ra
+        const checkOutDeadline = end.add(grace, "minute") // Mốc cuối cùng phải ra
 
-        // 4. TRẠNG THÁI LOGIC
+        // 3. TRẠNG THÁI LOGIC
         const isOngoing = !!shift.checkInAt && !shift.checkOutAt
         const isShiftExpired = now.isAfter(checkOutDeadline)
-        const canStartCheckIn = now.isAfter(checkInThreshold)
+
+        // canStartCheckIn: Phải sau mốc Chặn dưới VÀ chưa hết hạn ca (Không check chặn trên check-in)
+        // const canStartCheckIn = !shift.checkInAt && now.isAfter(checkInStart) && !isShiftExpired
 
         return {
             shift,
-            isComingUp: now.isBefore(start) && canStartCheckIn,
-            isLate: now.isAfter(start.add(15, "minute")) && !shift.checkInAt && !isShiftExpired,
+            // isComingUp: Đã đến giờ được phép chuẩn bị vào ca (nằm trong khoảng buffer trước start)
+            isComingUp: now.isAfter(checkInStart) && now.isBefore(start) && !shift.checkInAt,
+
+            // isLate: Đã quá giờ bắt đầu + grace mà vẫn chưa quẹt thẻ (nhưng vẫn bấm được nút)
+            isLate: now.isAfter(checkInLateLimit) && !shift.checkInAt && !isShiftExpired,
+
             isOngoing,
-            isOvertime: isOngoing && now.isAfter(end),
-            shouldWarn: (!shift.checkInAt && canStartCheckIn && !isShiftExpired) || isOngoing,
+
+            // isOvertime: Đang làm và đã quá giờ kết thúc ca (vẫn trong window checkout)
+            isOvertime: isOngoing && now.isAfter(end) && now.isBefore(checkOutDeadline),
+
+            // shouldWarn:
+            // - Chưa check-in: Nhắc nhở từ lúc Start cho đến khi hết hạn
+            // - Đang làm: Nhắc nhở khi đã lọt vào Window Checkout [End - Grace, End + Grace]
+            shouldWarn:
+                (!shift.checkInAt && now.isAfter(start) && !isShiftExpired) ||
+                (isOngoing && now.isAfter(checkOutStart) && !isShiftExpired),
+
+            canCheckOut: isOngoing && !isShiftExpired,
+
+            // Deadline là mốc cuối cùng có thể quẹt thẻ ra
             deadlineMinutes: checkOutDeadline.diff(now, "minute")
         }
-    }, [shift, dateNow, now])
+    }, [shift, rule, dateNow, now])
 
     return { status, isLoading, refetch }
 }

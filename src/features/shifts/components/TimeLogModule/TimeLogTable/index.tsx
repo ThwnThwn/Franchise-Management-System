@@ -121,7 +121,9 @@ export const TimeLogTable = ({ data, selectedDate, isLoading, onEditClick }: Pro
                                 <TimeRangeDisplay
                                     checkInAt={item.checkInAt}
                                     checkOutAt={item.checkOutAt}
-                                    totalWorkMinutes={item.totalWorkMinutes}
+                                    dailyOtMinutes={item.dailyOtMinutes}
+                                    regularMinutes={item.regularMinutes}
+                                    weeklyOtMinutes={item.weeklyOtMinutes}
                                 />
                             </TableCell>
                             <TableCell>

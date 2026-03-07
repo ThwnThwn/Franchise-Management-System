@@ -1,7 +1,13 @@
 import { buildQueryParams } from "@/utils/helpers/axiosHelper"
 import axiosInstance from "@/utils/axios"
-import { CreateShiftRequest, GetShiftsParams, UpdateShiftRequest } from "../models/request"
-import { ShiftResponse, StaffAssignmentCandidate } from "../models/response"
+import {
+    AssignStaffRequest,
+    AutoFillShiftsRequest,
+    CreateShiftRequest,
+    GetShiftsParams,
+    UpdateShiftRequest
+} from "../models/request"
+import { AutoFillShiftsResponse, ShiftResponse, StaffAssignmentCandidate } from "../models/response"
 
 /**
  * SHIFT API
@@ -43,6 +49,11 @@ export const shiftApi = {
         await axiosInstance.put(`/shifts/${id}/publish`)
     },
 
+    autoFill: async (req: AutoFillShiftsRequest): Promise<AutoFillShiftsResponse> => {
+        const res = await axiosInstance.post("/shifts/auto-fill", req)
+        return res.data
+    },
+
     /**
      * @param ids Mảng các shift id để publish đồng thời
      */
@@ -71,14 +82,14 @@ export const shiftApi = {
      */
     updateAssignments: async ({
         shiftId,
-        userIds
+        req
     }: {
         shiftId: string
-        userIds: string[]
+        req: AssignStaffRequest
     }): Promise<void> => {
         // Backend sẽ so sánh mảng này với DB:
         // - User nào mới thì Insert, có mà đang isDeleted = true thì thành false
         // - User nào thiếu so với DB thì soft Delete
-        await axiosInstance.put(`/shifts/${shiftId}/assign`, userIds)
+        await axiosInstance.put(`/shifts/${shiftId}/assign`, req)
     }
 }

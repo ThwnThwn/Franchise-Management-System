@@ -18,8 +18,34 @@ export const useFormikHelpers = <T>(formik: FormikProps<T>) => {
         return isInvalid(path) ? getIn(formik.errors, path) : undefined
     }
 
+    /**
+     * Xử lý ép kiểu số an toàn từ Input (string) và gán trực tiếp vào Formik.
+     * @param field Tên field trong Formik
+     * @param value Giá trị chuỗi người dùng nhập vào
+     * @param fallback Giá trị gán vào khi người dùng xóa trắng (Mặc định là 0, có thể truyền "")
+     */
+    const setNumberValue = (field: string, value: string, fallback: number | string = 0) => {
+        // 1. Xóa trắng
+        if (value === "") {
+            formik.setFieldValue(field, fallback)
+            return
+        }
+
+        // 2. Ép kiểu
+        const parsedValue = Number(value)
+
+        // 3. Nếu nhập bậy (chữ, ký tự lạ) sinh ra NaN -> Bỏ qua không set
+        if (Number.isNaN(parsedValue)) {
+            return
+        }
+
+        // 4. Hợp lệ -> Set vào Formik
+        formik.setFieldValue(field, parsedValue)
+    }
+
     return {
         isInvalid,
-        getErrorMessage
+        getErrorMessage,
+        setNumberValue
     }
 }

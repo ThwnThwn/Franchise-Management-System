@@ -9,11 +9,21 @@ import {
     StaffShiftCalendar,
     ViewShiftDetailModal
 } from "@/features/shifts/components"
-import { useGetMyAgenda, useAgendaLogic, useGetMyTimeLogHistory } from "@/features/shifts/hooks"
+import {
+    useGetMyAgenda,
+    useAgendaLogic,
+    useGetMyTimeLogHistory,
+    useGetShifts
+} from "@/features/shifts/hooks"
 import { DashboardHeader } from "@/features/dashboard"
 import { CalendarRange } from "lucide-react"
 import { Spinner, useDisclosure } from "@heroui/react"
-import { StaffShiftAgendaWithLog, TimeLogResponse } from "@/features/shifts/models/response"
+import {
+    ShiftResponse,
+    StaffShiftAgendaWithLog,
+    TimeLogResponse
+} from "@/features/shifts/models/response"
+import { useTokenStore } from "@/hooks"
 
 export default function StaffAgendaPageView() {
     const {
@@ -27,6 +37,15 @@ export default function StaffAgendaPageView() {
         handleJumpToDate
     } = useAgendaLogic()
 
+    const storeId = useTokenStore((s) => s.storeId) || ""
+    const { data: shifts, isLoading: isShiftDetailLoading } = useGetShifts({
+        params: {
+            fromDate: dateRange.startDate,
+            toDate: dateRange.endDate,
+            storeId: storeId
+        },
+        enabled: !!storeId
+    })
     const { data: weeklyShifts, isLoading: isShiftLoading } = useGetMyAgenda(dateRange)
     const { data: weeklyTimelogs, isLoading: isTimeLogLoading } = useGetMyTimeLogHistory({
         query: {
@@ -35,7 +54,7 @@ export default function StaffAgendaPageView() {
         },
         pagination: { page: 1, pageSize: 100 }
     })
-    const isLoading = isShiftLoading || isTimeLogLoading
+    const isLoading = isShiftLoading || isTimeLogLoading || isShiftDetailLoading
 
     const enrichedShifts = useMemo((): StaffShiftAgendaWithLog[] => {
         if (!weeklyShifts) return []
@@ -47,16 +66,23 @@ export default function StaffAgendaPageView() {
             logMap.set(log.shiftAssignmentId, log)
         })
 
+        const shiftMap = new Map<string, ShiftResponse>()
+        shifts?.forEach((shift) => {
+            shiftMap.set(shift.id, shift)
+        })
+
         // Trộn dữ liệu
         return weeklyShifts.map((shift) => {
             const log = logMap.get(shift.id)
+            const item = shiftMap.get(shift.shiftId)
 
             return {
                 ...shift,
-                timeLog: log
+                timeLog: log,
+                breakDurationMinutes: item?.breakDurationMinutes || 0
             }
         })
-    }, [weeklyShifts, weeklyTimelogs])
+    }, [shifts, weeklyShifts, weeklyTimelogs])
 
     // Xử lý khi click vào bất kỳ đâu (Card trong List hoặc Event trong Calendar)
     const { isOpen, onOpen, onClose } = useDisclosure()

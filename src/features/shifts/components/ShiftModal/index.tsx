@@ -33,7 +33,8 @@ export const ShiftModal = ({
     const isSubmitable =
         !initialData?.id ||
         initialData?.status === ShiftStatus.Draft ||
-        initialData?.status === ShiftStatus.Published
+        initialData?.status === ShiftStatus.Published ||
+        initialData?.status === ShiftStatus.Open
 
     // 2. Setup Formik
     const formik = useFormik<ShiftFormValues>({

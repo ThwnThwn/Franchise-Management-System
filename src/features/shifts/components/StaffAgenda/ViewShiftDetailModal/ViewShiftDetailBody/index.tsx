@@ -2,7 +2,7 @@
 "use client"
 
 import { Divider, Button, Avatar } from "@heroui/react"
-import { MapPin, Navigation, Phone, Clock, Users } from "lucide-react"
+import { MapPin, Navigation, Phone, Clock, Users, Coffee } from "lucide-react"
 import { StaffShiftAgendaWithLog } from "@/features/shifts/models/response"
 import { useUserHelper } from "@/hooks"
 import { formatPhoneNumber } from "@/utils/helpers/stringHelper"
@@ -66,6 +66,13 @@ export const ViewShiftDetailBody = ({ data }: ShiftDetailBodyProps) => {
                     <p className="text-xl font-black tabular-nums">
                         {data.startTime.substring(0, 5)} - {data.endTime.substring(0, 5)}
                     </p>
+
+                    {(data.breakDurationMinutes ?? 0) > 0 && (
+                        <div className="flex items-center gap-1.5 mt-1 text-xs text-warning-600 font-medium bg-warning-50 w-fit px-2 py-0.5 rounded-full border border-warning-100">
+                            <Coffee size={12} />
+                            <span>Nghỉ giữa ca: {data.breakDurationMinutes} phút</span>
+                        </div>
+                    )}
                 </div>
             </div>
 

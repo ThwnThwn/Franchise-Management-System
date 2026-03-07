@@ -16,7 +16,7 @@ interface StaffStat {
 
 export const useStaffWorkload = (shiftsData: ShiftResponse[], storeId: string) => {
     const { toFullName } = useUserHelper()
-    const { data: ruleSettings } = useGetShiftRuleSettings(storeId)
+    const { data: ruleSettings } = useGetShiftRuleSettings({ storeId })
 
     const currentRule = useMemo(() => {
         const storeRule = ruleSettings?.stores.find((s) => s.storeId === storeId)
@@ -36,7 +36,7 @@ export const useStaffWorkload = (shiftsData: ShiftResponse[], storeId: string) =
             const duration =
                 dayjs(end).diff(start, "hour", true) - (shift.breakDurationMinutes || 0) / 60
 
-            shift.assignments.forEach((assign) => {
+            ;(shift.assignments || []).forEach((assign) => {
                 if (!stats[assign.userId]) {
                     stats[assign.userId] = {
                         id: assign.userId,

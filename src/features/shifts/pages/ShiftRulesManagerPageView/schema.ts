@@ -10,6 +10,19 @@ export const shiftRuleSchema = Yup.object().shape({
     maxHoursPerWeek: Yup.number()
         .min(1, "Tối thiểu 1 giờ")
         .max(168, "Vượt quá số giờ trong tuần")
+        .required("Bắt buộc"),
+
+    gracePeriodMinutes: Yup.number()
+        .min(0, "Không được nhỏ hơn 0")
+        .max(120, "Thời gian ân hạn quá lớn")
+        .required("Bắt buộc"),
+    dailyOtThresholdHours: Yup.number()
+        .min(1, "Tối thiểu 1 giờ")
+        .max(24, "Tối đa 24 giờ")
+        .required("Bắt buộc"),
+    weeklyOtThresholdHours: Yup.number()
+        .min(1, "Tối thiểu 1 giờ")
+        .max(168, "Vượt quá số giờ trong tuần")
         .required("Bắt buộc")
 })
 

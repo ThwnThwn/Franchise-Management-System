@@ -36,7 +36,15 @@ export const useShiftAssignment = ({
     })
 
     const syncMutation = useMutation({
-        mutationFn: (userIds: string[]) => shiftApi.updateAssignments({ shiftId, userIds }),
+        mutationFn: (userIds: string[]) =>
+            shiftApi.updateAssignments({
+                shiftId,
+                req: {
+                    userIds: userIds,
+                    forceOverride: false,
+                    overrideReason: ""
+                }
+            }),
         onSuccess: () => {
             addToast({
                 title: STRINGS.COMMON.SUCCESS,

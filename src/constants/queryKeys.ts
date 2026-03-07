@@ -14,9 +14,11 @@ export const QUERY_KEYS = {
     INGREDIENT_CATEGORIES: "ingredient-categories" as const,
     SHIFTS: "shifts" as const,
     AGENDA: "agenda" as const,
+    SHIFT_SWAPS: "shift-swaps" as const,
     SHIFT_CANDIDATES: "shift-candidates" as const,
     SHIFT_TEMPLATES: "shift-templates" as const,
     SHIFT_RULES: "shift-rules" as const,
     SHIFT_AVAILABILITIES: "shift-availabilities" as const,
+    SHIFT_APPLICATIONS: "shift-applications" as const,
     TIME_LOGS: "time-logs" as const
 }

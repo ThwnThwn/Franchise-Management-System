@@ -114,3 +114,27 @@ export const useBulkDeleteShift = ({ onSuccess }: { onSuccess?: () => void } = {
         }
     })
 }
+
+export const useBulkOpenShift = ({ onSuccess }: { onSuccess?: () => void } = {}) => {
+    const queryClient = useQueryClient()
+
+    return useMutation({
+        mutationFn: (ids: string[]) => shiftBulkApi.open(ids),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SHIFTS] })
+            addToast({
+                title: STRINGS.COMMON.SUCCESS,
+                description: "Đã đưa các ca vào chợ ca",
+                color: "success"
+            })
+            onSuccess?.()
+        },
+        onError: (error: BackendError) => {
+            addToast({
+                title: error.title || STRINGS.COMMON.ERROR,
+                description: error.detail,
+                color: "danger"
+            })
+        }
+    })
+}

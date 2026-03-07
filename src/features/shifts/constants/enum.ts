@@ -3,7 +3,8 @@ export enum ShiftStatus {
     Draft = 0,
     Published = 1,
     Completed = 2,
-    Cancelled = 3
+    Cancelled = 3,
+    Open = 4
 }
 
 // Enum trạng thái của Phân công (Assignment)
@@ -17,4 +18,19 @@ export enum TimeLogStatus {
     Processing = 0, // Vừa check-in (Đang trong ca làm việc)
     Valid = 1, // Đã check-out và khớp với giờ quy định (Đúng giờ)
     Invalid = 2 // Đã check-out nhưng sai giờ quy định (Đi muộn/Về sớm)
+}
+
+export enum ShiftApplicationStatus {
+    Pending = 0,
+    Approved = 1,
+    Rejected = 2
+}
+
+export enum SwapRequestStatus {
+    PendingTarget = 0,
+    PendingManager = 1,
+    Approved = 2,
+    Rejected = 3,
+    Expired = 4,
+    Cancelled = 5
 }

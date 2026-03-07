@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useMemo, useRef } from "react"
+import React, { useRef } from "react"
 import { CalendarApi } from "@fullcalendar/core"
 
 import {
@@ -12,7 +12,6 @@ import {
     StaffWorkloadSummary,
     GoToTimeLogLink
 } from "@/features/shifts/components"
-import { ShiftStatus } from "@/features/shifts/constants"
 import {
     useGetShifts,
     useScheduleLogic,
@@ -66,14 +65,9 @@ export default function ShiftSchedulerPageView() {
         onCloseModal: onClose
     })
 
-    // Logic tính toán Ca Nháp (Draft) để thực hiện Bulk Actions
-    const draftShiftIds = useMemo(() => {
-        return (shiftsData || []).filter((s) => s.status === ShiftStatus.Draft).map((s) => s.id)
-    }, [shiftsData])
-
     // Hook Xử lý Bulk (Bulk Actions)
-    const { handleBulkPublish, handleBulkDelete, isProcessing } =
-        useScheduleBulkActions(draftShiftIds)
+    const { bulkActionIds, handleBulkPublish, handleBulkDelete, handleBulkOpen, isProcessing } =
+        useScheduleBulkActions(shiftsData)
 
     const calendarSnapRef = useScrollSnap({
         thresholdTop: -30,
@@ -104,10 +98,14 @@ export default function ShiftSchedulerPageView() {
                     // onDateSelect={(type, val) => handleDateSelect(type, val, calendarApiRef.current!)}
                     onJumpToDate={(date) => handleJumpToDate(date, calendarApiRef.current!)}
                     //
-                    draftCount={draftShiftIds.length}
+                    forDeleteCount={bulkActionIds.forDelete.length}
+                    forPublishCount={bulkActionIds.forPublish.length}
+                    forOpenCount={bulkActionIds.forOpen.length}
+                    //
                     onBulkCreate={onBulkOpen}
                     onBulkPublish={handleBulkPublish}
                     onBulkDelete={handleBulkDelete}
+                    onBulkOpen={handleBulkOpen}
                     isBulkProcessing={isProcessing}
                 />
                 {/* Stats */}

@@ -41,6 +41,10 @@ export const useCheckIn = ({ onSuccess }: { onSuccess?: () => void } = {}) => {
             queryClient.invalidateQueries({
                 queryKey: [QUERY_KEYS.ME, QUERY_KEYS.SHIFTS, QUERY_KEYS.CURRENT]
             })
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.TIME_LOGS],
+                exact: false
+            })
 
             addToast({
                 title: STRINGS.COMMON.SUCCESS,
@@ -71,6 +75,10 @@ export const useCheckOut = ({ onSuccess }: { onSuccess?: () => void } = {}) => {
             // Refresh để UI ẩn banner hoặc chuyển trạng thái "Đã hoàn thành"
             queryClient.invalidateQueries({
                 queryKey: [QUERY_KEYS.ME, QUERY_KEYS.SHIFTS, QUERY_KEYS.CURRENT]
+            })
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.TIME_LOGS],
+                exact: false
             })
 
             addToast({
@@ -143,5 +151,17 @@ export const useGetMyTimeLogHistory = ({
         enabled: enabled,
         staleTime: 1000 * 60 * 2, // 2 phút vì dữ liệu lịch sử ít biến động
         placeholderData: (previousData) => previousData
+    })
+}
+
+/**
+ * Hook lấy danh sách yêu cầu đổi ca của tôi (Người gửi hoặc Người nhận)
+ * @param enabled - Cho phép fetch dữ liệu hay không (mặc định là true)
+ */
+export const useGetMySwaps = ({ enabled = true }: { enabled?: boolean } = {}) => {
+    return useQuery({
+        queryKey: [QUERY_KEYS.SHIFT_SWAPS, QUERY_KEYS.ME],
+        queryFn: () => myShiftApi.getMySwaps(),
+        enabled
     })
 }

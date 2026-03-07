@@ -30,5 +30,9 @@ export const shiftBulkApi = {
     delete: async (ids: string[]): Promise<void> => {
         // Dùng data trong config của axios delete để gửi mảng IDs
         await axiosInstance.delete("/shifts/bulk-delete", { data: ids })
+    },
+
+    open: async (ids: string[]): Promise<void> => {
+        await axiosInstance.put("/shifts/bulk-open", ids)
     }
 }

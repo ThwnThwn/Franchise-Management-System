@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useMemo, useRef } from "react"
+import { useEffect, useMemo, useRef } from "react"
 import FullCalendar from "@fullcalendar/react"
 import dayGridPlugin from "@fullcalendar/daygrid"
 import timeGridPlugin from "@fullcalendar/timegrid"
@@ -8,9 +8,9 @@ import interactionPlugin from "@fullcalendar/interaction"
 import dayjs from "dayjs"
 import { TimeLogResponse } from "@/features/shifts/models/response"
 import { TimeLogEventCard } from "./TimeLogEventCard"
-import { ATTENDANCE_CONFIG } from "@/features/shifts/constants/config"
 import { DEFAULT_TIMEZONE } from "@/constants/constants"
 import { useDay } from "@/hooks"
+import { useActiveShiftRule } from "@/features/shifts/hooks"
 
 interface Props {
     logs: TimeLogResponse[]
@@ -22,6 +22,7 @@ interface Props {
 export const TimeLogCalendar = ({ logs, currentDate, isLoading, onEventClick }: Props) => {
     const calendarRef = useRef<FullCalendar>(null)
     const { formatDateTime } = useDay()
+    const { rule } = useActiveShiftRule()
 
     // Đồng bộ ngày khi Toolbar thay đổi
     useEffect(() => {
@@ -39,7 +40,6 @@ export const TimeLogCalendar = ({ logs, currentDate, isLoading, onEventClick }: 
     // Map TimeLog sang Event của FullCalendar
     const events = useMemo(() => {
         const now = dayjs()
-        const { CHECK_OUT_BUFFER_HOURS } = ATTENDANCE_CONFIG
 
         return logs.map((log) => {
             const { shiftDate, startTime, endTime } = log.shift
@@ -51,7 +51,7 @@ export const TimeLogCalendar = ({ logs, currentDate, isLoading, onEventClick }: 
             if (log.checkOutAt) {
                 displayEnd = log.checkOutAt
             } else {
-                const bufferDeadline = expEnd.add(CHECK_OUT_BUFFER_HOURS, "hour")
+                const bufferDeadline = expEnd.add(rule.gracePeriodMinutes, "minute")
                 displayEnd = now.isBefore(bufferDeadline) ? now.toISOString() : expEnd.toISOString()
             }
 
@@ -63,7 +63,7 @@ export const TimeLogCalendar = ({ logs, currentDate, isLoading, onEventClick }: 
                 extendedProps: log
             }
         })
-    }, [formatDateTime, logs])
+    }, [formatDateTime, logs, rule.gracePeriodMinutes])
 
     return (
         <div

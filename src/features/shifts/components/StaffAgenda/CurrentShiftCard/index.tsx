@@ -1,11 +1,11 @@
 "use client"
 
-import React, { useEffect, useMemo, useState } from "react"
+import React, { useMemo, useState, useEffect } from "react"
 import { Card, CardBody, CardHeader, Divider, useDisclosure } from "@heroui/react"
 import { Store, CalendarDays, Info } from "lucide-react"
-
-import { useGetCurrentShift, useAttendanceActions } from "@/features/shifts/hooks"
+import { useAttendanceActions, useAttendanceWatcher } from "@/features/shifts/hooks"
 import { useDay, useDistanceToTarget, useGeolocation } from "@/hooks"
+import { getAttendanceUIConfig } from "@/features/shifts/utils/ui-utils"
 import { ShiftSkeleton } from "./ShiftSkeleton"
 import { AttendanceStatus } from "./AttendanceStatus"
 import { ShiftCountDown } from "./ShiftCountDown"
@@ -13,166 +13,125 @@ import { AttendanceActionButton } from "./AttendanceActionButton"
 import { ExceptionNoteModal } from "@/features/shifts/components"
 import dayjs from "dayjs"
 import { getShiftDateTime } from "@/features/shifts/utils"
-import { ATTENDANCE_CONFIG } from "@/features/shifts/constants/config"
 
 export const CurrentShiftCard = () => {
     const { isOpen, onOpen, onClose } = useDisclosure()
     const { formatDate } = useDay()
 
-    // 1. Data Fetching
-    const { data: shift, isLoading: isFetchingShift } = useGetCurrentShift()
+    const { status, isLoading: isWatcherLoading, refetch } = useAttendanceWatcher()
+    const shift = status?.shift
 
-    const { now, startTime, endTime } = useMemo(() => {
-        const now = dayjs()
-        // 1. Check shift undefined ngay từ đầu
-        if (!shift)
-            return {
-                now,
-                startTime: undefined,
-                endTime: undefined
-            }
+    // Lấy cấu hình UI (Màu sắc, Icon, Label) đồng bộ với Floating Bar
+    const ui = useMemo(() => getAttendanceUIConfig(status), [status])
 
-        const todayStr = formatDate(now)
+    // Logic hiển thị nội dung (Quyết định xem hiện Nút hay hiện Thông báo)
+    const display = useMemo(() => {
+        if (!status || !shift) return { canAction: false, message: "" }
 
-        // 2. Tính toán startTime
-        const startTime = dayjs(getShiftDateTime(todayStr, shift.startTime))
-
-        // 3. Tính toán endTime (có truyền startTime để xử lý ca xuyên đêm - cross-day)
-        const endTime = dayjs(getShiftDateTime(todayStr, shift.endTime, shift.startTime))
-
-        return {
-            now,
-            startTime,
-            endTime
-        }
-        // Re-memoize khi object shift thay đổi
-    }, [formatDate, shift])
-
-    const { isWithinBuffer, message } = useMemo(() => {
-        if (!shift || !startTime || !endTime) return { isWithinBuffer: false, message: "" }
-
-        // 1. Trường hợp chờ Check-in (Status "IN")
+        // Giai đoạn: CHƯA VÀO CA
         if (!shift.checkInAt) {
-            const bufferStart = startTime.subtract(
-                ATTENDANCE_CONFIG.CHECK_IN_BUFFER_MINUTES,
-                "minute"
-            )
-
-            if (now.isBefore(bufferStart)) {
-                return {
-                    isWithinBuffer: false,
-                    message: `Hệ thống sẽ mở Check-in lúc ${bufferStart.format("HH:mm")}`
-                }
+            if (
+                status.isLate ||
+                status.isComingUp ||
+                (dayjs().isAfter(dayjs(`${dayjs().format("YYYY-MM-DD")} ${shift.startTime}`)) &&
+                    status.deadlineMinutes > 0)
+            ) {
+                return { canAction: true, type: "IN" }
             }
-            if (now.isAfter(endTime)) {
+            if (status.deadlineMinutes < 0) {
                 return {
-                    isWithinBuffer: false,
+                    canAction: false,
                     message: "Ca làm việc đã kết thúc, bạn đã bỏ lỡ Check-in."
                 }
             }
-            return { isWithinBuffer: true, message: "" }
+            return { canAction: false, message: `Hệ thống chưa mở cổng Check-in cho ca này.` }
         }
 
-        // 2. Trường hợp chờ Check-out (Status "OUT")
-        if (shift.checkInAt && !shift.checkOutAt) {
-            const bufferEnd = endTime.add(ATTENDANCE_CONFIG.CHECK_OUT_BUFFER_HOURS, "hour")
-
-            if (now.isAfter(bufferEnd)) {
-                return {
-                    isWithinBuffer: false,
-                    message: "Đã quá thời gian cho phép Check-out (2 tiếng sau ca)."
-                }
+        // Giai đoạn: ĐANG TRONG CA
+        if (status.isOngoing) {
+            if (status.deadlineMinutes < 0) {
+                return { canAction: false, message: "Đã quá thời gian cho phép Check-out tự động." }
             }
-            return { isWithinBuffer: true, message: "" }
+            // Check-out theo Window (Dựa vào canCheckOut của hook đã tính Grace Period)
+            if (!status.canCheckOut) {
+                return { canAction: false, message: "Chưa đến khung giờ được phép Check-out." }
+            }
+            return { canAction: true, type: "OUT" }
         }
 
-        return { isWithinBuffer: false, message: "Bạn đã hoàn thành ca làm việc hôm nay." }
-    }, [endTime, now, shift, startTime])
+        return { canAction: false, message: "Bạn đã hoàn thành ca làm việc hôm nay." }
+    }, [status, shift])
 
-    // 2. Location Logic
+    const { startTime, endTime } = useMemo(() => {
+        if (!shift) return { startTime: dayjs(), endTime: dayjs() }
+
+        const todayStr = formatDate(dayjs())
+
+        const startObj = dayjs(getShiftDateTime(todayStr, shift.startTime))
+        const endObj = dayjs(getShiftDateTime(todayStr, shift.endTime, shift.startTime))
+
+        return { startTime: startObj, endTime: endObj }
+    }, [shift, formatDate])
+
+    // Vị trí địa lý (Hardware logic)
     const { getPosition, isLoading: isLocating } = useGeolocation()
-    const [currentCoords, setCurrentCoords] = useState<{ lat: number; lng: number } | null>(null)
-
+    const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null)
     const { distanceM, isWithinRange } = useDistanceToTarget(
-        currentCoords,
+        coords,
         shift?.storeLat && shift?.storeLong ? { lat: shift.storeLat, lng: shift.storeLong } : null
     )
 
-    // 3. Attendance Actions
+    // Hành động Chấm công
     const { handleAction, isLoading: isSubmitting } = useAttendanceActions()
 
-    // 4. Xác định trạng thái nút bấm
-    const attendanceStatus = React.useMemo(() => {
-        if (!shift?.checkInAt) return "IN"
-        if (shift.checkInAt && !shift.checkOutAt) return "OUT"
-        return "DONE"
-    }, [shift])
-
-    // 5. Xử lý khi bấm nút chính
     const onMainPress = async () => {
-        // Luôn làm mới vị trí trước khi bấm
         const pos = await getPosition()
+        if (pos.lat !== undefined && pos.lng !== undefined)
+            setCoords({ lat: pos.lat, lng: pos.lng })
 
-        if (pos.lat && pos.lng) setCurrentCoords({ lat: pos.lat, lng: pos.lng })
-
-        // Nếu máy lỗi GPS hoặc ở quá xa -> Hiện Modal giải trình
         if (pos.error || (distanceM && !isWithinRange)) {
-            onOpen()
+            onOpen() // Sai vị trí -> Mở modal giải trình
             return
         }
 
-        // Nếu mọi thứ OK -> Chấm công thẳng luôn
         await handleAction({
-            type: attendanceStatus as "IN" | "OUT",
-            id: (attendanceStatus === "IN" ? shift?.assignmentId : shift?.currentLogId) || "",
+            type: status?.isOngoing ? "OUT" : "IN",
+            id: (status?.isOngoing ? shift?.currentLogId : shift?.assignmentId) || "",
             target: { lat: shift?.storeLat || 0, lng: shift?.storeLong || 0 }
         })
-    }
-
-    // 6. Xử lý gửi giải trình từ Modal
-    const onExceptionSubmit = async (userNote: string) => {
-        await handleAction({
-            type: attendanceStatus as "IN" | "OUT",
-            id: (attendanceStatus === "IN" ? shift?.assignmentId : shift?.currentLogId) || "",
-            target: { lat: shift?.storeLat || 0, lng: shift?.storeLong || 0 },
-            userNote
-        })
-        onClose()
+        refetch() // Cập nhật lại status mới
     }
 
     useEffect(() => {
-        const initLocation = async () => {
-            // Chỉ lấy vị trí nếu hôm nay có ca làm để tránh tốn pin/resource vô ích
-            if (shift?.hasShiftToday) {
-                const pos = await getPosition()
-                if (pos.lat && pos.lng) {
-                    setCurrentCoords({ lat: pos.lat, lng: pos.lng })
-                }
-            }
+        if (shift?.hasShiftToday) {
+            getPosition().then((p) => p.lat && p.lng && setCoords({ lat: p.lat, lng: p.lng }))
         }
-
-        initLocation()
     }, [shift?.hasShiftToday, getPosition])
 
-    if (isFetchingShift || !startTime || !endTime) return <ShiftSkeleton />
+    // RENDER STATES
+    if (isWatcherLoading || !status) return <ShiftSkeleton />
 
     if (!shift?.hasShiftToday)
         return (
-            <Card className="bg-default-50 border-none p-6 text-center text-default-400">
-                Hôm nay bạn không có ca làm việc nào hoặc chưa đến giờ check-in.
+            <Card className="bg-default-50 border-none p-8 text-center text-default-400 font-medium">
+                Hôm nay bạn không có ca làm việc nào.
             </Card>
         )
 
     return (
         <>
-            <Card className="shadow-sm border border-default-200">
-                <CardHeader className="flex justify-between items-start p-5">
+            <Card className="shadow-sm border border-default-200 overflow-hidden">
+                <CardHeader className="flex justify-between items-start p-5 bg-content1">
                     <div className="flex gap-3">
-                        <div className="p-3 bg-secondary rounded-2xl text-white">
+                        <div
+                            className={`p-3 ${ui?.hexColor || "bg-primary"} rounded-2xl text-white shadow-lg transition-colors`}
+                        >
                             <Store size={24} />
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-lg font-bold">{shift.storeName}</span>
+                            <span className="text-lg font-bold text-default-800">
+                                {shift.storeName}
+                            </span>
                             <AttendanceStatus
                                 distanceM={distanceM}
                                 isWithinRange={isWithinRange}
@@ -181,9 +140,8 @@ export const CurrentShiftCard = () => {
                         </div>
                     </div>
                     <div className="flex flex-col items-end">
-                        <div className="flex items-center gap-1 text-default-500 text-tiny">
-                            <CalendarDays size={14} />
-                            Hôm nay
+                        <div className="flex items-center gap-1 text-default-400 text-tiny uppercase font-bold tracking-wider">
+                            <CalendarDays size={14} /> Hôm nay
                         </div>
                         <span className="font-bold text-default-700">
                             {shift.startTime} - {shift.endTime}
@@ -193,20 +151,19 @@ export const CurrentShiftCard = () => {
 
                 <Divider />
 
-                <CardBody className="p-5 flex flex-col gap-3">
-                    {isWithinBuffer ? (
+                <CardBody className="p-6 flex flex-col gap-4">
+                    {display.canAction ? (
                         <>
-                            {/* HIỆN: Countdown & Nút bấm khi nằm trong buffer */}
                             <ShiftCountDown
-                                targetTime={!shift.checkInAt ? startTime : endTime}
+                                targetTime={status.isOngoing ? endTime : startTime}
                                 label={
-                                    !shift.checkInAt
-                                        ? "Thời gian cho tới khi ca bắt đầu"
-                                        : "Thời gian kết thúc ca"
+                                    status.isOngoing
+                                        ? "Thời gian kết thúc ca"
+                                        : "Thời gian ca bắt đầu"
                                 }
                             />
                             <AttendanceActionButton
-                                status={!shift.checkInAt ? "IN" : "OUT"}
+                                status={status.isOngoing ? "OUT" : "IN"}
                                 isLoading={isSubmitting || isLocating}
                                 onPress={onMainPress}
                             />
@@ -216,20 +173,27 @@ export const CurrentShiftCard = () => {
                         <div className="flex flex-col items-center gap-2 py-4 px-6 bg-default-50 rounded-2xl border border-dashed border-default-300">
                             <Info size={20} className="text-default-400" />
                             <p className="text-sm text-default-500 font-medium text-center leading-relaxed">
-                                {message}
+                                {display.message}
                             </p>
                         </div>
                     )}
                 </CardBody>
             </Card>
 
-            {/* Modal giải trình khi có sự cố GPS */}
             <ExceptionNoteModal
                 isOpen={isOpen}
                 onClose={onClose}
-                title={attendanceStatus === "IN" ? "Vào ca" : "Tan ca"}
+                title={status.isOngoing ? "Giải trình Tan ca" : "Giải trình Vào ca"}
                 isLoading={isSubmitting}
-                onSubmit={onExceptionSubmit}
+                onSubmit={async (note) => {
+                    await handleAction({
+                        type: status.isOngoing ? "OUT" : "IN",
+                        id: status.isOngoing ? shift.currentLogId! : shift.assignmentId!,
+                        userNote: note
+                    })
+                    onClose()
+                    refetch()
+                }}
             />
         </>
     )

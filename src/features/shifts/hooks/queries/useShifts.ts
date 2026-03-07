@@ -5,6 +5,7 @@ import { addToast } from "@heroui/react"
 import { STRINGS } from "@/constants/strings"
 import { BackendError } from "@/models/common/respone"
 import { GetShiftsParams } from "@/features/shifts/models/request"
+import { AutoFillShiftsResponse } from "../../models/response"
 
 // --- QUERY HOOKS (GET DATA) ---
 
@@ -126,6 +127,39 @@ export const usePublishShift = ({ onSuccess }: { onSuccess?: () => void } = {}) 
             addToast({
                 title: error.title || STRINGS.COMMON.ERROR,
                 description: error.detail,
+                color: "danger"
+            })
+        }
+    })
+}
+
+export const useAutoFillShifts = ({
+    onSuccess
+}: {
+    onSuccess?: (data: AutoFillShiftsResponse) => void
+} = {}) => {
+    const queryClient = useQueryClient()
+
+    return useMutation({
+        mutationFn: shiftApi.autoFill,
+        onSuccess: (data) => {
+            // 1. Refresh lại toàn bộ danh sách ca làm để cập nhật trạng thái đã gán người
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SHIFTS], exact: false })
+
+            // 2. Bắn toast báo cáo kết quả (ví dụ: "Đã xếp được 10/12 ca")
+            addToast({
+                title: STRINGS.COMMON.SUCCESS,
+                description: `Tự động xếp ca thành công! Đã điền ${data.filledCount}/${data.totalSlots} vị trí.`,
+                color: "success"
+            })
+
+            // 3. Callback để đóng Modal hoặc xử lý thêm tại UI
+            onSuccess?.(data)
+        },
+        onError: (error: BackendError) => {
+            addToast({
+                title: error.title || STRINGS.COMMON.ERROR,
+                description: error.detail || "Không thể thực hiện tự động xếp ca lúc này",
                 color: "danger"
             })
         }

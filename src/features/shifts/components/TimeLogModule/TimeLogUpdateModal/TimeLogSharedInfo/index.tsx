@@ -2,7 +2,7 @@
 "use client"
 
 import { Image } from "@heroui/react"
-import { Clock, Info } from "lucide-react"
+import { Clock, Info, Timer } from "lucide-react"
 import { TimeLogResponse } from "@/features/shifts/models/response"
 import { StaffInfoCell } from "@/features/shifts/components"
 import { useDay } from "@/hooks"
@@ -13,6 +13,16 @@ interface Props {
 
 export const TimeLogSharedInfo = ({ data }: Props) => {
     const { formatDateTime, formatTime } = useDay()
+
+    // Kiểm tra xem đã có dữ liệu tính toán phút chưa (Valid/Invalid)
+    const hasCalculatedMinutes =
+        data.regularMinutes !== undefined ||
+        data.dailyOtMinutes !== undefined ||
+        data.weeklyOtMinutes !== undefined
+
+    // Tổng thời gian làm việc
+    const totalMinutes =
+        (data.regularMinutes || 0) + (data.dailyOtMinutes || 0) + (data.weeklyOtMinutes || 0)
 
     return (
         <div className="flex flex-col gap-6">
@@ -83,6 +93,50 @@ export const TimeLogSharedInfo = ({ data }: Props) => {
                     </span>
                 </div>
             </div>
+
+            {hasCalculatedMinutes && (
+                <div className="p-4 rounded-2xl bg-default-50 border border-divider">
+                    <div className="flex items-center gap-2 text-default-600 font-bold text-xs uppercase mb-4">
+                        <Timer size={14} /> Thời gian làm việc
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {/* Cột Tổng */}
+                        <div className="flex flex-col border-r border-divider">
+                            <span className="text-[10px] text-default-500 uppercase font-semibold">
+                                Tổng thời gian
+                            </span>
+                            <span className="text-xl font-black tabular-nums">{totalMinutes}p</span>
+                        </div>
+                        {/* Cột Tiêu chuẩn */}
+                        <div className="flex flex-col md:border-r border-divider">
+                            <span className="text-[10px] text-default-500 uppercase font-semibold">
+                                Tiêu chuẩn
+                            </span>
+                            <span className="text-lg font-bold tabular-nums text-success-600">
+                                {data.regularMinutes || 0}p
+                            </span>
+                        </div>
+                        {/* Cột OT Ngày */}
+                        <div className="flex flex-col border-r border-divider">
+                            <span className="text-[10px] text-default-500 uppercase font-semibold">
+                                OT Ngày
+                            </span>
+                            <span className="text-lg font-bold tabular-nums text-warning-600">
+                                {data.dailyOtMinutes || 0}p
+                            </span>
+                        </div>
+                        {/* Cột OT Tuần */}
+                        <div className="flex flex-col">
+                            <span className="text-[10px] text-default-500 uppercase font-semibold">
+                                OT Tuần
+                            </span>
+                            <span className="text-lg font-bold tabular-nums text-danger-600">
+                                {data.weeklyOtMinutes || 0}p
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* 3. Bằng chứng hình ảnh (Nếu có) */}
             {(data.checkInImageUrl || data.checkOutImageUrl) && (
