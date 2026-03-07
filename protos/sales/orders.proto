@@ -276,6 +276,7 @@ message GetSalesTrendRequest {
   int32 aggregation = 3; // 0 = Hour, 1 = Day, 2 = Week
   optional string store_id = 4;
   optional string category_id = 5;
+  bool include_csv = 6; // Nếu true, trả về file CSV trong response
 }
 
 message SalesTrendDataPoint {
@@ -288,6 +289,7 @@ message GetSalesTrendReply {
   repeated SalesTrendDataPoint data_points = 1;
   optional string peak_period_label = 2;
   optional string slow_period_label = 3;
+  optional CsvFile csv_file = 4; // Xuất file CSV (nếu include_csv = true)
 }
 
 message PayOrderWithWalletRequest {

@@ -1,4 +1,4 @@
-﻿using Confluent.Kafka;
+using Confluent.Kafka;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using SalesService.Domain.Commons;
@@ -119,7 +119,6 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
             entity.Property(e => e.PaidAt).HasColumnName("paid_at");
             entity.Property(e => e.PaymentMethod).HasColumnName("payment_method");
             entity.Property(e => e.Status)
-                .HasDefaultValue(0)
                 .HasColumnName("status");
             entity.Property(e => e.StoreId).HasColumnName("store_id");
             entity.Property(e => e.Subtotal)
@@ -252,7 +251,6 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
             entity.Property(e => e.ReferenceId).HasColumnName("reference_id");
             entity.Property(e => e.ReferenceType).HasColumnName("reference_type");
             entity.Property(e => e.Status)
-                .HasDefaultValue(0)
                 .HasColumnName("status");
             entity.Property(e => e.UpdatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
@@ -647,7 +645,7 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
         {
             if (typeof(SoftDeletedEntity).IsAssignableFrom(entity.ClrType))
             {
-                // Cấu hình Query Filter: x => !x.IsDeleted
+                // C?u h�nh Query Filter: x => !x.IsDeleted
                 modelBuilder.Entity(entity.ClrType)
                     .HasQueryFilter(GenerateIsDeletedExpression(entity.ClrType));
             }
