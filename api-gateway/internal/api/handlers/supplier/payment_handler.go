@@ -134,7 +134,7 @@ func (h *SupplierPaymentHandler) GetByPoId(c *gin.Context) error {
 // @Param        vnp_SecureHash   query string false "Chữ ký bảo mật"
 // @Param        redirectTo       query string false "Path của FE muốn quay về (VD: /suppliers/purchase-orders/123)"
 // @Success      302 "Redirect về Frontend App"
-// @Router       /suppliers/payments/vnpay-return [get]
+// @Router       /suppliers/payments/vnpay/return [get]
 func (h *SupplierPaymentHandler) HandleVnPayReturn(c *gin.Context) error {
 	// 1. PHÂN LOẠI PARAMS: Lọc riêng vnp_ và nhặt redirectTo
 	vnpayParams := make(map[string]string)
