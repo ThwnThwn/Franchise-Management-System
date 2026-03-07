@@ -40,6 +40,9 @@ func MapErrorToProblem(err error) (int, string, string) {
 		case codes.NotFound: // 5 -> 404
 			return http.StatusNotFound, "Không tìm thấy", detail
 
+		case codes.FailedPrecondition:
+			return http.StatusPreconditionFailed, "Không hợp lệ", detail
+
 		case codes.AlreadyExists: // 6 -> 409
 			return http.StatusConflict, "Dữ liệu đã tồn tại", detail
 

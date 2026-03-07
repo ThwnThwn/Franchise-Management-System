@@ -11,7 +11,7 @@ import (
 type IShiftService interface {
 	// Lấy lịch làm việc hôm nay của nhân viên (Để App biết đang làm ở Store nào)
 	GetUserCurrentShift(ctx context.Context, id uuid.UUID) (
-		*shift.GetUserCurrentShiftResponse, error)
+		*shift.UserCurrentShiftResponse, error)
 
 	GetShifts(ctx context.Context, req *shift.GetShiftsParams) ([]*shift.ShiftResponse, error)
 	GetById(ctx context.Context, id uuid.UUID) (*shift.ShiftResponse, error)
@@ -20,7 +20,7 @@ type IShiftService interface {
 	Delete(ctx context.Context, id uuid.UUID) error
 
 	Publish(ctx context.Context, id uuid.UUID) error
-	UpdateAssignments(ctx context.Context, id uuid.UUID, userIds []uuid.UUID) error
+	UpdateAssignments(ctx context.Context, ctxUserId, id uuid.UUID, req *shift.AssignStaffRequest) error
 	GetAvailableStaffs(ctx context.Context, storeId, shiftId uuid.UUID) ([]*shift.StaffAssignmentCandidate, error)
 
 	CheckIn(ctx context.Context, userId, assignmentId uuid.UUID, req *shift.AttendancePayload) error

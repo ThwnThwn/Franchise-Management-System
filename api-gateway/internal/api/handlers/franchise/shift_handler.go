@@ -233,12 +233,22 @@ func (h *ShiftHandler) UpdateAssignments(c *gin.Context) error {
 		return errorcode.ErrInvalidId
 	}
 
+	var req shift.AssignStaffRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		return validation.TranslateValidationError(err)
+	}
+
 	var userIDs []uuid.UUID
 	if err := c.ShouldBindJSON(&userIDs); err != nil {
 		return validation.TranslateValidationError(err)
 	}
 
-	err = h.shiftGW.UpdateAssignments(c.Request.Context(), shiftID, userIDs)
+	ctxUserId, err := contextutils.GetUserId(c)
+	if err != nil {
+		return err
+	}
+
+	err = h.shiftGW.UpdateAssignments(c.Request.Context(), ctxUserId, shiftID, &req)
 	if err != nil {
 		return err
 	}

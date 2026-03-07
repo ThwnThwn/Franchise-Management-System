@@ -44,7 +44,7 @@ func (h *ShiftAvailabilityHandler) GetMyHistory(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	params.UserID = stringutils.ToPtr(userID.String())
+	params.UserId = stringutils.ToPtr(userID.String())
 	res, err := h.shiftGW.GetAll(c.Request.Context(), &params)
 	if err != nil {
 		return err

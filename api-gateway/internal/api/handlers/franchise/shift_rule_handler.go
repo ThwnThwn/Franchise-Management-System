@@ -69,7 +69,7 @@ func (h *ShiftRuleHandler) Save(c *gin.Context) error {
 		return err
 	}
 
-	contextutils.ApplyStoreBoundaries(c, &req.StoreID)
+	contextutils.ApplyStoreBoundaries(c, &req.StoreId)
 
 	err = h.shiftGW.Save(ctx, userId, &req)
 	if err != nil {

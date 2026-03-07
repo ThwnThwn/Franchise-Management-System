@@ -22,7 +22,7 @@ func ProvideShiftClient(f *clientFactory) franchiseGW.IShiftService {
 }
 
 // GetUserCurrentShift implements franchise.IShiftService.
-func (s *shiftGrpcClient) GetUserCurrentShift(ctx context.Context, id uuid.UUID) (*shift.GetUserCurrentShiftResponse, error) {
+func (s *shiftGrpcClient) GetUserCurrentShift(ctx context.Context, id uuid.UUID) (*shift.UserCurrentShiftResponse, error) {
 	res, err := s.client.GetUserCurrentShift(ctx, &franchisePb.GetUserCurrentShiftRequest{
 		UserId: id.String(),
 	})
@@ -30,7 +30,7 @@ func (s *shiftGrpcClient) GetUserCurrentShift(ctx context.Context, id uuid.UUID)
 		return nil, err
 	}
 
-	return &shift.GetUserCurrentShiftResponse{
+	return &shift.UserCurrentShiftResponse{
 		HasShiftToday: res.HasShiftToday,
 
 		// IDs (Optional)
@@ -99,14 +99,14 @@ func (s *shiftGrpcClient) GetById(ctx context.Context, id uuid.UUID) (*shift.Shi
 // Create implements franchise.IShiftService.
 func (s *shiftGrpcClient) Create(ctx context.Context, creatorId uuid.UUID, req *shift.CreateShiftRequest) error {
 	_, err := s.client.CreateShift(ctx, &franchisePb.CreateShiftRequest{
-		StoreId:              req.StoreID,
-		ShiftTemplateId:      req.ShiftTemplateID,
+		StoreId:              req.StoreId,
+		ShiftTemplateId:      req.ShiftTemplateId,
 		ShiftDate:            req.ShiftDate,
 		StartTime:            req.StartTime,
 		EndTime:              req.EndTime,
 		RequiredStaffCount:   int32(req.RequiredStaffCount),
 		BreakDurationMinutes: int32(req.BreakDurationMinutes),
-		Note:                 *req.Note,
+		Note:                 stringutils.GetString(req.Note),
 		CreatedBy:            creatorId.String(),
 	})
 	return err
@@ -122,7 +122,7 @@ func (s *shiftGrpcClient) Update(ctx context.Context, id, userId uuid.UUID, req 
 	_, err := s.client.UpdateShift(ctx, &franchisePb.UpdateShiftRequest{
 		// StoreId:              req.StoreID,
 		Id:                   id.String(),
-		ShiftTemplateId:      req.ShiftTemplateID,
+		ShiftTemplateId:      req.ShiftTemplateId,
 		ShiftDate:            req.ShiftDate,
 		StartTime:            req.StartTime,
 		EndTime:              req.EndTime,
@@ -152,15 +152,15 @@ func (s *shiftGrpcClient) Publish(ctx context.Context, id uuid.UUID) error {
 }
 
 // UpdateAssignments implements franchise.IShiftService.
-func (s *shiftGrpcClient) UpdateAssignments(ctx context.Context, id uuid.UUID, userIds []uuid.UUID) error {
-	userIdsStr := make([]string, 0, len(userIds))
-	for _, u := range userIds {
-		userIdsStr = append(userIdsStr, u.String())
-	}
-
+func (s *shiftGrpcClient) UpdateAssignments(ctx context.Context, ctxUserId,
+	id uuid.UUID, req *shift.AssignStaffRequest,
+) error {
 	_, err := s.client.AssignStaff(ctx, &franchisePb.AssignStaffRequest{
-		ShiftId: id.String(),
-		UserIds: userIdsStr,
+		ShiftId:        id.String(),
+		UserIds:        req.UserIds,
+		ForceOverride:  req.ForceOverride,
+		OverrideReason: req.OverrideReason,
+		OverriddenBy:   ctxUserId.String(),
 	})
 	return err
 }
@@ -178,10 +178,10 @@ func (s *shiftGrpcClient) GetAvailableStaffs(ctx context.Context, storeId uuid.U
 	staffs := make([]*shift.StaffAssignmentCandidate, 0, len(res.Data))
 	for _, item := range res.Data {
 		staffs = append(staffs, &shift.StaffAssignmentCandidate{
-			ID:                item.Id,
+			Id:                item.Id,
 			FirstName:         item.FirstName,
 			LastName:          stringutils.ToPtr(item.LastName),
-			AvatarURL:         stringutils.ToPtr(item.AvatarUrl),
+			AvatarUrl:         stringutils.ToPtr(item.AvatarUrl),
 			CurrentHourlyWage: item.CurrentHourlyWage,
 			IsAvailable:       item.IsAvailable,
 			Note:              stringutils.ToPtr(item.Note),
@@ -232,8 +232,8 @@ func (s *shiftGrpcClient) GetTimeLogs(ctx context.Context, req *shift.GetTimeLog
 	}
 
 	res, err := s.client.GetTimeLogs(ctx, &franchisePb.GetTimeLogsRequest{
-		StoreId:  stringutils.GetString(req.StoreID),
-		StaffId:  stringutils.GetString(req.StaffID),
+		StoreId:  stringutils.GetString(req.StoreId),
+		StaffId:  stringutils.GetString(req.StaffId),
 		Status:   statusValue,
 		FromDate: req.FromDate,
 		ToDate:   req.ToDate,
@@ -247,18 +247,22 @@ func (s *shiftGrpcClient) GetTimeLogs(ctx context.Context, req *shift.GetTimeLog
 	logs := make([]*shift.TimeLogResponse, 0, len(res.Data))
 	for _, item := range res.Data {
 		logs = append(logs, &shift.TimeLogResponse{
-			ID:                item.Id,
-			ShiftAssignmentID: item.ShiftAssignmentId,
+			Id:                item.Id,
+			ShiftAssignmentId: item.ShiftAssignmentId,
 
 			CheckInAt:       item.CheckInAt,
-			CheckInImageURL: item.CheckInImageUrl,
+			CheckInImageUrl: item.CheckInImageUrl,
 			CheckInLat:      item.CheckInLat,
 			CheckInLong:     item.CheckInLong,
 
 			CheckOutAt:       item.CheckOutAt,
-			CheckOutImageURL: item.CheckOutImageUrl,
+			CheckOutImageUrl: item.CheckOutImageUrl,
 			CheckOutLat:      item.CheckOutLat,
 			CheckOutLong:     item.CheckOutLong,
+
+			RegularMinutes:  item.RegularMinutes,
+			DailyOtMinutes:  item.DailyOtMinutes,
+			WeeklyOtMinutes: item.WeeklyOtMinutes,
 
 			// TotalWorkMinutes: item.TotalWorkMinutes,
 			Status:      item.Status,
@@ -318,7 +322,7 @@ func (s *shiftGrpcClient) GetMyAgenda(ctx context.Context, userId uuid.UUID, req
 		coWorkers := make([]shift.CoWorkerDTO, 0, len(item.CoWorkers))
 		for _, cw := range item.CoWorkers {
 			coWorkers = append(coWorkers, shift.CoWorkerDTO{
-				ID:        cw.Id,
+				Id:        cw.Id,
 				FirstName: cw.FirstName,
 				LastName:  stringutils.ToPtr(cw.LastName),
 				Avatar:    stringutils.ToPtr(cw.Avatar),
@@ -327,7 +331,7 @@ func (s *shiftGrpcClient) GetMyAgenda(ctx context.Context, userId uuid.UUID, req
 		}
 
 		shifts = append(shifts, &shift.StaffShiftAgenda{
-			ID:        item.Id,
+			Id:        item.Id,
 			StartTime: item.StartTime,
 			EndTime:   item.EndTime,
 			Date:      item.Date,
@@ -346,7 +350,7 @@ func (s *shiftGrpcClient) GetMyAgenda(ctx context.Context, userId uuid.UUID, req
 // BulkCreateManual implements franchise.IShiftService.
 func (s *shiftGrpcClient) BulkCreateManual(ctx context.Context, creatorId uuid.UUID, req *shift.BulkCreateManualRequest) error {
 	_, err := s.client.BulkCreateManual(ctx, &franchisePb.BulkCreateManualRequest{
-		StoreId:              req.StoreID,
+		StoreId:              req.StoreId,
 		StartTime:            req.StartTime,
 		EndTime:              req.EndTime,
 		DaysOfWeek:           req.DaysOfWeek,
@@ -363,8 +367,8 @@ func (s *shiftGrpcClient) BulkCreateManual(ctx context.Context, creatorId uuid.U
 // BulkCreateFromTemplate implements franchise.IShiftService.
 func (s *shiftGrpcClient) BulkCreateFromTemplate(ctx context.Context, creatorId uuid.UUID, req *shift.BulkCreateFromTemplateRequest) error {
 	_, err := s.client.BulkCreateFromTemplate(ctx, &franchisePb.BulkCreateFromTemplateRequest{
-		StoreId:            req.StoreID,
-		TemplateId:         req.TemplateID,
+		StoreId:            req.StoreId,
+		TemplateId:         req.TemplateId,
 		StartDate:          req.StartDate,
 		EndDate:            req.EndDate,
 		RequiredStaffCount: req.RequiredStaffCount,
