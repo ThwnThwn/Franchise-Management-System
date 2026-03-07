@@ -238,11 +238,6 @@ func (h *ShiftHandler) UpdateAssignments(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	var userIDs []uuid.UUID
-	if err := c.ShouldBindJSON(&userIDs); err != nil {
-		return validation.TranslateValidationError(err)
-	}
-
 	ctxUserId, err := contextutils.GetUserId(c)
 	if err != nil {
 		return err
@@ -254,6 +249,38 @@ func (h *ShiftHandler) UpdateAssignments(c *gin.Context) error {
 	}
 
 	c.JSON(http.StatusOK, gin.H{})
+	return nil
+}
+
+// AutoFill
+// @Summary      Tự động xếp người vào ca làm việc
+// @Description  Hệ thống tự động tính toán và gán nhân viên phù hợp vào các ca làm việc còn trống (Draft) dựa trên lịch rảnh và quy tắc ca làm.
+// @Tags         Shifts: Assignment
+// @Security     BearerAuth
+// @Param        body body shift.AutoFillShiftsRequest true "Khoảng thời gian cần xếp ca tự động"
+// @Router       /shifts/auto-fill [post]
+func (h *ShiftHandler) AutoFill(c *gin.Context) error {
+	var req shift.AutoFillShiftsRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		return validation.TranslateValidationError(err)
+	}
+
+	storeId, err := contextutils.GetStoreId(c)
+	if err != nil {
+		return err
+	}
+
+	ctx, err := grpcutils.BuildAuthContext(c)
+	if err != nil {
+		return err
+	}
+
+	res, err := h.shiftGW.AutoFill(ctx, storeId, &req)
+	if err != nil {
+		return err
+	}
+
+	c.JSON(http.StatusOK, res)
 	return nil
 }
 

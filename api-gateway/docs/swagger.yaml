@@ -864,6 +864,18 @@ definitions:
       name:
         type: string
     type: object
+  api-gateway_internal_domain_models_shift.ApplyForShiftRequest:
+    properties:
+      note:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_shift.ApproveSwapRequest:
+    properties:
+      approve:
+        type: boolean
+      rejectReason:
+        type: string
+    type: object
   api-gateway_internal_domain_models_shift.AttendancePayload:
     properties:
       latitude:
@@ -872,6 +884,16 @@ definitions:
         type: number
       note:
         type: string
+    type: object
+  api-gateway_internal_domain_models_shift.AutoFillShiftsRequest:
+    properties:
+      endDate:
+        type: string
+      startDate:
+        type: string
+    required:
+    - endDate
+    - startDate
     type: object
   api-gateway_internal_domain_models_shift.BulkCreateFromTemplateRequest:
     properties:
@@ -896,7 +918,6 @@ definitions:
       breakDurationMinutes:
         type: integer
       daysOfWeek:
-        description: '[1, 3, 5]'
         items:
           type: integer
         type: array
@@ -909,19 +930,12 @@ definitions:
       requiredStaffCount:
         type: integer
       startDate:
-        description: YYYY-MM-DD
         type: string
       startTime:
-        description: HH:mm
         type: string
       storeId:
         type: string
     required:
-    - daysOfWeek
-    - endDate
-    - endTime
-    - startDate
-    - startTime
     - storeId
     type: object
   api-gateway_internal_domain_models_shift.CandidateValidation:
@@ -968,12 +982,10 @@ definitions:
       requiredStaffCount:
         type: integer
       shiftDate:
-        description: YYYY-MM-DD
         type: string
       shiftTemplateId:
         type: string
       startTime:
-        description: HH:mm
         type: string
       storeId:
         type: string
@@ -1004,18 +1016,47 @@ definitions:
     - name
     - startTime
     type: object
+  api-gateway_internal_domain_models_shift.RequestSwapRequest:
+    properties:
+      reason:
+        type: string
+      targetUserId:
+        type: string
+    required:
+    - targetUserId
+    type: object
+  api-gateway_internal_domain_models_shift.RespondSwapRequest:
+    properties:
+      accept:
+        type: boolean
+      rejectReason:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_shift.ReviewApplicationRequest:
+    properties:
+      isApproved:
+        type: boolean
+      reviewNote:
+        type: string
+    type: object
   api-gateway_internal_domain_models_shift.SaveShiftRuleRequest:
     properties:
       allowShiftSwap:
         type: boolean
       allowShuttle:
         type: boolean
+      dailyOtThresholdHours:
+        type: integer
+      gracePeriodMinutes:
+        type: integer
       maxHoursPerWeek:
         type: integer
       minHoursBetweenShifts:
         type: integer
       storeId:
         type: string
+      weeklyOtThresholdHours:
+        type: integer
     type: object
   api-gateway_internal_domain_models_shift.ShiftAssignment:
     properties:
@@ -1034,7 +1075,6 @@ definitions:
       shiftId:
         type: string
       status:
-        description: ShiftAssignmentStatus enum
         type: integer
       userId:
         type: string
@@ -1050,6 +1090,7 @@ definitions:
       breakDurationMinutes:
         type: integer
       endTime:
+        description: HH:mm
         type: string
       id:
         type: string
@@ -1063,10 +1104,10 @@ definitions:
       shiftTemplateId:
         type: string
       startTime:
-        description: HH:mm:ss
+        description: HH:mm
         type: string
       status:
-        description: ShiftStatus enum
+        description: 0:Draft, 1:Published, 2:Completed, 3:Cancelled
         type: integer
       storeId:
         type: string
@@ -1077,6 +1118,10 @@ definitions:
         type: boolean
       allowShuttle:
         type: boolean
+      dailyOtThresholdHours:
+        type: integer
+      gracePeriodMinutes:
+        type: integer
       id:
         type: string
       maxHoursPerWeek:
@@ -1087,6 +1132,8 @@ definitions:
         type: string
       updatedAt:
         type: string
+      weeklyOtThresholdHours:
+        type: integer
     type: object
   api-gateway_internal_domain_models_shift.ShiftRuleSettingsResponse:
     properties:
@@ -1171,6 +1218,7 @@ definitions:
       shiftDate:
         type: string
       shiftTemplateId:
+        description: StoreId              *string `json:"storeId,omitempty"`
         type: string
       startTime:
         type: string
@@ -3172,6 +3220,17 @@ paths:
       summary: Lấy lịch sử đăng ký rảnh/bận của tôi
       tags:
       - 'Shifts: Availabilities'
+  /me/shift-swaps:
+    get:
+      description: Lấy toàn bộ các yêu cầu đổi ca mà tôi là người gửi hoặc người nhận.
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Lấy danh sách yêu cầu đổi ca của tôi
+      tags:
+      - 'Shifts: Swaps'
   /me/shifts:
     get:
       description: Retrieve shift schedule within a date range for the logged-in staff.
@@ -4934,6 +4993,30 @@ paths:
       summary: Assign Permissions to Role
       tags:
       - Roles
+  /shift-applications/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Manager cập nhật trạng thái đơn (Approved/Rejected). ID đơn lấy
+        từ Path.
+      parameters:
+      - description: Application ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Kết quả duyệt đơn
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_shift.ReviewApplicationRequest'
+      produces:
+      - application/json
+      responses: {}
+      summary: Duyệt hoặc từ chối đơn đăng ký nhận ca
+      tags:
+      - 'Shifts: Applications'
   /shift-availabilities:
     get:
       description: Quản lý xem toàn bộ danh sách lịch rảnh/bận của nhân viên để sắp
@@ -5060,6 +5143,74 @@ paths:
       summary: Lưu cấu hình quy định ca làm
       tags:
       - 'Shifts: Rule'
+  /shift-swaps/{id}:
+    patch:
+      description: Nhân viên gửi yêu cầu có thể tự hủy nếu yêu cầu chưa được phê duyệt.
+      parameters:
+      - description: Swap Request ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Tự hủy yêu cầu đổi ca đã gửi
+      tags:
+      - 'Shifts: Swaps'
+  /shift-swaps/{id}/approvals:
+    patch:
+      consumes:
+      - application/json
+      description: Sau khi 2 nhân viên đồng ý, Manager cần duyệt cuối để chính thức
+        đổi ca.
+      parameters:
+      - description: Swap Request ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Kết quả duyệt của Manager
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_shift.ApproveSwapRequest'
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Manager duyệt yêu cầu đổi ca cuối cùng
+      tags:
+      - 'Shifts: Swaps'
+  /shift-swaps/{id}/responses:
+    patch:
+      consumes:
+      - application/json
+      description: Nhân viên B nhận được yêu cầu và chọn Chấp nhận hoặc Từ chối.
+      parameters:
+      - description: Swap Request ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Phản hồi của nhân viên nhận yêu cầu
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_shift.RespondSwapRequest'
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Nhân viên phản hồi yêu cầu đổi ca (B phản hồi cho A)
+      tags:
+      - 'Shifts: Swaps'
   /shift-templates:
     get:
       description: Truy xuất toàn bộ danh sách các mẫu ca làm (Sáng, Chiều, Tối...)
@@ -5259,6 +5410,45 @@ paths:
       summary: Cập nhật ca làm việc
       tags:
       - Shifts
+  /shifts/{id}/applications:
+    get:
+      description: Manager xem danh sách ứng viên kèm điểm Smart Score để đưa ra quyết
+        định duyệt.
+      parameters:
+      - description: Shift ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: Lấy danh sách các đơn đăng ký của một ca làm việc
+      tags:
+      - 'Shifts: Applications'
+    post:
+      consumes:
+      - application/json
+      description: Tạo một bản ghi ShiftApplication cho ca làm việc cụ thể. UserId
+        lấy từ Token.
+      parameters:
+      - description: Shift ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Ghi chú đăng ký
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_shift.ApplyForShiftRequest'
+      produces:
+      - application/json
+      responses: {}
+      summary: Nhân viên đăng ký nhận ca (Tạo mới một đơn đăng ký)
+      tags:
+      - 'Shifts: Applications'
   /shifts/{id}/publish:
     put:
       description: Chuyển trạng thái sang Published để nhân viên thấy được lịch.
@@ -5272,6 +5462,48 @@ paths:
       summary: Xuất bản ca làm
       tags:
       - Shifts
+  /shifts/{id}/releases:
+    patch:
+      description: Nhân viên trả lại ca làm đã nhận để người khác có thể đăng ký.
+      parameters:
+      - description: Assignment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Nhả ca về Chợ Ca (Shift Pool)
+      tags:
+      - 'Shifts: Swaps'
+  /shifts/{id}/swaps:
+    post:
+      consumes:
+      - application/json
+      description: Nhân viên A chọn một ca của mình và yêu cầu đổi với nhân viên B.
+      parameters:
+      - description: Assignment ID (Ca của người gửi)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Dữ liệu yêu cầu đổi ca
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_shift.RequestSwapRequest'
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Tạo yêu cầu đổi ca (A gửi cho B)
+      tags:
+      - 'Shifts: Swaps'
   /shifts/{shiftId}/assign:
     put:
       description: Thay đổi danh sách nhân viên được gán vào ca làm việc.
@@ -5291,6 +5523,23 @@ paths:
           type: array
       responses: {}
       summary: Cập nhật phân công nhân sự
+      tags:
+      - 'Shifts: Assignment'
+  /shifts/auto-fill:
+    post:
+      description: Hệ thống tự động tính toán và gán nhân viên phù hợp vào các ca
+        làm việc còn trống (Draft) dựa trên lịch rảnh và quy tắc ca làm.
+      parameters:
+      - description: Khoảng thời gian cần xếp ca tự động
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_shift.AutoFillShiftsRequest'
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Tự động xếp người vào ca làm việc
       tags:
       - 'Shifts: Assignment'
   /shifts/bulk-delete:
@@ -5327,6 +5576,25 @@ paths:
       security:
       - BearerAuth: []
       summary: Tạo ca làm việc thủ công hàng loạt
+      tags:
+      - 'Shifts: Bulk action'
+  /shifts/bulk-open:
+    put:
+      description: Chuyển trạng thái hàng loạt ca làm việc từ Draft sang Open để nhân
+        viên có thể đăng ký nhận. StoreId được lấy tự động từ Token của Manager.
+      parameters:
+      - description: Danh sách ID các ca làm cần mở
+        in: body
+        name: body
+        required: true
+        schema:
+          items:
+            type: string
+          type: array
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Mở hàng loạt ca ra Chợ Ca (Shift Pool)
       tags:
       - 'Shifts: Bulk action'
   /shifts/bulk-publish:

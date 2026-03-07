@@ -19,5 +19,5 @@ type RespondSwapRequest struct {
 // SwapRequestId lấy từ Path Param, ReviewedBy lấy từ JWT
 type ApproveSwapRequest struct {
 	Approve      bool    `json:"approve"`
-	RejectReason *string `json:"rejectReason,omitempty"`
+	RejectReason *string `json:"rejectReason"`
 }

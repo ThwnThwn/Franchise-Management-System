@@ -49,10 +49,19 @@ public class CheckInHandler : IRequestHandler<CheckInCommand, Guid>
 
         // 3. Chuyen doi gio ca lam viec tu gio Viet Nam sang UTC
         var vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById(TimeConstants.DefaultTimeZoneId);
+
         var shiftLocalStart = shift.ShiftDate.ToDateTime(shift.StartTime);
         var shiftStartUtc = TimeZoneInfo.ConvertTimeToUtc(shiftLocalStart, vnTimeZone);
-        var shiftLocalEnd = shift.ShiftDate.ToDateTime(shift.EndTime);
+
+        var endShiftDate = shift.ShiftDate;
+        if (shift.EndTime < shift.StartTime)
+        {
+            endShiftDate = endShiftDate.AddDays(1);
+        }
+
+        var shiftLocalEnd = endShiftDate.ToDateTime(shift.EndTime);
         var shiftEndUtc = TimeZoneInfo.ConvertTimeToUtc(shiftLocalEnd, vnTimeZone);
+
         var now = DateTime.UtcNow;
 
         // 4. Validate: khong cho check-in qua som (truoc gio bat dau ca toi da 30 phut)

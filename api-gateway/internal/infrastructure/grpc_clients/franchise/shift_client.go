@@ -341,6 +341,8 @@ func (s *shiftGrpcClient) GetMyAgenda(ctx context.Context, userId uuid.UUID, req
 			CheckOutAt: item.CheckOutAt,
 
 			CoWorkers: coWorkers,
+
+			ShiftId: item.ShiftId,
 		})
 	}
 
@@ -391,4 +393,36 @@ func (s *shiftGrpcClient) BulkPublish(ctx context.Context, shiftIds []string) er
 		Ids: shiftIds,
 	})
 	return err
+}
+
+// BulkOpen implements franchise.IShiftService.
+func (s *shiftGrpcClient) BulkOpen(ctx context.Context, storeId uuid.UUID, shiftIds []string) (int32, error) {
+	res, err := s.client.BulkOpenShifts(ctx, &franchisePb.BulkOpenShiftsRequest{
+		Ids:     shiftIds,
+		StoreId: storeId.String(),
+	})
+	if err != nil {
+		return 0, err
+	}
+
+	return res.OpenedCount, nil
+}
+
+// AutoFill implements franchise.IShiftService.
+func (s *shiftGrpcClient) AutoFill(ctx context.Context, storeId uuid.UUID, req *shift.AutoFillShiftsRequest) (*shift.AutoFillShiftsResponse, error) {
+	res, err := s.client.AutoFillShifts(ctx, &franchisePb.AutoFillShiftsRequest{
+		StoreId:   storeId.String(),
+		StartDate: req.StartDate,
+		EndDate:   req.EndDate,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &shift.AutoFillShiftsResponse{
+		Success:          res.Success,
+		FilledCount:      res.FilledCount,
+		TotalSlots:       res.TotalSlots,
+		UnfilledShiftIds: res.UnfilledShiftIds,
+	}, nil
 }

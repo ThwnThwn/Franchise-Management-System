@@ -44,7 +44,8 @@ type CoWorkerDTO struct {
 }
 
 type StaffShiftAgenda struct {
-	Id         string                    `json:"id"` // assignmentId
+	Id string `json:"id"` // assignmentId
+
 	StartTime  string                    `json:"startTime"`
 	EndTime    string                    `json:"endTime"`
 	Date       string                    `json:"date"`
@@ -52,6 +53,8 @@ type StaffShiftAgenda struct {
 	CoWorkers  []CoWorkerDTO             `json:"coWorkers"`
 	CheckInAt  *string                   `json:"checkInAt,omitempty"`
 	CheckOutAt *string                   `json:"checkOutAt,omitempty"`
+
+	ShiftId string `json:"shiftId"`
 }
 
 // ===============================
@@ -71,7 +74,7 @@ type TimeLogResponse struct {
 	CheckOutLat      *float64 `json:"checkOutLat,omitempty"`
 	CheckOutLong     *float64 `json:"checkOutLong,omitempty"`
 
-	RegularMinutes  *int32 `json:"regularMinutes,omitempty"`
+	RegularMinutes  *int32 `json:"regularMinutes"`
 	DailyOtMinutes  *int32 `json:"dailyOtMinutes,omitempty"`
 	WeeklyOtMinutes *int32 `json:"weeklyOtMinutes,omitempty"`
 
@@ -101,4 +104,14 @@ type ShiftTimeLogRes struct {
 	StartTime string  `json:"startTime"` // HH:mm
 	EndTime   string  `json:"endTime"`   // HH:mm
 	Note      *string `json:"note,omitempty"`
+}
+
+// ===============================
+// Tu dong xep ca (Auto-Fill)
+// ===============================
+type AutoFillShiftsResponse struct {
+	Success          bool     `json:"success"`
+	FilledCount      int32    `json:"filledCount"`      // Số slot đã điền được người
+	TotalSlots       int32    `json:"totalSlots"`       // Tổng số slot trống cần xử lý
+	UnfilledShiftIds []string `json:"unfilledShiftIds"` // Danh sách ID các ca vẫn "mồ côi"
 }

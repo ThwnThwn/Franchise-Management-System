@@ -73,7 +73,7 @@ public class GetMyAgendaHandler : IRequestHandler<GetMyAgendaQuery, List<StaffSh
                 .OrderByDescending(tl => tl.CheckInAt)
                 .FirstOrDefault();
 
-            // Tính isOpenNow dựa trên StoreHours và StoreStatus 
+            // Tính isOpenNow dựa trên StoreHours và StoreStatus
             var store = assignment.Shift.Store;
             var todayHours = store.StoreHours?.FirstOrDefault(h => h.DayOfWeek == currentDay);
             bool isOpenNow = store.Status == (int)StoreStatus.Open
@@ -119,7 +119,9 @@ public class GetMyAgendaHandler : IRequestHandler<GetMyAgendaQuery, List<StaffSh
                 },
                 CoWorkers = coworkerDtos,
                 CheckInAt = latestLog?.CheckInAt,
-                CheckOutAt = latestLog?.CheckOutAt
+                CheckOutAt = latestLog?.CheckOutAt,
+
+                ShiftId = assignment.ShiftId,
             });
         }
 

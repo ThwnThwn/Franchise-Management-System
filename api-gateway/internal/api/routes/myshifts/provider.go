@@ -11,17 +11,20 @@ type MyShiftsRouter struct {
 	authMW         *middleware.AuthMiddleware
 	shiftStaffHl   *franchise.ShiftStaffHandler
 	availabilityHl *franchise.ShiftAvailabilityHandler
+	swapHl         *franchise.ShiftSwapHandler
 }
 
 func NewRouter(cfg *config.Config,
 	authMW *middleware.AuthMiddleware,
 	shiftStaffHl *franchise.ShiftStaffHandler,
 	availabilityHl *franchise.ShiftAvailabilityHandler,
+	swapHl *franchise.ShiftSwapHandler,
 ) *MyShiftsRouter {
 	return &MyShiftsRouter{
 		cfg:            cfg,
 		authMW:         authMW,
 		shiftStaffHl:   shiftStaffHl,
 		availabilityHl: availabilityHl,
+		swapHl:         swapHl,
 	}
 }

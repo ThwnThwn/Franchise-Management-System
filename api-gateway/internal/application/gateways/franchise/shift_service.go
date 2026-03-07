@@ -36,4 +36,10 @@ type IShiftService interface {
 	BulkCreateFromTemplate(ctx context.Context, creatorId uuid.UUID, req *shift.BulkCreateFromTemplateRequest) error
 	BulkDelete(ctx context.Context, shiftIds []string) error
 	BulkPublish(ctx context.Context, shiftIds []string) error
+	BulkOpen(ctx context.Context, storeId uuid.UUID, shiftIds []string) (int32, error)
+
+	// --- TU DONG XEP CA ---
+	// He thong tu dong tim nhan vien phu hop va gan vao cac ca Draft chua du nguoi
+	AutoFill(ctx context.Context, storeId uuid.UUID, req *shift.AutoFillShiftsRequest) (
+		*shift.AutoFillShiftsResponse, error)
 }

@@ -134,3 +134,37 @@ func (h *ShiftBulkHandler) Delete(c *gin.Context) error {
 	c.JSON(http.StatusOK, gin.H{})
 	return nil
 }
+
+// BulkOpen
+// @Summary      Mở hàng loạt ca ra Chợ Ca (Shift Pool)
+// @Description  Chuyển trạng thái hàng loạt ca làm việc từ Draft sang Open để nhân viên có thể đăng ký nhận. StoreId được lấy tự động từ Token của Manager.
+// @Tags         Shifts: Bulk action
+// @Security     BearerAuth
+// @Param        body body []string true "Danh sách ID các ca làm cần mở"
+// @Router       /shifts/bulk-open [put]
+func (h *ShiftBulkHandler) Open(c *gin.Context) error {
+	var ids []string
+	if err := c.ShouldBindJSON(&ids); err != nil {
+		return validation.TranslateValidationError(err)
+	}
+
+	ctx, err := grpcutils.BuildAuthContext(c)
+	if err != nil {
+		return err
+	}
+
+	storeId, err := contextutils.GetStoreId(c)
+	if err != nil {
+		return err
+	}
+
+	openedCount, err := h.shiftGW.BulkOpen(ctx, storeId, ids)
+	if err != nil {
+		return err
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"openedCount": openedCount,
+	})
+	return nil
+}

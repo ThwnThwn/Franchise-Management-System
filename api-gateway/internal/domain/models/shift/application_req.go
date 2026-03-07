@@ -6,6 +6,5 @@ type ApplyForShiftRequest struct {
 
 type ReviewApplicationRequest struct {
 	IsApproved bool   `json:"isApproved"`
-	ReviewedBy string `json:"reviewedBy"` // Manager ID
 	ReviewNote string `json:"reviewNote"`
 }

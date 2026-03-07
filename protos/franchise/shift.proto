@@ -380,6 +380,7 @@ message AgendaItemDto {
   repeated AgendaCoWorkerDto co_workers = 6;
   optional string check_in_at = 7;
   optional string check_out_at = 8;
+  string shift_id = 9;
 }
 
 message AgendaStoreInfo {

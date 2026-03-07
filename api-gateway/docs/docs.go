@@ -1796,6 +1796,24 @@ const docTemplate = `{
                 "responses": {}
             }
         },
+        "/me/shift-swaps": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lấy toàn bộ các yêu cầu đổi ca mà tôi là người gửi hoặc người nhận.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shifts: Swaps"
+                ],
+                "summary": "Lấy danh sách yêu cầu đổi ca của tôi",
+                "responses": {}
+            }
+        },
         "/me/shifts": {
             "get": {
                 "security": [
@@ -4472,6 +4490,40 @@ const docTemplate = `{
                 }
             }
         },
+        "/shift-applications/{id}": {
+            "patch": {
+                "description": "Manager cập nhật trạng thái đơn (Approved/Rejected). ID đơn lấy từ Path.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shifts: Applications"
+                ],
+                "summary": "Duyệt hoặc từ chối đơn đăng ký nhận ca",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Application ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Kết quả duyệt đơn",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_shift.ReviewApplicationRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
         "/shift-availabilities": {
             "get": {
                 "security": [
@@ -4666,6 +4718,111 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/api-gateway_internal_domain_models_shift.SaveShiftRuleRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/shift-swaps/{id}": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Nhân viên gửi yêu cầu có thể tự hủy nếu yêu cầu chưa được phê duyệt.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shifts: Swaps"
+                ],
+                "summary": "Tự hủy yêu cầu đổi ca đã gửi",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Swap Request ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/shift-swaps/{id}/approvals": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Sau khi 2 nhân viên đồng ý, Manager cần duyệt cuối để chính thức đổi ca.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shifts: Swaps"
+                ],
+                "summary": "Manager duyệt yêu cầu đổi ca cuối cùng",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Swap Request ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Kết quả duyệt của Manager",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_shift.ApproveSwapRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/shift-swaps/{id}/responses": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Nhân viên B nhận được yêu cầu và chọn Chấp nhận hoặc Từ chối.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shifts: Swaps"
+                ],
+                "summary": "Nhân viên phản hồi yêu cầu đổi ca (B phản hồi cho A)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Swap Request ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Phản hồi của nhân viên nhận yêu cầu",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_shift.RespondSwapRequest"
                         }
                     }
                 ],
@@ -4898,6 +5055,32 @@ const docTemplate = `{
                 "responses": {}
             }
         },
+        "/shifts/auto-fill": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Hệ thống tự động tính toán và gán nhân viên phù hợp vào các ca làm việc còn trống (Draft) dựa trên lịch rảnh và quy tắc ca làm.",
+                "tags": [
+                    "Shifts: Assignment"
+                ],
+                "summary": "Tự động xếp người vào ca làm việc",
+                "parameters": [
+                    {
+                        "description": "Khoảng thời gian cần xếp ca tự động",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_shift.AutoFillShiftsRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
         "/shifts/bulk-delete": {
             "delete": {
                 "security": [
@@ -4947,6 +5130,35 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/api-gateway_internal_domain_models_shift.BulkCreateManualRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/shifts/bulk-open": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Chuyển trạng thái hàng loạt ca làm việc từ Draft sang Open để nhân viên có thể đăng ký nhận. StoreId được lấy tự động từ Token của Manager.",
+                "tags": [
+                    "Shifts: Bulk action"
+                ],
+                "summary": "Mở hàng loạt ca ra Chợ Ca (Shift Pool)",
+                "parameters": [
+                    {
+                        "description": "Danh sách ID các ca làm cần mở",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
                         }
                     }
                 ],
@@ -5205,6 +5417,60 @@ const docTemplate = `{
                 "responses": {}
             }
         },
+        "/shifts/{id}/applications": {
+            "get": {
+                "description": "Manager xem danh sách ứng viên kèm điểm Smart Score để đưa ra quyết định duyệt.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shifts: Applications"
+                ],
+                "summary": "Lấy danh sách các đơn đăng ký của một ca làm việc",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Shift ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            },
+            "post": {
+                "description": "Tạo một bản ghi ShiftApplication cho ca làm việc cụ thể. UserId lấy từ Token.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shifts: Applications"
+                ],
+                "summary": "Nhân viên đăng ký nhận ca (Tạo mới một đơn đăng ký)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Shift ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Ghi chú đăng ký",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_shift.ApplyForShiftRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
         "/shifts/{id}/publish": {
             "put": {
                 "description": "Chuyển trạng thái sang Published để nhân viên thấy được lịch.",
@@ -5219,6 +5485,72 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/shifts/{id}/releases": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Nhân viên trả lại ca làm đã nhận để người khác có thể đăng ký.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shifts: Swaps"
+                ],
+                "summary": "Nhả ca về Chợ Ca (Shift Pool)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Assignment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/shifts/{id}/swaps": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Nhân viên A chọn một ca của mình và yêu cầu đổi với nhân viên B.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shifts: Swaps"
+                ],
+                "summary": "Tạo yêu cầu đổi ca (A gửi cho B)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Assignment ID (Ca của người gửi)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Dữ liệu yêu cầu đổi ca",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_shift.RequestSwapRequest"
+                        }
                     }
                 ],
                 "responses": {}
@@ -9101,6 +9433,25 @@ const docTemplate = `{
                 }
             }
         },
+        "api-gateway_internal_domain_models_shift.ApplyForShiftRequest": {
+            "type": "object",
+            "properties": {
+                "note": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_shift.ApproveSwapRequest": {
+            "type": "object",
+            "properties": {
+                "approve": {
+                    "type": "boolean"
+                },
+                "rejectReason": {
+                    "type": "string"
+                }
+            }
+        },
         "api-gateway_internal_domain_models_shift.AttendancePayload": {
             "type": "object",
             "properties": {
@@ -9111,6 +9462,21 @@ const docTemplate = `{
                     "type": "number"
                 },
                 "note": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_shift.AutoFillShiftsRequest": {
+            "type": "object",
+            "required": [
+                "endDate",
+                "startDate"
+            ],
+            "properties": {
+                "endDate": {
+                    "type": "string"
+                },
+                "startDate": {
                     "type": "string"
                 }
             }
@@ -9144,11 +9510,6 @@ const docTemplate = `{
         "api-gateway_internal_domain_models_shift.BulkCreateManualRequest": {
             "type": "object",
             "required": [
-                "daysOfWeek",
-                "endDate",
-                "endTime",
-                "startDate",
-                "startTime",
                 "storeId"
             ],
             "properties": {
@@ -9156,7 +9517,6 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "daysOfWeek": {
-                    "description": "[1, 3, 5]",
                     "type": "array",
                     "items": {
                         "type": "integer"
@@ -9175,11 +9535,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "startDate": {
-                    "description": "YYYY-MM-DD",
                     "type": "string"
                 },
                 "startTime": {
-                    "description": "HH:mm",
                     "type": "string"
                 },
                 "storeId": {
@@ -9260,14 +9618,12 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "shiftDate": {
-                    "description": "YYYY-MM-DD",
                     "type": "string"
                 },
                 "shiftTemplateId": {
                     "type": "string"
                 },
                 "startTime": {
-                    "description": "HH:mm",
                     "type": "string"
                 },
                 "storeId": {
@@ -9304,6 +9660,42 @@ const docTemplate = `{
                 }
             }
         },
+        "api-gateway_internal_domain_models_shift.RequestSwapRequest": {
+            "type": "object",
+            "required": [
+                "targetUserId"
+            ],
+            "properties": {
+                "reason": {
+                    "type": "string"
+                },
+                "targetUserId": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_shift.RespondSwapRequest": {
+            "type": "object",
+            "properties": {
+                "accept": {
+                    "type": "boolean"
+                },
+                "rejectReason": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_shift.ReviewApplicationRequest": {
+            "type": "object",
+            "properties": {
+                "isApproved": {
+                    "type": "boolean"
+                },
+                "reviewNote": {
+                    "type": "string"
+                }
+            }
+        },
         "api-gateway_internal_domain_models_shift.SaveShiftRuleRequest": {
             "type": "object",
             "properties": {
@@ -9313,6 +9705,12 @@ const docTemplate = `{
                 "allowShuttle": {
                     "type": "boolean"
                 },
+                "dailyOtThresholdHours": {
+                    "type": "integer"
+                },
+                "gracePeriodMinutes": {
+                    "type": "integer"
+                },
                 "maxHoursPerWeek": {
                     "type": "integer"
                 },
@@ -9321,6 +9719,9 @@ const docTemplate = `{
                 },
                 "storeId": {
                     "type": "string"
+                },
+                "weeklyOtThresholdHours": {
+                    "type": "integer"
                 }
             }
         },
@@ -9349,7 +9750,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "status": {
-                    "description": "ShiftAssignmentStatus enum",
                     "type": "integer"
                 },
                 "userId": {
@@ -9373,6 +9773,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "endTime": {
+                    "description": "HH:mm",
                     "type": "string"
                 },
                 "id": {
@@ -9392,11 +9793,11 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "startTime": {
-                    "description": "HH:mm:ss",
+                    "description": "HH:mm",
                     "type": "string"
                 },
                 "status": {
-                    "description": "ShiftStatus enum",
+                    "description": "0:Draft, 1:Published, 2:Completed, 3:Cancelled",
                     "type": "integer"
                 },
                 "storeId": {
@@ -9413,6 +9814,12 @@ const docTemplate = `{
                 "allowShuttle": {
                     "type": "boolean"
                 },
+                "dailyOtThresholdHours": {
+                    "type": "integer"
+                },
+                "gracePeriodMinutes": {
+                    "type": "integer"
+                },
                 "id": {
                     "type": "string"
                 },
@@ -9427,6 +9834,9 @@ const docTemplate = `{
                 },
                 "updatedAt": {
                     "type": "string"
+                },
+                "weeklyOtThresholdHours": {
+                    "type": "integer"
                 }
             }
         },
@@ -9556,6 +9966,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "shiftTemplateId": {
+                    "description": "StoreId              *string ` + "`" + `json:\"storeId,omitempty\"` + "`" + `",
                     "type": "string"
                 },
                 "startTime": {

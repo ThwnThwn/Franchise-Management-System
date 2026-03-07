@@ -60,3 +60,16 @@ type GetTimeLogsParams struct {
 	FromDate string `json:"fromDate,omitempty" form:"fromDate"`
 	ToDate   string `json:"toDate,omitempty" form:"toDate"`
 }
+
+type UpdateTimeLogRequest struct {
+	Status      enum.TimeLogStatus `json:"status" binding:"required"`
+	ManagerNote *string            `json:"managerNote,omitempty"`
+}
+
+// ===============================
+// Tu dong xep ca (Auto-Fill)
+// ===============================
+type AutoFillShiftsRequest struct {
+	StartDate string `json:"startDate" binding:"required"`
+	EndDate   string `json:"endDate" binding:"required"`
+}
