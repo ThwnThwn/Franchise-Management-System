@@ -15,6 +15,6 @@ func (r *SupplierPaymentRouter) Init(supplierR *gin.RouterGroup) {
 		paymentGroup.POST("", r.authMW.PermissionCheck("supplier.payment.create"), api.WrapHandler(r.paymentHl.Create))
 
 		// Luồng VNPay Return (Redirect sau thanh toán)
-		paymentGroup.GET("/vnpay-return", r.authMW.PermissionCheck("supplier.payment.read"), api.WrapHandler(r.paymentHl.HandleVnPayReturn))
+		paymentGroup.GET("/vnpay/return", r.authMW.PermissionCheck("supplier.payment.read"), api.WrapHandler(r.paymentHl.HandleVnPayReturn))
 	}
 }
