@@ -688,6 +688,17 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             Revenue = (double)dp.Revenue
         }));
 
+        if (request.IncludeCsv)
+        {
+            var csvBytes = SalesTrendCsvExporter.Export(result.Value);
+            reply.CsvFile = new CsvFile
+            {
+                CsvRaw = ByteString.CopyFrom(csvBytes),
+                CsvFileName = $"sales-trend-{DateTime.UtcNow:yyyyMMddHHmmss}.csv"
+            };
+        }
+
+
         return reply;
     }
 }
