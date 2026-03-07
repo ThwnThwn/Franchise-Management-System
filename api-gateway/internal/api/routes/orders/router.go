@@ -33,6 +33,9 @@ func (o *OrderRouter) Init(r *gin.RouterGroup) {
 
 			reportApi.GET("/sales-trend", o.authMW.PermissionCheck("order.report.read"),
 				api.WrapHandler(o.orderHl.GetSalesTrend))
+
+			reportApi.GET("/sales-trend/export", o.authMW.PermissionCheck("order.report.read"),
+				api.WrapHandler(o.orderHl.ExportSalesTrend))
 		}
 
 		// Nhóm CRUD thông thường (Khai báo Static trước)

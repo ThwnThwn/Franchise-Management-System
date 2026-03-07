@@ -2925,6 +2925,85 @@
                 }
             }
         },
+        "/orders/reports/sales-trend/export": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Tải xuống dữ liệu xu hướng doanh thu (doanh thu, lượng đơn hàng) dưới dạng file CSV.\nHỗ trợ các tham số lọc và phân quyền storeId tương tự như API lấy JSON.",
+                "produces": [
+                    "text/csv"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Xuất file CSV xu hướng doanh thu",
+                "parameters": [
+                    {
+                        "enum": [
+                            0,
+                            1,
+                            2
+                        ],
+                        "type": "integer",
+                        "default": 1,
+                        "example": 1,
+                        "description": "Mức độ gom nhóm dữ liệu. 0 = Hour, 1 = Day, 2 = Week.",
+                        "name": "aggregation",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "cat-001",
+                        "description": "ID Danh mục sản phẩm (Tùy chọn)",
+                        "name": "categoryId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2024-03-01T00:00:00Z",
+                        "description": "Thời gian bắt đầu. Bắt buộc nhập.",
+                        "name": "fromDate",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "123e4567-e89b-12d3-a456-426614174000",
+                        "description": "ID Cửa hàng (Tùy chọn)",
+                        "name": "storeId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2024-03-05T23:59:59Z",
+                        "description": "Thời gian kết thúc. Bắt buộc nhập.",
+                        "name": "toDate",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tệp CSV chứa dữ liệu xu hướng doanh thu",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "Lỗi dữ liệu đầu vào",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/orders/reports/volume": {
             "get": {
                 "security": [

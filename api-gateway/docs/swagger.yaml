@@ -4063,6 +4063,62 @@ paths:
       summary: Lấy biểu đồ xu hướng doanh thu
       tags:
       - Orders
+  /orders/reports/sales-trend/export:
+    get:
+      description: |-
+        Tải xuống dữ liệu xu hướng doanh thu (doanh thu, lượng đơn hàng) dưới dạng file CSV.
+        Hỗ trợ các tham số lọc và phân quyền storeId tương tự như API lấy JSON.
+      parameters:
+      - default: 1
+        description: Mức độ gom nhóm dữ liệu. 0 = Hour, 1 = Day, 2 = Week.
+        enum:
+        - 0
+        - 1
+        - 2
+        example: 1
+        in: query
+        name: aggregation
+        type: integer
+      - description: ID Danh mục sản phẩm (Tùy chọn)
+        example: cat-001
+        in: query
+        name: categoryId
+        type: string
+      - description: Thời gian bắt đầu. Bắt buộc nhập.
+        example: "2024-03-01T00:00:00Z"
+        in: query
+        name: fromDate
+        required: true
+        type: string
+      - description: ID Cửa hàng (Tùy chọn)
+        example: 123e4567-e89b-12d3-a456-426614174000
+        in: query
+        name: storeId
+        type: string
+      - description: Thời gian kết thúc. Bắt buộc nhập.
+        example: "2024-03-05T23:59:59Z"
+        in: query
+        name: toDate
+        required: true
+        type: string
+      produces:
+      - text/csv
+      responses:
+        "200":
+          description: Tệp CSV chứa dữ liệu xu hướng doanh thu
+          schema:
+            type: file
+        "400":
+          description: Lỗi dữ liệu đầu vào
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Xuất file CSV xu hướng doanh thu
+      tags:
+      - Orders
   /orders/reports/volume:
     get:
       consumes:
