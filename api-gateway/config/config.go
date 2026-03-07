@@ -16,6 +16,7 @@ type Config struct {
 	FranchiseServiceUrl  FranchiseServiceUrl
 	InventoryServiceUrl  InventoryServiceUrl
 	EngagementServiceUrl EngagementServiceUrl
+	SupplierServiceUrl   SupplierServiceUrl
 
 	JwtRefreshTokenExpDays          int
 	JwtSecret                       string
@@ -63,3 +64,4 @@ type SalesServiceUrl string
 type FranchiseServiceUrl string
 type InventoryServiceUrl string
 type EngagementServiceUrl string
+type SupplierServiceUrl string

@@ -66,6 +66,7 @@ func LoadConfig() *Config {
 		InventoryServiceUrl:  InventoryServiceUrl(getEnvUrl("INVENTORY_SERVICE_URL", "localhost:5005")),
 		FranchiseServiceUrl:  FranchiseServiceUrl(getEnvUrl("FRANCHISE_SERVICE_URL", "localhost:5006")),
 		EngagementServiceUrl: EngagementServiceUrl(getEnvUrl("ENGAGEMENT_SERVICE_URL", "localhost:5007")),
+		SupplierServiceUrl:   SupplierServiceUrl(getEnvUrl("SUPPLIER_SERVICE_URL", "localhost:5008")),
 
 		JwtRefreshTokenExpDays:          getEnvInt("JWT_REFRESH_TOKEN_EXPIRATION_DAYS", 7),
 		JwtSecret:                       getEnv("JWT_SECRET", ""),

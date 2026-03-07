@@ -26,6 +26,8 @@ type SupplierPaymentGrpcClient interface {
 	CreatePoPayment(ctx context.Context, in *CreatePoPaymentRequest, opts ...grpc.CallOption) (*CreatePoPaymentReply, error)
 	// VNPay callback: xác thực chữ ký và cập nhật trạng thái
 	HandleVnPayReturn(ctx context.Context, in *HandleVnPayReturnRequest, opts ...grpc.CallOption) (*HandleVnPayReturnReply, error)
+	// VNPay IPN (Instant Payment Notification) - Gateway gọi xuống sau khi nhận callback từ VNPay
+	HandleVnPayIpn(ctx context.Context, in *HandleVnPayIpnRequest, opts ...grpc.CallOption) (*HandleVnPayIpnReply, error)
 	// Lấy tất cả payments của 1 đơn nhập hàng
 	GetPaymentsByPurchaseOrder(ctx context.Context, in *GetPaymentsByPurchaseOrderRequest, opts ...grpc.CallOption) (*GetPaymentsByPurchaseOrderReply, error)
 	// Lấy tất cả supplier payments (phân trang, lọc)
@@ -58,6 +60,15 @@ func (c *supplierPaymentGrpcClient) HandleVnPayReturn(ctx context.Context, in *H
 	return out, nil
 }
 
+func (c *supplierPaymentGrpcClient) HandleVnPayIpn(ctx context.Context, in *HandleVnPayIpnRequest, opts ...grpc.CallOption) (*HandleVnPayIpnReply, error) {
+	out := new(HandleVnPayIpnReply)
+	err := c.cc.Invoke(ctx, "/supplier.SupplierPaymentGrpc/HandleVnPayIpn", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *supplierPaymentGrpcClient) GetPaymentsByPurchaseOrder(ctx context.Context, in *GetPaymentsByPurchaseOrderRequest, opts ...grpc.CallOption) (*GetPaymentsByPurchaseOrderReply, error) {
 	out := new(GetPaymentsByPurchaseOrderReply)
 	err := c.cc.Invoke(ctx, "/supplier.SupplierPaymentGrpc/GetPaymentsByPurchaseOrder", in, out, opts...)
@@ -84,6 +95,8 @@ type SupplierPaymentGrpcServer interface {
 	CreatePoPayment(context.Context, *CreatePoPaymentRequest) (*CreatePoPaymentReply, error)
 	// VNPay callback: xác thực chữ ký và cập nhật trạng thái
 	HandleVnPayReturn(context.Context, *HandleVnPayReturnRequest) (*HandleVnPayReturnReply, error)
+	// VNPay IPN (Instant Payment Notification) - Gateway gọi xuống sau khi nhận callback từ VNPay
+	HandleVnPayIpn(context.Context, *HandleVnPayIpnRequest) (*HandleVnPayIpnReply, error)
 	// Lấy tất cả payments của 1 đơn nhập hàng
 	GetPaymentsByPurchaseOrder(context.Context, *GetPaymentsByPurchaseOrderRequest) (*GetPaymentsByPurchaseOrderReply, error)
 	// Lấy tất cả supplier payments (phân trang, lọc)
@@ -100,6 +113,9 @@ func (UnimplementedSupplierPaymentGrpcServer) CreatePoPayment(context.Context, *
 }
 func (UnimplementedSupplierPaymentGrpcServer) HandleVnPayReturn(context.Context, *HandleVnPayReturnRequest) (*HandleVnPayReturnReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method HandleVnPayReturn not implemented")
+}
+func (UnimplementedSupplierPaymentGrpcServer) HandleVnPayIpn(context.Context, *HandleVnPayIpnRequest) (*HandleVnPayIpnReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method HandleVnPayIpn not implemented")
 }
 func (UnimplementedSupplierPaymentGrpcServer) GetPaymentsByPurchaseOrder(context.Context, *GetPaymentsByPurchaseOrderRequest) (*GetPaymentsByPurchaseOrderReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPaymentsByPurchaseOrder not implemented")
@@ -156,6 +172,24 @@ func _SupplierPaymentGrpc_HandleVnPayReturn_Handler(srv interface{}, ctx context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SupplierPaymentGrpc_HandleVnPayIpn_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(HandleVnPayIpnRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SupplierPaymentGrpcServer).HandleVnPayIpn(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/supplier.SupplierPaymentGrpc/HandleVnPayIpn",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SupplierPaymentGrpcServer).HandleVnPayIpn(ctx, req.(*HandleVnPayIpnRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _SupplierPaymentGrpc_GetPaymentsByPurchaseOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetPaymentsByPurchaseOrderRequest)
 	if err := dec(in); err != nil {
@@ -206,6 +240,10 @@ var SupplierPaymentGrpc_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "HandleVnPayReturn",
 			Handler:    _SupplierPaymentGrpc_HandleVnPayReturn_Handler,
+		},
+		{
+			MethodName: "HandleVnPayIpn",
+			Handler:    _SupplierPaymentGrpc_HandleVnPayIpn_Handler,
 		},
 		{
 			MethodName: "GetPaymentsByPurchaseOrder",

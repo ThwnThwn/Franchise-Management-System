@@ -39,6 +39,8 @@ func NewEngine(cfg *config.Config, aR *AppRouter) *gin.Engine {
 
 	MainGroup := r.Group("/api")
 	{
+		aR.VnPayRouter.Init(MainGroup)
+
 		// Engagement
 		aR.LoyaltyRouter.Init(MainGroup)
 		aR.MembershipTierRouter.Init(MainGroup)
@@ -71,6 +73,9 @@ func NewEngine(cfg *config.Config, aR *AppRouter) *gin.Engine {
 		aR.WalletRouter.Init(MainGroup)
 		aR.RefundRouter.Init(MainGroup)
 		aR.WithdrawalRouter.Init(MainGroup)
+
+		// Supplier
+		aR.SupplierRouter.Init(MainGroup)
 	}
 
 	return r

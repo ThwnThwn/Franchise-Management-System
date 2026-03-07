@@ -1482,6 +1482,60 @@
                 }
             }
         },
+        "/me/orders/payments": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Khách hàng tự xem lại lịch sử các đợt thanh toán đơn hàng của chính mình.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Lịch sử thanh toán của tôi (Customer)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "endDate",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "ISO-8601",
+                        "name": "startDate",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "0=Pending, 1=Paid, 2=Failed; omit for all",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_order_PaymentHistoryItem"
+                        }
+                    }
+                }
+            }
+        },
         "/me/points/logs": {
             "get": {
                 "security": [
@@ -2637,6 +2691,43 @@
                             "additionalProperties": {
                                 "type": "string"
                             }
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/payments": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lấy danh sách lịch sử thanh toán của toàn hệ thống (Dành cho quản trị viên/kế toán).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Danh sách toàn bộ thanh toán (Admin)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_order_PaymentSummary"
                         }
                     }
                 }
@@ -5548,6 +5639,658 @@
                 }
             }
         },
+        "/suppliers": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "Suppliers"
+                ],
+                "summary": "Danh sách nhà cung cấp",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "GET dùng form tag cho Query String",
+                        "name": "code",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "name": "isActive",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_supplier_SupplierSummary"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Suppliers"
+                ],
+                "summary": "Tạo mới nhà cung cấp",
+                "parameters": [
+                    {
+                        "description": "Thông tin nhà cung cấp",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.CreateSupplierReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.SupplierBaseRes"
+                        }
+                    }
+                }
+            }
+        },
+        "/suppliers/payments": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Dành cho Admin/Kế toán theo dõi toàn bộ dòng tiền nhập hàng.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Suppliers / Payments"
+                ],
+                "summary": "Toàn bộ lịch sử thanh toán nhà cung cấp",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "purchaseOrderId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "supplierId",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_supplier_SupplierPaymentSummary"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Khởi tạo thanh toán bằng Tiền mặt (CASH) hoặc lấy URL VNPay để thanh toán.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Suppliers / Payments"
+                ],
+                "summary": "Tạo thanh toán cho đơn nhập hàng",
+                "parameters": [
+                    {
+                        "description": "Thông tin thanh toán",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.CreateSupplierPaymentReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.CreateSupplierPaymentRes"
+                        }
+                    }
+                }
+            }
+        },
+        "/suppliers/payments/vnpay-return": {
+            "get": {
+                "description": "Endpoint nhận redirect từ VNPay. Verify chữ ký qua gRPC và bẻ lái trình duyệt về giao diện Frontend.",
+                "produces": [
+                    "text/html"
+                ],
+                "tags": [
+                    "Suppliers / Payments"
+                ],
+                "summary": "Xử lý VNPay Return cho đơn nhập hàng (Supplier)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Số tiền giao dịch",
+                        "name": "vnp_Amount",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Mã ngân hàng",
+                        "name": "vnp_BankCode",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Thông tin đơn hàng",
+                        "name": "vnp_OrderInfo",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Mã phản hồi VNPAY",
+                        "name": "vnp_ResponseCode",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Mã tham chiếu (Mã Payment)",
+                        "name": "vnp_TxnRef",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Chữ ký bảo mật",
+                        "name": "vnp_SecureHash",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Path của FE muốn quay về (VD: /suppliers/purchase-orders/123)",
+                        "name": "redirectTo",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "302": {
+                        "description": "Redirect về Frontend App"
+                    }
+                }
+            }
+        },
+        "/suppliers/purchase-orders": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lấy danh sách đơn nhập hàng có phân trang và lọc theo Supplier, Store hoặc Status.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Suppliers / PurchaseOrders"
+                ],
+                "summary": "Danh sách đơn nhập hàng",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "storeId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "supplierId",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_supplier_PurchaseOrderSummary"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Tạo một bản ghi đơn nhập hàng mới ở trạng thái PENDING.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Suppliers / PurchaseOrders"
+                ],
+                "summary": "Tạo đơn nhập hàng mới",
+                "parameters": [
+                    {
+                        "description": "Thông tin đơn nhập hàng",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.CreatePurchaseOrderReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.PurchaseOrderBaseRes"
+                        }
+                    }
+                }
+            }
+        },
+        "/suppliers/purchase-orders/latest-prices": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Tra cứu giá của danh sách ID nguyên liệu dựa trên các hóa đơn nhập gần nhất.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Suppliers / PurchaseOrders"
+                ],
+                "summary": "Giá nhập mới nhất của nguyên liệu",
+                "parameters": [
+                    {
+                        "description": "Danh sách ID nguyên liệu",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.GetLatestPricesReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "number",
+                                "format": "float64"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/suppliers/purchase-orders/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lấy thông tin chi tiết của một đơn nhập hàng kèm danh sách nguyên liệu bên trong.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Suppliers / PurchaseOrders"
+                ],
+                "summary": "Chi tiết đơn nhập hàng",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID của đơn nhập hàng",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.PurchaseOrderDetail"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Chỉnh sửa thông tin đơn nhập hàng (chỉ thực hiện được khi đơn ở trạng thái cho phép).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Suppliers / PurchaseOrders"
+                ],
+                "summary": "Cập nhật đơn nhập hàng",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID của đơn nhập hàng",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Thông tin cập nhật",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.UpdatePurchaseOrderReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.PurchaseOrderBaseRes"
+                        }
+                    }
+                }
+            }
+        },
+        "/suppliers/purchase-orders/{id}/cancel": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Hủy bỏ đơn nhập hàng và ghi rõ lý do hủy.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Suppliers / PurchaseOrders"
+                ],
+                "summary": "Hủy đơn nhập hàng",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID của đơn nhập hàng",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Lý do hủy",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.CancelPurchaseOrderReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.PurchaseOrderBaseRes"
+                        }
+                    }
+                }
+            }
+        },
+        "/suppliers/purchase-orders/{id}/complete": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Xác nhận đã nhận đủ hàng và chốt đơn nhập hàng (thường dùng để tăng tồn kho).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Suppliers / PurchaseOrders"
+                ],
+                "summary": "Hoàn tất nhập hàng",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID của đơn nhập hàng",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.PurchaseOrderBaseRes"
+                        }
+                    }
+                }
+            }
+        },
+        "/suppliers/purchase-orders/{id}/payments": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lấy lịch sử các đợt trả tiền của một đơn nhập hàng cụ thể.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Suppliers / Payments"
+                ],
+                "summary": "Danh sách thanh toán của một PO",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID của đơn nhập hàng (Purchase Order)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.SupplierPaymentDetail"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/suppliers/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "Suppliers"
+                ],
+                "summary": "Chi tiết nhà cung cấp",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID nhà cung cấp",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.SupplierDetail"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "Suppliers"
+                ],
+                "summary": "Xóa nhà cung cấp",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID nhà cung cấp",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.SupplierBaseRes"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Suppliers"
+                ],
+                "summary": "Cập nhật nhà cung cấp",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID nhà cung cấp",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Thông tin cập nhật",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.UpdateSupplierReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.SupplierBaseRes"
+                        }
+                    }
+                }
+            }
+        },
         "/users": {
             "get": {
                 "security": [
@@ -6125,6 +6868,16 @@
                         }
                     }
                 }
+            }
+        },
+        "/vnpay/ipn": {
+            "get": {
+                "description": "Nhận callback từ VNPay, phân loại đơn hàng và điều phối đến đúng Service qua gRPC.",
+                "tags": [
+                    "Payments"
+                ],
+                "summary": "VNPay IPN Dispatcher",
+                "responses": {}
             }
         },
         "/vouchers": {
@@ -7106,6 +7859,18 @@
                 "RefundTicketStatus_REFUND_STATUS_CANCELLED"
             ]
         },
+        "api-gateway_internal_domain_constants_enum.SupplierPaymentMethod": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+                0,
+                1
+            ],
+            "x-enum-varnames": [
+                "PaymentMethodCash",
+                "PaymentMethodVNPay"
+            ]
+        },
         "api-gateway_internal_domain_constants_enum.TimeLogStatus": {
             "type": "integer",
             "enum": [
@@ -7432,6 +8197,40 @@
                 }
             }
         },
+        "api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_order_PaymentHistoryItem": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api-gateway_internal_domain_models_order.PaymentHistoryItem"
+                    }
+                },
+                "totalCount": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_order_PaymentSummary": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api-gateway_internal_domain_models_order.PaymentSummary"
+                    }
+                },
+                "totalCount": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
+                }
+            }
+        },
         "api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_point_LogResponse": {
             "type": "object",
             "properties": {
@@ -7439,6 +8238,57 @@
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/api-gateway_internal_domain_models_point.LogResponse"
+                    }
+                },
+                "totalCount": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_supplier_PurchaseOrderSummary": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.PurchaseOrderSummary"
+                    }
+                },
+                "totalCount": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_supplier_SupplierPaymentSummary": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.SupplierPaymentSummary"
+                    }
+                },
+                "totalCount": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_supplier_SupplierSummary": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.SupplierSummary"
                     }
                 },
                 "totalCount": {
@@ -7834,6 +8684,68 @@
                     "type": "string"
                 },
                 "totalOrders": {
+                    "type": "integer"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_order.PaymentHistoryItem": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "orderCode": {
+                    "type": "string"
+                },
+                "orderId": {
+                    "type": "string"
+                },
+                "paymentDate": {
+                    "type": "string"
+                },
+                "paymentMethod": {
+                    "$ref": "#/definitions/api-gateway_internal_domain_constants_enum.PaymentMethod"
+                },
+                "status": {
+                    "description": "0=Pending, 1=Paid, 2=Failed",
+                    "type": "integer"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_order.PaymentSummary": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "method": {
+                    "$ref": "#/definitions/api-gateway_internal_domain_constants_enum.PaymentMethod"
+                },
+                "orderId": {
+                    "type": "string"
+                },
+                "paidAt": {
+                    "type": "string"
+                },
+                "status": {
                     "type": "integer"
                 }
             }
@@ -8603,6 +9515,466 @@
                 },
                 "status": {
                     "$ref": "#/definitions/api-gateway_internal_domain_constants_enum.TimeLogStatus"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_supplier.CancelPurchaseOrderReq": {
+            "type": "object",
+            "properties": {
+                "reason": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_supplier.CreatePurchaseOrderItemReq": {
+            "type": "object",
+            "required": [
+                "ingredientId",
+                "quantity"
+            ],
+            "properties": {
+                "ingredientId": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "type": "number"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_supplier.CreatePurchaseOrderReq": {
+            "type": "object",
+            "required": [
+                "items",
+                "supplierId"
+            ],
+            "properties": {
+                "discountAmount": {
+                    "type": "number"
+                },
+                "expectedDeliveryDate": {
+                    "type": "string"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.CreatePurchaseOrderItemReq"
+                    }
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "referenceCode": {
+                    "type": "string"
+                },
+                "storeId": {
+                    "type": "string"
+                },
+                "supplierId": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_supplier.CreateSupplierPaymentReq": {
+            "type": "object",
+            "required": [
+                "purchaseOrderId"
+            ],
+            "properties": {
+                "method": {
+                    "$ref": "#/definitions/api-gateway_internal_domain_constants_enum.SupplierPaymentMethod"
+                },
+                "purchaseOrderId": {
+                    "type": "string"
+                },
+                "returnUrl": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_supplier.CreateSupplierPaymentRes": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "paymentId": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_supplier.CreateSupplierReq": {
+            "type": "object",
+            "required": [
+                "code",
+                "name"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "contactPerson": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "taxCode": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_supplier.GetLatestPricesReq": {
+            "type": "object",
+            "required": [
+                "ingredientIds"
+            ],
+            "properties": {
+                "ingredientIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_supplier.PurchaseOrderBaseRes": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_supplier.PurchaseOrderDetail": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "completedAt": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "discountAmount": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.PurchaseOrderItemDetail"
+                    }
+                },
+                "netAmount": {
+                    "type": "number"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "orderDate": {
+                    "type": "string"
+                },
+                "paidAmount": {
+                    "type": "number"
+                },
+                "paymentStatus": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "storeId": {
+                    "type": "string"
+                },
+                "supplierId": {
+                    "type": "string"
+                },
+                "supplierName": {
+                    "type": "string"
+                },
+                "totalAmount": {
+                    "type": "number"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_supplier.PurchaseOrderItemDetail": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "ingredientId": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "type": "number"
+                },
+                "totalPrice": {
+                    "type": "number"
+                },
+                "unitPrice": {
+                    "type": "number"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_supplier.PurchaseOrderSummary": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "netAmount": {
+                    "type": "number"
+                },
+                "orderDate": {
+                    "type": "string"
+                },
+                "paymentStatus": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "supplierName": {
+                    "type": "string"
+                },
+                "totalAmount": {
+                    "type": "number"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_supplier.SupplierBaseRes": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_supplier.SupplierDetail": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "contactPerson": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "isActive": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "taxCode": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_supplier.SupplierPaymentDetail": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "method": {
+                    "type": "integer"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "paidAt": {
+                    "type": "string"
+                },
+                "purchaseOrderId": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_supplier.SupplierPaymentSummary": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "method": {
+                    "type": "integer"
+                },
+                "paidAt": {
+                    "type": "string"
+                },
+                "purchaseOrderCode": {
+                    "type": "string"
+                },
+                "purchaseOrderId": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_supplier.SupplierSummary": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "contactPerson": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "isActive": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_supplier.UpdatePurchaseOrderReq": {
+            "type": "object",
+            "required": [
+                "items",
+                "supplierId"
+            ],
+            "properties": {
+                "discountAmount": {
+                    "type": "number"
+                },
+                "expectedDeliveryDate": {
+                    "type": "string"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.CreatePurchaseOrderItemReq"
+                    }
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "referenceCode": {
+                    "type": "string"
+                },
+                "storeId": {
+                    "type": "string"
+                },
+                "supplierId": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_supplier.UpdateSupplierReq": {
+            "type": "object",
+            "required": [
+                "code"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "contactPerson": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "isActive": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "taxCode": {
+                    "type": "string"
                 }
             }
         },

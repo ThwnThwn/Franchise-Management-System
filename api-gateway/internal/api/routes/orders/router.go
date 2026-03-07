@@ -53,11 +53,20 @@ func (o *OrderRouter) Init(r *gin.RouterGroup) {
 			api.WrapHandler(o.paymentHl.CreatePaymentUrl))
 	}
 
+	payments := r.Group("/orders/payments")
+	payments.Use(o.authMW.ValidateToken([]byte(o.cfg.JwtSecret)))
+	{
+		// 1. Dành cho Admin/Kế toán: Xem "tất cả"
+		payments.GET("", o.authMW.PermissionCheck("payment.read.all"), api.WrapHandler(o.paymentHl.GetAllPayments))
+	}
+
 	// 👤 Nhóm dành cho khách hàng tự xem đơn của mình
 	myOrderApi := r.Group("/me/orders")
 	myOrderApi.Use(o.authMW.ValidateToken([]byte(o.cfg.JwtSecret)))
 	{
 		myOrderApi.GET("", o.authMW.PermissionCheck("order.read"),
 			api.WrapHandler(o.orderHl.GetMyOrders))
+
+		myOrderApi.GET("/payments", o.authMW.PermissionCheck("payment.read"), api.WrapHandler(o.paymentHl.GetMyPaymentHistory))
 	}
 }

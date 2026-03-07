@@ -7,6 +7,7 @@ import (
 	"api-gateway/internal/infrastructure/grpc_clients/inventory"
 	"api-gateway/internal/infrastructure/grpc_clients/product"
 	"api-gateway/internal/infrastructure/grpc_clients/sales"
+	"api-gateway/internal/infrastructure/grpc_clients/supplier"
 
 	"github.com/google/wire"
 )
@@ -55,4 +56,10 @@ var ClientSet = wire.NewSet(
 	inventory.ProvideIngredientClient,
 	inventory.ProvideIngredientCategoryClient,
 	inventory.ProvideRecipeClient,
+
+	// Supplier
+	supplier.NewSupplierClientFactory,
+	supplier.NewSupplierClient,
+	supplier.NewPurchaseOrderClient,
+	supplier.NewSupplierPaymentClient,
 )

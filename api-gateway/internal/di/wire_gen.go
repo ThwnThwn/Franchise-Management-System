@@ -14,6 +14,8 @@ import (
 	inventory2 "api-gateway/internal/api/handlers/inventory"
 	product2 "api-gateway/internal/api/handlers/product"
 	sales2 "api-gateway/internal/api/handlers/sales"
+	supplier2 "api-gateway/internal/api/handlers/supplier"
+	"api-gateway/internal/api/handlers/vnpay"
 	"api-gateway/internal/api/middleware"
 	"api-gateway/internal/api/routes"
 	"api-gateway/internal/api/routes/auth"
@@ -34,8 +36,12 @@ import (
 	"api-gateway/internal/api/routes/shifts"
 	"api-gateway/internal/api/routes/stores"
 	"api-gateway/internal/api/routes/stores/stock"
+	"api-gateway/internal/api/routes/suppliers"
+	"api-gateway/internal/api/routes/suppliers/payments"
+	"api-gateway/internal/api/routes/suppliers/purchaseorders"
 	"api-gateway/internal/api/routes/users"
 	"api-gateway/internal/api/routes/variants"
+	vnpay2 "api-gateway/internal/api/routes/vnpay"
 	"api-gateway/internal/api/routes/vouchers"
 	"api-gateway/internal/api/routes/wallets"
 	"api-gateway/internal/api/routes/withdrawals"
@@ -48,6 +54,7 @@ import (
 	"api-gateway/internal/infrastructure/grpc_clients/inventory"
 	"api-gateway/internal/infrastructure/grpc_clients/product"
 	"api-gateway/internal/infrastructure/grpc_clients/sales"
+	"api-gateway/internal/infrastructure/grpc_clients/supplier"
 	"api-gateway/pkg/logger"
 )
 
@@ -55,11 +62,28 @@ import (
 
 // InitializeApp nằm ở package 'di', trả về 'bootstrap.App'
 func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, func(), error) {
+	salesServiceUrl := cfg.SalesServiceUrl
+	salesClientFactory, cleanup, err := sales.NewSalesClientFactory(salesServiceUrl, l)
+	if err != nil {
+		return nil, nil, err
+	}
+	iPaymentService := sales.ProvidePaymentClient(salesClientFactory, cfg)
+	supplierServiceUrl := cfg.SupplierServiceUrl
+	clientFactory, cleanup2, err := supplier.NewSupplierClientFactory(supplierServiceUrl, l)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	iSupplierPaymentService := supplier.NewSupplierPaymentClient(clientFactory, cfg)
+	vnPayHandler := vnpay.NewVnPayHandler(iPaymentService, iSupplierPaymentService)
+	vnPayRouter := vnpay2.NewRouter(vnPayHandler)
 	redis := &cfg.Redis
 	iPermCache := cache.NewPermCache(redis, l)
 	identityServiceUrl := cfg.IdentityServiceUrl
-	identityClientFactory, cleanup, err := identity.NewIdentityClientFactory(identityServiceUrl, l)
+	identityClientFactory, cleanup3, err := identity.NewIdentityClientFactory(identityServiceUrl, l)
 	if err != nil {
+		cleanup2()
+		cleanup()
 		return nil, nil, err
 	}
 	iRolePermissionService := identity.ProvideRolePermClient(identityClientFactory)
@@ -67,26 +91,30 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, func
 	iBlacklistUseCase := usecases.NewBlacklistUseCase(iBlacklistCache, l)
 	authMiddleware := middleware.NewAuthMiddleware(iPermCache, iRolePermissionService, iBlacklistUseCase)
 	engagementServiceUrl := cfg.EngagementServiceUrl
-	clientFactory, cleanup2, err := engagement.NewEngagementClientFactory(engagementServiceUrl, l)
+	engagementClientFactory, cleanup4, err := engagement.NewEngagementClientFactory(engagementServiceUrl, l)
 	if err != nil {
+		cleanup3()
+		cleanup2()
 		cleanup()
 		return nil, nil, err
 	}
-	iLoyaltyAccountService := engagement.ProvideLoyaltyAccountClient(clientFactory)
+	iLoyaltyAccountService := engagement.ProvideLoyaltyAccountClient(engagementClientFactory)
 	loyaltyHandler := engagement2.NewLoyaltyHandler(iLoyaltyAccountService)
 	loyaltyRouter := loyalty.NewRouter(cfg, authMiddleware, loyaltyHandler)
-	iMembershipTierService := engagement.ProvideMembershipTierClient(clientFactory)
+	iMembershipTierService := engagement.ProvideMembershipTierClient(engagementClientFactory)
 	membershipTierHandler := engagement2.NewMembershipTierHandler(iMembershipTierService)
 	membershipTierRouter := membershiptiers.NewRouter(cfg, authMiddleware, membershipTierHandler)
-	iPointLogService := engagement.ProvidePointLogClient(clientFactory)
+	iPointLogService := engagement.ProvidePointLogClient(engagementClientFactory)
 	pointHandler := engagement2.NewPointHandler(iPointLogService)
 	pointLogRouter := points.NewRouter(cfg, authMiddleware, pointHandler)
-	iVoucherService := engagement.ProvideVoucherClient(clientFactory)
+	iVoucherService := engagement.ProvideVoucherClient(engagementClientFactory)
 	voucherHandler := engagement2.NewVoucherHandler(iVoucherService, iLoyaltyAccountService)
 	voucherRouter := vouchers.NewRouter(cfg, authMiddleware, voucherHandler)
 	franchiseServiceUrl := cfg.FranchiseServiceUrl
-	franchiseClientFactory, cleanup3, err := franchise.NewFranchiseClientFactory(franchiseServiceUrl, l)
+	franchiseClientFactory, cleanup5, err := franchise.NewFranchiseClientFactory(franchiseServiceUrl, l)
 	if err != nil {
+		cleanup4()
+		cleanup3()
 		cleanup2()
 		cleanup()
 		return nil, nil, err
@@ -94,8 +122,10 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, func
 	iStoreService := franchise.ProvideStoreClient(franchiseClientFactory)
 	storeHandler := franchise2.NewStoreHandler(iStoreService)
 	inventoryServiceUrl := cfg.InventoryServiceUrl
-	inventoryClientFactory, cleanup4, err := inventory.NewInventoryClientFactory(inventoryServiceUrl, l)
+	inventoryClientFactory, cleanup6, err := inventory.NewInventoryClientFactory(inventoryServiceUrl, l)
 	if err != nil {
+		cleanup5()
+		cleanup4()
 		cleanup3()
 		cleanup2()
 		cleanup()
@@ -138,8 +168,10 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, func
 	recipeHandler := inventory2.NewRecipeHandler(iRecipeService)
 	recipeRouter := recipes.NewRouter(cfg, authMiddleware, recipeHandler)
 	productServiceUrl := cfg.ProductServiceUrl
-	productClientFactory, cleanup5, err := product.NewProductClientFactory(productServiceUrl, cfg, l)
+	productClientFactory, cleanup7, err := product.NewProductClientFactory(productServiceUrl, cfg, l)
 	if err != nil {
+		cleanup6()
+		cleanup5()
 		cleanup4()
 		cleanup3()
 		cleanup2()
@@ -153,19 +185,8 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, func
 	categoryHandler := product2.NewCategoryHandler(iCategoryService)
 	categoryRouter := categories2.NewRouter(cfg, authMiddleware, categoryHandler)
 	variantRouter := variants.NewRouter(cfg, authMiddleware, recipeHandler)
-	salesServiceUrl := cfg.SalesServiceUrl
-	salesClientFactory, cleanup6, err := sales.NewSalesClientFactory(salesServiceUrl, l)
-	if err != nil {
-		cleanup5()
-		cleanup4()
-		cleanup3()
-		cleanup2()
-		cleanup()
-		return nil, nil, err
-	}
 	iOrderService := sales.ProvideOrderClient(salesClientFactory)
 	orderHandler := sales2.NewOrderHandler(iOrderService, iStoreService)
-	iPaymentService := sales.ProvidePaymentClient(salesClientFactory, cfg)
 	paymentHandler := sales2.NewPaymentHandler(cfg, iPaymentService)
 	orderRouter := orders.NewRouter(cfg, authMiddleware, orderHandler, paymentHandler)
 	iCartService := sales.ProvideCartClient(salesClientFactory)
@@ -182,7 +203,16 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, func
 	iWithdrawalService := sales.ProvideWithdrawalClient(salesClientFactory, cfg)
 	withdrawalHandler := sales2.NewWithdrawalHandler(iWithdrawalService)
 	withdrawalRouter := withdrawals.NewRouter(cfg, authMiddleware, withdrawalHandler)
+	iSupplierService := supplier.NewSupplierClient(clientFactory)
+	supplierHandler := supplier2.NewSupplierHandler(iSupplierService)
+	iPurchaseOrderService := supplier.NewPurchaseOrderClient(clientFactory)
+	purchaseOrderHandler := supplier2.NewPurchaseOrderHandler(iPurchaseOrderService)
+	supplierPaymentHandler := supplier2.NewSupplierPaymentHandler(cfg, iSupplierPaymentService)
+	purchaseOrderRouter := purchaseorders.NewRouter(cfg, authMiddleware, purchaseOrderHandler, supplierPaymentHandler)
+	supplierPaymentRouter := payments.NewRouter(cfg, authMiddleware, supplierPaymentHandler)
+	supplierRouter := suppliers.NewRouter(cfg, authMiddleware, supplierHandler, purchaseOrderRouter, supplierPaymentRouter)
 	appRouter := &routes.AppRouter{
+		VnPayRouter:          vnPayRouter,
 		LoyaltyRouter:        loyaltyRouter,
 		MembershipTierRouter: membershipTierRouter,
 		PointLogRouter:       pointLogRouter,
@@ -204,10 +234,12 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, func
 		WalletRouter:         walletRouter,
 		RefundRouter:         refundRouter,
 		WithdrawalRouter:     withdrawalRouter,
+		SupplierRouter:       supplierRouter,
 	}
 	engine := routes.NewEngine(cfg, appRouter)
 	app := bootstrap.NewApp(cfg, engine)
 	return app, func() {
+		cleanup7()
 		cleanup6()
 		cleanup5()
 		cleanup4()

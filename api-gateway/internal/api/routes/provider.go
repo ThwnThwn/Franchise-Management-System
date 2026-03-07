@@ -19,8 +19,12 @@ import (
 	"api-gateway/internal/api/routes/shifts"
 	"api-gateway/internal/api/routes/stores"
 	"api-gateway/internal/api/routes/stores/stock"
+	"api-gateway/internal/api/routes/suppliers"
+	supPm "api-gateway/internal/api/routes/suppliers/payments"
+	"api-gateway/internal/api/routes/suppliers/purchaseorders"
 	"api-gateway/internal/api/routes/users"
 	"api-gateway/internal/api/routes/variants"
+	"api-gateway/internal/api/routes/vnpay"
 	"api-gateway/internal/api/routes/vouchers"
 	"api-gateway/internal/api/routes/wallets"
 	"api-gateway/internal/api/routes/withdrawals"
@@ -29,6 +33,8 @@ import (
 )
 
 type AppRouter struct {
+	*vnpay.VnPayRouter
+
 	// Engagement
 	*loyalty.LoyaltyRouter
 	*membershiptiers.MembershipTierRouter
@@ -61,9 +67,14 @@ type AppRouter struct {
 	*wallets.WalletRouter
 	*refunds.RefundRouter
 	*withdrawals.WithdrawalRouter
+
+	// Supplier
+	*suppliers.SupplierRouter
 }
 
 var RouterSet = wire.NewSet(
+	vnpay.NewRouter,
+
 	// Engagement
 	loyalty.NewRouter,
 	membershiptiers.NewRouter,
@@ -98,4 +109,9 @@ var RouterSet = wire.NewSet(
 	wallets.NewRouter,
 	refunds.NewRouter,
 	withdrawals.NewRouter,
+
+	// Supplier
+	suppliers.NewRouter,
+	purchaseorders.NewRouter,
+	supPm.NewRouter,
 )
