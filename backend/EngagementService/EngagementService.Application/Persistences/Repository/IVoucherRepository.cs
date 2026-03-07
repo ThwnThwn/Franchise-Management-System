@@ -14,5 +14,7 @@ namespace EngagementService.Application.Persistences.Repository
         Task<Voucher?> GetVoucherByCodeAsync(string code);
 
         Task UpdateVoucherAsync(UpdateVoucherRequest voucherUpdate);
+
+        Task<Voucher?> GetForUpdateAsync(Guid voucherId, CancellationToken cancellationToken);
     }
 }

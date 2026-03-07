@@ -30,6 +30,49 @@ definitions:
     x-enum-varnames:
     - PaymentMethod_CASH
     - PaymentMethod_VNPAY
+  api-gateway_internal_domain_constants_enum.RefundReasonType:
+    enum:
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    format: int32
+    type: integer
+    x-enum-varnames:
+    - RefundReasonType_REFUND_REASON_NORMAL_PROCESS
+    - RefundReasonType_REFUND_REASON_SYSTEM_ERROR
+    - RefundReasonType_REFUND_REASON_CUSTOMER_COMPLAINT
+    - RefundReasonType_REFUND_REASON_GOODWILL_GESTURE
+    - RefundReasonType_REFUND_REASON_COMPENSATION
+  api-gateway_internal_domain_constants_enum.RefundTicketMethod:
+    enum:
+    - 1
+    - 2
+    format: int32
+    type: integer
+    x-enum-varnames:
+    - RefundTicketMethod_REFUND_METHOD_TRANSFER
+    - RefundTicketMethod_REFUND_METHOD_CASH
+  api-gateway_internal_domain_constants_enum.RefundTicketStatus:
+    enum:
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    format: int32
+    type: integer
+    x-enum-varnames:
+    - RefundTicketStatus_REFUND_STATUS_PENDING
+    - RefundTicketStatus_REFUND_STATUS_APPROVED
+    - RefundTicketStatus_REFUND_STATUS_PROCESSING
+    - RefundTicketStatus_REFUND_STATUS_COMPLETED
+    - RefundTicketStatus_REFUND_STATUS_FAILED
+    - RefundTicketStatus_REFUND_STATUS_REJECTED
+    - RefundTicketStatus_REFUND_STATUS_CANCELLED
   api-gateway_internal_domain_constants_enum.TimeLogStatus:
     enum:
     - 0
@@ -48,6 +91,97 @@ definitions:
     - TimeLogStatus_PROCESSING
     - TimeLogStatus_VALID
     - TimeLogStatus_INVALID
+  api-gateway_internal_domain_constants_enum.TransactionStatus:
+    enum:
+    - 1
+    - 2
+    - 3
+    - 4
+    format: int32
+    type: integer
+    x-enum-varnames:
+    - TransactionStatus_TRANSACTION_STATUS_PENDING
+    - TransactionStatus_TRANSACTION_STATUS_COMPLETED
+    - TransactionStatus_TRANSACTION_STATUS_FAILED
+    - TransactionStatus_TRANSACTION_STATUS_CANCELLED
+  api-gateway_internal_domain_constants_enum.TransactionType:
+    enum:
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    format: int32
+    type: integer
+    x-enum-varnames:
+    - TransactionType_TRANSACTION_TYPE_DEPOSIT
+    - TransactionType_TRANSACTION_TYPE_PAYMENT
+    - TransactionType_TRANSACTION_TYPE_REFUND
+    - TransactionType_TRANSACTION_TYPE_ADJUSTMENT
+    - TransactionType_TRANSACTION_TYPE_WITHDRAWAL
+    - TransactionType_TRANSACTION_TYPE_TRANSFER
+  api-gateway_internal_domain_constants_enum.VoucherItemType:
+    enum:
+    - 0
+    - 1
+    format: int32
+    type: integer
+    x-enum-varnames:
+    - VoucherItemType_ITEM_GIFT
+    - VoucherItemType_ITEM_REQUIRED
+  api-gateway_internal_domain_constants_enum.VoucherType:
+    enum:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    format: int32
+    type: integer
+    x-enum-varnames:
+    - VoucherType_DISCOUNT_PERCENTAGE
+    - VoucherType_DISCOUNT_FIXED_AMOUNT
+    - VoucherType_SHIPPING_PERCENTAGE
+    - VoucherType_SHIPPING_FIXED_AMOUNT
+    - VoucherType_GIFT
+  api-gateway_internal_domain_constants_enum.WalletReferenceType:
+    enum:
+    - 1
+    - 2
+    - 3
+    - 4
+    format: int32
+    type: integer
+    x-enum-varnames:
+    - WalletReferenceType_REFERENCE_TYPE_ORDER
+    - WalletReferenceType_REFERENCE_TYPE_REFUND_TICKET
+    - WalletReferenceType_REFERENCE_TYPE_INTERNAL_USER
+    - WalletReferenceType_REFERENCE_TYPE_SYSTEM
+  api-gateway_internal_domain_constants_enum.WalletStatus:
+    enum:
+    - 1
+    - 2
+    - 3
+    - 4
+    format: int32
+    type: integer
+    x-enum-varnames:
+    - WalletStatus_WALLET_STATUS_INACTIVE
+    - WalletStatus_WALLET_STATUS_ACTIVE
+    - WalletStatus_WALLET_STATUS_LOCKED
+    - WalletStatus_WALLET_STATUS_SUSPENDED
+  api-gateway_internal_domain_constants_enum.WalletTransactionPaymentMethod:
+    enum:
+    - 1
+    - 2
+    - 3
+    format: int32
+    type: integer
+    x-enum-varnames:
+    - WalletTransactionPaymentMethod_PAYMENT_METHOD_CASH
+    - WalletTransactionPaymentMethod_PAYMENT_METHOD_VNPAY
+    - WalletTransactionPaymentMethod_PAYMENT_METHOD_WALLET
   api-gateway_internal_domain_models_auth.ConfirmOtpRequest:
     properties:
       email:
@@ -161,6 +295,28 @@ definitions:
       totalPages:
         type: integer
     type: object
+  api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_wallet_RefundTicketSummary:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/api-gateway_internal_domain_models_wallet.RefundTicketSummary'
+        type: array
+      totalCount:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_wallet_WalletTransactionResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/api-gateway_internal_domain_models_wallet.WalletTransactionResponse'
+        type: array
+      totalCount:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
   api-gateway_internal_domain_models_ingredient.CreateIngreCateReq:
     properties:
       description:
@@ -222,12 +378,6 @@ definitions:
     type: object
   api-gateway_internal_domain_models_loyalty.LoyaltyReportResponse:
     properties:
-      fileContent:
-        items:
-          type: integer
-        type: array
-      fileName:
-        type: string
       tierDistribution:
         items:
           $ref: '#/definitions/api-gateway_internal_domain_models_loyalty.TierDistribution'
@@ -359,6 +509,17 @@ definitions:
         example: "2024-01-31T23:59:59Z"
         type: string
     type: object
+  api-gateway_internal_domain_models_order.GetSalesTrendReply:
+    properties:
+      dataPoints:
+        items:
+          $ref: '#/definitions/api-gateway_internal_domain_models_order.SalesTrendDataPoint'
+        type: array
+      peakPeriodLabel:
+        type: string
+      slowPeriodLabel:
+        type: string
+    type: object
   api-gateway_internal_domain_models_order.OrderVolumeADay:
     properties:
       canceledOrder:
@@ -392,6 +553,15 @@ definitions:
         type: number
       unitPrice:
         type: number
+    type: object
+  api-gateway_internal_domain_models_order.SalesTrendDataPoint:
+    properties:
+      orderVolume:
+        type: integer
+      revenue:
+        type: number
+      timeLabel:
+        type: string
     type: object
   api-gateway_internal_domain_models_order.UpdateOrderItem:
     properties:
@@ -983,7 +1153,7 @@ definitions:
       quantity:
         type: integer
       type:
-        type: integer
+        $ref: '#/definitions/api-gateway_internal_domain_constants_enum.VoucherItemType'
       variant_id:
         type: string
     type: object
@@ -1006,7 +1176,7 @@ definitions:
       point_cost:
         type: string
       type:
-        type: integer
+        $ref: '#/definitions/api-gateway_internal_domain_constants_enum.VoucherType'
       voucher_items:
         items:
           $ref: '#/definitions/api-gateway_internal_domain_models_voucher.CreateVoucherItemReq'
@@ -1019,9 +1189,8 @@ definitions:
       quantity:
         type: integer
       type:
-        type: integer
+        $ref: '#/definitions/api-gateway_internal_domain_constants_enum.VoucherItemType'
       variant_id:
-        description: Đại diện cho Guid
         type: string
     type: object
   api-gateway_internal_domain_models_voucher.UpdateVoucherRequest:
@@ -1093,6 +1262,175 @@ definitions:
         items:
           $ref: '#/definitions/api-gateway_internal_domain_models_voucher.VoucherItemResponse'
         type: array
+    type: object
+  api-gateway_internal_domain_models_wallet.ApproveRefundRequest:
+    properties:
+      approvalNotes:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_wallet.CancelRefundRequest:
+    properties:
+      cancellationReason:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_wallet.CreateRefundByCustomerRequest:
+    properties:
+      amount:
+        type: string
+      reason:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_wallet.RefundTicketDetail:
+    properties:
+      amount:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: string
+      originalTransactionId:
+        type: string
+      reason:
+        type: string
+      refundAmount:
+        type: string
+      refundMethod:
+        $ref: '#/definitions/api-gateway_internal_domain_constants_enum.RefundTicketMethod'
+      refundReason:
+        $ref: '#/definitions/api-gateway_internal_domain_constants_enum.RefundReasonType'
+      rejectionReason:
+        type: string
+      status:
+        $ref: '#/definitions/api-gateway_internal_domain_constants_enum.RefundTicketStatus'
+      ticketCode:
+        type: string
+      transactionId:
+        type: string
+      updatedAt:
+        type: string
+      userId:
+        type: string
+      walletId:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_wallet.RefundTicketSummary:
+    properties:
+      amount:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: string
+      reason:
+        type: string
+      refundAmount:
+        type: string
+      status:
+        $ref: '#/definitions/api-gateway_internal_domain_constants_enum.RefundTicketStatus'
+      ticketCode:
+        type: string
+      transactionId:
+        type: string
+      updatedAt:
+        type: string
+      userId:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_wallet.RejectRefundRequest:
+    properties:
+      rejectNotes:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_wallet.SetCompleteRefundRequest:
+    properties:
+      completeNotes:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_wallet.TopUpWalletRequest:
+    properties:
+      amount:
+        type: number
+      returnUrl:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_wallet.UpdateWalletStatusRequest:
+    properties:
+      admin_notes:
+        type: string
+      new_status:
+        $ref: '#/definitions/api-gateway_internal_domain_constants_enum.WalletStatus'
+      reason:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_wallet.WalletResponse:
+    properties:
+      balance:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: string
+      status:
+        $ref: '#/definitions/api-gateway_internal_domain_constants_enum.WalletStatus'
+      updatedAt:
+        type: string
+      userId:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_wallet.WalletTransactionResponse:
+    properties:
+      amount:
+        type: string
+      balanceAfter:
+        type: string
+      balanceBefore:
+        type: string
+      completedAt:
+        type: string
+      createdAt:
+        type: string
+      description:
+        type: string
+      externalTransactionId:
+        type: string
+      failedAt:
+        type: string
+      failureReason:
+        type: string
+      id:
+        type: string
+      initiatedBy:
+        type: string
+      metadata:
+        type: string
+      notes:
+        type: string
+      orderId:
+        type: string
+      parentTransactionId:
+        type: string
+      paymentMethod:
+        $ref: '#/definitions/api-gateway_internal_domain_constants_enum.WalletTransactionPaymentMethod'
+      processedAt:
+        type: string
+      processedBy:
+        type: string
+      referenceId:
+        type: string
+      referenceType:
+        $ref: '#/definitions/api-gateway_internal_domain_constants_enum.WalletReferenceType'
+      status:
+        $ref: '#/definitions/api-gateway_internal_domain_constants_enum.TransactionStatus'
+      transactionCode:
+        type: string
+      transactionType:
+        $ref: '#/definitions/api-gateway_internal_domain_constants_enum.TransactionType'
+      updatedAt:
+        type: string
+      userId:
+        type: string
+      walletId:
+        type: string
     type: object
   gin.H:
     additionalProperties: {}
@@ -1890,8 +2228,8 @@ paths:
     get:
       consumes:
       - application/json
-      description: Retrieve statistics about loyalty tiers, point distribution, and
-        member growth.
+      description: Get statistics like total members, points, and tier distribution
+        for dashboard.
       parameters:
       - in: query
         name: format
@@ -1909,18 +2247,45 @@ paths:
       - application/json
       responses:
         "200":
-          description: Loyalty report data
+          description: Loyalty summary data
           schema:
             $ref: '#/definitions/api-gateway_internal_domain_models_loyalty.LoyaltyReportResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            additionalProperties:
-              type: string
-            type: object
       security:
       - BearerAuth: []
-      summary: Get Loyalty Report
+      summary: Get Loyalty Report Summary (JSON)
+      tags:
+      - Loyalty
+  /loyalty/reports/export:
+    get:
+      description: Download loyalty statistics as a PDF or CSV file.
+      parameters:
+      - in: query
+        name: format
+        type: integer
+      - in: query
+        name: fromDate
+        type: string
+      - in: query
+        name: tierId
+        type: string
+      - in: query
+        name: toDate
+        type: string
+      - description: 1 for PDF, 2 for CSV
+        in: query
+        name: format
+        required: true
+        type: integer
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: Report file
+          schema:
+            type: file
+      security:
+      - BearerAuth: []
+      summary: Export Loyalty Report (PDF/CSV)
       tags:
       - Loyalty
   /me/cart:
@@ -2070,7 +2435,94 @@ paths:
       - BearerAuth: []
       summary: Get My Point History
       tags:
-      - Loyalty - Points
+      - Points
+  /me/refunds:
+    get:
+      description: Lấy danh sách các ticket hoàn tiền do chính user đang đăng nhập
+        tạo (có phân trang).
+      parameters:
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      - enum:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        - 7
+        format: int32
+        in: query
+        name: status
+        type: integer
+        x-enum-varnames:
+        - RefundTicketStatus_REFUND_STATUS_PENDING
+        - RefundTicketStatus_REFUND_STATUS_APPROVED
+        - RefundTicketStatus_REFUND_STATUS_PROCESSING
+        - RefundTicketStatus_REFUND_STATUS_COMPLETED
+        - RefundTicketStatus_REFUND_STATUS_FAILED
+        - RefundTicketStatus_REFUND_STATUS_REJECTED
+        - RefundTicketStatus_REFUND_STATUS_CANCELLED
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Danh sách ticket
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_wallet_RefundTicketSummary'
+        "400":
+          description: Tham số không hợp lệ
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Chưa đăng nhập
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Xem danh sách yêu cầu hoàn tiền của tôi
+      tags:
+      - Refunds
+    post:
+      consumes:
+      - application/json
+      description: Khách hàng chủ động tạo một yêu cầu hoàn tiền (ticket) cho một
+        giao dịch/đơn hàng.
+      parameters:
+      - description: Thông tin yêu cầu hoàn tiền
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_wallet.CreateRefundByCustomerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Tạo thành công
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Dữ liệu đầu vào không hợp lệ
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Tạo yêu cầu hoàn tiền mới
+      tags:
+      - Refunds
   /me/shift-availabilities:
     get:
       description: Truy xuất danh sách lịch rảnh/bận đã đăng ký của nhân viên hiện
@@ -2247,6 +2699,150 @@ paths:
       summary: Lấy lịch sử chấm công cá nhân
       tags:
       - 'Shifts: Staff'
+  /me/vouchers/redeem/{id}:
+    post:
+      consumes:
+      - application/json
+      description: Allows the authenticated user to redeem their accumulated points
+        to claim a specific voucher.
+      parameters:
+      - description: Voucher UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Redemption successful
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid Voucher ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized - Valid token required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Redeem Points for Voucher
+      tags:
+      - Vouchers
+  /me/wallet:
+    get:
+      description: Lấy thông tin ví và số dư hiện tại của người dùng đang đăng nhập.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Thông tin chi tiết của ví
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_wallet.WalletResponse'
+        "401":
+          description: Chưa đăng nhập hoặc token không hợp lệ
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Lỗi hệ thống nội bộ
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Xem ví cá nhân
+      tags:
+      - Wallets
+  /me/wallet/top-up:
+    post:
+      consumes:
+      - application/json
+      description: Tạo link thanh toán qua cổng VNPay để người dùng nạp tiền vào ví
+        cá nhân.
+      parameters:
+      - description: 'Thông tin nạp tiền (VD: số tiền)'
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_wallet.TopUpWalletRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'Trả về URL để redirect sang VNPay { paymentUrl: ''...'' }'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Dữ liệu đầu vào không hợp lệ
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Chưa đăng nhập
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Lỗi hệ thống hoặc lỗi kết nối cổng thanh toán
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Nạp tiền vào ví
+      tags:
+      - Wallets
+  /me/wallet/transactions:
+    get:
+      description: Lấy danh sách các giao dịch ví (nạp tiền, trừ tiền, hoàn tiền...)
+        của người dùng đang đăng nhập có phân trang.
+      parameters:
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Danh sách giao dịch
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_wallet_WalletTransactionResponse'
+        "400":
+          description: Tham số không hợp lệ
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Chưa đăng nhập
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Xem lịch sử giao dịch ví của tôi
+      tags:
+      - Wallet Transactions
   /membership-tiers:
     get:
       consumes:
@@ -2644,6 +3240,72 @@ paths:
       security:
       - BearerAuth: []
       summary: Export Revenue Report (CSV)
+      tags:
+      - Orders
+  /orders/reports/sales-trend:
+    get:
+      consumes:
+      - application/json
+      description: |-
+        Lấy dữ liệu xu hướng doanh thu (doanh thu, lượng đơn hàng) trong một khoảng thời gian được gom nhóm (giờ/ngày/tuần).
+        LƯU Ý VỀ PHÂN QUYỀN (StoreId):
+        - Nếu là Admin: Có thể truyền tham số storeId để xem cụ thể một cửa hàng, hoặc không truyền (bỏ trống) để xem dữ liệu của toàn hệ thống.
+        - Nếu là Manager/Staff: Truyền storeId hay không thì hệ thống cũng sẽ tự động ghi đè (override) bằng ID cửa hàng của tài khoản đang đăng nhập.
+      parameters:
+      - default: 1
+        description: Mức độ gom nhóm dữ liệu. 0 = Hour, 1 = Day, 2 = Week.
+        enum:
+        - 0
+        - 1
+        - 2
+        example: 1
+        in: query
+        name: aggregation
+        type: integer
+      - description: ID Danh mục sản phẩm (Tùy chọn)
+        example: cat-001
+        in: query
+        name: categoryId
+        type: string
+      - description: Thời gian bắt đầu. Bắt buộc nhập.
+        example: "2024-03-01T00:00:00Z"
+        in: query
+        name: fromDate
+        required: true
+        type: string
+      - description: ID Cửa hàng (Tùy chọn)
+        example: 123e4567-e89b-12d3-a456-426614174000
+        in: query
+        name: storeId
+        type: string
+      - description: Thời gian kết thúc. Bắt buộc nhập.
+        example: "2024-03-05T23:59:59Z"
+        in: query
+        name: toDate
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Dữ liệu xu hướng và nhãn thời gian cao điểm/thấp điểm
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_order.GetSalesTrendReply'
+        "400":
+          description: Lỗi dữ liệu đầu vào (Bad Request)
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Lỗi xác thực (Unauthorized)
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Lấy biểu đồ xu hướng doanh thu
       tags:
       - Orders
   /orders/reports/volume:
@@ -3102,6 +3764,219 @@ paths:
       summary: Get All Recipes
       tags:
       - Recipes
+  /refunds:
+    get:
+      description: Dành cho Staff, Manager, Admin lấy danh sách các ticket hoàn tiền.
+        Có thể truyền thêm `userId` vào query để lọc riêng của một người.
+      parameters:
+      - description: Lọc theo UUID của người dùng cụ thể (Tùy chọn)
+        in: query
+        name: userId
+        type: string
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      - enum:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        - 7
+        format: int32
+        in: query
+        name: status
+        type: integer
+        x-enum-varnames:
+        - RefundTicketStatus_REFUND_STATUS_PENDING
+        - RefundTicketStatus_REFUND_STATUS_APPROVED
+        - RefundTicketStatus_REFUND_STATUS_PROCESSING
+        - RefundTicketStatus_REFUND_STATUS_COMPLETED
+        - RefundTicketStatus_REFUND_STATUS_FAILED
+        - RefundTicketStatus_REFUND_STATUS_REJECTED
+        - RefundTicketStatus_REFUND_STATUS_CANCELLED
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Danh sách ticket
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_wallet_RefundTicketSummary'
+        "400":
+          description: Tham số không hợp lệ
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Chưa đăng nhập
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Xem toàn bộ danh sách hoàn tiền
+      tags:
+      - Refunds
+  /refunds/{id}:
+    get:
+      description: Lấy thông tin chi tiết của ticket hoàn tiền. Tầng Service sẽ tự
+        check quyền dựa trên ctxUserId.
+      parameters:
+      - description: UUID của ticket hoàn tiền
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_wallet.RefundTicketDetail'
+        "404":
+          description: Không tìm thấy ticket
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Xem chi tiết một yêu cầu hoàn tiền
+      tags:
+      - Refunds
+  /refunds/{id}/approve:
+    patch:
+      consumes:
+      - application/json
+      description: (Admin) Chấp nhận và tiến hành hoàn tiền cho khách.
+      parameters:
+      - description: UUID của ticket hoàn tiền
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Lý do duyệt
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_wallet.ApproveRefundRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Thành công
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Duyệt yêu cầu hoàn tiền
+      tags:
+      - Refunds
+  /refunds/{id}/cancel:
+    patch:
+      consumes:
+      - application/json
+      description: (Customer/Admin) Hủy bỏ ticket hoàn tiền (thường do khách hàng
+        đổi ý).
+      parameters:
+      - description: UUID của ticket hoàn tiền
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Lý do hủy
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_wallet.CancelRefundRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Thành công
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Hủy yêu cầu hoàn tiền
+      tags:
+      - Refunds
+  /refunds/{id}/complete:
+    patch:
+      consumes:
+      - application/json
+      description: (Staff/Manager/Admin) Xác nhận quá trình chuyển tiền đã xong, đóng
+        ticket.
+      parameters:
+      - description: UUID của ticket hoàn tiền
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Ghi chú hoàn tất
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_wallet.SetCompleteRefundRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Thành công
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Đánh dấu hoàn tất hoàn tiền
+      tags:
+      - Refunds
+  /refunds/{id}/reject:
+    patch:
+      consumes:
+      - application/json
+      description: (Admin) Từ chối yêu cầu hoàn tiền kèm theo lý do cụ thể.
+      parameters:
+      - description: UUID của ticket hoàn tiền
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Lý do từ chối
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_wallet.RejectRefundRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Thành công
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Từ chối yêu cầu hoàn tiền
+      tags:
+      - Refunds
   /roles:
     get:
       consumes:
@@ -4590,6 +5465,236 @@ paths:
       summary: Get Voucher by Code
       tags:
       - Vouchers
+  /wallets/{id}/status:
+    patch:
+      consumes:
+      - application/json
+      description: Dành cho Quản trị viên khóa (tạm dừng) hoặc mở khóa ví của người
+        dùng.
+      parameters:
+      - description: UUID của ví cần cập nhật
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Thông tin trạng thái mới
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_wallet.UpdateWalletStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'Thông báo cập nhật thành công { message: ''...'' }'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Dữ liệu đầu vào hoặc UUID ví không hợp lệ
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Chưa đăng nhập
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Không có quyền thao tác (Forbidden)
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Cập nhật trạng thái ví (Admin)
+      tags:
+      - Wallets
+  /wallets/transactions:
+    get:
+      description: Dành cho Staff, Manager, Admin lấy danh sách giao dịch. Có thể
+        truyền thêm `userId` vào query để lọc riêng giao dịch của một người.
+      parameters:
+      - description: Lọc theo UUID của người dùng cụ thể (Tùy chọn)
+        in: query
+        name: userId
+        type: string
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Danh sách giao dịch
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_wallet_WalletTransactionResponse'
+        "400":
+          description: Tham số không hợp lệ
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Chưa đăng nhập
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Không có quyền thao tác
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Xem toàn bộ giao dịch ví hệ thống
+      tags:
+      - Wallet Transactions
+  /wallets/transactions/{id}:
+    get:
+      description: Xem chi tiết một giao dịch ví thông qua UUID của giao dịch. Tầng
+        service sẽ tự kiểm tra xem `ctxUserId` có quyền xem ID này hay không.
+      parameters:
+      - description: UUID của giao dịch
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_wallet.WalletTransactionResponse'
+        "404":
+          description: Không tìm thấy giao dịch
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Lấy chi tiết giao dịch bằng ID
+      tags:
+      - Wallet Transactions
+  /wallets/transactions/code/{code}:
+    get:
+      description: 'Xem chi tiết một giao dịch ví thông qua mã code (VD: WT-12345).'
+      parameters:
+      - description: Mã giao dịch (Code)
+        in: path
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_wallet.WalletTransactionResponse'
+        "404":
+          description: Không tìm thấy giao dịch
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Lấy chi tiết giao dịch bằng Mã giao dịch
+      tags:
+      - Wallet Transactions
+  /wallets/users/{userId}:
+    get:
+      description: Dành cho Staff, Manager, Admin lấy thông tin ví của một user bất
+        kỳ thông qua User ID.
+      parameters:
+      - description: UUID của người dùng cần xem
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Thông tin chi tiết của ví
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_wallet.WalletResponse'
+        "400":
+          description: ID người dùng không đúng định dạng UUID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Chưa đăng nhập
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Không có quyền thao tác (Forbidden)
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Không tìm thấy ví của người dùng này
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Xem ví của người dùng
+      tags:
+      - Wallets
+  /wallets/vnpay/return:
+    get:
+      description: Endpoint hứng callback từ VNPay sau khi khách thanh toán xong.
+        Thực hiện xác thực chữ ký gRPC và bẻ lái (redirect) về Frontend kèm theo trạng
+        thái giao dịch.
+      parameters:
+      - description: 'Đường dẫn Frontend muốn bẻ lái về (VD: /my-wallet)'
+        in: query
+        name: redirectTo
+        type: string
+      - description: Số tiền giao dịch (nhân 100)
+        in: query
+        name: vnp_Amount
+        type: string
+      - description: Mã phản hồi từ VNPay (00 là thành công)
+        in: query
+        name: vnp_ResponseCode
+        type: string
+      - description: Mã tham chiếu giao dịch nội bộ
+        in: query
+        name: vnp_TxnRef
+        type: string
+      - description: Mã băm bảo mật checksum
+        in: query
+        name: vnp_SecureHash
+        type: string
+      produces:
+      - text/html
+      responses:
+        "302":
+          description: Chuyển hướng (Redirect) về ứng dụng Frontend
+      summary: Xử lý Callback VNPay Return (Nạp tiền ví)
+      tags:
+      - Wallets
 securityDefinitions:
   BearerAuth:
     description: 'Don''t forget to type "Bearer" before the token. For example: Bearer

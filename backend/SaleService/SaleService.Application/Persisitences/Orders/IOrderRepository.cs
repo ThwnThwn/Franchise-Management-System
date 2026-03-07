@@ -1,6 +1,7 @@
 using SalesService.Application.Features.Orders.Queries.GetByIds;
 using SalesService.Application.Features.Orders.Queries.GetOrderVolume;
 using SalesService.Application.Features.Reports.Queries.GetRevenueReport;
+using SalesService.Application.Features.Reports.Queries.GetSalesTrend;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
 using System.Collections.Generic;
@@ -48,6 +49,13 @@ public interface IOrderRepository
 
     Task<List<Order>> GetOrdersByTypeAsync(OrderType type, CancellationToken cancellationToken = default);
     Task<bool> ExistsOrderTypeAsync(OrderType type, CancellationToken cancellationToken = default);
+
+    Task<List<SalesTrendDataPointDto>> GetSalesTrendAsync(
+        DateTimeOffset fromDate,
+        DateTimeOffset toDate,
+        TimeAggregation aggregation,
+        List<string>? categorySkus,
+        Guid? storeId,
+        CancellationToken cancellationToken = default);
 }
 
-    

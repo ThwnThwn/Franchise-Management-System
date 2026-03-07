@@ -8,7 +8,7 @@ package wallettransaction;
 /* ================= SERVICE ================= */
 
 service WalletTransactionGrpc {
-  rpc CreateTransaction (CreateTransactionRequest) returns (CreateTransactionResponse);
+  // rpc CreateTransaction (CreateTransactionRequest) returns (CreateTransactionResponse);
   rpc GetAll (GetAllWalletTransactionsRequest) returns (GetAllWalletTransactionsResponse);
   rpc GetById (GetWalletTransactionByIdRequest) returns (WalletTransactionResponse);
   rpc GetByUserId (GetWalletTransactionsByUserIdRequest) returns (GetAllWalletTransactionsResponse);

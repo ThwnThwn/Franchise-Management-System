@@ -174,12 +174,11 @@ CREATE TABLE "voucher_usages" (
 );
 
 CREATE TABLE "voucher_queue" (
-  "id" UUID NOT NULL DEFAULT uuid_generate_v4() PRIMARY KEY,
-  "voucher_id" UUID NOT NULL REFERENCES "vouchers"("id"),
-  "order_id" UUID NOT NULL,
-  "created_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  "expires_at" TIMESTAMP WITH TIME ZONE NOT NULL
+    "id" UUID NOT NULL DEFAULT uuid_generate_v4() PRIMARY KEY,
+    "voucher_id" UUID NOT NULL REFERENCES "vouchers"("id"),
+    "user_id" UUID NOT NULL REFERENCES "loyalty_accounts"("id"),
+    "created_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- NHÓM 3: TỐI ƯU HÓA TRUY VẤN (INDEXES)

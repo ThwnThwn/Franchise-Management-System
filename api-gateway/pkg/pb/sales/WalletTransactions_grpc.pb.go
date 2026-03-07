@@ -22,7 +22,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type WalletTransactionGrpcClient interface {
-	CreateTransaction(ctx context.Context, in *CreateTransactionRequest, opts ...grpc.CallOption) (*CreateTransactionResponse, error)
+	// rpc CreateTransaction (CreateTransactionRequest) returns (CreateTransactionResponse);
 	GetAll(ctx context.Context, in *GetAllWalletTransactionsRequest, opts ...grpc.CallOption) (*GetAllWalletTransactionsResponse, error)
 	GetById(ctx context.Context, in *GetWalletTransactionByIdRequest, opts ...grpc.CallOption) (*WalletTransactionResponse, error)
 	GetByUserId(ctx context.Context, in *GetWalletTransactionsByUserIdRequest, opts ...grpc.CallOption) (*GetAllWalletTransactionsResponse, error)
@@ -36,15 +36,6 @@ type walletTransactionGrpcClient struct {
 
 func NewWalletTransactionGrpcClient(cc grpc.ClientConnInterface) WalletTransactionGrpcClient {
 	return &walletTransactionGrpcClient{cc}
-}
-
-func (c *walletTransactionGrpcClient) CreateTransaction(ctx context.Context, in *CreateTransactionRequest, opts ...grpc.CallOption) (*CreateTransactionResponse, error) {
-	out := new(CreateTransactionResponse)
-	err := c.cc.Invoke(ctx, "/wallettransaction.WalletTransactionGrpc/CreateTransaction", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *walletTransactionGrpcClient) GetAll(ctx context.Context, in *GetAllWalletTransactionsRequest, opts ...grpc.CallOption) (*GetAllWalletTransactionsResponse, error) {
@@ -96,7 +87,7 @@ func (c *walletTransactionGrpcClient) GetByOrderId(ctx context.Context, in *GetW
 // All implementations must embed UnimplementedWalletTransactionGrpcServer
 // for forward compatibility
 type WalletTransactionGrpcServer interface {
-	CreateTransaction(context.Context, *CreateTransactionRequest) (*CreateTransactionResponse, error)
+	// rpc CreateTransaction (CreateTransactionRequest) returns (CreateTransactionResponse);
 	GetAll(context.Context, *GetAllWalletTransactionsRequest) (*GetAllWalletTransactionsResponse, error)
 	GetById(context.Context, *GetWalletTransactionByIdRequest) (*WalletTransactionResponse, error)
 	GetByUserId(context.Context, *GetWalletTransactionsByUserIdRequest) (*GetAllWalletTransactionsResponse, error)
@@ -109,9 +100,6 @@ type WalletTransactionGrpcServer interface {
 type UnimplementedWalletTransactionGrpcServer struct {
 }
 
-func (UnimplementedWalletTransactionGrpcServer) CreateTransaction(context.Context, *CreateTransactionRequest) (*CreateTransactionResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateTransaction not implemented")
-}
 func (UnimplementedWalletTransactionGrpcServer) GetAll(context.Context, *GetAllWalletTransactionsRequest) (*GetAllWalletTransactionsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
@@ -138,24 +126,6 @@ type UnsafeWalletTransactionGrpcServer interface {
 
 func RegisterWalletTransactionGrpcServer(s grpc.ServiceRegistrar, srv WalletTransactionGrpcServer) {
 	s.RegisterService(&WalletTransactionGrpc_ServiceDesc, srv)
-}
-
-func _WalletTransactionGrpc_CreateTransaction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateTransactionRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(WalletTransactionGrpcServer).CreateTransaction(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/wallettransaction.WalletTransactionGrpc/CreateTransaction",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(WalletTransactionGrpcServer).CreateTransaction(ctx, req.(*CreateTransactionRequest))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _WalletTransactionGrpc_GetAll_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -255,10 +225,6 @@ var WalletTransactionGrpc_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "wallettransaction.WalletTransactionGrpc",
 	HandlerType: (*WalletTransactionGrpcServer)(nil),
 	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "CreateTransaction",
-			Handler:    _WalletTransactionGrpc_CreateTransaction_Handler,
-		},
 		{
 			MethodName: "GetAll",
 			Handler:    _WalletTransactionGrpc_GetAll_Handler,

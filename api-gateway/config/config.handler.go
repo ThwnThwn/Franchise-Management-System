@@ -39,10 +39,15 @@ func LoadConfig() *Config {
 		},
 
 		VNPay: VNPay{
-			// Sales (Customer Orders)
+			// Order (Customer Orders)
 			ReturnUrl:       getEnv("VNPay__ReturnUrl", "http://localhost:8080/api/orders/vnpay/return"),
 			ClientReturnUrl: getEnv("VNPay__ClientReturnUrl", "http://localhost:3000/orders"),
 			IpnUrl:          getEnv("VNPay__IpnUrl", "http://localhost:8080/api/orders/vnpay/ipn"),
+
+			// Wallet
+			WalletReturnUrl:       getEnv("VNPAY__WalletVNPayReturn", "http://localhost:8080/api/wallets/vnpay/return"),
+			WalletClientReturnUrl: getEnv("VNPAY__WalletVNPayClientReturnUrl", "http://localhost:3000/wallet"),
+			WalletIpnUrl:          getEnv("VNPAY__WalletVNPayIpnUrl", "http://localhost:8080/api/wallets/vnpay/ipn"),
 
 			// Supplier (Purchase Orders)
 			SupplierReturnUrl:       getEnv("VNPay__SupplierReturnUrl", "http://localhost:8080/api/suppliers/vnpay/return"),

@@ -4,6 +4,7 @@ import (
 	"api-gateway/internal/application/constants/errorcode"
 	"api-gateway/internal/application/gateways/engagement"
 	"api-gateway/internal/domain/models/voucher"
+	"api-gateway/pkg/utils/contextutils"
 	"api-gateway/pkg/utils/grpcutils"
 	"api-gateway/pkg/utils/validation"
 	"net/http"
@@ -14,11 +15,16 @@ import (
 
 type VoucherHandler struct {
 	voucherGW engagement.IVoucherService
+	loyaltyGW engagement.ILoyaltyAccountService
 }
 
-func NewVoucherHandler(voucherGW engagement.IVoucherService) *VoucherHandler {
+func NewVoucherHandler(
+	voucherGW engagement.IVoucherService,
+	loyaltyGW engagement.ILoyaltyAccountService,
+) *VoucherHandler {
 	return &VoucherHandler{
 		voucherGW: voucherGW,
+		loyaltyGW: loyaltyGW,
 	}
 }
 
@@ -199,5 +205,43 @@ func (h *VoucherHandler) DeleteVoucher(c *gin.Context) error {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Xóa voucher thành công"})
+	return nil
+}
+
+// RedeemVoucher
+// @Summary      Redeem Points for Voucher
+// @Description  Allows the authenticated user to redeem their accumulated points to claim a specific voucher.
+// @Tags         Vouchers
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path      string  true  "Voucher UUID"
+// @Success      200  {object}  map[string]interface{}  "Redemption successful"
+// @Failure      400  {object}  map[string]string       "Invalid Voucher ID format"
+// @Failure      401  {object}  map[string]string       "Unauthorized - Valid token required"
+// @Router       /me/vouchers/redeem/{id} [post]
+func (h *VoucherHandler) RedeemVoucher(c *gin.Context) error {
+	id := c.Param("id")
+	voucherId, err := uuid.Parse(id)
+	if err != nil {
+		return errorcode.ErrInvalidId
+	}
+
+	userId, err := contextutils.GetUserId(c)
+	if err != nil {
+		return err
+	}
+
+	ctx, err := grpcutils.BuildAuthContext(c)
+	if err != nil {
+		return err
+	}
+
+	err = h.loyaltyGW.RedeemVoucher(ctx, userId, voucherId)
+	if err != nil {
+		return err
+	}
+
+	c.JSON(http.StatusOK, gin.H{})
 	return nil
 }

@@ -44,7 +44,7 @@ public sealed class GetWalletTransactionByCodeQueryHandler
         var response = new WalletTransactionResponse
         {
             Id = transaction.Id,
-            WalletId = transaction.WalletId.Value,
+            WalletId = transaction.WalletId ?? Guid.Empty,
             UserId = transaction.UserId,
 
             TransactionCode = transaction.TransactionCode,

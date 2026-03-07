@@ -24,7 +24,20 @@ public partial class TimeLog : SoftDeletedEntity, IEntity
 
     public decimal? CheckOutLong { get; set; }
 
-    public int? TotalWorkMinutes { get; set; }
+    /// <summary>
+    /// Số phút làm việc bình thường trong ca (tối đa bằng ngưỡng quy định trong ngày).
+    /// </summary>
+    public int RegularMinutes { get; set; }
+
+    /// <summary>
+    /// Số phút làm thêm giờ (Overtime) vượt ngưỡng trong ngày.
+    /// </summary>
+    public int DailyOtMinutes { get; set; }
+
+    /// <summary>
+    /// Số phút làm thêm giờ (Overtime) vượt ngưỡng trong tuần.
+    /// </summary>
+    public int WeeklyOtMinutes { get; set; }
 
     public int? Status { get; set; }
 

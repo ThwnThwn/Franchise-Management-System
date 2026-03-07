@@ -133,7 +133,7 @@ public class ProductServiceClient : IProductServiceClient
                 ProductName = p.Name,
                 Description = p.Description,
                 ImageUrl = p.ImageUrl,
-                CategoryId = Guid.Parse(p.CategoryId),
+                CategoryId = Guid.TryParse(p.CategoryId, out var catId) ? catId : Guid.Empty,
                 CategoryName = p.CategoryName,
                 IsActive = p.IsActive
             }).ToList();
@@ -141,6 +141,7 @@ public class ProductServiceClient : IProductServiceClient
         catch (Exception ex)
         {
             Console.WriteLine($"Error calling ProductService GetProductsByCategory ({_productServiceUrl}): {ex.Message}");
+            Console.WriteLine(ex.ToString());
             throw;
         }
     }
@@ -163,7 +164,7 @@ public class ProductServiceClient : IProductServiceClient
                 ProductName = p.Name,
                 Description = p.Description,
                 ImageUrl = p.ImageUrl,
-                CategoryId = Guid.Parse(p.CategoryId),
+                CategoryId = Guid.TryParse(p.CategoryId, out var catId) ? catId : Guid.Empty,
                 CategoryName = p.CategoryName,
                 IsActive = p.IsActive
             }).ToList();

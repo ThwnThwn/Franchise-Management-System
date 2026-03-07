@@ -1,11 +1,8 @@
 ﻿using Ardalis.Result;
-using BuildingBlocks.Core.Pagination;
 using MediatR;
 using SalesService.Application.ClientInterface.Products;
 using SalesService.Application.Features.Reports.Queries.ProductPerformance;
-using SalesService.Application.Persisitences;
 using SalesService.Application.Persisitences.OrderItems;
-using SalesService.Application.Persisitences.Orders;
 using SalesService.Domain.Enums;
 
 namespace SalesService.Application.Features.Reports.Queries.GetProductPerformance;
@@ -14,16 +11,13 @@ public sealed class GetProductPerformanceHandler
     : IRequestHandler<GetProductPerformanceQuery, Result<BuildingBlocks.Core.Pagination.PagedResult<ProductPerformanceResponse>>>
 {
     private readonly IOrderItemRepository _orderItemRepository;
-    private readonly IRefundTicketRepository _refundTicketRepository;
     private readonly IProductServiceClient _productServiceClient;
 
     public GetProductPerformanceHandler(
         IOrderItemRepository orderItemRepository,
-        IRefundTicketRepository refundTicketRepository,
         IProductServiceClient productServiceClient)
     {
         _orderItemRepository = orderItemRepository;
-        _refundTicketRepository = refundTicketRepository;
         _productServiceClient = productServiceClient;
     }
 
@@ -31,7 +25,7 @@ public sealed class GetProductPerformanceHandler
     GetProductPerformanceQuery request,
     CancellationToken cancellationToken)
     {
-        // STEP 1: Resolve products by category
+        //  Resolve products by category
         List<Guid>? filterProductIds = null;
         Dictionary<Guid, ProductInfo> productInfoMap = new();
 
@@ -49,7 +43,7 @@ public sealed class GetProductPerformanceHandler
             filterProductIds = categoryProducts.Select(p => p.ProductId).ToList();
         }
 
-        // STEP 2: Query completed order items (revenue + units sold)
+        //  Query completed order items (revenue + units sold)
         var orderItems = await _orderItemRepository.GetProductSalesStatisticAsync(
             request.StoreId,
             request.FromDate,
@@ -62,7 +56,7 @@ public sealed class GetProductPerformanceHandler
                 new List<ProductPerformanceResponse>(), 0,
                 request.PageIndex, request.PageSize));
 
-        // STEP 3: Enrich product info nếu không filter category
+        //  product info nếu không filter category
         if (!request.CategoryId.HasValue)
         {
             var distinctProductIds = orderItems
@@ -76,7 +70,7 @@ public sealed class GetProductPerformanceHandler
             productInfoMap = productInfos.ToDictionary(p => p.ProductId);
         }
 
-        // ✅ STEP 4: Cancel stats 
+        //  Cancel stats 
         var productIds = orderItems.Select(oi => oi.ProductId).Distinct().ToList();
 
         var cancelStats = await _orderItemRepository.GetProductCancelStatisticAsync(
@@ -88,7 +82,7 @@ public sealed class GetProductPerformanceHandler
 
         var cancelMap = cancelStats.ToDictionary(c => c.ProductId);
 
-        // STEP 5: Group + map
+        //  Group + map
         var items = orderItems
             .GroupBy(oi => oi.ProductId)
             .Select(g =>
@@ -110,17 +104,17 @@ public sealed class GetProductPerformanceHandler
                     Revenue = revenue,
                     TotalOrders = cancelStat?.TotalOrders ?? 0,
                     TotalCancelled = cancelStat?.TotalCancelled ?? 0,
-                    CancelledRate = cancelStat?.CancelRate ?? 0  
+                    CancelledRate = cancelStat?.CancelRate ?? 0
                 };
             }).ToList();
 
-        // STEP 6: Tag top/bottom
+        //  Tag top/bottom
         TagPerformers(items);
 
-        // STEP 7: Sort
+        //  Sort
         var sorted = ApplySort(items, request.SortBy, request.SortOrder);
 
-        // STEP 8: Paginate
+        // Paginate
         var paged = sorted
             .Skip((request.PageIndex - 1) * request.PageSize)
             .Take(request.PageSize)
@@ -130,7 +124,7 @@ public sealed class GetProductPerformanceHandler
             paged, items.Count, request.PageIndex, request.PageSize));
     }
 
-    // ===== PRIVATE HELPERS =====
+   
 
     private static void TagPerformers(List<ProductPerformanceResponse> items)
     {
@@ -170,7 +164,7 @@ public sealed class GetProductPerformanceHandler
             "units_sold" => isDesc ? items.OrderByDescending(x => x.UnitsSold).ToList()
                                     : items.OrderBy(x => x.UnitsSold).ToList(),
 
-            "cancel_rate" => isDesc ? items.OrderByDescending(x => x.CancelledRate).ToList()  
+            "cancel_rate" => isDesc ? items.OrderByDescending(x => x.CancelledRate).ToList()
                                 : items.OrderBy(x => x.CancelledRate).ToList(),
 
             "category" => isDesc ? items.OrderByDescending(x => x.CategoryName).ToList()

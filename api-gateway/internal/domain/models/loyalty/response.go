@@ -26,8 +26,11 @@ type LoyaltyReportResponse struct {
 	TotalPointsEarned   float64             `json:"totalPointsEarned"`
 	TotalPointsRedeemed float64             `json:"totalPointsRedeemed"`
 	TierDistribution    []*TierDistribution `json:"tierDistribution"`
-	FileContent         []byte              `json:"fileContent"`
-	FileName            string              `json:"fileName"`
+}
+
+type LoyaltyExportResponse struct {
+	FileName    string
+	FileContent []byte
 }
 
 type TierDistribution struct {

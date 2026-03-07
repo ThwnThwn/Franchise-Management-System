@@ -73,7 +73,7 @@ public sealed class CreatePoPaymentHandler : IRequestHandler<CreatePoPaymentComm
         // VNPay — status stays Pending until callback
 
         payment.Status = (int)PaymentStatus.Pending;
-        
+
         var vnpSection = _config.GetSection("VNPay");
         var tmnCode = vnpSection["TmnCode"] ?? throw new InvalidOperationException("VNPay:TmnCode not configured");
         var hashSecret = vnpSection["HashSecret"] ?? throw new InvalidOperationException("VNPay:HashSecret not configured");
@@ -103,7 +103,7 @@ public sealed class CreatePoPaymentHandler : IRequestHandler<CreatePoPaymentComm
 
         await _paymentRepository.CreateAsync(payment, cancellationToken);
 
-        return Result.Success(new CreatePoPaymentResult { PaymentId = payment.Id, Code = payment.Code, Url = url });
+        return Result.Success(new CreatePoPaymentResult { Url = url , Code = code, PaymentId = payment.Id});
     }
 }
 

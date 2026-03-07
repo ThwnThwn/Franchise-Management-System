@@ -15,8 +15,8 @@ service RefundTicketGrpcService {
   rpc CancelRefund(CancelRefundRequest) returns (CancelRefundResponse);
   rpc GetRefundById(GetRefundByIdRequest) returns (GetRefundByIdResponse);
   rpc GetAllRefunds(GetAllRefundsRequest) returns (GetAllRefundsResponse);
-  rpc GetRefundByStatus(GetRefundByStatusRequest) returns (GetRefundByStatusResponse);
-  rpc GetRefundByUserId(GetRefundByUserIdRequest) returns (GetRefundByUserIdResponse);
+  // rpc GetRefundByStatus(GetRefundByStatusRequest) returns (GetRefundByStatusResponse);
+  // rpc GetRefundByUserId(GetRefundByUserIdRequest) returns (GetRefundByUserIdResponse);
   rpc SetCompleteRefund (SetCompleteRefundRequest) returns (SetCompleteRefundResponse);
 
 }

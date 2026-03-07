@@ -1,377 +1,135 @@
-﻿using System.Text;
-using AutoMapper;
-using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
-using DotNetEnv;
+﻿using DotNetEnv;
+using IdentityService.API.Extensions;
+using IdentityService.API.Interceptors;
+using IdentityService.API.Services;
+using IdentityService.Application.Abstrations;
+using IdentityService.Application.AppConfigurations;
 using IdentityService.Application.DependencyInjection;
-using IdentityService.Infrastructure.Interceptor;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using IdentityService.Application.ExternalServices;
+using IdentityService.Application.Persistences.Caches;
+using IdentityService.Infrastructure.DependencyInjection;
+using IdentityService.Infrastructure.ExternalServices;
+using IdentityService.Infrastructure.Persistences.Cache;
+using IdentityService.Infrastructure.Settings;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics.Internal;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
-using SalesService.API.GrpcServices;
-using SalesService.API.Middleware;
-using SalesService.API.Services.CartItems;
-using SalesService.API.Services.Identity;
-using SalesService.API.Services.Inventory;
-using SalesService.API.Services.Orders;
-using SalesService.API.Services.Payments;
-using SalesService.API.Services.Products;
-using SalesService.API.Services.Wallets;
-using SalesService.Application.Authorization;
-using SalesService.Application.ClientInterface.Inventory;
-using SalesService.Application.ClientInterface.Products;
-//using SalesService.Infrastructure.Models;
-using SalesService.Application.Interfaces.CartItems;
-using SalesService.Application.Interfaces.Identity;
-using SalesService.Application.Interfaces.Payments;
-using SalesService.Application.Mapping.Orders;
-using SalesService.Application.Persisitences;
-using SalesService.Application.Persisitences.OrderItems;
-using SalesService.Application.Persisitences.Orders;
-using SalesService.Application.Persisitences.Outbox;
-using SalesService.Application.Persisitences.WalletEvents;
-using SalesService.Application.Persisitences.Wallets;
-using SalesService.Application.Persisitences.Wallets;
-using SalesService.Application.Persisitences.WalletTransactions;
-using SalesService.Application.Signals;
-using SalesService.Grpc;
-using SalesService.Infrastructure.ApplicationDbContext;
-using SalesService.Infrastructure.Extensions;
-using SalesService.Infrastructure.Interceptor;
-using SalesService.Infrastructure.Repositories;
-using SalesService.Infrastructure.Repositories;
-using SalesService.Infrastructure.Repositories.CartItems;
-using SalesService.Infrastructure.Repositories.OrderItems;
-using SalesService.Infrastructure.Repositories.Orders;
-using SalesService.Infrastructure.Repositories.Outbox;
-using SalesService.Infrastructure.Repositories.Payments;
-using SalesService.Infrastructure.Repositories.WalletEvents;
-using SalesService.Infrastructure.Signals;
-using SharedKernel.Abstractions;
 using SharedKernel.Constants;
 using SharedKernel.Events;
 using SharedKernel.Infrastructure.Kafka;
-using Yarp.ReverseProxy.Configuration;
-namespace SalesService.API;
 
-public class Program
+namespace IdentityService.API
 {
-    public static void Main(string[] args)
+    public class Program
     {
-        // Load .env file
-        Env.Load("../../../.env");
-
-        var builder = WebApplication.CreateBuilder(args);
-
-        // Add environment variables to configuration
-        builder.Configuration.AddEnvironmentVariables();
-
-        //builder.WebHost.ConfigureKestrel(options =>
-        //{
-        //    options.ConfigureEndpointDefaults(listenOptions =>
-        //    {
-        //        listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2;
-        //    });
-        //});
-        var salesPort = int.Parse(builder.Configuration["SALES_PORT"] ?? "5003");
-        builder.WebHost.ConfigureKestrel(options =>
+        private static async Task Main(string[] args)
         {
-            options.ListenAnyIP(salesPort, listenOptions =>
+            // --- CONFIGURATION ---
+            Env.Load("../../../.env");
+            var builder = WebApplication.CreateBuilder(args);
+            builder.Configuration.AddEnvironmentVariables();
+            // -- SMTP EMAIL ---
+            builder.Services.Configure<OtpConfigs>(options =>
             {
-                listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2;
+                options.OtpTtl = int.Parse(builder.Configuration["OTP_TTL"] ?? "10"); // Default 10 minutes
+            });
+            builder.Services.Configure<SmtpSettings>(opt =>
+            {
+                opt.Host = Environment.GetEnvironmentVariable("SMTP_HOST") ?? "smtp.gmail.com";
+                opt.Port = int.Parse(Environment.GetEnvironmentVariable("SMTP_PORT") ?? "587");
+                opt.Username = Environment.GetEnvironmentVariable("SMTP_USERNAME") ?? "";
+                opt.Password = Environment.GetEnvironmentVariable("SMTP_PASSWORD") ?? "";
+                opt.EnableSsl = bool.Parse(Environment.GetEnvironmentVariable("SMTP_ENABLE_SSL") ?? "true");
+                opt.FromEmail = Environment.GetEnvironmentVariable("SMTP_FROM_EMAIL") ?? "";
+                opt.FromName = Environment.GetEnvironmentVariable("SMTP_FROM_NAME") ?? "CFMS";
+            });
+            // --- GRPC & CORE ---
+            builder.Services.AddGrpc(options => options.Interceptors.Add<GrpcExceptionInterceptor>());
+            builder.Services.AddGrpcReflection();
+            builder.Services.AddHttpContextAccessor();
+            builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+            // --- IDENTITY & AUTH (Using Extension) ---
+            builder.Services.AddJwtIdentity(builder.Configuration);
+            builder.Services.AddAuthorization();
+
+            // --- DATABASE & REDIS ---
+            var dbConn = builder.Configuration["IDENTITY_DB_CONN"]
+                ?? "Host=localhost;Port=5432;Database=identity_db;Username=admin;Password=12345";
+            var redisConn = builder.Configuration["REDIS_CONFIGURATION"]
+                ?? "localhost:6379,abortConnect=false";
+            var blackListDb = builder.Configuration["REDIS_BLACKLIST_DB"] ?? "0";
+            var permDb = builder.Configuration["REDIS_PERM_DB"] ?? "1";
+
+            builder.Services.AddInfrastructure(dbConn, redisConn, blackListDb, permDb);
+            //builder.Services.AddStackExchangeRedisCache(opt =>
+            //{
+            //    opt.Configuration = redisConn + ",defaultDatabase=1";
+            //    opt.InstanceName = "chb_redis";
+            //});
+
+            // Cloudinary configuration
+            builder.Services.Configure<CloudinarySettings>(options =>
+            {
+                options.CloudName = builder.Configuration["CLOUDINARY_CLOUD_NAME"] ?? string.Empty;
+                options.ApiKey = builder.Configuration["CLOUDINARY_API_KEY"] ?? string.Empty;
+                options.ApiSecret = builder.Configuration["CLOUDINARY_API_SECRET"] ?? string.Empty;
             });
 
-            options.ListenAnyIP(5013, listenOptions =>
+            // KAFKA - Override for local development
+            var kafkaBootstrap = Environment.GetEnvironmentVariable("KAFKA_BOOTSTRAP_SERVERS") ?? "localhost:9092";
+            if (kafkaBootstrap.Contains("kafka:"))
             {
-                listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1;
-            });
-        });
-
-        // Add services to the container.
-        builder.Services.AddGrpc(options =>
-        {
-            options.Interceptors.Add<Interceptors.GrpcExceptionInterceptor>();
-        });
-        builder.Services.AddGrpcReflection(); // Enable gRPC Server Reflection
-        builder.Services.AddControllers();
-
-        // ===== YARP REVERSE PROXY (Dev: Forward SupplierService VNPay callbacks) =====
-        // Ngrok chỉ có 1 domain trỏ vào SaleService:5013
-        // Các request có path /api/supplier/vnpay/* sẽ được forward sang SupplierService
-        var supplierServiceUrl = builder.Configuration["SUPPLIER_SERVICE_URL"] ?? "http://localhost:5008";
-        builder.Services.AddReverseProxy()
-            .LoadFromMemory(
-                routes: new[]
-                {
-                    new RouteConfig
-                    {
-                        RouteId    = "supplier_vnpay_route",
-                        ClusterId  = "supplier_cluster",
-                        Match      = new RouteMatch { Path = "/api/supplier/vnpay/{**catch-all}" },
-                        Transforms = new[]
-                        {
-                            // /api/supplier/vnpay/{catch-all} → /api/vnpay/{catch-all}
-                            // PathRemovePrefix bị thiếu /api nên dùng PathPattern thay thế
-                            new Dictionary<string, string> { ["PathPattern"] = "/api/vnpay/{**catch-all}" }
-                        }
-                    }
-                },
-                clusters: new[]
-                {
-                    new ClusterConfig
-                    {
-                        ClusterId    = "supplier_cluster",
-                        Destinations = new Dictionary<string, DestinationConfig>(StringComparer.OrdinalIgnoreCase)
-                        {
-                            ["supplier_dest"] = new DestinationConfig { Address = supplierServiceUrl }
-                        }
-                    }
-                }
-            );
-
-        // Add API documentation
-        builder.Services.AddEndpointsApiExplorer();
-
-
-        // Interceptors
-        builder.Services.AddScoped<UpdateTimestampInterceptor>();
-
-        // Connect Db
-        var connectionString = builder.Configuration["SALES_DB_CONNECTION"];
-
-        // EF Core interceptors used by SalesDbContext
-        builder.Services.AddScoped<UpdateTimestampInterceptor>();
-
-        // DbContext + wire interceptor via DI
-        builder.Services.AddDbContext<SalesDbContext>(
-            (sp, opt) =>
-            {
-                opt.UseNpgsql(connectionString);
-                opt.AddInterceptors(sp.GetRequiredService<UpdateTimestampInterceptor>());
-            });
-
-        // Expose DbContext via abstraction used by repositories
-        builder.Services.AddScoped<ISalesDbContext>(sp => sp.GetRequiredService<SalesDbContext>());
-
-        // KAFKA - Override for local development
-        var kafkaBootstrap = Environment.GetEnvironmentVariable("KAFKA_BOOTSTRAP_SERVERS") ?? "localhost:9092";
-        if (kafkaBootstrap.Contains("kafka:"))
-        {
-            kafkaBootstrap = "localhost:9092";  // Use localhost when running outside Docker
-        }
-        builder.Configuration["KAFKA_BOOTSTRAP_SERVERS"] = kafkaBootstrap;
-        // KAFKA CONSUMER (Generic)
-        builder.Services.AddKafkaConsumer(config =>
-        {
-            config.Register<UserRegisteredEvent>(KafkaTopics.WalletAccount, typeof(SalesService.Application.EventHandler.CreateWalletEvent.CreateWalletEventConsumer));
-        });
-        // Configure AutoMapper
-        var applicationAssembly = typeof(OrderMappingProfile).Assembly;
-
-        builder.Services.AddSingleton(_ =>
-        {
-            var cfg = new MapperConfiguration(c =>
-            {
-                c.AddMaps(applicationAssembly);
-            });
-            return cfg.CreateMapper();
-        });
-
-        // Register Application services (MediatR, FluentValidation, ValidationBehavior)
-        builder.Services.AddApplication();
-
-        // Register repositories
-        builder.Services.AddScoped<IOrderRepository, OrderRepository>();
-        builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
-
-        builder.Services.AddScoped<IOutboxRepository, OutboxRepository>();
-        builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
-        builder.Services.AddScoped<ICartItemRepository, CartItemRepository>();
-        builder.Services.AddScoped<IWalletRepository, WalletRepository>();
-        builder.Services.AddScoped<IWalletTransactionRepository, WalletTransactionRepository>();
-        builder.Services.AddScoped<IRefundTicketRepository, RefundTicketRepository>();
-        builder.Services.AddScoped<IRefundAuthorizationService, RefundAuthorizationService>();
-        builder.Services.AddScoped<IWalletAuthorizationService, WalletAuthorizationService>();
-        builder.Services.AddScoped<IWalletEventRepository, WalletEventRepository>();
-        // Register ProductService gRPC client
-        builder.Services.AddSingleton<IProductServiceClient, ProductServiceClient>();
-
-        // Register IdentityService gRPC client
-        builder.Services.AddSingleton<IIdentityServiceClient, IdentityServiceClient>();
-
-        // Register Kafka Producer Registry
-        builder.Services.AddSingleton<KafkaProducerRegistry>(sp =>
-        {
-            var registry = new KafkaProducerRegistry();
-            registry.Register<OrderStatusEvent>(KafkaTopics.OrderNotifications, KafkaTopics.OrderNotifications);
-            registry.Register<OrderPaidEvent>(KafkaTopics.OrderPaid, KafkaTopics.OrderPaid);
-            registry.Register<OrderCancelledEvent>(KafkaTopics.OrderCancelled, KafkaTopics.OrderCancelled);
-            registry.Register<ProcessOrderRewardEvent>(KafkaTopics.ProcessOrderReward, KafkaTopics.ProcessOrderReward);
-            return registry;
-        });
-
-        // Register Kafka Producer
-        builder.Services.AddSingleton<IKafkaProducer, KafkaProducer>();
-
-        // Register GlobalExceptionHandlerMiddleware
-        builder.Services.AddSingleton<GlobalExceptionHandlerMiddleware>();
-
-        // Register gRPC Exception Interceptor
-        builder.Services.AddSingleton<Interceptors.GrpcExceptionInterceptor>();
-
-        //Inventory Service Client
-        builder.Services.AddScoped<IInventoryServiceClient, InventoryServiceClient>();
-
-        //Wallet 
-        builder.Services.AddScoped<IRefundTicketRepository, RefundTicketRepository>();
-        builder.Services.AddScoped<IWalletTransactionRepository, WalletTransactionRepository>();
-        // Signal for Outbox
-        builder.Services.AddSingleton<IOutboxSignal, OutboxSignal>();
-
-        // Register Background Jobs
-        builder.Services.AddHostedService<SalesService.API.BackgroundJobs.OutboxWorker>();
-
-        // Add CORS
-        var frontEndOrigin = builder.Configuration["FRONTEND_ORIGIN"] ?? "http://localhost:3000";
-        builder.Services.AddCors(options =>
-        {
-            options.AddDefaultPolicy(policy =>
-            {
-                policy.AllowAnyMethod()
-                      .AllowAnyHeader()
-                      .WithOrigins(frontEndOrigin);
-            });
-        });
-
-        builder.Services.AddSwaggerGen(options =>
-        {
-            // 🔥 FIX duplicate DTO schema issue
-            options.CustomSchemaIds(type => type.FullName);
-
-            options.SwaggerDoc("v1", new OpenApiInfo
-            {
-                Title = "Sale Service API",
-                Version = "v1",
-                Description = "API quản lý đơn hàng và bán hàng"
-            });
-
-            options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-            {
-                Name = "Authorization",
-                Type = SecuritySchemeType.Http,
-                Scheme = "bearer",
-                BearerFormat = "JWT",
-                In = ParameterLocation.Header,
-                Description = "Nhập token theo format: Bearer {your token}"
-            });
-
-            options.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            Array.Empty<string>()
-        }
-    });
-        });
-
-
-        builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        var secret = builder.Configuration["JWT_SECRET"];
-
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-
-            ValidIssuer = "CFSM-be",
-            ValidAudience = "CFSM-be",
-
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(secret)
-            ),
-
-            RoleClaimType = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
-        };
-
-        options.Events = new JwtBearerEvents
-        {
-            OnAuthenticationFailed = context =>
-            {
-                context.NoResult();
-                context.Response.StatusCode = 500;
-                context.Response.ContentType = "application/json";
-
-                return context.Response.WriteAsync(
-                    $"Authentication failed: {context.Exception.Message}");
-            },
-
-            OnChallenge = context =>
-            {
-                context.HandleResponse();
-                context.Response.StatusCode = 401;
-                context.Response.ContentType = "application/json";
-
-                return context.Response.WriteAsync(
-                    $"Unauthorized: {context.ErrorDescription}");
-            },
-
-            OnForbidden = context =>
-            {
-                context.Response.StatusCode = 403;
-                context.Response.ContentType = "application/json";
-
-                return context.Response.WriteAsync(
-                    "Forbidden: You do not have required role.");
+                kafkaBootstrap = "localhost:9092";  // Use localhost when running outside Docker
             }
-        };
-    });
+            builder.Configuration["KAFKA_BOOTSTRAP_SERVERS"] = kafkaBootstrap;
 
-        var app = builder.Build();
-
-        // Configure the HTTP request pipeline.
-        if (app.Environment.IsDevelopment())
-        {
-            app.UseSwagger();
-            app.UseSwaggerUI(c =>
+            // --- APP SERVICES ---
+            builder.Services.AddApplication();
+            builder.Services.AddScoped<ITokenBlacklist, TokenBlacklist>();
+            builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+            builder.Services.AddScoped<IEngagementServiceClient, EngagementServiceClient>();
+            builder.Services.AddScoped<ISaleServiceClient, SaleServiceClient>();
+            // --- SERVER CONFIG ---
+            var servicePort = int.Parse(builder.Configuration["IDENTITY_PORT"] ?? "5001");
+            builder.WebHost.ConfigureKestrel(options =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Sale Service API v1");
+                options.ConfigureEndpointDefaults(listenOptions =>
+                {
+                    listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2;
+                });
             });
+
+            var app = builder.Build();
+
+            // --- PIPELINE ---
+            app.UseAuthentication();
+            app.UseAuthorization();
+
+            app.MapGrpcService<AuthGrpcService>();
+            app.MapGrpcService<UserGrpcService>();
+            app.MapGrpcService<RoleGrpcService>();
+            app.MapGrpcService<RolePermissionGrpcService>();
+            app.MapGrpcReflectionService();
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+                try
+                {
+                    // Lấy service ra từ Container
+                    var syncService = services.GetRequiredService<IPermissionSyncService>();
+
+                    // Gọi hàm Sync
+                    Console.WriteLine("Start syncing permissions...");
+                    await syncService.SyncAllAsync();
+                    Console.WriteLine("Permissions synced successfully!");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("An error occurred while syncing permissions: " + ex.Message);
+                }
+            }
+            app.MapGet("/", () => $"Identity Service is running on port {servicePort}. Environment: {builder.Environment.EnvironmentName}");
+            app.Run();
         }
-
-        app.UseCors();
-
-        // Add global exception handler middleware
-        app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
-
-        app.UseAuthentication();
-        app.UseAuthorization();
-
-        // Map YARP TRƯỚC controllers để /api/supplier/vnpay/* được bắt trước
-        app.MapReverseProxy();
-        app.MapControllers();
-        app.MapGrpcService<OrderGrpcService>();
-        app.MapGrpcService<PaymentGrpcService>();
-        app.MapGrpcService<CartItemGrpcService>();
-        app.MapGrpcService<WalletGrpcService>();
-        app.MapGrpcService<WalletTransactionGrpcService>();
-        app.MapGrpcService<RefundGrpcService>();
-        app.MapGrpcReflectionService(); // Enable gRPC Server Reflection endpoint
-        app.MapGet("/", () => "Sale Service API is running. Visit /swagger for API documentation.");
-
-
-        app.Run();
     }
 }

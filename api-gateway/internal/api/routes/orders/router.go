@@ -61,12 +61,18 @@ func (o *OrderRouter) Init(r *gin.RouterGroup) {
 		{
 			reportApi.GET("/revenue", o.authMW.PermissionCheck("order.report.read"),
 				api.WrapHandler(o.orderHl.GetRevenueReport))
+
 			reportApi.GET("/volume", o.authMW.PermissionCheck("order.report.read"),
 				api.WrapHandler(o.orderHl.GetOrderVolume))
+
 			reportApi.GET("/revenue/export", o.authMW.PermissionCheck("order.report.read"),
 				api.WrapHandler(o.orderHl.ExportRevenueReport))
+
 			reportApi.GET("/volume/export", o.authMW.PermissionCheck("order.report.read"),
 				api.WrapHandler(o.orderHl.ExportOrderVolume))
+
+			reportApi.GET("/sales-trend", o.authMW.PermissionCheck("order.report.read"),
+				api.WrapHandler(o.orderHl.GetSalesTrend))
 		}
 
 		// Nhóm CRUD thông thường (Khai báo Static trước)

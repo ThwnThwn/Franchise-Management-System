@@ -1,6 +1,8 @@
 using FranchiseService.Application.ClientInterfaces;
 using FranchiseService.Application.Persistences.Repositories;
 using FranchiseService.Application.Repositories;
+using FranchiseService.Application.Services;
+using FranchiseService.Domain.Commons;
 using FranchiseService.Domain.Entities;
 using FranchiseService.Domain.Enums;
 using SharedKernel.Events;
@@ -9,9 +11,12 @@ using System.Text.Json;
 
 namespace FranchiseService.Application.Features.Shifts.Commands.UpdateShiftAssignment
 {
-    // Handler xu ly dong bo danh sach nhan vien trong ca lam viec (Sync Logic)
-    // So sanh mang userIds tu request voi DB de tim ra: ai can them, ai can xoa, ai giu nguyen
-    public class UpdateShiftAssignmentHandler : IRequestHandler<UpdateShiftAssignmentCommand, Unit>
+    /// <summary>
+    /// Xử lý đồng bộ danh sách nhân viên trong ca làm việc.
+    /// So sánh mảng userIds từ request với DB để tìm ra ai cần thêm, ai cần xóa.
+    /// Hỗ trợ Override: khi có cảnh báo, FE có thể gửi lại với ForceOverride = true.
+    /// </summary>
+    public class UpdateShiftAssignmentHandler : IRequestHandler<UpdateShiftAssignmentCommand, AssignStaffResult>
     {
         private readonly IShiftRepository _shiftRepository;
         private readonly IGenericRepository<Shift> _shiftGenericRepo;
@@ -20,6 +25,7 @@ namespace FranchiseService.Application.Features.Shifts.Commands.UpdateShiftAssig
         private readonly IOutboxRepository _outboxRepository;
         private readonly Application.Signals.IOutboxSignal _outboxSignal;
         private readonly IIdentityServiceClient _identityClient;
+        private readonly IShiftValidationService _validationService;
 
         public UpdateShiftAssignmentHandler(
             IShiftRepository shiftRepository,
@@ -28,7 +34,8 @@ namespace FranchiseService.Application.Features.Shifts.Commands.UpdateShiftAssig
             IGenericRepository<ShiftRule> ruleRepo,
             IOutboxRepository outboxRepository,
             Application.Signals.IOutboxSignal outboxSignal,
-            IIdentityServiceClient identityClient)
+            IIdentityServiceClient identityClient,
+            IShiftValidationService validationService)
         {
             _shiftRepository = shiftRepository;
             _shiftGenericRepo = shiftGenericRepo;
@@ -37,28 +44,27 @@ namespace FranchiseService.Application.Features.Shifts.Commands.UpdateShiftAssig
             _outboxRepository = outboxRepository;
             _outboxSignal = outboxSignal;
             _identityClient = identityClient;
+            _validationService = validationService;
         }
 
-        public async Task<Unit> Handle(UpdateShiftAssignmentCommand request, CancellationToken cancellationToken)
+        public async Task<AssignStaffResult> Handle(UpdateShiftAssignmentCommand request, CancellationToken cancellationToken)
         {
-            // Load ca lam viec 
+            // Tải thông tin ca làm việc
             var shift = await _shiftGenericRepo.GetByIdAsync(request.ShiftId)
                 ?? throw new KeyNotFoundException($"Khong tim thay Ca lam viec {request.ShiftId}");
 
-            // Kiem tra trang thai ca 
+            // Kiểm tra trạng thái ca
             ValidateShiftStatus(shift);
 
-            // Load quy tac Store (neu co)
+            // Tải quy tắc của cửa hàng, nếu không có thì dùng giá trị mặc định
             var rules = await _ruleRepo.GetAllAsync(predicate: r => r.StoreId == shift.StoreId);
             var storeRule = rules.FirstOrDefault();
 
             int maxHoursPerWeek = storeRule?.MaxHoursPerWeek ?? 48;
             int minHoursBreak = storeRule?.MinHoursBetweenShifts ?? 8;
 
-            // === CORE FIX: Load TAT CA assignment CUNG SOFT-DELETED ===
-            // GenericRepository.GetAllAsync tu dong filter IsDeleted == false
-            // => Khi user bi xoa roi gan lai, se khong tim thay row cu => INSERT => UNIQUE violation
-            // => Dung method moi: GetAllAssignmentsIncludingDeletedAsync (khong filter IsDeleted)
+            // Tải tất cả assignment bao gồm cả bản đã xóa mềm
+            // để tránh lỗi UNIQUE constraint khi gán lại nhân viên đã bị xóa trước đó
             var allAssignments = await _shiftRepository.GetAllAssignmentsIncludingDeletedAsync(
                 request.ShiftId, cancellationToken);
 
@@ -68,11 +74,11 @@ namespace FranchiseService.Application.Features.Shifts.Commands.UpdateShiftAssig
             var activeUserIds = activeAssignments.Select(a => a.UserId).ToHashSet();
             var requestUserIds = request.UserIds.ToHashSet();
 
-            // Tinh toan Diff
+            // Tính toán sự khác biệt giữa danh sách hiện tại và yêu cầu
             var toAdd = requestUserIds.Except(activeUserIds).ToList();
             var toRemove = activeUserIds.Except(requestUserIds).ToList();
 
-            // Kiem tra so luong nhan vien sau khi sync
+            // Kiểm tra số lượng nhân viên sau khi đồng bộ
             int finalCount = activeAssignments.Count - toRemove.Count + toAdd.Count;
             if (finalCount > shift.RequiredStaffCount)
             {
@@ -83,7 +89,7 @@ namespace FranchiseService.Application.Features.Shifts.Commands.UpdateShiftAssig
 
             var outboxMessages = new List<OutboxMessage>();
 
-            // === XOA: Soft Delete assignments khong con trong request ===
+            // Xóa mềm các assignment không còn trong danh sách yêu cầu
             foreach (var userId in toRemove)
             {
                 var assignment = activeAssignments.First(a => a.UserId == userId);
@@ -91,50 +97,58 @@ namespace FranchiseService.Application.Features.Shifts.Commands.UpdateShiftAssig
                 outboxMessages.Add(CreateUnassignedOutboxMessage(assignment, shift));
             }
 
-            // === THEM: Validate va tao/restore assignment ===
+            // Kiểm tra nhân viên tồn tại và cache lại thông tin để tránh gọi gRPC 2 lần
+            var userInfoCache = new Dictionary<Guid, dynamic>();
             foreach (var userId in toAdd)
             {
-                // Validate user ton tai qua gRPC
                 var userInfo = await _identityClient.GetUserByIdAsync(userId)
                     ?? throw new KeyNotFoundException(
                         $"Nhan vien {userId} khong ton tai trong he thong.");
+                userInfoCache[userId] = userInfo;
+            }
 
-                // Check trung gio (Overlap)
-                var userDailyAssignments = await _shiftRepository.GetAssignmentsByUserAsync(
-                    userId, shift.ShiftDate, shift.ShiftDate, cancellationToken);
+            // Validate tất cả nhân viên cần thêm bằng ShiftValidationService
+            var allWarnings = new List<ValidationWarning>();
+            foreach (var userId in toAdd)
+            {
+                var warnings = await _validationService.ValidateAssignment(
+                    shift, userId, minHoursBreak, maxHoursPerWeek, cancellationToken);
+                allWarnings.AddRange(warnings);
+            }
 
-                foreach (var existing in userDailyAssignments)
-                {
-                    if (IsOverlap(shift.StartTime, shift.EndTime,
-                        existing.Shift.StartTime, existing.Shift.EndTime))
-                    {
-                        throw new InvalidOperationException(
-                            $"Nhan vien {userInfo.Username} ({userId}) co ca trung gio: " +
-                            $"{existing.Shift.StartTime:HH\\:mm} - {existing.Shift.EndTime:HH\\:mm}.");
-                    }
-                }
+            // Nếu có lỗi BLOCKING thì chặn luôn, không cho override
+            if (allWarnings.Any(w => w.Severity == "BLOCKING"))
+            {
+                throw new InvalidOperationException(
+                    string.Join(" | ", allWarnings
+                        .Where(w => w.Severity == "BLOCKING")
+                        .Select(w => w.Message)));
+            }
 
-                // Check khoang nghi toi thieu
-                var extendedAssignments = await _shiftRepository.GetAssignmentsByUserAsync(
-                    userId, shift.ShiftDate.AddDays(-1), shift.ShiftDate.AddDays(1), cancellationToken);
+            // Nếu có cảnh báo WARNING nhưng chưa xác nhận ghi đè, trả về cho FE
+            if (allWarnings.Any(w => w.Severity == "WARNING") && !request.ForceOverride)
+            {
+                return new AssignStaffResult { Success = false, Warnings = allWarnings };
+            }
 
-                ValidateMinHoursBetweenShifts(shift, extendedAssignments, minHoursBreak, userId);
+            // Đánh dấu override nếu Manager đã xác nhận ghi đè cảnh báo
+            bool shouldMarkOverridden = request.ForceOverride && allWarnings.Any();
 
-                // Check gioi han gio/tuan
-                await ValidateMaxHoursPerWeek(shift, userId, maxHoursPerWeek, cancellationToken);
-
-                // === FIX BUG 2: CHECK SOFT-DELETED TRƯỚC KHI INSERT ===
-                // Neu user da tung duoc gan roi bi xoa => row cu van ton tai (is_deleted = true)
-                // UNIQUE constraint (shift_id, user_id) se CHẶN insert moi
-                // => RESTORE row cu thay vi tao moi
+            // Tạo hoặc khôi phục assignment cho từng nhân viên
+            foreach (var userId in toAdd)
+            {
+                var userInfo = userInfoCache[userId];
                 var deletedAssignment = deletedAssignments.FirstOrDefault(a => a.UserId == userId);
 
                 if (deletedAssignment != null)
                 {
-                    // RESTORE: set lai IsDeleted = false, cap nhat thong tin
+                    // Khôi phục assignment đã bị xóa mềm trước đó
                     deletedAssignment.IsDeleted = false;
                     deletedAssignment.Status = (int)ShiftAssignmentStatus.Assigned;
                     deletedAssignment.HourlyWage = userInfo.CurrentHourlyWage;
+                    deletedAssignment.IsOverridden = shouldMarkOverridden;
+                    deletedAssignment.OverrideReason = shouldMarkOverridden ? request.OverrideReason : null;
+                    deletedAssignment.OverriddenBy = shouldMarkOverridden ? request.OverriddenBy : null;
                     deletedAssignment.UpdatedAt = DateTimeOffset.UtcNow;
 
                     await _shiftRepository.RestoreAssignmentAsync(deletedAssignment, cancellationToken);
@@ -144,7 +158,7 @@ namespace FranchiseService.Application.Features.Shifts.Commands.UpdateShiftAssig
                 }
                 else
                 {
-                    // CREATE: user chua tung duoc gan => INSERT moi binh thuong
+                    // Tạo mới assignment
                     var assignment = new ShiftAssignment
                     {
                         Id = Guid.NewGuid(),
@@ -152,6 +166,9 @@ namespace FranchiseService.Application.Features.Shifts.Commands.UpdateShiftAssig
                         UserId = userId,
                         HourlyWage = userInfo.CurrentHourlyWage,
                         Status = (int)ShiftAssignmentStatus.Assigned,
+                        IsOverridden = shouldMarkOverridden,
+                        OverrideReason = shouldMarkOverridden ? request.OverrideReason : null,
+                        OverriddenBy = shouldMarkOverridden ? request.OverriddenBy : null,
                         CreatedAt = DateTimeOffset.UtcNow,
                         UpdatedAt = DateTimeOffset.UtcNow
                     };
@@ -163,19 +180,19 @@ namespace FranchiseService.Application.Features.Shifts.Commands.UpdateShiftAssig
                 }
             }
 
-            // Luu outbox messages
+            // Lưu outbox messages để gửi thông báo
             foreach (var message in outboxMessages)
             {
                 _outboxRepository.Add(message);
             }
 
-            // Danh thuc OutboxWorker
+            // Đánh thức OutboxWorker xử lý bất đồng bộ
             if (outboxMessages.Any())
             {
                 _outboxSignal.Pulse();
             }
 
-            return Unit.Value;
+            return new AssignStaffResult { Success = true };
         }
 
         // === PRIVATE METHODS ===
@@ -225,106 +242,15 @@ namespace FranchiseService.Application.Features.Shifts.Commands.UpdateShiftAssig
             };
         }
 
+        /// <summary>
+        /// Kiểm tra trạng thái ca làm việc trước khi cho phép phân công
+        /// </summary>
         private static void ValidateShiftStatus(Shift shift)
         {
             if (shift.Status == (int)ShiftStatus.Completed)
                 throw new InvalidOperationException("Khong the gan nhan vien vao ca da hoan thanh.");
             if (shift.Status == (int)ShiftStatus.Cancelled)
                 throw new InvalidOperationException("Khong the gan nhan vien vao ca da huy.");
-        }
-
-        private static void ValidateMinHoursBetweenShifts(
-            Shift newShift,
-            IEnumerable<ShiftAssignment> existingAssignments,
-            int minHoursBreak,
-            Guid userId)
-        {
-            var newShiftStart = newShift.ShiftDate.ToDateTime(newShift.StartTime);
-            var newShiftEnd = newShift.ShiftDate.ToDateTime(newShift.EndTime);
-
-            if (newShift.EndTime <= newShift.StartTime)
-                newShiftEnd = newShiftEnd.AddDays(1);
-
-            foreach (var existing in existingAssignments)
-            {
-                var existStart = existing.Shift.ShiftDate.ToDateTime(existing.Shift.StartTime);
-                var existEnd = existing.Shift.ShiftDate.ToDateTime(existing.Shift.EndTime);
-
-                if (existing.Shift.EndTime <= existing.Shift.StartTime)
-                    existEnd = existEnd.AddDays(1);
-
-                double gapHours;
-                if (newShiftStart >= existEnd)
-                    gapHours = (newShiftStart - existEnd).TotalHours;
-                else if (existStart >= newShiftEnd)
-                    gapHours = (existStart - newShiftEnd).TotalHours;
-                else
-                    continue;
-
-                if (gapHours < minHoursBreak)
-                {
-                    throw new InvalidOperationException(
-                        $"Nhan vien {userId}: Vi pham quy tac nghi toi thieu {minHoursBreak}h giua 2 ca. " +
-                        $"Khoang cach hien tai: {gapHours:F1}h " +
-                        $"(Ca {existing.Shift.StartTime:HH\\:mm}-{existing.Shift.EndTime:HH\\:mm} " +
-                        $"ngay {existing.Shift.ShiftDate}).");
-                }
-            }
-        }
-
-        private async Task ValidateMaxHoursPerWeek(
-            Shift newShift, Guid userId, int maxHoursPerWeek, CancellationToken cancellationToken)
-        {
-            int daysSinceMonday = (int)newShift.ShiftDate.DayOfWeek - (int)DayOfWeek.Monday;
-            if (daysSinceMonday < 0) daysSinceMonday += 7;
-
-            var startOfWeek = newShift.ShiftDate.AddDays(-daysSinceMonday);
-            var endOfWeek = startOfWeek.AddDays(6);
-
-            var weeklyAssignments = await _shiftRepository.GetAssignmentsByUserAsync(
-                userId, startOfWeek, endOfWeek, cancellationToken);
-
-            double totalHoursWorked = weeklyAssignments.Sum(a =>
-                CalculateNetHours(a.Shift.StartTime, a.Shift.EndTime, a.Shift.BreakDurationMinutes));
-
-            double newShiftNetHours = CalculateNetHours(
-                newShift.StartTime, newShift.EndTime, newShift.BreakDurationMinutes);
-
-            if (totalHoursWorked + newShiftNetHours > maxHoursPerWeek)
-            {
-                throw new InvalidOperationException(
-                    $"Nhan vien {userId}: Se vuot qua {maxHoursPerWeek}h/tuan " +
-                    $"(Hien tai: {totalHoursWorked:F1}h + Ca moi: {newShiftNetHours:F1}h = " +
-                    $"{totalHoursWorked + newShiftNetHours:F1}h).");
-            }
-        }
-
-        private static bool IsOverlap(TimeOnly s1, TimeOnly e1, TimeOnly s2, TimeOnly e2)
-        {
-            int start1 = s1.Hour * 60 + s1.Minute;
-            int end1 = e1.Hour * 60 + e1.Minute;
-            if (end1 <= start1) end1 += 1440;
-
-            int start2 = s2.Hour * 60 + s2.Minute;
-            int end2 = e2.Hour * 60 + e2.Minute;
-            if (end2 <= start2) end2 += 1440;
-
-            return start1 < end2 && end1 > start2;
-        }
-
-        private static double CalculateNetHours(TimeOnly start, TimeOnly end, int breakDurationMinutes)
-        {
-            double grossHours;
-            if (end <= start)
-            {
-                grossHours = (1440 - (start.Hour * 60 + start.Minute) + (end.Hour * 60 + end.Minute)) / 60.0;
-            }
-            else
-            {
-                grossHours = (end.Hour * 60 + end.Minute - start.Hour * 60 - start.Minute) / 60.0;
-            }
-
-            return Math.Max(0, grossHours - (breakDurationMinutes / 60.0));
         }
     }
 }

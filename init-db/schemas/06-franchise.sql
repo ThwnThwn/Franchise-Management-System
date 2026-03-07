@@ -163,6 +163,11 @@ CREATE TABLE IF NOT EXISTS shift_assignments (
     
     -- Lưu lại wage tại thời điểm gán (snapshot)
     hourly_wage DECIMAL(10, 2),
+
+    is_overridden BOOLEAN DEFAULT FALSE,
+    override_reason TEXT,
+    overridden_by UUID,
+
     
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -191,6 +196,11 @@ CREATE TABLE IF NOT EXISTS shift_rules (
     -- Các rule mở rộng khác
     min_hours_between_shifts INT DEFAULT 8,   -- Nghỉ tối thiểu 8h giữa 2 ca
     max_hours_per_week INT DEFAULT 48,        -- Tối đa giờ làm/tuần
+
+    grace_period_minutes INT DEFAULT 5,
+    daily_ot_threshold_hours INT DEFAULT 8,
+    weekly_ot_threshold_hours INT DEFAULT 40,
+
     
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -256,11 +266,12 @@ CREATE TABLE IF NOT EXISTS time_logs (
     -- Check-out
     check_out_at TIMESTAMP WITH TIME ZONE,
     check_out_image_url VARCHAR(500),
+    -- Số phút làm việc thường và tăng ca (Overtime)
+    regular_minutes INT DEFAULT 0,
+    daily_ot_minutes INT DEFAULT 0,
+    weekly_ot_minutes INT DEFAULT 0,
     check_out_lat DECIMAL(10,8),
     check_out_long DECIMAL(11,8),
-    
-    -- Result
-    total_work_minutes INT DEFAULT 0,
     
     -- 0: Processing, 1: Valid, 2: Invalid
     status INT DEFAULT 0,
@@ -290,3 +301,96 @@ CREATE TABLE IF NOT EXISTS outbox_messages (
 );
 
 CREATE INDEX ix_outbox_messages_processed_on ON outbox_messages(processed_on) WHERE processed_on IS NULL;
+
+-- ========================================================
+-- 11. SHIFT APPLICATIONS (Don dang ky nhan ca tu Cho Ca)
+-- Nhan vien thay ca dang mo (Open) tren App, bam "Dang ky"
+-- Manager vao Web xem danh sach don roi Duyet hoac Tu choi
+-- ========================================================
+CREATE TABLE IF NOT EXISTS shift_applications (
+    -- Khoa chinh
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+
+    -- Ca lam viec ma nhan vien muon dang ky nhan
+    shift_id UUID NOT NULL,
+
+    -- ID nhan vien gui don dang ky (tu Identity Service)
+    user_id UUID NOT NULL,
+
+    -- Trang thai don dang ky:
+    -- 0: Pending  (Dang cho Manager duyet)
+    -- 1: Approved (Manager da duyet, tu dong tao ShiftAssignment)
+    -- 2: Rejected (Manager tu choi)
+    status INT DEFAULT 0,
+
+    -- Ghi chu cua nhan vien khi dang ky (vi du: "Em ranh ca nay, xin nhan")
+    note TEXT,
+
+    -- Thoi diem nhan vien bam nut "Dang ky nhan ca"
+    applied_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+
+    -- Thoi diem Manager duyet hoac tu choi don
+    reviewed_at TIMESTAMP WITH TIME ZONE,
+
+    -- ID cua Manager da duyet/tu choi don nay
+    reviewed_by UUID,
+
+    -- Ghi chu cua Manager khi duyet/tu choi (vi du: "Tu choi vi da du nguoi")
+    review_note TEXT,
+
+    -- Truong audit chuan
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    is_deleted BOOLEAN DEFAULT FALSE,
+
+    -- Rang buoc: don phai thuoc ve 1 ca ton tai
+    CONSTRAINT fk_applications_shift FOREIGN KEY (shift_id) REFERENCES shifts(id),
+
+    -- Rang buoc: 1 nhan vien chi duoc dang ky 1 lan cho moi ca
+    CONSTRAINT uq_application_user_shift UNIQUE (shift_id, user_id)
+);
+
+-- Index de truy van nhanh theo ca (Manager xem danh sach ung vien cua 1 ca)
+CREATE INDEX idx_applications_shift ON shift_applications(shift_id);
+
+-- Index de truy van nhanh theo nhan vien (xem lich su dang ky cua 1 nguoi)
+CREATE INDEX idx_applications_user ON shift_applications(user_id);
+
+-- ========================================================
+-- 10. SHIFT SWAP REQUESTS (Yeu cau doi ca)
+-- ========================================================
+CREATE TABLE IF NOT EXISTS shift_swap_requests (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+
+    -- A: nguoi gui yeu cau doi ca
+    source_assignment_id UUID NOT NULL,
+    source_user_id UUID NOT NULL,
+
+    -- B: nguoi duoc yeu cau nhan ca
+    target_user_id UUID NOT NULL,
+
+    -- Trang thai State Machine (0=PendingTarget, 1=PendingManager, 2=Approved, 3=Rejected, 4=Expired, 5=Cancelled)
+    status INT NOT NULL DEFAULT 0,
+
+    -- Ly do gui yeu cau (bat buoc)
+    reason VARCHAR(500) NOT NULL,
+
+    -- Ly do tu choi
+    reject_reason VARCHAR(500),
+
+    -- Thoi han B phai tra loi
+    expires_at TIMESTAMPTZ NOT NULL,
+
+    -- Ai duyet (Manager)
+    reviewed_by UUID,
+    reviewed_at TIMESTAMPTZ,
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
+
+    CONSTRAINT fk_swap_source_assignment FOREIGN KEY (source_assignment_id) REFERENCES shift_assignments(id)
+);
+
+CREATE INDEX idx_swap_source_user ON shift_swap_requests(source_user_id, status);
+CREATE INDEX idx_swap_target_user ON shift_swap_requests(target_user_id, status);

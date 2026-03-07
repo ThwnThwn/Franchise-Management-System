@@ -22,12 +22,20 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
         builder.Configuration.AddEnvironmentVariables();
 
-        // Configure Kestrel
+        // Configure Kestrel: 2 cổng riêng biệt
+        var supplierPort = int.Parse(builder.Configuration["SUPPLIER_PORT"] ?? "5004");
         builder.WebHost.ConfigureKestrel(options =>
         {
-            options.ConfigureEndpointDefaults(listenOptions =>
+            // Port SUPPLIER_PORT: gRPC (HTTP/2 only - bắt buộc cho gRPC)
+            options.ListenAnyIP(supplierPort, listenOptions =>
             {
                 listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2;
+            });
+
+            // Port 5023: REST API (HTTP/1.1 - cho VNPay ReturnUrl + IPN)
+            options.ListenAnyIP(5023, listenOptions =>
+            {
+                listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1;
             });
         });
 

@@ -8,6 +8,8 @@ import (
 	engagementPb "api-gateway/pkg/pb/engagement"
 	"api-gateway/pkg/utils/stringutils"
 	"api-gateway/pkg/utils/timeutils"
+
+	"github.com/google/uuid"
 )
 
 type loyaltyAccountGrpcClient struct {
@@ -60,7 +62,7 @@ func (l *loyaltyAccountGrpcClient) GetByUserPhoneOrEmail(ctx context.Context, re
 
 // GetLoyaltyReport implements engagement.ILoyaltyAccountService.
 func (l *loyaltyAccountGrpcClient) GetLoyaltyReport(ctx context.Context, req *loyalty.GetLoyaltyReportRequest) (
-	*loyalty.LoyaltyReportResponse, error,
+	*loyalty.LoyaltyReportResponse, *loyalty.LoyaltyExportResponse, error,
 ) {
 	res, err := l.client.GetLoyaltyReport(ctx, &engagementPb.GetLoyaltyReportRequest{
 		FromDate: timeutils.ParseStringPtrToTimestamp(req.FromDate),
@@ -69,9 +71,18 @@ func (l *loyaltyAccountGrpcClient) GetLoyaltyReport(ctx context.Context, req *lo
 		Format:   engagementPb.ExportFormat(req.Format),
 	})
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
+	// Nếu là EXPORT (PDF=1, CSV=2)
+	if req.Format != 0 {
+		return nil, &loyalty.LoyaltyExportResponse{
+			FileName:    res.FileName,
+			FileContent: res.FileContent,
+		}, nil
+	}
+
+	// Nếu là VIEW (0)
 	tiers := make([]*loyalty.TierDistribution, 0, len(res.TierDistribution))
 	for _, item := range res.TierDistribution {
 		tiers = append(tiers, &loyalty.TierDistribution{
@@ -84,8 +95,15 @@ func (l *loyaltyAccountGrpcClient) GetLoyaltyReport(ctx context.Context, req *lo
 		TotalMembers:        res.TotalMembers,
 		TotalPointsEarned:   res.TotalPointsEarned,
 		TotalPointsRedeemed: res.TotalPointsRedeemed,
-		FileContent:         res.FileContent,
-		FileName:            res.FileName,
 		TierDistribution:    tiers,
-	}, nil
+	}, nil, nil
+}
+
+// RedeemVoucher implements engagement.ILoyaltyAccountService.
+func (l *loyaltyAccountGrpcClient) RedeemVoucher(ctx context.Context, userId uuid.UUID, voucherId uuid.UUID) error {
+	_, err := l.client.RedeemVoucher(ctx, &engagementPb.RedeemVoucherRequest{
+		AccountId: userId.String(),
+		VoucherId: voucherId.String(),
+	})
+	return err
 }

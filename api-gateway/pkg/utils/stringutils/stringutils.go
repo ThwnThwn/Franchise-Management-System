@@ -59,6 +59,15 @@ func UuidPtrToStr(in *uuid.UUID) string {
 	return in.String()
 }
 
+func UuidPtrToStringPtr(in *uuid.UUID) *string {
+	if in == nil || *in == uuid.Nil {
+		return nil
+	}
+
+	s := in.String()
+	return &s
+}
+
 func ToPtr(s string) *string {
 	if s == "" {
 		return nil

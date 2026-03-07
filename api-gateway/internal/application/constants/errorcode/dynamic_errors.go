@@ -17,3 +17,11 @@ func NewNotFound(detail string) error {
 		Detail: detail,
 	}
 }
+
+func NewInternalError(detail string) error {
+	return &ErrorResponse{
+		Status: http.StatusInternalServerError,
+		Title:  "Lỗi hệ thống",
+		Detail: detail,
+	}
+}

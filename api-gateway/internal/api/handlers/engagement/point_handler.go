@@ -12,12 +12,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type PointLogHandler struct {
+type PointHandler struct {
 	pointGW engagement.IPointLogService
 }
 
-func NewPointLogHandler(pointGW engagement.IPointLogService) *PointLogHandler {
-	return &PointLogHandler{
+func NewPointHandler(pointGW engagement.IPointLogService) *PointHandler {
+	return &PointHandler{
 		pointGW: pointGW,
 	}
 }
@@ -25,7 +25,7 @@ func NewPointLogHandler(pointGW engagement.IPointLogService) *PointLogHandler {
 // GetMyPointLogs
 // @Summary      Get My Point History
 // @Description  Retrieve pagination list of point transaction logs for the current authenticated user.
-// @Tags         Loyalty - Points
+// @Tags         Points
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
@@ -33,7 +33,7 @@ func NewPointLogHandler(pointGW engagement.IPointLogService) *PointLogHandler {
 // @Success      200    {object}  common.PaginationResult[point.LogResponse] "List of point logs"
 // @Failure      401    {object}  map[string]string                          "Unauthorized"
 // @Router       /me/points/logs [get]
-func (h *PointLogHandler) GetMyPointLogs(c *gin.Context) error {
+func (h *PointHandler) GetMyPointLogs(c *gin.Context) error {
 	var req point.GetMyPointLogRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
 		return validation.TranslateValidationError(err)

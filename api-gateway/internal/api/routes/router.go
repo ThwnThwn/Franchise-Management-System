@@ -64,6 +64,8 @@ func NewEngine(cfg *config.Config, aR *AppRouter) *gin.Engine {
 		// Sales
 		aR.OrderRouter.Init(MainGroup)
 		aR.CartRouter.Init(MainGroup)
+		aR.WalletRouter.Init(MainGroup)
+		aR.RefundRouter.Init(MainGroup)
 	}
 
 	return r

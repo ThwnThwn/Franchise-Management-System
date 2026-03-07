@@ -1,70 +1,104 @@
 using FranchiseService.Application.Persistences.Repositories;
-using FranchiseService.Application.Repositories;
+using FranchiseService.Application.Services;
 using FranchiseService.Domain.Entities;
 using FranchiseService.Domain.Enums;
 using MediatR;
+using SharedKernel.Constants;
 
 namespace FranchiseService.Application.Features.Shifts.Commands.CheckIn;
 
 /// <summary>
-/// Handler xử lý Check-in.
-/// Tận dụng GenericRepository để thao tác với TimeLog và ShiftAssignment.
+/// Handler xu ly Check-in.
+/// Kiem tra quyen, trang thai ca, ap dung Grace Period, va tao ban ghi TimeLog.
 /// </summary>
 public class CheckInHandler : IRequestHandler<CheckInCommand, Guid>
 {
     private readonly IGenericRepository<TimeLog> _timeLogRepository;
     private readonly IGenericRepository<ShiftAssignment> _assignmentRepository;
     private readonly IGenericRepository<Shift> _shiftRepository;
+    private readonly IShiftRuleService _shiftRuleService;
 
     public CheckInHandler(
         IGenericRepository<TimeLog> timeLogRepository,
         IGenericRepository<ShiftAssignment> assignmentRepository,
-        IGenericRepository<Shift> shiftRepository)
+        IGenericRepository<Shift> shiftRepository,
+        IShiftRuleService shiftRuleService)
     {
         _timeLogRepository = timeLogRepository;
         _assignmentRepository = assignmentRepository;
         _shiftRepository = shiftRepository;
+        _shiftRuleService = shiftRuleService;
     }
 
     public async Task<Guid> Handle(CheckInCommand request, CancellationToken cancellationToken)
     {
-        // 1. Validate phân công tồn tại và thuộc về user
+        // 1. Validate phan cong ton tai va thuoc ve user
         var assignment = await _assignmentRepository.GetByIdAsync(request.AssignmentId)
             ?? throw new KeyNotFoundException(
-                $"Không tìm thấy phân công ca làm việc: {request.AssignmentId}");
+                $"Khong tim thay phan cong ca lam viec: {request.AssignmentId}");
 
         if (assignment.UserId != request.UserId)
-            throw new UnauthorizedAccessException("Bạn không có quyền chấm công cho ca này.");
+            throw new UnauthorizedAccessException("Ban khong co quyen cham cong cho ca nay.");
 
-        // Kiểm tra ca làm việc phải ở trạng thái đã xuất bản mới cho phép check in
+        // 2. Kiem tra ca lam viec phai o trang thai Published moi cho phep check-in
         var shift = await _shiftRepository.GetByIdAsync(assignment.ShiftId)
-            ?? throw new KeyNotFoundException("Không tìm thấy ca làm việc.");
+            ?? throw new KeyNotFoundException("Khong tim thay ca lam viec.");
 
         if (shift.Status != (int)ShiftStatus.Published)
-            throw new InvalidOperationException("Chỉ có thể check in khi ca làm việc đã được phát hành.");
+            throw new InvalidOperationException("Chi co the check-in khi ca lam viec da duoc phat hanh.");
 
-        // 2. Kiểm tra chưa check-in trước đó để tránh tạo trùng TimeLog
+        // 3. Chuyen doi gio ca lam viec tu gio Viet Nam sang UTC
+        var vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById(TimeConstants.DefaultTimeZoneId);
+        var shiftLocalStart = shift.ShiftDate.ToDateTime(shift.StartTime);
+        var shiftStartUtc = TimeZoneInfo.ConvertTimeToUtc(shiftLocalStart, vnTimeZone);
+        var shiftLocalEnd = shift.ShiftDate.ToDateTime(shift.EndTime);
+        var shiftEndUtc = TimeZoneInfo.ConvertTimeToUtc(shiftLocalEnd, vnTimeZone);
+        var now = DateTime.UtcNow;
+
+        // 4. Validate: khong cho check-in qua som (truoc gio bat dau ca toi da 30 phut)
+        var earliestAllowed = shiftStartUtc.AddMinutes(-TimeConstants.MaxEarlyCheckInMinutes);
+        if (now < earliestAllowed)
+            throw new InvalidOperationException(
+                $"Chua den gio check-in. Ban chi co the check-in som nhat {TimeConstants.MaxEarlyCheckInMinutes} phut truoc gio bat dau ca.");
+
+        // 5. Validate: khong cho check-in sau khi ca da ket thuc
+        if (now > shiftEndUtc)
+            throw new InvalidOperationException("Ca lam viec da ket thuc, khong the check-in.");
+
+        // 6. Kiem tra chua check-in truoc do de tranh tao trung TimeLog
         var existingLogs = await _timeLogRepository.GetAllAsync(
             predicate: tl => tl.ShiftAssignmentId == request.AssignmentId);
 
         if (existingLogs.Any(tl => tl.CheckOutAt == null))
-            throw new InvalidOperationException("Bạn đã check-in rồi. Hãy check-out trước.");
+            throw new InvalidOperationException("Ban da check-in roi. Hay check-out truoc.");
 
-        // 3. Tạo TimeLog mới
+        // 7. Xu ly Grace Period: lay Rule hieu luc cua Store
+        var storeRule = await _shiftRuleService.GetEffectiveRuleAsync(shift.StoreId);
+        int gracePeriod = storeRule?.GracePeriodMinutes ?? 0;
+
+        var effectiveCheckIn = now;
+
+        // Neu nhan vien di tre nhung van trong khoang cho phep (Grace Period)
+        // thi he thong lam tron ve dung gio bat dau ca (tranh tru luong oan)
+        if (now > shiftStartUtc && (now - shiftStartUtc).TotalMinutes <= gracePeriod)
+        {
+            effectiveCheckIn = shiftStartUtc;
+        }
+
+        // 8. Tao TimeLog moi
         var timeLog = new TimeLog
         {
             Id = Guid.NewGuid(),
             ShiftAssignmentId = request.AssignmentId,
-            CheckInAt = DateTime.UtcNow, // Lưu UTC time để đồng bộ FE
+            CheckInAt = effectiveCheckIn,
             CheckInLat = request.Latitude,
             CheckInLong = request.Longitude,
             Status = (int)TimeLogStatus.Processing,
-            ManagerNote = request.Note, // Lưu note nhân viên/hệ thống tạm thời vào đây theo Cách 1
+            ManagerNote = request.Note,
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow
         };
 
-        // Hàm AddAsync từ GenericRepository đã tự động gọi SaveChangesAsync
         await _timeLogRepository.AddAsync(timeLog);
 
         return timeLog.Id;

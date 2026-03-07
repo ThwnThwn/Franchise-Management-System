@@ -17,7 +17,7 @@ DECLARE
     r_customer UUID := 'e2000000-0000-0000-0000-000000000004';
     
     s_ids UUID[] := ARRAY['b7ac8328-2ca3-470d-80ca-15444eeab2dd', 'e1488c32-1e33-498f-9130-9e13f841c8ea', 'da4aa30d-be1e-4e1e-874a-feaec06c6169'];
-    u_staff_ids UUID[] := ARRAY['99999999-9999-9999-9999-999999999999', '88888888-8888-8888-8888-888888888888', '77777777-7777-7777-7777-777777777777'];
+    u_staff_ids UUID[] := ARRAY['99999999-9999-9999-9999-999999999999', '88888888-8888-8888-8888-888888888888', '77777777-7777-7777-7777-777777777777', '66666666-6666-6666-6666-666666666666'];
     
     -- 15 ID mẫu cho Customer
     cust_sample_ids UUID[] := ARRAY[
@@ -51,10 +51,10 @@ BEGIN
 
     -- 3. 19 Staff
     FOR i IN 1..19 LOOP
-        IF i <= 3 THEN
+        IF i <= 4 THEN
             INSERT INTO users (id, first_name, last_name, email, username, password, role_id, date_of_birth, home_store_id)
             VALUES (u_staff_ids[i], 'Staff Spec', i, 'staff' || i || '@cahongban.com', 'staff' || LPAD(i::text, 2, '0'), 
-            pass_hash, r_staff, '1998-01-01', s_ids[i]) ON CONFLICT DO NOTHING;
+            pass_hash, r_staff, '1998-01-01', s_ids[(i-1) % 3 + 1]) ON CONFLICT DO NOTHING;
         ELSE
             INSERT INTO users (first_name, last_name, email, username, password, role_id, date_of_birth, home_store_id)
             VALUES ('Staff', i, 'staff' || i || '@cahongban.com', 'staff' || LPAD(i::text, 2, '0'), 

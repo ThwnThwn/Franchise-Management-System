@@ -29,8 +29,8 @@ type RefundTicketGrpcServiceClient interface {
 	CancelRefund(ctx context.Context, in *CancelRefundRequest, opts ...grpc.CallOption) (*CancelRefundResponse, error)
 	GetRefundById(ctx context.Context, in *GetRefundByIdRequest, opts ...grpc.CallOption) (*GetRefundByIdResponse, error)
 	GetAllRefunds(ctx context.Context, in *GetAllRefundsRequest, opts ...grpc.CallOption) (*GetAllRefundsResponse, error)
-	GetRefundByStatus(ctx context.Context, in *GetRefundByStatusRequest, opts ...grpc.CallOption) (*GetRefundByStatusResponse, error)
-	GetRefundByUserId(ctx context.Context, in *GetRefundByUserIdRequest, opts ...grpc.CallOption) (*GetRefundByUserIdResponse, error)
+	// rpc GetRefundByStatus(GetRefundByStatusRequest) returns (GetRefundByStatusResponse);
+	// rpc GetRefundByUserId(GetRefundByUserIdRequest) returns (GetRefundByUserIdResponse);
 	SetCompleteRefund(ctx context.Context, in *SetCompleteRefundRequest, opts ...grpc.CallOption) (*SetCompleteRefundResponse, error)
 }
 
@@ -105,24 +105,6 @@ func (c *refundTicketGrpcServiceClient) GetAllRefunds(ctx context.Context, in *G
 	return out, nil
 }
 
-func (c *refundTicketGrpcServiceClient) GetRefundByStatus(ctx context.Context, in *GetRefundByStatusRequest, opts ...grpc.CallOption) (*GetRefundByStatusResponse, error) {
-	out := new(GetRefundByStatusResponse)
-	err := c.cc.Invoke(ctx, "/refund.RefundTicketGrpcService/GetRefundByStatus", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *refundTicketGrpcServiceClient) GetRefundByUserId(ctx context.Context, in *GetRefundByUserIdRequest, opts ...grpc.CallOption) (*GetRefundByUserIdResponse, error) {
-	out := new(GetRefundByUserIdResponse)
-	err := c.cc.Invoke(ctx, "/refund.RefundTicketGrpcService/GetRefundByUserId", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *refundTicketGrpcServiceClient) SetCompleteRefund(ctx context.Context, in *SetCompleteRefundRequest, opts ...grpc.CallOption) (*SetCompleteRefundResponse, error) {
 	out := new(SetCompleteRefundResponse)
 	err := c.cc.Invoke(ctx, "/refund.RefundTicketGrpcService/SetCompleteRefund", in, out, opts...)
@@ -143,8 +125,8 @@ type RefundTicketGrpcServiceServer interface {
 	CancelRefund(context.Context, *CancelRefundRequest) (*CancelRefundResponse, error)
 	GetRefundById(context.Context, *GetRefundByIdRequest) (*GetRefundByIdResponse, error)
 	GetAllRefunds(context.Context, *GetAllRefundsRequest) (*GetAllRefundsResponse, error)
-	GetRefundByStatus(context.Context, *GetRefundByStatusRequest) (*GetRefundByStatusResponse, error)
-	GetRefundByUserId(context.Context, *GetRefundByUserIdRequest) (*GetRefundByUserIdResponse, error)
+	// rpc GetRefundByStatus(GetRefundByStatusRequest) returns (GetRefundByStatusResponse);
+	// rpc GetRefundByUserId(GetRefundByUserIdRequest) returns (GetRefundByUserIdResponse);
 	SetCompleteRefund(context.Context, *SetCompleteRefundRequest) (*SetCompleteRefundResponse, error)
 	mustEmbedUnimplementedRefundTicketGrpcServiceServer()
 }
@@ -173,12 +155,6 @@ func (UnimplementedRefundTicketGrpcServiceServer) GetRefundById(context.Context,
 }
 func (UnimplementedRefundTicketGrpcServiceServer) GetAllRefunds(context.Context, *GetAllRefundsRequest) (*GetAllRefundsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAllRefunds not implemented")
-}
-func (UnimplementedRefundTicketGrpcServiceServer) GetRefundByStatus(context.Context, *GetRefundByStatusRequest) (*GetRefundByStatusResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetRefundByStatus not implemented")
-}
-func (UnimplementedRefundTicketGrpcServiceServer) GetRefundByUserId(context.Context, *GetRefundByUserIdRequest) (*GetRefundByUserIdResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetRefundByUserId not implemented")
 }
 func (UnimplementedRefundTicketGrpcServiceServer) SetCompleteRefund(context.Context, *SetCompleteRefundRequest) (*SetCompleteRefundResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetCompleteRefund not implemented")
@@ -323,42 +299,6 @@ func _RefundTicketGrpcService_GetAllRefunds_Handler(srv interface{}, ctx context
 	return interceptor(ctx, in, info, handler)
 }
 
-func _RefundTicketGrpcService_GetRefundByStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetRefundByStatusRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(RefundTicketGrpcServiceServer).GetRefundByStatus(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/refund.RefundTicketGrpcService/GetRefundByStatus",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RefundTicketGrpcServiceServer).GetRefundByStatus(ctx, req.(*GetRefundByStatusRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _RefundTicketGrpcService_GetRefundByUserId_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetRefundByUserIdRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(RefundTicketGrpcServiceServer).GetRefundByUserId(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/refund.RefundTicketGrpcService/GetRefundByUserId",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RefundTicketGrpcServiceServer).GetRefundByUserId(ctx, req.(*GetRefundByUserIdRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _RefundTicketGrpcService_SetCompleteRefund_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SetCompleteRefundRequest)
 	if err := dec(in); err != nil {
@@ -411,14 +351,6 @@ var RefundTicketGrpcService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAllRefunds",
 			Handler:    _RefundTicketGrpcService_GetAllRefunds_Handler,
-		},
-		{
-			MethodName: "GetRefundByStatus",
-			Handler:    _RefundTicketGrpcService_GetRefundByStatus_Handler,
-		},
-		{
-			MethodName: "GetRefundByUserId",
-			Handler:    _RefundTicketGrpcService_GetRefundByUserId_Handler,
 		},
 		{
 			MethodName: "SetCompleteRefund",

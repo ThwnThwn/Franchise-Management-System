@@ -22,8 +22,10 @@ namespace IdentityService.Application.Mappers
 
             CreateMap<UpdateUserReq, User>()
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+
             CreateMap<AdminCreateUserReq, User>()
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+
             CreateMap<ChangePasswordReq, User>();
 
             CreateMap<User, UserRep>()

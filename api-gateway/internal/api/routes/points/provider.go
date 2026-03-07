@@ -9,13 +9,13 @@ import (
 type PointLogRouter struct {
 	cfg     *config.Config
 	authMW  *middleware.AuthMiddleware
-	pointHl *engagement.PointLogHandler
+	pointHl *engagement.PointHandler
 }
 
 func NewRouter(
 	cfg *config.Config,
 	authMW *middleware.AuthMiddleware,
-	pointHl *engagement.PointLogHandler,
+	pointHl *engagement.PointHandler,
 ) *PointLogRouter {
 	return &PointLogRouter{
 		cfg:     cfg,

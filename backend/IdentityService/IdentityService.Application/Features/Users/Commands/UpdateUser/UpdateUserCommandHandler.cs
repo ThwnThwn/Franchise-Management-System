@@ -34,19 +34,20 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, UserR
         //Fix duplicate email check (allow same email for same user)
         var existingUser = await _userRepository.GetByEmailAsync(request.Email);
         if (existingUser != null && existingUser.Id != command.Id)
-            throw new ConflictDuplicateException(Message.UserMessage.ExistingUser);
-        //Check username
+            throw new ConflictDuplicateException($"Email '{request.Email}' đã tồn tại");
+
         existingUser = await _userRepository.GetByUsernameAsync(request.Username);
-        if (existingUser != null)
-            throw new ConflictDuplicateException(Message.UserMessage.ExistingUser);
-        //Check phone 
+        if (existingUser != null && existingUser.Id != command.Id)
+            throw new ConflictDuplicateException($"Username '{request.Username}' đã tồn tại");
+
         existingUser = await _userRepository.GetByPhoneAsync(request.Phone);
-        if (existingUser != null)
-            throw new ConflictDuplicateException($"Username '{request.Username}' already exists");
+        if (existingUser != null && existingUser.Id != command.Id)
+            throw new ConflictDuplicateException($"Số điện thoại '{request.Phone}' đã tồn tại");
+
         if (!string.IsNullOrEmpty(request.RoleSlug))
         {
             _ = await _roleRepository.GetBySlugAsync(request.RoleSlug)
-                ?? throw new Exception("Slug" + request.RoleSlug + " not found");
+                ?? throw new Exception($"Không tìm thấy vai trò '{request.RoleSlug}'");
         }
 
         var user = await _userRepository.GetByIdAsync(command.Id)

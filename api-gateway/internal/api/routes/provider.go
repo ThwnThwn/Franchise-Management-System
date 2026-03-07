@@ -14,6 +14,7 @@ import (
 	"api-gateway/internal/api/routes/points"
 	"api-gateway/internal/api/routes/products"
 	"api-gateway/internal/api/routes/recipes"
+	"api-gateway/internal/api/routes/refunds"
 	"api-gateway/internal/api/routes/roles"
 	"api-gateway/internal/api/routes/shifts"
 	"api-gateway/internal/api/routes/stores"
@@ -21,6 +22,7 @@ import (
 	"api-gateway/internal/api/routes/users"
 	"api-gateway/internal/api/routes/variants"
 	"api-gateway/internal/api/routes/vouchers"
+	"api-gateway/internal/api/routes/wallets"
 
 	"github.com/google/wire"
 )
@@ -55,6 +57,8 @@ type AppRouter struct {
 	// Sales
 	*orders.OrderRouter
 	*carts.CartRouter
+	*wallets.WalletRouter
+	*refunds.RefundRouter
 }
 
 var RouterSet = wire.NewSet(
@@ -89,4 +93,6 @@ var RouterSet = wire.NewSet(
 	// Sales
 	orders.NewRouter,
 	carts.NewRouter,
+	wallets.NewRouter,
+	refunds.NewRouter,
 )

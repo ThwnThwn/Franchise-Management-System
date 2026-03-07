@@ -134,5 +134,14 @@ namespace EngagementService.Infrastucture.Persistences.Repository
                 dbVoucher.EndDate = updateRequest.EndDate;
             }
         }
+
+        public async Task<Voucher?> GetForUpdateAsync(Guid voucherId, CancellationToken cancellationToken)
+        {
+            var voucher = await _dbContext.Vouchers
+                .FromSqlRaw("SELECT * FROM vouchers WHERE id = {0} FOR UPDATE", voucherId)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            return voucher;
+        }
     }
 }

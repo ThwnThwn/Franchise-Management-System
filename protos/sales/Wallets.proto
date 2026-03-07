@@ -14,7 +14,7 @@ service WalletGrpc {
   rpc GetWalletByUserId (GetWalletByUserIdRequest) returns (GetWalletByUserIdResponse);
   rpc DepositWallet (DepositWalletRequest) returns (DepositWalletResponse);
   rpc DepositVnPayReturn (DepositVnPayReturnRequest) returns (DepositVnPayReturnResponse);
-  rpc WithdrawWallet (WithdrawWalletRequest) returns (WithdrawWalletResponse);
+  // rpc WithdrawWallet (WithdrawWalletRequest) returns (WithdrawWalletResponse);
 }
 
 /* ================= ENUMS ================= */

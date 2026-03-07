@@ -53,6 +53,9 @@ public class GetShiftRuleSettingsHandler : IRequestHandler<GetShiftRuleSettingsQ
             AllowShiftSwap = entity.AllowShiftSwap,
             MinHoursBetweenShifts = entity.MinHoursBetweenShifts,
             MaxHoursPerWeek = entity.MaxHoursPerWeek,
+            GracePeriodMinutes = entity.GracePeriodMinutes,
+            DailyOtThresholdHours = entity.DailyOtThresholdHours,
+            WeeklyOtThresholdHours = entity.WeeklyOtThresholdHours,
             UpdatedAt = entity.UpdatedAt
         };
     }

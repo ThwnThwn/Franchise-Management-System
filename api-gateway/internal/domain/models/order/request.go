@@ -57,3 +57,16 @@ type GetOrderVolumeRequest struct {
 	StoreId  *string           `form:"storeId"`
 	Status   *enum.OrderStatus `form:"status"`
 }
+
+type GetSalesTrendRequest struct {
+	// Thời gian bắt đầu. Bắt buộc nhập.
+	FromDate string `form:"fromDate" binding:"required" example:"2024-03-01T00:00:00Z"`
+	// Thời gian kết thúc. Bắt buộc nhập.
+	ToDate string `form:"toDate" binding:"required" example:"2024-03-05T23:59:59Z"`
+	// Mức độ gom nhóm dữ liệu. 0 = Hour, 1 = Day, 2 = Week.
+	Aggregation int32 `form:"aggregation" enums:"0,1,2" default:"1" example:"1"`
+	// ID Cửa hàng (Tùy chọn)
+	StoreId *string `form:"storeId" example:"123e4567-e89b-12d3-a456-426614174000"`
+	// ID Danh mục sản phẩm (Tùy chọn)
+	CategoryId *string `form:"categoryId" example:"cat-001"`
+}

@@ -17,5 +17,8 @@ func (l *LoyaltyRouter) Init(r *gin.RouterGroup) {
 
 		privateApi.GET("/reports", l.authMW.PermissionCheck("loyalty-account.read"),
 			api.WrapHandler(l.loyaltyHl.GetLoyaltyReport))
+
+		privateApi.GET("/reports/export", l.authMW.PermissionCheck("loyalty-account.read"),
+			api.WrapHandler(l.loyaltyHl.ExportLoyaltyReport))
 	}
 }

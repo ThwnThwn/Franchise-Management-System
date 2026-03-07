@@ -1,51 +1,80 @@
 using FranchiseService.Application.Persistences.Repositories;
+using FranchiseService.Application.Services;
 using FranchiseService.Domain.Entities;
 using FranchiseService.Domain.Enums;
 using MediatR;
+using SharedKernel.Constants;
 
 namespace FranchiseService.Application.Features.Shifts.Commands.CheckOut;
 
 /// <summary>
-/// Handler xử lý Check-out.
-/// Cập nhật TimeLog đã tạo khi Check-in: thêm thời gian checkout, tọa độ, và tính tổng số phút làm việc.
+/// Handler xu ly Check-out.
+/// Cap nhat TimeLog: thoi gian checkout, toa do, va tinh toan phan bo OT.
 /// </summary>
 public class CheckOutHandler : IRequestHandler<CheckOutCommand, bool>
 {
     private readonly IGenericRepository<TimeLog> _timeLogRepository;
     private readonly IGenericRepository<ShiftAssignment> _assignmentRepository;
+    private readonly IGenericRepository<Shift> _shiftRepository;
+    private readonly IShiftRuleService _shiftRuleService;
+    private readonly IOvertimeCalculationService _overtimeService;
 
     public CheckOutHandler(
         IGenericRepository<TimeLog> timeLogRepository,
-        IGenericRepository<ShiftAssignment> assignmentRepository)
+        IGenericRepository<ShiftAssignment> assignmentRepository,
+        IGenericRepository<Shift> shiftRepository,
+        IShiftRuleService shiftRuleService,
+        IOvertimeCalculationService overtimeService)
     {
         _timeLogRepository = timeLogRepository;
         _assignmentRepository = assignmentRepository;
+        _shiftRepository = shiftRepository;
+        _shiftRuleService = shiftRuleService;
+        _overtimeService = overtimeService;
     }
 
     public async Task<bool> Handle(CheckOutCommand request, CancellationToken cancellationToken)
     {
-        // 1. Tìm bản ghi TimeLog
+        // 1. Tim ban ghi TimeLog
         var timeLog = await _timeLogRepository.GetByIdAsync(request.LogId)
-             ?? throw new KeyNotFoundException($"Không tìm thấy bản ghi chấm công: {request.LogId}");
+             ?? throw new KeyNotFoundException($"Khong tim thay ban ghi cham cong: {request.LogId}");
 
-        // 2. Validate quyền sở hữu qua bản ghi ShiftAssignment
+        // 2. Validate quyen so huu qua ban ghi ShiftAssignment
         var assignment = await _assignmentRepository.GetByIdAsync(timeLog.ShiftAssignmentId)
-             ?? throw new KeyNotFoundException("Không tìm thấy phân công ca.");
+             ?? throw new KeyNotFoundException("Khong tim thay phan cong ca.");
 
         if (assignment.UserId != request.UserId)
-            throw new UnauthorizedAccessException("Bạn không có quyền check-out ca này.");
+            throw new UnauthorizedAccessException("Ban khong co quyen check-out ca nay.");
 
-        // 3. Kiểm tra xem người dùng đã check-out chưa
+        // 3. Kiem tra xem nguoi dung da check-out chua
         if (timeLog.CheckOutAt.HasValue)
-            throw new InvalidOperationException("Bạn đã check-out rồi.");
+            throw new InvalidOperationException("Ban da check-out roi.");
 
-        // 4. Cập nhật thông tin check-out
-        timeLog.CheckOutAt = DateTime.UtcNow;
+        // 4. Validate: khong cho check-out neu chua co check-in
+        if (!timeLog.CheckInAt.HasValue)
+            throw new InvalidOperationException("Chua co thong tin check-in, khong the check-out.");
+
+        // 5. Tai thong tin Shift de tinh toan
+        var shift = await _shiftRepository.GetByIdAsync(assignment.ShiftId)
+            ?? throw new KeyNotFoundException("Khong tim thay ca lam viec lien ket.");
+
+        // 6. Gioi han thoi diem check-out: khong cho vuot qua X gio sau ket thuc ca
+        var vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById(TimeConstants.DefaultTimeZoneId);
+        var shiftEndLocal = shift.ShiftDate.ToDateTime(shift.EndTime);
+        var shiftEndUtc = TimeZoneInfo.ConvertTimeToUtc(shiftEndLocal, vnTimeZone);
+        var maxCheckOutTime = shiftEndUtc.AddHours(TimeConstants.MaxLateCheckOutHours);
+        var now = DateTime.UtcNow;
+
+        // Cap thoi diem check-out: neu vuot qua gioi han thi gioi han lai
+        var effectiveCheckOut = now > maxCheckOutTime ? maxCheckOutTime : now;
+
+        // 7. Cap nhat thong tin Check-out
+        timeLog.CheckOutAt = effectiveCheckOut;
         timeLog.CheckOutLat = request.Latitude;
         timeLog.CheckOutLong = request.Longitude;
         timeLog.UpdatedAt = DateTimeOffset.UtcNow;
 
-        // 5. Thêm note check-out nếu có vào cột ManagerNote
+        // 8. Gop note check-out vao ghi chu hien co (neu co)
         if (!string.IsNullOrEmpty(request.Note))
         {
             timeLog.ManagerNote = string.IsNullOrEmpty(timeLog.ManagerNote)
@@ -53,16 +82,18 @@ public class CheckOutHandler : IRequestHandler<CheckOutCommand, bool>
                 : $"{timeLog.ManagerNote} | Note checkout: {request.Note}";
         }
 
-        // 6. Tính tổng số phút làm việc dựa trên thời gian check-in và check-out
-        if (timeLog.CheckInAt.HasValue)
-        {
-            timeLog.TotalWorkMinutes = (int)(timeLog.CheckOutAt.Value - timeLog.CheckInAt.Value).TotalMinutes;
-        }
+        // 9. Tinh toan phan bo Overtime bang service dung chung
+        var storeRule = await _shiftRuleService.GetEffectiveRuleAsync(shift.StoreId);
+        var otResult = await _overtimeService.CalculateAsync(
+            timeLog, shift, storeRule, request.UserId);
 
-        // 7. Chuyển trạng thái sang Valid sau khi hoàn tất check-out
+        timeLog.RegularMinutes = otResult.RegularMinutes;
+        timeLog.DailyOtMinutes = otResult.DailyOtMinutes;
+        timeLog.WeeklyOtMinutes = otResult.WeeklyOtMinutes;
+
+        // 10. Chuyen trang thai sang Valid sau khi hoan tat check-out
         timeLog.Status = (int)TimeLogStatus.Valid;
 
-        // Hàm UpdateAsync tự động gọi SaveChangesAsync thiết lập sẵn trong GenericRepository
         await _timeLogRepository.UpdateAsync(timeLog);
 
         return true;
