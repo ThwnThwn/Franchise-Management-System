@@ -20,7 +20,8 @@ type IShiftService interface {
 	Delete(ctx context.Context, id uuid.UUID) error
 
 	Publish(ctx context.Context, id uuid.UUID) error
-	UpdateAssignments(ctx context.Context, ctxUserId, id uuid.UUID, req *shift.AssignStaffRequest) error
+	UpdateAssignments(ctx context.Context, ctxUserId, id uuid.UUID, req *shift.AssignStaffRequest) (
+		*shift.AssignStaffResponse, error)
 	GetAvailableStaffs(ctx context.Context, storeId, shiftId uuid.UUID) ([]*shift.StaffAssignmentCandidate, error)
 
 	CheckIn(ctx context.Context, userId, assignmentId uuid.UUID, req *shift.AttendancePayload) error

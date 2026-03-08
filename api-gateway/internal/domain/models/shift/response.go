@@ -16,7 +16,7 @@ type ShiftResponse struct {
 	Status               int32              `json:"status"` // 0:Draft, 1:Published, 2:Completed, 3:Cancelled
 	Note                 *string            `json:"note,omitempty"`
 	AssignedStaffCount   int32              `json:"assignedStaffCount"`
-	Assignments          []*ShiftAssignment `json:"assignments,omitempty"`
+	Assignments          []*ShiftAssignment `json:"assignments"`
 }
 
 type ShiftAssignment struct {

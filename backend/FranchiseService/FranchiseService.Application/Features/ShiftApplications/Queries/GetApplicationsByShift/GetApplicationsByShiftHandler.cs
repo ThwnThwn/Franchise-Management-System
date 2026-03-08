@@ -44,8 +44,8 @@ public class GetApplicationsByShiftHandler
     {
         // 1. Lay tat ca don Pending cua ca nay
         var applications = await _applicationRepository.GetAllAsync(
-            predicate: a => a.ShiftId == request.ShiftId
-                         && a.Status == (int)ShiftApplicationStatus.Pending);
+            predicate: a => a.ShiftId == request.ShiftId);
+        //&& a.Status == (int)ShiftApplicationStatus.Pending);
 
         var appList = applications.ToList();
         if (!appList.Any()) return new List<ShiftApplicationDto>();

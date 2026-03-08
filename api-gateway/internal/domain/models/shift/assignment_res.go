@@ -21,3 +21,13 @@ type CandidateValidation struct {
 	WeeklyHours       float64 `json:"weeklyHours"`
 	IsShuttleInvalid  bool    `json:"isShuttleInvalid"`
 }
+
+type AssignStaffResponse struct {
+	Success  bool                    `json:"success"`
+	Warnings []*ValidationWarningDto `json:"warnings"`
+}
+type ValidationWarningDto struct {
+	Code     string `json:"code"`
+	Message  string `json:"message"`
+	Severity string `json:"severity"`
+}

@@ -876,6 +876,15 @@ definitions:
       rejectReason:
         type: string
     type: object
+  api-gateway_internal_domain_models_shift.AssignStaffResponse:
+    properties:
+      success:
+        type: boolean
+      warnings:
+        items:
+          $ref: '#/definitions/api-gateway_internal_domain_models_shift.ValidationWarningDto'
+        type: array
+    type: object
   api-gateway_internal_domain_models_shift.AttendancePayload:
     properties:
       latitude:
@@ -1248,6 +1257,15 @@ definitions:
         $ref: '#/definitions/api-gateway_internal_domain_constants_enum.TimeLogStatus'
     required:
     - status
+    type: object
+  api-gateway_internal_domain_models_shift.ValidationWarningDto:
+    properties:
+      code:
+        type: string
+      message:
+        type: string
+      severity:
+        type: string
     type: object
   api-gateway_internal_domain_models_supplier.CancelPurchaseOrderReq:
     properties:
@@ -4993,7 +5011,7 @@ paths:
       summary: Assign Permissions to Role
       tags:
       - Roles
-  /shift-applications/{id}:
+  /shift-applications/{id}/review:
     patch:
       consumes:
       - application/json
@@ -5143,23 +5161,6 @@ paths:
       summary: Lưu cấu hình quy định ca làm
       tags:
       - 'Shifts: Rule'
-  /shift-swaps/{id}:
-    patch:
-      description: Nhân viên gửi yêu cầu có thể tự hủy nếu yêu cầu chưa được phê duyệt.
-      parameters:
-      - description: Swap Request ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses: {}
-      security:
-      - BearerAuth: []
-      summary: Tự hủy yêu cầu đổi ca đã gửi
-      tags:
-      - 'Shifts: Swaps'
   /shift-swaps/{id}/approvals:
     patch:
       consumes:
@@ -5184,6 +5185,23 @@ paths:
       security:
       - BearerAuth: []
       summary: Manager duyệt yêu cầu đổi ca cuối cùng
+      tags:
+      - 'Shifts: Swaps'
+  /shift-swaps/{id}/cancel:
+    patch:
+      description: Nhân viên gửi yêu cầu có thể tự hủy nếu yêu cầu chưa được phê duyệt.
+      parameters:
+      - description: Swap Request ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Tự hủy yêu cầu đổi ca đã gửi
       tags:
       - 'Shifts: Swaps'
   /shift-swaps/{id}/responses:
@@ -5521,12 +5539,16 @@ paths:
           items:
             type: string
           type: array
-      responses: {}
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_shift.AssignStaffResponse'
       summary: Cập nhật phân công nhân sự
       tags:
       - 'Shifts: Assignment'
   /shifts/auto-fill:
-    post:
+    put:
       description: Hệ thống tự động tính toán và gán nhân viên phù hợp vào các ca
         làm việc còn trống (Draft) dựa trên lịch rảnh và quy tắc ca làm.
       parameters:

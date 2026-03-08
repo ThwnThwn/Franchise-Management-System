@@ -4490,7 +4490,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/shift-applications/{id}": {
+        "/shift-applications/{id}/review": {
             "patch": {
                 "description": "Manager cập nhật trạng thái đơn (Approved/Rejected). ID đơn lấy từ Path.",
                 "consumes": [
@@ -4724,33 +4724,6 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/shift-swaps/{id}": {
-            "patch": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Nhân viên gửi yêu cầu có thể tự hủy nếu yêu cầu chưa được phê duyệt.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Shifts: Swaps"
-                ],
-                "summary": "Tự hủy yêu cầu đổi ca đã gửi",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Swap Request ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {}
-            }
-        },
         "/shift-swaps/{id}/approvals": {
             "patch": {
                 "security": [
@@ -4785,6 +4758,33 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/api-gateway_internal_domain_models_shift.ApproveSwapRequest"
                         }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/shift-swaps/{id}/cancel": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Nhân viên gửi yêu cầu có thể tự hủy nếu yêu cầu chưa được phê duyệt.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shifts: Swaps"
+                ],
+                "summary": "Tự hủy yêu cầu đổi ca đã gửi",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Swap Request ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {}
@@ -5056,7 +5056,7 @@ const docTemplate = `{
             }
         },
         "/shifts/auto-fill": {
-            "post": {
+            "put": {
                 "security": [
                     {
                         "BearerAuth": []
@@ -5584,7 +5584,14 @@ const docTemplate = `{
                         }
                     }
                 ],
-                "responses": {}
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_shift.AssignStaffResponse"
+                        }
+                    }
+                }
             }
         },
         "/stores": {
@@ -9452,6 +9459,20 @@ const docTemplate = `{
                 }
             }
         },
+        "api-gateway_internal_domain_models_shift.AssignStaffResponse": {
+            "type": "object",
+            "properties": {
+                "success": {
+                    "type": "boolean"
+                },
+                "warnings": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api-gateway_internal_domain_models_shift.ValidationWarningDto"
+                    }
+                }
+            }
+        },
         "api-gateway_internal_domain_models_shift.AttendancePayload": {
             "type": "object",
             "properties": {
@@ -10011,6 +10032,20 @@ const docTemplate = `{
                 },
                 "status": {
                     "$ref": "#/definitions/api-gateway_internal_domain_constants_enum.TimeLogStatus"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_shift.ValidationWarningDto": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "severity": {
+                    "type": "string"
                 }
             }
         },

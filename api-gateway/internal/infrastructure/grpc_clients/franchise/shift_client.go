@@ -154,15 +154,32 @@ func (s *shiftGrpcClient) Publish(ctx context.Context, id uuid.UUID) error {
 // UpdateAssignments implements franchise.IShiftService.
 func (s *shiftGrpcClient) UpdateAssignments(ctx context.Context, ctxUserId,
 	id uuid.UUID, req *shift.AssignStaffRequest,
-) error {
-	_, err := s.client.AssignStaff(ctx, &franchisePb.AssignStaffRequest{
+) (*shift.AssignStaffResponse, error) {
+	res, err := s.client.AssignStaff(ctx, &franchisePb.AssignStaffRequest{
 		ShiftId:        id.String(),
 		UserIds:        req.UserIds,
 		ForceOverride:  req.ForceOverride,
 		OverrideReason: req.OverrideReason,
 		OverriddenBy:   ctxUserId.String(),
 	})
-	return err
+
+	if err != nil {
+		return nil, err
+	}
+
+	validations := make([]*shift.ValidationWarningDto, 0, len(res.Warnings))
+	for _, item := range res.Warnings {
+		validations = append(validations, &shift.ValidationWarningDto{
+			Code:     item.Code,
+			Message:  item.Message,
+			Severity: item.Severity,
+		})
+	}
+
+	return &shift.AssignStaffResponse{
+		Success:  res.Success,
+		Warnings: validations,
+	}, nil
 }
 
 // GetAvailableStaffs implements franchise.IShiftService.
