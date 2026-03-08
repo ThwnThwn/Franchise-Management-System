@@ -47,7 +47,11 @@ func (h *ShiftSwapHandler) RequestSwap(c *gin.Context) error {
 		return err
 	}
 
-	ctx, _ := grpcutils.BuildAuthContext(c)
+	ctx, err := grpcutils.BuildAuthContext(c)
+	if err != nil {
+		return err
+	}
+
 	if err := h.swapGW.RequestSwap(ctx, assignmentId, userId, &req); err != nil {
 		return err
 	}
@@ -82,7 +86,11 @@ func (h *ShiftSwapHandler) RespondSwap(c *gin.Context) error {
 		return err
 	}
 
-	ctx, _ := grpcutils.BuildAuthContext(c)
+	ctx, err := grpcutils.BuildAuthContext(c)
+	if err != nil {
+		return err
+	}
+
 	if err := h.swapGW.RespondSwap(ctx, swapId, userId, &req); err != nil {
 		return err
 	}
@@ -117,7 +125,11 @@ func (h *ShiftSwapHandler) ApproveSwap(c *gin.Context) error {
 		return err
 	}
 
-	ctx, _ := grpcutils.BuildAuthContext(c)
+	ctx, err := grpcutils.BuildAuthContext(c)
+	if err != nil {
+		return err
+	}
+
 	if err := h.swapGW.ApproveSwap(ctx, swapId, managerId, &req); err != nil {
 		return err
 	}
@@ -145,7 +157,11 @@ func (h *ShiftSwapHandler) CancelSwap(c *gin.Context) error {
 		return err
 	}
 
-	ctx, _ := grpcutils.BuildAuthContext(c)
+	ctx, err := grpcutils.BuildAuthContext(c)
+	if err != nil {
+		return err
+	}
+
 	if err := h.swapGW.CancelSwap(ctx, swapId, userId); err != nil {
 		return err
 	}
@@ -173,12 +189,46 @@ func (h *ShiftSwapHandler) Release(c *gin.Context) error {
 		return err
 	}
 
-	ctx, _ := grpcutils.BuildAuthContext(c)
+	ctx, err := grpcutils.BuildAuthContext(c)
+	if err != nil {
+		return err
+	}
+
 	if err := h.swapGW.Release(ctx, assignmentId, userId); err != nil {
 		return err
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Đã nhả ca thành công"})
+	return nil
+}
+
+// GetAll
+// @Summary      Lấy danh sách yêu cầu đổi ca
+// @Description  Lấy toàn bộ các yêu cầu đổi ca.
+// @Tags         Shifts: Swaps
+// @Security     BearerAuth
+// @Produce      json
+// @Param        query  query     shift.GetAllSwapsParams  false  "Filter params"
+// @Router       /shift-swaps [get]
+func (h *ShiftSwapHandler) GetAll(c *gin.Context) error {
+	var params shift.GetAllSwapsParams
+	if err := c.ShouldBindQuery(&params); err != nil {
+		return validation.TranslateValidationError(err)
+	}
+
+	contextutils.ApplyStoreBoundaries(c, &params.StoreId)
+
+	ctx, err := grpcutils.BuildAuthContext(c)
+	if err != nil {
+		return err
+	}
+
+	data, err := h.swapGW.GetAll(ctx, &params)
+	if err != nil {
+		return err
+	}
+
+	c.JSON(http.StatusOK, data)
 	return nil
 }
 
@@ -195,7 +245,11 @@ func (h *ShiftSwapHandler) GetMySwaps(c *gin.Context) error {
 		return err
 	}
 
-	ctx, _ := grpcutils.BuildAuthContext(c)
+	ctx, err := grpcutils.BuildAuthContext(c)
+	if err != nil {
+		return err
+	}
+
 	data, err := h.swapGW.GetMySwaps(ctx, userId)
 	if err != nil {
 		return err

@@ -39,10 +39,7 @@ func NewShiftHandler(
 // @Description  Truy xuất danh sách ca làm việc kèm bộ lọc (Dùng cho Calendar/List view).
 // @Tags         Shifts
 // @Security     BearerAuth
-// @Param        storeId   query     string  true   "ID cửa hàng"
-// @Param        fromDate  query     string  false  "Từ ngày (YYYY-MM-DD)"
-// @Param        toDate    query     string  false  "Đến ngày (YYYY-MM-DD)"
-// @Param        status    query     int     false  "Trạng thái ca"
+// @Param        query     query     shift.GetShiftsParams  false  "Filter params"
 // @Success      200       {array}   shift.ShiftResponse
 // @Router       /shifts [get]
 func (h *ShiftHandler) GetAll(c *gin.Context) error {

@@ -34,6 +34,8 @@ type ShiftSwapGrpcServiceClient interface {
 	ReleaseShift(ctx context.Context, in *ReleaseShiftRequest, opts ...grpc.CallOption) (*ReleaseShiftResponse, error)
 	// Xem danh sach yeu cau doi ca cua toi
 	GetMySwapRequests(ctx context.Context, in *GetMySwapRequestsRequest, opts ...grpc.CallOption) (*GetMySwapRequestsResponse, error)
+	// Manager xem danh sach yeu cau doi ca thuoc cua hang
+	GetSwapRequestsByStore(ctx context.Context, in *GetSwapRequestsByStoreRequest, opts ...grpc.CallOption) (*GetSwapRequestsByStoreResponse, error)
 }
 
 type shiftSwapGrpcServiceClient struct {
@@ -98,6 +100,15 @@ func (c *shiftSwapGrpcServiceClient) GetMySwapRequests(ctx context.Context, in *
 	return out, nil
 }
 
+func (c *shiftSwapGrpcServiceClient) GetSwapRequestsByStore(ctx context.Context, in *GetSwapRequestsByStoreRequest, opts ...grpc.CallOption) (*GetSwapRequestsByStoreResponse, error) {
+	out := new(GetSwapRequestsByStoreResponse)
+	err := c.cc.Invoke(ctx, "/franchise.ShiftSwapGrpcService/GetSwapRequestsByStore", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ShiftSwapGrpcServiceServer is the server API for ShiftSwapGrpcService service.
 // All implementations must embed UnimplementedShiftSwapGrpcServiceServer
 // for forward compatibility
@@ -114,6 +125,8 @@ type ShiftSwapGrpcServiceServer interface {
 	ReleaseShift(context.Context, *ReleaseShiftRequest) (*ReleaseShiftResponse, error)
 	// Xem danh sach yeu cau doi ca cua toi
 	GetMySwapRequests(context.Context, *GetMySwapRequestsRequest) (*GetMySwapRequestsResponse, error)
+	// Manager xem danh sach yeu cau doi ca thuoc cua hang
+	GetSwapRequestsByStore(context.Context, *GetSwapRequestsByStoreRequest) (*GetSwapRequestsByStoreResponse, error)
 	mustEmbedUnimplementedShiftSwapGrpcServiceServer()
 }
 
@@ -138,6 +151,9 @@ func (UnimplementedShiftSwapGrpcServiceServer) ReleaseShift(context.Context, *Re
 }
 func (UnimplementedShiftSwapGrpcServiceServer) GetMySwapRequests(context.Context, *GetMySwapRequestsRequest) (*GetMySwapRequestsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMySwapRequests not implemented")
+}
+func (UnimplementedShiftSwapGrpcServiceServer) GetSwapRequestsByStore(context.Context, *GetSwapRequestsByStoreRequest) (*GetSwapRequestsByStoreResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetSwapRequestsByStore not implemented")
 }
 func (UnimplementedShiftSwapGrpcServiceServer) mustEmbedUnimplementedShiftSwapGrpcServiceServer() {}
 
@@ -260,6 +276,24 @@ func _ShiftSwapGrpcService_GetMySwapRequests_Handler(srv interface{}, ctx contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ShiftSwapGrpcService_GetSwapRequestsByStore_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSwapRequestsByStoreRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShiftSwapGrpcServiceServer).GetSwapRequestsByStore(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/franchise.ShiftSwapGrpcService/GetSwapRequestsByStore",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShiftSwapGrpcServiceServer).GetSwapRequestsByStore(ctx, req.(*GetSwapRequestsByStoreRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ShiftSwapGrpcService_ServiceDesc is the grpc.ServiceDesc for ShiftSwapGrpcService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -290,6 +324,10 @@ var ShiftSwapGrpcService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetMySwapRequests",
 			Handler:    _ShiftSwapGrpcService_GetMySwapRequests_Handler,
+		},
+		{
+			MethodName: "GetSwapRequestsByStore",
+			Handler:    _ShiftSwapGrpcService_GetSwapRequestsByStore_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

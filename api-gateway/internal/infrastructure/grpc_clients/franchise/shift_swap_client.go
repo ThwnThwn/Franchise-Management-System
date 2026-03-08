@@ -3,6 +3,7 @@ package franchise
 import (
 	franchiseGW "api-gateway/internal/application/gateways/franchise"
 	"api-gateway/internal/domain/models/shift"
+	"api-gateway/pkg/mapper"
 	franchisePb "api-gateway/pkg/pb/franchise"
 	"api-gateway/pkg/utils/stringutils"
 	"context"
@@ -41,6 +42,30 @@ func (s *shiftSwapGrpcClient) CancelSwap(ctx context.Context, swapId uuid.UUID, 
 	return err
 }
 
+// GetAll implements franchise.IShiftSwapService.
+func (s *shiftSwapGrpcClient) GetAll(ctx context.Context, req *shift.GetAllSwapsParams) ([]*shift.SwapRequestItem, error) {
+	var statusVal int32 = -1
+	if req.Status != nil {
+		statusVal = *req.Status
+	}
+
+	res, err := s.client.GetSwapRequestsByStore(ctx, &franchisePb.GetSwapRequestsByStoreRequest{
+		StoreId: stringutils.GetString(req.StoreId),
+		Status:  statusVal,
+	})
+
+	if err != nil {
+		return []*shift.SwapRequestItem{}, err
+	}
+
+	items := make([]*shift.SwapRequestItem, 0, len(res.SwapRequests))
+	for _, item := range res.SwapRequests {
+		items = append(items, mapper.MapShiftSwapRequestItem(item))
+	}
+
+	return items, nil
+}
+
 // GetMySwaps implements franchise.IShiftSwapService.
 func (s *shiftSwapGrpcClient) GetMySwaps(ctx context.Context, userId uuid.UUID) ([]*shift.SwapRequestItem, error) {
 	res, err := s.client.GetMySwapRequests(ctx, &franchisePb.GetMySwapRequestsRequest{
@@ -52,26 +77,7 @@ func (s *shiftSwapGrpcClient) GetMySwaps(ctx context.Context, userId uuid.UUID) 
 
 	items := make([]*shift.SwapRequestItem, 0, len(res.SwapRequests))
 	for _, item := range res.SwapRequests {
-		items = append(items, &shift.SwapRequestItem{
-			Id: item.Id,
-
-			SourceUserId:   item.SourceUserId,
-			SourceUserName: item.SourceUserName,
-			TargetUserId:   item.TargetUserId,
-			TargetUserName: item.TargetUserName,
-
-			Status:       item.Status,
-			Reason:       stringutils.ToPtr(item.Reason),
-			RejectReason: stringutils.ToPtr(item.RejectReason),
-
-			ExpiresAt: item.ExpiresAt,
-			CreatedAt: item.CreatedAt,
-
-			ShiftId:   item.ShiftId,
-			ShiftDate: item.ShiftDate,
-			StartTime: item.StartTime,
-			EndTime:   item.EndTime,
-		})
+		items = append(items, mapper.MapShiftSwapRequestItem(item))
 	}
 
 	return items, nil

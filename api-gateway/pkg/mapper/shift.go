@@ -123,3 +123,30 @@ func MapShiftTemplatePbToModel(templPb *franchise.ShiftTemplateResponse) *shift.
 		CreatedAt:            templPb.CreatedAt,
 	}
 }
+
+func MapShiftSwapRequestItem(item *franchise.SwapRequestItem) *shift.SwapRequestItem {
+	if item == nil {
+		return nil
+	}
+
+	return &shift.SwapRequestItem{
+		Id: item.Id,
+
+		SourceUserId:   item.SourceUserId,
+		SourceUserName: item.SourceUserName,
+		TargetUserId:   item.TargetUserId,
+		TargetUserName: item.TargetUserName,
+
+		Status:       item.Status,
+		Reason:       stringutils.ToPtr(item.Reason),
+		RejectReason: stringutils.ToPtr(item.RejectReason),
+
+		ExpiresAt: item.ExpiresAt,
+		CreatedAt: item.CreatedAt,
+
+		ShiftId:   item.ShiftId,
+		ShiftDate: item.ShiftDate,
+		StartTime: item.StartTime,
+		EndTime:   item.EndTime,
+	}
+}

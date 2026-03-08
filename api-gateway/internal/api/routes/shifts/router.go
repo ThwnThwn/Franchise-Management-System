@@ -83,30 +83,28 @@ func (s *ShiftsRouter) Init(r *gin.RouterGroup) {
 
 	// --- Swap ---
 	{
-		shiftApi.POST("/:id/swaps",
-			s.authMW.PermissionCheck("shift.swap.write"),
+		shiftApi.POST("/:id/swaps", s.authMW.PermissionCheck("shift.swap.write"),
 			api.WrapHandler(s.swapHl.RequestSwap))
 
-		shiftApi.PATCH("/:id/releases",
-			s.authMW.PermissionCheck("shift.release.write"),
+		shiftApi.PATCH("/:id/releases", s.authMW.PermissionCheck("shift.release.write"),
 			api.WrapHandler(s.swapHl.Release))
 	}
 	swapApi := r.Group("/shift-swaps")
 	swapApi.Use(auth)
 	{
+		swapApi.GET("", s.authMW.PermissionCheck("shift.swap.read"),
+			api.WrapHandler(s.swapHl.GetAll))
+
 		// Phản hồi từ đồng nghiệp (B phản hồi cho A)
-		swapApi.PATCH("/:id/responses",
-			s.authMW.PermissionCheck("shift.swap.write"),
+		swapApi.PATCH("/:id/responses", s.authMW.PermissionCheck("shift.swap.write"),
 			api.WrapHandler(s.swapHl.RespondSwap))
 
 		// Manager duyệt cuối cùng
-		swapApi.PATCH("/:id/approvals",
-			s.authMW.PermissionCheck("shift.swap.approve"),
+		swapApi.PATCH("/:id/approvals", s.authMW.PermissionCheck("shift.swap.approve"),
 			api.WrapHandler(s.swapHl.ApproveSwap))
 
 		// Hủy yêu cầu
-		swapApi.PATCH("/:id/cancel",
-			s.authMW.PermissionCheck("shift.swap.cancel"),
+		swapApi.PATCH("/:id/cancel", s.authMW.PermissionCheck("shift.swap.cancel"),
 			api.WrapHandler(s.swapHl.CancelSwap))
 	}
 
@@ -116,14 +114,12 @@ func (s *ShiftsRouter) Init(r *gin.RouterGroup) {
 	timeLogApi := shiftApi.Group("/time-logs")
 	{
 		// 1. Lấy toàn bộ nhật ký chấm công (kèm bộ lọc: store, staff, status, date)
-		timeLogApi.GET("",
-			s.authMW.PermissionCheck("shift.time_log.read"),
+		timeLogApi.GET("", s.authMW.PermissionCheck("shift.time_log.read"),
 			api.WrapHandler(s.shiftHl.GetAllTimeLogs),
 		)
 
 		// 2. Duyệt hoặc cập nhật trạng thái chấm công (Valid/Invalid + Note)
-		timeLogApi.PATCH("/:id",
-			s.authMW.PermissionCheck("shift.time_log.write"),
+		timeLogApi.PATCH("/:id", s.authMW.PermissionCheck("shift.time_log.write"),
 			api.WrapHandler(s.shiftHl.UpdateTimeLog),
 		)
 	}

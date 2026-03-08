@@ -4718,6 +4718,36 @@
                 "responses": {}
             }
         },
+        "/shift-swaps": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lấy toàn bộ các yêu cầu đổi ca.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shifts: Swaps"
+                ],
+                "summary": "Lấy danh sách yêu cầu đổi ca",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "storeId",
+                        "in": "query"
+                    }
+                ],
+                "responses": {}
+            }
+        },
         "/shift-swaps/{id}/approvals": {
             "patch": {
                 "security": [
@@ -4988,27 +5018,23 @@
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "ID cửa hàng",
-                        "name": "storeId",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Từ ngày (YYYY-MM-DD)",
                         "name": "fromDate",
                         "in": "query"
                     },
                     {
-                        "type": "string",
-                        "description": "Đến ngày (YYYY-MM-DD)",
-                        "name": "toDate",
+                        "type": "integer",
+                        "description": "ShiftStatus enum",
+                        "name": "status",
                         "in": "query"
                     },
                     {
-                        "type": "integer",
-                        "description": "Trạng thái ca",
-                        "name": "status",
+                        "type": "string",
+                        "name": "storeId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "toDate",
                         "in": "query"
                     }
                 ],
@@ -6223,7 +6249,7 @@
                 }
             }
         },
-        "/suppliers/payments/vnpay-return": {
+        "/suppliers/payments/vnpay/return": {
             "get": {
                 "description": "Endpoint nhận redirect từ VNPay. Verify chữ ký qua gRPC và bẻ lái trình duyệt về giao diện Frontend.",
                 "produces": [

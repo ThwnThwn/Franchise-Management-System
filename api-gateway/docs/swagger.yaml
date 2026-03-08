@@ -5161,6 +5161,24 @@ paths:
       summary: Lưu cấu hình quy định ca làm
       tags:
       - 'Shifts: Rule'
+  /shift-swaps:
+    get:
+      description: Lấy toàn bộ các yêu cầu đổi ca.
+      parameters:
+      - in: query
+        name: status
+        type: integer
+      - in: query
+        name: storeId
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Lấy danh sách yêu cầu đổi ca
+      tags:
+      - 'Shifts: Swaps'
   /shift-swaps/{id}/approvals:
     patch:
       consumes:
@@ -5331,23 +5349,19 @@ paths:
       description: Truy xuất danh sách ca làm việc kèm bộ lọc (Dùng cho Calendar/List
         view).
       parameters:
-      - description: ID cửa hàng
-        in: query
-        name: storeId
-        required: true
-        type: string
-      - description: Từ ngày (YYYY-MM-DD)
-        in: query
+      - in: query
         name: fromDate
         type: string
-      - description: Đến ngày (YYYY-MM-DD)
-        in: query
-        name: toDate
-        type: string
-      - description: Trạng thái ca
+      - description: ShiftStatus enum
         in: query
         name: status
         type: integer
+      - in: query
+        name: storeId
+        type: string
+      - in: query
+        name: toDate
+        type: string
       responses:
         "200":
           description: OK
@@ -6198,7 +6212,7 @@ paths:
       summary: Tạo thanh toán cho đơn nhập hàng
       tags:
       - Suppliers / Payments
-  /suppliers/payments/vnpay-return:
+  /suppliers/payments/vnpay/return:
     get:
       description: Endpoint nhận redirect từ VNPay. Verify chữ ký qua gRPC và bẻ lái
         trình duyệt về giao diện Frontend.

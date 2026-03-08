@@ -1,5 +1,10 @@
 package shift
 
+type GetAllSwapsParams struct {
+	StoreId *string `form:"storeId"`
+	Status  *int32  `form:"status"`
+}
+
 // RequestSwapRequest: A gửi yêu cầu đổi ca cho B
 // AssignmentId (ca của A) lấy từ Path Param
 // SourceUserId lấy từ JWT
