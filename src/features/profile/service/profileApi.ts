@@ -1,6 +1,7 @@
 import axiosInstance from "@/utils/axios"
 import { UserUpdateReq } from "../models/request"
 import { User } from "@/models/user"
+import { LoyaltyAccountResponse, MembershipTier } from "@/models/loyalty"
 
 /**
  * PROFILE API
@@ -28,5 +29,27 @@ export const profileApi = {
 
     deleteAvatar: async (): Promise<void> => {
         await axiosInstance.delete("/users/me/avatar")
+    },
+
+    // Lấy loyalty tier của user hiện tại theo email
+    getMyLoyalty: async (email: string): Promise<LoyaltyAccountResponse[]> => {
+        const res = await axiosInstance.get("/loyalty/accounts", {
+            params: { email }
+        })
+        return res.data
+    },
+
+    // Lấy danh sách tất cả các hạng thành viên
+    getMembershipTiers: async (): Promise<MembershipTier[]> => {
+        const res = await axiosInstance.get("/membership-tiers")
+        return res.data
+    },
+
+    // Lấy lịch sử điểm của user hiện tại
+    getMyPointLogs: async (params?: any): Promise<any> => {
+        // Dùng PaginationResult theo chuẩn chung của BE (data.items)
+        const res = await axiosInstance.get("/me/points/logs", { params })
+        return res.data
     }
 }
+
