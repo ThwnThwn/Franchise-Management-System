@@ -231,6 +231,36 @@ export const useDay = ({
     }
 
     /**
+     * Tính số phút chênh lệch giữa 2 mốc time (làm tròn lên)
+     * An toàn với cả ca làm vắt qua đêm (VD: 22:00 - 06:00)
+     */
+    const getDiffMinutesCeil = ({
+        startTime,
+        endTime,
+        baseDate = dayjs().format("YYYY-MM-DD")
+    }: {
+        startTime?: string | dayjs.Dayjs | null
+        endTime?: string | dayjs.Dayjs | null
+        baseDate?: string | dayjs.Dayjs
+    }) => {
+        if (!startTime || !endTime) return -1
+
+        // Kiểm tra xem đầu vào có phải là string giờ (VD: "08:00:00") không
+        const isTimeString = typeof startTime === "string" && startTime.length <= 8
+
+        // Nếu là string giờ, ghép với baseDate. Nếu là Full Date/Dayjs object thì dùng luôn
+        let start = isTimeString ? dayjs(`${baseDate} ${startTime}`) : dayjs(startTime)
+        let end = isTimeString ? dayjs(`${baseDate} ${endTime}`) : dayjs(endTime)
+
+        // LOGIC CỨU CÁNH: Nếu giờ kết thúc < giờ bắt đầu -> Đó là ca qua đêm -> Phải cộng thêm 1 ngày
+        if (end.isBefore(start)) {
+            end = end.add(1, "day")
+        }
+
+        return Math.ceil(end.diff(start, "minute", true))
+    }
+
+    /**
      * Tính số ngày chênh lệch giữa 2 mốc thời gian (làm tròn lên)
      */
     const getDiffDaysCeil = ({
@@ -301,6 +331,7 @@ export const useDay = ({
 
         // Helpers
         dateNow,
+        getDiffMinutesCeil,
         getDiffDaysCeil,
         normalizeDateByMinuteStep
     }

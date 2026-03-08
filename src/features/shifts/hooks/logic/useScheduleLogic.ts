@@ -19,10 +19,10 @@ export const useScheduleLogic = () => {
                 toDate: currentDate.endOf("month").format("YYYY-MM-DD")
             }
         } else {
-            // Tuần: Lấy từ T2 đến CN
+            // Tuần: Dùng isoWeek để tự động lấy chuẩn T2 -> CN
             return {
-                fromDate: currentDate.startOf("week").add(1, "day").format("YYYY-MM-DD"), // StartOf week là CN, +1 là T2
-                toDate: currentDate.endOf("week").add(1, "day").format("YYYY-MM-DD")
+                fromDate: currentDate.startOf("isoWeek").format("YYYY-MM-DD"),
+                toDate: currentDate.endOf("isoWeek").format("YYYY-MM-DD")
             }
         }
     }, [currentDate, viewMode])

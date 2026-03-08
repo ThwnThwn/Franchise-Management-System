@@ -7,7 +7,12 @@ import {
     GetShiftsParams,
     UpdateShiftRequest
 } from "../models/request"
-import { AutoFillShiftsResponse, ShiftResponse, StaffAssignmentCandidate } from "../models/response"
+import {
+    AssignStaffResponse,
+    AutoFillShiftsResponse,
+    ShiftResponse,
+    StaffAssignmentCandidate
+} from "../models/response"
 
 /**
  * SHIFT API
@@ -50,7 +55,7 @@ export const shiftApi = {
     },
 
     autoFill: async (req: AutoFillShiftsRequest): Promise<AutoFillShiftsResponse> => {
-        const res = await axiosInstance.post("/shifts/auto-fill", req)
+        const res = await axiosInstance.put("/shifts/auto-fill", req)
         return res.data
     },
 
@@ -86,10 +91,11 @@ export const shiftApi = {
     }: {
         shiftId: string
         req: AssignStaffRequest
-    }): Promise<void> => {
+    }): Promise<AssignStaffResponse> => {
         // Backend sẽ so sánh mảng này với DB:
         // - User nào mới thì Insert, có mà đang isDeleted = true thì thành false
         // - User nào thiếu so với DB thì soft Delete
-        await axiosInstance.put(`/shifts/${shiftId}/assign`, req)
+        const res = await axiosInstance.put(`/shifts/${shiftId}/assign`, req)
+        return res.data
     }
 }

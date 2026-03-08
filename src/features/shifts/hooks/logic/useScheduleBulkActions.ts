@@ -1,20 +1,37 @@
 import { confirmDialog } from "@/hooks"
-import { useBulkDeleteShift, useBulkOpenShift, useBulkPublishShift } from "@/features/shifts/hooks"
+import {
+    useAutoFillShifts,
+    useBulkDeleteShift,
+    useBulkOpenShift,
+    useBulkPublishShift
+} from "@/features/shifts/hooks"
 import { useMemo } from "react"
 import { ShiftResponse } from "@/features/shifts/models/response"
 import { ShiftStatus } from "@/features/shifts/constants"
+import dayjs from "dayjs"
 
-export const useScheduleBulkActions = (shiftsData: ShiftResponse[] | undefined) => {
+export const useScheduleBulkActions = ({
+    dateRange,
+    shiftsData
+}: {
+    dateRange: {
+        fromDate: string
+        toDate: string
+    }
+    shiftsData: ShiftResponse[] | undefined
+}) => {
     const bulkPublish = useBulkPublishShift()
     const bulkDelete = useBulkDeleteShift()
     const bulkOpen = useBulkOpenShift()
+    const autoFill = useAutoFillShifts()
 
     const bulkActionIds = useMemo(() => {
         // Khởi tạo object chứa 2 mảng rỗng
         const result = {
             forDelete: [] as string[], // Chỉ dành cho Draft
             forPublish: [] as string[], // Draft + Open (Chợ ca)
-            forOpen: [] as string[]
+            forOpen: [] as string[],
+            forAutoFill: [] as string[]
         }
 
         if (!shiftsData) return result
@@ -24,18 +41,23 @@ export const useScheduleBulkActions = (shiftsData: ShiftResponse[] | undefined) 
             if (s.status === ShiftStatus.Draft) {
                 result.forDelete.push(s.id)
                 result.forOpen.push(s.id)
+                result.forPublish.push(s.id)
+
+                if (s.assignedStaffCount < s.requiredStaffCount) {
+                    result.forAutoFill.push(s.id)
+                }
             }
 
             // 2. Logic cho Publish nhanh: Những ca chưa ban hành (Draft hoặc đang ở Chợ Ca)
-            if (s.status === ShiftStatus.Draft || s.status === ShiftStatus.Open) {
-                result.forPublish.push(s.id)
-            }
+            // if (s.status === ShiftStatus.Draft || s.status === ShiftStatus.Open) {
+            //     result.forPublish.push(s.id)
+            // }
         })
 
         return result
     }, [shiftsData])
 
-    const { forPublish, forDelete, forOpen } = bulkActionIds
+    const { forPublish, forDelete, forOpen, forAutoFill } = bulkActionIds
 
     const handleBulkPublish = async () => {
         if (forPublish.length === 0) return
@@ -68,11 +90,34 @@ export const useScheduleBulkActions = (shiftsData: ShiftResponse[] | undefined) 
         if (isConfirmed) bulkOpen.mutate(forOpen)
     }
 
+    const handleAutoFill = async () => {
+        if (forAutoFill.length === 0) {
+            // Không có ca nháp nào cần điền
+            return
+        }
+
+        const isConfirmed = await confirmDialog({
+            title: "Tự động xếp ca",
+            message: `Hệ thống sẽ chạy tự động phân công nhân viên vào các ca làm việc từ ${dayjs(dateRange.fromDate).format("DD/MM")} đến ${dayjs(dateRange.toDate).format("DD/MM")}. Bạn có chắc chắn muốn tiếp tục?`,
+            variant: "info",
+            confirmText: "Thực hiện ngay"
+        })
+
+        if (isConfirmed) {
+            autoFill.mutate({ startDate: dateRange.fromDate, endDate: dateRange.toDate })
+        }
+    }
+
     return {
         bulkActionIds,
         handleBulkPublish,
         handleBulkDelete,
         handleBulkOpen,
-        isProcessing: bulkPublish.isPending || bulkDelete.isPending || bulkOpen.isPending
+        handleAutoFill,
+        isProcessing:
+            bulkPublish.isPending ||
+            bulkDelete.isPending ||
+            bulkOpen.isPending ||
+            autoFill.isPending
     }
 }

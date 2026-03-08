@@ -1,9 +1,9 @@
 "use client"
 
-import React from "react"
+import React, { useState } from "react"
 import { ModalBody, ModalContent, ModalFooter } from "@heroui/react"
 import { AlertTriangle, CheckCircle, Info, Trash2 } from "lucide-react"
-import { ButtonStyled, ModalHeaderStyled, ModalStyled } from "@/components"
+import { ButtonStyled, ModalHeaderStyled, ModalStyled, TextareaStyled } from "@/components"
 import { STRINGS } from "@/constants/strings"
 
 type AlertVariant = "danger" | "success" | "warning" | "info"
@@ -11,13 +11,17 @@ type AlertVariant = "danger" | "success" | "warning" | "info"
 interface AlertModalProps {
     isOpen: boolean
     onClose: () => void
-    onConfirm: () => void
+    onConfirm: (inputValue?: string) => void
     header?: string
     body: React.ReactNode // Đổi thành Node để truyền component phức tạp nếu cần
     variant?: AlertVariant
     confirmText?: string
     cancelText?: string
     isLoading?: boolean // Thêm loading khi đang gọi API
+
+    withInput?: boolean
+    inputPlaceholder?: string
+    isInputRequired?: boolean
 }
 
 export function AlertModal({
@@ -29,8 +33,23 @@ export function AlertModal({
     variant = "danger", // Mặc định là danger vì modal này hay dùng để xóa
     confirmText = STRINGS.COMMON.CONFIRM,
     cancelText = STRINGS.COMMON.CANCEL,
-    isLoading = false
+    isLoading = false,
+
+    withInput = false,
+    inputPlaceholder = "Vui lòng nhập lý do...",
+    isInputRequired = true
 }: AlertModalProps) {
+    const [inputValue, setInputValue] = useState("")
+
+    const [prevIsOpen, setPrevIsOpen] = useState(isOpen)
+    // Nếu trạng thái isOpen thay đổi so với lần render trước
+    if (isOpen !== prevIsOpen) {
+        setPrevIsOpen(isOpen) // Cập nhật lại trạng thái theo dõi
+        if (isOpen) {
+            setInputValue("") // Xóa text ngay lập tức khi modal vừa mở lên
+        }
+    }
+
     // Config giao diện dựa trên variant
     const getVariantConfig = () => {
         switch (variant) {
@@ -80,7 +99,24 @@ export function AlertModal({
                     <span className="text-xl font-bold">{header || config.defaultHeader}</span>
                 </ModalHeaderStyled>
 
-                <ModalBody className="text-center text-slate-500 pb-2">{body}</ModalBody>
+                <ModalBody className="text-center text-slate-500 pb-2">
+                    {body}
+                    {withInput && (
+                        <div className="mt-4 text-left animate-appearance-in">
+                            <TextareaStyled
+                                autoFocus
+                                variant="bordered"
+                                color={config.color}
+                                placeholder={inputPlaceholder}
+                                value={inputValue}
+                                onValueChange={setInputValue}
+                                minRows={2}
+                                isRequired={isInputRequired}
+                                classNames={{ input: "text-sm" }}
+                            />
+                        </div>
+                    )}
+                </ModalBody>
 
                 <ModalFooter className="flex justify-center gap-3 pb-6">
                     {!isLoading && (
@@ -97,9 +133,10 @@ export function AlertModal({
 
                     <ButtonStyled
                         color={config.color}
-                        onPress={onConfirm}
+                        onPress={() => onConfirm(inputValue)}
                         isLoading={isLoading}
                         className="font-semibold shadow-md"
+                        isDisabled={withInput && isInputRequired && inputValue.trim().length === 0}
                     >
                         {confirmText}
                     </ButtonStyled>

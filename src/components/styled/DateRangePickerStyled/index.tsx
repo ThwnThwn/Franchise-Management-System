@@ -17,6 +17,7 @@ export function DateRangePickerStyled(props: DateRangePickerProps) {
                 label: cn("text-gray-700 text-left", props.classNames?.label),
                 input: cn("text-gray-900", props.classNames?.input)
             }}
+            firstDayOfWeek="mon"
         />
     )
 }

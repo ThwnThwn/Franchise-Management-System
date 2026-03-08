@@ -9,19 +9,22 @@ export type ConfirmDialogOptions = {
     confirmText?: string
     cancelText?: string
     variant?: "danger" | "success" | "warning" | "info"
+    withInput?: boolean
+    inputPlaceholder?: string
+    isInputRequired?: boolean
 }
 
 type ConfirmStore = {
     isOpen: boolean
     options: ConfirmDialogOptions
-    resolveRef: ((value: boolean) => void) | null
+    resolveRef: ((value: boolean | string) => void) | null
 
     // Hàm gọi mở dialog
-    confirm: (options: ConfirmDialogOptions) => Promise<boolean>
+    confirm: (options: ConfirmDialogOptions) => Promise<boolean | string>
 
     // Internal actions
     close: () => void
-    handleConfirm: () => void
+    handleConfirm: (inputValue?: string) => void
     handleCancel: () => void
 }
 
@@ -31,7 +34,9 @@ const DEFAULT_OPTIONS: ConfirmDialogOptions = {
     title: "Xác nhận",
     confirmText: STRINGS.COMMON.CONFIRM, // "Xác nhận"
     cancelText: STRINGS.COMMON.CANCEL, // "Hủy"
-    variant: "danger"
+    variant: "danger",
+    withInput: false,
+    isInputRequired: true
 }
 
 export const useConfirmStore = create<ConfirmStore>((set, get) => ({
@@ -52,9 +57,9 @@ export const useConfirmStore = create<ConfirmStore>((set, get) => ({
 
     close: () => set({ isOpen: false }),
 
-    handleConfirm: () => {
-        const { resolveRef } = get()
-        if (resolveRef) resolveRef(true)
+    handleConfirm: (inputValue?: string) => {
+        const { resolveRef, options } = get()
+        if (resolveRef) resolveRef(options.withInput ? inputValue || "" : true)
         set({ isOpen: false, resolveRef: null })
     },
 
@@ -67,6 +72,16 @@ export const useConfirmStore = create<ConfirmStore>((set, get) => ({
 
 // --- EXPORT HELPER FUNCTION ---
 // Cách dùng mới: confirmDialog({ title: "Xóa?", message: "Chắc chưa?", variant: "warning" })
-export const confirmDialog = (options: ConfirmDialogOptions) => {
-    return useConfirmStore.getState().confirm(options)
+export const confirmDialog = async (
+    options: Omit<ConfirmDialogOptions, "withInput" | "inputPlaceholder">
+): Promise<boolean> => {
+    const res = await useConfirmStore.getState().confirm({ ...options, withInput: false })
+    return res as boolean
+}
+
+export const promptDialog = async (
+    options: Omit<ConfirmDialogOptions, "withInput">
+): Promise<string | false> => {
+    const res = await useConfirmStore.getState().confirm({ ...options, withInput: true })
+    return res as string | false
 }

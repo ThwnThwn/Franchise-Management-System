@@ -1,3 +1,4 @@
+import { ChipProps } from "@heroui/react"
 import { ShiftApplicationStatus, ShiftStatus, SwapRequestStatus, TimeLogStatus } from "./enum"
 
 export const ShiftStatusStyles: Record<ShiftStatus, string> = {
@@ -20,11 +21,18 @@ export const TimeLogStatusStyles: Record<TimeLogStatus, string> = {
     [TimeLogStatus.Invalid]: "bg-rose-50 border-rose-400 text-rose-700 border-1"
 }
 
+export const ShiftApplicationStatusColors: Record<ShiftApplicationStatus, ChipProps["color"]> = {
+    [ShiftApplicationStatus.Pending]: "default",
+    [ShiftApplicationStatus.Approved]: "success",
+    [ShiftApplicationStatus.Rejected]: "danger"
+}
+
 export const ShiftApplicationStatusStyles: Record<ShiftApplicationStatus, string> = {
     [ShiftApplicationStatus.Pending]:
-        "bg-amber-50 border-amber-400 text-amber-700 border-dashed border-1",
-    [ShiftApplicationStatus.Approved]: "bg-emerald-100 border-emerald-500 text-emerald-800",
-    [ShiftApplicationStatus.Rejected]: "bg-rose-100 border-rose-500 text-rose-800"
+        "bg-default-100 border-default-400 text-default-700 border-dashed border-1",
+    [ShiftApplicationStatus.Approved]:
+        "bg-success-100 border-success-500 text-success-800 border-1",
+    [ShiftApplicationStatus.Rejected]: "bg-danger-100 border-danger-500 text-danger-800 border-1"
 }
 
 export const SwapRequestStatusStyles: Record<SwapRequestStatus, string> = {

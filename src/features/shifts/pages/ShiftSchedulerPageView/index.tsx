@@ -66,8 +66,14 @@ export default function ShiftSchedulerPageView() {
     })
 
     // Hook Xử lý Bulk (Bulk Actions)
-    const { bulkActionIds, handleBulkPublish, handleBulkDelete, handleBulkOpen, isProcessing } =
-        useScheduleBulkActions(shiftsData)
+    const {
+        bulkActionIds,
+        handleBulkPublish,
+        handleBulkDelete,
+        handleBulkOpen,
+        handleAutoFill,
+        isProcessing
+    } = useScheduleBulkActions({ dateRange: dateRange, shiftsData: shiftsData })
 
     const calendarSnapRef = useScrollSnap({
         thresholdTop: -30,
@@ -101,11 +107,13 @@ export default function ShiftSchedulerPageView() {
                     forDeleteCount={bulkActionIds.forDelete.length}
                     forPublishCount={bulkActionIds.forPublish.length}
                     forOpenCount={bulkActionIds.forOpen.length}
+                    forAutoFillCount={bulkActionIds.forAutoFill.length}
                     //
                     onBulkCreate={onBulkOpen}
                     onBulkPublish={handleBulkPublish}
                     onBulkDelete={handleBulkDelete}
                     onBulkOpen={handleBulkOpen}
+                    onAutoFill={handleAutoFill}
                     isBulkProcessing={isProcessing}
                 />
                 {/* Stats */}

@@ -9,6 +9,7 @@ import { ButtonStyled, ModalStyled } from "@/components"
 import { ShiftAssignmentTab } from "./ShiftAssignmentTab"
 import { ShiftStatus } from "@/features/shifts/constants"
 import { ShiftForm } from "./ShiftForm"
+import { ShiftApplicationTab } from "./ShiftApplicationTab"
 
 interface ShiftModalProps {
     isOpen: boolean
@@ -119,6 +120,20 @@ export const ShiftModal = ({
                             ) : (
                                 <p className="text-center text-default-400 mt-3">
                                     Vui lòng lưu ca làm việc trước khi gán nhân sự.
+                                </p>
+                            )}
+                        </Tab>
+                        <Tab
+                            key="applications"
+                            title="Đơn ứng tuyển"
+                            isDisabled={!initialData?.id}
+                            className="py-0"
+                        >
+                            {initialData?.id ? (
+                                <ShiftApplicationTab shiftId={initialData.id} />
+                            ) : (
+                                <p className="text-center text-default-400 mt-3">
+                                    Vui lòng lưu ca làm việc trước khi xem đơn ứng tuyển.
                                 </p>
                             )}
                         </Tab>

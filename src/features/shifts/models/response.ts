@@ -114,6 +114,16 @@ export interface StaffAssignmentCandidate {
     }
 }
 
+export interface AssignStaffResponse {
+    success: boolean
+    warnings: ValidationWarningDto[]
+}
+export interface ValidationWarningDto {
+    code: string
+    message: string
+    severity: string
+}
+
 // ===============================
 // Shift rule
 // ===============================

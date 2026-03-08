@@ -21,7 +21,8 @@ import {
     Trash2,
     CopyPlus,
     Send,
-    Globe
+    Globe,
+    Wand2
 } from "lucide-react"
 
 import dayjs from "dayjs"
@@ -36,6 +37,7 @@ dayjs.extend(isoWeek)
 
 interface ScheduleToolbarProps {
     currentDate: dayjs.Dayjs
+
     viewMode: ViewMode
     onNext: () => void
     onPrev: () => void
@@ -47,16 +49,19 @@ interface ScheduleToolbarProps {
     forDeleteCount: number
     forPublishCount: number
     forOpenCount: number
+    forAutoFillCount: number
 
     onBulkCreate: () => void
     onBulkPublish: () => Promise<void>
     onBulkDelete: () => Promise<void>
     onBulkOpen: () => Promise<void>
+    onAutoFill: () => void
     isBulkProcessing: boolean
 }
 
 export const ScheduleToolbar = ({
     currentDate,
+    //
     viewMode,
     onNext,
     onPrev,
@@ -67,11 +72,13 @@ export const ScheduleToolbar = ({
     forDeleteCount,
     forPublishCount,
     forOpenCount,
+    forAutoFillCount,
     //
     onBulkCreate,
     onBulkPublish,
     onBulkDelete,
     onBulkOpen,
+    onAutoFill,
     isBulkProcessing
 }: ScheduleToolbarProps) => {
     const { toDate } = useDay()
@@ -96,6 +103,7 @@ export const ScheduleToolbar = ({
                             value={toDate(currentDate) || undefined}
                             onChange={onJumpToDate}
                             showMonthAndYearPickers
+                            firstDayOfWeek="mon"
                         />
                     </PopoverContent>
                 </Popover>
@@ -126,8 +134,8 @@ export const ScheduleToolbar = ({
                     </span>
                     {viewMode === "timeGridWeek" && (
                         <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">
-                            {currentDate.startOf("week").add(1, "d").format("DD/MM")} -{" "}
-                            {currentDate.endOf("week").add(1, "d").format("DD/MM")}
+                            {currentDate.startOf("isoWeek").format("DD/MM")} -{" "}
+                            {currentDate.endOf("isoWeek").format("DD/MM")}
                         </span>
                     )}
                 </div>
@@ -177,6 +185,31 @@ export const ScheduleToolbar = ({
                     >
                         Tạo nhanh
                     </Button>
+
+                    <Badge
+                        content={forAutoFillCount}
+                        color="secondary"
+                        shape="circle"
+                        size="sm"
+                        isInvisible={forAutoFillCount <= 0}
+                    >
+                        <Tooltip
+                            content={`Tự động xếp nhân viên vào ${forAutoFillCount} ca nháp`}
+                            color="secondary"
+                            placement="top"
+                        >
+                            <Button
+                                size="sm"
+                                color="secondary"
+                                variant="flat"
+                                isIconOnly
+                                onPress={onAutoFill}
+                                isDisabled={isBulkProcessing || forAutoFillCount <= 0}
+                            >
+                                <Wand2 size={18} />
+                            </Button>
+                        </Tooltip>
+                    </Badge>
 
                     {/* 2. Nút Xoá Nháp */}
                     <Badge

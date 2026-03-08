@@ -1,4 +1,5 @@
 export * from "./useMyShifts"
+export * from "./useShiftApplication"
 export * from "./useShiftAssignment"
 export * from "./useShiftAvailability"
 export * from "./useShiftBulk"
