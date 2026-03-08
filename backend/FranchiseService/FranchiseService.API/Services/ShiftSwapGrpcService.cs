@@ -5,6 +5,7 @@ using FranchiseService.Application.Features.ShiftSwaps.Commands.ApproveSwap;
 using FranchiseService.Application.Features.ShiftSwaps.Commands.CancelSwap;
 using FranchiseService.Application.Features.ShiftSwaps.Commands.ReleaseShift;
 using FranchiseService.Application.Features.ShiftSwaps.Queries.GetMySwapRequests;
+using FranchiseService.Application.Features.ShiftSwaps.Queries.GetSwapRequestsByStore;
 using Grpc.Core;
 using MediatR;
 
@@ -247,6 +248,53 @@ public class ShiftSwapGrpcService
         {
             throw new RpcException(new Status(StatusCode.InvalidArgument,
                 $"Dinh dang du lieu khong hop le: {ex.Message}"));
+        }
+    }
+
+    /// <summary>
+    /// Manager xem danh sach yeu cau doi ca thuoc cua hang
+    /// </summary>
+    public override async Task<GetSwapRequestsByStoreResponse> GetSwapRequestsByStore(
+        GetSwapRequestsByStoreRequest request, ServerCallContext context)
+    {
+        try
+        {
+            var query = new GetSwapRequestsByStoreQuery
+            {
+                StoreId = Guid.Parse(request.StoreId),
+                Status = request.Status == -1 ? null : request.Status
+            };
+
+            var swaps = await _mediator.Send(query);
+
+            var response = new GetSwapRequestsByStoreResponse();
+            foreach (var swap in swaps)
+            {
+                response.SwapRequests.Add(new SwapRequestItem
+                {
+                    Id = swap.Id.ToString(),
+                    SourceUserId = swap.SourceUserId.ToString(),
+                    SourceUserName = swap.SourceUserName ?? "",
+                    TargetUserId = swap.TargetUserId.ToString(),
+                    TargetUserName = swap.TargetUserName ?? "",
+                    Status = swap.Status,
+                    Reason = swap.Reason,
+                    RejectReason = swap.RejectReason ?? "",
+                    ExpiresAt = swap.ExpiresAt.ToString("o"),
+                    CreatedAt = swap.CreatedAt.ToString("o"),
+                    ShiftId = swap.ShiftId.ToString(),
+                    ShiftDate = swap.ShiftDate.ToString("yyyy-MM-dd"),
+                    StartTime = swap.StartTime.ToString("HH:mm"),
+                    EndTime = swap.EndTime.ToString("HH:mm")
+                });
+            }
+
+            return response;
+        }
+        catch (FormatException)
+        {
+            throw new RpcException(new Status(StatusCode.InvalidArgument,
+                "Ma cua hang khong hop le (Format error)."));
         }
     }
 }
