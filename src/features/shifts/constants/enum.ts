@@ -26,7 +26,7 @@ export enum ShiftApplicationStatus {
     Rejected = 2
 }
 
-export enum SwapRequestStatus {
+export enum ShiftSwapStatus {
     PendingTarget = 0,
     PendingManager = 1,
     Approved = 2,

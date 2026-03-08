@@ -1,5 +1,5 @@
 import { DayOfWeek } from "@/constants/enums"
-import { ShiftStatus, TimeLogStatus } from "../constants/enum"
+import { ShiftStatus, ShiftSwapStatus, TimeLogStatus } from "../constants/enum"
 
 // ===============================
 // Shift
@@ -206,6 +206,10 @@ export interface ReviewApplicationRequest {
 // ===============================
 // Swap
 // ===============================
+export interface GetAllSwapsParams {
+    status?: ShiftSwapStatus
+}
+
 export interface RequestSwapRequest {
     targetUserId: string
     reason: string

@@ -3,7 +3,7 @@ import {
     ShiftApplicationStatus,
     ShiftAssignmentStatus,
     ShiftStatus,
-    SwapRequestStatus,
+    ShiftSwapStatus,
     TimeLogStatus
 } from "../constants/enum"
 import { StoreDetailDto } from "@/features/stores"
@@ -314,7 +314,7 @@ export interface SwapRequestItem {
     sourceUserName: string
     targetUserId: string
     targetUserName: string
-    status: SwapRequestStatus
+    status: ShiftSwapStatus
     reason?: string
     rejectReason?: string
     expiresAt: string

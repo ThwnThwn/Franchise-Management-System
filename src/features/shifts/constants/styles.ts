@@ -1,5 +1,5 @@
 import { ChipProps } from "@heroui/react"
-import { ShiftApplicationStatus, ShiftStatus, SwapRequestStatus, TimeLogStatus } from "./enum"
+import { ShiftApplicationStatus, ShiftStatus, ShiftSwapStatus, TimeLogStatus } from "./enum"
 
 export const ShiftStatusStyles: Record<ShiftStatus, string> = {
     [ShiftStatus.Draft]: "bg-slate-100 border-slate-400 text-slate-500 border-dashed border-1",
@@ -35,13 +35,22 @@ export const ShiftApplicationStatusStyles: Record<ShiftApplicationStatus, string
     [ShiftApplicationStatus.Rejected]: "bg-danger-100 border-danger-500 text-danger-800 border-1"
 }
 
-export const SwapRequestStatusStyles: Record<SwapRequestStatus, string> = {
-    [SwapRequestStatus.PendingTarget]: "bg-indigo-50 border-indigo-400 text-indigo-700",
-    [SwapRequestStatus.PendingManager]: "bg-orange-50 border-orange-400 text-orange-800",
-    [SwapRequestStatus.Approved]: "bg-green-100 border-green-600 text-green-800",
-    [SwapRequestStatus.Rejected]: "bg-red-100 border-red-500 text-red-800",
-    [SwapRequestStatus.Expired]: "bg-slate-200 border-slate-400 text-slate-600",
-    [SwapRequestStatus.Cancelled]: "bg-gray-100 border-gray-400 text-gray-500"
+export const ShiftSwapStatusColors: Record<ShiftSwapStatus, ChipProps["color"]> = {
+    [ShiftSwapStatus.PendingTarget]: "secondary",
+    [ShiftSwapStatus.PendingManager]: "warning",
+    [ShiftSwapStatus.Approved]: "success",
+    [ShiftSwapStatus.Rejected]: "danger",
+    [ShiftSwapStatus.Expired]: "default",
+    [ShiftSwapStatus.Cancelled]: "default"
+}
+
+export const ShiftSwapStatusStyles: Record<ShiftSwapStatus, string> = {
+    [ShiftSwapStatus.PendingTarget]: "bg-indigo-50 border-indigo-400 text-indigo-700",
+    [ShiftSwapStatus.PendingManager]: "bg-orange-50 border-orange-400 text-orange-800",
+    [ShiftSwapStatus.Approved]: "bg-green-100 border-green-600 text-green-800",
+    [ShiftSwapStatus.Rejected]: "bg-red-100 border-red-500 text-red-800",
+    [ShiftSwapStatus.Expired]: "bg-slate-200 border-slate-400 text-slate-600",
+    [ShiftSwapStatus.Cancelled]: "bg-gray-100 border-gray-400 text-gray-500"
 }
 
 // Style đặc biệt cho trường hợp đã Full (thường chỉ áp dụng cho Published)

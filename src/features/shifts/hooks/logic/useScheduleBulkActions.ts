@@ -10,6 +10,8 @@ import { ShiftResponse } from "@/features/shifts/models/response"
 import { ShiftStatus } from "@/features/shifts/constants"
 import dayjs from "dayjs"
 
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+
 export const useScheduleBulkActions = ({
     dateRange,
     shiftsData
@@ -23,7 +25,24 @@ export const useScheduleBulkActions = ({
     const bulkPublish = useBulkPublishShift()
     const bulkDelete = useBulkDeleteShift()
     const bulkOpen = useBulkOpenShift()
-    const autoFill = useAutoFillShifts()
+    const autoFill = useAutoFillShifts({
+        onSuccess: async (data) => {
+            if (data.unfilledShiftIds && data.unfilledShiftIds.length > 0) {
+                await delay(500)
+
+                const isConfirmed = await confirmDialog({
+                    title: "Cảnh báo thiếu nhân sự",
+                    message: `Hệ thống không thể tìm đủ người cho ${data.unfilledShiftIds.length} ca làm việc. Bạn có muốn mở các ca này ra "Chợ ca" để nhân viên tự do đăng ký không?`,
+                    variant: "warning",
+                    confirmText: "Mở ra Chợ Ca ngay"
+                })
+
+                if (isConfirmed) {
+                    bulkOpen.mutate(data.unfilledShiftIds)
+                }
+            }
+        }
+    })
 
     const bulkActionIds = useMemo(() => {
         // Khởi tạo object chứa 2 mảng rỗng

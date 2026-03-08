@@ -1,5 +1,12 @@
 import axiosInstance from "@/utils/axios"
-import { ApproveSwapRequest, RequestSwapRequest, RespondSwapRequest } from "../models/request"
+import {
+    ApproveSwapRequest,
+    GetAllSwapsParams,
+    RequestSwapRequest,
+    RespondSwapRequest
+} from "../models/request"
+import { SwapRequestItem } from "../models/response"
+import { buildQueryParams } from "@/utils/helpers/axiosHelper"
 
 /**
  * SHIFT SWAP API
@@ -7,6 +14,16 @@ import { ApproveSwapRequest, RequestSwapRequest, RespondSwapRequest } from "../m
  * @description Resource-based: /shifts/{id}/swaps và /shift-swaps/{id}
  */
 export const shiftSwapApi = {
+    /**
+     * Xem tất cả swap request
+     * @param query - { status?: ShiftSwapStatus }
+     */
+    getAll: async (query: GetAllSwapsParams): Promise<SwapRequestItem[]> => {
+        const params = buildQueryParams(query)
+        const res = await axiosInstance.get("/shifts/swaps", { params })
+        return res.data
+    },
+
     /**
      * Gửi yêu cầu đổi ca (A gửi cho B)
      * @param assignmentId - ID ca làm việc của người gửi

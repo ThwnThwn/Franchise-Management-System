@@ -14,7 +14,7 @@ import {
 import { useShiftAssignment } from "@/features/shifts/hooks"
 import { UnsavedChangesNotifier, InputStyled, ButtonStyled } from "@/components"
 import { useUserHelper } from "@/hooks"
-import { getValidationErrors } from "./helper"
+import { getValidationErrors } from "@/features/shifts/utils"
 
 type Props = {
     storeId: string

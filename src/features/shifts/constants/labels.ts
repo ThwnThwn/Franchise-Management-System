@@ -1,4 +1,4 @@
-import { ShiftApplicationStatus, ShiftStatus, SwapRequestStatus, TimeLogStatus } from "./enum"
+import { ShiftApplicationStatus, ShiftStatus, ShiftSwapStatus, TimeLogStatus } from "./enum"
 
 export const ShiftStatusLabels: Record<ShiftStatus, string> = {
     [ShiftStatus.Draft]: "Nháp",
@@ -25,11 +25,11 @@ export const ShiftApplicationStatusLabels: Record<ShiftApplicationStatus, string
     [ShiftApplicationStatus.Rejected]: "Đã từ chối"
 }
 
-export const SwapRequestStatusLabels: Record<SwapRequestStatus, string> = {
-    [SwapRequestStatus.PendingTarget]: "Chờ đồng nghiệp",
-    [SwapRequestStatus.PendingManager]: "Chờ quản lý",
-    [SwapRequestStatus.Approved]: "Thành công",
-    [SwapRequestStatus.Rejected]: "Bị từ chối",
-    [SwapRequestStatus.Expired]: "Quá hạn",
-    [SwapRequestStatus.Cancelled]: "Đã hủy"
+export const ShiftSwapStatusLabels: Record<ShiftSwapStatus, string> = {
+    [ShiftSwapStatus.PendingTarget]: "Chờ đồng nghiệp",
+    [ShiftSwapStatus.PendingManager]: "Chờ quản lý",
+    [ShiftSwapStatus.Approved]: "Thành công",
+    [ShiftSwapStatus.Rejected]: "Bị từ chối",
+    [ShiftSwapStatus.Expired]: "Quá hạn",
+    [ShiftSwapStatus.Cancelled]: "Đã hủy"
 }
