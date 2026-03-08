@@ -63,6 +63,7 @@ export const AgendaToolbar = ({
                             value={toDate(currentDate) || undefined}
                             onChange={onJump}
                             showMonthAndYearPickers
+                            firstDayOfWeek="mon"
                         />
                     </PopoverContent>
                 </Popover>

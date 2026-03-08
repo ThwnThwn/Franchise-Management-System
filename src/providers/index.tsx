@@ -8,6 +8,10 @@ import { DisclosureProvider } from "./DisclosureProvider"
 import { GlobalConfirmDialog } from "@/components"
 import { StaffAttendanceFloatingBar } from "@/features/shifts/components"
 import { I18nProvider } from "@react-aria/i18n"
+import dayjs from "dayjs"
+import isoWeek from "dayjs/plugin/isoWeek"
+
+dayjs.extend(isoWeek)
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
     const queryClient = getQueryClient()
@@ -22,7 +26,7 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
                         placement="top-center"
                         toastProps={{
                             variant: "flat",
-                            timeout: 1500,
+                            timeout: 2000,
                             classNames: {
                                 closeButton: "opacity-100 absolute right-4 top-1/2 -translate-y-1/2"
                             },

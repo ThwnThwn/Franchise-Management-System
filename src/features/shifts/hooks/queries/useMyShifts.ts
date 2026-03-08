@@ -14,7 +14,7 @@ import { PaginationParams } from "@/models/common/request"
 // --- 1. QUERY HOOK: Lấy trạng thái ca làm hiện tại ---
 export const useGetCurrentShift = (enabled = true) => {
     return useQuery({
-        queryKey: [QUERY_KEYS.ME, QUERY_KEYS.SHIFTS, QUERY_KEYS.CURRENT],
+        queryKey: [QUERY_KEYS.ME, QUERY_KEYS.SHIFTS, QUERY_KEYS.TIME_LOGS, QUERY_KEYS.CURRENT],
         queryFn: () => myShiftApi.getCurrent(),
         enabled,
         // Tự động refetch khi quay lại tab (để cập nhật serverTime hoặc trạng thái ca)
@@ -40,6 +40,10 @@ export const useCheckIn = ({ onSuccess }: { onSuccess?: () => void } = {}) => {
             // Quan trọng: Refresh lại thông tin ca để nút bấm chuyển sang "Tan ca"
             queryClient.invalidateQueries({
                 queryKey: [QUERY_KEYS.ME, QUERY_KEYS.SHIFTS, QUERY_KEYS.CURRENT]
+            })
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.TIME_LOGS],
+                exact: false
             })
 
             addToast({
@@ -71,6 +75,10 @@ export const useCheckOut = ({ onSuccess }: { onSuccess?: () => void } = {}) => {
             // Refresh để UI ẩn banner hoặc chuyển trạng thái "Đã hoàn thành"
             queryClient.invalidateQueries({
                 queryKey: [QUERY_KEYS.ME, QUERY_KEYS.SHIFTS, QUERY_KEYS.CURRENT]
+            })
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.TIME_LOGS],
+                exact: false
             })
 
             addToast({
@@ -131,11 +139,11 @@ export const useGetMyAgenda = (params: GetAgendaParams, enabled = true) => {
 export const useGetMyTimeLogHistory = ({
     query,
     pagination,
-    enabled
+    enabled = true
 }: {
     query: GetTimeLogsParams
     pagination: PaginationParams
-    enabled: boolean
+    enabled?: boolean
 }) => {
     return useQuery({
         queryKey: [QUERY_KEYS.ME, QUERY_KEYS.SHIFTS, QUERY_KEYS.TIME_LOGS, query, pagination],
@@ -143,5 +151,17 @@ export const useGetMyTimeLogHistory = ({
         enabled: enabled,
         staleTime: 1000 * 60 * 2, // 2 phút vì dữ liệu lịch sử ít biến động
         placeholderData: (previousData) => previousData
+    })
+}
+
+/**
+ * Hook lấy danh sách yêu cầu đổi ca của tôi (Người gửi hoặc Người nhận)
+ * @param enabled - Cho phép fetch dữ liệu hay không (mặc định là true)
+ */
+export const useGetMySwaps = ({ enabled = true }: { enabled?: boolean } = {}) => {
+    return useQuery({
+        queryKey: [QUERY_KEYS.SHIFT_SWAPS, QUERY_KEYS.ME],
+        queryFn: () => myShiftApi.getMySwaps(),
+        enabled
     })
 }

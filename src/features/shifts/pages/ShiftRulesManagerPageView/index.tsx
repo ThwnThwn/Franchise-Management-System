@@ -5,19 +5,20 @@ import { useFormik } from "formik"
 import { Card, CardBody, Divider, Switch, Spinner, Chip } from "@heroui/react"
 import { useTokenStore } from "@/hooks/singleton/store"
 import { shiftRuleSchema, ShiftRuleFormValues } from "./schema"
-import { AlertStyled, NumberInputStyled, UnsavedChangesNotifier } from "@/components"
+import { AlertStyled, InputStyled, UnsavedChangesNotifier } from "@/components"
 import { DashboardHeader } from "@/features/dashboard/components/general/DashboardHeader"
-import { ShieldCheck, Zap, Store } from "lucide-react"
+import { ShieldCheck, Zap, Store, Clock } from "lucide-react"
 import { useGetShiftRuleSettings, useSaveShiftRule } from "@/features/shifts/hooks"
 import { SystemDefaultHint } from "./SystemDefaultHint"
 import { RoleSlug } from "@/constants/enums"
+import { useFormikHelpers } from "@/hooks"
 
 export default function ShiftRulesManagerPageView() {
-    const storeId = useTokenStore((s) => s.storeId)
+    const storeId = useTokenStore((s) => s.storeId) || undefined
     const isAdmin = useTokenStore((s) => s.roleSlug === RoleSlug.Admin)
 
     // React Query Hooks
-    const { data, isLoading } = useGetShiftRuleSettings(storeId || "")
+    const { data, isLoading } = useGetShiftRuleSettings({ storeId: storeId })
     const { mutate: saveRule, isPending: isSaving } = useSaveShiftRule()
 
     // 1. Xác định Rule của Store từ mảng
@@ -33,10 +34,20 @@ export default function ShiftRulesManagerPageView() {
             allowShuttle: currentStoreRule?.allowShuttle ?? data?.global?.allowShuttle ?? false,
             allowShiftSwap:
                 currentStoreRule?.allowShiftSwap ?? data?.global?.allowShiftSwap ?? true,
+
             minHoursBetweenShifts:
                 currentStoreRule?.minHoursBetweenShifts ?? data?.global?.minHoursBetweenShifts ?? 8,
             maxHoursPerWeek:
-                currentStoreRule?.maxHoursPerWeek ?? data?.global?.maxHoursPerWeek ?? 48
+                currentStoreRule?.maxHoursPerWeek ?? data?.global?.maxHoursPerWeek ?? 48,
+
+            gracePeriodMinutes:
+                currentStoreRule?.gracePeriodMinutes ?? data?.global?.gracePeriodMinutes ?? 15,
+            dailyOtThresholdHours:
+                currentStoreRule?.dailyOtThresholdHours ?? data?.global?.dailyOtThresholdHours ?? 8,
+            weeklyOtThresholdHours:
+                currentStoreRule?.weeklyOtThresholdHours ??
+                data?.global?.weeklyOtThresholdHours ??
+                40
         }),
         [data, currentStoreRule, storeId]
     )
@@ -47,7 +58,7 @@ export default function ShiftRulesManagerPageView() {
         validationSchema: shiftRuleSchema,
         onSubmit: (values) => saveRule(values)
     })
-
+    const { isInvalid, getErrorMessage, setNumberValue } = useFormikHelpers(formik)
     if (isLoading)
         return (
             <div className="flex flex-col items-center justify-center p-20 gap-4">
@@ -65,19 +76,6 @@ export default function ShiftRulesManagerPageView() {
 
             {/* Banner thông báo trạng thái */}
             {!currentStoreRule && !isAdmin && (
-                // <div className="mb-6 p-4 bg-primary-50 border border-primary-100 rounded-2xl flex items-start gap-4 animate-appearance-in">
-                //     <div className="p-2 bg-primary-100 rounded-xl text-primary">
-                //         <Info size={20} />
-                //     </div>
-                //     <div>
-                //         <p className="font-bold text-primary-900 text-sm">Chế độ kế thừa</p>
-                // <p className="text-xs text-primary-700 leading-relaxed">
-                //     Cửa hàng chưa có cấu hình riêng và đang sử dụng <b>Luật chung</b>. Khi
-                //     bạn lưu thay đổi, hệ thống sẽ tự động tạo bộ luật riêng cho chi nhánh
-                //     này.
-                // </p>
-                //     </div>
-                // </div>
                 <AlertStyled
                     color="warning"
                     className="mb-3"
@@ -178,29 +176,92 @@ export default function ShiftRulesManagerPageView() {
                         <Divider />
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                             <div className="space-y-1">
-                                <NumberInputStyled
+                                <InputStyled
+                                    type="number"
                                     label="Thời gian nghỉ tối thiểu (Giờ)"
                                     description="Khoảng trống bắt buộc giữa 2 ca làm việc liên tiếp."
-                                    value={formik.values.minHoursBetweenShifts}
-                                    onValueChange={(v) =>
-                                        formik.setFieldValue("minHoursBetweenShifts", v)
-                                    }
+                                    value={formik.values.minHoursBetweenShifts.toString()}
+                                    onValueChange={(v) => {
+                                        setNumberValue("minHoursBetweenShifts", v)
+                                    }}
                                     isReadOnly={isSaving}
+                                    isInvalid={isInvalid("minHoursBetweenShifts")}
+                                    errorMessage={getErrorMessage("minHoursBetweenShifts")}
                                 />
                                 <SystemDefaultHint value={data?.global?.minHoursBetweenShifts} />
                             </div>
 
                             <div className="space-y-1">
-                                <NumberInputStyled
+                                <InputStyled
+                                    type="number"
                                     label="Giới hạn giờ làm / tuần"
                                     description="Tổng số giờ làm tối đa nhân viên được phép đăng ký trong 1 tuần."
-                                    value={formik.values.maxHoursPerWeek}
-                                    onValueChange={(v) =>
-                                        formik.setFieldValue("maxHoursPerWeek", v)
-                                    }
+                                    value={formik.values.maxHoursPerWeek.toString()}
+                                    onValueChange={(v) => setNumberValue("maxHoursPerWeek", v)}
                                     isReadOnly={isSaving}
+                                    isInvalid={isInvalid("maxHoursPerWeek")}
+                                    errorMessage={getErrorMessage("maxHoursPerWeek")}
                                 />
                                 <SystemDefaultHint value={data?.global?.maxHoursPerWeek} />
+                            </div>
+                        </div>
+                    </CardBody>
+                </Card>
+
+                <Card shadow="sm" className="border-none bg-white/70 backdrop-blur-md">
+                    <CardBody className="p-8 gap-6">
+                        <div className="flex items-center gap-2.5 text-warning font-bold uppercase text-xs tracking-widest">
+                            <Clock size={18} /> Chấm công & Làm thêm giờ (OT)
+                        </div>
+                        <Divider />
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            {/* Grace Period */}
+                            <div className="space-y-1">
+                                <InputStyled
+                                    type="number"
+                                    label="Thời gian ân hạn (Phút)"
+                                    description="Thời gian cho phép đi trễ/về sớm mà không bị tính vi phạm."
+                                    value={formik.values.gracePeriodMinutes.toString()}
+                                    onValueChange={(v) => setNumberValue("gracePeriodMinutes", v)}
+                                    isReadOnly={isSaving}
+                                    isInvalid={isInvalid("gracePeriodMinutes")}
+                                    errorMessage={getErrorMessage("gracePeriodMinutes")}
+                                />
+                                <SystemDefaultHint value={data?.global?.gracePeriodMinutes} />
+                            </div>
+
+                            {/* Daily OT Threshold */}
+                            <div className="space-y-1">
+                                <InputStyled
+                                    type="number"
+                                    label="Ngưỡng tăng ca ngày (Giờ)"
+                                    description="Số giờ làm tiêu chuẩn 1 ngày. Phần vượt ngưỡng sẽ tính là OT ngày."
+                                    value={formik.values.dailyOtThresholdHours.toString()}
+                                    onValueChange={(v) =>
+                                        setNumberValue("dailyOtThresholdHours", v)
+                                    }
+                                    isReadOnly={isSaving}
+                                    isInvalid={isInvalid("dailyOtThresholdHours")}
+                                    errorMessage={getErrorMessage("dailyOtThresholdHours")}
+                                />
+                                <SystemDefaultHint value={data?.global?.dailyOtThresholdHours} />
+                            </div>
+
+                            {/* Weekly OT Threshold */}
+                            <div className="space-y-1">
+                                <InputStyled
+                                    type="number"
+                                    label="Ngưỡng tăng ca tuần (Giờ)"
+                                    description="Số giờ làm tiêu chuẩn 1 tuần. Phần vượt ngưỡng sẽ tính là OT tuần."
+                                    value={formik.values.weeklyOtThresholdHours.toString()}
+                                    onValueChange={(v) =>
+                                        setNumberValue("weeklyOtThresholdHours", v)
+                                    }
+                                    isReadOnly={isSaving}
+                                    isInvalid={isInvalid("weeklyOtThresholdHours")}
+                                    errorMessage={getErrorMessage("weeklyOtThresholdHours")}
+                                />
+                                <SystemDefaultHint value={data?.global?.weeklyOtThresholdHours} />
                             </div>
                         </div>
                     </CardBody>

@@ -1,5 +1,5 @@
 import { DayOfWeek } from "@/constants/enums"
-import { ShiftStatus, TimeLogStatus } from "../constants/enum"
+import { ShiftStatus, ShiftSwapStatus, TimeLogStatus } from "../constants/enum"
 
 // ===============================
 // Shift
@@ -31,6 +31,12 @@ export interface UpdateShiftRequest {
     note?: string
     status?: ShiftStatus
     shiftTemplateId?: string
+}
+
+export interface AssignStaffRequest {
+    userIds: string[]
+    forceOverride: boolean
+    overrideReason: string
 }
 
 // ===============================
@@ -96,10 +102,14 @@ export interface UpdateShiftTemplateRequest {
 // ===============================
 export interface SaveShiftRuleRequest {
     storeId?: string // Truyền ID store để tạo/cập nhật store rule
+
     allowShuttle: boolean
     allowShiftSwap: boolean
     minHoursBetweenShifts: number
     maxHoursPerWeek: number
+    gracePeriodMinutes: number
+    dailyOtThresholdHours: number
+    weeklyOtThresholdHours: number
 }
 
 // ===============================
@@ -174,4 +184,43 @@ export interface GetTimeLogsParams {
 export interface UpdateTimeLogRequest {
     status: TimeLogStatus // Chỉ Manager mới có quyền đổi sang Valid/Invalid
     managerNote?: string // Bắt buộc nhập khi Invalid
+}
+
+export interface AutoFillShiftsRequest {
+    startDate: string // YYYY-MM-DD
+    endDate: string //YYYY-MM-DD
+}
+
+// ===============================
+// Apply
+// ===============================
+export interface ApplyForShiftRequest {
+    note: string
+}
+
+export interface ReviewApplicationRequest {
+    isApproved: boolean
+    reviewNote: string
+}
+
+// ===============================
+// Swap
+// ===============================
+export interface GetAllSwapsParams {
+    status?: ShiftSwapStatus
+}
+
+export interface RequestSwapRequest {
+    targetUserId: string
+    reason: string
+}
+
+export interface RespondSwapRequest {
+    accept: boolean
+    rejectReason?: string
+}
+
+export interface ApproveSwapRequest {
+    approve: boolean
+    rejectReason?: string
 }

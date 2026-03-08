@@ -4,12 +4,10 @@ import { shiftApi } from "@/features/shifts/services/shiftApi"
 import { addToast } from "@heroui/react"
 import { STRINGS } from "@/constants/strings"
 import { BackendError } from "@/models/common/respone"
-import {
-    GetShiftsParams,
-    GetTimeLogsParams,
-    UpdateTimeLogRequest
-} from "@/features/shifts/models/request"
-import { PaginationParams } from "@/models/common/request"
+import { GetShiftsParams } from "@/features/shifts/models/request"
+import { AutoFillShiftsResponse } from "../../models/response"
+import { confirmDialog } from "@/hooks"
+import dayjs from "dayjs"
 
 // --- QUERY HOOKS (GET DATA) ---
 
@@ -137,56 +135,57 @@ export const usePublishShift = ({ onSuccess }: { onSuccess?: () => void } = {}) 
     })
 }
 
-/**
- * Hook dành cho Manager quản lý danh sách chấm công của nhân viên
- */
-export const useGetAllTimeLogs = ({
-    query,
-    pagination,
-    enabled
+export const useAutoFillShifts = ({
+    onSuccess
 }: {
-    query: GetTimeLogsParams
-    pagination: PaginationParams
-    enabled: boolean
-}) => {
-    return useQuery({
-        queryKey: [QUERY_KEYS.SHIFTS, QUERY_KEYS.TIME_LOGS, query, pagination],
-        queryFn: () => shiftApi.getAllTimeLogs({ query, pagination }),
-        enabled: enabled && !!query.storeId, // Chỉ fetch khi đã chọn Store
-        staleTime: 1000 * 30, // 30 giây để đảm bảo Manager thấy data mới nhất
-        placeholderData: (previousData) => previousData
-    })
-}
-
-/**
- * Dùng để Manager phê duyệt, bác bỏ hoặc để lại ghi chú.
- */
-export const useUpdateTimeLog = ({ onSuccess }: { onSuccess?: () => void } = {}) => {
+    onSuccess?: (data: AutoFillShiftsResponse) => void
+} = {}) => {
     const queryClient = useQueryClient()
 
-    return useMutation({
-        mutationFn: ({ id, req }: { id: string; req: UpdateTimeLogRequest }) =>
-            shiftApi.updateTimeLog(id, req),
-        onSuccess: () => {
-            // Làm tươi toàn bộ cache liên quan đến Time Logs
-            queryClient.invalidateQueries({
-                queryKey: [QUERY_KEYS.SHIFTS, QUERY_KEYS.TIME_LOGS],
-                exact: false
-            })
+    const mutation = useMutation({
+        mutationFn: shiftApi.autoFill,
+        onSuccess: (data) => {
+            // 1. Refresh lại toàn bộ danh sách ca làm
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SHIFTS], exact: false })
 
+            // 2. Bắn toast báo cáo kết quả
             addToast({
                 title: STRINGS.COMMON.SUCCESS,
-                description: "Cập nhật chấm công thành công!",
+                description: `Tự động xếp ca thành công! Đã điền ${data.filledCount}/${data.totalSlots} vị trí.`,
                 color: "success"
             })
-            onSuccess?.()
+
+            // 3. Callback để UI xử lý tiếp (ví dụ: bôi đỏ các ca unfilled)
+            onSuccess?.(data)
         },
         onError: (error: BackendError) => {
             addToast({
                 title: error.title || STRINGS.COMMON.ERROR,
-                description: error.detail || "Không thể cập nhật. Vui lòng thử lại.",
+                description: error.detail || "Không thể thực hiện tự động xếp ca lúc này",
                 color: "danger"
             })
         }
     })
+
+    // BỔ SUNG: Helper function bọc sẵn Confirm Dialog
+    const autoFillWithConfirm = async (startDate: string, endDate: string) => {
+        // Hỏi quản lý trước khi thi triển phép thuật
+        const isConfirmed = await confirmDialog({
+            title: "Tự động xếp ca",
+            message: `Hệ thống sẽ chạy tự động phân công nhân viên vào các ca làm việc từ ${dayjs(startDate).format("DD/MM")} đến ${dayjs(endDate).format("DD/MM")}. Bạn có chắc chắn muốn tiếp tục?`,
+            variant: "info",
+            confirmText: "Thực hiện ngay"
+        })
+
+        // Nếu bấm Hủy -> Trả về lỗi ngầm để cắt luồng
+        if (!isConfirmed) return Promise.reject(new Error("USER_CANCELLED"))
+
+        // Nếu đồng ý -> Kích hoạt lõi mutation
+        return mutation.mutateAsync({ startDate, endDate })
+    }
+
+    return {
+        ...mutation,
+        autoFillWithConfirm
+    }
 }

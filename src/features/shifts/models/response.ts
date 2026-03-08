@@ -1,5 +1,11 @@
 import { DayOfWeek } from "@/constants/enums"
-import { ShiftAssignmentStatus, ShiftStatus, TimeLogStatus } from "../constants/enum"
+import {
+    ShiftApplicationStatus,
+    ShiftAssignmentStatus,
+    ShiftStatus,
+    ShiftSwapStatus,
+    TimeLogStatus
+} from "../constants/enum"
 import { StoreDetailDto } from "@/features/stores"
 
 export interface ShiftAssignment {
@@ -108,20 +114,36 @@ export interface StaffAssignmentCandidate {
     }
 }
 
+export interface AssignStaffResponse {
+    success: boolean
+    warnings: ValidationWarningDto[]
+}
+export interface ValidationWarningDto {
+    code: string
+    message: string
+    severity: string
+}
+
 // ===============================
 // Shift rule
 // ===============================
 export interface ShiftRuleResponse {
     id: string
     storeId?: string
+
     allowShuttle: boolean
     allowShiftSwap: boolean
     minHoursBetweenShifts: number
     maxHoursPerWeek: number
+    gracePeriodMinutes: number
+    dailyOtThresholdHours: number
+    weeklyOtThresholdHours: number
+
     updatedAt: string
 }
 
 // Kiểu trả về mới khi Manager xem cấu hình
+// Nếu stores rỗng thì lấy global làm rule
 export interface ShiftRuleSettingsResponse {
     global?: ShiftRuleResponse
 
@@ -199,6 +221,8 @@ export interface StaffShiftAgenda {
     // Trạng thái thực tế
     checkInAt?: string
     checkOutAt?: string
+
+    shiftId: string
 }
 
 // ===============================
@@ -225,7 +249,10 @@ export interface TimeLogResponse {
      * Hệ thống tự động tính khi status chuyển sang Valid hoặc Invalid.
      * Sẽ là undefined nếu đang ở trạng thái Processing.
      */
-    totalWorkMinutes?: number
+    regularMinutes?: number
+    dailyOtMinutes?: number
+    weeklyOtMinutes?: number
+
     status: TimeLogStatus
     managerNote?: string // Manager có thể note thêm nếu cần điều chỉnh thủ công cho Invalid
 
@@ -246,4 +273,56 @@ export interface TimeLogResponse {
         endTime: string // HH:mm:ss
         note?: string
     }
+}
+
+export interface StaffShiftAgendaWithLog extends StaffShiftAgenda {
+    timeLog?: TimeLogResponse
+    shiftInfo?: ShiftResponse
+}
+
+export interface AutoFillShiftsResponse {
+    success: boolean
+    filledCount: number
+    totalSlots: number
+    unfilledShiftIds: string[]
+}
+
+// ===============================
+// Apply
+// ===============================
+export interface ShiftApplicationItem {
+    id: string
+    shiftId: string
+    userId: string
+    status: ShiftApplicationStatus
+    note: string
+    appliedAt: string
+    username: string
+    email: string
+    avatarUrl: string
+    hourlyWage: number
+    smartScore: number // 0.0 - 1.0
+    weeklyHoursWorked: number
+}
+
+// ===============================
+// Swap
+// ===============================
+export interface SwapRequestItem {
+    id: string
+    sourceUserId: string
+    sourceUserName: string
+    targetUserId: string
+    targetUserName: string
+    status: ShiftSwapStatus
+    reason?: string
+    rejectReason?: string
+    expiresAt: string
+    createdAt: string
+
+    // Thông tin ca làm liên quan
+    shiftId: string
+    shiftDate: string // YYYY-MM-DD
+    startTime: string // HH:mm
+    endTime: string // HH:mm
 }

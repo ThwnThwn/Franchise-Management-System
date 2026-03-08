@@ -10,7 +10,8 @@ import {
     Calendar,
     PopoverContent,
     Badge,
-    Divider
+    Divider,
+    Tooltip
 } from "@heroui/react"
 import {
     ChevronLeft,
@@ -19,7 +20,9 @@ import {
     CalendarDays,
     Trash2,
     CopyPlus,
-    Send
+    Send,
+    Globe,
+    Wand2
 } from "lucide-react"
 
 import dayjs from "dayjs"
@@ -34,6 +37,7 @@ dayjs.extend(isoWeek)
 
 interface ScheduleToolbarProps {
     currentDate: dayjs.Dayjs
+
     viewMode: ViewMode
     onNext: () => void
     onPrev: () => void
@@ -42,25 +46,39 @@ interface ScheduleToolbarProps {
     // onDateSelect: (type: "year" | "month", value: number) => void
     onJumpToDate: (date: CalendarDate) => void
 
-    draftCount: number
+    forDeleteCount: number
+    forPublishCount: number
+    forOpenCount: number
+    forAutoFillCount: number
+
     onBulkCreate: () => void
     onBulkPublish: () => Promise<void>
     onBulkDelete: () => Promise<void>
+    onBulkOpen: () => Promise<void>
+    onAutoFill: () => void
     isBulkProcessing: boolean
 }
 
 export const ScheduleToolbar = ({
     currentDate,
+    //
     viewMode,
     onNext,
     onPrev,
     onToday,
     onViewChange,
     onJumpToDate,
-    draftCount,
+    //
+    forDeleteCount,
+    forPublishCount,
+    forOpenCount,
+    forAutoFillCount,
+    //
     onBulkCreate,
     onBulkPublish,
     onBulkDelete,
+    onBulkOpen,
+    onAutoFill,
     isBulkProcessing
 }: ScheduleToolbarProps) => {
     const { toDate } = useDay()
@@ -85,6 +103,7 @@ export const ScheduleToolbar = ({
                             value={toDate(currentDate) || undefined}
                             onChange={onJumpToDate}
                             showMonthAndYearPickers
+                            firstDayOfWeek="mon"
                         />
                     </PopoverContent>
                 </Popover>
@@ -115,8 +134,8 @@ export const ScheduleToolbar = ({
                     </span>
                     {viewMode === "timeGridWeek" && (
                         <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">
-                            {currentDate.startOf("week").add(1, "d").format("DD/MM")} -{" "}
-                            {currentDate.endOf("week").add(1, "d").format("DD/MM")}
+                            {currentDate.startOf("isoWeek").format("DD/MM")} -{" "}
+                            {currentDate.endOf("isoWeek").format("DD/MM")}
                         </span>
                     )}
                 </div>
@@ -132,16 +151,6 @@ export const ScheduleToolbar = ({
                 <ButtonGroup size="sm" variant="flat" className="bg-default-100 rounded-lg p-1">
                     <Button
                         className={
-                            viewMode === "dayGridMonth"
-                                ? "bg-white shadow-sm text-primary font-bold"
-                                : "bg-transparent"
-                        }
-                        onPress={() => onViewChange("dayGridMonth")}
-                    >
-                        Tháng
-                    </Button>
-                    <Button
-                        className={
                             viewMode === "timeGridWeek"
                                 ? "bg-white shadow-sm text-primary font-bold"
                                 : "bg-transparent"
@@ -149,6 +158,16 @@ export const ScheduleToolbar = ({
                         onPress={() => onViewChange("timeGridWeek")}
                     >
                         Tuần
+                    </Button>
+                    <Button
+                        className={
+                            viewMode === "dayGridMonth"
+                                ? "bg-white shadow-sm text-primary font-bold"
+                                : "bg-transparent"
+                        }
+                        onPress={() => onViewChange("dayGridMonth")}
+                    >
+                        Tháng
                     </Button>
                 </ButtonGroup>
 
@@ -167,30 +186,110 @@ export const ScheduleToolbar = ({
                         Tạo nhanh
                     </Button>
 
-                    {/* 2. Nhóm Chốt & Xóa (Chỉ hiện khi có ca Draft) */}
-                    <Button
+                    <Badge
+                        content={forAutoFillCount}
+                        color="secondary"
+                        shape="circle"
                         size="sm"
-                        color="danger"
-                        variant="light"
-                        isIconOnly
-                        onPress={onBulkDelete}
-                        isDisabled={isBulkProcessing || draftCount <= 0}
+                        isInvisible={forAutoFillCount <= 0}
                     >
-                        <Trash2 size={18} />
-                    </Button>
-
-                    <Badge content={draftCount} color="danger" shape="circle" size="sm">
-                        <Button
-                            size="sm"
-                            color="success"
-                            className="text-white font-bold shadow-sm"
-                            onPress={onBulkPublish}
-                            isLoading={isBulkProcessing}
-                            isDisabled={isBulkProcessing || draftCount <= 0}
-                            startContent={!isBulkProcessing && <Send size={16} />}
+                        <Tooltip
+                            content={`Tự động xếp nhân viên vào ${forAutoFillCount} ca nháp`}
+                            color="secondary"
+                            placement="top"
                         >
-                            Chốt lịch
-                        </Button>
+                            <Button
+                                size="sm"
+                                color="secondary"
+                                variant="flat"
+                                isIconOnly
+                                onPress={onAutoFill}
+                                isDisabled={isBulkProcessing || forAutoFillCount <= 0}
+                            >
+                                <Wand2 size={18} />
+                            </Button>
+                        </Tooltip>
+                    </Badge>
+
+                    {/* 2. Nút Xoá Nháp */}
+                    <Badge
+                        content={forDeleteCount}
+                        color="danger"
+                        shape="circle"
+                        size="sm"
+                        isInvisible={forDeleteCount <= 0}
+                    >
+                        <Tooltip
+                            content={`Xóa ${forDeleteCount} ca nháp`}
+                            color="danger"
+                            placement="top"
+                        >
+                            <Button
+                                size="sm"
+                                color="danger"
+                                variant="flat"
+                                isIconOnly
+                                onPress={onBulkDelete}
+                                isDisabled={isBulkProcessing || forDeleteCount <= 0}
+                            >
+                                <Trash2 size={18} />
+                            </Button>
+                        </Tooltip>
+                    </Badge>
+
+                    {/* 3. Nút Đẩy Lên Chợ Ca (Open) */}
+                    <Badge
+                        content={forOpenCount || forDeleteCount}
+                        color="warning"
+                        shape="circle"
+                        size="sm"
+                        isInvisible={(forOpenCount || forDeleteCount) <= 0}
+                    >
+                        <Tooltip
+                            content={`Mở ${forOpenCount || forDeleteCount} ca ra Chợ`}
+                            color="warning"
+                            placement="top"
+                        >
+                            <Button
+                                size="sm"
+                                color="warning"
+                                variant="flat"
+                                isIconOnly
+                                onPress={onBulkOpen}
+                                isDisabled={
+                                    isBulkProcessing || (forOpenCount || forDeleteCount) <= 0
+                                }
+                            >
+                                <Globe size={18} className="text-warning-700" />
+                            </Button>
+                        </Tooltip>
+                    </Badge>
+
+                    {/* 4. Nút Chốt Lịch (Publish) */}
+                    <Badge
+                        content={forPublishCount}
+                        color="danger"
+                        shape="circle"
+                        size="sm"
+                        isInvisible={forPublishCount <= 0}
+                    >
+                        <Tooltip
+                            content={`Chốt ${forPublishCount} ca làm`}
+                            color="success"
+                            placement="top"
+                        >
+                            <Button
+                                size="sm"
+                                color="success"
+                                className="text-white shadow-sm"
+                                isIconOnly
+                                onPress={onBulkPublish}
+                                isLoading={isBulkProcessing}
+                                isDisabled={isBulkProcessing || forPublishCount <= 0}
+                            >
+                                {!isBulkProcessing && <Send size={18} />}
+                            </Button>
+                        </Tooltip>
                     </Badge>
                 </div>
             </div>

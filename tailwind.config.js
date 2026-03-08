@@ -21,13 +21,31 @@ module.exports = {
                         background: "#FAF8F5", // Be sáng
                         foreground: "#3E2723", // Nâu đen
                         primary: {
-                            50: "#EFEBE9",
-                            400: "#8D6E63",
-                            DEFAULT: "#5D4037", // Nâu Mocha
+                            50: "#ebdcd8", // Đậm hơn rõ rệt
+                            100: "#dfc7bf",
+                            200: "#c9a69b",
+                            300: "#b08477",
+                            400: "#97685a",
+                            500: "#7d4e41",
+                            600: "#683f33",
+                            700: "#5D4037", // DEFAULT
+                            800: "#4d342c",
+                            900: "#402a24",
+                            DEFAULT: "#5D4037",
                             foreground: "#FFFFFF"
                         },
                         secondary: {
-                            DEFAULT: "#8D6E63", // Nâu Latte
+                            50: "#eee7e4",
+                            100: "#dcd0cb",
+                            200: "#cbb6af",
+                            300: "#b59a91",
+                            400: "#a18276",
+                            500: "#8D6E63", // DEFAULT
+                            600: "#7a5d53",
+                            700: "#634940",
+                            800: "#4f3a32",
+                            900: "#3d2b24",
+                            DEFAULT: "#8D6E63",
                             foreground: "#FFFFFF"
                         },
                         default: {

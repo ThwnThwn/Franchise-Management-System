@@ -1,15 +1,18 @@
 import { buildQueryParams } from "@/utils/helpers/axiosHelper"
 import axiosInstance from "@/utils/axios"
 import {
+    AssignStaffRequest,
+    AutoFillShiftsRequest,
     CreateShiftRequest,
     GetShiftsParams,
-    GetTimeLogsParams,
-    UpdateShiftRequest,
-    UpdateTimeLogRequest
+    UpdateShiftRequest
 } from "../models/request"
-import { ShiftResponse, StaffAssignmentCandidate, TimeLogResponse } from "../models/response"
-import { PaginationParams } from "@/models/common/request"
-import { PageResult } from "@/models/common/respone"
+import {
+    AssignStaffResponse,
+    AutoFillShiftsResponse,
+    ShiftResponse,
+    StaffAssignmentCandidate
+} from "../models/response"
 
 /**
  * SHIFT API
@@ -51,6 +54,11 @@ export const shiftApi = {
         await axiosInstance.put(`/shifts/${id}/publish`)
     },
 
+    autoFill: async (req: AutoFillShiftsRequest): Promise<AutoFillShiftsResponse> => {
+        const res = await axiosInstance.put("/shifts/auto-fill", req)
+        return res.data
+    },
+
     /**
      * @param ids Mảng các shift id để publish đồng thời
      */
@@ -79,43 +87,15 @@ export const shiftApi = {
      */
     updateAssignments: async ({
         shiftId,
-        userIds
+        req
     }: {
         shiftId: string
-        userIds: string[]
-    }): Promise<void> => {
+        req: AssignStaffRequest
+    }): Promise<AssignStaffResponse> => {
         // Backend sẽ so sánh mảng này với DB:
         // - User nào mới thì Insert, có mà đang isDeleted = true thì thành false
         // - User nào thiếu so với DB thì soft Delete
-        await axiosInstance.put(`/shifts/${shiftId}/assign`, userIds)
-    },
-
-    /**
-     * 2. Xem toàn bộ nhật ký chấm công trong Store
-     * @endpoint GET /shifts/time-logs
-     * @access Manager
-     */
-    getAllTimeLogs: async ({
-        query,
-        pagination
-    }: {
-        query: GetTimeLogsParams
-        pagination: PaginationParams
-    }): Promise<PageResult<TimeLogResponse>> => {
-        const params = {
-            ...buildQueryParams(query),
-            ...buildQueryParams(pagination)
-        }
-        const res = await axiosInstance.get("/shifts/time-logs", { params })
+        const res = await axiosInstance.put(`/shifts/${shiftId}/assign`, req)
         return res.data
-    },
-
-    /**
-     * 3. Duyệt công (Phê duyệt hoặc Từ chối)
-     * @endpoint PATCH /shifts/time-logs/:id
-     * @description Chỉ cập nhật Status và Note, không ghi đè dữ liệu gốc của nhân viên.
-     */
-    updateTimeLog: async (id: string, req: UpdateTimeLogRequest): Promise<void> => {
-        await axiosInstance.patch(`/shifts/time-logs/${id}`, req)
     }
 }

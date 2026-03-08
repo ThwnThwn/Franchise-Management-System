@@ -2,7 +2,7 @@
 import * as React from "react"
 import { Textarea, type TextAreaProps, cn } from "@heroui/react"
 
-export const TextareaStyled = React.forwardRef<React.ElementRef<typeof Textarea>, TextAreaProps>(
+export const TextareaStyled = React.forwardRef<React.ComponentRef<typeof Textarea>, TextAreaProps>(
     ({ className, classNames, variant = "bordered", color = "default", ...rest }, ref) => (
         <Textarea
             ref={ref}

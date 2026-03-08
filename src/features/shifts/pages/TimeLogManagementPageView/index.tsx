@@ -1,6 +1,5 @@
 "use client"
 
-import React from "react"
 import { Spinner } from "@heroui/react"
 import { ClipboardCheck } from "lucide-react"
 
@@ -9,7 +8,7 @@ import {
     TimeLogToolbar,
     TimeLogTable,
     TimeLogCalendar,
-    UpdateTimeLogModal,
+    TimeLogUpdateModal,
     EmptyTimeLogState,
     BackToShiftsLink
 } from "@/features/shifts/components"
@@ -19,6 +18,7 @@ import { useGetAllTimeLogs, useGetMyTimeLogHistory } from "@/features/shifts/hoo
 // Shared components & Dashboard
 import { DashboardHeader } from "@/features/dashboard"
 import { useScrollSnap } from "@/hooks"
+import { PaginationStyled } from "@/components"
 
 export default function TimeLogManagementPageView() {
     // 1. Lấy "Bộ não" điều hướng
@@ -31,6 +31,8 @@ export default function TimeLogManagementPageView() {
         setStatus,
         staffName,
         setStaffName,
+        pagination,
+        setPagination,
         queryParams,
         handleNext,
         handlePrev,
@@ -43,13 +45,13 @@ export default function TimeLogManagementPageView() {
     // Manager dùng useGetAllTimeLogs, Staff dùng useGetMyTimeLogHistory
     const staffQuery = useGetMyTimeLogHistory({
         query: queryParams,
-        pagination: { page: 1, pageSize: 50 },
+        pagination: pagination,
         enabled: !isManager
     })
 
     const managerQuery = useGetAllTimeLogs({
         query: queryParams,
-        pagination: { page: 1, pageSize: 50 },
+        pagination: pagination,
         enabled: isManager
     })
 
@@ -105,13 +107,31 @@ export default function TimeLogManagementPageView() {
                 ) : logs.length > 0 ? (
                     <div className="animate-in fade-in duration-700">
                         {viewMode === "list" ? (
-                            <TimeLogTable
-                                selectedDate={currentDate}
-                                data={logs}
-                                isLoading={isLoading}
-                                isManager={isManager}
-                                onEditClick={modal.onOpen}
-                            />
+                            <>
+                                <TimeLogTable
+                                    selectedDate={currentDate}
+                                    data={logs}
+                                    isLoading={isLoading}
+                                    isManager={isManager}
+                                    onEditClick={modal.onOpen}
+                                />
+                                {(data?.items || []).length > 0 &&
+                                    (data?.totalPages || 0) > 1 &&
+                                    !isLoading && (
+                                        <PaginationStyled
+                                            page={pagination.page ?? 1}
+                                            total={data?.totalPages ?? 10}
+                                            onChange={(page: number) =>
+                                                setPagination((prev) => {
+                                                    return {
+                                                        ...prev,
+                                                        page: page
+                                                    }
+                                                })
+                                            }
+                                        />
+                                    )}
+                            </>
                         ) : (
                             <div
                                 ref={calendarSnapRef}
@@ -133,7 +153,7 @@ export default function TimeLogManagementPageView() {
             </div>
 
             {/* Modal chỉnh sửa (Chỉ thực sự hoạt động Mutation nếu là Manager) */}
-            <UpdateTimeLogModal
+            <TimeLogUpdateModal
                 isOpen={modal.isOpen}
                 onClose={modal.onClose}
                 data={modal.selectedLog}

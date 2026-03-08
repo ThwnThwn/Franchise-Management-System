@@ -1,17 +1,17 @@
 "use client"
 
-import React, { useMemo } from "react"
+import { useMemo } from "react"
 import { Card } from "@heroui/react"
 import { motion } from "framer-motion"
 import { X } from "lucide-react"
-import Link from "next/link"
 import { LogoStyled } from "@/components"
 import { RoleSlugLabels } from "@/constants/labels"
-import { MenuItem } from "../../../../../../constants/menu/sidebar"
+import { MenuItem } from "@/constants/menu/sidebar"
 import { RoleSlug } from "@/constants/enums"
 import { useTokenStore } from "@/hooks"
 import { useGetStoreById } from "@/features/stores"
 import { CHB } from "@/constants/constants"
+import { SidebarItem } from "./SidebarItem"
 
 interface SidebarContentProps {
     isMobile: boolean
@@ -20,7 +20,6 @@ interface SidebarContentProps {
     roleSlug: RoleSlug
     onClose: () => void
 }
-
 export const SidebarContent = ({
     isMobile,
     items,
@@ -48,7 +47,7 @@ export const SidebarContent = ({
     return (
         <div className="flex flex-col h-full relative">
             <div className="p-6 flex-1 flex flex-col min-h-0">
-                {/* Logo Section */}
+                {/* Logo Section (GIỮ NGUYÊN) */}
                 <div className="flex items-center justify-between mb-4 pt-2">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-linear-to-br from-primary to-secondary flex items-center justify-center">
@@ -69,44 +68,27 @@ export const SidebarContent = ({
                     )}
                 </div>
 
-                {/* Navigation Menu */}
+                {/* Navigation Menu (ĐÃ ĐỔI SANG DÙNG COMPONENT SidebarItem) */}
                 <nav className="flex-1 space-y-2 overflow-y-auto custom-scrollbar pr-2">
-                    {items.map((item, index) => {
-                        const isActive =
-                            item.href === "/dashboard"
-                                ? pathname === item.href
-                                : pathname.startsWith(item.href)
-
-                        return (
-                            <Link key={item.href} href={item.href} onClick={onClose}>
-                                <motion.div
-                                    initial={isMobile ? { opacity: 0, x: -20 } : false}
-                                    animate={isMobile ? { opacity: 1, x: 0 } : false}
-                                    transition={{ duration: 0.3, delay: index * 0.05 }}
-                                    className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group ${
-                                        isActive
-                                            ? "bg-linear-to-r from-primary to-primary/90 text-white shadow-lg"
-                                            : "text-foreground/70 hover:bg-primary-50 hover:text-primary"
-                                    }`}
-                                >
-                                    <span className={isActive ? "" : "group-hover:scale-110"}>
-                                        {item.icon}
-                                    </span>
-                                    <span className="font-medium text-sm">{item.label}</span>
-                                    {isActive && (
-                                        <motion.div
-                                            layoutId={isMobile ? "activeMobile" : "activeDesktop"}
-                                            className="ml-auto w-2 h-2 rounded-full bg-white"
-                                        />
-                                    )}
-                                </motion.div>
-                            </Link>
-                        )
-                    })}
+                    {items.map((item, index) => (
+                        <motion.div
+                            key={item.label}
+                            initial={isMobile ? { opacity: 0, x: -20 } : false}
+                            animate={isMobile ? { opacity: 1, x: 0 } : false}
+                            transition={{ duration: 0.3, delay: index * 0.05 }}
+                        >
+                            <SidebarItem
+                                item={item}
+                                pathname={pathname}
+                                isMobile={isMobile}
+                                onClose={onClose}
+                            />
+                        </motion.div>
+                    ))}
                 </nav>
             </div>
 
-            {/* User Profile Sticky Bottom */}
+            {/* User Profile Sticky Bottom (GIỮ NGUYÊN) */}
             <div className="mt-auto sticky bottom-0 p-6 bg-background/80 backdrop-blur-md border-t border-divider">
                 <Card className="space-y-2 p-4 bg-linear-to-br from-primary-50 to-primary-100/50 border-none shadow-none">
                     <div className="flex items-center gap-3">

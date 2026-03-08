@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useMemo } from "react"
+import { useMemo } from "react"
 import { Card, CardBody, Avatar, AvatarGroup, Tooltip, Chip } from "@heroui/react"
 import { MapPin, Clock, Moon, CalendarOff } from "lucide-react"
 import dayjs from "dayjs"
@@ -16,12 +16,52 @@ interface AgendaListViewProps {
 export const AgendaListView = ({ shifts, selectedDate, onEditClick }: AgendaListViewProps) => {
     const { toFullName } = useUserHelper()
 
-    // 1. Filter: Chỉ lấy những ca thuộc ngày đang chọn
+    // Filter: Chỉ lấy những ca thuộc ngày đang chọn
     const dailyShifts = useMemo(() => {
         return shifts.filter((s) => dayjs(s.date).isSame(selectedDate, "day"))
     }, [shifts, selectedDate])
 
-    // 2. Empty State: Nếu ngày đó không có ca làm
+    const renderStatusTags = (item: StaffShiftAgenda) => {
+        const tagsConfig = [
+            {
+                show: true,
+                label: item.checkInAt ? "Đã Check-in" : "Chưa Check-in",
+                color: item.checkInAt ? "success" : "warning",
+                variant: "flat",
+                extraClass: item.checkInAt ? "" : "text-warning-700"
+            },
+            {
+                show: true,
+                label: item.checkOutAt ? "Đã Check-out" : "Chưa Check-out",
+                color: "default",
+                variant: item.checkOutAt ? "flat" : "bordered",
+                extraClass: item.checkOutAt
+                    ? "bg-default-200"
+                    : "border-default-200 text-default-400"
+            }
+        ] as const
+
+        return (
+            <div className="flex flex-col gap-1.5 items-end">
+                {tagsConfig.map(
+                    (tag, idx) =>
+                        tag.show && (
+                            <Chip
+                                key={idx}
+                                radius="sm"
+                                color={tag.color}
+                                variant={tag.variant}
+                                className={`font-extrabold text-sm py-3 px-1 ${tag.extraClass}`}
+                            >
+                                {tag.label}
+                            </Chip>
+                        )
+                )}
+            </div>
+        )
+    }
+
+    // Empty State: Nếu ngày đó không có ca làm
     if (dailyShifts.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
@@ -55,7 +95,7 @@ export const AgendaListView = ({ shifts, selectedDate, onEditClick }: AgendaList
                     key={item.id}
                     isPressable
                     onPress={() => onEditClick?.(item)}
-                    className="border-none shadow-sm hover:scale-[103%]"
+                    className="border-none shadow-sm hover:scale-[102%]"
                 >
                     <CardBody className="p-5">
                         <div className="flex flex-col gap-4">
@@ -79,16 +119,7 @@ export const AgendaListView = ({ shifts, selectedDate, onEditClick }: AgendaList
                                         </div>
                                     </div>
                                 </div>
-                                {item.checkInAt && (
-                                    <Chip
-                                        size="sm"
-                                        color="success"
-                                        variant="flat"
-                                        className="font-bold"
-                                    >
-                                        Đang làm
-                                    </Chip>
-                                )}
+                                {renderStatusTags(item)}
                             </div>
 
                             <div className="flex items-center justify-between pt-4 border-t border-divider">
@@ -120,7 +151,7 @@ export const AgendaListView = ({ shifts, selectedDate, onEditClick }: AgendaList
                                     </AvatarGroup>
                                 </div>
 
-                                <p className="text-[10px] text-default-400 italic max-w-30 text-right">
+                                <p className="text-sm text-default-400 italic text-right">
                                     {item.store.address}
                                 </p>
                             </div>

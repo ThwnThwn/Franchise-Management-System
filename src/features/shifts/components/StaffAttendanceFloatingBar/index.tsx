@@ -8,7 +8,9 @@ import { confirmDialog, useGeolocation } from "@/hooks"
 import { ExceptionNoteModal } from "@/features/shifts/components"
 
 export const StaffAttendanceFloatingBar = () => {
-    const { status, isLoading: isWatcherLoading } = useAttendanceWatcher()
+    const { status, isLoading: isWatcherLoading, refetch } = useAttendanceWatcher()
+    const shift = status?.shift
+
     const { handleAction, isLoading: isSubmitting } = useAttendanceActions()
     const { getPosition, isLoading: isLocating } = useGeolocation()
     const { isOpen, onOpen, onClose } = useDisclosure()
@@ -33,30 +35,28 @@ export const StaffAttendanceFloatingBar = () => {
             message: `Bạn muốn ${!status.isOngoing ? "CHECK-IN" : "CHECK-OUT"} ca làm việc?`,
             variant: "info"
         })
-        if (isConfirmed) {
-            const pos = await getPosition()
+        if (!isConfirmed) return
 
-            const target = {
-                lat: status.shift.storeLat || 0,
-                lng: status.shift.storeLong || 0
-            }
+        const pos = await getPosition()
 
-            if (pos.error || !pos.lat) {
-                onOpen()
-                return
-            }
-
-            await handleAction({
-                type: status.isOngoing ? "OUT" : "IN",
-                id:
-                    (status.isOngoing ? status.shift.currentLogId : status.shift.assignmentId) ||
-                    "",
-                target
-            })
+        const target = {
+            lat: status.shift.storeLat || 0,
+            lng: status.shift.storeLong || 0
         }
+
+        if (pos.error || !pos.lat) {
+            onOpen()
+            return
+        }
+
+        await handleAction({
+            type: status.isOngoing ? "OUT" : "IN",
+            id: (status.isOngoing ? status.shift.currentLogId : status.shift.assignmentId) || "",
+            target
+        })
     }
 
-    if (isWatcherLoading || !status?.shouldWarn || !uiConfig) return null
+    if (isWatcherLoading || !status?.shouldWarn || !uiConfig || !shift) return null
 
     return (
         <>
@@ -89,17 +89,16 @@ export const StaffAttendanceFloatingBar = () => {
             <ExceptionNoteModal
                 isOpen={isOpen}
                 onClose={onClose}
-                title={status.isOngoing ? "Tan ca" : "Vào ca"}
+                title={status.isOngoing ? "Giải trình Tan ca" : "Giải trình Vào ca"}
                 isLoading={isSubmitting}
                 onSubmit={async (note) => {
                     await handleAction({
                         type: status.isOngoing ? "OUT" : "IN",
-                        id: status.isOngoing
-                            ? status.shift.currentLogId!
-                            : status.shift.assignmentId!,
+                        id: status.isOngoing ? shift.currentLogId! : shift.assignmentId!,
                         userNote: note
                     })
                     onClose()
+                    refetch()
                 }}
             />
         </>

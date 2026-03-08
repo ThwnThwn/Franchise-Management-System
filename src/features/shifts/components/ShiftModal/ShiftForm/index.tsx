@@ -37,20 +37,6 @@ export const ShiftForm = ({ formik, isSubmitable }: ShiftFormProps) => {
     const minDateStr = dayjs().add(2, "day").format("YYYY-MM-DD")
     const { isInvalid, getErrorMessage } = useFormikHelpers(formik)
 
-    // Lắng nghe templateId thay đổi
-    // useEffect(() => {
-    //     const templateId = formik.values.shiftTemplateId
-    //     if (templateId && templates) {
-    //         const template = templates.find((t) => t.id === templateId)
-    //         if (template) {
-    //             formik.setFieldValue("startTime", template.startTime.slice(0, 5))
-    //             formik.setFieldValue("endTime", template.endTime.slice(0, 5))
-    //             formik.setFieldValue("breakDurationMinutes", template.breakDurationMinutes)
-    //         }
-    //     }
-    //     // eslint-disable-next-line react-hooks/exhaustive-deps
-    // }, [formik.values.shiftTemplateId, templates])
-
     const handleTemplateChange = useCallback(
         (id: string | null) => {
             // 1. Cập nhật ID vào Formik trước
@@ -158,6 +144,7 @@ export const ShiftForm = ({ formik, isSubmitable }: ShiftFormProps) => {
                     className="w-xl"
                     isClearable={false}
                     isReadOnly={!isSubmitable}
+                    isDisabled={formik.values.id === undefined}
                 />
                 <NumberInputStyled
                     label="Số nhân viên cần"

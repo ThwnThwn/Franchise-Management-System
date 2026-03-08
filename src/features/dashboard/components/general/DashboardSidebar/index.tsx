@@ -7,7 +7,7 @@ import { Menu } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { useTokenStore } from "@/hooks"
 import { RoleSlug } from "@/constants/enums"
-import { DASHBOARD_SIDEBAR_MENU } from "@/constants/menu/sidebar"
+import { DASHBOARD_SIDEBAR_MENU, MenuItem } from "@/constants/menu/sidebar"
 import { SidebarContent } from "./SidebarContent"
 
 export const DashboardSidebar = () => {
@@ -15,13 +15,30 @@ export const DashboardSidebar = () => {
     const pathname = usePathname()
     const roleSlug = useTokenStore((s) => s.roleSlug) || RoleSlug.Staff
 
-    const filteredMenuItems = useMemo(
-        () =>
-            DASHBOARD_SIDEBAR_MENU.filter(
-                (item) => roleSlug && item.allowedRoles.includes(roleSlug)
-            ),
-        [roleSlug]
-    )
+    // Trong file DashboardSidebar.tsx của ní
+    const filteredMenuItems = useMemo(() => {
+        if (!roleSlug) return []
+
+        return DASHBOARD_SIDEBAR_MENU.reduce((acc, item) => {
+            // 1. Kiểm tra quyền thằng cha
+            if (item.allowedRoles.includes(roleSlug)) {
+                // 2. Nếu có menu con, lọc tiếp menu con
+                if (item.subItems) {
+                    const filteredSubs = item.subItems.filter((sub) =>
+                        sub.allowedRoles.includes(roleSlug)
+                    )
+                    // Nếu sau khi lọc mà menu con vẫn còn, thì push thằng cha (kèm menu con đã lọc) vào mảng
+                    if (filteredSubs.length > 0) {
+                        acc.push({ ...item, subItems: filteredSubs })
+                    }
+                } else {
+                    // 3. Không có menu con (Menu đơn) thì push thẳng
+                    acc.push(item)
+                }
+            }
+            return acc
+        }, [] as MenuItem[])
+    }, [roleSlug])
 
     const commonProps = {
         items: filteredMenuItems,

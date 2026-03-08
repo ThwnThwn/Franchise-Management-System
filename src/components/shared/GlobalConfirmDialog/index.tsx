@@ -17,6 +17,9 @@ export const GlobalConfirmDialog = () => {
             variant={options.variant}
             confirmText={options.confirmText}
             cancelText={options.cancelText}
+            withInput={options.withInput}
+            inputPlaceholder={options.inputPlaceholder}
+            isInputRequired={options.isInputRequired}
         />
     )
 }

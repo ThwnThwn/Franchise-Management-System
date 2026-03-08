@@ -10,7 +10,7 @@ interface ShiftCountDownProps {
 }
 
 export const ShiftCountDown = ({ targetTime, label }: ShiftCountDownProps) => {
-    const [timeLeft, setTimeLeft] = useState("")
+    const [timeLeft, setTimeLeft] = useState<string>("--:--:--")
 
     useEffect(() => {
         const timer = setInterval(() => {

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import "./index.css"
 import { Chip, Spinner, addToast, Card, CardHeader, CardBody, CardFooter } from "@heroui/react"
 import { BackLink, ButtonStyled, EnumPicker, LogoStyled } from "@/components"
@@ -18,7 +18,7 @@ import { CHB, DATE_TIME_VIEW_FORMAT } from "@/constants/constants"
 import { useGetOrderById, usePayment, useUpdateOrderStatus } from "@/features/orders/hooks"
 import { STRINGS } from "@/constants/strings"
 import { BackendError } from "@/models/common/respone"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { omitRecord } from "@/utils/helpers/uiHelper"
 import { OrderDetail } from "@/features/orders/components"
 import { Printer } from "lucide-react"
@@ -28,11 +28,12 @@ import { OrderStatusActions } from "@/features/orders/components/OrderStatusActi
 import { canCancelFrom } from "@/features/orders/utils"
 
 export default function OrderDetailPageView({ orderId }: { orderId: string }) {
-    // const isCustomer = false
     const isCustomer = useTokenStore((s) => s.roleSlug === RoleSlug.Customer)
     const isStaff = useTokenStore((s) => s.roleSlug === RoleSlug.Staff)
 
     const router = useRouter()
+    const pathname = usePathname()
+    const searchParams = useSearchParams()
 
     const { data: order, isLoading, error } = useGetOrderById({ id: orderId, enabled: !!orderId })
     const {
@@ -109,6 +110,33 @@ export default function OrderDetailPageView({ orderId }: { orderId: string }) {
         })
         if (isConfirmed) updateStatus.mutate(OrderStatus.Cancelled)
     }
+
+    const isPaymentStatusToastShown = useRef(false)
+    useEffect(() => {
+        const paymentStatus = searchParams.get("payment_status")
+        // const message = searchParams.get("message")
+
+        if (paymentStatus && !isPaymentStatusToastShown.current) {
+            isPaymentStatusToastShown.current = true
+
+            if (paymentStatus === "success") {
+                addToast({
+                    title: "Thanh toán thành công",
+                    description: "Đơn hàng của bạn đã được ghi nhận thanh toán.",
+                    color: "success"
+                })
+            } else if (paymentStatus === "failed") {
+                addToast({
+                    title: "Thanh toán thất bại",
+                    description: "Giao dịch đã bị hủy hoặc có lỗi xảy ra.",
+                    color: "danger"
+                })
+            }
+
+            // 3. XÓA DẤU VẾT: Thay thế URL hiện tại bằng URL gốc
+            router.replace(pathname, { scroll: false })
+        }
+    }, [searchParams, pathname, router])
 
     useEffect(() => {
         if (error || recipeError) {

@@ -1,6 +1,7 @@
 import axiosInstance from "@/utils/axios"
 import {
     StaffShiftAgenda,
+    SwapRequestItem,
     TimeLogResponse,
     UserCurrentShift
 } from "@/features/shifts/models/response"
@@ -72,6 +73,11 @@ export const myShiftApi = {
         }
 
         const res = await axiosInstance.get("/me/shifts/time-logs", { params })
+        return res.data
+    },
+
+    getMySwaps: async (): Promise<SwapRequestItem[]> => {
+        const res = await axiosInstance.get("/me/shift-swaps")
         return res.data
     }
 }

@@ -17,6 +17,7 @@ export function EnumPicker<T extends string | number>({
     labels,
     value,
     onChange,
+    disabledKeys,
     ...restProps
 }: EnumPickerProps<T>) {
     // 1. Chuyển đổi labels thành mảng items
@@ -39,6 +40,11 @@ export function EnumPicker<T extends string | number>({
         const firstKey = keys[0]
         return !isNaN(Number(firstKey)) && isFinite(Number(firstKey))
     }, [labels])
+
+    const stringDisabledKeys = useMemo(() => {
+        if (!disabledKeys) return []
+        return Array.from(disabledKeys).map((key) => String(key))
+    }, [disabledKeys])
 
     const handleSelectionChange = (key: React.Key | null) => {
         if (!onChange) return
@@ -66,6 +72,7 @@ export function EnumPicker<T extends string | number>({
                 popoverContent: "min-w-fit",
                 ...restProps.classNames
             }}
+            disabledKeys={stringDisabledKeys}
         >
             {items.map((item) => (
                 <AutocompleteItem key={item.key}>{item.label}</AutocompleteItem>

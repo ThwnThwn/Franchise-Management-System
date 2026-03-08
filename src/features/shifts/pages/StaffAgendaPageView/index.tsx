@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import {
     AgendaListView,
     AgendaToolbar,
@@ -9,12 +9,21 @@ import {
     StaffShiftCalendar,
     ViewShiftDetailModal
 } from "@/features/shifts/components"
-import { useGetMyAgenda, useAgendaLogic } from "@/features/shifts/hooks"
+import {
+    useGetMyAgenda,
+    useAgendaLogic,
+    useGetMyTimeLogHistory,
+    useGetShifts
+} from "@/features/shifts/hooks"
 import { DashboardHeader } from "@/features/dashboard"
 import { CalendarRange } from "lucide-react"
-import dayjs from "dayjs"
 import { Spinner, useDisclosure } from "@heroui/react"
-import { StaffShiftAgenda } from "@/features/shifts/models/response"
+import {
+    ShiftResponse,
+    StaffShiftAgendaWithLog,
+    TimeLogResponse
+} from "@/features/shifts/models/response"
+import { useTokenStore } from "@/hooks"
 
 export default function StaffAgendaPageView() {
     const {
@@ -28,29 +37,58 @@ export default function StaffAgendaPageView() {
         handleJumpToDate
     } = useAgendaLogic()
 
-    const { data: allMonthShifts, isLoading } = useGetMyAgenda(dateRange)
-    const weeklyShifts = useMemo(() => {
-        if (!allMonthShifts) return []
+    const storeId = useTokenStore((s) => s.storeId) || ""
+    const { data: shifts, isLoading: isShiftDetailLoading } = useGetShifts({
+        params: {
+            fromDate: dateRange.startDate,
+            toDate: dateRange.endDate,
+            storeId: storeId
+        },
+        enabled: !!storeId
+    })
+    const { data: weeklyShifts, isLoading: isShiftLoading } = useGetMyAgenda(dateRange)
+    const { data: weeklyTimelogs, isLoading: isTimeLogLoading } = useGetMyTimeLogHistory({
+        query: {
+            fromDate: dateRange.startDate,
+            toDate: dateRange.endDate
+        },
+        pagination: { page: 1, pageSize: 100 }
+    })
+    const isLoading = isShiftLoading || isTimeLogLoading || isShiftDetailLoading
 
-        // Đảm bảo đã extend isoWeek để dùng startOf("isoWeek")
-        const startOfWeek = currentDate.startOf("isoWeek")
-        const endOfWeek = currentDate.endOf("isoWeek")
+    const enrichedShifts = useMemo((): StaffShiftAgendaWithLog[] => {
+        if (!weeklyShifts) return []
 
-        return allMonthShifts.filter((s) => {
-            const shiftDate = dayjs(s.date)
-            // Check: shiftDate >= start AND shiftDate <= end
-            return (
-                (shiftDate.isAfter(startOfWeek, "day") || shiftDate.isSame(startOfWeek, "day")) &&
-                (shiftDate.isBefore(endOfWeek, "day") || shiftDate.isSame(endOfWeek, "day"))
-            )
+        // Tạo Map để tìm kiếm O(1)
+        const logMap = new Map<string, TimeLogResponse>()
+        weeklyTimelogs?.items?.forEach((log) => {
+            // Map theo shiftAssignmentId để khớp chính xác với ID của agenda
+            logMap.set(log.shiftAssignmentId, log)
         })
-    }, [allMonthShifts, currentDate])
+
+        const shiftMap = new Map<string, ShiftResponse>()
+        shifts?.forEach((shift) => {
+            shiftMap.set(shift.id, shift)
+        })
+
+        // Trộn dữ liệu
+        return weeklyShifts.map((shift) => {
+            const log = logMap.get(shift.id)
+            const item = shiftMap.get(shift.shiftId)
+
+            return {
+                ...shift,
+                timeLog: log,
+                shiftInfo: item
+            }
+        })
+    }, [shifts, weeklyShifts, weeklyTimelogs])
 
     // Xử lý khi click vào bất kỳ đâu (Card trong List hoặc Event trong Calendar)
     const { isOpen, onOpen, onClose } = useDisclosure()
-    const [selectedShift, setSelectedShift] = useState<StaffShiftAgenda | null>(null)
+    const [selectedShift, setSelectedShift] = useState<StaffShiftAgendaWithLog | null>(null)
 
-    const handleShiftClick = (data: StaffShiftAgenda) => {
+    const handleShiftClick = (data: StaffShiftAgendaWithLog) => {
         setSelectedShift(data)
         onOpen()
     }
@@ -91,14 +129,14 @@ export default function StaffAgendaPageView() {
                         {viewMode === "list" ? (
                             <AgendaListView
                                 selectedDate={currentDate}
-                                shifts={weeklyShifts}
+                                shifts={enrichedShifts}
                                 onEditClick={handleShiftClick}
                             />
                         ) : (
                             <div className="bg-white p-4 rounded-2xl shadow-sm border">
                                 <StaffShiftCalendar
                                     currentDate={currentDate}
-                                    agenda={weeklyShifts}
+                                    agenda={enrichedShifts}
                                     isLoading={isLoading}
                                     onEventClick={handleShiftClick}
                                 />
