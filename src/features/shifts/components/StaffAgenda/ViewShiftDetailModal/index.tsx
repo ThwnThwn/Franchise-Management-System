@@ -1,12 +1,13 @@
 "use client"
 
 import { ModalContent, ModalHeader, ModalBody, Chip, Tabs, Tab } from "@heroui/react"
-import { Calendar, ClipboardCheck } from "lucide-react"
+import { ArrowRightLeft, Calendar, ClipboardCheck } from "lucide-react"
 import dayjs from "dayjs"
 import { StaffShiftAgendaWithLog } from "@/features/shifts/models/response"
 import { ModalStyled } from "@/components"
 import { ViewShiftDetailBody } from "./ViewShiftDetailBody"
-import { TimeLogViewBody } from "@/features/shifts/components"
+import { SwapShiftTabBody, TimeLogViewBody } from "@/features/shifts/components"
+import { ShiftStatus } from "@/features/shifts/constants"
 
 interface ViewShiftDetailModalProps {
     isOpen: boolean
@@ -83,6 +84,28 @@ export const ViewShiftDetailModal = ({ isOpen, onClose, data }: ViewShiftDetailM
                                         Chưa có dữ liệu chấm công.
                                     </div>
                                 )}
+                            </ModalBody>
+                        </Tab>
+
+                        <Tab
+                            key="swap"
+                            // Cho phép đổi/nhả ca nếu: Ca chưa qua (tương lai) VÀ trạng thái là Published hoặc Open
+                            isDisabled={
+                                !data.shiftInfo ||
+                                ![ShiftStatus.Published, ShiftStatus.Open].includes(
+                                    data.shiftInfo.status
+                                ) ||
+                                dayjs(data.date).isBefore(dayjs())
+                            }
+                            title={
+                                <div className="flex items-center gap-2">
+                                    <ArrowRightLeft size={16} />
+                                    <span>Đổi ca / Nhả ca</span>
+                                </div>
+                            }
+                        >
+                            <ModalBody className="py-4 px-4 overflow-y-auto overflow-x-hidden min-h-75">
+                                <SwapShiftTabBody shift={data.shiftInfo} assignmentId={data.id} />
                             </ModalBody>
                         </Tab>
                     </Tabs>

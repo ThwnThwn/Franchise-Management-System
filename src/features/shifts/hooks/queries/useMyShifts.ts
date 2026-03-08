@@ -14,7 +14,7 @@ import { PaginationParams } from "@/models/common/request"
 // --- 1. QUERY HOOK: Lấy trạng thái ca làm hiện tại ---
 export const useGetCurrentShift = (enabled = true) => {
     return useQuery({
-        queryKey: [QUERY_KEYS.ME, QUERY_KEYS.SHIFTS, QUERY_KEYS.CURRENT],
+        queryKey: [QUERY_KEYS.ME, QUERY_KEYS.SHIFTS, QUERY_KEYS.TIME_LOGS, QUERY_KEYS.CURRENT],
         queryFn: () => myShiftApi.getCurrent(),
         enabled,
         // Tự động refetch khi quay lại tab (để cập nhật serverTime hoặc trạng thái ca)

@@ -69,21 +69,21 @@ export const TimeLogSharedInfo = ({ data }: Props) => {
                 </div>
 
                 {/* Check-out thực tế */}
-                <div className="p-4 rounded-2xl bg-secondary-50 border border-secondary-100 relative overflow-hidden">
+                <div className="p-4 rounded-2xl bg-warning-50 border border-warning-100 relative overflow-hidden">
                     <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2 text-secondary-600 font-bold text-xs uppercase">
+                        <div className="flex items-center gap-2 text-warning-600 font-bold text-xs uppercase">
                             <Clock size={14} /> Check-out Thực Tế
                         </div>
-                        <span className="text-[9px] font-bold bg-secondary-200 text-secondary-700 px-1.5 py-0.5 rounded uppercase">
+                        <span className="text-[9px] font-bold bg-warning-200 text-warning-700 px-1.5 py-0.5 rounded uppercase">
                             Dự kiến: {formatTime(data.shift.endTime, false)}
                         </span>
                     </div>
-                    <p className="text-2xl font-black tabular-nums text-secondary-700">
+                    <p className="text-2xl font-black tabular-nums text-warning-700">
                         {data.checkOutAt
                             ? formatDateTime({ date: data.checkOutAt, format: "HH:mm" })
                             : "--:--"}
                     </p>
-                    <span className="text-tiny text-secondary-500 font-medium">
+                    <span className="text-tiny text-warning-500 font-medium">
                         {data.checkOutAt
                             ? formatDateTime({
                                   date: data.checkOutAt,

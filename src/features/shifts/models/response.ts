@@ -277,7 +277,7 @@ export interface TimeLogResponse {
 
 export interface StaffShiftAgendaWithLog extends StaffShiftAgenda {
     timeLog?: TimeLogResponse
-    breakDurationMinutes?: number
+    shiftInfo?: ShiftResponse
 }
 
 export interface AutoFillShiftsResponse {

@@ -14,6 +14,8 @@ interface ShiftDetailBodyProps {
 export const ViewShiftDetailBody = ({ data }: ShiftDetailBodyProps) => {
     const { toFullName } = useUserHelper()
 
+    const breakDurationMinutes = data.shiftInfo?.breakDurationMinutes ?? 0
+
     const handleNavigation = () => {
         const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(data.store.address)}`
         window.open(url, "_blank")
@@ -67,10 +69,10 @@ export const ViewShiftDetailBody = ({ data }: ShiftDetailBodyProps) => {
                         {data.startTime.substring(0, 5)} - {data.endTime.substring(0, 5)}
                     </p>
 
-                    {(data.breakDurationMinutes ?? 0) > 0 && (
+                    {breakDurationMinutes > 0 && (
                         <div className="flex items-center gap-1.5 mt-1 text-xs text-warning-600 font-medium bg-warning-50 w-fit px-2 py-0.5 rounded-full border border-warning-100">
                             <Coffee size={12} />
-                            <span>Nghỉ giữa ca: {data.breakDurationMinutes} phút</span>
+                            <span>Nghỉ giữa ca: {breakDurationMinutes} phút</span>
                         </div>
                     )}
                 </div>

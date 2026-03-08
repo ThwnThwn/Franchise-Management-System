@@ -20,7 +20,7 @@ export const shiftSwapApi = {
      */
     getAll: async (query: GetAllSwapsParams): Promise<SwapRequestItem[]> => {
         const params = buildQueryParams(query)
-        const res = await axiosInstance.get("/shifts/swaps", { params })
+        const res = await axiosInstance.get("/shift-swaps", { params })
         return res.data
     },
 

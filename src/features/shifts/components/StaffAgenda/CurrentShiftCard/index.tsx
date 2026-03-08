@@ -109,11 +109,11 @@ export const CurrentShiftCard = () => {
     }, [shift?.hasShiftToday, getPosition])
 
     // RENDER STATES
-    if (isWatcherLoading || !status) return <ShiftSkeleton />
+    if (isWatcherLoading) return <ShiftSkeleton />
 
-    if (!shift?.hasShiftToday)
+    if (!shift?.hasShiftToday || status === undefined)
         return (
-            <Card className="bg-default-50 border-none p-8 text-center text-default-400 font-medium">
+            <Card className="bg-default-50 border-none p-8 text-center text-default-600 font-medium">
                 Hôm nay bạn không có ca làm việc nào.
             </Card>
         )

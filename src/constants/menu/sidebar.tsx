@@ -74,6 +74,11 @@ export const DASHBOARD_SIDEBAR_MENU: MenuItem[] = [
                 allowedRoles: [RoleSlug.Staff]
             },
             {
+                label: "Đổi ca",
+                href: "/dashboard/shifts/swaps",
+                allowedRoles: [RoleSlug.Manager, RoleSlug.Staff]
+            },
+            {
                 label: "Cấu hình",
                 href: "/dashboard/shifts/settings",
                 allowedRoles: [RoleSlug.Admin, RoleSlug.Manager]

@@ -12,3 +12,4 @@ export * from "./StaffAttendanceFloatingBar"
 export * from "./TimeLogModule"
 
 export * from "./ShiftApplication"
+export * from "./ShiftSwap"

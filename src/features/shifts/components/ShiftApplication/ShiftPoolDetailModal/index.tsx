@@ -54,6 +54,7 @@ export const ShiftPoolDetailModal = ({ isOpen, onClose, shift }: ShiftPoolDetail
     // 3. Logic chặn nút Apply
     const isFull = shift ? shift.assignedStaffCount >= shift.requiredStaffCount : false
     const hasApplied = !!myApplication
+    const hasAssigned = shift?.assignments.find((ass) => ass.userId === userId) !== undefined
 
     const handleApply = async () => {
         if (!shift) return
@@ -231,7 +232,7 @@ export const ShiftPoolDetailModal = ({ isOpen, onClose, shift }: ShiftPoolDetail
                     {/* LOGIC NÚT APPLY THÔNG MINH */}
                     <ButtonStyled
                         color={hasApplied ? "default" : isFull ? "danger" : "primary"}
-                        isDisabled={hasApplied || isFull || isAppLoading}
+                        isDisabled={hasApplied || hasAssigned || isFull || isAppLoading}
                         isLoading={isApplying}
                         onPress={handleApply}
                         className="font-bold shadow-md"
@@ -240,9 +241,11 @@ export const ShiftPoolDetailModal = ({ isOpen, onClose, shift }: ShiftPoolDetail
                             ? "Đang kiểm tra..."
                             : hasApplied
                               ? "Đã nộp đơn"
-                              : isFull
-                                ? "Đã đủ người"
-                                : "Nhận Ca Ngay"}
+                              : hasAssigned
+                                ? "Đã được phân ca này"
+                                : isFull
+                                  ? "Đã đủ người"
+                                  : "Nhận Ca Ngay"}
                     </ButtonStyled>
                 </ModalFooter>
             </ModalContent>

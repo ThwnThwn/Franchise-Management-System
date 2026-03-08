@@ -79,7 +79,7 @@ export default function StaffAgendaPageView() {
             return {
                 ...shift,
                 timeLog: log,
-                breakDurationMinutes: item?.breakDurationMinutes || 0
+                shiftInfo: item
             }
         })
     }, [shifts, weeklyShifts, weeklyTimelogs])
