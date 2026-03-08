@@ -2,38 +2,45 @@ import React from "react"
 import { RoleSlug } from "@/constants/enums"
 import {
     LayoutDashboard,
-    CalendarCog,
     CalendarRange,
     Coffee,
     Users,
-    ShieldUser,
-    Package,
     Settings,
-    Calendar,
-    FlaskConical,
-    Tag,
-    ShoppingBag
+    ShoppingBag,
+    FlaskConical
 } from "lucide-react"
+
+export interface MenuSubItem {
+    label: string
+    href: string
+    allowedRoles: RoleSlug[]
+}
 
 export interface MenuItem {
     icon: React.ReactNode
     label: string
-    href: string
+    href?: string
     allowedRoles: RoleSlug[]
+    subItems?: MenuSubItem[]
 }
 
 export const DASHBOARD_SIDEBAR_MENU: MenuItem[] = [
     {
         icon: <LayoutDashboard className="w-5 h-5" />,
         label: "Tổng quan",
-        href: "/dashboard",
-        allowedRoles: [RoleSlug.Admin, RoleSlug.Manager]
-    },
-    {
-        icon: <LayoutDashboard className="w-5 h-5" />,
-        label: "Thống kê",
-        href: "/dashboard/orders/analytics",
-        allowedRoles: [RoleSlug.Admin, RoleSlug.Manager]
+        allowedRoles: [RoleSlug.Admin, RoleSlug.Manager],
+        subItems: [
+            {
+                label: "Tổng quan",
+                href: "/dashboard",
+                allowedRoles: [RoleSlug.Admin, RoleSlug.Manager]
+            },
+            {
+                label: "Thống kê",
+                href: "/dashboard/orders/analytics",
+                allowedRoles: [RoleSlug.Admin, RoleSlug.Manager]
+            }
+        ]
     },
     {
         icon: <ShoppingBag className="w-5 h-5" />,
@@ -42,76 +49,97 @@ export const DASHBOARD_SIDEBAR_MENU: MenuItem[] = [
         allowedRoles: [RoleSlug.Manager, RoleSlug.Staff]
     },
     {
-        icon: <CalendarCog className="w-5 h-5" />,
-        label: "Cấu hình ca làm",
-        href: "/dashboard/shift-settings",
-        allowedRoles: [RoleSlug.Admin, RoleSlug.Manager]
-    },
-    {
         icon: <CalendarRange className="w-5 h-5" />,
-        label: "Quản lý ca làm",
-        href: "/dashboard/shifts",
-        allowedRoles: [RoleSlug.Manager, RoleSlug.Staff]
-    },
-    {
-        icon: <CalendarRange className="w-5 h-5" />,
-        label: "Quản lý chợ ca",
-        href: "/dashboard/shifts/pools",
-        allowedRoles: [RoleSlug.Staff]
+        label: "Ca làm",
+        allowedRoles: [RoleSlug.Admin, RoleSlug.Manager, RoleSlug.Staff],
+        subItems: [
+            {
+                label: "Ca làm",
+                href: "/dashboard/shifts",
+                allowedRoles: [RoleSlug.Manager, RoleSlug.Staff]
+            },
+            {
+                label: "Chợ ca",
+                href: "/dashboard/shifts/pools",
+                allowedRoles: [RoleSlug.Staff]
+            },
+            {
+                label: "Chấm công",
+                href: "/dashboard/shifts/time-logs",
+                allowedRoles: [RoleSlug.Manager, RoleSlug.Staff]
+            },
+            {
+                label: "Lịch cá nhân",
+                href: "/dashboard/shifts/my-schedule",
+                allowedRoles: [RoleSlug.Staff]
+            },
+            {
+                label: "Cấu hình",
+                href: "/dashboard/shifts/settings",
+                allowedRoles: [RoleSlug.Admin, RoleSlug.Manager]
+            }
+        ]
     },
     {
         icon: <Coffee className="w-5 h-5" />,
         label: "Sản phẩm",
-        href: "/dashboard/products",
-        allowedRoles: [RoleSlug.Admin, RoleSlug.Manager]
-    },
-    {
-        icon: <Tag className="w-5 h-5" />,
-        label: "Danh mục",
-        href: "/dashboard/categories",
-        allowedRoles: [RoleSlug.Admin]
+        allowedRoles: [RoleSlug.Admin, RoleSlug.Manager],
+        subItems: [
+            {
+                label: "Sản phẩm",
+                href: "/dashboard/products",
+                allowedRoles: [RoleSlug.Admin, RoleSlug.Manager]
+            },
+            {
+                label: "Danh mục",
+                href: "/dashboard/categories",
+                allowedRoles: [RoleSlug.Admin]
+            }
+        ]
     },
     {
         icon: <FlaskConical className="w-5 h-5" />,
         label: "Nguyên liệu",
-        href: "/dashboard/ingredients",
-        allowedRoles: [RoleSlug.Admin]
-    },
-    {
-        icon: <Package className="w-5 h-5" />,
-        label: "Kho",
-        href: "/dashboard/inventory",
-        allowedRoles: [RoleSlug.Manager]
+        allowedRoles: [RoleSlug.Admin, RoleSlug.Manager],
+        subItems: [
+            {
+                label: "Nguyên liệu",
+                href: "/dashboard/ingredients",
+                allowedRoles: [RoleSlug.Admin]
+            },
+            {
+                label: "Danh mục",
+                href: "/dashboard/ingredients/categories",
+                allowedRoles: [RoleSlug.Admin]
+            },
+            {
+                label: "Kho",
+                href: "/dashboard/inventory",
+                allowedRoles: [RoleSlug.Manager]
+            }
+        ]
     },
     {
         icon: <Users className="w-5 h-5" />,
         label: "Người dùng",
-        href: "/dashboard/users",
-        allowedRoles: [RoleSlug.Admin, RoleSlug.Manager, RoleSlug.Staff]
+        allowedRoles: [RoleSlug.Admin, RoleSlug.Manager, RoleSlug.Staff],
+        subItems: [
+            {
+                label: "Người dùng",
+                href: "/dashboard/users",
+                allowedRoles: [RoleSlug.Admin, RoleSlug.Manager, RoleSlug.Staff]
+            },
+            {
+                label: "Vai trò",
+                href: "/dashboard/roles",
+                allowedRoles: [RoleSlug.Admin]
+            }
+        ]
     },
-    {
-        icon: <ShieldUser className="w-5 h-5" />,
-        label: "Vai trò",
-        href: "/dashboard/roles",
-        allowedRoles: [RoleSlug.Admin]
-    },
-    // {
-    //     icon: <Package className="w-5 h-5" />,
-    //     label: "Sản phẩm",
-    //     href: "/dashboard/products",
-    //     allowedRoles: [RoleSlug.Admin, RoleSlug.Manager]
-    // },
-
     {
         icon: <Settings className="w-5 h-5" />,
         label: "Cài đặt",
         href: "/dashboard/settings",
         allowedRoles: [RoleSlug.Admin]
-    },
-    {
-        icon: <Calendar className="w-5 h-5" />,
-        label: "Lịch cá nhân",
-        href: "/dashboard/my-schedule",
-        allowedRoles: [RoleSlug.Staff]
     }
 ]

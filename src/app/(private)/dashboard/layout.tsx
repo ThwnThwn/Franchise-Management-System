@@ -16,9 +16,27 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     // 1. Lấy danh sách các href mà role này được phép vào
     const allowedPaths = useMemo(() => {
         if (!roleSlug) return []
-        return DASHBOARD_SIDEBAR_MENU.filter((item) => item.allowedRoles.includes(roleSlug)).map(
-            (item) => item.href
-        )
+
+        const paths: string[] = []
+
+        DASHBOARD_SIDEBAR_MENU.forEach((item) => {
+            // Kiểm tra quyền của Cha
+            if (item.allowedRoles.includes(roleSlug)) {
+                // Nếu Cha có link thẳng thì push vào
+                if (item.href) paths.push(item.href)
+
+                // Nếu có menu Con thì quét tiếp xem Con nào hợp lệ
+                if (item.subItems) {
+                    item.subItems.forEach((sub) => {
+                        if (sub.allowedRoles.includes(roleSlug)) {
+                            paths.push(sub.href)
+                        }
+                    })
+                }
+            }
+        })
+
+        return paths
     }, [roleSlug])
 
     // 2. Kiểm tra quyền (Strict Mode)
@@ -61,7 +79,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
 
     return (
-        <div className="flex justify-between overflow-hidden rounded-2xl max-w-svw md:w-7xl mx-7 bg-linear-to-b from-white/55 to-white/50 backdrop-blur-xl border-r border-primary-100 shadow-2xl">
+        <div className="flex justify-between overflow-hidden rounded-2xl max-w-svw md:w-[85vw] mx-7 bg-linear-to-b from-white/55 to-white/50 backdrop-blur-xl border-r border-primary-100 shadow-2xl">
             <DashboardSidebar />
             <div className="w-full border-l border-divider">{children}</div>
         </div>
