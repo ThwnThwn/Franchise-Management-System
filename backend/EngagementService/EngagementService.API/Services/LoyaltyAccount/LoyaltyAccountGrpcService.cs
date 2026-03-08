@@ -133,6 +133,14 @@ namespace EngagementService.API.Services.LoyaltyAccount
 
         public override async Task<Grpc.Protos.LoyaltyAccountGrpc.LoyaltyReportResponse> GetLoyaltyReport(GetLoyaltyReportRequest request, ServerCallContext context)
         {
+
+            var roleEntry = (context.RequestHeaders.FirstOrDefault(h =>
+            h.Key.Equals("x-role-slug", StringComparison.OrdinalIgnoreCase)));
+
+            if (roleEntry == null || roleEntry.Value != "admin")
+            {
+                throw new RpcException(new Status(StatusCode.PermissionDenied, "Bạn không có quyền thực hiện hành động này"));
+            }
             // 1. Ánh xạ từ gRPC Request sang MediatR Query
             var query = new GetLoyaltyReportQuery(
                 FromDate: request.FromDate?.ToDateTime(),

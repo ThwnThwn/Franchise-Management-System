@@ -16,6 +16,9 @@ namespace EngagementService.API.Services.PointLog
 
         public override async Task<GetMyPointLogRep> GetMyPointLog(GetMyPointLogRequest request, ServerCallContext context)
         {
+            //var userId = (context.RequestHeaders.FirstOrDefault(h =>
+            //h.Key.Equals("x-user-id", StringComparison.OrdinalIgnoreCase)));
+
             var res = await _mediator.Send(new ViewMyPointLogQuery()
             {
                 UserId = Guid.Parse(request.Id),

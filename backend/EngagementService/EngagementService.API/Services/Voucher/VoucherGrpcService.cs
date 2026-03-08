@@ -4,6 +4,7 @@ using EngagementService.Application.Features.Voucher.Commands.Update;
 using EngagementService.Application.Features.Voucher.Commands.UpdateVoucherStatus;
 using EngagementService.Application.Features.Voucher.Queries.GetAll;
 using EngagementService.Application.Features.Voucher.Queries.GetByCode;
+using EngagementService.Application.Features.Voucher.Queries.GetMyVoucher;
 using EngagementService.Domain.Constants;
 using EngagementService.Infrastructure.Protos;
 using Google.Protobuf.WellKnownTypes;
@@ -24,6 +25,13 @@ namespace EngagementService.API.Services.Voucher
 
         public async override Task<Empty> CreateVoucher(CreateVoucherRequest request, ServerCallContext context)
         {
+            var roleEntry = (context.RequestHeaders.FirstOrDefault(h =>
+            h.Key.Equals("x-role-slug", StringComparison.OrdinalIgnoreCase)));
+
+            if (roleEntry == null || roleEntry.Value != "admin")
+            {
+                throw new RpcException(new Status(StatusCode.PermissionDenied, "Bạn không có quyền thực hiện hành động này"));
+            }
 
             var createReq = new Application.Dtos.Voucher.CreateVoucherRequest()
             {
@@ -58,6 +66,13 @@ namespace EngagementService.API.Services.Voucher
 
         public async override Task<Empty> UpdateVoucher(UpdateVoucherRequest request, ServerCallContext context)
         {
+            var roleEntry = (context.RequestHeaders.FirstOrDefault(h =>
+            h.Key.Equals("x-role-slug", StringComparison.OrdinalIgnoreCase)));
+
+            if(roleEntry == null || roleEntry.Value != "admin")
+            {
+                throw new RpcException(new Status(StatusCode.PermissionDenied, "Bạn không có quyền thực hiện hành động này"));
+            }
             var updateVoucher = new Application.Dtos.Voucher.UpdateVoucherRequest()
             {
                 Id = Guid.Parse(request.Id),
@@ -89,6 +104,14 @@ namespace EngagementService.API.Services.Voucher
 
         public async override Task<Empty> UpdateVoucherStatus(UpdateVoucherStatusRequest request, ServerCallContext context)
         {
+            var roleEntry = (context.RequestHeaders.FirstOrDefault(h =>
+            h.Key.Equals("x-role-slug", StringComparison.OrdinalIgnoreCase)));
+
+            if (roleEntry == null || roleEntry.Value != "admin")
+            {
+                throw new RpcException(new Status(StatusCode.PermissionDenied, "Bạn không có quyền thực hiện hành động này"));
+            }
+
             var updateReq = new Application.Dtos.Voucher.UpdateVoucherStatusRequest()
             {
                 Id = Guid.Parse(request.Id),
@@ -100,7 +123,26 @@ namespace EngagementService.API.Services.Voucher
 
         public async override Task<VoucherListResponse> GetAllVouchers(Empty request, ServerCallContext context)
         {
-            var vouchers = await _mediator.Send(new GetAllVoucherQuery());
+        
+            IEnumerable<Domain.Entities.Voucher> vouchers = new List<Domain.Entities.Voucher>();
+
+            var roleEntry = (context.RequestHeaders.FirstOrDefault(h =>
+            h.Key.Equals("x-role-slug", StringComparison.OrdinalIgnoreCase)));
+
+            if (roleEntry != null && roleEntry.Value == "admin")
+            {
+                vouchers = await _mediator.Send(new GetAllVoucherQuery());
+            }
+            else
+            {
+                var userId = context.RequestHeaders.FirstOrDefault(h =>
+                h.Key.Equals("x-user-id", StringComparison.OrdinalIgnoreCase));
+                if (userId != null)
+                {
+                    vouchers = await _mediator.Send(new GetMyVoucherQuery(Guid.Parse(userId.Value)));
+                }
+            }
+
             var response = new VoucherListResponse();
             response.Vouchers.AddRange(vouchers.Select(v => new VoucherResponse()
             {
@@ -158,6 +200,14 @@ namespace EngagementService.API.Services.Voucher
 
         public async override Task<Empty> DeleteVoucher(DeleteVoucherRequest request, ServerCallContext context)
         {
+            var roleEntry = (context.RequestHeaders.FirstOrDefault(h =>
+            h.Key.Equals("x-role-slug", StringComparison.OrdinalIgnoreCase)));
+
+            if (roleEntry == null || roleEntry.Value != "admin")
+            {
+                throw new RpcException(new Status(StatusCode.PermissionDenied, "Bạn không có quyền thực hiện hành động này"));
+            }
+
             await _mediator.Send(new DeleteVoucherCommand(Guid.Parse(request.Id)));
             return new Empty(); 
         }
