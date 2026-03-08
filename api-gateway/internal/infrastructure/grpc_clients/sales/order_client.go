@@ -241,16 +241,19 @@ func (o *OrderGrpcClient) GetRevenueReport(ctx context.Context, req *order.GetRe
 }
 
 // GetSalesTrend implements sales.IOrderService.
-func (o *OrderGrpcClient) GetSalesTrend(ctx context.Context, req *order.GetSalesTrendRequest) (*order.GetSalesTrendReply, error) {
+func (o *OrderGrpcClient) GetSalesTrend(ctx context.Context, req *order.GetSalesTrendRequest, includeCsv bool) (
+	*order.GetSalesTrendReply, *order.CsvFile, error,
+) {
 	res, err := o.client.GetSalesTrend(ctx, &salesPb.GetSalesTrendRequest{
 		FromDate:    req.FromDate,
 		ToDate:      req.ToDate,
 		Aggregation: req.Aggregation,
 		StoreId:     req.StoreId,
 		CategoryId:  req.CategoryId,
+		IncludeCsv:  includeCsv,
 	})
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	points := make([]*order.SalesTrendDataPoint, 0, len(res.DataPoints))
@@ -262,9 +265,13 @@ func (o *OrderGrpcClient) GetSalesTrend(ctx context.Context, req *order.GetSales
 		})
 	}
 
+	if includeCsv {
+		return nil, mapper.MapOrderCsvFilePbToModel(res.CsvFile), nil
+	}
+
 	return &order.GetSalesTrendReply{
 		DataPoints:      points,
 		PeakPeriodLabel: res.PeakPeriodLabel,
 		SlowPeriodLabel: res.SlowPeriodLabel,
-	}, nil
+	}, nil, nil
 }

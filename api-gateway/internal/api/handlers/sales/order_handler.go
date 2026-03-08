@@ -442,11 +442,49 @@ func (h *OrderHandler) GetSalesTrend(c *gin.Context) error {
 
 	contextutils.ApplyStoreBoundaries(c, &req.StoreId)
 
-	res, err := h.orderGW.GetSalesTrend(ctx, &req)
+	res, _, err := h.orderGW.GetSalesTrend(ctx, &req, false)
 	if err != nil {
 		return err
 	}
 
 	c.JSON(http.StatusOK, res)
+	return nil
+}
+
+// ExportSalesTrend
+// @Summary      Xuất file CSV xu hướng doanh thu
+// @Description  Tải xuống dữ liệu xu hướng doanh thu (doanh thu, lượng đơn hàng) dưới dạng file CSV.
+// @Description  Hỗ trợ các tham số lọc và phân quyền storeId tương tự như API lấy JSON.
+// @Tags         Orders
+// @Produce      text/csv
+// @Security     BearerAuth
+// @Param        query  query    order.GetSalesTrendRequest  true  "Các tham số lọc (fromDate, toDate, aggregation, storeId...)"
+// @Success      200    {file}   binary                       "Tệp CSV chứa dữ liệu xu hướng doanh thu"
+// @Failure      400    {object} map[string]string            "Lỗi dữ liệu đầu vào"
+// @Router       /orders/reports/sales-trend/export [get]
+func (h *OrderHandler) ExportSalesTrend(c *gin.Context) error {
+	var req order.GetSalesTrendRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		return validation.TranslateValidationError(err)
+	}
+
+	ctx, err := grpcutils.BuildAuthContext(c)
+	if err != nil {
+		return err
+	}
+
+	contextutils.ApplyStoreBoundaries(c, &req.StoreId)
+
+	_, csv, err := h.orderGW.GetSalesTrend(ctx, &req, true)
+	if err != nil {
+		return err
+	}
+
+	if csv == nil {
+		return errorcode.ErrExportFailed
+	}
+
+	c.Header("Content-Disposition", "attachment; filename="+csv.CsvFileName)
+	c.Data(http.StatusOK, "text/csv", csv.CsvRaw)
 	return nil
 }

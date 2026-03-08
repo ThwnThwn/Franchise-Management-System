@@ -42,12 +42,17 @@ func (s *shiftRuleGrpcClient) GetSettings(ctx context.Context, storeId string) (
 // Save implements franchise.IShiftRuleService.
 func (s *shiftRuleGrpcClient) Save(ctx context.Context, userId uuid.UUID, req *shift.SaveShiftRuleRequest) error {
 	_, err := s.client.SaveShiftRule(ctx, &franchisePb.SaveShiftRuleRequest{
-		StoreId:               stringutils.GetString(req.StoreID),
-		AllowShuttle:          req.AllowShuttle,
-		AllowShiftSwap:        req.AllowShiftSwap,
-		MinHoursBetweenShifts: req.MinHoursBetweenShifts,
-		MaxHoursPerWeek:       req.MaxHoursPerWeek,
-		UserId:                userId.String(),
+		StoreId: stringutils.GetString(req.StoreId),
+
+		AllowShuttle:           req.AllowShuttle,
+		AllowShiftSwap:         req.AllowShiftSwap,
+		MinHoursBetweenShifts:  req.MinHoursBetweenShifts,
+		MaxHoursPerWeek:        req.MaxHoursPerWeek,
+		GracePeriodMinutes:     req.GracePeriodMinutes,
+		DailyOtThresholdHours:  req.DailyOtThresholdHours,
+		WeeklyOtThresholdHours: req.WeeklyOtThresholdHours,
+
+		UserId: userId.String(),
 	})
 	return err
 }

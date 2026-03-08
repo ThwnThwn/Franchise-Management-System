@@ -13,6 +13,7 @@ public class StaffShiftAgendaDto
     public List<AgendaCoWorkerDto> CoWorkers { get; set; } = new();
     public DateTime? CheckInAt { get; set; }
     public DateTime? CheckOutAt { get; set; }
+    public Guid ShiftId { get; set; }
 }
 
 /// <summary>

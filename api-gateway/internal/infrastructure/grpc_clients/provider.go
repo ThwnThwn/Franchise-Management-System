@@ -22,11 +22,13 @@ var ClientSet = wire.NewSet(
 
 	// Franchise Service
 	franchise.NewFranchiseClientFactory,
+	franchise.ProvideStoreClient,
 	franchise.ProvideShiftAvailabilityClient,
 	franchise.ProvideShiftClient,
 	franchise.ProvideShiftRuleClient,
 	franchise.ProvideShiftTemplateClient,
-	franchise.ProvideStoreClient,
+	franchise.ProvideShiftApplicationClient,
+	franchise.ProvideShiftSwapClient,
 
 	// Identity Service
 	identity.NewIdentityClientFactory,

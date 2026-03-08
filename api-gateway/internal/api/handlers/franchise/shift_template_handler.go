@@ -79,7 +79,7 @@ func (h *ShiftTemplateHandler) Create(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	contextutils.ApplyStoreBoundaries(c, &req.StoreID)
+	contextutils.ApplyStoreBoundaries(c, &req.StoreId)
 
 	err := h.shiftGW.Create(c.Request.Context(), &req)
 	if err != nil {

@@ -10,6 +10,8 @@ type ShiftsRouter struct {
 	cfg            *config.Config
 	authMW         *middleware.AuthMiddleware
 	shiftHl        *franchise.ShiftHandler
+	appHl          *franchise.ShiftApplicationHandler
+	swapHl         *franchise.ShiftSwapHandler
 	availabilityHl *franchise.ShiftAvailabilityHandler
 	bulkHl         *franchise.ShiftBulkHandler
 	ruleHl         *franchise.ShiftRuleHandler
@@ -20,6 +22,8 @@ func NewRouter(
 	cfg *config.Config,
 	authMW *middleware.AuthMiddleware,
 	shiftHl *franchise.ShiftHandler,
+	appHl *franchise.ShiftApplicationHandler,
+	swapHl *franchise.ShiftSwapHandler,
 	availabilityHl *franchise.ShiftAvailabilityHandler,
 	bulkHl *franchise.ShiftBulkHandler,
 	ruleHl *franchise.ShiftRuleHandler,
@@ -29,6 +33,8 @@ func NewRouter(
 		cfg:            cfg,
 		authMW:         authMW,
 		shiftHl:        shiftHl,
+		appHl:          appHl,
+		swapHl:         swapHl,
 		availabilityHl: availabilityHl,
 		bulkHl:         bulkHl,
 		ruleHl:         ruleHl,

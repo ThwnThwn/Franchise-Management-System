@@ -224,8 +224,9 @@ func (h *ShiftHandler) GetAvailableStaffs(c *gin.Context) error {
 // @Summary      Cập nhật phân công nhân sự
 // @Description  Thay đổi danh sách nhân viên được gán vào ca làm việc.
 // @Tags         Shifts: Assignment
-// @Param        shiftId path      string    true  "ID ca làm"
-// @Param        body    body      []string  true  "Danh sách User ID"
+// @Param        shiftId path        string    true  "ID ca làm"
+// @Param        body    body        []string  true  "Danh sách User ID"
+// @Success      200     {object}    shift.AssignStaffResponse
 // @Router       /shifts/{shiftId}/assign [put]
 func (h *ShiftHandler) UpdateAssignments(c *gin.Context) error {
 	shiftID, err := uuid.Parse(c.Param("id"))
@@ -233,17 +234,54 @@ func (h *ShiftHandler) UpdateAssignments(c *gin.Context) error {
 		return errorcode.ErrInvalidId
 	}
 
-	var userIDs []uuid.UUID
-	if err := c.ShouldBindJSON(&userIDs); err != nil {
+	var req shift.AssignStaffRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
 		return validation.TranslateValidationError(err)
 	}
 
-	err = h.shiftGW.UpdateAssignments(c.Request.Context(), shiftID, userIDs)
+	ctxUserId, err := contextutils.GetUserId(c)
 	if err != nil {
 		return err
 	}
 
-	c.JSON(http.StatusOK, gin.H{})
+	res, err := h.shiftGW.UpdateAssignments(c.Request.Context(), ctxUserId, shiftID, &req)
+	if err != nil {
+		return err
+	}
+
+	c.JSON(http.StatusOK, res)
+	return nil
+}
+
+// AutoFill
+// @Summary      Tự động xếp người vào ca làm việc
+// @Description  Hệ thống tự động tính toán và gán nhân viên phù hợp vào các ca làm việc còn trống (Draft) dựa trên lịch rảnh và quy tắc ca làm.
+// @Tags         Shifts: Assignment
+// @Security     BearerAuth
+// @Param        body body shift.AutoFillShiftsRequest true "Khoảng thời gian cần xếp ca tự động"
+// @Router       /shifts/auto-fill [put]
+func (h *ShiftHandler) AutoFill(c *gin.Context) error {
+	var req shift.AutoFillShiftsRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		return validation.TranslateValidationError(err)
+	}
+
+	storeId, err := contextutils.GetStoreId(c)
+	if err != nil {
+		return err
+	}
+
+	ctx, err := grpcutils.BuildAuthContext(c)
+	if err != nil {
+		return err
+	}
+
+	res, err := h.shiftGW.AutoFill(ctx, storeId, &req)
+	if err != nil {
+		return err
+	}
+
+	c.JSON(http.StatusOK, res)
 	return nil
 }
 
