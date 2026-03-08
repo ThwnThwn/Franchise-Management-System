@@ -37,7 +37,7 @@ namespace FranchiseService.Application.Features.Shifts.Commands.UpdateShiftAssig
 
     /// <summary>
     /// Kết quả trả về sau khi gán nhân viên.
-    /// Nếu Success = false kèm Warnings thì FE hiện popup xác nhận ghi đè.
+    /// Nếu Success = true nhưng kèm Warnings thì FE hiện popup xác nhận ghi đè.
     /// </summary>
     public class AssignStaffResult
     {

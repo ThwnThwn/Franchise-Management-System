@@ -26,11 +26,27 @@ service ShiftSwapGrpcService {
 
   // Xem danh sach yeu cau doi ca cua toi
   rpc GetMySwapRequests (GetMySwapRequestsRequest) returns (GetMySwapRequestsResponse);
+
+  // Manager xem danh sach yeu cau doi ca thuoc cua hang
+  rpc GetSwapRequestsByStore (GetSwapRequestsByStoreRequest) returns (GetSwapRequestsByStoreResponse);
 }
 
 // =======================================================
 // MESSAGES
 // =======================================================
+
+// --- GetSwapRequestsByStore ---
+message GetSwapRequestsByStoreRequest {
+  string store_id = 1;
+
+  // Lọc theo trạng thái (thuờng là PendingManager).
+  // Truyền -1 để lấy tất cả, nếu không thì truyền mã trạng thái.
+  int32 status = 2; 
+}
+
+message GetSwapRequestsByStoreResponse {
+  repeated SwapRequestItem swap_requests = 1;
+}
 
 // --- RequestSwap ---
 message RequestSwapRequest {
