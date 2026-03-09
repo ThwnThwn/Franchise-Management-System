@@ -231,13 +231,18 @@ namespace EngagementService.API.Services.LoyaltyAccount
 
         public override async Task<Empty> RedeemVoucher(RedeemVoucherRequest request, ServerCallContext context)
         {
-            var req = new Application.Dtos.LoyaltyAccount.RedeemVoucherRequest
+            var userId = (context.RequestHeaders.FirstOrDefault(h =>
+            h.Key.Equals("x-user-id", StringComparison.OrdinalIgnoreCase)));
+            if(userId != null)
             {
-                LoyaltyAccountId = Guid.Parse(request.AccountId),
-                VoucherId = Guid.Parse(request.VoucherId)
-            };
+                var req = new Application.Dtos.LoyaltyAccount.RedeemVoucherRequest
+                {
+                    LoyaltyAccountId = Guid.Parse(userId.Value),
+                    VoucherId = Guid.Parse(request.VoucherId)
+                };
 
-            await _mediator.Send(new RedeemVoucherCommand(req));
+                await _mediator.Send(new RedeemVoucherCommand(req));
+            }
 
             return new Empty();
         }
