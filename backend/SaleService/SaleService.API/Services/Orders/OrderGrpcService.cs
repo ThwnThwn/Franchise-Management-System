@@ -167,6 +167,15 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             ImageUrl = i.ImageUrl ?? string.Empty
         }));
 
+        orderMessage.SaleItems.AddRange(dto.SaleItems.Select(i => new OrderSaleItemReply
+        {
+            Id = i.Id.ToString(),
+            Amount = (double)i.Amount,
+            Type = (OrderSaleItemType)i.Type,
+            ReferenceId = i.ReferenceId.ToString(),
+            Name = i.Name
+
+        }));
         return new GetOrderByIdReply
         {
             Order = orderMessage
