@@ -28,6 +28,7 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
     public virtual DbSet<Order> Orders { get; set; }
 
     public virtual DbSet<OrderItem> OrderItems { get; set; }
+    public virtual DbSet<OrderSaleItem> OrderSaleItems { get; set; }
 
     public virtual DbSet<Payment> Payments { get; set; }
 
@@ -85,6 +86,53 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
                 .HasColumnName("updated_at");
         });
 
+        modelBuilder.Entity<OrderSaleItem>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("order_sale_items_pkey");
+
+            entity.ToTable("order_sale_items");
+
+            entity.HasIndex(e => e.OrderId, "idx_order_sale_items_order");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasColumnName("id");
+
+            entity.Property(e => e.Amount)
+                .HasPrecision(12, 3)
+                .HasColumnName("amount");
+
+            entity.Property(e => e.Type)
+                .HasColumnName("type");
+
+            entity.Property(e => e.Name)
+                .HasMaxLength(255)
+                .HasColumnName("name");
+
+            entity.Property(e => e.ReferenceId)
+                .HasColumnName("reference_id");
+
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_at");
+
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("updated_at");
+
+            entity.Property(e => e.IsDeleted)
+                .HasDefaultValue(false)
+                .HasColumnName("is_deleted");
+
+            entity.Property(e => e.OrderId)
+                .HasColumnName("order_id");
+
+            entity.HasOne(d => d.Order)
+                .WithMany(p => p.OrderSaleItems)
+                .HasForeignKey(d => d.OrderId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_order_sale_items_order");
+        });
         modelBuilder.Entity<Order>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("orders_pkey");
@@ -645,7 +693,7 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
         {
             if (typeof(SoftDeletedEntity).IsAssignableFrom(entity.ClrType))
             {
-                // C?u hình Query Filter: x => !x.IsDeleted
+                // C?u hï¿½nh Query Filter: x => !x.IsDeleted
                 modelBuilder.Entity(entity.ClrType)
                     .HasQueryFilter(GenerateIsDeletedExpression(entity.ClrType));
             }

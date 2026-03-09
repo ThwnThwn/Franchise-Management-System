@@ -35,6 +35,7 @@ public partial class Order : SoftDeletedEntity, IEntity
     public Guid? StoreId { get; set; }
 
     public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+    public virtual ICollection<OrderSaleItem> OrderSaleItems { get; set; } = new List<OrderSaleItem>();
 
     public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
 

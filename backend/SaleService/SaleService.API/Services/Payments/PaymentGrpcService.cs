@@ -40,6 +40,10 @@ public class PaymentGrpcService : PaymentGrpc.PaymentGrpcBase
                     OrderId = orderId,
                     ReturnUrl = returnUrl,
                     PaymentMethod = (PaymentMethod)request.PaymentMethod,
+                    Point = request.HasPoint ?  request.Point : null,
+                    VoucherDiscountCode = request.HasVoucherDiscountCode ? request.VoucherDiscountCode : null,
+                    VoucherShipCode = request.HasVoucherShipCode ? request.VoucherShipCode : null,
+                    Wallet = request.HasWallet ? request.Wallet : null
                 }
             );
         var result = await _mediator.Send(command, context.CancellationToken);

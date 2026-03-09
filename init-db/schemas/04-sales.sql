@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS orders (
 CREATE UNIQUE INDEX idx_orders_code ON orders(code);
 CREATE INDEX idx_orders_customer_created ON orders(customer_id, created_at DESC) WHERE customer_id IS NOT NULL;
 
--- 2. Order Items
+-- 2.1. Order Items
 CREATE TABLE IF NOT EXISTS order_items (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     
@@ -60,7 +60,30 @@ CREATE TABLE IF NOT EXISTS order_items (
     CONSTRAINT fk_order_items_order FOREIGN KEY (order_id) REFERENCES orders(id)
 );
 CREATE INDEX idx_order_items_order ON order_items(order_id);
+-- 2.2. Order Sale Items (Discounts / Reductions applied to order)
+CREATE TABLE IF NOT EXISTS order_sale_items (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
 
+    amount DECIMAL(12,3) NOT NULL CHECK (amount >= 0),
+
+    type INT NOT NULL, 
+    -- 0: Voucher
+    -- 1: Wallet
+    -- 2: LoyaltyPoint
+    -- 3: Promotion
+    name VARCHAR(255) NOT NULL,
+    reference_id UUID,
+
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    is_deleted BOOLEAN DEFAULT FALSE,
+
+    order_id UUID NOT NULL,
+    CONSTRAINT fk_order_sale_items_order FOREIGN KEY (order_id) REFERENCES orders(id)
+);
+
+CREATE INDEX idx_order_sale_items_order ON order_sale_items(order_id);
+CREATE INDEX idx_order_sale_items_ref ON order_sale_items(ref_id);
 -- 3. Payments
 CREATE TABLE IF NOT EXISTS payments (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

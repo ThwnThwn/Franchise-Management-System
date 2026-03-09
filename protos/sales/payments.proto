@@ -30,6 +30,10 @@ message CreatePaymentRequest {
   string order_id = 1;
   optional string return_url = 2;  // Optional: custom return URL after payment
   PaymentMethodType paymentMethod = 3;
+  optional int32 point = 4;
+  optional string voucherShipCode = 5;
+  optional string voucherDiscountCode = 6;
+  optional int32 wallet = 7;
 }
 
 

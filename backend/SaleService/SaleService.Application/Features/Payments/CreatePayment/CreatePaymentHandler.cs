@@ -1,6 +1,8 @@
 using Ardalis.Result;
 using MediatR;
 using Microsoft.Extensions.Configuration;
+using SalesService.Application.Dtos.Voucher;
+using SalesService.Application.ExternalServices;
 using SalesService.Application.Helpers;
 using SalesService.Application.Interfaces.Payments;
 using SalesService.Application.Mapping.Orders;
@@ -24,7 +26,7 @@ public sealed class CreatePaymentHandler
     private readonly IConfiguration _config;
     private readonly IOutboxRepository _outboxRepository;
     private readonly IOutboxSignal _outboxSignal;
-
+    private readonly IEngagementServiceClient _engagementServiceClient;
 
     public CreatePaymentHandler(
         IOrderRepository orderRepository,
@@ -32,7 +34,8 @@ public sealed class CreatePaymentHandler
         IKafkaProducer kafkaProducer,
         IConfiguration config,
         IOutboxRepository outboxRepository,
-        IOutboxSignal outboxSignal)
+        IOutboxSignal outboxSignal,
+        IEngagementServiceClient engagementServiceClient)
     {
         _orderRepository = orderRepository;
         _paymentRepository = paymentRepository;
@@ -40,6 +43,7 @@ public sealed class CreatePaymentHandler
         _config = config;
         _outboxRepository = outboxRepository;
         _outboxSignal = outboxSignal;
+        _engagementServiceClient = engagementServiceClient;
     }
 
     public async Task<Result<CreatePaymentRes>> Handle(
@@ -47,7 +51,6 @@ public sealed class CreatePaymentHandler
         CancellationToken cancellationToken)
     {
         var request = command.Requets;
-
         if (request.OrderId == Guid.Empty)
         {
             return Result.Invalid(new ValidationError
@@ -60,9 +63,34 @@ public sealed class CreatePaymentHandler
         var order = await _orderRepository.GetByIdAsync(request.OrderId, cancellationToken);
         if (order == null || order.IsDeleted)
             return Result.NotFound($"Order '{request.OrderId}' not found.");
-
         if (order.Status == OrderStatus.Completed)
             return Result.Error("Order already paid.");
+        // Check CusomterID in Order
+        if(order.CustomerId == Guid.Empty)
+        {
+            return Result.Error("CustomerID is null");
+        }
+        // ================= Sale Order Items =================
+        // Get User's Vouchers
+        if (!string.IsNullOrWhiteSpace(request.VoucherDiscountCode) || !string.IsNullOrWhiteSpace(request.VoucherShipCode))
+        {
+            var vouchers = await _engagementServiceClient.GetMyVoucherAsync(order.CustomerId.Value);
+            var voucherMap = vouchers.ToDictionary(v => v.Code, StringComparer.OrdinalIgnoreCase);
+            Voucher? voucherDiscount = null;
+            Voucher? voucherShip = null;
+            if (!voucherMap.TryGetValue(request.VoucherDiscountCode, out voucherDiscount))
+            {
+                return Result.NotFound("Voucher Discount not found or not owned by user");
+            }
+            if (!voucherMap.TryGetValue(request.VoucherShipCode, out voucherShip))
+            {
+                return Result.NotFound("Voucher Ship not found or not owned by user");
+            }
+
+            // Voucher Discount 
+            
+        }
+        
 
         // ================= CREATE PAYMENT =================
         var payment = new Payment

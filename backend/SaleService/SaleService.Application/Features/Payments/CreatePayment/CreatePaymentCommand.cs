@@ -1,7 +1,6 @@
 using Ardalis.Result;
 using MediatR;
 using SalesService.Domain.Enums;
-using System;
 
 namespace SalesService.Application.Features.Payments.CreatePayment
 {
@@ -18,6 +17,10 @@ namespace SalesService.Application.Features.Payments.CreatePayment
         public Guid OrderId { get; set; }
         public string? ReturnUrl { get; set; }
         public PaymentMethod PaymentMethod { get; set; }
+        public string? VoucherShipCode { get; set; }
+        public string? VoucherDiscountCode { get; set; }
+        public decimal? Wallet { get; set; }
+        public int? Point { get; set; }
     }
 
 }
