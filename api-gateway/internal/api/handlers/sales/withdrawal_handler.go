@@ -5,7 +5,6 @@ import (
 	"api-gateway/internal/application/gateways/sales"
 	_ "api-gateway/internal/domain/models/common"
 	"api-gateway/internal/domain/models/withdrawal"
-	"api-gateway/pkg/utils/grpcutils"
 	"api-gateway/pkg/utils/validation"
 	"io"
 	"net/http"
@@ -48,12 +47,9 @@ func (h *WithdrawalHandler) CreateWithdrawal(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
-	err = h.withdrawalGW.Create(ctx, &req)
+	err := h.withdrawalGW.Create(ctx, &req)
 	if err != nil {
 		return err
 	}
@@ -77,10 +73,7 @@ func (h *WithdrawalHandler) GetMyWithdrawals(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
 	res, err := h.withdrawalGW.GetMyWithdrawals(ctx, &req)
 	if err != nil {
@@ -114,10 +107,7 @@ func (h *WithdrawalHandler) CancelMyWithdrawal(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
 	err = h.withdrawalGW.CancelMyWithdrawal(ctx, id, &req)
 	if err != nil {
@@ -147,10 +137,7 @@ func (h *WithdrawalHandler) GetAllWithdrawals(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
 	res, err := h.withdrawalGW.GetAll(ctx, &req)
 	if err != nil {
@@ -178,10 +165,7 @@ func (h *WithdrawalHandler) GetWithdrawalById(c *gin.Context) error {
 		return errorcode.ErrInvalidId
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
 	res, err := h.withdrawalGW.GetById(ctx, id)
 	if err != nil {
@@ -215,10 +199,7 @@ func (h *WithdrawalHandler) ApproveWithdrawal(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
 	err = h.withdrawalGW.Approve(ctx, id, &req)
 	if err != nil {
@@ -250,10 +231,7 @@ func (h *WithdrawalHandler) RejectWithdrawal(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
 	err = h.withdrawalGW.Reject(ctx, id, &req)
 	if err != nil {
@@ -285,10 +263,7 @@ func (h *WithdrawalHandler) CancelWithdrawal(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
 	err = h.withdrawalGW.Cancel(ctx, id, &req)
 	if err != nil {
@@ -337,10 +312,7 @@ func (h *WithdrawalHandler) CompleteWithdrawal(c *gin.Context) error {
 		ReceiptFile: fileBytes,
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
 	err = h.withdrawalGW.Complete(ctx, id, &req)
 	if err != nil {

@@ -7,7 +7,6 @@ import (
 	"api-gateway/internal/domain/constants/enum"
 	"api-gateway/internal/domain/models/shift"
 	"api-gateway/pkg/utils/contextutils"
-	"api-gateway/pkg/utils/grpcutils"
 	"api-gateway/pkg/utils/validation"
 	"net/http"
 
@@ -93,11 +92,7 @@ func (h *ShiftHandler) Create(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	userId, err := contextutils.GetUserId(c)
 	if err != nil {
 		return err
@@ -131,11 +126,7 @@ func (h *ShiftHandler) Update(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	userId, err := contextutils.GetUserId(c)
 	if err != nil {
 		return err
@@ -268,11 +259,7 @@ func (h *ShiftHandler) AutoFill(c *gin.Context) error {
 		return err
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	res, err := h.shiftGW.AutoFill(ctx, storeId, &req)
 	if err != nil {
 		return err

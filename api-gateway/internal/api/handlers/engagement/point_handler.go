@@ -5,7 +5,6 @@ import (
 	_ "api-gateway/internal/domain/models/common"
 	"api-gateway/internal/domain/models/point"
 	"api-gateway/pkg/utils/contextutils"
-	"api-gateway/pkg/utils/grpcutils"
 	"api-gateway/pkg/utils/validation"
 	"net/http"
 
@@ -44,10 +43,7 @@ func (h *PointHandler) GetMyPointLogs(c *gin.Context) error {
 		return err
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
 	res, err := h.pointGW.GetMyPointLog(ctx, userId, &req)
 	if err != nil {

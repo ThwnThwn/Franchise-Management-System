@@ -4,7 +4,6 @@ import (
 	"api-gateway/internal/application/gateways/franchise"
 	"api-gateway/internal/domain/models/shift"
 	"api-gateway/pkg/utils/contextutils"
-	"api-gateway/pkg/utils/grpcutils"
 	"api-gateway/pkg/utils/validation"
 	"net/http"
 
@@ -59,11 +58,7 @@ func (h *ShiftRuleHandler) Save(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	userId, err := contextutils.GetUserId(c)
 	if err != nil {
 		return err

@@ -5,7 +5,6 @@ import (
 	"api-gateway/internal/application/gateways/franchise"
 	"api-gateway/internal/domain/models/shift"
 	"api-gateway/pkg/utils/contextutils"
-	"api-gateway/pkg/utils/grpcutils"
 	"api-gateway/pkg/utils/validation"
 	"net/http"
 
@@ -47,11 +46,7 @@ func (h *ShiftSwapHandler) RequestSwap(c *gin.Context) error {
 		return err
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	if err := h.swapGW.RequestSwap(ctx, assignmentId, userId, &req); err != nil {
 		return err
 	}
@@ -86,11 +81,7 @@ func (h *ShiftSwapHandler) RespondSwap(c *gin.Context) error {
 		return err
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	if err := h.swapGW.RespondSwap(ctx, swapId, userId, &req); err != nil {
 		return err
 	}
@@ -125,11 +116,7 @@ func (h *ShiftSwapHandler) ApproveSwap(c *gin.Context) error {
 		return err
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	if err := h.swapGW.ApproveSwap(ctx, swapId, managerId, &req); err != nil {
 		return err
 	}
@@ -157,11 +144,7 @@ func (h *ShiftSwapHandler) CancelSwap(c *gin.Context) error {
 		return err
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	if err := h.swapGW.CancelSwap(ctx, swapId, userId); err != nil {
 		return err
 	}
@@ -189,11 +172,7 @@ func (h *ShiftSwapHandler) Release(c *gin.Context) error {
 		return err
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	if err := h.swapGW.Release(ctx, assignmentId, userId); err != nil {
 		return err
 	}
@@ -218,11 +197,7 @@ func (h *ShiftSwapHandler) GetAll(c *gin.Context) error {
 
 	contextutils.ApplyStoreBoundaries(c, &params.StoreId)
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	data, err := h.swapGW.GetAll(ctx, &params)
 	if err != nil {
 		return err
@@ -245,11 +220,7 @@ func (h *ShiftSwapHandler) GetMySwaps(c *gin.Context) error {
 		return err
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	data, err := h.swapGW.GetMySwaps(ctx, userId)
 	if err != nil {
 		return err

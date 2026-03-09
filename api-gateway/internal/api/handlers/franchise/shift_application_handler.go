@@ -4,7 +4,6 @@ import (
 	"api-gateway/internal/application/gateways/franchise"
 	"api-gateway/internal/domain/models/shift"
 	"api-gateway/pkg/utils/contextutils"
-	"api-gateway/pkg/utils/grpcutils"
 	"api-gateway/pkg/utils/validation"
 	"net/http"
 
@@ -45,11 +44,7 @@ func (h *ShiftApplicationHandler) Apply(c *gin.Context) error {
 		return err
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	if err := h.appGW.Apply(ctx, shiftId, userId, &req); err != nil {
 		return err
 	}
@@ -71,11 +66,7 @@ func (h *ShiftApplicationHandler) GetByShiftId(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	data, err := h.appGW.GetByShiftId(ctx, shiftId)
 	if err != nil {
 		return err
@@ -110,11 +101,7 @@ func (h *ShiftApplicationHandler) Review(c *gin.Context) error {
 		return err
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	if err := h.appGW.Review(ctx, appId, managerId, &req); err != nil {
 		return err
 	}

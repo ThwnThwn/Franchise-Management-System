@@ -5,7 +5,6 @@ import (
 	gw "api-gateway/internal/application/gateways/supplier"
 	_ "api-gateway/internal/domain/models/common"
 	"api-gateway/internal/domain/models/supplier"
-	"api-gateway/pkg/utils/grpcutils"
 	"api-gateway/pkg/utils/validation"
 	"net/http"
 
@@ -36,10 +35,7 @@ func (h *SupplierHandler) GetAll(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
 	res, err := h.supplierGW.GetAll(ctx, &req)
 	if err != nil {
@@ -64,10 +60,7 @@ func (h *SupplierHandler) GetById(c *gin.Context) error {
 		return errorcode.ErrInvalidId
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
 	res, err := h.supplierGW.GetById(ctx, id)
 	if err != nil {
@@ -92,10 +85,7 @@ func (h *SupplierHandler) Create(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
 	res, err := h.supplierGW.Create(ctx, &req)
 	if err != nil {
@@ -127,10 +117,7 @@ func (h *SupplierHandler) Update(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
 	res, err := h.supplierGW.Update(ctx, id, &req)
 	if err != nil {
@@ -155,10 +142,7 @@ func (h *SupplierHandler) Delete(c *gin.Context) error {
 		return errorcode.ErrInvalidId
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
 	res, err := h.supplierGW.Delete(ctx, id)
 	if err != nil {

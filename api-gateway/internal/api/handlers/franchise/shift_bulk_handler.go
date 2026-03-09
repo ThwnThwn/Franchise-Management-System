@@ -4,7 +4,6 @@ import (
 	"api-gateway/internal/application/gateways/franchise"
 	"api-gateway/internal/domain/models/shift"
 	"api-gateway/pkg/utils/contextutils"
-	"api-gateway/pkg/utils/grpcutils"
 	"api-gateway/pkg/utils/validation"
 	"net/http"
 
@@ -32,11 +31,7 @@ func (h *ShiftBulkHandler) CreateManual(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	userId, err := contextutils.GetUserId(c)
 	if err != nil {
 		return err
@@ -63,11 +58,7 @@ func (h *ShiftBulkHandler) CreateFromTemplate(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	userId, err := contextutils.GetUserId(c)
 	if err != nil {
 		return err
@@ -94,12 +85,8 @@ func (h *ShiftBulkHandler) Publish(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
-	err = h.shiftGW.BulkPublish(ctx, ids)
+	ctx := c.Request.Context()
+	err := h.shiftGW.BulkPublish(ctx, ids)
 	if err != nil {
 		return err
 	}
@@ -121,12 +108,8 @@ func (h *ShiftBulkHandler) Delete(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
-	err = h.shiftGW.BulkDelete(ctx, ids)
+	ctx := c.Request.Context()
+	err := h.shiftGW.BulkDelete(ctx, ids)
 	if err != nil {
 		return err
 	}
@@ -148,11 +131,7 @@ func (h *ShiftBulkHandler) Open(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	storeId, err := contextutils.GetStoreId(c)
 	if err != nil {
 		return err

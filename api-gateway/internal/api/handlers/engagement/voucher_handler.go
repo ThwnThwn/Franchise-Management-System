@@ -5,7 +5,6 @@ import (
 	"api-gateway/internal/application/gateways/engagement"
 	"api-gateway/internal/domain/models/voucher"
 	"api-gateway/pkg/utils/contextutils"
-	"api-gateway/pkg/utils/grpcutils"
 	"api-gateway/pkg/utils/validation"
 	"net/http"
 
@@ -91,12 +90,9 @@ func (h *VoucherHandler) CreateVoucher(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
-	err = h.voucherGW.Create(ctx, &req)
+	err := h.voucherGW.Create(ctx, &req)
 	if err != nil {
 		return err
 	}
@@ -128,10 +124,7 @@ func (h *VoucherHandler) UpdateVoucher(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
 	err = h.voucherGW.Update(ctx, voucherId, &req)
 	if err != nil {
@@ -165,10 +158,7 @@ func (h *VoucherHandler) UpdateVoucherStatus(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
 	err = h.voucherGW.UpdateStatus(ctx, voucherId, &req)
 	if err != nil {
@@ -194,10 +184,7 @@ func (h *VoucherHandler) DeleteVoucher(c *gin.Context) error {
 		return errorcode.ErrInvalidId
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
 	err = h.voucherGW.Delete(ctx, voucherId)
 	if err != nil {
@@ -232,11 +219,7 @@ func (h *VoucherHandler) RedeemVoucher(c *gin.Context) error {
 		return err
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	err = h.loyaltyGW.RedeemVoucher(ctx, userId, voucherId)
 	if err != nil {
 		return err

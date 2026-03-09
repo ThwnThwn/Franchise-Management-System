@@ -5,7 +5,6 @@ import (
 	gw "api-gateway/internal/application/gateways/supplier"
 	_ "api-gateway/internal/domain/models/common"
 	"api-gateway/internal/domain/models/supplier"
-	"api-gateway/pkg/utils/grpcutils"
 	"api-gateway/pkg/utils/validation"
 	"net/http"
 
@@ -40,10 +39,7 @@ func (h *PurchaseOrderHandler) GetAll(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
 	res, err := h.poGW.GetAll(ctx, &req)
 	if err != nil {
@@ -70,10 +66,7 @@ func (h *PurchaseOrderHandler) GetById(c *gin.Context) error {
 		return errorcode.ErrInvalidId
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
 	res, err := h.poGW.GetById(ctx, id)
 	if err != nil {
@@ -100,10 +93,7 @@ func (h *PurchaseOrderHandler) Create(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
 	res, err := h.poGW.Create(ctx, &req)
 	if err != nil {
@@ -137,10 +127,7 @@ func (h *PurchaseOrderHandler) Update(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
 	res, err := h.poGW.Update(ctx, id, &req)
 	if err != nil {
@@ -174,10 +161,7 @@ func (h *PurchaseOrderHandler) Cancel(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
 	res, err := h.poGW.Cancel(ctx, id, &req)
 	if err != nil {
@@ -204,10 +188,7 @@ func (h *PurchaseOrderHandler) Complete(c *gin.Context) error {
 		return errorcode.ErrInvalidId
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
 	res, err := h.poGW.Complete(ctx, id)
 	if err != nil {
@@ -234,10 +215,7 @@ func (h *PurchaseOrderHandler) GetLatestPrices(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
 	res, err := h.poGW.GetLatestPrices(ctx, req.IngredientIds)
 	if err != nil {

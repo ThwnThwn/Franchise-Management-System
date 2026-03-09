@@ -7,7 +7,6 @@ import (
 	"api-gateway/internal/domain/models/order"
 	"api-gateway/pkg/mapper"
 	"api-gateway/pkg/utils/contextutils"
-	"api-gateway/pkg/utils/grpcutils"
 	"api-gateway/pkg/utils/sliceutils"
 	"api-gateway/pkg/utils/validation"
 	"net/http"
@@ -48,11 +47,7 @@ func (h *OrderHandler) GetOrders(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	contextutils.ApplyStoreBoundaries(c, &req.StoreId)
 
 	res, err := h.orderGW.GetOrders(ctx, &req)
@@ -100,11 +95,7 @@ func (h *OrderHandler) GetOrderById(c *gin.Context) error {
 		return errorcode.ErrInvalidId
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	res, err := h.orderGW.GetOrderById(ctx, orderId)
 	if err != nil {
 		return err
@@ -138,11 +129,7 @@ func (h *OrderHandler) GetMyOrders(c *gin.Context) error {
 		return err
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	res, err := h.orderGW.GetMyOrders(ctx, &req)
 	if err != nil {
 		return err
@@ -186,11 +173,7 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	res, err := h.orderGW.CreateOrder(ctx, &req)
 	if err != nil {
 		return err
@@ -224,11 +207,7 @@ func (h *OrderHandler) UpdateOrder(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	res, err := h.orderGW.UpdateOrder(ctx, orderId, req)
 	if err != nil {
 		return err
@@ -262,11 +241,7 @@ func (h *OrderHandler) UpdateOrderStatus(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	err = h.orderGW.UpdateStatus(ctx, orderId, req.Status)
 	if err != nil {
 		return err
@@ -292,11 +267,7 @@ func (h *OrderHandler) GetRevenueReport(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	// Phân quyền: Manager/Staff chỉ được xem store của mình
 	contextutils.ApplyStoreBoundaries(c, &req.StoreId)
 
@@ -324,11 +295,7 @@ func (h *OrderHandler) ExportRevenueReport(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	contextutils.ApplyStoreBoundaries(c, &req.StoreId)
 
 	_, csv, err := h.orderGW.GetRevenueReport(ctx, &req, true)
@@ -362,11 +329,7 @@ func (h *OrderHandler) GetOrderVolume(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	contextutils.ApplyStoreBoundaries(c, &req.StoreId)
 
 	res, _, err := h.orderGW.GetOrderVolume(ctx, &req, false)
@@ -393,11 +356,7 @@ func (h *OrderHandler) ExportOrderVolume(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	contextutils.ApplyStoreBoundaries(c, &req.StoreId)
 
 	_, csv, err := h.orderGW.GetOrderVolume(ctx, &req, true)
@@ -435,11 +394,7 @@ func (h *OrderHandler) GetSalesTrend(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	contextutils.ApplyStoreBoundaries(c, &req.StoreId)
 
 	res, _, err := h.orderGW.GetSalesTrend(ctx, &req, false)
@@ -468,11 +423,7 @@ func (h *OrderHandler) ExportSalesTrend(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	contextutils.ApplyStoreBoundaries(c, &req.StoreId)
 
 	_, csv, err := h.orderGW.GetSalesTrend(ctx, &req, true)
