@@ -208,7 +208,7 @@ public partial class EngagementDbContext : DbContext, IEngagementDbContext
 
             // Cấu hình Mapping Enum cho Voucher
             entity.Property(e => e.Type)
-                .HasColumnType("voucher_category")
+                .HasColumnType("voucher_type")
                 .HasColumnName("type");
 
             entity.Property(e => e.Code).HasMaxLength(50).HasColumnName("code");
@@ -245,7 +245,6 @@ public partial class EngagementDbContext : DbContext, IEngagementDbContext
             // Cấu hình Mapping Enum cho VoucherItemType
             entity.Property(e => e.Type)
                 .HasColumnType("voucher_item_type")
-                .HasDefaultValueSql("'REQUIRED'::voucher_item_type")
                 .HasColumnName("type");
 
             entity.Property(e => e.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").HasColumnName("updated_at");

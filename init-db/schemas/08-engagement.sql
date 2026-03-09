@@ -135,7 +135,7 @@ CREATE TABLE "voucher_items" (
     "voucher_id" UUID NOT NULL REFERENCES "vouchers"("id") ON DELETE CASCADE,
     "variant_id" UUID NOT NULL, 
     "quantity" INT DEFAULT 1 CHECK ("quantity" > 0), -- Đã fix lỗi tên cột trong CHECK
-    "type" voucher_item_type DEFAULT 'ITEM_REQUIRED',
+    "type" voucher_item_type,
     "created_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     "is_deleted" BOOLEAN DEFAULT FALSE

@@ -4,6 +4,7 @@ using EngagementService.Application.Persistences.Repository;
 using EngagementService.Domain.Constants;
 using EngagementService.Domain.Entities;
 using EngagementService.Infrastucture.AppDbContext;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Org.BouncyCastle.Asn1.Ocsp;
 
@@ -80,7 +81,8 @@ namespace EngagementService.Infrastucture.Persistences.Repository
         }
         private void UpdateVoucher(Voucher dbVoucher, UpdateVoucherRequest updateRequest)
         {
-            if (updateRequest.DiscountValue != null)
+            var isGiftVoucher = dbVoucher.Type == VoucherType.GIFT;
+            if (updateRequest.DiscountValue != null && !isGiftVoucher)
             {
                 if (updateRequest.DiscountValue <= 0)
                     throw new ArgumentException(VoucherMsg.InvalidDiscountValue);
@@ -96,7 +98,7 @@ namespace EngagementService.Infrastucture.Persistences.Repository
                 }
             }
 
-            if (updateRequest.MaxDiscountValue != null)
+            if (updateRequest.MaxDiscountValue != null && !isGiftVoucher)
             {
                 if (updateRequest.MaxDiscountValue <= 0)
                     throw new ArgumentException(VoucherMsg.InvalidMaxDiscountValue);
