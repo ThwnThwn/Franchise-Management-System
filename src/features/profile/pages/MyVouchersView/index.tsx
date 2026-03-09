@@ -8,6 +8,8 @@ import Link from "next/link"
 import { motion } from "framer-motion"
 import { Voucher, VoucherType } from "@/features/orders/models/voucher"
 import { Button, Chip } from "@heroui/react"
+import { useQueryClient } from "@tanstack/react-query"
+import { QUERY_KEYS } from "@/constants/queryKeys"
 
 const VoucherCard = ({ voucher, isOwned, userPoints, onRedeem, isRedeeming }: {
     voucher: Voucher,
@@ -115,30 +117,35 @@ export default function MyVouchersView() {
     // API calls for Vouchers
     const { data: allPublicVouchers = [], isLoading: isLoadingAll } = useGetAllVouchers()
     const { data: myVouchers = [], isLoading: isLoadingMy, refetch: refetchMyVouchers } = useGetMyVouchers()
+    const queryClient = useQueryClient()
     const { mutate: redeemVoucher, isPending: isRedeeming } = useRedeemVoucher()
 
     const [activeTab, setActiveTab] = useState<"my_vouchers" | "exchange">("my_vouchers")
     const [redeemingId, setRedeemingId] = useState<string | null>(null)
 
-    const userPoints = loyalty?.availablePoints || 0
+    const userPoints = Number(loyalty?.availablePoints || 0)
 
     // Filter active vouchers that are available for exchange
     // Hides vouchers the user already has (if the backend doesn't filter them out)
-    const availableToExchange = allPublicVouchers.filter(v =>
-        v.is_active &&
-        !myVouchers.some(mv => mv.id === v.id)
-    )
+    const availableToExchange = allPublicVouchers.filter(v => {
+        const usageCount = myVouchers.filter(mv => mv.id === v.id).length
+        const maxUsage = v.max_usage_per_user ?? 1
+        return v.is_active && usageCount < maxUsage
+    })
 
     const handleRedeem = (voucherId: string) => {
         setRedeemingId(voucherId)
         redeemVoucher(voucherId, {
             onSuccess: () => {
                 refetchMyVouchers()
+                // Refresh points and logs
+                queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.LOYALTY_ACCOUNT] })
+                queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.POINT_LOGS] })
                 setRedeemingId(null)
             },
             onError: () => {
                 setRedeemingId(null)
-                alert("Đổi voucher thất bại! Điểm của bạn có thể không đủ hoặc voucher đã hết mượt.")
+                alert("Đổi voucher thất bại! Điểm của bạn có thể không đủ hoặc voucher đã hết lượt.")
             }
         })
     }
