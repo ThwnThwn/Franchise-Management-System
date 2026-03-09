@@ -97,13 +97,15 @@ namespace EngagementService.Application.Features.Voucher.Commands.Create
             if (request.EndDate < DateTimeOffset.UtcNow)
                 throw new ArgumentException(VoucherMsg.InvalidEndDate);
 
+            var isGiftVoucher = request.Type == VoucherType.GIFT;
+
             return new Domain.Entities.Voucher()
             {
                 Id = Guid.NewGuid(),
                 Code = code,
                 Type = request.Type,
-                DiscountValue = request.DiscountValue,
-                MaxDiscountValue = request.MaxDiscountValue,
+                DiscountValue = isGiftVoucher ? null : request.DiscountValue,
+                MaxDiscountValue = isGiftVoucher ? null : request.MaxDiscountValue,
                 PointCost = request.PointCost,
                 MinOrderValue = request.MinOrderValue,
                 InitQuantity = request.InitQuantity,
