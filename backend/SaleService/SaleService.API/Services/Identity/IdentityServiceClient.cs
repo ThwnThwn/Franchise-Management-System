@@ -53,6 +53,20 @@ public class IdentityServiceClient : IIdentityServiceClient
                     Id = Guid.Parse(response.Role.Id),
                     RoleName = response.Role.Name,
                     Slug=response.Role.Slug
+                } : null,
+                LoyaltyTier = response.Loyalty != null ? new LoyaltyRes
+                {
+                    Id = Guid.Parse(response.Loyalty.Id),
+                    AvailablePoints = decimal.Parse(response.Loyalty.AvailablePoints),
+                    CurrentTier = response.Loyalty.CurrentTier == null ? null : new Application.Interfaces.Identity.MembershipTier
+                    {
+                        Id = Guid.Parse(response.Loyalty.CurrentTier.Id),
+                        Name = response.Loyalty.CurrentTier.Name,
+                        MinSpendRequired = decimal.Parse(response.Loyalty.CurrentTier.MinSpendRequired),
+                        DiscountRate = response.Loyalty.CurrentTier.DiscountRate,
+                        AmountPerPoint = decimal.Parse(response.Loyalty.CurrentTier.AmountPerPoint),
+                        ValuePerPoint = decimal.Parse(response.Loyalty.CurrentTier.ValuePerPoint)
+                    }
                 } : null
             };
         }
