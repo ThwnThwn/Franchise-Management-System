@@ -6,7 +6,7 @@ using EngagementService.Application.Features.Voucher.Queries.GetAll;
 using EngagementService.Application.Features.Voucher.Queries.GetByCode;
 using EngagementService.Application.Features.Voucher.Queries.GetMyVoucher;
 using EngagementService.Domain.Constants;
-using EngagementService.Infrastructure.Protos;
+using EngagementService.Grpc.Protos.VoucherGrpc;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using MediatR;
@@ -109,7 +109,7 @@ namespace EngagementService.API.Services.Voucher
             {
                 Id = v.Id.ToString(),
                 Code = v.Code,
-                Type = (Infrastructure.Protos.VoucherType)v.Type,
+                Type = (Grpc.Protos.VoucherGrpc.VoucherType)v.Type,
                 DiscountValue = v.DiscountValue?.ToString() ?? "",
                 MaxDiscountValue = v.MaxDiscountValue?.ToString() ?? "",
                 MinOrderValue = v.MinOrderValue?.ToString() ?? "",
@@ -126,7 +126,7 @@ namespace EngagementService.API.Services.Voucher
                                     Id = vi.Id.ToString(),
                                     VariantId = vi.VariantId.ToString(),
                                     Quantity = vi.Quantity,
-                                    Type = (Infrastructure.Protos.VoucherItemType)vi.Type,
+                                    Type = (Grpc.Protos.VoucherGrpc.VoucherItemType)vi.Type,
                                 }).ToList()
                 }
             }).ToList());
@@ -141,7 +141,7 @@ namespace EngagementService.API.Services.Voucher
             {
                 Id = voucher.Id.ToString(),
                 Code = voucher.Code,
-                Type = (Infrastructure.Protos.VoucherType)voucher.Type,
+                Type = (Grpc.Protos.VoucherGrpc.VoucherType)voucher.Type,
                 DiscountValue = voucher.DiscountValue?.ToString() ?? "",
                 MaxDiscountValue = voucher.MaxDiscountValue?.ToString() ?? "",
                 MinOrderValue = voucher.MinOrderValue?.ToString() ?? "",
@@ -151,7 +151,7 @@ namespace EngagementService.API.Services.Voucher
                                     Id = vi.Id.ToString(),
                                     VariantId = vi.VariantId.ToString(),
                                     Quantity = vi.Quantity,
-                                    Type = (Infrastructure.Protos.VoucherItemType)vi.Type,
+                                    Type = (Grpc.Protos.VoucherGrpc.VoucherItemType)vi.Type,
                                 }).ToList()
                 }
             };
@@ -176,7 +176,7 @@ namespace EngagementService.API.Services.Voucher
             {
                 Id = v.Id.ToString(),
                 Code = v.Code,
-                Type = (Infrastructure.Protos.VoucherType)v.Type,
+                Type = (Grpc.Protos.VoucherGrpc.VoucherType)v.Type,
                 DiscountValue = v.DiscountValue?.ToString() ?? "",
                 MaxDiscountValue = v.MaxDiscountValue?.ToString() ?? "",
                 MinOrderValue = v.MinOrderValue?.ToString() ?? "",
@@ -193,7 +193,7 @@ namespace EngagementService.API.Services.Voucher
                                     Id = vi.Id.ToString(),
                                     VariantId = vi.VariantId.ToString(),
                                     Quantity = vi.Quantity,
-                                    Type = (Infrastructure.Protos.VoucherItemType)vi.Type,
+                                    Type = (Grpc.Protos.VoucherGrpc.VoucherItemType)vi.Type,
                                 }).ToList()
                 }
             }).ToList());
