@@ -1,8 +1,13 @@
 using Ardalis.Result;
 using MediatR;
 using Microsoft.Extensions.Configuration;
+using SalesService.Application.AppExceptions;
 using SalesService.Application.ClientInterface.Engagement;
+using SalesService.Application.ClientInterface.Inventory;
+using SalesService.Application.ClientInterface.Products;
+using SalesService.Application.Dtos.Inventory;
 using SalesService.Application.Dtos.Voucher;
+using SalesService.Application.Features.Orders.Commands.Update;
 using SalesService.Application.Helpers;
 using SalesService.Application.Interfaces.Payments;
 using SalesService.Application.Mapping.Orders;
@@ -27,6 +32,8 @@ public sealed class CreatePaymentHandler
     private readonly IOutboxRepository _outboxRepository;
     private readonly IOutboxSignal _outboxSignal;
     private readonly IEngagementServiceClient _engagementServiceClient;
+    private readonly IProductServiceClient _productServiceClient;
+    private readonly IInventoryServiceClient _inventoryServiceClient;
 
     public CreatePaymentHandler(
         IOrderRepository orderRepository,
@@ -35,7 +42,9 @@ public sealed class CreatePaymentHandler
         IConfiguration config,
         IOutboxRepository outboxRepository,
         IOutboxSignal outboxSignal,
-        IEngagementServiceClient engagementServiceClient)
+        IEngagementServiceClient engagementServiceClient,
+        IProductServiceClient productServiceClient,
+        IInventoryServiceClient inventoryServiceClient)
     {
         _orderRepository = orderRepository;
         _paymentRepository = paymentRepository;
@@ -44,6 +53,8 @@ public sealed class CreatePaymentHandler
         _outboxRepository = outboxRepository;
         _outboxSignal = outboxSignal;
         _engagementServiceClient = engagementServiceClient;
+        _productServiceClient = productServiceClient;
+        _inventoryServiceClient = inventoryServiceClient;
     }
 
     public async Task<Result<CreatePaymentRes>> Handle(
@@ -61,6 +72,7 @@ public sealed class CreatePaymentHandler
         }
 
         var order = await _orderRepository.GetByIdAsync(request.OrderId, cancellationToken);
+        decimal? voucherDiscountAmount = 0;
         if (order == null || order.IsDeleted)
             return Result.NotFound($"Order '{request.OrderId}' not found.");
         if (order.Status == OrderStatus.Completed)
@@ -78,19 +90,22 @@ public sealed class CreatePaymentHandler
             var voucherMap = vouchers.ToDictionary(v => v.Code, StringComparer.OrdinalIgnoreCase);
             Voucher? voucherDiscount = null;
             Voucher? voucherShip = null;
-            if (!voucherMap.TryGetValue(request.VoucherDiscountCode, out voucherDiscount))
+            if (!string.IsNullOrWhiteSpace(request.VoucherDiscountCode) &&
+                !voucherMap.TryGetValue(request.VoucherDiscountCode, out voucherDiscount))
             {
                 return Result.NotFound("Voucher Discount not found or not owned by user");
             }
-            if (!voucherMap.TryGetValue(request.VoucherShipCode, out voucherShip))
+
+            if (!string.IsNullOrWhiteSpace(request.VoucherShipCode) &&
+                !voucherMap.TryGetValue(request.VoucherShipCode, out voucherShip))
             {
                 return Result.NotFound("Voucher Ship not found or not owned by user");
             }
 
             // Voucher Discount 
-            if(voucherDiscount.MinOrderValue <= order.Subtotal)
+            if (voucherDiscount.MinOrderValue <= order.Subtotal)
             {
-                decimal? voucherDiscountAmount = 0;
+                
                 if(voucherDiscount.VoucherItems.Count > 0)
                 {
                     var voucherItem = voucherDiscount.VoucherItems;
@@ -100,19 +115,84 @@ public sealed class CreatePaymentHandler
 
                     foreach ( var requiredItem in requiredItemsVoucher)
                     {
-                        var orderItem = order.OrderItems.Where(x => x.Id == requiredItem.VariantId).FirstOrDefault();
+                        var orderItem = order.OrderItems.Where(x => x.Sku == requiredItem.Sku).FirstOrDefault();
                         if(orderItem.Quantity < requiredItem.Quantity)
                         {
-                            throw new Exception($"Voucher {voucherDiscount.Code} require {requiredItem.Quantity} {requiredItem.VariantId}");
+                            throw new Exception($"Voucher {voucherDiscount.Code} require {requiredItem.Quantity} {requiredItem.Sku}");
                         }
                     }
 
                     var giftItems = voucherDiscount.VoucherItems
                         .Where(v => v.Type == VoucherItemType.ITEM_GIFT)
                         .ToList();
-                    
+                    var skus = giftItems.Select(x => x.Sku).ToList();
+                    //Validate variants exist
+                    var variants = await _productServiceClient.GetListProductVariantsBySkusAsync(skus);
+
+                    if (variants.Count != skus.Count)
+                        throw new BusinessException("One or more product variants not found.");
+
+                    //Build new reservation list
+                    var newReserveItems = variants.Select(v => new AmountVariant
+                    {
+                        VariantId = v.VariantId,
+                        Sku = v.Sku,
+                        Amount = giftItems.First(i => i.Sku == v.Sku).Quantity
+                    }).ToList();
+
+                    //Update stock reservation
+                    //Release old reservation
+                    await _inventoryServiceClient.ReleaseStockAsync(new ReleaseStockReq
+                    {
+                        OrderId = order.Id,
+                        StoreId = order.StoreId!.Value
+                    });
+
+                    //Reserve new stock
+                    var reserveRes = await _inventoryServiceClient.ReserveStockAsync(new ReserveStockReq
+                    {
+                        OrderId = order.Id,
+                        StoreId = order.StoreId!.Value,
+                        Items = newReserveItems
+                    });
+
+                    if (!reserveRes.IsEnough)
+                        throw new BusinessException($"Stock update failed: {reserveRes.ShortageItems}");
+
+                    // Add-Update orderItem - save change order
+                    foreach (var item in giftItems)
+                    {
+                        var existing = order.OrderItems
+                            .FirstOrDefault(x => x.Sku == item.Sku);
+
+                        if (existing != null)
+                        {
+                            // Update quantity
+                            existing.Quantity += item.Quantity;
+                            var variant = variants.First(v => v.Sku == item.Sku);
+                            decimal unitPrice = variant.BasePrice.Value;
+                        }
+                        else
+                        {
+                            // Add new item
+                            var variant = variants.First(v => v.Sku == item.Sku);
+                            decimal unitPrice = variant.BasePrice.Value;
+                            order.OrderItems.Add(new Domain.Entities.OrderItem
+                            {
+                                OrderId = order.Id,
+                                ProductId = variant.ProductId,
+                                VariantId = variant.VariantId,
+                                Quantity = item.Quantity,
+                                UnitPrice = variant.BasePrice.Value,
+                                ProductName = variant.ProductName,
+                                Sku = variant.Sku,
+                                ImageUrl = variant.ImageUrl,
+                                IsDeleted = false
+                            });
+                        }
+                    }
                 }
-                else if (voucherDiscount.Type.Equals(VoucherType.DISCOUNT_FIXED_AMOUNT))
+                else if (voucherDiscount.Type.Equals(VoucherType.DISCOUNT_PERCENTAGE))
                 {
                     voucherDiscountAmount = order.Subtotal * voucherDiscount.DiscountValue/100;
                     voucherDiscountAmount = voucherDiscountAmount > voucherDiscount.MaxDiscountValue ? voucherDiscount.MaxDiscountValue : voucherDiscountAmount;
@@ -131,7 +211,7 @@ public sealed class CreatePaymentHandler
             Id = Guid.NewGuid(),
             OrderId = order.Id,
             Code = $"PAY-{DateTime.UtcNow:yyyyMMddHHmmss}",
-            Amount = order.TotalAmount,
+            Amount = order.TotalAmount - voucherDiscountAmount.Value,
             Currency = "VND",
             Method = (int)request.PaymentMethod,// 0 = Cash | 1 = VNPay
             Status = (int)PaymentStatus.Pending,

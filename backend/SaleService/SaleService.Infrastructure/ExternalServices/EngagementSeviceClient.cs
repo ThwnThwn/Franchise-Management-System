@@ -54,7 +54,7 @@ namespace SalesService.Infrastructure.ExternalServices
                     {
                         Id = Guid.Parse(vi.Id),
                         VoucherId = Guid.Parse(v.Id),
-                        VariantId = Guid.Parse(vi.VariantId),
+                        Sku = vi.Sku,
                         Quantity = vi.Quantity,
                         Type = (Application.Dtos.Voucher.VoucherItemType)vi.Type
                     }).ToList()

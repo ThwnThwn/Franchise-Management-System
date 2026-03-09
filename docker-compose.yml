@@ -121,7 +121,7 @@ services:
     container_name: chb_ngrok
     restart: always
     environment:
-      - NGROK_AUTHTOKEN=3ASdhW1JxLBlplNk7cZsKoRhXmP_4MyUWrCApRxaPArhXSRJt
+      - NGROK_AUTHTOKEN=3Agz8FdHS61E0OaxLlUtGuMQbRz_3diR3mFGtpjhnoaWjr5YX
     volumes:
       - ./ngrok.yml:/etc/ngrok.yml
     command:

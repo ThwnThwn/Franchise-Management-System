@@ -4,9 +4,7 @@ using EngagementService.Application.Persistences.Repository;
 using EngagementService.Domain.Constants;
 using EngagementService.Domain.Entities;
 using EngagementService.Infrastucture.AppDbContext;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Org.BouncyCastle.Asn1.Ocsp;
 
 namespace EngagementService.Infrastucture.Persistences.Repository
 {
@@ -61,8 +59,8 @@ namespace EngagementService.Infrastucture.Persistences.Repository
                 {
                     if (item.Quantity != null && item.Quantity > 0)
                         voucherItem.Quantity = (int)item.Quantity;
-                    if (item.VariantId != null)
-                        voucherItem.VariantId = (Guid)item.VariantId;
+                    if (item.Sku != null)
+                        voucherItem.Sku = item.Sku;
                     if (item.Type != null) ;
                     voucherItem.Type = (VoucherItemType)item.Type!;
                 }
@@ -71,7 +69,7 @@ namespace EngagementService.Infrastucture.Persistences.Repository
                     var newItem = new VoucherItem()
                     {
                         Quantity = (int)item.Quantity!,
-                        VariantId = (Guid)item.VariantId!,
+                        Sku = item.Sku!,
                         Type = (VoucherItemType)item.Type!,
                         VoucherId = dbVoucher.Id
                     };

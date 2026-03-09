@@ -4,7 +4,7 @@
     {
         public Guid Id { get; set; }
         public Guid VoucherId { get; set; }
-        public Guid VariantId { get; set; }
+        public string? Sku { get; set; }
         public int Quantity { get; set; }
         public VoucherItemType Type { get; set; }
         public DateTimeOffset CreatedAt { get; set; }

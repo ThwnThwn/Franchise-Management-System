@@ -133,7 +133,7 @@ CREATE TABLE "user_vouchers" (
 CREATE TABLE "voucher_items" (
     "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     "voucher_id" UUID NOT NULL REFERENCES "vouchers"("id") ON DELETE CASCADE,
-    "variant_id" UUID NOT NULL, 
+    "sku" VARCHAR(50) NOT NULL, 
     "quantity" INT DEFAULT 1 CHECK ("quantity" > 0), -- Đã fix lỗi tên cột trong CHECK
     "type" voucher_item_type,
     "created_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
