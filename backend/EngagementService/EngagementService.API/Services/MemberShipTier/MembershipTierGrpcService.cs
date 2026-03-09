@@ -15,13 +15,6 @@ namespace EngagementService.API.Services.MemberShipTier
 
         public async override Task<Empty> CreateMembershipTier(CreateMembershipTierRequest request, ServerCallContext context)
         {
-            var roleEntry = (context.RequestHeaders.FirstOrDefault(h =>
-            h.Key.Equals("x-role-slug", StringComparison.OrdinalIgnoreCase)));
-
-            if (roleEntry == null || roleEntry.Value != "admin")
-            {
-                throw new RpcException(new Status(StatusCode.PermissionDenied, "Bạn không có quyền thực hiện hành động này"));
-            }
             var createReq = new Application.Dtos.MembershipTier.CreateMembershipTierRequest();
             try
             {
@@ -47,13 +40,6 @@ namespace EngagementService.API.Services.MemberShipTier
 
         public async override Task<Empty> UpdateMembershipTier(UpdateMembershipTierRequest request, ServerCallContext context)
         {
-            var roleEntry = (context.RequestHeaders.FirstOrDefault(h =>
-            h.Key.Equals("x-role-slug", StringComparison.OrdinalIgnoreCase)));
-
-            if (roleEntry == null || roleEntry.Value != "admin")
-            {
-                throw new RpcException(new Status(StatusCode.PermissionDenied, "Bạn không có quyền thực hiện hành động này"));
-            }
 
             var updateReq = new Application.Dtos.MembershipTier.UpdateMembershipTierRequest();
             try
@@ -102,13 +88,6 @@ namespace EngagementService.API.Services.MemberShipTier
 
         public async override Task<Empty> DeleteMembershipTier(DeleteMembershipTierRequest request, ServerCallContext context)
         {
-            var roleEntry = (context.RequestHeaders.FirstOrDefault(h =>
-            h.Key.Equals("x-role-slug", StringComparison.OrdinalIgnoreCase)));
-
-            if (roleEntry == null || roleEntry.Value != "admin")
-            {
-                throw new RpcException(new Status(StatusCode.PermissionDenied, "Bạn không có quyền thực hiện hành động này"));
-            }
             var id = Guid.TryParse(request.Id, out var parsedId) ? parsedId : Guid.Empty;
             var command = new Application.Features.MembershipTier.Commands.Delete.DeleteMembershipTierCommand
             (Id: id);

@@ -19,14 +19,9 @@ namespace EngagementService.API.Services.PointLog
             var userId = (context.RequestHeaders.FirstOrDefault(h =>
             h.Key.Equals("x-user-id", StringComparison.OrdinalIgnoreCase)));
 
-            if(userId == null || string.IsNullOrEmpty(userId.Value))
-            {
-                throw new RpcException(new Status(StatusCode.Unauthenticated, "Vui lòng đăng nhập"));
-            }
-
             var res = await _mediator.Send(new ViewMyPointLogQuery()
             {
-                UserId = Guid.Parse(userId.Value),
+                UserId = Guid.Parse(userId!.Value),
                 Page = request.Page,
                 PageSize = request.PageSize,
                 FromDate = request.FromDate?.ToDateTime(),
