@@ -7,7 +7,6 @@ package engagement;
 
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
-import "google/protobuf/wrappers.proto"; // 1. Import cái này
 
 // Service định nghĩa các hành động liên quan đến Voucher
 service VoucherGrpc {
@@ -31,6 +30,9 @@ service VoucherGrpc {
 
   //Lấy voucher của user 
   rpc GetMyVouchers (google.protobuf.Empty) returns (VoucherListResponse);
+
+  //Use Voucher
+  rpc UseVouchers (UseVoucherRequest) returns (google.protobuf.Empty);
 }
 
 // Định nghĩa các Enum dựa trên code C# của bạn
@@ -144,4 +146,10 @@ message GetVoucherByCodeRequest {
 
 message DeleteVoucherRequest{
   string id = 1;
+}
+
+message UseVoucherRequest{
+  repeated string voucher_ids = 1;
+  string order_id = 2;
+  string user_id = 3;
 }

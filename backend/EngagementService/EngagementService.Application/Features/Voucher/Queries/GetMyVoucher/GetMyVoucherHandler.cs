@@ -21,7 +21,18 @@ namespace EngagementService.Application.Features.Voucher.Queries.GetMyVoucher
         {
             var userVouchers = await _userVoucherRepository.GetByUserIdAsync(request.userID);
 
-            return userVouchers.Select(uv => uv.Voucher).ToList();
+            var vouchers = userVouchers.Select(uv => uv.Voucher).ToList();
+
+            var result = vouchers.GroupBy(v => v.Id)
+                .Select(g =>
+                {
+                    var firstVoucher = g.First(); // Lấy đối tượng đầu tiên để giữ lại các thông tin khác
+                    firstVoucher.CurrentQuantity = g.Count(); // Cập nhật số lượng trùng
+                    return firstVoucher;
+                })
+                .ToList();
+
+            return result;
         }
     }
 }

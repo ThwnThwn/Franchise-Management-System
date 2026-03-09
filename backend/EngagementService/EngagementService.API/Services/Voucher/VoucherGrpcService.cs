@@ -1,6 +1,7 @@
 ﻿using EngagementService.Application.Features.Voucher.Commands.Create;
 using EngagementService.Application.Features.Voucher.Commands.Delete;
 using EngagementService.Application.Features.Voucher.Commands.Update;
+using EngagementService.Application.Features.Voucher.Commands.UpdateUserVoucherStatus;
 using EngagementService.Application.Features.Voucher.Commands.UpdateVoucherStatus;
 using EngagementService.Application.Features.Voucher.Queries.GetAll;
 using EngagementService.Application.Features.Voucher.Queries.GetByCode;
@@ -132,7 +133,7 @@ namespace EngagementService.API.Services.Voucher
                     voucher.CurrentQuantity = v.CurrentQuantity ?? 0;
                 }
 
-                if(v.MaxUsagePerUser.HasValue)
+                if (v.MaxUsagePerUser.HasValue)
                 {
                     voucher.MaxUsagePerUser = v.MaxUsagePerUser.Value;
                 }
@@ -193,6 +194,7 @@ namespace EngagementService.API.Services.Voucher
                     PointCost = v.PointCost?.ToString() ?? "",
                     EndDate = v.EndDate != null ? Timestamp.FromDateTimeOffset(v.EndDate.Value) : null,
                     IsActive = v.IsActive,
+                    CurrentQuantity = v.CurrentQuantity ?? 0,
                     CreatedAt = Timestamp.FromDateTimeOffset(v.CreatedAt),
                     UpdatedAt = Timestamp.FromDateTimeOffset(v.UpdatedAt),
                     VoucherItems = { v.VoucherItems.Select(vi => new VoucherItemResponse()
@@ -204,11 +206,6 @@ namespace EngagementService.API.Services.Voucher
                     }).ToList()
                     }
                 };
-                if (v.InitQuantity.HasValue)
-                {
-                    voucher.InitQuantity = v.InitQuantity.Value;
-                    voucher.CurrentQuantity = v.CurrentQuantity ?? 0;
-                }
 
                 if (v.MaxUsagePerUser.HasValue)
                 {
@@ -218,6 +215,21 @@ namespace EngagementService.API.Services.Voucher
             }).ToList());
 
             return response;
+        }
+
+        public override async Task<Empty> UseVouchers(UseVoucherRequest request, ServerCallContext context)
+        {
+
+            var useVoucherQuery = new UseVoucherCommand(new Application.Dtos.Voucher.UseVouchersRequest()
+            {
+                VoucherIds = request.VoucherIds.Select(id => Guid.Parse(id)).ToList(),
+                OrderId = Guid.Parse(request.OrderId),
+                UserId = Guid.Parse(request.UserId)
+            });
+
+            await _mediator.Send(useVoucherQuery);
+
+            return new Empty();
         }
     }
 }

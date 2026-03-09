@@ -146,8 +146,6 @@ CREATE TABLE "voucher_usages" (
     "user_voucher_id" UUID REFERENCES "user_vouchers"("id"),
     "voucher_id" UUID NOT NULL REFERENCES "vouchers"("id"),
     "order_id" UUID NOT NULL,
-    "store_id" UUID NOT NULL,
-    "discount_amount" DECIMAL(15, 3) DEFAULT 0,
     "applied_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     "created_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -167,7 +165,6 @@ CREATE INDEX "idx_point_logs_user_id" ON "point_logs"("user_id");
 CREATE INDEX "idx_loyalty_accounts_tier" ON "loyalty_accounts"("current_tier_id");
 CREATE INDEX "idx_user_vouchers_user_status" ON "user_vouchers"("user_id", "status");
 CREATE INDEX "idx_voucher_usages_order_id" ON "voucher_usages"("order_id");
-CREATE INDEX "idx_voucher_usages_store_id" ON "voucher_usages"("store_id");
 CREATE INDEX "idx_voucher_items_lookup" ON "voucher_items" ("voucher_id") WHERE "is_deleted" IS FALSE;
 CREATE INDEX IX_point_logs_expired_at ON "point_logs" ("expired_at") 
 WHERE "expired_at" IS NOT NULL;
