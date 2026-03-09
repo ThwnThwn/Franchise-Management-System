@@ -98,6 +98,7 @@ namespace EngagementService.Application.Features.Voucher.Commands.Create
                 throw new ArgumentException(VoucherMsg.InvalidEndDate);
 
             var isGiftVoucher = request.Type == VoucherType.GIFT;
+            var isFixAmountVoucher = request.Type == VoucherType.SHIPPING_FIXED_AMOUNT || request.Type == VoucherType.DISCOUNT_FIXED_AMOUNT;
 
             return new Domain.Entities.Voucher()
             {
@@ -105,7 +106,7 @@ namespace EngagementService.Application.Features.Voucher.Commands.Create
                 Code = code,
                 Type = request.Type,
                 DiscountValue = isGiftVoucher ? null : request.DiscountValue,
-                MaxDiscountValue = isGiftVoucher ? null : request.MaxDiscountValue,
+                MaxDiscountValue = isGiftVoucher || isFixAmountVoucher ? null : request.MaxDiscountValue,
                 PointCost = request.PointCost,
                 MinOrderValue = request.MinOrderValue,
                 InitQuantity = request.InitQuantity,
