@@ -1,4 +1,5 @@
-﻿using EngagementService.Application.Persistences.Repository;
+﻿using EngagementService.Application.Dtos.Voucher;
+using EngagementService.Application.Persistences.Repository;
 using EngagementService.Domain.Entities;
 using EngagementService.Infrastucture.AppDbContext;
 using Microsoft.EntityFrameworkCore;
@@ -24,6 +25,18 @@ namespace EngagementService.Infrastucture.Persistences.Repository
         public async Task AddQueueAsync(VoucherQueue voucherQueue, CancellationToken cancellationToken)
         {
             await _dbContext.VoucherQueues.AddAsync(voucherQueue, cancellationToken);
+        }
+
+        public async Task<List<CountVoucherQueueRes>> GetVouchersAndAmountInQueueAsync(CancellationToken cancellationToken)
+        {
+            return await _dbContext.VoucherQueues
+                .GroupBy(vq => vq.VoucherId)
+                .Select(group => new CountVoucherQueueRes
+                {
+                    VoucherId = group.Key,
+                    Count = group.Count()
+                })
+                .ToListAsync(cancellationToken);
         }
     }
 }
