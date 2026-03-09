@@ -206,9 +206,28 @@ public sealed class CreatePaymentHandler
                 {
                     voucherDiscountAmount = order.Subtotal * voucherDiscount.DiscountValue/100;
                     voucherDiscountAmount = voucherDiscountAmount > voucherDiscount.MaxDiscountValue ? voucherDiscount.MaxDiscountValue : voucherDiscountAmount;
-                }else if (voucherDiscount.Type.Equals(VoucherType.DISCOUNT_FIXED_AMOUNT))
+                    order.OrderSaleItems.Add(new Domain.Entities.OrderSaleItem
+                    {
+                        OrderId = order.Id,
+                        Name = voucherDiscount.Code,
+                        Amount = voucherDiscount.DiscountValue.Value,
+                        ReferenceId = voucherDiscount.Id,
+                        Type = OrderSaleItemType.Voucher,
+                        IsDeleted = false
+                    });
+                }
+                else if (voucherDiscount.Type.Equals(VoucherType.DISCOUNT_FIXED_AMOUNT))
                 {
                     voucherDiscountAmount = voucherDiscount.DiscountValue;
+                    order.OrderSaleItems.Add(new Domain.Entities.OrderSaleItem
+                    {
+                        OrderId = order.Id,
+                        Name = voucherDiscount.Code,
+                        Amount = voucherDiscount.DiscountValue.Value,
+                        ReferenceId = voucherDiscount.Id,
+                        Type = OrderSaleItemType.Voucher,
+                        IsDeleted = false
+                    });
                 }
             }
             
@@ -238,7 +257,7 @@ public sealed class CreatePaymentHandler
         if (request.PaymentMethod == PaymentMethod.Cash)
         {
             // ===== UPDATE ORDER =====
-            order.PaidAmount = order.TotalAmount;
+            order.PaidAmount = payment.Amount;
             order.PaymentMethod = PaymentMethod.Cash;
             order.Status = OrderStatus.ConfirmationPending;
             order.PaidAt = DateTimeOffset.UtcNow;
