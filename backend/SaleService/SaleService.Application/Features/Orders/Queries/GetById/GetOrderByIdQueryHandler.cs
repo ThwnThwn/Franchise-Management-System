@@ -64,6 +64,14 @@ public sealed class GetOrderByIdQueryHandler
                 ImageUrl = item.ImageUrl,
                 ProductId = item.ProductId,
                 VariantId = item.VariantId
+            }).ToList(),
+            SaleItems = order.OrderSaleItems.Select(saleItem => new OrderSaleItemDto
+            {
+                Id = saleItem.Id,
+                Amount = saleItem.Amount,
+                Type = saleItem.Type,
+                ReferenceId = saleItem.ReferenceId,
+                Name = saleItem.Name
             }).ToList()
         };
 

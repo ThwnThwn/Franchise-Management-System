@@ -25,6 +25,7 @@ namespace SalesService.Application.Features.Orders.Queries.GetById
         public OrderType? Type { get; set; }
 
         public List<OrderItemDto> Items { get; set; } = new();
+        public List<OrderSaleItemDto> SaleItems { get; set; } = new();
     }
 
     public sealed class OrderItemDto
@@ -37,5 +38,17 @@ namespace SalesService.Application.Features.Orders.Queries.GetById
         public string? ImageUrl { get; set; }
         public Guid ProductId { get; set; }
         public Guid VariantId { get; set; }
+    }
+    public sealed class OrderSaleItemDto
+    {
+        public Guid Id { get; set; }
+
+        public decimal Amount { get; set; }
+
+        public OrderSaleItemType Type { get; set; }
+
+        public Guid? ReferenceId { get; set; }
+
+        public string Name { get; set; } = default!;
     }
 }
