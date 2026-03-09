@@ -72,7 +72,7 @@ namespace EngagementService.Application.Features.Voucher.Commands.Create
                     {
                         
                         Id = Guid.NewGuid(),
-                        VariantId = item.VariantId,
+                        Sku = item.Sku,
                         Quantity = item.Quantity,
                         Type = item.Type,
                         VoucherId = newVoucher.Id

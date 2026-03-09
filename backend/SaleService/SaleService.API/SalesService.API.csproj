@@ -20,8 +20,10 @@
     <None Remove="Protos\inventory.proto" />
 
     <Protobuf Include="..\..\..\protos\product\*.proto" GrpcServices="Client" ProtoRoot="..\..\..\protos" />
+	<Protobyy Include="..\..\..\backend\ProductService\ProductService.API\Protos\*.proto" GrpcServices="Client" ProtoRoot="..\..\..\protos" />
     <Protobuf Include="..\..\..\protos\identity\*.proto" GrpcServices="Client" ProtoRoot="..\..\..\protos" />
     <Protobuf Include="..\..\..\protos\sales\*.proto" GrpcServices="Server" ProtoRoot="..\..\..\protos" />
+	<Protobuf Include="..\..\..\protos\engagement\*.proto" GrpcServices="Client" ProtoRoot="..\..\..\protos" />
   </ItemGroup>
 
   <ItemGroup>

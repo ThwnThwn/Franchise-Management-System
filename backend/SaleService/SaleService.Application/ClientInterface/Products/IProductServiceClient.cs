@@ -12,7 +12,6 @@ public interface IProductServiceClient
     /// <returns></returns>
     Task<ProductVariantInfo?> GetProductVariantBySkuAsync(string sku);
 
-
     /// <summary>
     /// Get multiple product variants by list of SKUs in one call.
     /// Returns list of variants found (only active variants that exist in requested SKU list).

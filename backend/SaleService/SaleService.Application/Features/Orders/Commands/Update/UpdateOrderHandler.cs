@@ -110,7 +110,7 @@ namespace SalesService.Application.Features.Orders.Commands.Update
                     CheckEnoughStockRes = reserveRes
                 });
 
-            // Remove orderItem - save change order
+            // Update-Add orderItem - save change order
             decimal subtotal = 0;
             foreach (var item in request.Items)
             {

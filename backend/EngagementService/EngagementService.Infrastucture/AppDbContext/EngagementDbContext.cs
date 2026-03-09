@@ -248,7 +248,7 @@ public partial class EngagementDbContext : DbContext, IEngagementDbContext
                 .HasColumnName("type");
 
             entity.Property(e => e.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").HasColumnName("updated_at");
-            entity.Property(e => e.VariantId).HasColumnName("variant_id");
+            entity.Property(e => e.Sku).HasColumnName("sku");
             entity.Property(e => e.VoucherId).HasColumnName("voucher_id");
 
             entity.HasOne(d => d.Voucher).WithMany(p => p.VoucherItems)

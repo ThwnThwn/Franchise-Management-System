@@ -48,7 +48,7 @@ enum VoucherItemType {
 
 // Message cho từng Item trong Voucher (CreateVoucherItemReq)
 message CreateVoucherItemReq {
-  string variant_id = 1; // Đại diện cho Guid
+  string sku = 1; // Đại diện cho Guid
   int32 quantity = 2;
   VoucherItemType type = 3;
 }
@@ -90,7 +90,7 @@ message UpdateVoucherRequest {
 
 message UpdateVoucherItemReq {
   optional string id = 1;
-  optional string variant_id = 2; // Đại diện cho Guid
+  optional string sku = 2; // Đại diện cho Guid
   optional int32 quantity = 3;
   optional VoucherItemType type = 4;
 }
@@ -103,7 +103,7 @@ message UpdateVoucherStatusRequest{
 
 message VoucherItemResponse {
   string id = 1;
-  string variant_id = 3;
+  string sku = 3;
   optional int32 quantity = 4;
   optional VoucherItemType type = 5;
 }

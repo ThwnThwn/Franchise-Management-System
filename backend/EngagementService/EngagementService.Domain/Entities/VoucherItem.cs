@@ -11,7 +11,7 @@ public partial class VoucherItem : SoftDeletedEntity, IEntity
 
     public Guid VoucherId { get; set; }
 
-    public Guid VariantId { get; set; }
+    public string Sku { get; set; }
 
     public int Quantity { get; set; }
 

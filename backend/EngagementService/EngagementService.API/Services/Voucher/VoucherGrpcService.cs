@@ -5,13 +5,10 @@ using EngagementService.Application.Features.Voucher.Commands.UpdateVoucherStatu
 using EngagementService.Application.Features.Voucher.Queries.GetAll;
 using EngagementService.Application.Features.Voucher.Queries.GetByCode;
 using EngagementService.Application.Features.Voucher.Queries.GetMyVoucher;
-using EngagementService.Domain.Constants;
 using EngagementService.Grpc.Protos.VoucherGrpc;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using MediatR;
-using Microsoft.AspNetCore.HttpOverrides;
-using System.Runtime.CompilerServices;
 
 namespace EngagementService.API.Services.Voucher
 {
@@ -47,7 +44,7 @@ namespace EngagementService.API.Services.Voucher
 
                 VoucherItems = request.VoucherItems.Select(item => new Application.Dtos.Voucher.CreateVoucherItemReq()
                 {
-                    VariantId = Guid.Parse(item.VariantId),
+                    Sku = item.Sku,
                     Quantity = item.Quantity,
                     Type = (Domain.Constants.VoucherItemType)item.Type
                 }).ToList()
@@ -78,7 +75,7 @@ namespace EngagementService.API.Services.Voucher
                 VoucherItems = request.VoucherItems.Select(item => new Application.Dtos.Voucher.UpdateVoucherItemReq()
                 {
                     Id = string.IsNullOrEmpty(item.Id) ? null : Guid.Parse(item.Id),
-                    VariantId = Guid.Parse(item.VariantId),
+                    Sku = item.Sku,
                     Quantity = item.Quantity,
                     Type = (Domain.Constants.VoucherItemType)item.Type
                 }).ToList()
@@ -103,7 +100,7 @@ namespace EngagementService.API.Services.Voucher
         public async override Task<VoucherListResponse> GetAllVouchers(Empty request, ServerCallContext context)
         {
             var vouchers = await _mediator.Send(new GetAllVoucherQuery());
-            
+
             var response = new VoucherListResponse();
             response.Vouchers.AddRange(vouchers.Select(v => new VoucherResponse()
             {
@@ -124,7 +121,7 @@ namespace EngagementService.API.Services.Voucher
                 VoucherItems = { v.VoucherItems.Select(vi => new VoucherItemResponse()
                                 {
                                     Id = vi.Id.ToString(),
-                                    VariantId = vi.VariantId.ToString(),
+                                    Sku = vi.Sku,
                                     Quantity = vi.Quantity,
                                     Type = (Grpc.Protos.VoucherGrpc.VoucherItemType)vi.Type,
                                 }).ToList()
@@ -141,7 +138,7 @@ namespace EngagementService.API.Services.Voucher
             {
                 Id = voucher.Id.ToString(),
                 Code = voucher.Code,
-                Type = (Grpc.Protos.VoucherGrpc.VoucherType)voucher.Type,
+                Type = (VoucherType)voucher.Type,
                 DiscountValue = voucher.DiscountValue?.ToString() ?? "",
                 MaxDiscountValue = voucher.MaxDiscountValue?.ToString() ?? "",
                 MinOrderValue = voucher.MinOrderValue?.ToString() ?? "",
@@ -149,9 +146,9 @@ namespace EngagementService.API.Services.Voucher
                 VoucherItems = { voucher.VoucherItems.Select(vi => new VoucherItemResponse()
                                 {
                                     Id = vi.Id.ToString(),
-                                    VariantId = vi.VariantId.ToString(),
+                                    Sku = vi.Sku,
                                     Quantity = vi.Quantity,
-                                    Type = (Grpc.Protos.VoucherGrpc.VoucherItemType)vi.Type,
+                                    Type = (VoucherItemType)vi.Type,
                                 }).ToList()
                 }
             };
@@ -191,9 +188,9 @@ namespace EngagementService.API.Services.Voucher
                 VoucherItems = { v.VoucherItems.Select(vi => new VoucherItemResponse()
                                 {
                                     Id = vi.Id.ToString(),
-                                    VariantId = vi.VariantId.ToString(),
+                                    Sku = vi.Sku,
                                     Quantity = vi.Quantity,
-                                    Type = (Grpc.Protos.VoucherGrpc.VoucherItemType)vi.Type,
+                                    Type = (VoucherItemType)vi.Type,
                                 }).ToList()
                 }
             }).ToList());
