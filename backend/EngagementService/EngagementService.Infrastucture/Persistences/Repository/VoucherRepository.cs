@@ -145,5 +145,14 @@ namespace EngagementService.Infrastucture.Persistences.Repository
 
             return voucher;
         }
+
+        public Task<List<Voucher>> GetAllVoucherAsync(CancellationToken cancellationToken)
+        {
+            return _dbContext.Vouchers
+                .Include(x => x.VoucherItems)
+                .Where(v => v.CurrentQuantity != 0)
+                .OrderByDescending(v => v.CreatedAt)
+                .ToListAsync(cancellationToken);
+        }
     }
 }
