@@ -25,5 +25,25 @@ namespace EngagementService.Infrastucture.Persistences.Repository
                 .Where(uv => uv.UserId == id && uv.Status == UserVoucherStatus.AVAILABLE).ToListAsync();
             return userVouchers;
         }
+
+        public async Task<List<UserVoucher>> GetByVoucherIdsAsync(List<Guid> voucherId, Guid userId)
+        {
+            var userVouchers = await _dbSet
+                 .Include(uv => uv.Voucher)
+                 .ThenInclude(v => v.VoucherItems)
+                 .Where(uv => uv.Status == UserVoucherStatus.AVAILABLE && uv.UserId == userId).ToListAsync();
+
+            var result = userVouchers.GroupBy(v => v.Voucher.Id)
+                .Select(g =>
+                {
+                    return g.First();
+                }).ToList();
+            return result;
+        }
+
+        public void UpdateRangeAsync(List<UserVoucher> userVouchers, CancellationToken cancellationToken)
+        {
+            _dbSet.UpdateRange(userVouchers);
+        }
     }
 }

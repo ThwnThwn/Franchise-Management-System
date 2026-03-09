@@ -72,5 +72,11 @@ namespace EngagementService.Application.Dtos.Voucher
         public bool IsActive { get; set; }
     }
 
-    
+    public class UseVouchersRequest
+    {
+        public List<Guid> VoucherIds { get; set; } = new List<Guid>();
+        public Guid OrderId { get; set; }
+        public Guid UserId { get; set; }
+    }
+
 }
