@@ -100,9 +100,9 @@ func (l *loyaltyAccountGrpcClient) GetLoyaltyReport(ctx context.Context, req *lo
 }
 
 // RedeemVoucher implements engagement.ILoyaltyAccountService.
-func (l *loyaltyAccountGrpcClient) RedeemVoucher(ctx context.Context, userId uuid.UUID, voucherId uuid.UUID) error {
+func (l *loyaltyAccountGrpcClient) RedeemVoucher(ctx context.Context, voucherId uuid.UUID) error {
 	_, err := l.client.RedeemVoucher(ctx, &engagementPb.RedeemVoucherRequest{
-		AccountId: userId.String(),
+		// AccountId: userId.String(),
 		VoucherId: voucherId.String(),
 	})
 	return err

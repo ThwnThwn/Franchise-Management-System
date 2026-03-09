@@ -2016,7 +2016,33 @@
                 "responses": {}
             }
         },
-        "/me/vouchers/redeem/{id}": {
+        "/me/vouchers": {
+            "get": {
+                "description": "Retrieve a list of all vouchers available in my account.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Vouchers"
+                ],
+                "summary": "Get My Vouchers",
+                "responses": {
+                    "200": {
+                        "description": "List of vouchers",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/api-gateway_internal_domain_models_voucher.VoucherResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/me/vouchers/{id}/redeem": {
             "post": {
                 "security": [
                     {

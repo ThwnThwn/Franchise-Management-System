@@ -49,6 +49,21 @@ func (v *voucherGrpcClient) GetByCode(ctx context.Context, code string) (*vouche
 	return mapper.MapVoucherResponsePbToModel(res), nil
 }
 
+// GetMe implements engagement.IVoucherService.
+func (v *voucherGrpcClient) GetMyVouchers(ctx context.Context) ([]*voucher.VoucherResponse, error) {
+	res, err := v.client.GetMyVouchers(ctx, &emptypb.Empty{})
+	if err != nil {
+		return []*voucher.VoucherResponse{}, err
+	}
+
+	items := make([]*voucher.VoucherResponse, 0, len(res.Vouchers))
+	for _, v := range res.Vouchers {
+		items = append(items, mapper.MapVoucherResponsePbToModel(v))
+	}
+
+	return items, nil
+}
+
 // Create implements engagement.IVoucherService.
 func (v *voucherGrpcClient) Create(ctx context.Context, req *voucher.CreateVoucherRequest) error {
 	if req == nil {

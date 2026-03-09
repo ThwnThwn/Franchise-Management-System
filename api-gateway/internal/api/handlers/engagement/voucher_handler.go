@@ -4,7 +4,6 @@ import (
 	"api-gateway/internal/application/constants/errorcode"
 	"api-gateway/internal/application/gateways/engagement"
 	"api-gateway/internal/domain/models/voucher"
-	"api-gateway/pkg/utils/contextutils"
 	"api-gateway/pkg/utils/validation"
 	"net/http"
 
@@ -66,6 +65,25 @@ func (h *VoucherHandler) GetVoucherByCode(c *gin.Context) error {
 	ctx := c.Request.Context()
 
 	res, err := h.voucherGW.GetByCode(ctx, code)
+	if err != nil {
+		return err
+	}
+
+	c.JSON(http.StatusOK, res)
+	return nil
+}
+
+// GetMyVouchers
+// @Summary      Get My Vouchers
+// @Description  Retrieve a list of all vouchers available in my account.
+// @Tags         Vouchers
+// @Accept       json
+// @Produce      json
+// @Success      200    {array}   voucher.VoucherResponse "List of vouchers"
+// @Router       /me/vouchers [get]
+func (h *VoucherHandler) GetMyVouchers(c *gin.Context) error {
+	ctx := c.Request.Context()
+	res, err := h.voucherGW.GetMyVouchers(ctx)
 	if err != nil {
 		return err
 	}
@@ -206,7 +224,7 @@ func (h *VoucherHandler) DeleteVoucher(c *gin.Context) error {
 // @Success      200  {object}  map[string]interface{}  "Redemption successful"
 // @Failure      400  {object}  map[string]string       "Invalid Voucher ID format"
 // @Failure      401  {object}  map[string]string       "Unauthorized - Valid token required"
-// @Router       /me/vouchers/redeem/{id} [post]
+// @Router       /me/vouchers/{id}/redeem [post]
 func (h *VoucherHandler) RedeemVoucher(c *gin.Context) error {
 	id := c.Param("id")
 	voucherId, err := uuid.Parse(id)
@@ -214,13 +232,8 @@ func (h *VoucherHandler) RedeemVoucher(c *gin.Context) error {
 		return errorcode.ErrInvalidId
 	}
 
-	userId, err := contextutils.GetUserId(c)
-	if err != nil {
-		return err
-	}
-
 	ctx := c.Request.Context()
-	err = h.loyaltyGW.RedeemVoucher(ctx, userId, voucherId)
+	err = h.loyaltyGW.RedeemVoucher(ctx, voucherId)
 	if err != nil {
 		return err
 	}

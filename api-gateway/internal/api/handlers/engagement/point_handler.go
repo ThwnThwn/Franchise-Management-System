@@ -4,7 +4,6 @@ import (
 	"api-gateway/internal/application/gateways/engagement"
 	_ "api-gateway/internal/domain/models/common"
 	"api-gateway/internal/domain/models/point"
-	"api-gateway/pkg/utils/contextutils"
 	"api-gateway/pkg/utils/validation"
 	"net/http"
 
@@ -38,14 +37,8 @@ func (h *PointHandler) GetMyPointLogs(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	userId, err := contextutils.GetUserId(c)
-	if err != nil {
-		return err
-	}
-
 	ctx := c.Request.Context()
-
-	res, err := h.pointGW.GetMyPointLog(ctx, userId, &req)
+	res, err := h.pointGW.GetMyPointLog(ctx, &req)
 	if err != nil {
 		return err
 	}

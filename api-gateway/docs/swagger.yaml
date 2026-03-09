@@ -3384,7 +3384,24 @@ paths:
       summary: Lấy lịch sử chấm công cá nhân
       tags:
       - 'Shifts: Staff'
-  /me/vouchers/redeem/{id}:
+  /me/vouchers:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all vouchers available in my account.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of vouchers
+          schema:
+            items:
+              $ref: '#/definitions/api-gateway_internal_domain_models_voucher.VoucherResponse'
+            type: array
+      summary: Get My Vouchers
+      tags:
+      - Vouchers
+  /me/vouchers/{id}/redeem:
     post:
       consumes:
       - application/json
