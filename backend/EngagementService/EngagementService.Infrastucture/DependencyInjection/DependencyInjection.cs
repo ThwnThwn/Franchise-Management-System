@@ -42,6 +42,7 @@ public static class DependencyInjection
         services.AddScoped<IPointRuleCache, PointRuleCache>();
         services.AddScoped<IVoucherItemRepository, VoucherItemRepository>();
         services.AddScoped<IVoucherQueueRepository, VoucherQueueRepository>();
+        services.AddScoped<IUserVoucherRepository, UserVoucherRepository>();
 
         services.AddScoped<ILoyaltyAccountUow, LoyaltyAccountUow>();
 

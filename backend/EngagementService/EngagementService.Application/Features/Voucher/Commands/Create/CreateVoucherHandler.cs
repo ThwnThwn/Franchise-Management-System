@@ -58,7 +58,7 @@ namespace EngagementService.Application.Features.Voucher.Commands.Create
 
                 case VoucherType.GIFT:
 
-                    if (request.VoucherItems == null || !request.VoucherItems.Any() || !request.VoucherItems.Any(t => t.Type == VoucherItemType.ITEM_REQUIRED) || !request.VoucherItems.Any(t => t.Type == VoucherItemType.ITEM_GIFT))
+                    if (request.VoucherItems == null || !request.VoucherItems.Any() || !request.VoucherItems.Any(t => t.Type == VoucherItemType.ITEM_GIFT))
                         throw new ArgumentException(VoucherMsg.EmptyVoucherItems);
 
                     if (!request.VoucherItems.All(item => item.Quantity > 0))

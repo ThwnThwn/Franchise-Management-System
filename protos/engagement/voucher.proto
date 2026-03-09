@@ -27,6 +27,9 @@ service VoucherGrpc {
 
   //Xoá voucher
   rpc DeleteVoucher (DeleteVoucherRequest) returns (google.protobuf.Empty);
+
+  //Lấy voucher của user 
+  rpc GetMyVouchers (google.protobuf.Empty) returns (VoucherListResponse);
 }
 
 // Định nghĩa các Enum dựa trên code C# của bạn

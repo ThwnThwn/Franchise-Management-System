@@ -4,6 +4,7 @@ using EngagementService.Application.Features.Voucher.Commands.Update;
 using EngagementService.Application.Features.Voucher.Commands.UpdateVoucherStatus;
 using EngagementService.Application.Features.Voucher.Queries.GetAll;
 using EngagementService.Application.Features.Voucher.Queries.GetByCode;
+using EngagementService.Application.Features.Voucher.Queries.GetMyVoucher;
 using EngagementService.Domain.Constants;
 using EngagementService.Infrastructure.Protos;
 using Google.Protobuf.WellKnownTypes;
@@ -89,6 +90,7 @@ namespace EngagementService.API.Services.Voucher
 
         public async override Task<Empty> UpdateVoucherStatus(UpdateVoucherStatusRequest request, ServerCallContext context)
         {
+
             var updateReq = new Application.Dtos.Voucher.UpdateVoucherStatusRequest()
             {
                 Id = Guid.Parse(request.Id),
@@ -101,6 +103,7 @@ namespace EngagementService.API.Services.Voucher
         public async override Task<VoucherListResponse> GetAllVouchers(Empty request, ServerCallContext context)
         {
             var vouchers = await _mediator.Send(new GetAllVoucherQuery());
+            
             var response = new VoucherListResponse();
             response.Vouchers.AddRange(vouchers.Select(v => new VoucherResponse()
             {
@@ -159,7 +162,43 @@ namespace EngagementService.API.Services.Voucher
         public async override Task<Empty> DeleteVoucher(DeleteVoucherRequest request, ServerCallContext context)
         {
             await _mediator.Send(new DeleteVoucherCommand(Guid.Parse(request.Id)));
-            return new Empty(); 
+            return new Empty();
+        }
+
+        public async override Task<VoucherListResponse> GetMyVouchers(Empty request, ServerCallContext context)
+        {
+            var userId = context.RequestHeaders.FirstOrDefault(h =>
+               h.Key.Equals("x-user-id", StringComparison.OrdinalIgnoreCase));
+
+            var vouchers = await _mediator.Send(new GetMyVoucherQuery(Guid.Parse(userId!.Value)));
+            var response = new VoucherListResponse();
+            response.Vouchers.AddRange(vouchers.Select(v => new VoucherResponse()
+            {
+                Id = v.Id.ToString(),
+                Code = v.Code,
+                Type = (Infrastructure.Protos.VoucherType)v.Type,
+                DiscountValue = v.DiscountValue?.ToString() ?? "",
+                MaxDiscountValue = v.MaxDiscountValue?.ToString() ?? "",
+                MinOrderValue = v.MinOrderValue?.ToString() ?? "",
+                PointCost = v.PointCost?.ToString() ?? "",
+                InitQuantity = v.InitQuantity ?? 0,
+                MaxUsagePerUser = v.MaxUsagePerUser ?? 0,
+                EndDate = v.EndDate != null ? Timestamp.FromDateTimeOffset(v.EndDate.Value) : null,
+                IsActive = v.IsActive,
+                CurrentQuantity = v.CurrentQuantity ?? 0,
+                CreatedAt = Timestamp.FromDateTimeOffset(v.CreatedAt),
+                UpdatedAt = Timestamp.FromDateTimeOffset(v.UpdatedAt),
+                VoucherItems = { v.VoucherItems.Select(vi => new VoucherItemResponse()
+                                {
+                                    Id = vi.Id.ToString(),
+                                    VariantId = vi.VariantId.ToString(),
+                                    Quantity = vi.Quantity,
+                                    Type = (Infrastructure.Protos.VoucherItemType)vi.Type,
+                                }).ToList()
+                }
+            }).ToList());
+
+            return response;
         }
     }
 }
