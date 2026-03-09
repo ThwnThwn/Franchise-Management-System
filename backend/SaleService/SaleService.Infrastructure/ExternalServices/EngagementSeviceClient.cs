@@ -1,26 +1,56 @@
-﻿using EngagementService.Grpc.Protos.VoucherGrpc;
+﻿using EngagementService.Grpc.Protos.LoyaltyAccountGrpc;
+using EngagementService.Grpc.Protos.VoucherGrpc;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Net.Client;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using SalesService.Application.ClientInterface.Engagement;
 using SalesService.Application.Dtos.Voucher;
+using static EngagementService.Grpc.Protos.LoyaltyAccountGrpc.LoyaltyAccountGrpc;
 using static EngagementService.Grpc.Protos.VoucherGrpc.VoucherGrpc;
 
 namespace SalesService.Infrastructure.ExternalServices
 {
     public class EngagementSeviceClient : IEngagementServiceClient
     {
-        private readonly VoucherGrpc.VoucherGrpcClient _client;
-        private readonly ILogger<VoucherGrpcClient> _logger;
+        private readonly VoucherGrpc.VoucherGrpcClient _voucherClient;
+        private readonly LoyaltyAccountGrpc.LoyaltyAccountGrpcClient _accountClient;
+        private readonly ILogger<VoucherGrpcClient> _voucherLogger;
+        private readonly ILogger<LoyaltyAccountGrpcClient> _accountLogger;
 
-        public EngagementSeviceClient(IConfiguration configuration, ILogger<VoucherGrpcClient> logger)
+        public EngagementSeviceClient(IConfiguration configuration, ILogger<VoucherGrpcClient> voucherLogger, ILogger<LoyaltyAccountGrpcClient> accountLogger)
         {
-            var identityServiceUrl = configuration["ENGAGEMENT_SERVICE_URL"] ?? "http://localhost:5007";
-            var channel = GrpcChannel.ForAddress(identityServiceUrl);
-            _client = new VoucherGrpc.VoucherGrpcClient(channel);
-            _logger = logger;
+            var engagementServiceUrl = configuration["ENGAGEMENT_SERVICE_URL"] ?? "http://localhost:5007";
+            var channel = GrpcChannel.ForAddress(engagementServiceUrl);
+            _voucherClient = new VoucherGrpc.VoucherGrpcClient(channel);
+            _accountClient = new LoyaltyAccountGrpc.LoyaltyAccountGrpcClient(channel);
+            _voucherLogger = voucherLogger;
+            _accountLogger = accountLogger;
+
         }
+
+        public async Task<decimal> GetMyPointByEmailAsync(string email)
+        {
+            decimal point = 0;
+            try
+            {
+                var request = new GetByUserPhoneOrEmailRequest
+                {
+                    Email = email
+                };
+
+                var loyalty = await _accountClient.GetByUserPhoneOrEmailAsync(request);
+                point = decimal.Parse(loyalty.AccountsRes.FirstOrDefault().AvailablePoints);
+                return point;
+
+            }
+            catch (Exception ex)
+            {
+                _accountLogger.LogError(ex, "Failed to get user point {email} from engagement", email);
+                return point;
+            }
+        }
+
         public async Task<IEnumerable<Voucher>> GetMyVoucherAsync(Guid userId)
         {
             IEnumerable<Voucher> vouchers = new List<Voucher>();
@@ -31,7 +61,7 @@ namespace SalesService.Infrastructure.ExternalServices
                     { "x-user-id", userId.ToString() }
                 };
                 var request = new Empty();
-                var response = await _client.GetMyVouchersAsync(request, metadata);
+                var response = await _voucherClient.GetMyVouchersAsync(request, metadata);
 
                 vouchers = response.Vouchers.Select(v => new Voucher
                 {
@@ -64,7 +94,7 @@ namespace SalesService.Infrastructure.ExternalServices
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to get user voucher {UserId} from IdentityService", userId);
+                _voucherLogger.LogError(ex, "Failed to get user voucher {UserId} from engagement", userId);
                 return vouchers;
             }
         }

@@ -9,6 +9,7 @@ using SalesService.Application.Dtos.Inventory;
 using SalesService.Application.Dtos.Voucher;
 using SalesService.Application.Features.Orders.Commands.Update;
 using SalesService.Application.Helpers;
+using SalesService.Application.Interfaces.Identity;
 using SalesService.Application.Interfaces.Payments;
 using SalesService.Application.Mapping.Orders;
 using SalesService.Application.Persisitences.Orders;
@@ -34,6 +35,7 @@ public sealed class CreatePaymentHandler
     private readonly IEngagementServiceClient _engagementServiceClient;
     private readonly IProductServiceClient _productServiceClient;
     private readonly IInventoryServiceClient _inventoryServiceClient;
+    private readonly IIdentityServiceClient _identityServiceClient;
 
     public CreatePaymentHandler(
         IOrderRepository orderRepository,
@@ -44,7 +46,8 @@ public sealed class CreatePaymentHandler
         IOutboxSignal outboxSignal,
         IEngagementServiceClient engagementServiceClient,
         IProductServiceClient productServiceClient,
-        IInventoryServiceClient inventoryServiceClient)
+        IInventoryServiceClient inventoryServiceClient,
+        IIdentityServiceClient identityServiceClient)
     {
         _orderRepository = orderRepository;
         _paymentRepository = paymentRepository;
@@ -55,6 +58,7 @@ public sealed class CreatePaymentHandler
         _engagementServiceClient = engagementServiceClient;
         _productServiceClient = productServiceClient;
         _inventoryServiceClient = inventoryServiceClient;
+        _identityServiceClient = identityServiceClient;
     }
 
     public async Task<Result<CreatePaymentRes>> Handle(
@@ -230,9 +234,33 @@ public sealed class CreatePaymentHandler
                     });
                 }
             }
-            
         }
-        
+
+        // Loyalty 
+        if(request.Point != null)
+        {
+            // Point Engagement
+            var user = await _identityServiceClient.GetUserByIdAsync(order.CustomerId.Value);
+
+            if(user != null)
+            {
+                var point = await _engagementServiceClient.GetMyPointByEmailAsync(user.Email);
+                if (point < request.Point)
+                {
+                    return Result.NotFound("User point is lower then request Point");
+                }
+                voucherDiscountAmount += request.Point * user.LoyaltyTier.CurrentTier.ValuePerPoint;
+                order.OrderSaleItems.Add(new Domain.Entities.OrderSaleItem
+                {
+                    OrderId = order.Id,
+                    Name = user.LoyaltyTier.CurrentTier.Name,
+                    Amount = voucherDiscountAmount.Value,
+                    ReferenceId = user.LoyaltyTier.CurrentTier.Id,
+                    Type = OrderSaleItemType.LoyaltyPoint,
+                    IsDeleted = false
+                });
+            }
+        }
 
         // ================= CREATE PAYMENT =================
         var payment = new Payment
@@ -240,7 +268,7 @@ public sealed class CreatePaymentHandler
             Id = Guid.NewGuid(),
             OrderId = order.Id,
             Code = $"PAY-{DateTime.UtcNow:yyyyMMddHHmmss}",
-            Amount = order.TotalAmount - voucherDiscountAmount.Value,
+            Amount = order.TotalAmount - voucherDiscountAmount.Value < 0 ? 0 : order.TotalAmount - voucherDiscountAmount.Value,
             Currency = "VND",
             Method = (int)request.PaymentMethod,// 0 = Cash | 1 = VNPay
             Status = (int)PaymentStatus.Pending,
