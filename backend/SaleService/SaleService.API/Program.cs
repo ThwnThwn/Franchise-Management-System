@@ -13,12 +13,14 @@ using SalesService.API.Services.Orders;
 using SalesService.API.Services.Payments;
 using SalesService.API.Services.Products;
 using SalesService.API.Services.Wallets;
+using SalesService.Application.ClientInterface.Engagement;
 using SalesService.Application.ClientInterface.Inventory;
 using SalesService.Application.ClientInterface.Products;
 using SalesService.Application.Interfaces.Identity;
 using SalesService.Application.Mapping.Orders;
 using SalesService.Application.Signals;
 using SalesService.Infrastructure.Extensions;
+using SalesService.Infrastructure.ExternalServices;
 using SalesService.Infrastructure.Signals;
 using SharedKernel.Constants;
 using SharedKernel.Events;
@@ -163,6 +165,9 @@ public class Program
 
         //Inventory Service Client
         builder.Services.AddScoped<IInventoryServiceClient, InventoryServiceClient>();
+
+        // Engagement Serivce Client
+        builder.Services.AddScoped<IEngagementServiceClient, EngagementSeviceClient>();
 
         // Signal for Outbox
         builder.Services.AddSingleton<IOutboxSignal, OutboxSignal>();
