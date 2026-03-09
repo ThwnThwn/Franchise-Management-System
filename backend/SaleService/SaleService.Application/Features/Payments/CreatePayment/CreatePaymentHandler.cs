@@ -1,8 +1,8 @@
 using Ardalis.Result;
 using MediatR;
 using Microsoft.Extensions.Configuration;
+using SalesService.Application.ClientInterface.Engagement;
 using SalesService.Application.Dtos.Voucher;
-using SalesService.Application.ExternalServices;
 using SalesService.Application.Helpers;
 using SalesService.Application.Interfaces.Payments;
 using SalesService.Application.Mapping.Orders;
@@ -88,6 +88,39 @@ public sealed class CreatePaymentHandler
             }
 
             // Voucher Discount 
+            if(voucherDiscount.MinOrderValue <= order.Subtotal)
+            {
+                decimal? voucherDiscountAmount = 0;
+                if(voucherDiscount.VoucherItems.Count > 0)
+                {
+                    var voucherItem = voucherDiscount.VoucherItems;
+                    var requiredItemsVoucher = voucherDiscount.VoucherItems
+                        .Where(v => v.Type == VoucherItemType.ITEM_REQUIRED)
+                        .ToList();
+
+                    foreach ( var requiredItem in requiredItemsVoucher)
+                    {
+                        var orderItem = order.OrderItems.Where(x => x.Id == requiredItem.VariantId).FirstOrDefault();
+                        if(orderItem.Quantity < requiredItem.Quantity)
+                        {
+                            throw new Exception($"Voucher {voucherDiscount.Code} require {requiredItem.Quantity} {requiredItem.VariantId}");
+                        }
+                    }
+
+                    var giftItems = voucherDiscount.VoucherItems
+                        .Where(v => v.Type == VoucherItemType.ITEM_GIFT)
+                        .ToList();
+                    
+                }
+                else if (voucherDiscount.Type.Equals(VoucherType.DISCOUNT_FIXED_AMOUNT))
+                {
+                    voucherDiscountAmount = order.Subtotal * voucherDiscount.DiscountValue/100;
+                    voucherDiscountAmount = voucherDiscountAmount > voucherDiscount.MaxDiscountValue ? voucherDiscount.MaxDiscountValue : voucherDiscountAmount;
+                }else if (voucherDiscount.Type.Equals(VoucherType.DISCOUNT_FIXED_AMOUNT))
+                {
+                    voucherDiscountAmount = voucherDiscount.DiscountValue;
+                }
+            }
             
         }
         

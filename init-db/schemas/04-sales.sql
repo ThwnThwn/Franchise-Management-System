@@ -60,6 +60,7 @@ CREATE TABLE IF NOT EXISTS order_items (
     CONSTRAINT fk_order_items_order FOREIGN KEY (order_id) REFERENCES orders(id)
 );
 CREATE INDEX idx_order_items_order ON order_items(order_id);
+
 -- 2.2. Order Sale Items (Discounts / Reductions applied to order)
 CREATE TABLE IF NOT EXISTS order_sale_items (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -67,10 +68,6 @@ CREATE TABLE IF NOT EXISTS order_sale_items (
     amount DECIMAL(12,3) NOT NULL CHECK (amount >= 0),
 
     type INT NOT NULL, 
-    -- 0: Voucher
-    -- 1: Wallet
-    -- 2: LoyaltyPoint
-    -- 3: Promotion
     name VARCHAR(255) NOT NULL,
     reference_id UUID,
 

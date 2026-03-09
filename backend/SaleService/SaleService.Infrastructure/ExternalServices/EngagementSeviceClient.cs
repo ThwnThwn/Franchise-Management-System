@@ -3,8 +3,8 @@ using Google.Protobuf.WellKnownTypes;
 using Grpc.Net.Client;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using SalesService.Application.ClientInterface.Engagement;
 using SalesService.Application.Dtos.Voucher;
-using SalesService.Application.ExternalServices;
 using static EngagementService.Grpc.Protos.VoucherGrpc.VoucherGrpc;
 
 namespace SalesService.Infrastructure.ExternalServices

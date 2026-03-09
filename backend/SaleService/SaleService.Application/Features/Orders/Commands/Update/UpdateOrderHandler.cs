@@ -1,17 +1,14 @@
 ﻿using Ardalis.Result;
-using DocumentFormat.OpenXml.VariantTypes;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using SalesService.Application.AppExceptions;
 using SalesService.Application.ClientInterface.Inventory;
 using SalesService.Application.ClientInterface.Products;
 using SalesService.Application.Dtos.Inventory;
-using SalesService.Application.Features.Orders.Commands.Create;
 using SalesService.Application.Persisitences.Orders;
 using SalesService.Application.Persisitences.Outbox;
 using SalesService.Application.Signals;
 using SalesService.Domain.Enums;
-using System.Diagnostics.CodeAnalysis;
 
 namespace SalesService.Application.Features.Orders.Commands.Update
 {
