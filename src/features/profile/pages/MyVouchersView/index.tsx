@@ -1,0 +1,251 @@
+"use client"
+
+import React, { useState } from "react"
+import { useGetAllVouchers, useGetMyVouchers, useRedeemVoucher } from "@/features/orders/hooks/useVoucher"
+import { useGetMe, useGetMyLoyalty } from "@/features/profile/hooks/useProfile"
+import { ChevronLeft, Ticket, Gift, Percent, Star, AlertCircle } from "lucide-react"
+import Link from "next/link"
+import { motion } from "framer-motion"
+import { Voucher, VoucherType } from "@/features/orders/models/voucher"
+import { Button, Chip } from "@heroui/react"
+
+const VoucherCard = ({ voucher, isOwned, userPoints, onRedeem, isRedeeming }: {
+    voucher: Voucher,
+    isOwned: boolean,
+    userPoints: number,
+    onRedeem?: (id: string) => void,
+    isRedeeming?: boolean
+}) => {
+    // Render Voucher Type Label
+    const getVoucherInfo = (type: VoucherType) => {
+        switch (type) {
+            case VoucherType.SHIPPING_FIXED_AMOUNT: return { icon: <Ticket size={24} />, color: "bg-blue-100 text-blue-600", label: "Freeship (Tiền)" }
+            case VoucherType.SHIPPING_PERCENTAGE: return { icon: <Percent size={24} />, color: "bg-blue-100 text-blue-600", label: "Freeship (%)" }
+            case VoucherType.DISCOUNT_FIXED_AMOUNT: return { icon: <Ticket size={24} />, color: "bg-green-100 text-green-600", label: "Giảm giá" }
+            case VoucherType.DISCOUNT_PERCENTAGE: return { icon: <Percent size={24} />, color: "bg-green-100 text-green-600", label: "Giảm giá (%)" }
+            case VoucherType.GIFT: return { icon: <Gift size={24} />, color: "bg-purple-100 text-purple-600", label: "Quà tặng" }
+            default: return { icon: <Ticket size={24} />, color: "bg-gray-100 text-gray-600", label: "Voucher" }
+        }
+    }
+
+    const info = getVoucherInfo(voucher.type)
+
+    const renderDiscount = () => {
+        if (voucher.type === VoucherType.GIFT) return "Tặng quà đính kèm"
+        const suffix = (voucher.type === VoucherType.SHIPPING_PERCENTAGE || voucher.type === VoucherType.DISCOUNT_PERCENTAGE) ? "%" : "đ"
+        return `Giảm ${Number(voucher.discount_value).toLocaleString()}${suffix}`
+    }
+
+    const pointCost = Number(voucher.point_cost || 0)
+    const canRedeem = userPoints >= pointCost
+    const isOutOfStock = voucher.current_quantity !== undefined ? voucher.current_quantity <= 0 : false
+
+    return (
+        <div className="bg-white rounded-2xl border flex flex-row overflow-hidden hover:shadow-lg transition-all border-gray-100">
+            {/* Left side pattern & icon */}
+            <div className={`w-28 ${info.color} flex flex-col items-center justify-center border-r border-dashed border-gray-300 relative`}>
+                <div className="absolute -top-3 -right-3 w-6 h-6 bg-white rounded-full"></div>
+                <div className="absolute -bottom-3 -right-3 w-6 h-6 bg-white rounded-full"></div>
+                {info.icon}
+                <span className="text-xs font-semibold mt-2 px-2 text-center">{info.label}</span>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 p-5 flex flex-col justify-between">
+                <div>
+                    <div className="flex justify-between items-start mb-2">
+                        <h3 className="font-bold text-gray-900 text-lg">{voucher.code}</h3>
+                        {!isOwned && pointCost > 0 && (
+                            <Chip color="warning" variant="flat" size="sm" startContent={<Star size={14} className="ml-1" />}>
+                                {pointCost} Điểm
+                            </Chip>
+                        )}
+                        {!isOwned && pointCost === 0 && (
+                            <Chip color="success" variant="flat" size="sm">Miễn phí</Chip>
+                        )}
+                    </div>
+
+                    <p className="font-semibold text-primary mb-1">{renderDiscount()}</p>
+
+                    {voucher.min_order_value && (
+                        <p className="text-xs text-gray-500">
+                            Đơn tối thiểu: {Number(voucher.min_order_value).toLocaleString()}đ
+                        </p>
+                    )}
+                    {voucher.max_discount_value && (
+                        <p className="text-xs text-gray-500">
+                            Giảm tối đa: {Number(voucher.max_discount_value).toLocaleString()}đ
+                        </p>
+                    )}
+                </div>
+
+                {/* Footer Action */}
+                <div className="mt-4 flex items-center justify-between">
+                    <div className="text-xs text-gray-400">
+                        {voucher.end_date ? `HSD: ${new Date(voucher.end_date).toLocaleDateString()}` : "Không giới hạn HSD"}
+                    </div>
+
+                    {!isOwned && (
+                        <Button
+                            color={canRedeem && !isOutOfStock ? "primary" : "default"}
+                            variant={canRedeem && !isOutOfStock ? "solid" : "flat"}
+                            isDisabled={!canRedeem || isOutOfStock}
+                            isLoading={isRedeeming}
+                            onPress={() => onRedeem?.(voucher.id)}
+                            size="sm"
+                        >
+                            {isOutOfStock ? "Hết lượt" : (pointCost > 0 ? "Đổi mã" : "Nhận mã")}
+                        </Button>
+                    )}
+                    {isOwned && (
+                        <Button color="primary" variant="flat" size="sm" as={Link} href="/menu">
+                            Dùng ngay
+                        </Button>
+                    )}
+                </div>
+            </div>
+        </div>
+    )
+}
+
+export default function MyVouchersView() {
+    const { data: user } = useGetMe()
+    const { data: loyalty } = useGetMyLoyalty(user?.email)
+
+    // API calls for Vouchers
+    const { data: allPublicVouchers = [], isLoading: isLoadingAll } = useGetAllVouchers()
+    const { data: myVouchers = [], isLoading: isLoadingMy, refetch: refetchMyVouchers } = useGetMyVouchers()
+    const { mutate: redeemVoucher, isPending: isRedeeming } = useRedeemVoucher()
+
+    const [activeTab, setActiveTab] = useState<"my_vouchers" | "exchange">("my_vouchers")
+    const [redeemingId, setRedeemingId] = useState<string | null>(null)
+
+    const userPoints = loyalty?.availablePoints || 0
+
+    // Filter active vouchers that are available for exchange
+    // Hides vouchers the user already has (if the backend doesn't filter them out)
+    const availableToExchange = allPublicVouchers.filter(v =>
+        v.is_active &&
+        !myVouchers.some(mv => mv.id === v.id)
+    )
+
+    const handleRedeem = (voucherId: string) => {
+        setRedeemingId(voucherId)
+        redeemVoucher(voucherId, {
+            onSuccess: () => {
+                refetchMyVouchers()
+                setRedeemingId(null)
+            },
+            onError: () => {
+                setRedeemingId(null)
+                alert("Đổi voucher thất bại! Điểm của bạn có thể không đủ hoặc voucher đã hết mượt.")
+            }
+        })
+    }
+
+    return (
+        <div className="min-h-screen bg-gray-50/50 pb-20">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-amber-600 to-primary pb-24 pt-8 px-4 md:px-8 relative">
+                <div className="max-w-4xl mx-auto relative z-10">
+                    <Link href="/profile" className="inline-flex items-center gap-2 text-white/80 mb-6 hover:text-white transition-colors">
+                        <ChevronLeft size={20} /> Quay lại Hồ sơ
+                    </Link>
+
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <h1 className="text-3xl font-bold text-white mb-2">Kho Voucher</h1>
+                            <p className="text-white/80">Nhận thêm ưu đãi tiết kiệm cho mọi đơn hàng</p>
+                        </div>
+                        <div className="bg-white/20 backdrop-blur-md rounded-2xl p-4 text-center border border-white/30 hidden md:block">
+                            <p className="text-white/80 text-xs mb-1 uppercase tracking-wider">Điểm của bạn</p>
+                            <p className="text-3xl font-bold text-white flex items-center justify-center gap-1">
+                                {userPoints} <Star size={20} className="text-amber-300 fill-amber-300" />
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Content Tabs */}
+            <div className="max-w-4xl mx-auto px-4 md:px-8 -mt-12 relative z-20">
+                <div className="bg-white rounded-3xl shadow-xl overflow-hidden min-h-[500px]">
+                    <div className="flex border-b border-gray-100">
+                        <button
+                            className={`flex-1 py-5 text-center font-semibold transition-colors flex items-center justify-center gap-2 ${activeTab === 'my_vouchers' ? 'text-primary bg-primary-50/50 border-b-2 border-primary' : 'text-gray-500 hover:bg-gray-50'}`}
+                            onClick={() => setActiveTab('my_vouchers')}
+                        >
+                            <Ticket size={20} /> Voucher Của Tôi ({myVouchers.length})
+                        </button>
+                        <button
+                            className={`flex-1 py-5 text-center font-semibold transition-colors flex items-center justify-center gap-2 ${activeTab === 'exchange' ? 'text-primary bg-primary-50/50 border-b-2 border-primary' : 'text-gray-500 hover:bg-gray-50'}`}
+                            onClick={() => setActiveTab('exchange')}
+                        >
+                            <Gift size={20} /> Đổi Voucher
+                        </button>
+                    </div>
+
+                    <div className="p-6 md:p-8 bg-gray-50/30">
+                        {activeTab === 'my_vouchers' && (
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                                {isLoadingMy ? (
+                                    <div className="text-center py-20 text-gray-500">Đang tải Voucher của bạn...</div>
+                                ) : myVouchers.length > 0 ? (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {myVouchers.map(v => (
+                                            <VoucherCard key={v.id} voucher={v} isOwned={true} userPoints={userPoints} />
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-20">
+                                        <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <Ticket className="text-gray-300" size={32} />
+                                        </div>
+                                        <p className="text-gray-500 font-medium mb-4">Bạn chưa có voucher nào</p>
+                                        <Button color="primary" onPress={() => setActiveTab('exchange')}>
+                                            Khám phá Voucher
+                                        </Button>
+                                    </div>
+                                )}
+                            </motion.div>
+                        )}
+
+                        {activeTab === 'exchange' && (
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                                {/* Mobile Point Display */}
+                                <div className="md:hidden flex justify-between items-center bg-amber-50 rounded-xl p-4 mb-6 border border-amber-100">
+                                    <span className="font-semibold text-amber-900">Điểm hiện có của bạn:</span>
+                                    <span className="font-bold text-lg text-amber-600 flex items-center gap-1">
+                                        {userPoints} <Star size={18} className="fill-amber-600" />
+                                    </span>
+                                </div>
+
+                                {isLoadingAll ? (
+                                    <div className="text-center py-20 text-gray-500">Đang tải danh sách ưu đãi...</div>
+                                ) : availableToExchange.length > 0 ? (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {availableToExchange.map(v => (
+                                            <VoucherCard
+                                                key={v.id}
+                                                voucher={v}
+                                                isOwned={false}
+                                                userPoints={userPoints}
+                                                onRedeem={handleRedeem}
+                                                isRedeeming={isRedeeming && redeemingId === v.id}
+                                            />
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-20">
+                                        <AlertCircle className="text-gray-300 mx-auto mb-4" size={48} />
+                                        <p className="text-gray-500 font-medium">Hiện tại không có voucher nào mới để nhận/đổi.</p>
+                                    </div>
+                                )}
+                            </motion.div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}

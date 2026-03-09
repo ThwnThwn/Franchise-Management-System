@@ -1,7 +1,7 @@
 import React from "react"
 import { RoleSlug } from "@/constants/enums"
 import { STRINGS } from "../strings"
-import { LayoutDashboard, LogOut, ShoppingBag, UserIcon } from "lucide-react"
+import { LayoutDashboard, LogOut, ShoppingBag, UserIcon, Ticket } from "lucide-react"
 
 export type ProfileMenuItem = {
     key: string
@@ -32,6 +32,13 @@ export const PROFILE_DROPDOWN_MENU: ProfileMenuItem[] = [
         label: STRINGS.NAVBAR.ORDER_HISTORY || "Lịch sử mua hàng",
         href: "/orders",
         icon: <ShoppingBag size={18} />,
+        allowedRoles: [RoleSlug.Customer]
+    },
+    {
+        key: "my-vouchers",
+        label: "Voucher của tôi",
+        href: "/my-vouchers",
+        icon: <Ticket size={18} />,
         allowedRoles: [RoleSlug.Customer]
     },
     {

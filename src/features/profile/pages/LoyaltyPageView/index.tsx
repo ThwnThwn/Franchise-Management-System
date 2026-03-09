@@ -19,6 +19,15 @@ export default function LoyaltyPageView() {
 
     const [activeTab, setActiveTab] = useState<"benefits" | "history">("benefits")
 
+    // Progress bar calculations
+    const highestMilestone = tiers && tiers.length > 0
+        ? Math.max(...tiers.map((t: any) => Number(t.minSpendRequired || 0)))
+        : 0;
+    const currentSpent = Number(loyalty?.totalSpent || 0);
+    const progressPercentage = highestMilestone > 0
+        ? Math.min((currentSpent / highestMilestone) * 100, 100)
+        : 0;
+
     // lấy png
     const getTierImage = (tierName: string) => {
         const lower = tierName.toLowerCase()
@@ -77,6 +86,31 @@ export default function LoyaltyPageView() {
                                     <p className="text-amber-100/70 text-xs mb-1">TỔNG CHI TIÊU</p>
                                     <p className="text-2xl font-bold text-white">{Number(loyalty?.totalSpent || 0).toLocaleString()}đ</p>
                                 </div>
+                            </div>
+
+                            {/* Progress Bar cho Tổng chi tiêu */}
+                            <div className="mt-4 bg-black/20 rounded-2xl p-4 border border-white/10 text-left">
+                                <div className="flex justify-between items-end mb-2">
+                                    <p className="text-amber-100/70 text-xs uppercase tracking-wider">Tiến độ thăng hạng</p>
+                                    <p className="text-xs font-medium text-amber-200">
+                                        {currentSpent.toLocaleString()}đ / {highestMilestone.toLocaleString()}đ
+                                    </p>
+                                </div>
+                                <div className="w-full bg-white/10 rounded-full h-2 mb-1 overflow-hidden relative">
+                                    <motion.div
+                                        initial={{ width: 0 }}
+                                        animate={{ width: `${progressPercentage}%` }}
+                                        transition={{ duration: 1.5, ease: "easeOut" }}
+                                        className="bg-gradient-to-r from-amber-500 to-amber-200 h-full rounded-full relative"
+                                    >
+                                        <div className="absolute top-0 right-0 bottom-0 w-4 bg-white/40 blur-[2px]"></div>
+                                    </motion.div>
+                                </div>
+                                <p className="text-[10px] text-amber-100/50 mt-1.5 text-right">
+                                    {highestMilestone > currentSpent
+                                        ? `Cần thêm ${(highestMilestone - currentSpent).toLocaleString()}đ để đạt hạng cao nhất`
+                                        : "Bạn đã vượt mốc hạng cao nhất!"}
+                                </p>
                             </div>
                         </div>
                     </div>

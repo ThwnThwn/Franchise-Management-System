@@ -23,5 +23,7 @@ export const QUERY_KEYS = {
     TIME_LOGS: "time-logs" as const,
     LOYALTY_ACCOUNT: "loyalty-account" as const,
     MEMBERSHIP_TIERS: "membership-tiers" as const,
-    POINT_LOGS: "point-logs" as const
+    POINT_LOGS: "point-logs" as const,
+    VOUCHERS: "vouchers" as const,
+    MY_VOUCHERS: "my-vouchers" as const
 }

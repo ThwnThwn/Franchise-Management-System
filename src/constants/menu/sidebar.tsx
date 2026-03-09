@@ -7,7 +7,8 @@ import {
     Users,
     Settings,
     ShoppingBag,
-    FlaskConical
+    FlaskConical,
+    Ticket
 } from "lucide-react"
 
 export interface MenuSubItem {
@@ -101,6 +102,12 @@ export const DASHBOARD_SIDEBAR_MENU: MenuItem[] = [
                 allowedRoles: [RoleSlug.Admin]
             }
         ]
+    },
+    {
+        icon: <Ticket className="w-5 h-5" />,
+        label: "Voucher",
+        href: "/dashboard/vouchers",
+        allowedRoles: [RoleSlug.Admin, RoleSlug.Manager]
     },
     {
         icon: <FlaskConical className="w-5 h-5" />,

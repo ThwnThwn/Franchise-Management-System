@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useMemo } from "react"
+import React, { useMemo, useState } from "react"
 import { Accordion, AccordionItem, Divider } from "@heroui/react"
 import { Order } from "@/features/orders/models/response"
 import { formatCurrencyWithSymbol } from "@/utils/helpers/currency"
@@ -8,7 +8,10 @@ import { ORDER_TEXT, OrderStatus, PaymentMethodLabels } from "@/features/orders/
 import { RecipeViewRes } from "@/features/products/models/recipes/response"
 import { RecipeIngredientList } from "@/features/products"
 import { OrderItemRow } from "./OrderItemRow"
-
+import { VoucherSelector } from "../VoucherSelector"
+import { Voucher, VoucherType } from "../../models/voucher"
+import { Button } from "@heroui/react"
+import { Ticket } from "lucide-react"
 export const OrderDetail = ({
     order,
     recipes = [],
@@ -24,6 +27,53 @@ export const OrderDetail = ({
         }
         return []
     }, [order])
+
+    // Voucher state 
+    const [isVoucherModalOpen, setIsVoucherModalOpen] = useState(false)
+    const [appliedShippingVoucher, setAppliedShippingVoucher] = useState<Voucher | null>(null)
+    const [appliedDiscountVoucher, setAppliedDiscountVoucher] = useState<Voucher | null>(null)
+
+    // Calculate Discounts
+    const calculateDiscount = () => {
+        let discount = 0
+        let shippingDiscount = 0 // Giả sử có phí ship hoặc giảm thẳng vào tổng
+
+        const orderTotal = order.totalAmount || 0
+
+        if (appliedDiscountVoucher) {
+            if (appliedDiscountVoucher.type === VoucherType.DISCOUNT_FIXED_AMOUNT) {
+                discount += Number(appliedDiscountVoucher.discount_value || 0)
+            } else if (appliedDiscountVoucher.type === VoucherType.DISCOUNT_PERCENTAGE) {
+                let calculated = orderTotal * (Number(appliedDiscountVoucher.discount_value || 0) / 100)
+                if (appliedDiscountVoucher.max_discount_value) {
+                    calculated = Math.min(calculated, Number(appliedDiscountVoucher.max_discount_value))
+                }
+                discount += calculated
+            }
+        }
+
+        if (appliedShippingVoucher) {
+            if (appliedShippingVoucher.type === VoucherType.SHIPPING_FIXED_AMOUNT) {
+                shippingDiscount += Number(appliedShippingVoucher.discount_value || 0)
+            } else if (appliedShippingVoucher.type === VoucherType.SHIPPING_PERCENTAGE) {
+                // Tạm thời tính % trên tổng tiền (vì chưa có phí ship riêng)
+                let calculated = orderTotal * (Number(appliedShippingVoucher.discount_value || 0) / 100)
+                if (appliedShippingVoucher.max_discount_value) {
+                    calculated = Math.min(calculated, Number(appliedShippingVoucher.max_discount_value))
+                }
+                shippingDiscount += calculated
+            }
+        }
+
+        return {
+            productDiscount: discount,
+            shippingDiscount: shippingDiscount,
+            totalDiscount: discount + shippingDiscount
+        }
+    }
+
+    const { totalDiscount, productDiscount, shippingDiscount } = calculateDiscount()
+    const finalAmount = Math.max((order.totalAmount || 0) - totalDiscount, 0)
 
     return (
         <div className="space-y-8">
@@ -151,19 +201,74 @@ export const OrderDetail = ({
                         </span>
                     </div>
 
+                    {/* Voucher Section */}
+                    {isCustomer && order.status === OrderStatus.PaymentPending && (
+                        <div className="pt-2">
+                            <Button
+                                className="w-full bg-primary/10 text-primary border border-primary/20 font-bold"
+                                onPress={() => setIsVoucherModalOpen(true)}
+                                startContent={<Ticket size={18} />}
+                            >
+                                {appliedShippingVoucher || appliedDiscountVoucher
+                                    ? 'Đã chọn tối đa voucher'
+                                    : 'Chọn hoặc nhập mã Khuyến mãi'}
+                            </Button>
+
+                            {/* Discount lines */}
+                            {(appliedShippingVoucher || appliedDiscountVoucher) && (
+                                <div className="mt-3 space-y-2">
+                                    {appliedDiscountVoucher && productDiscount > 0 && (
+                                        <div className="flex justify-between text-xs font-medium text-success">
+                                            <span>Giảm giá ({appliedDiscountVoucher.code})</span>
+                                            <span>-{formatCurrencyWithSymbol(productDiscount)}</span>
+                                        </div>
+                                    )}
+                                    {appliedShippingVoucher && shippingDiscount > 0 && (
+                                        <div className="flex justify-between text-xs font-medium text-success">
+                                            <span>Hỗ trợ phí ship ({appliedShippingVoucher.code})</span>
+                                            <span>-{formatCurrencyWithSymbol(shippingDiscount)}</span>
+                                        </div>
+                                    )}
+                                    {appliedDiscountVoucher?.type === VoucherType.GIFT && (
+                                        <div className="flex justify-between items-center text-xs font-medium text-success p-2 bg-success/10 rounded-lg">
+                                            <span>Quà tặng ({appliedDiscountVoucher.code})</span>
+                                            <span className="px-2 py-0.5 bg-success text-white rounded-full text-[10px]">Đã áp dụng quà tặng</span>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
                     <div className="pt-2">
                         <div className="border-t border-dashed border-default-200 my-2" />
                         <div className="flex justify-between items-center">
                             <span className="text-sm font-black uppercase tracking-tighter text-primary">
                                 Tổng cộng
                             </span>
-                            <span className="text-xl font-black text-primary">
-                                {formatCurrencyWithSymbol(order.totalAmount)}
+                            <span className="text-xl font-black text-primary flex flex-col items-end">
+                                {totalDiscount > 0 && (
+                                    <span className="text-xs text-default-400 line-through font-normal">{formatCurrencyWithSymbol(order.totalAmount)}</span>
+                                )}
+                                {formatCurrencyWithSymbol(finalAmount)}
                             </span>
                         </div>
                     </div>
                 </div>
             </div>
+
+            {/* Voucher Selector Modal */}
+            <VoucherSelector
+                order={order}
+                isOpen={isVoucherModalOpen}
+                onOpenChange={setIsVoucherModalOpen}
+                appliedShippingVoucher={appliedShippingVoucher}
+                appliedDiscountVoucher={appliedDiscountVoucher}
+                onApplyVouchers={(shipping, discount) => {
+                    setAppliedShippingVoucher(shipping)
+                    setAppliedDiscountVoucher(discount)
+                }}
+            />
         </div>
     )
 }
