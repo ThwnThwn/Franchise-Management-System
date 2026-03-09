@@ -46,7 +46,7 @@ public class ReleaseShiftHandler : IRequestHandler<ReleaseShiftCommand, bool>
                 "Dang co yeu cau doi ca cho xu ly. Hay huy truoc khi nha ca.");
 
         // 3. Soft-delete assignment
-        _assignmentRepo.Remove(check.Assignment);
+        await _assignmentRepo.DeleteAsync(check.Assignment.Id);
 
         // 4. Neu thieu nguoi: chuyen ca sang Open (Cho Ca)
         var remaining = await _assignmentRepo.GetAllAsync(
