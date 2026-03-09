@@ -9,6 +9,6 @@ namespace EngagementService.Application.Dtos.Voucher
     public class CountVoucherQueueRes
     {
         public int Count { get; set; }
-        public int VoucherId { get; set; }
+        public Guid VoucherId { get; set; }
     }
 }

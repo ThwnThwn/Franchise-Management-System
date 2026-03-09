@@ -71,4 +71,6 @@ namespace EngagementService.Application.Dtos.Voucher
         public Guid Id { get; set; }
         public bool IsActive { get; set; }
     }
+
+    
 }

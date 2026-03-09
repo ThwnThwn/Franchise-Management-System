@@ -102,30 +102,41 @@ namespace EngagementService.API.Services.Voucher
             var vouchers = await _mediator.Send(new GetAllVoucherQuery());
 
             var response = new VoucherListResponse();
-            response.Vouchers.AddRange(vouchers.Select(v => new VoucherResponse()
+            response.Vouchers.AddRange(vouchers.Select(v =>
             {
-                Id = v.Id.ToString(),
-                Code = v.Code,
-                Type = (Grpc.Protos.VoucherGrpc.VoucherType)v.Type,
-                DiscountValue = v.DiscountValue?.ToString() ?? "",
-                MaxDiscountValue = v.MaxDiscountValue?.ToString() ?? "",
-                MinOrderValue = v.MinOrderValue?.ToString() ?? "",
-                PointCost = v.PointCost?.ToString() ?? "",
-                InitQuantity = v.InitQuantity ?? 0,
-                MaxUsagePerUser = v.MaxUsagePerUser ?? 0,
-                EndDate = v.EndDate != null ? Timestamp.FromDateTimeOffset(v.EndDate.Value) : null,
-                IsActive = v.IsActive,
-                CurrentQuantity = v.CurrentQuantity ?? 0,
-                CreatedAt = Timestamp.FromDateTimeOffset(v.CreatedAt),
-                UpdatedAt = Timestamp.FromDateTimeOffset(v.UpdatedAt),
-                VoucherItems = { v.VoucherItems.Select(vi => new VoucherItemResponse()
-                                {
-                                    Id = vi.Id.ToString(),
-                                    Sku = vi.Sku,
-                                    Quantity = vi.Quantity,
-                                    Type = (Grpc.Protos.VoucherGrpc.VoucherItemType)vi.Type,
-                                }).ToList()
+                var voucher = new VoucherResponse()
+                {
+                    Id = v.Id.ToString(),
+                    Code = v.Code,
+                    Type = (VoucherType)v.Type,
+                    DiscountValue = v.DiscountValue?.ToString() ?? "",
+                    MaxDiscountValue = v.MaxDiscountValue?.ToString() ?? "",
+                    MinOrderValue = v.MinOrderValue?.ToString() ?? "",
+                    PointCost = v.PointCost?.ToString() ?? "",
+                    EndDate = v.EndDate != null ? Timestamp.FromDateTimeOffset(v.EndDate.Value) : null,
+                    IsActive = v.IsActive,
+                    CreatedAt = Timestamp.FromDateTimeOffset(v.CreatedAt),
+                    UpdatedAt = Timestamp.FromDateTimeOffset(v.UpdatedAt),
+                    VoucherItems = { v.VoucherItems.Select(vi => new VoucherItemResponse()
+                    {
+                        Id = vi.Id.ToString(),
+                        Sku = vi.Sku,
+                        Quantity = vi.Quantity,
+                        Type = (VoucherItemType)vi.Type,
+                    }).ToList()
+                    }
+                };
+                if (v.InitQuantity.HasValue)
+                {
+                    voucher.InitQuantity = v.InitQuantity.Value;
+                    voucher.CurrentQuantity = v.CurrentQuantity ?? 0;
                 }
+
+                if(v.MaxUsagePerUser.HasValue)
+                {
+                    voucher.MaxUsagePerUser = v.MaxUsagePerUser.Value;
+                }
+                return voucher;
             }).ToList());
 
             return response;
@@ -169,30 +180,41 @@ namespace EngagementService.API.Services.Voucher
 
             var vouchers = await _mediator.Send(new GetMyVoucherQuery(Guid.Parse(userId!.Value)));
             var response = new VoucherListResponse();
-            response.Vouchers.AddRange(vouchers.Select(v => new VoucherResponse()
+            response.Vouchers.AddRange(vouchers.Select(v =>
             {
-                Id = v.Id.ToString(),
-                Code = v.Code,
-                Type = (Grpc.Protos.VoucherGrpc.VoucherType)v.Type,
-                DiscountValue = v.DiscountValue?.ToString() ?? "",
-                MaxDiscountValue = v.MaxDiscountValue?.ToString() ?? "",
-                MinOrderValue = v.MinOrderValue?.ToString() ?? "",
-                PointCost = v.PointCost?.ToString() ?? "",
-                InitQuantity = v.InitQuantity ?? 0,
-                MaxUsagePerUser = v.MaxUsagePerUser ?? 0,
-                EndDate = v.EndDate != null ? Timestamp.FromDateTimeOffset(v.EndDate.Value) : null,
-                IsActive = v.IsActive,
-                CurrentQuantity = v.CurrentQuantity ?? 0,
-                CreatedAt = Timestamp.FromDateTimeOffset(v.CreatedAt),
-                UpdatedAt = Timestamp.FromDateTimeOffset(v.UpdatedAt),
-                VoucherItems = { v.VoucherItems.Select(vi => new VoucherItemResponse()
-                                {
-                                    Id = vi.Id.ToString(),
-                                    Sku = vi.Sku,
-                                    Quantity = vi.Quantity,
-                                    Type = (VoucherItemType)vi.Type,
-                                }).ToList()
+                var voucher = new VoucherResponse()
+                {
+                    Id = v.Id.ToString(),
+                    Code = v.Code,
+                    Type = (VoucherType)v.Type,
+                    DiscountValue = v.DiscountValue?.ToString() ?? "",
+                    MaxDiscountValue = v.MaxDiscountValue?.ToString() ?? "",
+                    MinOrderValue = v.MinOrderValue?.ToString() ?? "",
+                    PointCost = v.PointCost?.ToString() ?? "",
+                    EndDate = v.EndDate != null ? Timestamp.FromDateTimeOffset(v.EndDate.Value) : null,
+                    IsActive = v.IsActive,
+                    CreatedAt = Timestamp.FromDateTimeOffset(v.CreatedAt),
+                    UpdatedAt = Timestamp.FromDateTimeOffset(v.UpdatedAt),
+                    VoucherItems = { v.VoucherItems.Select(vi => new VoucherItemResponse()
+                    {
+                        Id = vi.Id.ToString(),
+                        Sku = vi.Sku,
+                        Quantity = vi.Quantity,
+                        Type = (VoucherItemType)vi.Type,
+                    }).ToList()
+                    }
+                };
+                if (v.InitQuantity.HasValue)
+                {
+                    voucher.InitQuantity = v.InitQuantity.Value;
+                    voucher.CurrentQuantity = v.CurrentQuantity ?? 0;
                 }
+
+                if (v.MaxUsagePerUser.HasValue)
+                {
+                    voucher.MaxUsagePerUser = v.MaxUsagePerUser.Value;
+                }
+                return voucher;
             }).ToList());
 
             return response;
