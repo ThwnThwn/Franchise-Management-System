@@ -106,7 +106,7 @@ namespace EngagementService.API.Services.Voucher
             {
                 Id = v.Id.ToString(),
                 Code = v.Code,
-                Type = (VoucherType)v.Type,
+                Type = (Grpc.Protos.VoucherGrpc.VoucherType)v.Type,
                 DiscountValue = v.DiscountValue?.ToString() ?? "",
                 MaxDiscountValue = v.MaxDiscountValue?.ToString() ?? "",
                 MinOrderValue = v.MinOrderValue?.ToString() ?? "",

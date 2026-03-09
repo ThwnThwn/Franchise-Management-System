@@ -14,12 +14,7 @@ namespace EngagementService.Application.Features.Voucher.Queries.GetAll
         }
         public async Task<IEnumerable<Domain.Entities.Voucher>> Handle(GetAllVoucherQuery request, CancellationToken cancellationToken)
         {
-            return await _voucherRepository.GetAllAsync(
-                    includes: new Expression<Func<Domain.Entities.Voucher, object>>[]
-                    {
-                        x => x.VoucherItems
-                    }
-            );
+            return await _voucherRepository.GetAllVoucherAsync(cancellationToken);
         }
     }
 }
