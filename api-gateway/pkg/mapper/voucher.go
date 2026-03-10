@@ -15,10 +15,10 @@ func MapVoucherResponsePbToModel(v *pb.VoucherResponse) *voucher.VoucherResponse
 	voucherItems := make([]*voucher.VoucherItemResponse, 0, len(v.VoucherItems))
 	for _, item := range v.VoucherItems {
 		voucherItems = append(voucherItems, &voucher.VoucherItemResponse{
-			Id:        item.Id,
-			VariantId: item.VariantId,
-			Quantity:  item.Quantity,
-			Type:      numberutils.EnumPtrToInt32Ptr(item.Type),
+			Id:       item.Id,
+			Sku:      item.Sku,
+			Quantity: item.Quantity,
+			Type:     numberutils.EnumPtrToInt32Ptr(item.Type),
 		})
 	}
 

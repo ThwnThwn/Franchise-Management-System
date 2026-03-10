@@ -18,9 +18,9 @@ type CreateVoucherRequest struct {
 }
 
 type CreateVoucherItemReq struct {
-	VariantId string               `json:"variant_id"`
-	Quantity  int32                `json:"quantity"`
-	Type      enum.VoucherItemType `json:"type"`
+	Sku      string               `json:"sku"`
+	Quantity int32                `json:"quantity"`
+	Type     enum.VoucherItemType `json:"type"`
 }
 
 type UpdateVoucherRequest struct {
@@ -36,10 +36,10 @@ type UpdateVoucherRequest struct {
 }
 
 type UpdateVoucherItemReq struct {
-	Id        *string               `json:"id"`
-	VariantId *string               `json:"variant_id"`
-	Quantity  *int32                `json:"quantity"`
-	Type      *enum.VoucherItemType `json:"type"`
+	Id       *string               `json:"id"`
+	Sku      *string               `json:"sku"`
+	Quantity *int32                `json:"quantity"`
+	Type     *enum.VoucherItemType `json:"type"`
 }
 
 type UpdateVoucherStatusRequest struct {

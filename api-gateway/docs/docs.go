@@ -3676,6 +3676,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/products/variants": {
+            "get": {
+                "description": "Retrieve a list of product variants with simple info",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Get products by skus",
+                "parameters": [
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "name": "skus",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of products",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/api-gateway_internal_domain_models_product.ProductVariantDetail"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/products/{id}": {
             "get": {
                 "description": "Retrieve full details of a specific product by its ID.",
@@ -9389,6 +9435,32 @@ const docTemplate = `{
                 }
             }
         },
+        "api-gateway_internal_domain_models_product.ProductVariantDetail": {
+            "type": "object",
+            "properties": {
+                "attributes": {
+                    "type": "string"
+                },
+                "basePrice": {
+                    "type": "number"
+                },
+                "imageUrl": {
+                    "type": "string"
+                },
+                "productId": {
+                    "type": "string"
+                },
+                "productName": {
+                    "type": "string"
+                },
+                "sku": {
+                    "type": "string"
+                },
+                "variantId": {
+                    "type": "string"
+                }
+            }
+        },
         "api-gateway_internal_domain_models_product.UpdateProductRequest": {
             "type": "object",
             "properties": {
@@ -10711,11 +10783,11 @@ const docTemplate = `{
                 "quantity": {
                     "type": "integer"
                 },
+                "sku": {
+                    "type": "string"
+                },
                 "type": {
                     "$ref": "#/definitions/api-gateway_internal_domain_constants_enum.VoucherItemType"
-                },
-                "variant_id": {
-                    "type": "string"
                 }
             }
         },
@@ -10766,11 +10838,11 @@ const docTemplate = `{
                 "quantity": {
                     "type": "integer"
                 },
+                "sku": {
+                    "type": "string"
+                },
                 "type": {
                     "$ref": "#/definitions/api-gateway_internal_domain_constants_enum.VoucherItemType"
-                },
-                "variant_id": {
-                    "type": "string"
                 }
             }
         },
@@ -10820,11 +10892,11 @@ const docTemplate = `{
                 "quantity": {
                     "type": "integer"
                 },
+                "sku": {
+                    "type": "string"
+                },
                 "type": {
                     "type": "integer"
-                },
-                "variant_id": {
-                    "type": "string"
                 }
             }
         },

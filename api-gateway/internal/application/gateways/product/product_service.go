@@ -12,6 +12,8 @@ type IProductService interface {
 	// Get product list with sizes and prices. Optional filter by categoryId.
 	GetProducts(ctx context.Context, req *product.GetProductsRequest) (*product.GetProductsReply, error)
 	GetAllWithPagingBy(ctx context.Context, req *product.GetProductsByKeywordRequest) (common.PaginationResult[*product.Product], error)
+	GetProductVariants(ctx context.Context, req *product.GetProductVariantsRequest) ([]*product.ProductVariantDetail, error)
+
 	// Get product details by id.
 	GetProductById(ctx context.Context, id uuid.UUID) (*product.Product, error)
 	CreateProduct(ctx context.Context, req *product.CreateProductRequest) error

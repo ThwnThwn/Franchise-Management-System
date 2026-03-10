@@ -797,6 +797,23 @@ definitions:
       sku:
         type: string
     type: object
+  api-gateway_internal_domain_models_product.ProductVariantDetail:
+    properties:
+      attributes:
+        type: string
+      basePrice:
+        type: number
+      imageUrl:
+        type: string
+      productId:
+        type: string
+      productName:
+        type: string
+      sku:
+        type: string
+      variantId:
+        type: string
+    type: object
   api-gateway_internal_domain_models_product.UpdateProductRequest:
     properties:
       categoryId:
@@ -1671,10 +1688,10 @@ definitions:
     properties:
       quantity:
         type: integer
+      sku:
+        type: string
       type:
         $ref: '#/definitions/api-gateway_internal_domain_constants_enum.VoucherItemType'
-      variant_id:
-        type: string
     type: object
   api-gateway_internal_domain_models_voucher.CreateVoucherRequest:
     properties:
@@ -1707,10 +1724,10 @@ definitions:
         type: string
       quantity:
         type: integer
+      sku:
+        type: string
       type:
         $ref: '#/definitions/api-gateway_internal_domain_constants_enum.VoucherItemType'
-      variant_id:
-        type: string
     type: object
   api-gateway_internal_domain_models_voucher.UpdateVoucherRequest:
     properties:
@@ -1742,10 +1759,10 @@ definitions:
         type: string
       quantity:
         type: integer
+      sku:
+        type: string
       type:
         type: integer
-      variant_id:
-        type: string
     type: object
   api-gateway_internal_domain_models_voucher.VoucherResponse:
     properties:
@@ -4629,6 +4646,36 @@ paths:
       security:
       - BearerAuth: []
       summary: Upload Product Image
+      tags:
+      - Products
+  /products/variants:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of product variants with simple info
+      parameters:
+      - collectionFormat: csv
+        in: query
+        items:
+          type: string
+        name: skus
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of products
+          schema:
+            items:
+              $ref: '#/definitions/api-gateway_internal_domain_models_product.ProductVariantDetail'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get products by skus
       tags:
       - Products
   /recipes:

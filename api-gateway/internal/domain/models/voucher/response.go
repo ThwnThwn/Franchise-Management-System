@@ -21,8 +21,8 @@ type VoucherResponse struct {
 }
 
 type VoucherItemResponse struct {
-	Id        string `json:"id"`
-	VariantId string `json:"variant_id"`
-	Quantity  *int32 `json:"quantity"`
-	Type      *int32 `json:"type"`
+	Id       string `json:"id"`
+	Sku      string `json:"sku"`
+	Quantity *int32 `json:"quantity"`
+	Type     *int32 `json:"type"`
 }
