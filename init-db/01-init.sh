@@ -73,5 +73,6 @@ run_sql_script "franchise_db" "/docker-entrypoint-initdb.d/seeding/realease-init
 run_sql_script "franchise_db" "/docker-entrypoint-initdb.d/seeding/09-seeding-swap-test.sql"
 run_sql_script "engagement_db" "/docker-entrypoint-initdb.d/seeding/realease-init-engagement.sql"
 run_sql_script "supplier_db" "/docker-entrypoint-initdb.d/seeding/08-seeding-supplier.sql"
+run_sql_script "sales_db" "/docker-entrypoint-initdb.d/seeding/realease-init-sales.sql"
 
 echo "Database initialization process finished!"
