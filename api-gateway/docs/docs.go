@@ -9121,10 +9121,22 @@ const docTemplate = `{
         "api-gateway_internal_domain_models_order.CreatePaymentRequest": {
             "type": "object",
             "properties": {
+                "appliedWalletAmount": {
+                    "type": "integer"
+                },
                 "paymentMethod": {
                     "$ref": "#/definitions/api-gateway_internal_domain_constants_enum.PaymentMethod"
                 },
+                "point": {
+                    "type": "integer"
+                },
                 "returnUrl": {
+                    "type": "string"
+                },
+                "voucherDiscountCode": {
+                    "type": "string"
+                },
+                "voucherShipCode": {
                     "type": "string"
                 }
             }

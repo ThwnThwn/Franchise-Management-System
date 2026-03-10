@@ -590,9 +590,17 @@ definitions:
     type: object
   api-gateway_internal_domain_models_order.CreatePaymentRequest:
     properties:
+      appliedWalletAmount:
+        type: integer
       paymentMethod:
         $ref: '#/definitions/api-gateway_internal_domain_constants_enum.PaymentMethod'
+      point:
+        type: integer
       returnUrl:
+        type: string
+      voucherDiscountCode:
+        type: string
+      voucherShipCode:
         type: string
     type: object
   api-gateway_internal_domain_models_order.GetOrderVolumeReply:
