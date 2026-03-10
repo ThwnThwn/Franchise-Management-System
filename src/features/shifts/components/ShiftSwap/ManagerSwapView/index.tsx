@@ -28,6 +28,7 @@ export const ManagerSwapView = () => {
     return (
         <div className="flex flex-col gap-4">
             <Tabs
+                fullWidth
                 aria-label="Manager Swap Tabs"
                 color="primary"
                 variant="underlined"

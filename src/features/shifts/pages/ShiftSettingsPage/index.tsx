@@ -27,6 +27,7 @@ export default function ShiftSettingsPageView() {
     return (
         <div>
             <Tabs
+                fullWidth
                 aria-label="Shift Settings"
                 color="primary"
                 variant="underlined"

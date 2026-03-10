@@ -1,6 +1,7 @@
+/* eslint-disable @next/next/no-img-element */
 "use client"
 
-import React, { useCallback, useState } from "react"
+import { useCallback, useState } from "react"
 import { ModalStyled, ButtonStyled, ImageCropper, FileDropZone } from "@/components/"
 import { ModalContent, ModalBody, ModalHeader } from "@heroui/react"
 import { getCroppedImage } from "@/utils/helpers/image"
@@ -9,48 +10,63 @@ type ImageUploaderModalProps = {
     isOpen: boolean
     onOpenChange: () => void
     onClose: () => void
+
     imgSrc: string | null
     setImgSrc: (src: string | null) => void
-    setDisplayImg?: (src: string | undefined) => void
-    // aspect?: number
-    cropShape?: "rect" | "round"
-    cropSize: { width: number; height: number }
-    label?: string
+    // setDisplayImg?: (src: string | undefined) => void
     uploadFn: (formData: FormData) => Promise<any>
     isUploadPending: boolean
+    formDataKey?: string
+
+    // aspect?: number
+    requireCrop?: boolean
+    cropShape?: "rect" | "round"
+    cropSize?: { width: number; height: number } // Đổi thành optional luôn cho tiện
+    label?: string
 }
 
 export function ImageUploaderModal({
     isOpen,
     onOpenChange,
     onClose,
+    //
     imgSrc,
     setImgSrc,
     uploadFn,
-    setDisplayImg,
+    // setDisplayImg,
     isUploadPending,
+    formDataKey = "image",
+    //
     // aspect = 1,
+    requireCrop = true, // Default vẫn là true để không ảnh hưởng code cũ
     cropShape = "rect",
     cropSize = { width: 400, height: 300 },
     label
 }: ImageUploaderModalProps) {
     const aspect = cropSize.width / cropSize.height
+
+    const [selectedFile, setSelectedFile] = useState<File | null>(null)
     const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null)
 
+    const resetState = useCallback(() => {
+        setCroppedAreaPixels(null)
+        setSelectedFile(null)
+        setImgSrc(null)
+    }, [setImgSrc])
+
     const handleOpenChange = () => {
-        // Nếu modal đang mở và sắp đóng -> Reset state
         if (isOpen) {
-            setCroppedAreaPixels(null)
-            setImgSrc(null) // Nếu bạn muốn reset luôn ảnh
-            onClose() // Gọi hàm đóng gốc
+            resetState()
+            onClose()
         } else {
-            // Nếu đang đóng và sắp mở
             onOpenChange()
         }
     }
+
     // Xử lý khi Drop file thành công
     const onDropFile = useCallback(
         (file: File) => {
+            setSelectedFile(file) // Giữ lại file gốc chuẩn bị up thẳng
             const reader = new FileReader()
             reader.addEventListener("load", () => {
                 setImgSrc(reader.result as string)
@@ -61,30 +77,47 @@ export function ImageUploaderModal({
     )
 
     const handleUpload = useCallback(async () => {
-        if (!imgSrc || !croppedAreaPixels) return
+        if (!imgSrc) return
 
-        const blob = await getCroppedImage(imgSrc, croppedAreaPixels)
         const formData = new FormData()
 
-        // Key là "image" cho khớp với Backend Go
-        formData.append("image", blob, "image.jpg")
-
-        const res = await uploadFn(formData)
-        if (!!res && typeof res.img === "string" && !!setDisplayImg) {
-            setDisplayImg(res.img)
+        if (requireCrop) {
+            // NẾU CẦN CROP: Lấy Blob từ Cropper
+            if (!croppedAreaPixels) return
+            const blob = await getCroppedImage(imgSrc, croppedAreaPixels)
+            formData.append(formDataKey, blob, "image.jpg")
+        } else {
+            // NẾU KHÔNG CROP: Lấy thẳng File gốc đẩy lên
+            if (!selectedFile) return
+            formData.append(formDataKey, selectedFile)
         }
 
-        setImgSrc(null)
-        onClose()
-    }, [croppedAreaPixels, imgSrc, onClose, setDisplayImg, setImgSrc, uploadFn])
+        try {
+            // Gọi hàm upload (việc xử lý logic bên trong đã có cha lo)
+            await uploadFn(formData)
+
+            // Hoàn tất: Reset và Đóng modal ngay lập tức
+            resetState()
+            onClose()
+        } catch {
+            /* empty */
+        }
+    }, [
+        imgSrc,
+        requireCrop,
+        croppedAreaPixels,
+        formDataKey,
+        selectedFile,
+        uploadFn,
+        resetState,
+        onClose
+    ])
 
     // Nút Hủy hoặc Chọn lại ảnh khác
     const handleCancel = () => {
         if (imgSrc) {
-            // Nếu đang có ảnh thì nút Hủy sẽ reset về màn hình DropZone
-            setImgSrc(null)
+            resetState() // Quay lại màn hình DropZone
         } else {
-            // Nếu đang ở DropZone thì đóng modal
             onClose()
         }
     }
@@ -111,14 +144,24 @@ export function ImageUploaderModal({
                     ) : (
                         // VIEW 2: CROPPER
                         <div className="flex flex-col items-center gap-6 animate-in fade-in zoom-in duration-300">
-                            <ImageCropper
-                                imgSrc={imgSrc}
-                                onCropComplete={setCroppedAreaPixels}
-                                aspect={aspect}
-                                cropShape={cropShape}
-                                cropSize={cropSize}
-                                className="rounded-lg shadow-lg border border-gray-200"
-                            />
+                            {requireCrop ? (
+                                <ImageCropper
+                                    imgSrc={imgSrc}
+                                    onCropComplete={setCroppedAreaPixels}
+                                    aspect={aspect}
+                                    cropShape={cropShape}
+                                    cropSize={cropSize}
+                                    className="rounded-lg shadow-lg border border-default-200"
+                                />
+                            ) : (
+                                <div className="w-full max-h-[60vh] flex items-center justify-center bg-default-100 rounded-lg overflow-hidden border border-default-200 p-2">
+                                    <img
+                                        src={imgSrc}
+                                        alt="Preview"
+                                        className="max-w-full max-h-full object-contain rounded-md shadow-sm"
+                                    />
+                                </div>
+                            )}
 
                             <div className="flex gap-3 w-full justify-center">
                                 <ButtonStyled onPress={handleCancel} isDisabled={isUploadPending}>

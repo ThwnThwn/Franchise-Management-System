@@ -1,16 +1,17 @@
+/* eslint-disable @next/next/no-img-element */
 "use client"
 
-import React, { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { ModalStyled, ButtonStyled, ImageCropper, FileDropZone } from "@/components/"
 import { ModalContent, ModalBody, ModalHeader, Chip, cn } from "@heroui/react"
 import { getCroppedImage } from "@/utils/helpers/image"
 import { Trash, Crop, AlertCircle } from "lucide-react"
-import Image from "next/image"
 
 type FileWithPreview = {
     id: string
-    file: File
+    file?: File
     preview: string
+    isExisting?: boolean
 }
 
 type MultiImageUploaderModalProps = {
@@ -19,6 +20,8 @@ type MultiImageUploaderModalProps = {
     onClose: () => void
     uploadFn: (formData: FormData) => Promise<any>
     isUploadPending: boolean
+    formDataKey?: string
+    initialImages?: { id: string; url: string }[]
 
     // Config Crop
     // aspect?: number
@@ -37,6 +40,8 @@ export function MultiImageUploaderModal({
     onClose,
     uploadFn,
     isUploadPending,
+    formDataKey = "images",
+    initialImages,
     // aspect = 400 / 300,
     cropShape = "rect",
     cropSize = { width: 400, height: 300 },
@@ -50,6 +55,8 @@ export function MultiImageUploaderModal({
     const validMin = Math.max(1, Math.min(minFiles, validMax))
 
     const [selectedFiles, setSelectedFiles] = useState<FileWithPreview[]>([])
+    const [deletedImageIds, setDeletedImageIds] = useState<string[]>([])
+
     const [fileToCropId, setFileToCropId] = useState<string | null>(null)
     const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null)
 
@@ -73,6 +80,19 @@ export function MultiImageUploaderModal({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
+    // Khi Modal mở lên, nếu có ảnh cũ thì nạp vào state
+    useEffect(() => {
+        if (isOpen && initialImages) {
+            const existing = initialImages.map((img) => ({
+                id: img.id,
+                preview: img.url,
+                isExisting: true
+            }))
+            setSelectedFiles(existing)
+            setDeletedImageIds([]) // Reset rác mỗi lần mở
+        }
+    }, [isOpen, initialImages])
+
     const onDropFiles = useCallback(
         (files: File[]) => {
             const newFiles = files.map((file) => ({
@@ -92,14 +112,21 @@ export function MultiImageUploaderModal({
     const removeFile = (id: string) => {
         setSelectedFiles((prev) => {
             const fileToRemove = prev.find((f) => f.id === id)
-            if (fileToRemove) URL.revokeObjectURL(fileToRemove.preview)
+
+            // Nếu là ảnh cũ thì bỏ vào sọt rác
+            if (fileToRemove?.isExisting) {
+                setDeletedImageIds((prevIds) => [...prevIds, id])
+            } else if (fileToRemove?.preview) {
+                URL.revokeObjectURL(fileToRemove.preview)
+            }
+
             return prev.filter((f) => f.id !== id)
         })
     }
 
     const handleCropSave = async () => {
         const currentFileObj = selectedFiles.find((f) => f.id === fileToCropId)
-        if (!currentFileObj || !croppedAreaPixels) return
+        if (!currentFileObj || !currentFileObj.file || !croppedAreaPixels) return
 
         try {
             const croppedBlob = await getCroppedImage(currentFileObj.preview, croppedAreaPixels)
@@ -127,12 +154,21 @@ export function MultiImageUploaderModal({
     }
 
     const handleUploadAll = async () => {
-        if (selectedFiles.length < validMin) return
-
         const formData = new FormData()
+
+        // 1. Gửi ảnh mới (chỉ những thằng không có cờ isExisting)
         selectedFiles.forEach((fileObj) => {
-            formData.append("images", fileObj.file)
+            if (!fileObj.isExisting && fileObj.file) {
+                formData.append(formDataKey, fileObj.file)
+            }
         })
+
+        // 2. Gửi danh sách ID cần xóa (Dưới dạng mảng hoặc chuỗi phân cách bởi dấu phẩy)
+        if (deletedImageIds.length > 0) {
+            deletedImageIds.forEach((id) => {
+                formData.append("deletedImageIds", id)
+            })
+        }
 
         await uploadFn(formData)
         handleClose()
@@ -242,23 +278,47 @@ export function MultiImageUploaderModal({
                                             }}
                                             className={`relative group rounded-xl overflow-hidden border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all`}
                                         >
-                                            <Image
+                                            <img
                                                 src={item.preview}
                                                 alt="Preview"
-                                                className="object-contain"
+                                                className="object-contain w-full h-full" // Thêm w-full h-full để nó lấp đầy khung cha
                                                 width={cropSize.width}
                                                 height={cropSize.height}
                                             />
 
+                                            <div className="absolute top-2 left-2">
+                                                {item.isExisting ? (
+                                                    <Chip
+                                                        size="sm"
+                                                        color="default"
+                                                        variant="flat"
+                                                        className="bg-white/80"
+                                                    >
+                                                        Cũ
+                                                    </Chip>
+                                                ) : (
+                                                    <Chip
+                                                        size="sm"
+                                                        color="primary"
+                                                        variant="flat"
+                                                        className="bg-primary/80 text-white"
+                                                    >
+                                                        Mới
+                                                    </Chip>
+                                                )}
+                                            </div>
+
                                             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 backdrop-blur-[1px]">
-                                                <button
-                                                    onClick={() => setFileToCropId(item.id)}
-                                                    disabled={isUploadPending}
-                                                    className="p-2 bg-white rounded-full text-gray-700 hover:text-primary hover:scale-110 transition-all shadow-lg"
-                                                    title="Cắt ảnh"
-                                                >
-                                                    <Crop size={16} />
-                                                </button>
+                                                {!item.isExisting && (
+                                                    <button
+                                                        onClick={() => setFileToCropId(item.id)}
+                                                        disabled={isUploadPending}
+                                                        className="p-2 bg-white rounded-full text-gray-700 hover:text-primary hover:scale-110 transition-all shadow-lg"
+                                                        title="Cắt ảnh"
+                                                    >
+                                                        <Crop size={16} />
+                                                    </button>
+                                                )}
                                                 <button
                                                     onClick={() => removeFile(item.id)}
                                                     disabled={isUploadPending}

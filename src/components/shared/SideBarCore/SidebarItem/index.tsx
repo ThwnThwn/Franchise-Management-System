@@ -4,7 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import { ChevronRight } from "lucide-react"
-import { MenuItem } from "@/constants/menu/sidebar"
+import { MenuItem } from "@/constants/menu/types"
 
 export const SidebarItem = ({
     item,

@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from "react"
 import { useRouter } from "next/navigation"
-import { MenuItem } from "@/constants/menu/sidebar"
 import { RoleSlug } from "@/constants/enums"
+import { MenuItem } from "@/constants/menu/types"
 
 interface UseRouteAuthOptions {
     menuItems: MenuItem[]

@@ -40,4 +40,5 @@ export type UserFilterParams = {
     roleSlug?: RoleSlug
     keyword?: string
     homeStoreId?: string
+    ids?: string[]
 }

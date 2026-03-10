@@ -64,7 +64,7 @@ export const StaffSwapView = () => {
 
     return (
         <div className="flex flex-col gap-4">
-            <Tabs aria-label="Staff Swap Tabs" color="primary" variant="underlined">
+            <Tabs aria-label="Staff Swap Tabs" color="primary" variant="underlined" fullWidth>
                 {/* TAB 1 */}
                 <Tab
                     key="action"

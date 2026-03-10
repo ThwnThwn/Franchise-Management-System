@@ -6,8 +6,8 @@ import { BaseSidebar, LogoStyled } from "@/components"
 import { RoleSlugLabels } from "@/constants/labels"
 import { useTokenStore } from "@/hooks"
 import { useGetStoreById } from "@/features/stores"
-import { MenuItem } from "@/constants/menu/sidebar"
 import { RoleSlug } from "@/constants/enums"
+import { MenuItem } from "@/constants/menu/types"
 
 interface DashboardSidebarContentProps {
     isMobile: boolean

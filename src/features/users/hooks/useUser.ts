@@ -7,6 +7,7 @@ import { BackendError, PageResult } from "@/models/common/respone"
 import { UserFilterParams } from "../models/request"
 import { PaginationParams } from "@/models/common/request"
 import { User } from "@/models/user"
+import { useMemo } from "react"
 
 export const useGetAllUsers = ({
     params,
@@ -31,6 +32,32 @@ export const useGetAllUsers = ({
         },
         enabled
     })
+}
+
+/**
+ * @template T - Kiểu dữ liệu của item trong mảng (Transaction, Withdrawal, Order...)
+ * @param items - Mảng dữ liệu cần bơm info User
+ * @param idSelector - Hàm để trích xuất ID từ item (VD: item => item.userId)
+ */
+export const useHydrateUsers = <T>(
+    items: T[] | undefined,
+    idSelector: (item: T) => string | undefined | null
+) => {
+    const userIds = useMemo(() => {
+        // Lấy ID dựa trên selector, lọc bỏ null/undefined và lọc trùng
+        const ids = (items?.map(idSelector).filter(Boolean) as string[]) || []
+        return [...new Set(ids)]
+    }, [items, idSelector])
+
+    const { data: usersRes, isLoading } = useGetAllUsers({
+        params: { ids: userIds },
+        pagination: { page: 1, pageSize: userIds.length || 1 },
+        enabled: userIds.length > 0
+    })
+
+    const getUserInfo = (userId: string) => usersRes?.items.find((u) => u.id === userId)
+
+    return { getUserInfo, isLoadingUsers: isLoading }
 }
 
 export const useGetUserById = ({ id, enabled = true }: { id: string; enabled?: boolean }) => {

@@ -3,9 +3,9 @@
 import React, { useMemo } from "react"
 import { motion } from "framer-motion"
 import { X } from "lucide-react"
-import { MenuItem } from "@/constants/menu/sidebar"
 import { SidebarItem } from "../SidebarItem"
 import { RoleSlug } from "@/constants/enums"
+import { MenuItem } from "@/constants/menu/types"
 
 // Đổi tên props cho thật Generic
 interface BaseSidebarProps {

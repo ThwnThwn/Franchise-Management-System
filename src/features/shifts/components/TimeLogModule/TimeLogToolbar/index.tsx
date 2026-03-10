@@ -158,6 +158,7 @@ export const TimeLogToolbar = (props: Props) => {
             {/* Hàng 2: Lọc Status & Search Staff (Chỉ Manager thấy hoặc hiện giới hạn cho Staff) */}
             <div className="flex flex-col xl:flex-row justify-between items-center gap-4 pt-4 border-t border-divider border-dashed">
                 <Tabs
+                    fullWidth
                     selectedKey={status?.toString() || "all"}
                     onSelectionChange={(key) =>
                         onStatusChange(key === "all" ? undefined : Number(key))

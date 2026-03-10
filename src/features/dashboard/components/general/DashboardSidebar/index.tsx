@@ -8,38 +8,12 @@ import { usePathname } from "next/navigation"
 import { useTokenStore } from "@/hooks"
 import { RoleSlug } from "@/constants/enums"
 import { DASHBOARD_SIDEBAR_MENU } from "@/constants/menu/sidebar"
-import { SidebarContent } from "./SidebarContent"
 import { DashboardSidebarContent } from "./DashboardSidebarContent"
 
 export const DashboardSidebar = () => {
     const [isOpen, setIsOpen] = useState(false)
     const pathname = usePathname()
     const roleSlug = useTokenStore((s) => s.roleSlug) || RoleSlug.Staff
-
-    // Trong file DashboardSidebar.tsx của ní
-    // const filteredMenuItems = useMemo(() => {
-    //     if (!roleSlug) return []
-
-    //     return DASHBOARD_SIDEBAR_MENU.reduce((acc, item) => {
-    //         // 1. Kiểm tra quyền thằng cha
-    //         if (item.allowedRoles.includes(roleSlug)) {
-    //             // 2. Nếu có menu con, lọc tiếp menu con
-    //             if (item.subItems) {
-    //                 const filteredSubs = item.subItems.filter((sub) =>
-    //                     sub.allowedRoles.includes(roleSlug)
-    //                 )
-    //                 // Nếu sau khi lọc mà menu con vẫn còn, thì push thằng cha (kèm menu con đã lọc) vào mảng
-    //                 if (filteredSubs.length > 0) {
-    //                     acc.push({ ...item, subItems: filteredSubs })
-    //                 }
-    //             } else {
-    //                 // 3. Không có menu con (Menu đơn) thì push thẳng
-    //                 acc.push(item)
-    //             }
-    //         }
-    //         return acc
-    //     }, [] as MenuItem[])
-    // }, [roleSlug])
 
     const commonProps = {
         items: DASHBOARD_SIDEBAR_MENU,
@@ -87,7 +61,7 @@ export const DashboardSidebar = () => {
                                     transition={{ type: "spring", damping: 25, stiffness: 200 }}
                                     className="fixed inset-y-0 left-0 w-72 bg-background z-9999 lg:hidden shadow-2xl flex flex-col"
                                 >
-                                    <SidebarContent {...commonProps} isMobile={true} />
+                                    <DashboardSidebarContent {...commonProps} isMobile={true} />
                                 </motion.div>
                             </>
                         )}

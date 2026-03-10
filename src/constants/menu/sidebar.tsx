@@ -1,4 +1,3 @@
-import React from "react"
 import { RoleSlug } from "@/constants/enums"
 import {
     LayoutDashboard,
@@ -8,22 +7,10 @@ import {
     Settings,
     ShoppingBag,
     FlaskConical,
-    Ticket
+    Ticket,
+    Receipt
 } from "lucide-react"
-
-// export interface MenuSubItem {
-//     label: string
-//     href: string
-//     allowedRoles: RoleSlug[]
-// }
-
-export interface MenuItem {
-    label: string
-    href?: string
-    icon?: React.ReactNode
-    allowedRoles: RoleSlug[]
-    subItems?: MenuItem[]
-}
+import { MenuItem } from "./types"
 
 export const DASHBOARD_SIDEBAR_MENU: MenuItem[] = [
     {
@@ -144,6 +131,23 @@ export const DASHBOARD_SIDEBAR_MENU: MenuItem[] = [
             {
                 label: "Vai trò",
                 href: "/dashboard/roles",
+                allowedRoles: [RoleSlug.Admin]
+            }
+        ]
+    },
+    {
+        icon: <Receipt className="w-5 h-5" />,
+        label: "Ví",
+        allowedRoles: [RoleSlug.Admin],
+        subItems: [
+            {
+                label: "Giao dịch",
+                href: "/dashboard/wallets/transactions",
+                allowedRoles: [RoleSlug.Admin]
+            },
+            {
+                label: "Đơn rút tiền",
+                href: "/dashboard/wallets/withdrawals",
                 allowedRoles: [RoleSlug.Admin]
             }
         ]
