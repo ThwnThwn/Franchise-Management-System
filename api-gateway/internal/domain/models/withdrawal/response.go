@@ -11,8 +11,8 @@ type WithdrawalSummary struct {
 	Id                  string                `json:"id"`
 	RequestCode         string                `json:"requestCode"`
 	UserId              string                `json:"userId"`
-	Amount              float64               `json:"amount"`
-	FeeAmount           float64               `json:"feeAmount"`
+	Amount              string                `json:"amount"`
+	FeeAmount           string                `json:"feeAmount"`
 	BankCode            *string               `json:"bankCode,omitempty"`
 	BankName            string                `json:"bankName"`
 	AccountName         string                `json:"accountName"`
@@ -33,4 +33,9 @@ type WithdrawalDetailRes struct {
 	ReceiptImageUrl    string `json:"receiptImageUrl"`
 	TransactionId      string `json:"transactionId"`
 	UpdatedAt          string `json:"updatedAt"`
+
+	ProcessedById     *string `json:"processedById"`
+	ProcessedByName   *string `json:"processedByName"`
+	BankTransactionId *string `json:"bankTransactionId"`
+	CompletedAt       *string `json:"completedAt"`
 }

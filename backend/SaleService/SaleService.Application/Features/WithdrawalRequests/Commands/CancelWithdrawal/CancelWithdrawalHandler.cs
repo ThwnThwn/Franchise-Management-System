@@ -22,19 +22,23 @@ public class CancelWithdrawalHandler(
         {
             var item = await repo.GetByIdAsync(request.RequestId, ct) ?? throw new KeyNotFoundException("Không thấy yêu cầu.");
 
-            if (item.Status == WithdrawalStatus.Completed || item.Status == WithdrawalStatus.Cancelled)
-                throw new InvalidOperationException("Yêu cầu đã hoàn tất hoặc đã hủy trước đó.");
+            if (item.Status != WithdrawalStatus.Approved && item.Status != WithdrawalStatus.Processing)
+            {
+                throw new InvalidOperationException("Chỉ có thể hủy yêu cầu rút tiền đang ở trạng thái Đã duyệt (Approved) hoặc Đang xử lý (Processing).");
+            }
 
-            item.Status = WithdrawalStatus.Cancelled;
-            item.CancellationReason = request.Reason;
+            repo.ApplyCancel(item, request.AdminId, request.Reason);
 
             var wallet = await walletRepo.GetByUserIdAsync(item.UserId, ct) ?? throw new KeyNotFoundException("Không thấy ví.");
             walletRepo.ApplyAddBalance(wallet, item.Amount, wallet.RowVersion!);
+            await walletRepo.UpdateBalanceAsync(wallet.Id, wallet.Balance,
+                wallet.RowVersion!, cancellationToken: ct);
 
             var walletTransaction = new WalletTransaction
             {
                 Id = Guid.NewGuid(),
                 WalletId = wallet.Id,
+                TransactionCode = $"TRX-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString()[..8].ToUpper()}",
                 UserId = item.UserId,
                 Amount = item.Amount,
                 TransactionType = TransactionType.Refund, // Loại: Hoàn tiền

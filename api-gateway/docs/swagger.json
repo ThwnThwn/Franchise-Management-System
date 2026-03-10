@@ -6842,6 +6842,15 @@
                         "in": "query"
                     },
                     {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "name": "ids",
+                        "in": "query"
+                    },
+                    {
                         "type": "string",
                         "name": "keyword",
                         "in": "query"
@@ -8225,6 +8234,13 @@
                         "type": "file",
                         "description": "Ảnh chụp biên lai chuyển khoản (Bill)",
                         "name": "receiptFile",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Mã giao dịch",
+                        "name": "bankTransactionId",
                         "in": "formData",
                         "required": true
                     }
@@ -11101,10 +11117,10 @@
         "api-gateway_internal_domain_models_wallet.UpdateWalletStatusRequest": {
             "type": "object",
             "properties": {
-                "admin_notes": {
+                "adminNotes": {
                     "type": "string"
                 },
-                "new_status": {
+                "newStatus": {
                     "$ref": "#/definitions/api-gateway_internal_domain_constants_enum.WalletStatus"
                 },
                 "reason": {
@@ -11264,7 +11280,7 @@
                     "type": "string"
                 },
                 "amount": {
-                    "type": "number"
+                    "type": "string"
                 },
                 "bankCode": {
                     "type": "string"
@@ -11306,7 +11322,7 @@
                     "type": "string"
                 },
                 "amount": {
-                    "type": "number"
+                    "type": "string"
                 },
                 "approvalNotes": {
                     "type": "string"
@@ -11317,14 +11333,20 @@
                 "bankName": {
                     "type": "string"
                 },
+                "bankTransactionId": {
+                    "type": "string"
+                },
                 "cancellationReason": {
+                    "type": "string"
+                },
+                "completedAt": {
                     "type": "string"
                 },
                 "createdAt": {
                     "type": "string"
                 },
                 "feeAmount": {
-                    "type": "number"
+                    "type": "string"
                 },
                 "id": {
                     "type": "string"
@@ -11336,6 +11358,12 @@
                     "type": "string"
                 },
                 "notes": {
+                    "type": "string"
+                },
+                "processedById": {
+                    "type": "string"
+                },
+                "processedByName": {
                     "type": "string"
                 },
                 "rawAccountNumber": {
@@ -11371,7 +11399,7 @@
                     "type": "string"
                 },
                 "amount": {
-                    "type": "number"
+                    "type": "string"
                 },
                 "bankCode": {
                     "type": "string"
@@ -11383,7 +11411,7 @@
                     "type": "string"
                 },
                 "feeAmount": {
-                    "type": "number"
+                    "type": "string"
                 },
                 "id": {
                     "type": "string"

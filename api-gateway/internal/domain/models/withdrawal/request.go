@@ -8,7 +8,7 @@ import (
 // --- NHÓM END-USER ---
 
 type CreateWithdrawalReq struct {
-	Amount        float64 `json:"amount" binding:"required,gt=0"`
+	Amount        string  `json:"amount" binding:"required"`
 	BankCode      *string `json:"bankCode,omitempty"`
 	BankName      string  `json:"bankName" binding:"required"`
 	AccountName   string  `json:"accountName" binding:"required"`
@@ -50,5 +50,6 @@ type CancelWithdrawalReq struct {
 }
 
 type CompleteWithdrawalReq struct {
-	ReceiptFile []byte `json:"-"` // Xử lý bằng MultipartForm trong handler
+	BankTransactionId string `json:"-"`
+	ReceiptFile       []byte `json:"-"` // Xử lý bằng MultipartForm trong handler
 }

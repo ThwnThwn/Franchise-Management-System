@@ -4,7 +4,7 @@ namespace SalesService.Application.Features.WithdrawalRequests.Commands.CreateWi
 
 public record CreateWithdrawalCommand(
     Guid UserId,
-    decimal Amount,
+    string Amount,
     string? BankCode,
     string BankName,
     string AccountName,

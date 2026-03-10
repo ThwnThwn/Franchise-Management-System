@@ -1899,9 +1899,9 @@ definitions:
     type: object
   api-gateway_internal_domain_models_wallet.UpdateWalletStatusRequest:
     properties:
-      admin_notes:
+      adminNotes:
         type: string
-      new_status:
+      newStatus:
         $ref: '#/definitions/api-gateway_internal_domain_constants_enum.WalletStatus'
       reason:
         type: string
@@ -2002,7 +2002,7 @@ definitions:
       accountNumber:
         type: string
       amount:
-        type: number
+        type: string
       bankCode:
         type: string
       bankName:
@@ -2034,19 +2034,23 @@ definitions:
       accountName:
         type: string
       amount:
-        type: number
+        type: string
       approvalNotes:
         type: string
       bankCode:
         type: string
       bankName:
         type: string
+      bankTransactionId:
+        type: string
       cancellationReason:
+        type: string
+      completedAt:
         type: string
       createdAt:
         type: string
       feeAmount:
-        type: number
+        type: string
       id:
         type: string
       internalNotes:
@@ -2054,6 +2058,10 @@ definitions:
       maskedAccountNumber:
         type: string
       notes:
+        type: string
+      processedById:
+        type: string
+      processedByName:
         type: string
       rawAccountNumber:
         type: string
@@ -2077,7 +2085,7 @@ definitions:
       accountName:
         type: string
       amount:
-        type: number
+        type: string
       bankCode:
         type: string
       bankName:
@@ -2085,7 +2093,7 @@ definitions:
       createdAt:
         type: string
       feeAmount:
-        type: number
+        type: string
       id:
         type: string
       maskedAccountNumber:
@@ -6548,6 +6556,12 @@ paths:
       - in: query
         name: homeStoreId
         type: string
+      - collectionFormat: csv
+        in: query
+        items:
+          type: string
+        name: ids
+        type: array
       - in: query
         name: keyword
         type: string
@@ -7458,6 +7472,11 @@ paths:
         name: receiptFile
         required: true
         type: file
+      - description: Mã giao dịch
+        in: formData
+        name: bankTransactionId
+        required: true
+        type: string
       produces:
       - application/json
       responses:

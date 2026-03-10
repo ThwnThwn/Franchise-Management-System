@@ -156,7 +156,7 @@ func (h *PaymentHandler) ProcessVnPayReturn(c *gin.Context) error {
 	// LƯỚI LỌC BẢO MẬT NHIỀU LỚP:
 	// 1. Phải bắt đầu bằng "/" (Đảm bảo là Relative Path)
 	// 2. KHÔNG được bắt đầu bằng "//" (Trình duyệt sẽ bẻ lái sang domain khác, VD: //hacker.com)
-	// 3. KHÔNG được chứa "http://" hay "https://" (Chặn tuyệt đối link ngoại lai như bro nói)
+	// 3. KHÔNG được chứa "http://" hay "https://"
 	if redirectTo == "" ||
 		!strings.HasPrefix(redirectTo, "/") ||
 		strings.HasPrefix(redirectTo, "//") ||

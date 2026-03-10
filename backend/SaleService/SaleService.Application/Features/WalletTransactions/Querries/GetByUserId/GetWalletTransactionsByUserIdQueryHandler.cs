@@ -1,8 +1,11 @@
 ﻿using Ardalis.Result;
+using DocumentFormat.OpenXml.Spreadsheet;
+using DocumentFormat.OpenXml.Wordprocessing;
 using MediatR;
 using SalesService.Application.Interfaces.Identity;
 using SalesService.Application.Persisitences.WalletTransactions;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using SalesService.Application.Features.WalletTransactions.Dtos;
 
 namespace SalesService.Application.Features.WalletTransactions.Queries.GetByUserId;
 
@@ -30,6 +33,7 @@ public sealed class GetWalletTransactionsByUserIdQueryHandler
             return Result.NotFound("No wallet transactions found.");
 
         var userRole = await _identityServiceClient.GetUserByIdAsync(request.LoggedUserId);
+
         var isOwner = request.UserIdToSearch == request.LoggedUserId;
         var slug = userRole?.Role?.Slug?.Trim().ToLower();
 

@@ -51,7 +51,7 @@ service WithdrawalService {
 // --- REQUESTS ---
 
 message CreateWithdrawalRequest {
-    double amount = 1;
+    string amount = 1;
     optional string bank_code = 2;
     string bank_name = 3;
     string account_name = 4;
@@ -98,7 +98,8 @@ message CancelWithdrawalRequest {
 
 message CompleteWithdrawalRequest {
     string request_id = 1;
-    optional bytes receipt_file = 2; 
+    string bank_transaction_id = 2;
+    bytes receipt_file = 3; 
 }
 
 // --- RESPONSES ---
@@ -113,8 +114,8 @@ message WithdrawalSummary {
     string id = 1;
     string request_code = 2;
     string user_id = 3; 
-    double amount = 4;
-    double fee_amount = 5;
+    string amount = 4;
+    string fee_amount = 5;
     optional string bank_code = 6;
     string bank_name = 7;
     string account_name = 8;
@@ -135,8 +136,8 @@ message WithdrawalDetailResponse {
     string id = 1;
     string request_code = 2;
     string user_id = 3;
-    double amount = 4;
-    double fee_amount = 5;
+    string amount = 4;
+    string fee_amount = 5;
     
     optional string bank_code = 6;
     string bank_name = 7;
@@ -156,4 +157,9 @@ message WithdrawalDetailResponse {
     
     string created_at = 19;
     string updated_at = 20;
+
+    optional string processed_by_id = 21;
+    optional string processed_by_name = 22;
+    optional string bank_transaction_id = 23; 
+    optional string completed_at = 24;
 }

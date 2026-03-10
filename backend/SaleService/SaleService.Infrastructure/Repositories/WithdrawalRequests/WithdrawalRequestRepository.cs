@@ -82,13 +82,17 @@ public class WithdrawalRequestRepository : GenericRepository<WithdrawalRequest>,
         request.UpdatedAt = DateTimeOffset.UtcNow;
     }
 
-    public void ApplyComplete(WithdrawalRequest request, Guid processedBy, Guid transactionId, string? receiptImageUrl, string? receiptImagePublicId)
+    public void ApplyComplete(WithdrawalRequest request,
+        Guid processedBy, Guid transactionId, string? bankTransactionId,
+        string? receiptImageUrl, string? receiptImagePublicId
+    )
     {
         request.Status = WithdrawalStatus.Completed;
         request.ProcessedBy = processedBy;
         request.TransactionId = transactionId;
         request.ReceiptImageUrl = receiptImageUrl;
         request.ReceiptImagePublicId = receiptImagePublicId;
+        request.BankTransactionId = bankTransactionId;
         request.CompletedAt = DateTimeOffset.UtcNow;
         request.UpdatedAt = DateTimeOffset.UtcNow;
     }
@@ -124,12 +128,15 @@ public class WithdrawalRequestRepository : GenericRepository<WithdrawalRequest>,
         return await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<int> CompleteAsync(Guid id, Guid processedBy, Guid transactionId, string? receiptImageUrl, string? receiptImagePublicId, CancellationToken cancellationToken = default)
+    public async Task<int> CompleteAsync(Guid id, Guid processedBy, Guid transactionId,
+        string? receiptImageUrl, string? receiptImagePublicId, string? bankTransactionId,
+        CancellationToken cancellationToken = default
+    )
     {
         var request = await _dbSet.FirstOrDefaultAsync(rt => rt.Id == id, cancellationToken);
         if (request == null) return 0;
 
-        ApplyComplete(request, processedBy, transactionId, receiptImageUrl, receiptImagePublicId);
+        ApplyComplete(request, processedBy, transactionId, bankTransactionId, receiptImageUrl, receiptImagePublicId);
         return await _dbContext.SaveChangesAsync(cancellationToken);
     }
 }

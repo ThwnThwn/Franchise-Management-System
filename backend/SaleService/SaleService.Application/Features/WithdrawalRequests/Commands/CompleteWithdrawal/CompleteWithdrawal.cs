@@ -4,4 +4,7 @@ namespace SalesService.Application.Features.WithdrawalRequests.Commands.Complete
 
 public record CompleteWithdrawalCommand(
     Guid RequestId,
-    byte[]? ReceiptFile) : IRequest<bool>;
+    Guid AdminId,
+    byte[] ReceiptFile,
+    string BankTransactionId
+) : IRequest<bool>;

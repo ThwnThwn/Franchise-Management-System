@@ -1,5 +1,6 @@
 ﻿using Ardalis.Result;
 using MediatR;
+using SalesService.Application.Features.WalletTransactions.Dtos;
 using SalesService.Application.Interfaces.Identity;
 using SalesService.Application.Persisitences.WalletTransactions;
 

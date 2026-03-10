@@ -1,18 +1,17 @@
-﻿using Grpc.Core;
+﻿using Google.Protobuf.WellKnownTypes;
+using Grpc.Core;
 using MediatR;
-using Google.Protobuf.WellKnownTypes;
-using SalesService.API;
+using SalesService.Application.Features.WithdrawalRequests.Commands.ApproveWithdrawal;
+using SalesService.Application.Features.WithdrawalRequests.Commands.CancelMyWithdrawal;
+using SalesService.Application.Features.WithdrawalRequests.Commands.CancelWithdrawal;
+using SalesService.Application.Features.WithdrawalRequests.Commands.CompleteWithdrawal;
+using SalesService.Application.Features.WithdrawalRequests.Commands.CreateWithdrawal;
+using SalesService.Application.Features.WithdrawalRequests.Commands.RejectWithdrawal;
 using SalesService.Application.Features.WithdrawalRequests.Queries.GetAllWithdrawals;
 using SalesService.Application.Features.WithdrawalRequests.Queries.GetMyWithdrawals;
 using SalesService.Application.Features.WithdrawalRequests.Queries.GetWithdrawalById;
-using SalesService.Application.Features.WithdrawalRequests.Commands.CreateWithdrawal;
-using SalesService.Application.Features.WithdrawalRequests.Commands.ApproveWithdrawal;
-using SalesService.Application.Features.WithdrawalRequests.Commands.RejectWithdrawal;
-using SalesService.Application.Features.WithdrawalRequests.Commands.CancelWithdrawal;
-using SalesService.Application.Features.WithdrawalRequests.Commands.CancelMyWithdrawal;
-using SalesService.Application.Features.WithdrawalRequests.Commands.CompleteWithdrawal;
 
-namespace SalesService.Infrastructure.Grpc;
+namespace SalesService.API.Services.Withdrawal;
 
 public class WithdrawalGrpcService(IMediator mediator) : WithdrawalService.WithdrawalServiceBase
 {
@@ -26,7 +25,7 @@ public class WithdrawalGrpcService(IMediator mediator) : WithdrawalService.Withd
     {
         var command = new CreateWithdrawalCommand(
             GetUserId(context),
-            (decimal)request.Amount,
+            request.Amount,
             request.BankCode,
             request.BankName,
             request.AccountName,
@@ -45,9 +44,15 @@ public class WithdrawalGrpcService(IMediator mediator) : WithdrawalService.Withd
 
     public override async Task<WithdrawalListResponse> GetMyWithdrawals(GetMyWithdrawalsRequest request, ServerCallContext context)
     {
+        Domain.Enums.WithdrawalStatus? status = (Domain.Enums.WithdrawalStatus)request.Status;
+        if ((int)status <= 0)
+        {
+            status = null;
+        }
+
         var query = new GetMyWithdrawalsQuery(
             GetUserId(context),
-            (Domain.Enums.WithdrawalStatus)request.Status,
+            status,
             request.PageIndex,
             request.PageSize
         );
@@ -74,9 +79,15 @@ public class WithdrawalGrpcService(IMediator mediator) : WithdrawalService.Withd
 
     public override async Task<WithdrawalListResponse> GetAllWithdrawals(GetAllWithdrawalsRequest request, ServerCallContext context)
     {
+        Domain.Enums.WithdrawalStatus? status = (Domain.Enums.WithdrawalStatus)request.Status;
+        if ((int)status <= 0)
+        {
+            status = null;
+        }
+
         var query = new GetAllWithdrawalsQuery(
             string.IsNullOrEmpty(request.UserId) ? null : Guid.Parse(request.UserId),
-            (Domain.Enums.WithdrawalStatus)request.Status,
+            status,
             request.PageIndex,
             request.PageSize
         );
@@ -95,8 +106,8 @@ public class WithdrawalGrpcService(IMediator mediator) : WithdrawalService.Withd
             Id = result.Id.ToString(),
             RequestCode = result.RequestCode,
             UserId = result.UserId.ToString(),
-            Amount = (double)result.Amount,
-            FeeAmount = (double)result.FeeAmount,
+            Amount = result.Amount ?? "0.00",
+            FeeAmount = result.FeeAmount ?? "0.00",
             BankCode = result.BankCode ?? "",
             BankName = result.BankName,
             AccountName = result.AccountName,
@@ -111,25 +122,39 @@ public class WithdrawalGrpcService(IMediator mediator) : WithdrawalService.Withd
             ReceiptImageUrl = result.ReceiptImageUrl ?? "",
             TransactionId = result.TransactionId?.ToString() ?? "",
             CreatedAt = result.CreatedAt.ToString("O"), // ISO 8601
-            UpdatedAt = result.UpdatedAt.ToString("O")
+            UpdatedAt = result.UpdatedAt.ToString("O"),
+
+            BankTransactionId = result.BankTransactionId ?? "",
+            CompletedAt = result.CompletedAt?.ToString("O") ?? "",
+            ProcessedById = result.ProcessedById?.ToString() ?? "",
+            ProcessedByName = result.ProcessedByName ?? ""
         };
     }
 
     public override async Task<Empty> ApproveWithdrawal(ApproveWithdrawalRequest request, ServerCallContext context)
     {
-        await _mediator.Send(new ApproveWithdrawalCommand(Guid.Parse(request.RequestId), request.ApprovalNotes));
+        await _mediator.Send(new ApproveWithdrawalCommand(
+            RequestId: Guid.Parse(request.RequestId),
+            AdminId: GetUserId(context),
+            ApprovalNotes: request.ApprovalNotes));
         return new Empty();
     }
 
     public override async Task<Empty> RejectWithdrawal(RejectWithdrawalRequest request, ServerCallContext context)
     {
-        await _mediator.Send(new RejectWithdrawalCommand(Guid.Parse(request.RequestId), request.RejectionReason));
+        await _mediator.Send(new RejectWithdrawalCommand(
+            RequestId: Guid.Parse(request.RequestId),
+            AdminId: GetUserId(context),
+            RejectionReason: request.RejectionReason));
         return new Empty();
     }
 
     public override async Task<Empty> CancelWithdrawal(CancelWithdrawalRequest request, ServerCallContext context)
     {
-        await _mediator.Send(new CancelWithdrawalCommand(Guid.Parse(request.RequestId), request.CancellationReason));
+        await _mediator.Send(new CancelWithdrawalCommand(
+            RequestId: Guid.Parse(request.RequestId),
+            AdminId: GetUserId(context),
+            Reason: request.CancellationReason));
         return new Empty();
     }
 
@@ -137,8 +162,10 @@ public class WithdrawalGrpcService(IMediator mediator) : WithdrawalService.Withd
     {
         // Gateway gởi bytes qua FormFile -> ByteString -> byte[]
         var command = new CompleteWithdrawalCommand(
-            Guid.Parse(request.RequestId),
-            request.ReceiptFile?.ToByteArray()
+            RequestId: Guid.Parse(request.RequestId),
+            AdminId: GetUserId(context),
+            ReceiptFile: request.ReceiptFile.ToByteArray(),
+            BankTransactionId: request.BankTransactionId
         );
 
         await _mediator.Send(command);
@@ -172,8 +199,8 @@ public class WithdrawalGrpcService(IMediator mediator) : WithdrawalService.Withd
             Id = x.Id.ToString(),
             RequestCode = x.RequestCode,
             UserId = x.UserId.ToString(),
-            Amount = (double)x.Amount,
-            FeeAmount = (double)x.FeeAmount,
+            Amount = x.Amount ?? "0.00",
+            FeeAmount = x.FeeAmount ?? "0.00",
             BankCode = x.BankCode ?? "",
             BankName = x.BankName,
             AccountName = x.AccountName,

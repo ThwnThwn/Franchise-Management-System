@@ -52,8 +52,14 @@ func MapWithdrawalDetail(r *pb.WithdrawalDetailResponse) *withdrawal.WithdrawalD
 		ApprovalNotes:      r.ApprovalNotes,
 		RejectionReason:    r.RejectionReason,
 		CancellationReason: r.CancellationReason,
-		ReceiptImageUrl:    r.ReceiptImageUrl,
-		TransactionId:      r.TransactionId,
-		UpdatedAt:          r.UpdatedAt,
+
+		ReceiptImageUrl:   r.ReceiptImageUrl,
+		ProcessedById:     r.ProcessedById,
+		ProcessedByName:   r.ProcessedByName,
+		BankTransactionId: r.BankTransactionId,
+		TransactionId:     r.TransactionId,
+
+		CompletedAt: r.CompletedAt,
+		UpdatedAt:   r.UpdatedAt,
 	}
 }

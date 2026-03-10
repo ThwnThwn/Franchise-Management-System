@@ -27,8 +27,11 @@ public class RejectWithdrawalHandler(
                 throw new InvalidOperationException("Chỉ có thể từ chối yêu cầu đang ở trạng thái chờ.");
 
             // 1. Cập nhật lệnh rút
-            item.Status = WithdrawalStatus.Rejected;
-            item.RejectionReason = request.RejectionReason;
+            repo.ApplyReject(
+                request: item,
+                rejectedBy: request.AdminId,
+                rejectionReason: request.RejectionReason
+            );
 
             // 2. Hoàn tiền vào ví
             var wallet = await walletRepo.GetByUserIdAsync(item.UserId, ct)
@@ -37,10 +40,13 @@ public class RejectWithdrawalHandler(
             if (wallet.RowVersion == null) throw new InvalidOperationException("Lỗi dữ liệu ví.");
 
             walletRepo.ApplyAddBalance(wallet, item.Amount, wallet.RowVersion);
+            await walletRepo.UpdateBalanceAsync(wallet.Id, wallet.Balance,
+                wallet.RowVersion!, cancellationToken: ct);
 
             var walletTransaction = new WalletTransaction
             {
                 Id = Guid.NewGuid(),
+                TransactionCode = $"TRX-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString()[..8].ToUpper()}",
                 WalletId = wallet.Id,
                 UserId = item.UserId,
                 Amount = item.Amount,

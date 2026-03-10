@@ -54,13 +54,19 @@ public sealed class WalletTransactionRepository
         return await query.ToPagedListAsync(pageIndex, pageSize, cancellationToken);
     }
 
-    public async Task<PagedResult<WalletTransaction>> GetAllTransactionsAsync(int page, int pageSize, CancellationToken cancellationToken = default)
+    public async Task<PagedResult<WalletTransaction>> GetAllTransactionsAsync(
+        int page, int pageSize,
+        CancellationToken cancellationToken = default)
     {
-        var query = _context.Set<WalletTransaction>()
-                 .OrderByDescending(w => w.CreatedAt);
+        var query = _dbContext.WalletTransactions
+            .AsNoTracking()
+            .Where(tx => !tx.IsDeleted)
+            .OrderByDescending(w => w.CreatedAt);
 
-        return await query.ToPagedListAsync(page, pageSize, cancellationToken);
+        return await query
+            .ToPagedListAsync(page, pageSize, cancellationToken);
     }
+
     public async Task<PagedResult<WalletTransaction>> GetByUserIdAsync(
      Guid userId,
      int pageIndex,
@@ -384,7 +390,6 @@ public sealed class WalletTransactionRepository
             .Take(count)
             .ToListAsync(cancellationToken);
     }
-
 
     public async Task<PagedResult<WalletTransaction>> GetWithFilterAsync(
         Guid? walletId,

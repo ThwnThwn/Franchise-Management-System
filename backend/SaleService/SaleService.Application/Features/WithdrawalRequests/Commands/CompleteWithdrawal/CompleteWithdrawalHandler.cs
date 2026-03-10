@@ -14,30 +14,42 @@ public class CompleteWithdrawalHandler(
 {
     public async Task<bool> Handle(CompleteWithdrawalCommand request, CancellationToken ct)
     {
+        // 1. Lấy dữ liệu
         var item = await repo.GetByIdAsync(request.RequestId, ct)
             ?? throw new KeyNotFoundException("Không tìm thấy yêu cầu rút tiền.");
 
+        // 2. Kiểm tra trạng thái (Có thể đưa check này vào trong ApplyComplete luôn cho an toàn)
         if (item.Status != WithdrawalStatus.Approved && item.Status != WithdrawalStatus.Processing)
-            throw new InvalidOperationException("Yêu cầu phải được duyệt trước khi hoàn tất.");
+            throw new InvalidOperationException("Chỉ có thể hoàn tất khi lệnh đã được duyệt hoặc đang xử lý.");
 
-        // Upload ảnh bill nếu có
+        string? receiptUrl = item.ReceiptImageUrl;
+        string? receiptPublicId = item.ReceiptImagePublicId;
+
+        // 3. Xử lý Upload ảnh (nếu có file mới)
         if (request.ReceiptFile is { Length: > 0 })
         {
-            // fileName ní có thể đặt theo RequestCode để dễ quản lý trên Cloudinary
-            var fileName = $"receipt_{item.RequestCode}_{DateTime.UtcNow.Ticks}";
-
+            var fileName = $"receipt_{item.RequestCode}_{DateTimeOffset.UtcNow.Ticks}";
             var uploadResult = await imageService.UploadImageFromBytesAsync(
                 request.ReceiptFile,
                 fileName,
                 "image/jpeg");
 
-            item.ReceiptImageUrl = uploadResult.Url;
-            item.ReceiptImagePublicId = uploadResult.PublicId;
+            receiptUrl = uploadResult.Url;
+            receiptPublicId = uploadResult.PublicId;
         }
 
-        item.Status = WithdrawalStatus.Completed;
-        item.CompletedAt = DateTimeOffset.UtcNow;
+        var walletTransactionId = item.TransactionId ?? Guid.Empty;
 
+        repo.ApplyComplete(
+            request: item,
+            processedBy: request.AdminId,
+            transactionId: walletTransactionId,
+            bankTransactionId: request.BankTransactionId,
+            receiptImageUrl: receiptUrl,
+            receiptImagePublicId: receiptPublicId
+        );
+
+        // 5. Lưu xuống DB
         await uow.CommitAsync(ct);
         return true;
     }

@@ -35,13 +35,10 @@ public interface IWithdrawalRequestRepository : IGenericRepository<Domain.Entiti
 
     Task<int> CancelAsync(Guid id, Guid cancelledBy, string cancellationReason, CancellationToken cancellationToken = default);
 
-    Task<int> CompleteAsync(
-        Guid id,
-        Guid processedBy,
-        Guid transactionId,
-        string? receiptImageUrl,
-        string? receiptImagePublicId,
-        CancellationToken cancellationToken = default);
+    Task<int> CompleteAsync(Guid id, Guid processedBy, Guid transactionId,
+        string? receiptImageUrl, string? receiptImagePublicId, string? bankTransactionId,
+        CancellationToken cancellationToken = default
+    );
 
     // =========================================================
     // UNIT OF WORK HELPERS (Chỉ thay đổi State, dùng chung Transaction)
@@ -55,8 +52,6 @@ public interface IWithdrawalRequestRepository : IGenericRepository<Domain.Entiti
 
     void ApplyComplete(
         Domain.Entities.WithdrawalRequest request,
-        Guid processedBy,
-        Guid transactionId,
-        string? receiptImageUrl,
-        string? receiptImagePublicId);
+        Guid processedBy, Guid transactionId, string? bankTransactionId,
+        string? receiptImageUrl, string? receiptImagePublicId);
 }

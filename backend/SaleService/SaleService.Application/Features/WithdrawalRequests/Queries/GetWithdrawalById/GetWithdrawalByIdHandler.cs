@@ -1,23 +1,43 @@
 ﻿using MediatR;
 using SalesService.Application.Dtos.WithdrawalRequests;
 using SalesService.Application.Interfaces;
+using SalesService.Application.Interfaces.Identity;
 using SalesService.Application.Persisitences.WithdrawalRequest;
 
 namespace SalesService.Application.Features.WithdrawalRequests.Queries.GetWithdrawalById;
 
-public class GetWithdrawalByIdHandler(IWithdrawalRequestRepository repo, IAesEncryptionService aesService)
-    : IRequestHandler<GetWithdrawalByIdQuery, WithdrawalDetailDto?>
+public class GetWithdrawalByIdHandler(
+    IWithdrawalRequestRepository repo,
+    IAesEncryptionService aesService,
+    IIdentityServiceClient identityClient
+) : IRequestHandler<GetWithdrawalByIdQuery, WithdrawalDetailDto?>
 {
-    private readonly IWithdrawalRequestRepository _repo = repo;
-    private readonly IAesEncryptionService _aesService = aesService;
-
     public async Task<WithdrawalDetailDto?> Handle(GetWithdrawalByIdQuery request, CancellationToken ct)
     {
-        var item = await _repo.GetByIdAsync(request.Id, ct);
+        var item = await repo.GetByIdAsync(request.Id, ct);
         if (item == null) return null;
 
         // Giải mã số tài khoản từ AES
-        var rawAcc = _aesService.Decrypt(item.EncryptedAccountNumber);
+        string rawAcc;
+        try
+        {
+            rawAcc = aesService.Decrypt(item.EncryptedAccountNumber);
+        }
+        catch
+        {
+            rawAcc = item.MaskedAccountNumber;
+        }
+
+        string? processedByName = null;
+        if (item.ProcessedBy.HasValue)
+        {
+            try
+            {
+                var user = await identityClient.GetUserByIdAsync(item.ProcessedBy.Value);
+                processedByName = user?.Username ?? user?.Email;
+            }
+            catch { /* Log error but don't crash */ }
+        }
 
         return new WithdrawalDetailDto
         {
@@ -25,8 +45,8 @@ public class GetWithdrawalByIdHandler(IWithdrawalRequestRepository repo, IAesEnc
             Id = item.Id,
             RequestCode = item.RequestCode,
             UserId = item.UserId,
-            Amount = item.Amount,
-            FeeAmount = item.FeeAmount,
+            Amount = item.Amount.ToString("F2", System.Globalization.CultureInfo.InvariantCulture),
+            FeeAmount = item.FeeAmount.ToString("F2", System.Globalization.CultureInfo.InvariantCulture),
             BankCode = item.BankCode,
             BankName = item.BankName,
             AccountName = item.AccountName,
@@ -43,7 +63,12 @@ public class GetWithdrawalByIdHandler(IWithdrawalRequestRepository repo, IAesEnc
             CancellationReason = item.CancellationReason,
             ReceiptImageUrl = item.ReceiptImageUrl,
             TransactionId = item.TransactionId,
-            UpdatedAt = item.UpdatedAt
+            UpdatedAt = item.UpdatedAt,
+
+            BankTransactionId = item.BankTransactionId,
+            CompletedAt = item.CompletedAt,
+            ProcessedById = item.ProcessedBy,
+            ProcessedByName = processedByName,
         };
     }
 }

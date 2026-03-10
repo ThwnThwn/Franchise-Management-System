@@ -1,6 +1,7 @@
 ﻿using Ardalis.Result;
 using MediatR;
 using SalesService.Application.Persisitences.WalletTransactions;
+using SalesService.Application.Features.WalletTransactions.Dtos;
 
 namespace SalesService.Application.Features.WalletTransactions.Queries.GetAll;
 
@@ -29,6 +30,7 @@ public sealed class GetAllWalletTransactionsQueryHandler
         {
             Id = t.Id,
             UserId = t.UserId,
+            WalletId = t.WalletId ?? Guid.Empty,
             OrderId = t.OrderId,
             InitiatedBy = t.InitiatedBy,
             ProcessedBy = t.ProcessedBy,

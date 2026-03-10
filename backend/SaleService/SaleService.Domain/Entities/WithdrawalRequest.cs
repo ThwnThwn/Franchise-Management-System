@@ -57,6 +57,8 @@ public partial class WithdrawalRequest : SoftDeletedEntity, IEntity
 
     public DateTimeOffset? CompletedAt { get; set; }
 
+    public string? BankTransactionId { get; set; }
+
     public string? ReceiptImageUrl { get; set; }
 
     public string? ReceiptImagePublicId { get; set; }

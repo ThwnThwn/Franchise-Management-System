@@ -138,6 +138,8 @@ public sealed class DepositVnPayReturnHandler
             walletTransaction.Status = TransactionStatus.Completed;
             walletTransaction.CompletedAt = DateTimeOffset.UtcNow;
             walletTransaction.UpdatedAt = DateTimeOffset.UtcNow;
+            walletTransaction.BalanceBefore = wallet.Balance - payment.Amount;
+            walletTransaction.BalanceAfter = wallet.Balance;
 
             payment.Status = (int)PaymentStatus.Paid;
             payment.PaidAt = DateTime.UtcNow;

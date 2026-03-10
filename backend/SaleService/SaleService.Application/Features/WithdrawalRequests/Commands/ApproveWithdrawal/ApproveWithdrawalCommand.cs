@@ -2,4 +2,4 @@
 
 namespace SalesService.Application.Features.WithdrawalRequests.Commands.ApproveWithdrawal;
 
-public record ApproveWithdrawalCommand(Guid RequestId, string ApprovalNotes) : IRequest<bool>;
+public record ApproveWithdrawalCommand(Guid RequestId, Guid AdminId, string ApprovalNotes) : IRequest<bool>;

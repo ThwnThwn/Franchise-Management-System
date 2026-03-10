@@ -32,7 +32,7 @@ func (w *wallettransactionGrpcClient) GetAll(ctx context.Context, ctxUserId uuid
 		PageSize:     req.PageSize,
 	})
 	if err != nil {
-		return common.PaginationResult[*wallet.WalletTransactionResponse]{}, nil
+		return common.PaginationResult[*wallet.WalletTransactionResponse]{}, err
 	}
 
 	items := make([]*wallet.WalletTransactionResponse, 0, len(res.Transactions))
@@ -88,7 +88,7 @@ func (w *wallettransactionGrpcClient) GetByUserId(ctx context.Context, ctxUserId
 		PageSize:       req.PageSize,
 	})
 	if err != nil {
-		return common.PaginationResult[*wallet.WalletTransactionResponse]{}, nil
+		return common.PaginationResult[*wallet.WalletTransactionResponse]{}, err
 	}
 
 	items := make([]*wallet.WalletTransactionResponse, 0, len(res.Transactions))

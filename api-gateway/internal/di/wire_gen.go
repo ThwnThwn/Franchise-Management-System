@@ -63,7 +63,7 @@ import (
 // InitializeApp nằm ở package 'di', trả về 'bootstrap.App'
 func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, func(), error) {
 	salesServiceUrl := cfg.SalesServiceUrl
-	salesClientFactory, cleanup, err := sales.NewSalesClientFactory(salesServiceUrl, l)
+	salesClientFactory, cleanup, err := sales.NewSalesClientFactory(salesServiceUrl, cfg, l)
 	if err != nil {
 		return nil, nil, err
 	}

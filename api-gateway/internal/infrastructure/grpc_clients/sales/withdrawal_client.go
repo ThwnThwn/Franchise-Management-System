@@ -135,8 +135,9 @@ func (w *withdrawalGrpcClient) Cancel(ctx context.Context, id uuid.UUID, req *wi
 // Complete implements sales.IWithdrawalService.
 func (w *withdrawalGrpcClient) Complete(ctx context.Context, id uuid.UUID, req *withdrawal.CompleteWithdrawalReq) error {
 	_, err := w.client.CompleteWithdrawal(ctx, &salesPb.CompleteWithdrawalRequest{
-		RequestId:   id.String(),
-		ReceiptFile: req.ReceiptFile,
+		RequestId:         id.String(),
+		ReceiptFile:       req.ReceiptFile,
+		BankTransactionId: req.BankTransactionId,
 	})
 	return err
 }

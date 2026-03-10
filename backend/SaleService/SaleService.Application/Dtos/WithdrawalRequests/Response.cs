@@ -7,8 +7,8 @@ public record WithdrawalSummaryDto
     public Guid Id { get; init; }
     public string RequestCode { get; init; } = null!;
     public Guid UserId { get; init; }
-    public decimal Amount { get; init; }
-    public decimal FeeAmount { get; init; }
+    public string Amount { get; set; } = "0.00";
+    public string FeeAmount { get; set; } = "0.00";
     public string? BankCode { get; init; }
     public string BankName { get; init; } = null!;
     public string AccountName { get; init; } = null!;
@@ -28,4 +28,9 @@ public record WithdrawalDetailDto : WithdrawalSummaryDto
     public string? ReceiptImageUrl { get; init; }
     public Guid? TransactionId { get; init; }
     public DateTimeOffset UpdatedAt { get; init; }
+
+    public Guid? ProcessedById { get; init; }      // ID Admin/Kế toán xử lý
+    public string? ProcessedByName { get; init; }  // Tên Admin (Join từ bảng User/Staff)
+    public string? BankTransactionId { get; init; } // Mã GD từ Ngân hàng (Trace number)
+    public DateTimeOffset? CompletedAt { get; init; } // Thời điểm thực sự hoàn tất
 }

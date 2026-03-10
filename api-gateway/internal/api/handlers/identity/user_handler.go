@@ -3,6 +3,7 @@ package identity
 import (
 	"api-gateway/internal/application/constants/errorcode"
 	"api-gateway/internal/application/gateways/identity"
+	"api-gateway/internal/domain/models/common"
 	"api-gateway/internal/domain/models/user"
 	"api-gateway/pkg/utils/contextutils"
 	"api-gateway/pkg/utils/validation"
@@ -180,9 +181,24 @@ func (h *UserHandler) GetAll(c *gin.Context) error {
 	}
 
 	ctx := c.Request.Context()
-	res, err := h.userUC.GetAll(ctx, &req)
-	if err != nil {
-		return err
+	var res common.PaginationResult[*user.UserResponse]
+	var err error
+
+	if len(req.Ids) > 0 {
+		items, err := h.userUC.GetByIds(ctx, req.Ids)
+		if err != nil {
+			return err
+		}
+		res = common.PaginationResult[*user.UserResponse]{
+			Items:      items,
+			TotalCount: int32(len(items)),
+			TotalPages: 1,
+		}
+	} else {
+		res, err = h.userUC.GetAll(ctx, &req)
+		if err != nil {
+			return err
+		}
 	}
 
 	c.JSON(http.StatusOK, res)

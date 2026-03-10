@@ -295,7 +295,7 @@ namespace SalesService.Infrastructure.Repositories
 
                 // ✅ CRITICAL: Optimistic concurrency check
                 // Compare provided rowVersion with current rowVersion
-                if (!wallet.RowVersion.SequenceEqual(rowVersion))
+                if (wallet.RowVersion == null || !wallet.RowVersion.SequenceEqual(rowVersion))
                 {
                     // RowVersion mismatch = another transaction modified this wallet
                     throw new DbUpdateConcurrencyException(

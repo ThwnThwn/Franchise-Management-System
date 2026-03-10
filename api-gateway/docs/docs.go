@@ -6848,6 +6848,15 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "name": "ids",
+                        "in": "query"
+                    },
+                    {
                         "type": "string",
                         "name": "keyword",
                         "in": "query"
@@ -8231,6 +8240,13 @@ const docTemplate = `{
                         "type": "file",
                         "description": "Ảnh chụp biên lai chuyển khoản (Bill)",
                         "name": "receiptFile",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Mã giao dịch",
+                        "name": "bankTransactionId",
                         "in": "formData",
                         "required": true
                     }
@@ -11107,10 +11123,10 @@ const docTemplate = `{
         "api-gateway_internal_domain_models_wallet.UpdateWalletStatusRequest": {
             "type": "object",
             "properties": {
-                "admin_notes": {
+                "adminNotes": {
                     "type": "string"
                 },
-                "new_status": {
+                "newStatus": {
                     "$ref": "#/definitions/api-gateway_internal_domain_constants_enum.WalletStatus"
                 },
                 "reason": {
@@ -11270,7 +11286,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "amount": {
-                    "type": "number"
+                    "type": "string"
                 },
                 "bankCode": {
                     "type": "string"
@@ -11312,7 +11328,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "amount": {
-                    "type": "number"
+                    "type": "string"
                 },
                 "approvalNotes": {
                     "type": "string"
@@ -11323,14 +11339,20 @@ const docTemplate = `{
                 "bankName": {
                     "type": "string"
                 },
+                "bankTransactionId": {
+                    "type": "string"
+                },
                 "cancellationReason": {
+                    "type": "string"
+                },
+                "completedAt": {
                     "type": "string"
                 },
                 "createdAt": {
                     "type": "string"
                 },
                 "feeAmount": {
-                    "type": "number"
+                    "type": "string"
                 },
                 "id": {
                     "type": "string"
@@ -11342,6 +11364,12 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "notes": {
+                    "type": "string"
+                },
+                "processedById": {
+                    "type": "string"
+                },
+                "processedByName": {
                     "type": "string"
                 },
                 "rawAccountNumber": {
@@ -11377,7 +11405,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "amount": {
-                    "type": "number"
+                    "type": "string"
                 },
                 "bankCode": {
                     "type": "string"
@@ -11389,7 +11417,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "feeAmount": {
-                    "type": "number"
+                    "type": "string"
                 },
                 "id": {
                     "type": "string"

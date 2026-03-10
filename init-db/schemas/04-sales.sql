@@ -387,8 +387,12 @@ CREATE TABLE IF NOT EXISTS withdrawal_requests (
     processed_by UUID,                         -- Kế toán viên trực tiếp chuyển khoản
     completed_at TIMESTAMP WITH TIME ZONE,     -- Thời điểm tiền thực sự đi khỏi tài khoản công ty
 
-    receipt_image_url VARCHAR(1000),          
-    receipt_image_public_id VARCHAR(255),      
+    -- ==========================================
+    -- BẰNG CHỨNG CHUYỂN KHOẢN (RẤT QUAN TRỌNG)
+    -- ==========================================
+    bank_transaction_id VARCHAR(100),          -- THÊM MỚI: Mã giao dịch/Trace Number từ ngân hàng
+    receipt_image_url VARCHAR(1000),           -- Link ảnh bill up
+    receipt_image_public_id VARCHAR(255),      -- ID ảnh để sau này có xóa thì gọi API xóa trên Cloudinary
 
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,

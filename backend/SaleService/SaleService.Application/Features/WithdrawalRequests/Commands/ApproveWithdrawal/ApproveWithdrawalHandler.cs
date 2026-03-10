@@ -16,8 +16,7 @@ public class ApproveWithdrawalHandler(IUnitOfWork uow, IWithdrawalRequestReposit
         if (item.Status != WithdrawalStatus.Pending)
             throw new InvalidOperationException("Chỉ có thể duyệt yêu cầu đang ở trạng thái chờ.");
 
-        item.Status = WithdrawalStatus.Approved;
-        item.ApprovalNotes = request.ApprovalNotes;
+        repo.ApplyApprove(item, request.AdminId, request.ApprovalNotes);
 
         await uow.CommitAsync(ct);
         return true;

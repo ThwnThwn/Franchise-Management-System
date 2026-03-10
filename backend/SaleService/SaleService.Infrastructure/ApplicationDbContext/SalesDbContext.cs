@@ -631,6 +631,9 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
             entity.Property(e => e.BankName)
                 .HasMaxLength(255)
                 .HasColumnName("bank_name");
+            entity.Property(e => e.BankTransactionId)
+                .HasMaxLength(100)
+                .HasColumnName("bank_transaction_id");
             entity.Property(e => e.CancellationReason)
                 .HasMaxLength(500)
                 .HasColumnName("cancellation_reason");

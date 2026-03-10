@@ -8,6 +8,7 @@ import (
 	"api-gateway/pkg/utils/validation"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -281,8 +282,9 @@ func (h *WithdrawalHandler) CancelWithdrawal(c *gin.Context) error {
 // @Accept       mpfd
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id           path      string  true  "UUID của yêu cầu rút tiền"
-// @Param        receiptFile  formData  file    true  "Ảnh chụp biên lai chuyển khoản (Bill)"
+// @Param        id                 path      string  true  "UUID của yêu cầu rút tiền"
+// @Param        receiptFile        formData  file    true  "Ảnh chụp biên lai chuyển khoản (Bill)"
+// @Param        bankTransactionId  formData  string  true  "Mã giao dịch"
 // @Success      200          {object}  map[string]string "Hoàn tất"
 // @Router       /withdrawals/{id}/complete [patch]
 func (h *WithdrawalHandler) CompleteWithdrawal(c *gin.Context) error {
@@ -297,6 +299,11 @@ func (h *WithdrawalHandler) CompleteWithdrawal(c *gin.Context) error {
 		return errorcode.NewBadRequest("Cần hình ảnh xác minh việc chuyển khoản")
 	}
 
+	bankTxId := c.PostForm("bankTransactionId")
+	if strings.TrimSpace(bankTxId) == "" {
+		return errorcode.NewBadRequest("Vui lòng nhập Mã giao dịch ngân hàng")
+	}
+
 	openedFile, err := file.Open()
 	if err != nil {
 		return err
@@ -309,7 +316,8 @@ func (h *WithdrawalHandler) CompleteWithdrawal(c *gin.Context) error {
 	}
 
 	req := withdrawal.CompleteWithdrawalReq{
-		ReceiptFile: fileBytes,
+		BankTransactionId: bankTxId,
+		ReceiptFile:       fileBytes,
 	}
 
 	ctx := c.Request.Context()

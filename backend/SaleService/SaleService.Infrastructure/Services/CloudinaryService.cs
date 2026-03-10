@@ -30,41 +30,56 @@ namespace SalesService.Infrastructure.Services
 
         public async Task<ImageUploadResult> UploadImageAsync(IFormFile file)
         {
-            // Kiểm tra file có hợp lệ không
+            // 1. Kiểm tra sơ bộ
             if (file == null || file.Length == 0)
                 throw new ArgumentException("File upload is invalid");
 
-            // Validate loại file (chỉ cho phép image)
-            var allowedTypes = new[] { "image/jpeg", "image/png", "image/jpg" };
-            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
-            var fileExtension = Path.GetExtension(file.FileName).ToLower();
+            // 2. Chuẩn hóa Extension (Bất chấp FileName có "ngáo" hay không)
+            var fileExtension = Path.GetExtension(file.FileName)?.ToLower() ?? "";
 
-            if (!allowedExtensions.Contains(fileExtension))
+            // Nếu Client gửi blob/file không đuôi, cứu bằng ContentType
+            if (string.IsNullOrEmpty(fileExtension))
             {
-                throw new InvalidOperationException($"Unsupported image extension: {fileExtension}");
+                fileExtension = file.ContentType.ToLower() switch
+                {
+                    "image/jpeg" or "image/jpg" => ".jpg",
+                    "image/png" => ".png",
+                    "image/webp" => ".webp",
+                    _ => ""
+                };
             }
 
-            // Đọc file vào MemoryStream để đảm bảo stream không bị dispose sớm
-            // và Cloudinary có thể đọc được đúng cách
-            using var memoryStream = new MemoryStream();
-            await file.CopyToAsync(memoryStream);
-            memoryStream.Position = 0;
+            // 3. Validate gắt gao
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+            if (!allowedExtensions.Contains(fileExtension))
+            {
+                throw new InvalidOperationException($"Unsupported image extension: {fileExtension} (Type: {file.ContentType})");
+            }
 
-            // Upload ảnh vào folder products trong Cloudinary
+            // 4. Tối ưu Stream (Dùng thẳng Stream của IFormFile để đỡ tốn RAM copy)
+            using var stream = file.OpenReadStream();
+
+            // Đảm bảo có tên file cho Cloudinary, nếu không có thì tự chế
+            var finalFileName = string.IsNullOrEmpty(Path.GetFileNameWithoutExtension(file.FileName))
+                ? $"upload_{Guid.NewGuid()}{fileExtension}"
+                : file.FileName;
+
+            // 5. Cấu hình Upload
             var uploadParams = new CloudinaryDotNet.Actions.ImageUploadParams
             {
-                File = new FileDescription(file.FileName, memoryStream),
-                Folder = "products"
+                File = new FileDescription(finalFileName, stream),
+                Folder = "sales",
+                // có thể thêm option tự động tối ưu ảnh của Cloudinary ở đây
+                Transformation = new CloudinaryDotNet.Transformation().Quality("auto").FetchFormat("auto")
             };
 
             var uploadResult = await _cloudinary.UploadAsync(uploadParams);
 
-            // Kiểm tra xem upload có thành công không
+            // 6. Check kết quả
             if (uploadResult == null || uploadResult.StatusCode != System.Net.HttpStatusCode.OK)
             {
                 var errorMsg = uploadResult?.Error?.Message ?? "Unknown error";
-                var status = uploadResult?.StatusCode.ToString() ?? "Unknown";
-                throw new Exception($"Cloudinary upload failed: {errorMsg} (Status: {status})");
+                throw new Exception($"Cloudinary upload failed: {errorMsg}");
             }
 
             return new ImageUploadResult
@@ -76,28 +91,45 @@ namespace SalesService.Infrastructure.Services
 
         public async Task<ImageUploadResult> UploadImageFromBytesAsync(byte[] imageData, string fileName, string contentType)
         {
-            // Kiểm tra dữ liệu có hợp lệ không
             if (imageData == null || imageData.Length == 0)
                 throw new ArgumentException("Image data is invalid");
 
-            // Validate loại file (chỉ cho phép image)
-            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
-            var fileExtension = Path.GetExtension(fileName).ToLower();
+            // 1. Lấy extension từ fileName (để lowercase)
+            var fileExtension = Path.GetExtension(fileName)?.ToLower() ?? "";
 
-            if (!allowedExtensions.Contains(fileExtension))
+            // 2. TUYỆT CHIÊU: Nếu fileName không có đuôi, hãy nhìn vào contentType
+            if (string.IsNullOrEmpty(fileExtension))
             {
-                throw new InvalidOperationException($"Unsupported image extension: {fileExtension}");
+                fileExtension = contentType.ToLower() switch
+                {
+                    "image/jpeg" => ".jpg",
+                    "image/jpg" => ".jpg",
+                    "image/png" => ".png",
+                    "image/webp" => ".webp",
+                    _ => ""
+                };
             }
 
-            // Tạo MemoryStream từ byte array
+            // 3. Kiểm tra lại lần nữa
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+            if (!allowedExtensions.Contains(fileExtension))
+            {
+                throw new InvalidOperationException($"Unsupported image extension: {fileExtension} (From file: {fileName})");
+            }
+
+            // 4. Nếu fileName bị trống (gRPC hay bị), tự chế một cái tên để Cloudinary nó chịu nhận
+            if (string.IsNullOrEmpty(Path.GetFileNameWithoutExtension(fileName)))
+            {
+                fileName = $"upload_{Guid.NewGuid()}{fileExtension}";
+            }
+
             using var memoryStream = new MemoryStream(imageData);
             memoryStream.Position = 0;
 
-            // Upload ảnh vào folder products trong Cloudinary
             var uploadParams = new CloudinaryDotNet.Actions.ImageUploadParams
             {
                 File = new FileDescription(fileName, memoryStream),
-                Folder = "products"
+                Folder = "sales"
             };
 
             var uploadResult = await _cloudinary.UploadAsync(uploadParams);

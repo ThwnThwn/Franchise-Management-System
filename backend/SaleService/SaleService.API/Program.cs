@@ -13,6 +13,7 @@ using SalesService.API.Services.Orders;
 using SalesService.API.Services.Payments;
 using SalesService.API.Services.Products;
 using SalesService.API.Services.Wallets;
+using SalesService.API.Services.Withdrawal;
 using SalesService.Application.ClientInterface.Engagement;
 using SalesService.Application.ClientInterface.Inventory;
 using SalesService.Application.ClientInterface.Products;
@@ -63,9 +64,13 @@ public class Program
         });
 
         // Add services to the container.
+        var maxUploadSizeMB = int.Parse(builder.Configuration["MAX_UPLOAD_SIZE_MB"] ?? "10");
         builder.Services.AddGrpc(options =>
         {
             options.Interceptors.Add<Interceptors.GrpcExceptionInterceptor>();
+
+            options.MaxReceiveMessageSize = maxUploadSizeMB * 1024 * 1024;
+            options.MaxSendMessageSize = maxUploadSizeMB * 1024 * 1024;
         });
         builder.Services.AddGrpcReflection(); // Enable gRPC Server Reflection
         builder.Services.AddControllers();
@@ -309,6 +314,7 @@ public class Program
         app.MapGrpcService<WalletGrpcService>();
         app.MapGrpcService<WalletTransactionGrpcService>();
         app.MapGrpcService<RefundGrpcService>();
+        app.MapGrpcService<WithdrawalGrpcService>();
         app.MapGrpcReflectionService(); // Enable gRPC Server Reflection endpoint
         app.MapGet("/", () => "Sale Service API is running. Visit /swagger for API documentation.");
 
