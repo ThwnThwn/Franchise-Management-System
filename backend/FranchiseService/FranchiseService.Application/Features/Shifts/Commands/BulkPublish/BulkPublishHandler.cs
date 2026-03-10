@@ -27,17 +27,17 @@ namespace FranchiseService.Application.Features.Shifts.Commands.BulkPublish
             var shifts = await _shiftRepository.GetByIdsAsync(request.ShiftIds.ToArray());
 
             // Chi publish nhung ca dang Draft, bo qua trang thai khac
-            var draftShifts = shifts
-                .Where(s => s.Status == (int)ShiftStatus.Draft)
+            var canPublishShifts = shifts
+                .Where(s => s.Status == (int)ShiftStatus.Draft || s.Status == (int)ShiftStatus.Open)
                 .ToList();
 
             // Validate: phai co it nhat 1 ca Draft trong danh sach
-            if (!draftShifts.Any())
+            if (!canPublishShifts.Any())
                 throw new InvalidOperationException(
                     "Khong co ca nao o trang thai Draft de publish.");
 
             // Chuyen trang thai tung ca tu Draft sang Published
-            foreach (var shift in draftShifts)
+            foreach (var shift in canPublishShifts)
             {
                 shift.Status = (int)ShiftStatus.Published;
                 shift.UpdatedAt = DateTimeOffset.UtcNow;
@@ -45,7 +45,7 @@ namespace FranchiseService.Application.Features.Shifts.Commands.BulkPublish
             }
 
             // Tra ve so ca thuc te duoc publish
-            return draftShifts.Count;
+            return canPublishShifts.Count;
         }
     }
 }
