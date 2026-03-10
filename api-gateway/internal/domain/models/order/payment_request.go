@@ -8,6 +8,11 @@ import (
 type CreatePaymentRequest struct {
 	ReturnUrl     *string            `json:"returnUrl"`
 	PaymentMethod enum.PaymentMethod `json:"paymentMethod"`
+
+	Point               *int32  `json:"point"`
+	VoucherShipCode     *string `json:"voucherShipCode"`
+	VoucherDiscountCode *string `json:"voucherDiscountCode"`
+	AppliedWalletAmount *int32  `json:"appliedWalletAmount"`
 }
 
 type GetAllPaymentsReq struct {

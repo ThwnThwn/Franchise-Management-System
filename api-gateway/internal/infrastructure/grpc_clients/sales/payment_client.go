@@ -41,6 +41,11 @@ func (o *paymentGrpcClient) CreatePaymentUrl(ctx context.Context,
 		OrderId:       id.String(),
 		ReturnUrl:     &returnUrl,
 		PaymentMethod: salesPb.PaymentMethodType(req.PaymentMethod),
+
+		Point:               req.Point,
+		VoucherShipCode:     req.VoucherShipCode,
+		VoucherDiscountCode: req.VoucherDiscountCode,
+		Wallet:              req.AppliedWalletAmount,
 	})
 	if err != nil {
 		return "", err
