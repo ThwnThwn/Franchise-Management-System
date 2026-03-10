@@ -60,7 +60,6 @@ export const useScheduleBulkActions = ({
             if (s.status === ShiftStatus.Draft) {
                 result.forDelete.push(s.id)
                 result.forOpen.push(s.id)
-                result.forPublish.push(s.id)
 
                 if (s.assignedStaffCount < s.requiredStaffCount) {
                     result.forAutoFill.push(s.id)
@@ -68,9 +67,9 @@ export const useScheduleBulkActions = ({
             }
 
             // 2. Logic cho Publish nhanh: Những ca chưa ban hành (Draft hoặc đang ở Chợ Ca)
-            // if (s.status === ShiftStatus.Draft || s.status === ShiftStatus.Open) {
-            //     result.forPublish.push(s.id)
-            // }
+            if (s.status === ShiftStatus.Draft || s.status === ShiftStatus.Open) {
+                result.forPublish.push(s.id)
+            }
         })
 
         return result

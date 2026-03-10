@@ -11,18 +11,18 @@ import {
     Ticket
 } from "lucide-react"
 
-export interface MenuSubItem {
-    label: string
-    href: string
-    allowedRoles: RoleSlug[]
-}
+// export interface MenuSubItem {
+//     label: string
+//     href: string
+//     allowedRoles: RoleSlug[]
+// }
 
 export interface MenuItem {
-    icon: React.ReactNode
     label: string
     href?: string
+    icon?: React.ReactNode
     allowedRoles: RoleSlug[]
-    subItems?: MenuSubItem[]
+    subItems?: MenuItem[]
 }
 
 export const DASHBOARD_SIDEBAR_MENU: MenuItem[] = [

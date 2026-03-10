@@ -1,14 +1,15 @@
 "use client"
 
-import React, { useState, useMemo } from "react"
+import { useState } from "react"
 import { createPortal } from "react-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import { Menu } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { useTokenStore } from "@/hooks"
 import { RoleSlug } from "@/constants/enums"
-import { DASHBOARD_SIDEBAR_MENU, MenuItem } from "@/constants/menu/sidebar"
+import { DASHBOARD_SIDEBAR_MENU } from "@/constants/menu/sidebar"
 import { SidebarContent } from "./SidebarContent"
+import { DashboardSidebarContent } from "./DashboardSidebarContent"
 
 export const DashboardSidebar = () => {
     const [isOpen, setIsOpen] = useState(false)
@@ -16,32 +17,32 @@ export const DashboardSidebar = () => {
     const roleSlug = useTokenStore((s) => s.roleSlug) || RoleSlug.Staff
 
     // Trong file DashboardSidebar.tsx của ní
-    const filteredMenuItems = useMemo(() => {
-        if (!roleSlug) return []
+    // const filteredMenuItems = useMemo(() => {
+    //     if (!roleSlug) return []
 
-        return DASHBOARD_SIDEBAR_MENU.reduce((acc, item) => {
-            // 1. Kiểm tra quyền thằng cha
-            if (item.allowedRoles.includes(roleSlug)) {
-                // 2. Nếu có menu con, lọc tiếp menu con
-                if (item.subItems) {
-                    const filteredSubs = item.subItems.filter((sub) =>
-                        sub.allowedRoles.includes(roleSlug)
-                    )
-                    // Nếu sau khi lọc mà menu con vẫn còn, thì push thằng cha (kèm menu con đã lọc) vào mảng
-                    if (filteredSubs.length > 0) {
-                        acc.push({ ...item, subItems: filteredSubs })
-                    }
-                } else {
-                    // 3. Không có menu con (Menu đơn) thì push thẳng
-                    acc.push(item)
-                }
-            }
-            return acc
-        }, [] as MenuItem[])
-    }, [roleSlug])
+    //     return DASHBOARD_SIDEBAR_MENU.reduce((acc, item) => {
+    //         // 1. Kiểm tra quyền thằng cha
+    //         if (item.allowedRoles.includes(roleSlug)) {
+    //             // 2. Nếu có menu con, lọc tiếp menu con
+    //             if (item.subItems) {
+    //                 const filteredSubs = item.subItems.filter((sub) =>
+    //                     sub.allowedRoles.includes(roleSlug)
+    //                 )
+    //                 // Nếu sau khi lọc mà menu con vẫn còn, thì push thằng cha (kèm menu con đã lọc) vào mảng
+    //                 if (filteredSubs.length > 0) {
+    //                     acc.push({ ...item, subItems: filteredSubs })
+    //                 }
+    //             } else {
+    //                 // 3. Không có menu con (Menu đơn) thì push thẳng
+    //                 acc.push(item)
+    //             }
+    //         }
+    //         return acc
+    //     }, [] as MenuItem[])
+    // }, [roleSlug])
 
     const commonProps = {
-        items: filteredMenuItems,
+        items: DASHBOARD_SIDEBAR_MENU,
         pathname,
         roleSlug,
         onClose: () => setIsOpen(false)
@@ -51,7 +52,7 @@ export const DashboardSidebar = () => {
         <>
             {/* 1. DESKTOP VIEW: Nằm trong layout bình thường */}
             <aside className="hidden lg:flex w-80 bg-background h-full border-r border-divider flex-col">
-                <SidebarContent {...commonProps} isMobile={false} />
+                <DashboardSidebarContent {...commonProps} isMobile={false} />
             </aside>
 
             {/* 2. MOBILE VIEW: Dùng Portal để bay ra khỏi max-w-7xl của cha */}

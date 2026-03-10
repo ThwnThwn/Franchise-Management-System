@@ -79,9 +79,16 @@ const STATUS_COLOR_MAP: Record<OrderStatus, string> = {
 }
 
 const BAR_COLORS = [
-    "#6366f1", "#8b5cf6", "#06b6d4", "#10b981",
-    "#f59e0b", "#ef4444", "#3b82f6", "#ec4899",
-    "#14b8a6", "#f97316"
+    "#6366f1",
+    "#8b5cf6",
+    "#06b6d4",
+    "#10b981",
+    "#f59e0b",
+    "#ef4444",
+    "#3b82f6",
+    "#ec4899",
+    "#14b8a6",
+    "#f97316"
 ]
 
 // ── KPI Card ───────────────────────────────────────────────────────────────────
@@ -172,9 +179,8 @@ export default function OrderAnalyticsPage() {
         }
     }, [preset, customFrom, customTo])
 
-
     // storeId boundary — Admin sees all, Manager/Staff sees their own store
-    const storeId = !isAdmin ? storeIdFromToken ?? undefined : undefined
+    const storeId = !isAdmin ? (storeIdFromToken ?? undefined) : undefined
 
     const revenueQuery: GetRevenueReportQuery = useMemo(
         () => ({ fromDate: revenueFromDate, toDate: revenueToDate, storeId }),
@@ -243,7 +249,10 @@ export default function OrderAnalyticsPage() {
             .sort((a, b) => b.totalRevenue - a.totalRevenue)
             .slice(0, 10)
             .map((item, i) => ({
-                name: item.productName.length > 22 ? item.productName.slice(0, 20) + "…" : item.productName,
+                name:
+                    item.productName.length > 22
+                        ? item.productName.slice(0, 20) + "…"
+                        : item.productName,
                 fullName: item.productName,
                 qty: item.quantitySold,
                 revenue: item.totalRevenue,
@@ -301,20 +310,22 @@ export default function OrderAnalyticsPage() {
                         <button
                             key={p.key}
                             onClick={() => setPreset(p.key)}
-                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${preset === p.key
-                                ? "bg-primary text-white shadow-sm"
-                                : "bg-slate-100 hover:bg-slate-200 text-slate-600"
-                                }`}
+                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                                preset === p.key
+                                    ? "bg-primary text-white shadow-sm"
+                                    : "bg-slate-100 hover:bg-slate-200 text-slate-600"
+                            }`}
                         >
                             {p.label}
                         </button>
                     ))}
                     <button
                         onClick={() => setPreset("custom")}
-                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${preset === "custom"
-                            ? "bg-primary text-white shadow-sm"
-                            : "bg-slate-100 hover:bg-slate-200 text-slate-600"
-                            }`}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                            preset === "custom"
+                                ? "bg-primary text-white shadow-sm"
+                                : "bg-slate-100 hover:bg-slate-200 text-slate-600"
+                        }`}
                     >
                         Tùy chỉnh
                     </button>
@@ -351,9 +362,7 @@ export default function OrderAnalyticsPage() {
                         <>
                             <SelectItem key="all">Tất cả</SelectItem>
                             {ALL_STATUSES.map((s) => (
-                                <SelectItem key={String(s)}>
-                                    {OrderStatusLabels[s]}
-                                </SelectItem>
+                                <SelectItem key={String(s)}>{OrderStatusLabels[s]}</SelectItem>
                             ))}
                         </>
                     </Select>
@@ -446,9 +455,16 @@ export default function OrderAnalyticsPage() {
                         </div>
                     </CardHeader>
                     <CardBody className="px-4 pb-5 pt-0">
-                        {volumeLoading ? <ChartLoader /> : ordersPerDay.length === 0 ? <EmptyChart /> : (
+                        {volumeLoading ? (
+                            <ChartLoader />
+                        ) : ordersPerDay.length === 0 ? (
+                            <EmptyChart />
+                        ) : (
                             <ResponsiveContainer width="100%" height={260}>
-                                <LineChart data={ordersPerDay} margin={{ top: 8, right: 16, left: -10, bottom: 0 }}>
+                                <LineChart
+                                    data={ordersPerDay}
+                                    margin={{ top: 8, right: 16, left: -10, bottom: 0 }}
+                                >
                                     <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                                     <XAxis
                                         dataKey="label"
@@ -464,23 +480,47 @@ export default function OrderAnalyticsPage() {
                                         allowDecimals={false}
                                     />
                                     <RechartsTooltip
-                                        contentStyle={{ borderRadius: "10px", border: "1px solid #e2e8f0", fontSize: 12 }}
+                                        contentStyle={{
+                                            borderRadius: "10px",
+                                            border: "1px solid #e2e8f0",
+                                            fontSize: 12
+                                        }}
                                         formatter={(v, name) => {
                                             const labels: Record<string, string> = {
                                                 total: "Tổng đơn",
                                                 completed: "Hoàn thành",
                                                 cancelled: "Huỷ"
                                             }
-                                            return [`${v ?? 0} đơn`, labels[String(name)] ?? String(name)]
+                                            return [
+                                                `${v ?? 0} đơn`,
+                                                labels[String(name)] ?? String(name)
+                                            ]
                                         }}
                                         labelFormatter={(l) => `Ngày ${l}`}
                                     />
-                                    <Line type="monotone" dataKey="total" stroke="#6366f1" strokeWidth={2.5}
-                                        dot={{ r: 3, fill: "#6366f1", strokeWidth: 0 }} activeDot={{ r: 5 }} />
-                                    <Line type="monotone" dataKey="completed" stroke="#10b981" strokeWidth={2}
-                                        dot={false} />
-                                    <Line type="monotone" dataKey="cancelled" stroke="#ef4444" strokeWidth={2}
-                                        dot={false} strokeDasharray="4 2" />
+                                    <Line
+                                        type="monotone"
+                                        dataKey="total"
+                                        stroke="#6366f1"
+                                        strokeWidth={2.5}
+                                        dot={{ r: 3, fill: "#6366f1", strokeWidth: 0 }}
+                                        activeDot={{ r: 5 }}
+                                    />
+                                    <Line
+                                        type="monotone"
+                                        dataKey="completed"
+                                        stroke="#10b981"
+                                        strokeWidth={2}
+                                        dot={false}
+                                    />
+                                    <Line
+                                        type="monotone"
+                                        dataKey="cancelled"
+                                        stroke="#ef4444"
+                                        strokeWidth={2}
+                                        dot={false}
+                                        strokeDasharray="4 2"
+                                    />
                                 </LineChart>
                             </ResponsiveContainer>
                         )}
@@ -492,8 +532,14 @@ export default function OrderAnalyticsPage() {
                                     { color: "#10b981", label: "Hoàn thành" },
                                     { color: "#ef4444", label: "Huỷ" }
                                 ].map((l) => (
-                                    <div key={l.label} className="flex items-center gap-1.5 text-xs text-slate-500">
-                                        <span className="w-3 h-0.5 rounded-full" style={{ background: l.color }} />
+                                    <div
+                                        key={l.label}
+                                        className="flex items-center gap-1.5 text-xs text-slate-500"
+                                    >
+                                        <span
+                                            className="w-3 h-0.5 rounded-full"
+                                            style={{ background: l.color }}
+                                        />
                                         {l.label}
                                     </div>
                                 ))}
@@ -506,12 +552,20 @@ export default function OrderAnalyticsPage() {
                 <Card className="bg-white border border-slate-100 shadow-sm">
                     <CardHeader className="px-6 pt-5 pb-2">
                         <div>
-                            <h3 className="text-base font-semibold text-slate-900">Phân phối trạng thái</h3>
-                            <p className="text-xs text-slate-400 mt-0.5">Tỉ lệ từng trạng thái đơn</p>
+                            <h3 className="text-base font-semibold text-slate-900">
+                                Phân phối trạng thái
+                            </h3>
+                            <p className="text-xs text-slate-400 mt-0.5">
+                                Tỉ lệ từng trạng thái đơn
+                            </p>
                         </div>
                     </CardHeader>
                     <CardBody className="px-4 pb-5 pt-0">
-                        {volumeLoading ? <ChartLoader /> : statusDistribution.length === 0 ? <EmptyChart /> : (
+                        {volumeLoading ? (
+                            <ChartLoader />
+                        ) : statusDistribution.length === 0 ? (
+                            <EmptyChart />
+                        ) : (
                             <>
                                 <ResponsiveContainer width="100%" height={175}>
                                     <PieChart>
@@ -529,7 +583,11 @@ export default function OrderAnalyticsPage() {
                                             ))}
                                         </Pie>
                                         <RechartsTooltip
-                                            contentStyle={{ borderRadius: "10px", border: "1px solid #e2e8f0", fontSize: 12 }}
+                                            contentStyle={{
+                                                borderRadius: "10px",
+                                                border: "1px solid #e2e8f0",
+                                                fontSize: 12
+                                            }}
                                             formatter={(v, name) => [`${v ?? 0} đơn`, name]}
                                         />
                                     </PieChart>
@@ -537,9 +595,16 @@ export default function OrderAnalyticsPage() {
                                 <div className="grid grid-cols-2 gap-x-2 gap-y-1 mt-1">
                                     {statusDistribution.map((s, i) => (
                                         <div key={i} className="flex items-center gap-1.5 truncate">
-                                            <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: s.color }} />
-                                            <span className="text-xs text-slate-600 truncate">{s.name}</span>
-                                            <span className="text-xs font-semibold text-slate-900 ml-auto shrink-0">{s.value}</span>
+                                            <span
+                                                className="w-2.5 h-2.5 rounded-full shrink-0"
+                                                style={{ background: s.color }}
+                                            />
+                                            <span className="text-xs text-slate-600 truncate">
+                                                {s.name}
+                                            </span>
+                                            <span className="text-xs font-semibold text-slate-900 ml-auto shrink-0">
+                                                {s.value}
+                                            </span>
                                         </div>
                                     ))}
                                 </div>
@@ -555,28 +620,42 @@ export default function OrderAnalyticsPage() {
                 <Card className="bg-white border border-slate-100 shadow-sm">
                     <CardHeader className="px-6 pt-5 pb-2">
                         <div>
-                            <h3 className="text-base font-semibold text-slate-900">Top doanh thu theo sản phẩm</h3>
-                            <p className="text-xs text-slate-400 mt-0.5">10 sản phẩm có doanh thu cao nhất</p>
+                            <h3 className="text-base font-semibold text-slate-900">
+                                Top doanh thu theo sản phẩm
+                            </h3>
+                            <p className="text-xs text-slate-400 mt-0.5">
+                                10 sản phẩm có doanh thu cao nhất
+                            </p>
                         </div>
                     </CardHeader>
                     <CardBody className="px-4 pb-5 pt-0">
-                        {revenueLoading ? <ChartLoader /> : topProducts.length === 0 ? <EmptyChart /> : (
+                        {revenueLoading ? (
+                            <ChartLoader />
+                        ) : topProducts.length === 0 ? (
+                            <EmptyChart />
+                        ) : (
                             <ResponsiveContainer width="100%" height={230}>
                                 <BarChart
                                     data={topProducts}
                                     layout="vertical"
                                     margin={{ top: 4, right: 60, left: 8, bottom: 0 }}
                                 >
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
+                                    <CartesianGrid
+                                        strokeDasharray="3 3"
+                                        stroke="#f1f5f9"
+                                        horizontal={false}
+                                    />
                                     <XAxis
                                         type="number"
                                         tick={{ fontSize: 10, fill: "#94a3b8" }}
                                         axisLine={false}
                                         tickLine={false}
                                         tickFormatter={(v) =>
-                                            v >= 1_000_000 ? `${(v / 1_000_000).toFixed(1)}M`
-                                                : v >= 1000 ? `${(v / 1000).toFixed(0)}K`
-                                                    : String(v)
+                                            v >= 1_000_000
+                                                ? `${(v / 1_000_000).toFixed(1)}M`
+                                                : v >= 1000
+                                                  ? `${(v / 1000).toFixed(0)}K`
+                                                  : String(v)
                                         }
                                     />
                                     <YAxis
@@ -588,7 +667,11 @@ export default function OrderAnalyticsPage() {
                                         tickLine={false}
                                     />
                                     <RechartsTooltip
-                                        contentStyle={{ borderRadius: "10px", border: "1px solid #e2e8f0", fontSize: 12 }}
+                                        contentStyle={{
+                                            borderRadius: "10px",
+                                            border: "1px solid #e2e8f0",
+                                            fontSize: 12
+                                        }}
                                         formatter={(v, _name, item) => [
                                             formatCurrency(Number(v ?? 0)),
                                             (item?.payload as { fullName?: string })?.fullName ?? ""
@@ -609,19 +692,29 @@ export default function OrderAnalyticsPage() {
                 <Card className="bg-white border border-slate-100 shadow-sm">
                     <CardHeader className="px-6 pt-5 pb-2">
                         <div>
-                            <h3 className="text-base font-semibold text-slate-900">Top sản phẩm bán chạy</h3>
+                            <h3 className="text-base font-semibold text-slate-900">
+                                Top sản phẩm bán chạy
+                            </h3>
                             <p className="text-xs text-slate-400 mt-0.5">Theo số lượng đã bán</p>
                         </div>
                     </CardHeader>
                     <CardBody className="px-4 pb-5 pt-0">
-                        {revenueLoading ? <ChartLoader /> : topProducts.length === 0 ? <EmptyChart /> : (
+                        {revenueLoading ? (
+                            <ChartLoader />
+                        ) : topProducts.length === 0 ? (
+                            <EmptyChart />
+                        ) : (
                             <ResponsiveContainer width="100%" height={230}>
                                 <BarChart
                                     data={topProducts}
                                     layout="vertical"
                                     margin={{ top: 4, right: 40, left: 8, bottom: 0 }}
                                 >
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
+                                    <CartesianGrid
+                                        strokeDasharray="3 3"
+                                        stroke="#f1f5f9"
+                                        horizontal={false}
+                                    />
                                     <XAxis
                                         type="number"
                                         tick={{ fontSize: 11, fill: "#94a3b8" }}
@@ -638,13 +731,22 @@ export default function OrderAnalyticsPage() {
                                         tickLine={false}
                                     />
                                     <RechartsTooltip
-                                        contentStyle={{ borderRadius: "10px", border: "1px solid #e2e8f0", fontSize: 12 }}
+                                        contentStyle={{
+                                            borderRadius: "10px",
+                                            border: "1px solid #e2e8f0",
+                                            fontSize: 12
+                                        }}
                                         formatter={(v, _name, item) => [
                                             `${v ?? 0} phần`,
                                             (item?.payload as { fullName?: string })?.fullName ?? ""
                                         ]}
                                     />
-                                    <Bar dataKey="qty" fill="#6366f1" radius={[0, 4, 4, 0]} maxBarSize={18} />
+                                    <Bar
+                                        dataKey="qty"
+                                        fill="#6366f1"
+                                        radius={[0, 4, 4, 0]}
+                                        maxBarSize={18}
+                                    />
                                 </BarChart>
                             </ResponsiveContainer>
                         )}
@@ -656,7 +758,9 @@ export default function OrderAnalyticsPage() {
             <Card className="bg-white border border-slate-100 shadow-sm">
                 <CardHeader className="px-6 pt-5 pb-3">
                     <div>
-                        <h3 className="text-base font-semibold text-slate-900">Chi tiết doanh thu theo sản phẩm</h3>
+                        <h3 className="text-base font-semibold text-slate-900">
+                            Chi tiết doanh thu theo sản phẩm
+                        </h3>
                         <p className="text-xs text-slate-400 mt-0.5">
                             Tổng doanh thu:{" "}
                             <span className="font-semibold text-emerald-600">
@@ -667,7 +771,9 @@ export default function OrderAnalyticsPage() {
                 </CardHeader>
                 <CardBody className="px-6 pb-5 pt-0">
                     {revenueLoading ? (
-                        <div className="flex justify-center py-8"><Spinner size="lg" /></div>
+                        <div className="flex justify-center py-8">
+                            <Spinner size="lg" />
+                        </div>
                     ) : topProducts.length === 0 ? (
                         <p className="text-center text-slate-400 py-8 text-sm">Không có dữ liệu</p>
                     ) : (
@@ -675,10 +781,18 @@ export default function OrderAnalyticsPage() {
                             <table className="w-full text-sm">
                                 <thead>
                                     <tr className="border-b border-slate-100">
-                                        <th className="text-left py-2.5 text-xs font-semibold text-slate-500 uppercase">Sản phẩm</th>
-                                        <th className="text-right py-2.5 text-xs font-semibold text-slate-500 uppercase">SL bán</th>
-                                        <th className="text-right py-2.5 text-xs font-semibold text-slate-500 uppercase">Đơn giá</th>
-                                        <th className="text-right py-2.5 text-xs font-semibold text-slate-500 uppercase">Doanh thu</th>
+                                        <th className="text-left py-2.5 text-xs font-semibold text-slate-500 uppercase">
+                                            Sản phẩm
+                                        </th>
+                                        <th className="text-right py-2.5 text-xs font-semibold text-slate-500 uppercase">
+                                            SL bán
+                                        </th>
+                                        <th className="text-right py-2.5 text-xs font-semibold text-slate-500 uppercase">
+                                            Đơn giá
+                                        </th>
+                                        <th className="text-right py-2.5 text-xs font-semibold text-slate-500 uppercase">
+                                            Doanh thu
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -689,8 +803,12 @@ export default function OrderAnalyticsPage() {
                                         >
                                             <td className="py-3">
                                                 <div>
-                                                    <p className="font-medium text-slate-800">{item.productName}</p>
-                                                    <p className="text-xs text-slate-400">{item.sku}</p>
+                                                    <p className="font-medium text-slate-800">
+                                                        {item.productName}
+                                                    </p>
+                                                    <p className="text-xs text-slate-400">
+                                                        {item.sku}
+                                                    </p>
                                                 </div>
                                             </td>
                                             <td className="py-3 text-right font-semibold text-slate-900">

@@ -118,16 +118,10 @@ export const useGetMyAgenda = (params: GetAgendaParams, enabled = true) => {
         queryFn: () => myShiftApi.getAgenda(params),
 
         // Chỉ chạy khi thỏa mãn: Role hợp lệ, có đủ ngày bắt đầu và kết thúc
-        enabled: enabled && !!params.startDate && !!params.endDate,
-
-        /**
-         * Lịch làm việc thường cố định, ít thay đổi đột ngột.
-         * Để staleTime 5 phút giúp tiết kiệm tài nguyên hệ thống, tránh fetch lại khi nhân viên chuyển tab.
-         */
-        staleTime: 1000 * 60 * 5,
+        enabled: enabled && !!params.startDate && !!params.endDate
 
         // Giữ lại dữ liệu cũ trong lúc fetch dữ liệu mới để UI không bị giật (Loading skeleton)
-        placeholderData: (previousData) => previousData
+        // placeholderData: (previousData) => previousData
     })
 }
 

@@ -6,7 +6,7 @@ import { useFormik } from "formik"
 import { ArrowRight, Clock, Store } from "lucide-react"
 import dayjs from "dayjs"
 import { ButtonStyled, TextareaStyled } from "@/components"
-import { ShiftResponse, StaffAssignmentCandidate } from "@/features/shifts/models/response"
+import { ShiftResponse } from "@/features/shifts/models/response"
 import { useRequestSwap, useGetSwapCandidates, useReleaseShift } from "@/features/shifts/hooks"
 import { createSwapSchema, CreateSwapFormValues } from "./schema"
 import { useFormikHelpers, useUserHelper } from "@/hooks"
@@ -89,9 +89,7 @@ export const CreateSwapFormBody = ({ shift, assignmentId, onSuccess }: CreateSwa
 
             {/* Chọn người đi thay */}
             <div>
-                <p className="text-sm font-bold text-default-700 mb-2">
-                    Người đi thay <span className="text-danger">*</span>
-                </p>
+                <p className="text-sm font-bold text-default-700 mb-2">Người đi thay</p>
                 {isLoadingCandidates ? (
                     <div className="h-14 bg-default-100 rounded-xl flex items-center justify-center animate-pulse">
                         <Spinner size="sm" color="primary" />
@@ -106,20 +104,23 @@ export const CreateSwapFormBody = ({ shift, assignmentId, onSuccess }: CreateSwa
                         items={availableCandidates}
                         aria-label="Chọn người thay thế"
                         placeholder="Chọn 1 đồng nghiệp..."
+                        isClearable={false}
                         selectedKeys={
                             formik.values.targetUserId ? [formik.values.targetUserId] : []
                         }
                         onSelectionChange={(keys) => {
-                            formik.setFieldValue("targetUserId", Array.from(keys)[0] as string)
+                            const selectedValue = Array.from(keys)[0] as string
+                            if (selectedValue) {
+                                formik.setFieldValue("targetUserId", selectedValue)
+                            }
                         }}
-                        onClose={() => formik.setFieldTouched("targetUserId", true)}
                         isInvalid={isInvalid("targetUserId")}
                         errorMessage={getErrorMessage("targetUserId")}
                         classNames={{
                             trigger: "h-14 bg-default-50 border border-default-200 shadow-sm"
                         }}
                         renderValue={(items) => {
-                            const selectedCandidate = items[0]?.data as StaffAssignmentCandidate
+                            const selectedCandidate = items[0]?.data
                             if (!selectedCandidate) return null
 
                             return (

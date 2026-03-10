@@ -3,74 +3,30 @@
 import { SpinnerStyled } from "@/components"
 import { DashboardSidebar } from "@/features/dashboard/components"
 import { DASHBOARD_SIDEBAR_MENU } from "@/constants/menu/sidebar"
-import { useTokenStore } from "@/hooks"
-import { useRouter, usePathname } from "next/navigation"
-import React, { useEffect, useMemo } from "react"
+import { useRouteAuthorization, useTokenStore } from "@/hooks"
+import { usePathname } from "next/navigation"
+import React from "react"
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-    const router = useRouter()
     const pathname = usePathname()
-    const roleSlug = useTokenStore((s) => s.roleSlug)
-    const isLoading = roleSlug === undefined
+    const roleSlug = useTokenStore((s) => s.roleSlug) || undefined
+    const isLoadingRole = roleSlug === undefined
 
-    // 1. Lấy danh sách các href mà role này được phép vào
-    const allowedPaths = useMemo(() => {
-        if (!roleSlug) return []
-
-        const paths: string[] = []
-
-        DASHBOARD_SIDEBAR_MENU.forEach((item) => {
-            // Kiểm tra quyền của Cha
-            if (item.allowedRoles.includes(roleSlug)) {
-                // Nếu Cha có link thẳng thì push vào
-                if (item.href) paths.push(item.href)
-
-                // Nếu có menu Con thì quét tiếp xem Con nào hợp lệ
-                if (item.subItems) {
-                    item.subItems.forEach((sub) => {
-                        if (sub.allowedRoles.includes(roleSlug)) {
-                            paths.push(sub.href)
-                        }
-                    })
-                }
-            }
-        })
-
-        return paths
-    }, [roleSlug])
-
-    // 2. Kiểm tra quyền (Strict Mode)
-    const isAuthorized = useMemo(() => {
-        if (isLoading) return false
-
-        // CHỈ cho phép true nếu path hiện tại khớp hoàn toàn hoặc là con của path trong menu
-        return allowedPaths.some((path) => pathname === path || pathname.startsWith(path + "/"))
-    }, [isLoading, pathname, allowedPaths])
-
-    useEffect(() => {
-        if (isLoading) return
-
-        // 3. Xử lý Redirect cho root /dashboard
-        if (pathname === "/dashboard") {
-            // Nếu role này không có quyền vào chính trang "/dashboard" (như Staff)
-            if (!allowedPaths.includes("/dashboard")) {
-                const firstPage = allowedPaths[0] || "/"
-                router.replace(firstPage)
-            }
-            return
-        }
-
-        // 4. Nếu vào path lạ/không có quyền, đá về Home
-        if (!isAuthorized) {
-            router.replace("/")
-        }
-    }, [isLoading, isAuthorized, pathname, allowedPaths, router])
+    // Giao phó toàn bộ sinh mệnh cho Hook xử lý
+    const { isSafeToRender } = useRouteAuthorization({
+        menuItems: DASHBOARD_SIDEBAR_MENU,
+        roleSlug,
+        pathname,
+        isLoadingRole,
+        fallbackUrl: "/",
+        rootPath: "/dashboard"
+    })
 
     // --- GUARD RENDERING ---
     // Tuyệt đối không render children nếu:
     // - Đang load role
     // - Không có quyền (bao gồm cả Staff đang đứng ở /dashboard đợi redirect)
-    if (isLoading || !isAuthorized) {
+    if (!isSafeToRender) {
         return (
             <div className="flex h-screen w-full items-center justify-center backdrop-blur-md">
                 <SpinnerStyled />
