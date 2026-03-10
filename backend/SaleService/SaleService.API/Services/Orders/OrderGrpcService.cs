@@ -1,12 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using AutoMapper;
+using DocumentFormat.OpenXml.Office2016.Excel;
 using Google.Protobuf;
 using Grpc.Core;
 using MediatR;
+using Org.BouncyCastle.Asn1.Ocsp;
 using SalesService.Application.Features.Orders.Commands.Create;
 using SalesService.Application.Features.Orders.Commands.PayWithWallet;
 using SalesService.Application.Features.Orders.Commands.Update;
@@ -16,10 +13,17 @@ using SalesService.Application.Features.Orders.Queries.GetByIds;
 using SalesService.Application.Features.Orders.Queries.GetMyOrders;
 using SalesService.Application.Features.Orders.Queries.GetOrders;
 using SalesService.Application.Features.Orders.Queries.GetOrderVolume;
+using SalesService.Application.Features.Reports.Queries.CustomerPurchaseBehavior;
+using SalesService.Application.Features.Reports.Queries.GetProductPerformance;
 using SalesService.Application.Features.Reports.Queries.GetRevenueReport;
+using SalesService.Application.Features.Reports.Queries.GetSalesTrend;
 using SalesService.Application.Features.Reports.Queries.ProductPerformance;
 using SalesService.Domain.Enums;
-using SalesService.Application.Features.Reports.Queries.GetSalesTrend;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace SalesService.API.Services.Orders;
 
@@ -64,11 +68,11 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
         var command = new CreateOrderCommand(createOrderRequest);
         var result = await _mediator.Send(command, context.CancellationToken);
 
-        //if (!result.IsSuccess)
-        //{
-        //    var errorMessage = result.Errors.FirstOrDefault() ?? "Failed to create order";
-        //    throw new RpcException(new Status(StatusCode.Internal, errorMessage));
-        //}
+        if (!result.IsSuccess)
+        {
+            var errorMessage = result.Errors.FirstOrDefault() ?? "Failed to create order";
+            throw new RpcException(new Status(StatusCode.Internal, errorMessage));
+        }
 
         var reply = new OrderReply
         {
@@ -637,22 +641,25 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
     }
 
     public override async Task<GetProductPerformanceReply> GetProductPerformance(
-       GetProductPerformanceRequest grpcRequest,
+       GetProductPerformanceRequest request,
         ServerCallContext context)
     {
-        if (!Guid.TryParse(grpcRequest.StoreId, out var storeId))
+        if (!Guid.TryParse(request.StoreId, out var storeId))
             throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid StoreId format"));
 
-        DateTimeOffset? fromDate = null;
-        if (grpcRequest.HasFromDate && DateTimeOffset.TryParse(grpcRequest.FromDate, out var parsedFrom))
-            fromDate = parsedFrom;
+        DateTimeOffset fromDate;
+        if (!DateTime.TryParse(request.FromDate, out var fromDt))
+            throw new RpcException(new Status(StatusCode.InvalidArgument, $"Invalid from_date format: {request.FromDate}"));
+        fromDate = new DateTimeOffset(fromDt, TimeSpan.FromHours(7));
 
-        DateTimeOffset? toDate = null;
-        if (grpcRequest.HasToDate && DateTimeOffset.TryParse(grpcRequest.ToDate, out var parsedTo))
-            toDate = parsedTo;
+        DateTimeOffset toDate;
+        if (!DateTime.TryParse(request.ToDate, out var toDt))
+            throw new RpcException(new Status(StatusCode.InvalidArgument, $"Invalid to_date format: {request.ToDate}"));
+        toDate = new DateTimeOffset(toDt, TimeSpan.FromHours(7))
+                     .AddDays(1).AddTicks(-1);
 
         Guid? categoryId = null;
-        if (grpcRequest.HasCategoryId && Guid.TryParse(grpcRequest.CategoryId, out var parsedCategoryId))
+        if (request.HasCategoryId && Guid.TryParse(request.CategoryId, out var parsedCategoryId))
             categoryId = parsedCategoryId;
 
         var query = new GetProductPerformanceQuery(
@@ -660,10 +667,10 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             FromDate: fromDate,
             ToDate: toDate,
             CategoryId: categoryId,
-            SortBy: grpcRequest.HasSortBy ? grpcRequest.SortBy : null,
-            SortOrder: grpcRequest.HasSortOrder ? grpcRequest.SortOrder : null,
-            PageIndex: grpcRequest.PageIndex > 0 ? grpcRequest.PageIndex : 1,
-            PageSize: grpcRequest.PageSize > 0 ? grpcRequest.PageSize : 20
+            SortBy: request.HasSortBy ? request.SortBy : null,
+            SortOrder: request.HasSortOrder ? request.SortOrder : null,
+            PageIndex: request.PageIndex > 0 ? request.PageIndex : 1,
+            PageSize: request.PageSize > 0 ? request.PageSize : 20
         );
         var result = await _mediator.Send(query, context.CancellationToken);
 
@@ -697,6 +704,15 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             }
         }));
 
+        if (request.HasIncludeCsv && request.IncludeCsv)
+        {
+            var csvBytes = ProductPerformanceCsvExporter.Export(result.Value.Items.ToList());
+            reply.CsvFile = new CsvFile
+            {
+                CsvRaw = Google.Protobuf.ByteString.CopyFrom(csvBytes),
+                CsvFileName = $"product-performance-{DateTime.UtcNow:yyyyMMddHHmmss}.csv"
+            };
+        }
         return reply;
     }
 
@@ -754,6 +770,77 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             Revenue = (double)dp.Revenue
         }));
 
+        return reply;
+    }
+
+    public override async Task<GetCustomerOrderPatternReply> GetCustomerOrderPattern(
+    GetCustomerOrderPatternRequest request,
+    ServerCallContext context)
+    {
+        if (!Guid.TryParse(request.StoreId, out var storeId))
+            throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid StoreId"));
+
+        DateTimeOffset fromDate;
+        if (!DateTime.TryParse(request.FromDate, out var fromDt))
+            throw new RpcException(new Status(StatusCode.InvalidArgument, $"Invalid from_date format: {request.FromDate}"));
+        fromDate = new DateTimeOffset(fromDt, TimeSpan.FromHours(7));
+
+        DateTimeOffset toDate;
+        if (!DateTime.TryParse(request.ToDate, out var toDt))
+            throw new RpcException(new Status(StatusCode.InvalidArgument, $"Invalid to_date format: {request.ToDate}"));
+        toDate = new DateTimeOffset(toDt, TimeSpan.FromHours(7))
+                     .AddDays(1).AddTicks(-1);
+
+
+
+        var query = new GetCustomerOrderPatternQuery(
+            StoreId: storeId,
+            FromDate: fromDate,
+            ToDate: toDate,
+            MinOrders: request.HasMinOrders ? request.MinOrders : null,
+            MaxOrders: request.HasMaxOrders && request.MaxOrders > 0
+                ? request.MaxOrders
+                : null,
+            SortBy: request.HasSortBy ? request.SortBy : null,
+            SortOrder: request.HasSortOrder ? request.SortOrder : null,
+            PageIndex: request.PageIndex > 0 ? request.PageIndex : 1,
+            PageSize: request.PageSize > 0 ? request.PageSize : 20
+        );
+
+        var result = await _mediator.Send(query, context.CancellationToken);
+
+        if (!result.IsSuccess)
+            throw new RpcException(new Status(StatusCode.Internal,
+                string.Join(", ", result.Errors)));
+
+        var reply = new GetCustomerOrderPatternReply
+        {
+            TotalCount = (int)result.Value.TotalCount,
+            PageIndex = result.Value.Page,
+            PageSize = result.Value.PageSize
+        };
+
+        reply.Items.AddRange(result.Value.Items.Select(item => new CustomerOrderPatternItem
+        {
+            CustomerId = item.CustomerId.ToString(),
+            FullName = item.FullName??"",
+            Email = item.Email ?? "",
+            Phone = item.Phone ?? "",
+            TotalOrders = item.TotalOrders,
+            AverageOrderValue = (double)item.AverageOrderValue,
+            TotalSpent = (double)item.TotalSpent,
+            LastOrderDate = item.LastOrderDate.ToString("O")
+        }));
+
+        if (request.HasIncludeCsv && request.IncludeCsv)
+        {
+            var csvBytes = CustomerOrderPatternCsvExporter.Export(result.Value.Items.ToList());
+            reply.CsvFile = new CsvFile
+            {
+                CsvRaw = Google.Protobuf.ByteString.CopyFrom(csvBytes),
+                CsvFileName = $"customer-order-pattern-{DateTime.UtcNow:yyyyMMddHHmmss}.csv"
+            };
+        }
         return reply;
     }
 

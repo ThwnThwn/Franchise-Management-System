@@ -9,7 +9,7 @@ public sealed record GetProductPerformanceQuery(
     DateTimeOffset? FromDate,
     DateTimeOffset? ToDate,
     Guid? CategoryId,
-    string? SortBy,        // "revenue" | "units_sold" | "return_rate"
+    string? SortBy,        // "revenue" | "units_sold" | "cancel_rate"
     string? SortOrder,     // "asc" | "desc"
     int PageIndex,
     int PageSize
@@ -24,7 +24,7 @@ public sealed class ProductPerformanceResponse
     public string? CategoryName { get; set; }
     public int UnitsSold { get; set; }
     public decimal Revenue { get; set; }
-    public decimal CancelledRate { get; set; }       // % số đơn bị refund
+    public decimal CancelledRate { get; set; }       // % số đơn bị cancel
     public int TotalOrders { get; set; }
     public int TotalCancelled { get; set; }
     public PerformanceTag Tag { get; set; }        // Top ban chay nhat| Bottom ban it nhat | Normal

@@ -48,10 +48,10 @@ namespace SalesService.Infrastructure.Repositories.OrderItems
                 .AsNoTracking();
 
             if (from.HasValue)
-                query = query.Where(oi => oi.Order!.CreatedAt >= from.Value);
+                query = query.Where(oi => oi.Order!.CreatedAt >= from.Value.ToUniversalTime()); 
 
             if (to.HasValue)
-                query = query.Where(oi => oi.Order!.CreatedAt <= to.Value);
+                query = query.Where(oi => oi.Order!.CreatedAt <= to.Value.ToUniversalTime()); 
 
             if (productIds != null && productIds.Any())
                 query = query.Where(oi => productIds.Contains(oi.ProductId));
@@ -76,10 +76,10 @@ namespace SalesService.Infrastructure.Repositories.OrderItems
                 .AsNoTracking();
 
             if (from.HasValue)
-                query = query.Where(oi => oi.Order!.CreatedAt >= from.Value);
+                query = query.Where(oi => oi.Order!.CreatedAt >= from.Value.ToUniversalTime());
 
             if (to.HasValue)
-                query = query.Where(oi => oi.Order!.CreatedAt <= to.Value);
+                query = query.Where(oi => oi.Order!.CreatedAt <= to.Value.ToUniversalTime());
 
             if (productIds != null && productIds.Any())
                 query = query.Where(oi => productIds.Contains(oi.ProductId));

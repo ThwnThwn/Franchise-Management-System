@@ -1,15 +1,16 @@
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using SalesService.Application.Features.Reports.Queries.GetSalesTrend;
 using SalesService.Application.Features.Orders.Queries.GetByIds;
 using SalesService.Application.Features.Orders.Queries.GetOrderVolume;
+using SalesService.Application.Features.Reports.Queries.CustomerPurchaseBehavior;
 using SalesService.Application.Features.Reports.Queries.GetRevenueReport;
+using SalesService.Application.Features.Reports.Queries.GetSalesTrend;
 using SalesService.Application.Persisitences.Orders;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
 using SalesService.Infrastructure.ApplicationDbContext;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace SalesService.Infrastructure.Repositories.Orders;
 
@@ -408,6 +409,58 @@ public class OrderRepository : IOrderRepository
         }
         var week = System.Globalization.CultureInfo.InvariantCulture.Calendar.GetWeekOfYear(time, System.Globalization.CalendarWeekRule.FirstFourDayWeek, DayOfWeek.Monday);
         return (time.Year, week);
+    }
+
+    public async Task<List<CustomerOrderStatDto>> GetCustomerOrderStatisticAsync(
+    Guid storeId,
+    DateTimeOffset? from,
+    DateTimeOffset? to,
+    int? minOrders,
+    int? maxOrders,
+    CancellationToken ct)
+    {
+        var query = _context.Orders
+            .Where(o =>
+                o.StoreId == storeId &&
+                o.Status == OrderStatus.Completed &&
+                o.CustomerId.HasValue &&
+                !o.IsDeleted)
+            .AsNoTracking();
+
+        if (from.HasValue)
+            query = query.Where(o => o.CreatedAt >= from.Value.ToUniversalTime()); 
+
+        if (to.HasValue)
+            query = query.Where(o => o.CreatedAt <= to.Value.ToUniversalTime()); 
+
+        var orders = await query
+            .Select(o => new
+            {
+                o.CustomerId,
+                o.TotalAmount,
+                o.CreatedAt
+            })
+            .ToListAsync(ct);
+
+        var grouped = orders
+            .GroupBy(o => o.CustomerId!.Value)
+            .Select(g => new CustomerOrderStatDto
+            {
+                CustomerId = g.Key,
+                TotalOrders = g.Count(),
+                TotalSpent = g.Sum(o => o.TotalAmount),
+                AverageOrderValue = g.Average(o => o.TotalAmount),
+                LastOrderDate = g.Max(o => o.CreatedAt)
+            })
+            .ToList();
+
+        if (minOrders.HasValue)
+            grouped = grouped.Where(g => g.TotalOrders >= minOrders.Value).ToList();
+
+        if (maxOrders.HasValue && maxOrders.Value > 0)  // ignore max_orders = 0
+            grouped = grouped.Where(g => g.TotalOrders <= maxOrders.Value).ToList();
+
+        return grouped;
     }
 }
 

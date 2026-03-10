@@ -3,6 +3,7 @@ namespace SalesService.Application.Interfaces.Identity;
 public interface IIdentityServiceClient
 {
     Task<UserInfo?> GetUserByIdAsync(Guid userId);
+    Task<List<UserInfo>> GetUsersByIdsAsync(List<Guid> userIds);
 }
 
 

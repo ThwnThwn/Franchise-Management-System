@@ -63,6 +63,36 @@ public class IdentityServiceClient : IIdentityServiceClient
         }
     }
 
-   
+    public async Task<List<UserInfo>> GetUsersByIdsAsync(List<Guid> userIds)
+    {
+        if (userIds == null || !userIds.Any())
+            return new List<UserInfo>();
 
+        try
+        {
+            var request = new GetUserByIdsRequest();
+            request.Ids.AddRange(userIds.Select(id => id.ToString()));
+
+            var response = await _UserClient.GetByIdsAsync(request);
+
+            return response.Users.Select(u => new UserInfo
+            {
+                Id = Guid.TryParse(u.Id, out var id) ? id : Guid.Empty,  
+                Email = u.Email ?? "",
+                Username = u.Username ?? "",
+                Phone = string.IsNullOrEmpty(u.Phone) ? null : u.Phone,
+                Role = u.Role != null && !string.IsNullOrEmpty(u.Role.Id) ? new UserRole
+                {
+                    Id = Guid.TryParse(u.Role.Id, out var roleId) ? roleId : Guid.Empty,  
+                    RoleName = u.Role.Name ?? "",
+                    Slug = u.Role.Slug ?? ""
+                } : null
+            }).ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error calling IdentityService GetUsersByIds ({_identityServiceUrl}): {ex.Message}");
+            return new List<UserInfo>();
+        }
+    }
 }

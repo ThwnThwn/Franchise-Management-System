@@ -70,7 +70,7 @@ public sealed class GetProductPerformanceHandler
             productInfoMap = productInfos.ToDictionary(p => p.ProductId);
         }
 
-        //  Cancel stats 
+        //  Cancel statistic
         var productIds = orderItems.Select(oi => oi.ProductId).Distinct().ToList();
 
         var cancelStats = await _orderItemRepository.GetProductCancelStatisticAsync(
@@ -108,7 +108,7 @@ public sealed class GetProductPerformanceHandler
                 };
             }).ToList();
 
-        //  Tag top/bottom
+        //  Tag top/bottom/normal
         TagPerformers(items);
 
         //  Sort
@@ -171,7 +171,7 @@ public sealed class GetProductPerformanceHandler
                                     : items.OrderBy(x => x.CategoryName).ToList(),
 
             _ => isDesc ? items.OrderByDescending(x => x.Revenue).ToList()
-                                    : items.OrderBy(x => x.Revenue).ToList()
+                                    : items.OrderBy(x => x.Revenue).ToList() // default sort by revenue
         };
     }
 }
