@@ -41,8 +41,7 @@ namespace EngagementService.Application.Constants
         public const string ExpiredVoucher = "Mã giảm giá đã hết hạn";
         public const string UsageLimitReached = "Mã giảm giá đã đạt giới hạn sử dụng";
         public const string OutOfStock = "Mã giảm giá đã hết hàng";
-
-
+        public const string VoucherInUsed = "Mã giảm giá đã được sử dụng";
 
     }
     public static class CommonMsg
