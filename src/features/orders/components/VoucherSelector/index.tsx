@@ -4,8 +4,8 @@ import React, { useMemo, useState } from "react"
 import { useGetMyVouchers } from "../../hooks/useVoucher"
 import { Voucher, VoucherType, VoucherItemType } from "../../models/voucher"
 import { Order } from "../../models/response"
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Chip } from "@heroui/react"
-import { Ticket, Truck, Gift, Tag, CheckCircle2 } from "lucide-react"
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Chip, Input } from "@heroui/react"
+import { Ticket, Truck, Gift, Tag, CheckCircle2, Search, X } from "lucide-react"
 
 interface VoucherSelectorProps {
     order: Order | null
@@ -30,13 +30,53 @@ export function VoucherSelector({
     const [selectedShipping, setSelectedShipping] = useState<Voucher | null>(appliedShippingVoucher)
     const [selectedDiscount, setSelectedDiscount] = useState<Voucher | null>(appliedDiscountVoucher)
 
+    // Voucher code input state
+    const [voucherCode, setVoucherCode] = useState("")
+    const [codeError, setCodeError] = useState<string | null>(null)
+    const [codeSuccess, setCodeSuccess] = useState<string | null>(null)
+
     // Reset local selection when modal opens
     React.useEffect(() => {
         if (isOpen) {
             setSelectedShipping(appliedShippingVoucher)
             setSelectedDiscount(appliedDiscountVoucher)
+            setVoucherCode("")
+            setCodeError(null)
+            setCodeSuccess(null)
         }
     }, [isOpen, appliedShippingVoucher, appliedDiscountVoucher])
+
+    // Handle applying voucher by code
+    const handleApplyCode = () => {
+        setCodeError(null)
+        setCodeSuccess(null)
+        const trimmed = voucherCode.trim().toUpperCase()
+        if (!trimmed) return
+
+        const allVouchers = vouchers || []
+        const found = allVouchers.find(v => v.code.toUpperCase() === trimmed)
+
+        if (!found) {
+            setCodeError("Mã voucher không tồn tại hoặc chưa được thu thập.")
+            return
+        }
+
+        const { isEligible, reason } = checkVoucherEligibility(found)
+        if (!isEligible) {
+            setCodeError(reason || "Voucher không khả dụng cho đơn hàng này.")
+            return
+        }
+
+        const isShipping = found.type === VoucherType.SHIPPING_FIXED_AMOUNT || found.type === VoucherType.SHIPPING_PERCENTAGE
+        if (isShipping) {
+            setSelectedShipping(found)
+            setCodeSuccess(`Đã chọn voucher vận chuyển: ${found.code}`)
+        } else {
+            setSelectedDiscount(found)
+            setCodeSuccess(`Đã chọn voucher giảm giá: ${found.code}`)
+        }
+        setVoucherCode("")
+    }
 
     // Phân loại voucher
     const shippingVouchers = useMemo(() => {
@@ -177,6 +217,36 @@ export function VoucherSelector({
                             <p className="text-sm font-normal text-default-500">Bạn có thể chọn 1 Voucher vận chuyển và 1 Voucher giảm giá/quà tặng</p>
                         </ModalHeader>
                         <ModalBody className="p-6">
+                            {/* Nhập mã Voucher */}
+                            <div className="mb-5">
+                                <label className="text-[11px] uppercase tracking-widest font-bold text-default-500 mb-2 block">Nhập mã Voucher</label>
+                                <div className="flex gap-2">
+                                    <Input
+                                        placeholder="Nhập mã voucher..."
+                                        value={voucherCode}
+                                        onValueChange={(v) => { setVoucherCode(v.toUpperCase()); setCodeError(null); setCodeSuccess(null) }}
+                                        onKeyDown={(e) => { if (e.key === 'Enter') handleApplyCode() }}
+                                        startContent={<Ticket size={16} className="text-default-400" />}
+                                        endContent={
+                                            voucherCode ? (
+                                                <button onClick={() => { setVoucherCode(""); setCodeError(null); setCodeSuccess(null) }}>
+                                                    <X size={14} className="text-default-400 hover:text-danger" />
+                                                </button>
+                                            ) : null
+                                        }
+                                        classNames={{ input: "font-mono font-bold tracking-widest uppercase" }}
+                                    />
+                                    <Button color="primary" variant="flat" onPress={handleApplyCode} className="font-bold shrink-0">
+                                        Áp dụng
+                                    </Button>
+                                </div>
+                                {codeError && <p className="text-xs text-danger mt-1.5 font-medium">{codeError}</p>}
+                                {codeSuccess && <p className="text-xs text-success mt-1.5 font-medium">{codeSuccess}</p>}
+                            </div>
+
+                            {/* Divider */}
+                            <div className="border-t border-dashed border-default-200 mb-5" />
+
                             {isLoading ? (
                                 <div className="flex justify-center items-center py-20">
                                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
