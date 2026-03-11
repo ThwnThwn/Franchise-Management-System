@@ -5,8 +5,8 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace EngagementService.Infrastucture.Persistences.Repository
 {
-    public class LoyaltyAccountUow(EngagementDbContext dbContext
-        ) : ILoyaltyAccountUow
+    public class LoyaltyUow(EngagementDbContext dbContext
+        ) : ILoyaltyUow
     {
         private readonly EngagementDbContext _dbContext = dbContext;
 

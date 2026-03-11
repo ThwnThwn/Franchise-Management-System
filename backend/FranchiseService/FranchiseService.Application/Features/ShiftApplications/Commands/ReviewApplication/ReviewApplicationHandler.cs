@@ -1,4 +1,6 @@
+using FranchiseService.Application.ClientInterfaces;
 using FranchiseService.Application.Persistences.Repositories;
+using FranchiseService.Application.Repositories;
 using FranchiseService.Application.Services;
 using FranchiseService.Domain.Entities;
 using FranchiseService.Domain.Enums;
@@ -12,7 +14,7 @@ namespace FranchiseService.Application.Features.ShiftApplications.Commands.Revie
 ///   1. Re-validate nhan vien (phong truong hop lich thay doi tu luc Apply den luc Approve)
 ///   2. Kiem tra trung Assignment (phong truong hop da gan tay qua AssignStaff)
 ///   3. Kiem tra ca con slot trong khong
-///   4. Tao ShiftAssignment tu dong
+///   4. Tao moi hoac khoi phuc ShiftAssignment (tranh duplicate key khi nhan vien tung bi xoa khoi ca)
 ///   5. Neu du nguoi: chuyen Shift ve Published va auto-Reject cac don con lai
 /// </summary>
 public class ReviewApplicationHandler : IRequestHandler<ReviewApplicationCommand, bool>
@@ -20,6 +22,8 @@ public class ReviewApplicationHandler : IRequestHandler<ReviewApplicationCommand
     private readonly IGenericRepository<ShiftApplication> _applicationRepository;
     private readonly IGenericRepository<ShiftAssignment> _assignmentRepository;
     private readonly IGenericRepository<Shift> _shiftRepository;
+    private readonly IShiftRepository _shiftRepo;
+    private readonly IIdentityServiceClient _identityClient;
     private readonly IShiftRuleService _shiftRuleService;
     private readonly IShiftValidationService _validationService;
     private readonly IShiftApplicationAutoRejectService _autoRejectService;
@@ -28,6 +32,8 @@ public class ReviewApplicationHandler : IRequestHandler<ReviewApplicationCommand
         IGenericRepository<ShiftApplication> applicationRepository,
         IGenericRepository<ShiftAssignment> assignmentRepository,
         IGenericRepository<Shift> shiftRepository,
+        IShiftRepository shiftRepo,
+        IIdentityServiceClient identityClient,
         IShiftRuleService shiftRuleService,
         IShiftValidationService validationService,
         IShiftApplicationAutoRejectService autoRejectService)
@@ -35,6 +41,8 @@ public class ReviewApplicationHandler : IRequestHandler<ReviewApplicationCommand
         _applicationRepository = applicationRepository;
         _assignmentRepository = assignmentRepository;
         _shiftRepository = shiftRepository;
+        _shiftRepo = shiftRepo;
+        _identityClient = identityClient;
         _shiftRuleService = shiftRuleService;
         _validationService = validationService;
         _autoRejectService = autoRejectService;
@@ -62,16 +70,24 @@ public class ReviewApplicationHandler : IRequestHandler<ReviewApplicationCommand
 
         if (request.IsApproved)
         {
-            // 3. Kiem tra Shift con slot trong khong
-            var currentAssignments = await _assignmentRepository.GetAllAsync(
-                predicate: a => a.ShiftId == shift.Id);
-            var assignmentList = currentAssignments.ToList();
+            // 3. Lay tat ca assignment cua ca (ke ca da xoa) - mot lan duyet de tranh duplicate key khi restore
+            var allAssignmentsForShift = await _shiftRepo.GetAllAssignmentsIncludingDeletedAsync(
+                shift.Id, cancellationToken);
+            var activeAssignments = new List<ShiftAssignment>();
+            ShiftAssignment? deletedAssignmentForUser = null;
+            foreach (var a in allAssignmentsForShift)
+            {
+                if (a.IsDeleted && a.UserId == application.UserId)
+                    deletedAssignmentForUser = a;
+                if (!a.IsDeleted)
+                    activeAssignments.Add(a);
+            }
 
-            if (assignmentList.Count >= shift.RequiredStaffCount)
+            if (activeAssignments.Count >= shift.RequiredStaffCount)
                 throw new InvalidOperationException("Ca da du nguoi, khong the duyet them.");
 
-            // 4. Kiem tra nhan vien da co Assignment chua (tranh trung voi gan tay)
-            if (assignmentList.Any(a => a.UserId == application.UserId))
+            // 4. Da co assignment dang active (vd. vua duoc gan tay) thi khong cho duyet
+            if (activeAssignments.Any(a => a.UserId == application.UserId))
                 throw new InvalidOperationException(
                     "Nhan vien nay da duoc phan cong ca nay roi (co the da gan tay truoc do).");
 
@@ -92,17 +108,33 @@ public class ReviewApplicationHandler : IRequestHandler<ReviewApplicationCommand
                     $"Khong the duyet vi nhan vien vi pham: {errorMsg}");
             }
 
-            // 6. Tao ShiftAssignment tu dong
-            var assignment = new ShiftAssignment
+            // 6. Tao moi hoac khoi phuc ShiftAssignment (tranh 23505 khi nhan vien tung bi xoa khoi ca)
+            var userInfo = await _identityClient.GetUserByIdAsync(application.UserId)
+                ?? throw new KeyNotFoundException(
+                    $"Nhan vien {application.UserId} khong ton tai trong he thong.");
+
+            if (deletedAssignmentForUser != null)
             {
-                Id = Guid.NewGuid(),
-                ShiftId = application.ShiftId,
-                UserId = application.UserId,
-                Status = (int)ShiftAssignmentStatus.Assigned,
-                CreatedAt = DateTimeOffset.UtcNow,
-                UpdatedAt = DateTimeOffset.UtcNow
-            };
-            await _assignmentRepository.AddAsync(assignment);
+                deletedAssignmentForUser.IsDeleted = false;
+                deletedAssignmentForUser.Status = (int)ShiftAssignmentStatus.Assigned;
+                deletedAssignmentForUser.HourlyWage = userInfo.CurrentHourlyWage ?? deletedAssignmentForUser.HourlyWage;
+                deletedAssignmentForUser.UpdatedAt = DateTimeOffset.UtcNow;
+                await _shiftRepo.RestoreAssignmentAsync(deletedAssignmentForUser, cancellationToken);
+            }
+            else
+            {
+                var assignment = new ShiftAssignment
+                {
+                    Id = Guid.NewGuid(),
+                    ShiftId = application.ShiftId,
+                    UserId = application.UserId,
+                    Status = (int)ShiftAssignmentStatus.Assigned,
+                    HourlyWage = userInfo.CurrentHourlyWage,
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    UpdatedAt = DateTimeOffset.UtcNow
+                };
+                await _assignmentRepository.AddAsync(assignment);
+            }
 
             // 7. Cap nhat don thanh Approved
             application.Status = (int)ShiftApplicationStatus.Approved;
@@ -113,7 +145,7 @@ public class ReviewApplicationHandler : IRequestHandler<ReviewApplicationCommand
             await _applicationRepository.UpdateAsync(application);
 
             // 8. Kiem tra da du nguoi chua
-            int newCount = assignmentList.Count + 1;
+            int newCount = activeAssignments.Count + 1;
             if (newCount >= shift.RequiredStaffCount)
             {
                 // Chuyen Shift ve Published (dong Cho Ca)

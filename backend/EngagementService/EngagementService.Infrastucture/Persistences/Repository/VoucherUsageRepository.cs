@@ -1,6 +1,7 @@
 ﻿using EngagementService.Application.Persistences.Repository;
 using EngagementService.Domain.Entities;
 using EngagementService.Infrastucture.AppDbContext;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,6 +20,19 @@ namespace EngagementService.Infrastucture.Persistences.Repository
         public async Task AddRangeAsync(IEnumerable<VoucherUsage> entities, CancellationToken cancellationToken)
         {
            await _dbContext.VoucherUsages.AddRangeAsync(entities, cancellationToken);
+        }
+
+        public void DeleteRangeAsync(IEnumerable<VoucherUsage> entities, CancellationToken cancellationToken)
+        {
+             _dbContext.VoucherUsages.RemoveRange(entities);
+        }
+
+        public async Task<IEnumerable<VoucherUsage>> GetByOrderIdAsync(Guid id)
+        {
+            return await _dbContext.VoucherUsages
+                                    .AsNoTracking()
+                                    .Where(x => x.OrderId == id)
+                                    .ToListAsync();
         }
     }
 }

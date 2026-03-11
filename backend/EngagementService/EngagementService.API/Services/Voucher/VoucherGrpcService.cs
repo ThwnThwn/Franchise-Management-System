@@ -1,6 +1,7 @@
 
 using EngagementService.Application.Features.Voucher.Commands.Create;
 using EngagementService.Application.Features.Voucher.Commands.Delete;
+using EngagementService.Application.Features.Voucher.Commands.ReverseVoucher;
 using EngagementService.Application.Features.Voucher.Commands.Update;
 using EngagementService.Application.Features.Voucher.Commands.UpdateUserVoucherStatus;
 using EngagementService.Application.Features.Voucher.Commands.UpdateVoucherStatus;
@@ -230,6 +231,12 @@ namespace EngagementService.API.Services.Voucher
 
             await _mediator.Send(useVoucherQuery);
 
+            return new Empty();
+        }
+
+        public override async Task<Empty> ReverseVouchers(ReverseVouchersRequest request, ServerCallContext context)
+        {
+            await _mediator.Send(new ReverseVoucherCommand(Guid.Parse(request.OrderId)));
             return new Empty();
         }
     }

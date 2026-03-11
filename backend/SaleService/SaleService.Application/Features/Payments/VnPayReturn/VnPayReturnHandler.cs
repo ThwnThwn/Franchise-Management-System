@@ -145,13 +145,13 @@ public sealed class VnPayReturnHandler
                 .FirstOrDefault(); 
             if(point != 0 || point != null)
             {
-                DeductPointEvent userPoint = new DeductPointEvent
+                UpdatePointEvent userPoint = new UpdatePointEvent
                 {
                     Id = order.CustomerId.Value,
                     OrderId = order.Id,
-                    PointToDeduct = point
+                    Point = point
                 };
-                _kafkaProducer.PublishAsync(KafkaTopics.DedcutUserPoint, userPoint);
+                _kafkaProducer.PublishAsync(KafkaTopics.UpdateUserPoint, userPoint);
             }
             //=================
             // Wallet Event 

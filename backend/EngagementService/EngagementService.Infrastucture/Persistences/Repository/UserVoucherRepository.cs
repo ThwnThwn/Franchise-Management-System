@@ -40,7 +40,7 @@ namespace EngagementService.Infrastucture.Persistences.Repository
             var userVouchers = await _dbSet
                  .Include(uv => uv.Voucher)
                  .ThenInclude(v => v.VoucherItems)
-                 .Where(uv => uv.Status == UserVoucherStatus.AVAILABLE && uv.UserId == userId).ToListAsync();
+                 .Where(uv => uv.Status == UserVoucherStatus.AVAILABLE && uv.UserId == userId && voucherId.Contains(uv.VoucherId)).ToListAsync();
 
             var result = userVouchers.GroupBy(v => v.Voucher.Id)
                 .Select(g =>

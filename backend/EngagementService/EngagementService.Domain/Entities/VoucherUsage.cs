@@ -8,7 +8,7 @@ public partial class VoucherUsage : IEntity
 {
     public Guid Id { get; set; }
 
-    public Guid? UserVoucherId { get; set; }
+    public Guid UserVoucherId { get; set; }
 
     public Guid VoucherId { get; set; }
 
