@@ -42,8 +42,7 @@ public class CancelMyWithdrawalHandler(
 
             // 4. Hoàn tiền vào ví
             walletRepo.ApplyAddBalance(wallet, withdrawal.Amount, wallet.RowVersion);
-            await walletRepo.UpdateBalanceAsync(wallet.Id, wallet.Balance,
-                wallet.RowVersion!, cancellationToken: ct);
+            walletRepo.ApplyUpdateBalance(wallet, wallet.Balance, wallet.RowVersion);
 
             // 5. TẠO BIẾN ĐỘNG SỐ DƯ (Transaction)
             var walletTransaction = new WalletTransaction

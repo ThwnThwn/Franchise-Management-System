@@ -30,9 +30,12 @@ public class CancelWithdrawalHandler(
             repo.ApplyCancel(item, request.AdminId, request.Reason);
 
             var wallet = await walletRepo.GetByUserIdAsync(item.UserId, ct) ?? throw new KeyNotFoundException("Không thấy ví.");
-            walletRepo.ApplyAddBalance(wallet, item.Amount, wallet.RowVersion!);
-            await walletRepo.UpdateBalanceAsync(wallet.Id, wallet.Balance,
-                wallet.RowVersion!, cancellationToken: ct);
+
+            if (wallet.RowVersion == null)
+                throw new InvalidOperationException("Dữ liệu ví không hợp lệ (Thiếu Version).");
+
+            walletRepo.ApplyAddBalance(wallet, item.Amount, wallet.RowVersion);
+            walletRepo.ApplyUpdateBalance(wallet, wallet.Balance, wallet.RowVersion);
 
             var walletTransaction = new WalletTransaction
             {

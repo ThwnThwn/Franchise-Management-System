@@ -40,8 +40,7 @@ public class RejectWithdrawalHandler(
             if (wallet.RowVersion == null) throw new InvalidOperationException("Lỗi dữ liệu ví.");
 
             walletRepo.ApplyAddBalance(wallet, item.Amount, wallet.RowVersion);
-            await walletRepo.UpdateBalanceAsync(wallet.Id, wallet.Balance,
-                wallet.RowVersion!, cancellationToken: ct);
+            walletRepo.ApplyUpdateBalance(wallet, wallet.Balance, wallet.RowVersion);
 
             var walletTransaction = new WalletTransaction
             {

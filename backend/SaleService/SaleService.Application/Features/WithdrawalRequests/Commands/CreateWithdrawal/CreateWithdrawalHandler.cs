@@ -43,8 +43,7 @@ public class CreateWithdrawalHandler(
             // 4. Trừ tiền (Sử dụng hàm Apply để batching lệnh SQL, check balance và concurrency bên trong)
             // Hàm này sẽ throw InvalidOperationException nếu không đủ tiền hoặc DbUpdateConcurrencyException nếu sai Version
             walletRepo.ApplyDeductBalance(wallet, amount, wallet.RowVersion);
-            await walletRepo.UpdateBalanceAsync(wallet.Id, wallet.Balance,
-                wallet.RowVersion!, cancellationToken: ct);
+            walletRepo.ApplyUpdateBalance(wallet, wallet.Balance, wallet.RowVersion);
 
             // 5. Mã hóa số tài khoản ngân hàng
             var encryptedAcc = aesService.Encrypt(request.AccountNumber);

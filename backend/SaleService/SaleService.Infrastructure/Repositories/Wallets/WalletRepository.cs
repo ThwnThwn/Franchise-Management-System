@@ -277,53 +277,39 @@ namespace SalesService.Infrastructure.Repositories
                     cancellationToken);
         }
 
+        public void ApplyUpdateBalance(
+            Wallet wallet,
+            decimal newBalance,
+            byte[] rowVersion)
+        {
+            // 1. Kiểm tra Version ngay lập tức
+            if (wallet.RowVersion == null || !wallet.RowVersion.SequenceEqual(rowVersion))
+            {
+                throw new DbUpdateConcurrencyException(
+                    "Dữ liệu ví đã bị thay đổi bởi giao dịch khác. Vui lòng tải lại.");
+            }
+
+            // 2. Cập nhật trạng thái trong Tracking
+            wallet.Balance = newBalance;
+            wallet.UpdatedAt = DateTimeOffset.UtcNow;
+
+            // Đánh dấu thực thể là đã bị sửa đổi
+            _dbSet.Update(wallet);
+        }
+
         public async Task<bool> UpdateBalanceAsync(
             Guid walletId,
             decimal newBalance,
             byte[] rowVersion,
             CancellationToken cancellationToken = default)
         {
-            try
-            {
-                var wallet = await _dbSet
-                    .FirstOrDefaultAsync(
-                        w => w.Id == walletId && !w.IsDeleted,
-                        cancellationToken);
+            var wallet = await _dbSet.FirstOrDefaultAsync(w => w.Id == walletId && !w.IsDeleted, cancellationToken);
+            if (wallet == null) return false;
 
-                if (wallet == null)
-                    return false;
+            ApplyUpdateBalance(wallet, newBalance, rowVersion);
 
-                // ✅ CRITICAL: Optimistic concurrency check
-                // Compare provided rowVersion with current rowVersion
-                if (wallet.RowVersion == null || !wallet.RowVersion.SequenceEqual(rowVersion))
-                {
-                    // RowVersion mismatch = another transaction modified this wallet
-                    throw new DbUpdateConcurrencyException(
-                        $"Wallet {walletId} was modified by another transaction. " +
-                        "Current balance may have changed. Please retry.");
-                }
-
-                // ✅ Update balance
-                wallet.Balance = newBalance;
-                wallet.UpdatedAt = DateTimeOffset.UtcNow;
-
-                // ✅ EF Core will automatically increment RowVersion on save
-                await _context.SaveChangesAsync(cancellationToken);
-
-                return true;
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                // ✅ Re-throw concurrency exception for caller to handle
-                throw;
-            }
-            catch (Exception ex)
-            {
-                // ✅ Log unexpected errors
-                // _logger.LogError(ex, "Failed to update balance for wallet {WalletId}", walletId);
-                throw new InvalidOperationException(
-                    $"Failed to update balance for wallet {walletId}", ex);
-            }
+            await _context.SaveChangesAsync(cancellationToken);
+            return true;
         }
     }
 }
