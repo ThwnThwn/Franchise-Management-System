@@ -12,7 +12,7 @@ import {
     Spinner,
     addToast
 } from "@heroui/react"
-import { History } from "lucide-react"
+import { DollarSign } from "lucide-react"
 import dayjs from "dayjs"
 
 import { DashboardHeader } from "@/features/dashboard"
@@ -72,7 +72,7 @@ export default function WithdrawalPageView() {
     return (
         <div className="max-w-7xl mx-auto min-h-screen p-4 md:p-6 lg:p-8 space-y-6">
             <DashboardHeader
-                icon={<History className="text-white" />}
+                icon={<DollarSign className="text-white" />}
                 title="Rút Tiền"
                 description="Quản lý yêu cầu rút tiền về tài khoản ngân hàng của bạn"
             />
@@ -125,7 +125,7 @@ export default function WithdrawalPageView() {
                                         {item.maskedAccountNumber}
                                     </p>
                                 </TableCell>
-                                <TableCell className="font-bold text-danger">
+                                <TableCell className="font-bold">
                                     {formatCurrencyWithSymbol(item.amount)}
                                 </TableCell>
                                 <TableCell>

@@ -135,14 +135,16 @@ export const CreateWithdrawalModal = ({ isOpen, onClose }: Props) => {
                                     }}
                                     isInvalid={isInvalid("bankCode")}
                                     errorMessage={getErrorMessage("bankCode")}
+                                    isClearable={false}
                                 >
                                     {(bank) => (
                                         <AutocompleteItem
                                             key={bank.code}
                                             // HeroUI cần textValue để biết đường Search khi dùng custom UI bên trong
                                             textValue={`${bank.shortName} ${bank.name}`}
+                                            className="p-0"
                                         >
-                                            <div className="flex items-center gap-3">
+                                            <div className="flex items-center gap-3 w-full h-full py-3 px-4">
                                                 {/* Ốp logo ngân hàng vào đây */}
                                                 <div className="w-8 h-8 shrink-0 bg-white border border-default-200 rounded-md p-0.5 flex items-center justify-center">
                                                     <img

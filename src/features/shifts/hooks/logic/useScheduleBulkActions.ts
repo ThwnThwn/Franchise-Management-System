@@ -13,15 +13,21 @@ import dayjs from "dayjs"
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 export const useScheduleBulkActions = ({
+    currentDate,
     dateRange,
     shiftsData
 }: {
+    currentDate: dayjs.Dayjs
     dateRange: {
         fromDate: string
         toDate: string
     }
     shiftsData: ShiftResponse[] | undefined
 }) => {
+    const forOpenStartDate = currentDate.isAfter(dayjs(dateRange.fromDate))
+        ? currentDate
+        : dayjs(dateRange.fromDate)
+
     const bulkPublish = useBulkPublishShift()
     const bulkDelete = useBulkDeleteShift()
     const bulkOpen = useBulkOpenShift()
@@ -56,12 +62,18 @@ export const useScheduleBulkActions = ({
         if (!shiftsData) return result
 
         shiftsData.forEach((s) => {
+            const shiftDate = dayjs(s.shiftDate)
             // 1. Logic cho Xoá nhanh: Chỉ những ca còn là Nháp
             if (s.status === ShiftStatus.Draft) {
                 result.forDelete.push(s.id)
-                result.forOpen.push(s.id)
 
-                if (s.assignedStaffCount < s.requiredStaffCount) {
+                const needsStaffAndIsFuture =
+                    s.assignedStaffCount < s.requiredStaffCount &&
+                    !shiftDate.isBefore(forOpenStartDate, "day")
+
+                if (needsStaffAndIsFuture) {
+                    // Hợp nhất: Thỏa mãn là đẩy vào cả 2 danh sách luôn
+                    result.forOpen.push(s.id)
                     result.forAutoFill.push(s.id)
                 }
             }
@@ -73,7 +85,7 @@ export const useScheduleBulkActions = ({
         })
 
         return result
-    }, [shiftsData])
+    }, [forOpenStartDate, shiftsData])
 
     const { forPublish, forDelete, forOpen, forAutoFill } = bulkActionIds
 
@@ -116,13 +128,16 @@ export const useScheduleBulkActions = ({
 
         const isConfirmed = await confirmDialog({
             title: "Tự động xếp ca",
-            message: `Hệ thống sẽ chạy tự động phân công nhân viên vào các ca làm việc từ ${dayjs(dateRange.fromDate).format("DD/MM")} đến ${dayjs(dateRange.toDate).format("DD/MM")}. Bạn có chắc chắn muốn tiếp tục?`,
+            message: `Hệ thống sẽ chạy tự động phân công nhân viên vào các ca làm việc từ ${forOpenStartDate.format("DD/MM")} đến ${dayjs(dateRange.toDate).format("DD/MM")}. Bạn có chắc chắn muốn tiếp tục?`,
             variant: "info",
             confirmText: "Thực hiện ngay"
         })
 
         if (isConfirmed) {
-            autoFill.mutate({ startDate: dateRange.fromDate, endDate: dateRange.toDate })
+            autoFill.mutate({
+                startDate: forOpenStartDate.format("YYYY-MM-DD"),
+                endDate: dateRange.toDate
+            })
         }
     }
 

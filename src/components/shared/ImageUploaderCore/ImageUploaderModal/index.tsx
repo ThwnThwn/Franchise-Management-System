@@ -7,6 +7,9 @@ import { ModalContent, ModalBody, ModalHeader } from "@heroui/react"
 import { getCroppedImage } from "@/utils/helpers/image"
 
 type ImageUploaderModalProps = {
+    label?: string
+    saveLabel?: string
+
     isOpen: boolean
     onOpenChange: () => void
     onClose: () => void
@@ -22,10 +25,12 @@ type ImageUploaderModalProps = {
     requireCrop?: boolean
     cropShape?: "rect" | "round"
     cropSize?: { width: number; height: number } // Đổi thành optional luôn cho tiện
-    label?: string
 }
 
 export function ImageUploaderModal({
+    label,
+    saveLabel = "Lưu",
+    //
     isOpen,
     onOpenChange,
     onClose,
@@ -40,8 +45,7 @@ export function ImageUploaderModal({
     // aspect = 1,
     requireCrop = true, // Default vẫn là true để không ảnh hưởng code cũ
     cropShape = "rect",
-    cropSize = { width: 400, height: 300 },
-    label
+    cropSize = { width: 400, height: 300 }
 }: ImageUploaderModalProps) {
     const aspect = cropSize.width / cropSize.height
 
@@ -174,7 +178,7 @@ export function ImageUploaderModal({
                                     isLoading={isUploadPending}
                                     className="px-8 font-semibold"
                                 >
-                                    Lưu
+                                    {saveLabel}
                                 </ButtonStyled>
                             </div>
                         </div>

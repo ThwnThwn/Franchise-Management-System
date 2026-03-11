@@ -73,7 +73,11 @@ export default function ShiftSchedulerPageView() {
         handleBulkOpen,
         handleAutoFill,
         isProcessing
-    } = useScheduleBulkActions({ dateRange: dateRange, shiftsData: shiftsData })
+    } = useScheduleBulkActions({
+        currentDate: currentDate,
+        dateRange: dateRange,
+        shiftsData: shiftsData
+    })
 
     const calendarSnapRef = useScrollSnap({
         thresholdTop: -30,
@@ -150,7 +154,13 @@ export default function ShiftSchedulerPageView() {
                     onDelete={shiftActions.selectedShiftId ? shiftActions.handleDelete : undefined}
                 />
 
-                <BulkShiftModal isOpen={isBulkOpen} onClose={onBulkClose} storeId={storeId || ""} />
+                <BulkShiftModal
+                    isOpen={isBulkOpen}
+                    onClose={onBulkClose}
+                    storeId={storeId || ""}
+                    currentDate={currentDate}
+                    dateRange={dateRange}
+                />
             </>
         </div>
     )
