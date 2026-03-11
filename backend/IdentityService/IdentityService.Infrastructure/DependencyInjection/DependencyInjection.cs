@@ -16,6 +16,15 @@ namespace IdentityService.Infrastructure.DependencyInjection;
 
 public static class DependencyInjection
 {
+    /// <summary>
+    /// Adds the infrastructure.
+    /// </summary>
+    /// <param name="services">The services.</param>
+    /// <param name="identityDbConn">The identity database connection.</param>
+    /// <param name="redisConnectionString">The redis connection string.</param>
+    /// <param name="blackListDb">The black list database.</param>
+    /// <param name="permDb">The perm database.</param>
+    /// <returns></returns>
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services,
         string identityDbConn,

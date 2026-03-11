@@ -16,7 +16,13 @@ namespace IdentityService.Application.Features.Auth.Commands.NewPassword
             _userRepository = userRepository;
             _refreshTokenRepository = refreshTokenRepository;
         }
-
+        /// <summary>
+        /// Handles the specified command.
+        /// </summary>
+        /// <param name="command">The command.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
+        /// <exception cref="UnauthorizedAccessException">User with email '{email}' not found</exception>
         public async Task<Unit> Handle(NewPasswordCommand command, CancellationToken cancellationToken)
         {
             var email = command.Email;

@@ -34,7 +34,19 @@ namespace IdentityService.Application.Features.Users.Commands.ChangePassword
             _tokenBlacklist = tokenBlacklist;
             _jwtHelper = jwtHelper;
         }
-
+        /// <summary>
+        /// Handles the specified command.
+        /// </summary>
+        /// <param name="command">The command.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
+        /// <exception cref="UnauthorizedAccessException">
+        /// Unauthenticated
+        /// or
+        /// Invalid wrong current password
+        /// or
+        /// New password and Confirm password are not the same
+        /// </exception>
         public async Task<UserRep?> Handle(ChangePasswordComand command, CancellationToken cancellationToken)
         {
             var currentUser = await _userRepository.GetByIdAsync(command.Id);

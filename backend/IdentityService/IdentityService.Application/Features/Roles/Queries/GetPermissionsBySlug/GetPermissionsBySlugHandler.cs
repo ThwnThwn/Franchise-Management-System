@@ -14,7 +14,14 @@ namespace IdentityService.Application.Features.Roles.Queries.GetPermissionsBySlu
             _permRepo = permRepo;
             _permCache = permCache;
         }
-
+        /// <summary>
+        /// Handles a request
+        /// </summary>
+        /// <param name="request">The request</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>
+        /// Response from the request
+        /// </returns>
         public async Task<IEnumerable<string>> Handle(GetPermissionsBySlugQuery request, CancellationToken cancellationToken)
         {
             // 1. Lấy dữ liệu từ DB

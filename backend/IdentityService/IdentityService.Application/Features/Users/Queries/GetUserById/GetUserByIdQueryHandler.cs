@@ -20,7 +20,14 @@ public class GetUserByIdQueryHandler : IRequestHandler<GetUserByIdQuery, UserRep
         _mapper = mapper;
         _engagementServiceClient = engagementServiceClient;
     }
-
+    /// <summary>
+    /// Handles a request
+    /// </summary>
+    /// <param name="request">The request</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>
+    /// Response from the request
+    /// </returns>
     public async Task<UserRep?> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
     {
         var user = await _userRepository.GetByIdAsync(request.Id);

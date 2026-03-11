@@ -14,14 +14,22 @@ namespace EngagementService.Infrastucture.Persistences.Repository
         public VoucherRepository(IEngagementDbContext dbContext) : base(dbContext)
         {
         }
-
+        /// <summary>
+        /// Gets the voucher by code asynchronous.
+        /// </summary>
+        /// <param name="code">The code.</param>
+        /// <returns></returns>
         public async Task<Voucher?> GetVoucherByCodeAsync(string code)
         {
             return await _dbContext.Vouchers
                  .Where(v => v.Code == code)
                  .FirstOrDefaultAsync();
         }
-
+        /// <summary>
+        /// Updates the voucher asynchronous.
+        /// </summary>
+        /// <param name="voucherUpdate">The voucher update.</param>
+        /// <exception cref="ArgumentException"></exception>
         public async Task UpdateVoucherAsync(UpdateVoucherRequest voucherUpdate)
         {
             var voucherDb = _dbContext.Vouchers.Where(v => v.Id == voucherUpdate.Id)
@@ -41,7 +49,11 @@ namespace EngagementService.Infrastucture.Persistences.Repository
 
             await _dbContext.SaveChangesAsync();
         }
-
+        /// <summary>
+        /// Updates the voucher item.
+        /// </summary>
+        /// <param name="dbVoucher">The database voucher.</param>
+        /// <param name="updateRequests">The update requests.</param>
         private void UpdateVoucherItem(Voucher dbVoucher, IEnumerable<UpdateVoucherItemReq> updateRequests)
         {
             var dbVoucherItems = dbVoucher.VoucherItems;
@@ -78,6 +90,12 @@ namespace EngagementService.Infrastucture.Persistences.Repository
                 }
             }
         }
+        /// <summary>
+        /// Updates the voucher.
+        /// </summary>
+        /// <param name="dbVoucher">The database voucher.</param>
+        /// <param name="updateRequest">The update request.</param>
+        /// <exception cref="ArgumentException"></exception>
         private void UpdateVoucher(Voucher dbVoucher, UpdateVoucherRequest updateRequest)
         {
             var isGiftVoucher = dbVoucher.Type == VoucherType.GIFT;
@@ -136,7 +154,12 @@ namespace EngagementService.Infrastucture.Persistences.Repository
                 dbVoucher.EndDate = updateRequest.EndDate;
             }
         }
-
+        /// <summary>
+        /// Gets for update asynchronous.
+        /// </summary>
+        /// <param name="voucherId">The voucher identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
         public async Task<Voucher?> GetForUpdateAsync(Guid voucherId, CancellationToken cancellationToken)
         {
             var voucher = await _dbContext.Vouchers
@@ -145,7 +168,11 @@ namespace EngagementService.Infrastucture.Persistences.Repository
 
             return voucher;
         }
-
+        /// <summary>
+        /// Gets all voucher asynchronous.
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
         public Task<List<Voucher>> GetAllVoucherAsync(CancellationToken cancellationToken)
         {
             return _dbContext.Vouchers

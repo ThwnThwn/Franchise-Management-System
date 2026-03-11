@@ -18,14 +18,24 @@ public class OrderRepository : IOrderRepository
     {
         _context = context;
     }
-
+    /// <summary>
+    /// Creates the asynchronous.
+    /// </summary>
+    /// <param name="order">The order.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns></returns>
     public async Task<Order> CreateAsync(Order order, CancellationToken cancellationToken = default)
     {
         _context.Orders.Add(order);
         await _context.SaveChangesAsync(cancellationToken);
         return order;
     }
-
+    /// <summary>
+    /// Gets the by identifier asynchronous.
+    /// </summary>
+    /// <param name="id">The identifier.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns></returns>
     public async Task<Order?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
         return await _context.Orders
@@ -35,7 +45,14 @@ public class OrderRepository : IOrderRepository
                 o => o.Id == id && !o.IsDeleted,
                 cancellationToken);
     }
-
+    /// <summary>
+    /// Gets the orders by customer identifier asynchronous.
+    /// </summary>
+    /// <param name="customerId">The customer identifier.</param>
+    /// <param name="page">The page.</param>
+    /// <param name="pageSize">Size of the page.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns></returns>
     public async Task<List<Order>> GetOrdersByCustomerIdAsync(
     Guid customerId,
     int page,
@@ -49,7 +66,12 @@ public class OrderRepository : IOrderRepository
             .Take(pageSize)
             .ToListAsync(cancellationToken);
     }
-
+    /// <summary>
+    /// Counts the orders by customer identifier asynchronous.
+    /// </summary>
+    /// <param name="customerId">The customer identifier.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns></returns>
     public async Task<int> CountOrdersByCustomerIdAsync(
     Guid customerId,
     CancellationToken cancellationToken = default)
@@ -58,12 +80,29 @@ public class OrderRepository : IOrderRepository
             .Where(o => o.CustomerId == customerId)
             .CountAsync(cancellationToken);
     }
-
+    /// <summary>
+    /// Updates the asynchronous.
+    /// </summary>
+    /// <param name="order">The order.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     public async Task UpdateAsync(Order order, CancellationToken cancellationToken = default)
     {
         await _context.SaveChangesAsync(cancellationToken);
     }
-
+    /// <summary>
+    /// Gets the orders asynchronous.
+    /// </summary>
+    /// <param name="storeId">The store identifier.</param>
+    /// <param name="code">The code.</param>
+    /// <param name="fromDate">From date.</param>
+    /// <param name="toDate">To date.</param>
+    /// <param name="status">The status.</param>
+    /// <param name="paymentMethod">The payment method.</param>
+    /// <param name="type">The type.</param>
+    /// <param name="page">The page.</param>
+    /// <param name="pageSize">Size of the page.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns></returns>
     public async Task<(List<Order> Items, int TotalCount)> GetOrdersAsync(
         Guid? storeId,
         string? code,
@@ -126,12 +165,23 @@ public class OrderRepository : IOrderRepository
 
         return (items, totalCount);
     }
-
+    /// <summary>
+    /// Saves the asynchronous.
+    /// </summary>
+    /// <param name="cancellationToken">The cancellation token.</param>
     public async Task SaveAsync(CancellationToken cancellationToken = default)
     {
         await _context.SaveChangesAsync(cancellationToken);
     }
-
+    /// <summary>
+    /// Gets the revenue report asynchronous.
+    /// </summary>
+    /// <param name="fromDate">From date.</param>
+    /// <param name="toDate">To date.</param>
+    /// <param name="skus">The skus.</param>
+    /// <param name="storedId">The stored identifier.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns></returns>
     public async Task<List<RevenueItemDto>> GetRevenueReportAsync(
         DateOnly? fromDate,
         DateOnly? toDate,
@@ -207,7 +257,15 @@ public class OrderRepository : IOrderRepository
 
         return aggregatedResult;
     }
-
+    /// <summary>
+    /// Gets the order volume asynchronous.
+    /// </summary>
+    /// <param name="fromDate">From date.</param>
+    /// <param name="toDate">To date.</param>
+    /// <param name="storeId">The store identifier.</param>
+    /// <param name="status">The status.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns></returns>
     public async Task<List<OrderVolumePerDayDto>> GetOrderVolumeAsync(
         DateOnly fromDate,
         DateOnly toDate,
@@ -271,7 +329,12 @@ public class OrderRepository : IOrderRepository
         }).ToList();
     }
 
-
+    /// <summary>
+    /// Gets the orders by type asynchronous.
+    /// </summary>
+    /// <param name="type">The type.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns></returns>
     public async Task<List<Order>> GetOrdersByTypeAsync(OrderType type, CancellationToken cancellationToken)
     {
         return await _context.Orders
@@ -279,14 +342,24 @@ public class OrderRepository : IOrderRepository
             .OrderByDescending(o => o.CreatedAt)
             .ToListAsync(cancellationToken);
     }
-
+    /// <summary>
+    /// Existses the order type asynchronous.
+    /// </summary>
+    /// <param name="type">The type.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns></returns>
     public async Task<bool> ExistsOrderTypeAsync(OrderType type, CancellationToken cancellationToken)
     {
         return await _context.Orders
             .AnyAsync(o => o.Type == type && !o.IsDeleted, cancellationToken);
     }
 
-
+    /// <summary>
+    /// Gets the by user ids asynchronous.
+    /// </summary>
+    /// <param name="userIds">The user ids.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns></returns>
     public async Task<IEnumerable<GetByUserIdsRes>> GetByUserIdsAsync(List<Guid> userIds, CancellationToken cancellationToken = default)
     {
         if (userIds == null || !userIds.Any())
@@ -312,7 +385,16 @@ public class OrderRepository : IOrderRepository
             OrderCount = dictionary.TryGetValue(id, out var count) ? count : 0
         }).ToList();
     }
-
+    /// <summary>
+    /// Gets the sales trend asynchronous.
+    /// </summary>
+    /// <param name="fromDate">From date.</param>
+    /// <param name="toDate">To date.</param>
+    /// <param name="aggregation">The aggregation.</param>
+    /// <param name="categorySkus">The category skus.</param>
+    /// <param name="storeId">The store identifier.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns></returns>
     public async Task<List<SalesTrendDataPointDto>> GetSalesTrendAsync(
         DateTimeOffset fromDate,
         DateTimeOffset toDate,
@@ -398,7 +480,11 @@ public class OrderRepository : IOrderRepository
 
         return weekGrouped;
     }
-
+    /// <summary>
+    /// Gets the iso8601 year and week.
+    /// </summary>
+    /// <param name="time">The time.</param>
+    /// <returns></returns>
     private static (int Year, int Week) GetIso8601YearAndWeek(DateTime time)
     {
         var day = System.Globalization.CultureInfo.InvariantCulture.Calendar.GetDayOfWeek(time);

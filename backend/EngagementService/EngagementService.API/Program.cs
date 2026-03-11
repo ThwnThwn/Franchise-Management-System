@@ -125,6 +125,8 @@ public class Program
         {
             config.Register<SharedKernel.Events.UserRegisteredEvent>(SharedKernel.Constants.KafkaTopics.LoyaltyTierAccount, typeof(EngagementService.Application.EventHandler.CreateLoyaltyAccountHandler));
             config.Register<SharedKernel.Events.ProcessOrderRewardEvent>(SharedKernel.Constants.KafkaTopics.ProcessOrderReward, typeof(EngagementService.Application.EventHandler.ProcessOrderRewardHandler));
+            config.Register<SharedKernel.Events.DeductPointEvent>(SharedKernel.Constants.KafkaTopics.DedcutUserPoint, typeof(EngagementService.Application.EventHandler.DeductPointEventHandler));
+            config.Register<SharedKernel.Events.UseVouchersEvent>(SharedKernel.Constants.KafkaTopics.DeductUserVoucher, typeof(EngagementService.Application.EventHandler.UseVoucherEventHandler));
         });
 
         // 1. Cấu hình bản quyền QuestPDF (Bắt buộc để không bị lỗi khi chạy)

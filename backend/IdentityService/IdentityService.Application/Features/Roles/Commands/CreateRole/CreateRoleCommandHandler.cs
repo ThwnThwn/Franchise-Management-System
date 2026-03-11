@@ -17,7 +17,13 @@ public class CreateRoleCommandHandler : IRequestHandler<CreateRoleCommand, RoleR
         _roleRepository = roleRepository;
         _mapper = mapper;
     }
-
+    /// <summary>
+    /// Handles the specified command.
+    /// </summary>
+    /// <param name="command">The command.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns></returns>
+    /// <exception cref="DbUpdateException">Role '{request.Name}' already exists</exception>
     public async Task<RoleRep> Handle(CreateRoleCommand command, CancellationToken cancellationToken)
     {
         var request = command.Request;

@@ -29,7 +29,22 @@ namespace IdentityService.Application.Features.Auth.Commands.ConfirmOtp
             _mapper = mapper;
             _kafkaProducer = kafkaProducer;
         }
-
+        /// <summary>
+        /// Handles the specified command.
+        /// </summary>
+        /// <param name="command">The command.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
+        /// <exception cref="BusinessException">
+        /// Too many failed attempts. Please request a new OTP.
+        /// or
+        /// Invalid or expired OTP. {remainingAttempts} attempt(s) remaining.
+        /// or
+        /// Registration data not found or expired
+        /// or
+        /// Invalid registration data
+        /// </exception>
+        /// <exception cref="ConflictDuplicateException">Email '{request.Email}' already exists</exception>
         public async Task<Unit> Handle(ConfirmOtpCommand command, CancellationToken cancellationToken)
         {
             var request = command.Request;

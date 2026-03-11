@@ -22,7 +22,16 @@ public class AdminCreateUserCommandHandler
         _mapper = mapper;
         _roleRepository = roleRepository;
     }
-
+    /// <summary>
+    /// Handles the specified command.
+    /// </summary>
+    /// <param name="command">The command.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns></returns>
+    /// <exception cref="ConflictDuplicateException">
+    /// Username '{request.Username}' already exists
+    /// </exception>
+    /// <exception cref="Exception">Slug" + request.RoleSlug + " not found</exception>
     public async Task<UserRep> Handle(AdminCreateUserCommand command, CancellationToken cancellationToken)
     {
         var request = command.Request;

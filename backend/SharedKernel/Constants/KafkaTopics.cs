@@ -34,4 +34,10 @@ public static class KafkaTopics
 
     /// <summary>Cộng point cho account từ Engagement</summary>
     public const string ProcessOrderReward = "process-order-reward";
+
+    /// <summary>Trừ số voucher cho account từ Engagement</summary>
+    public const string DeductUserVoucher = "dedcut-user-voucher";
+
+    /// <summary>Trừ point cho account từ Engagement</summary>
+    public const string DedcutUserPoint = "deduct-user-point";
 }

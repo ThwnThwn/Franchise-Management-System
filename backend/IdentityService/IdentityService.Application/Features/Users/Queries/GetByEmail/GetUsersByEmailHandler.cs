@@ -11,6 +11,15 @@ namespace IdentityService.Application.Features.Users.Queries.GetByEmail
         {
             _userRepository = userRepository;
         }
+        /// <summary>
+        /// Handles a request
+        /// </summary>
+        /// <param name="request">The request</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>
+        /// Response from the request
+        /// </returns>
+        /// <exception cref="DirectoryNotFoundException">Không tìm thấy người dùng</exception>
         public async Task<List<User>> Handle(GetUsersByEmailQuery request, CancellationToken cancellationToken)
         {
             var users = await _userRepository.GetUsersByEmailAsync(request.Email);

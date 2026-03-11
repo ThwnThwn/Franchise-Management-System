@@ -24,7 +24,23 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, LoginRep>
         _jwtHelper = jwtHelper;
         _mapper = mapper;
     }
-
+    /// <summary>
+    /// Handles a request
+    /// </summary>
+    /// <param name="request">The request</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>
+    /// Response from the request
+    /// </returns>
+    /// <exception cref="UnauthorizedAccessException">
+    /// Invalid email/username or password
+    /// or
+    /// Account is blocked
+    /// or
+    /// Account's role is null
+    /// or
+    /// Wrong password
+    /// </exception>
     public async Task<LoginRep> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
         var user = await _userRepository.GetByEmailOrUserNameAsync(request.Request.EmailOrUsername);

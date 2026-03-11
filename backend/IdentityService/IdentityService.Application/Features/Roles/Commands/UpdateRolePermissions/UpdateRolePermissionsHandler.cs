@@ -19,7 +19,13 @@ namespace IdentityService.Application.Features.Roles.Commands.UpdateRolePermissi
             _permRepo = permRepo;
             _permCache = permCache;
         }
-
+        /// <summary>
+        /// Handles the specified request.
+        /// </summary>
+        /// <param name="request">The request.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
+        /// <exception cref="KeyNotFoundException">Không tìm thấy role {request.Id}</exception>
         public async Task<Unit> Handle(UpdateRolePermissionsCommand request, CancellationToken cancellationToken)
         {
             // 1. Lấy Role kèm Permissions hiện tại
