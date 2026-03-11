@@ -129,9 +129,23 @@ func (o *OrderGrpcClient) GetOrderById(ctx context.Context, id uuid.UUID) (*orde
 		})
 	}
 
+	salesPb := res.Order.SaleItems
+	saleItem := make([]*order.OrderSaleItemReply, 0, len(salesPb))
+	for _, item := range salesPb {
+		saleItem = append(saleItem, &order.OrderSaleItemReply{
+			Id:          item.Id,
+			Amount:      item.Amount,
+			Type:        enum.OrderSaleItemType(item.Type),
+			ReferenceId: item.ReferenceId,
+			Name:        item.Name,
+		})
+	}
+
 	order := &order.Order{
 		OrderHeader: *mapper.MapOrderPbToHeaderModel(res.Order),
 		Items:       items,
+		Type:        enum.OrderType(res.Order.Type),
+		SaleItems:   saleItem,
 	}
 
 	return order, nil

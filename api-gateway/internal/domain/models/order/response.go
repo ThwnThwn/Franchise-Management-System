@@ -1,6 +1,7 @@
 package order
 
 import (
+	"api-gateway/internal/domain/constants/enum"
 	"api-gateway/internal/domain/models/store"
 	"time"
 )
@@ -55,7 +56,9 @@ func (h *OrderHeader) SetStore(s *store.StoreDetailResponse) {
 
 type Order struct {
 	OrderHeader
-	Items []*OrderItem `json:"items"`
+	Items     []*OrderItem          `json:"items"`
+	Type      enum.OrderType        `json:"type"`
+	SaleItems []*OrderSaleItemReply `json:"saleItems"`
 }
 
 type OrderSummary struct {
@@ -71,6 +74,14 @@ type OrderItem struct {
 	ProductName string  `json:"productName"`
 	Sku         string  `json:"sku"`
 	ImageUrl    string  `json:"imageUrl"`
+}
+
+type OrderSaleItemReply struct {
+	Id          string                 `json:"id"`
+	Amount      float64                `json:"amount"`
+	Type        enum.OrderSaleItemType `json:"type"`
+	ReferenceId *string                `json:"referenceId"`
+	Name        string                 `json:"name"`
 }
 
 type GetRevenueReportReply struct {
