@@ -21,11 +21,14 @@ import { BackendError } from "@/models/common/respone"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { omitRecord } from "@/utils/helpers/uiHelper"
 import { OrderDetail } from "@/features/orders/components"
-import { Printer } from "lucide-react"
+import { Printer, Ticket } from "lucide-react"
 import { RoleSlug } from "@/constants/enums"
 import { useGetRecipes } from "@/features/products/hooks/useRecipe"
 import { OrderStatusActions } from "@/features/orders/components/OrderStatusActions"
 import { canCancelFrom } from "@/features/orders/utils"
+import { Voucher } from "@/features/orders/models/voucher"
+import { CreatePaymentRequest } from "@/features/orders/models/request"
+import { VoucherSelector } from "@/features/orders/components/VoucherSelector"
 
 export default function OrderDetailPageView({ orderId }: { orderId: string }) {
     const isCustomer = useTokenStore((s) => s.roleSlug === RoleSlug.Customer)
@@ -47,6 +50,7 @@ export default function OrderDetailPageView({ orderId }: { orderId: string }) {
         enabled: !isCustomer && !!order
     })
 
+
     // const recipes = React.useMemo(() => {
     //     if (!order) return []
     //     const ids = order.items.map((item) => item.variantId)
@@ -58,6 +62,9 @@ export default function OrderDetailPageView({ orderId }: { orderId: string }) {
 
     const { formatDateTime } = useDay({ defaultFormat: DATE_TIME_VIEW_FORMAT })
     const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | undefined>(undefined)
+    const [isVoucherOpen, setIsVoucherOpen] = useState(false)
+    const [shippingVoucher, setShippingVoucher] = useState<Voucher | null>(null)
+    const [discountVoucher, setDiscountVoucher] = useState<Voucher | null>(null)
 
     const { mutate: payment, isPending: isPaymentPending } = usePayment({
         id: orderId,
@@ -76,7 +83,22 @@ export default function OrderDetailPageView({ orderId }: { orderId: string }) {
 
     const handlePayment = () => {
         if (paymentMethod === undefined) return
-        payment({ paymentMethod, returnUrl: `/orders/${orderId}` })
+        const req: CreatePaymentRequest = {
+            paymentMethod,
+            returnUrl: `/orders/${orderId}`
+        }
+        if (shippingVoucher) {
+            req.voucherShipCode = shippingVoucher.code
+        }
+        if (discountVoucher) {
+            req.voucherDiscountCode = discountVoucher.code
+        }
+        payment(req)
+    }
+
+    const handleApplyVouchers = (ship: Voucher | null, discount: Voucher | null) => {
+        setShippingVoucher(ship)
+        setDiscountVoucher(discount)
     }
 
     const updateStatus = useUpdateOrderStatus({ id: orderId })
@@ -264,6 +286,9 @@ export default function OrderDetailPageView({ orderId }: { orderId: string }) {
                             order={order}
                             recipes={recipes}
                             isCustomer={isCustomer}
+                            appliedShippingVoucher={shippingVoucher}
+                            appliedDiscountVoucher={discountVoucher}
+                            onOpenVoucherSelector={() => setIsVoucherOpen(true)}
                         />
                     </div>
                 </CardBody>
@@ -283,6 +308,7 @@ export default function OrderDetailPageView({ orderId }: { orderId: string }) {
                                         </p>
                                         <div className="h-1 w-12 bg-primary/20 rounded-full" />
                                     </div>
+
                                     <div className="flex flex-col md:flex-row justify-center items-center gap-4 max-w-2xl mx-auto w-full">
                                         <EnumPicker
                                             placeholder="Phương thức thanh toán"
@@ -345,6 +371,17 @@ export default function OrderDetailPageView({ orderId }: { orderId: string }) {
                     </>
                 )}
             </Card>
+
+            {isCustomer && (
+                <VoucherSelector
+                    order={order}
+                    isOpen={isVoucherOpen}
+                    onOpenChange={setIsVoucherOpen}
+                    onApplyVouchers={handleApplyVouchers}
+                    appliedShippingVoucher={shippingVoucher}
+                    appliedDiscountVoucher={discountVoucher}
+                />
+            )}
         </div>
     )
 }

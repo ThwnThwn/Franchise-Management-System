@@ -60,7 +60,7 @@ export const VoucherModal = ({ isOpen, onOpenChange, voucher, onSuccess }: Vouch
                     max_usage_per_user: voucher.max_usage_per_user,
                     end_date: voucher.end_date ? new Date(voucher.end_date).toISOString().split('T')[0] : "",
                     voucher_items: voucher.voucher_items?.map(item => ({
-                        variant_id: item.variant_id,
+                        sku: item.sku,
                         quantity: item.quantity,
                         type: item.type
                     })) || []

@@ -17,15 +17,11 @@ export function ScrollToTopButton() {
 
     const scrollToTop = () => {
         const distance = window.scrollY
-        // Bay cao hơn nếu scroll xa, tối đa 800px
+
         const height = Math.min(800, distance * 0.6)
         setFlyHeight(height)
         setLaunch(true)
-
-        // reset trạng thái bay sau 1s
         setTimeout(() => setLaunch(false), 900)
-
-        // Cuộn mượt về đầu trang
         window.scrollTo({ top: 0, behavior: "smooth" })
     }
 
@@ -50,11 +46,11 @@ export function ScrollToTopButton() {
                         animate={
                             launch
                                 ? {
-                                      y: [0, -flyHeight, -flyHeight - 100],
-                                      opacity: [1, 0.9, 0],
-                                      scale: [1, 1.2, 0.8],
-                                      rotate: [-2, 0, 2]
-                                  }
+                                    y: [0, -flyHeight, -flyHeight - 100],
+                                    opacity: [1, 0.9, 0],
+                                    scale: [1, 1.2, 0.8],
+                                    rotate: [-2, 0, 2]
+                                }
                                 : { y: 0, opacity: 1, scale: 1, rotate: 0 }
                         }
                         transition={{ duration: 0.9, ease: "easeInOut" }}

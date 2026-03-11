@@ -1,6 +1,7 @@
 import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Chip, Switch, Tooltip, Button } from "@heroui/react"
-import { Voucher, VoucherType } from "@/features/orders/models/voucher"
-import { Edit, Trash2, Gift } from "lucide-react"
+import { Voucher, VoucherType, VoucherItemType } from "@/features/orders/models/voucher"
+import { Edit, Trash2, Gift, PackageCheck } from "lucide-react"
+import { VariantNameMap } from "../../utils/exportVouchers"
 
 interface VouchersTableProps {
     vouchers: Voucher[]
@@ -9,9 +10,10 @@ interface VouchersTableProps {
     onToggleStatus: (id: string, is_active: boolean) => void
     onDelete: (id: string) => void
     onAssign: (voucher: Voucher) => void
+    variantMap?: VariantNameMap
 }
 
-export const VouchersTable = ({ vouchers, isLoading, onEdit, onToggleStatus, onDelete, onAssign }: VouchersTableProps) => {
+export const VouchersTable = ({ vouchers, isLoading, onEdit, onToggleStatus, onDelete, onAssign, variantMap = {} }: VouchersTableProps) => {
 
     const renderType = (type: VoucherType) => {
         switch (type) {
@@ -30,6 +32,29 @@ export const VouchersTable = ({ vouchers, isLoading, onEdit, onToggleStatus, onD
         return `${Number(voucher.discount_value).toLocaleString()}${suffix}`
     }
 
+    const renderItems = (voucher: Voucher, type: VoucherItemType) => {
+        const items = voucher.voucher_items?.filter((i) => i.type === type) ?? []
+        if (items.length === 0) return <span className="text-default-300 text-xs">—</span>
+        return (
+            <div className="flex flex-col gap-1">
+                {items.map((item, idx) => {
+                    const name = variantMap[item.sku] ?? item.sku
+                    return (
+                        <Chip
+                            key={idx}
+                            size="sm"
+                            variant="flat"
+                            color={type === VoucherItemType.ITEM_GIFT ? "secondary" : "warning"}
+                            startContent={type === VoucherItemType.ITEM_GIFT ? <Gift size={12} /> : <PackageCheck size={12} />}
+                        >
+                            {name} ×{item.quantity}
+                        </Chip>
+                    )
+                })}
+            </div>
+        )
+    }
+
     return (
         <Table aria-label="Danh sách Voucher" shadow="none" removeWrapper>
             <TableHeader>
@@ -38,6 +63,8 @@ export const VouchersTable = ({ vouchers, isLoading, onEdit, onToggleStatus, onD
                 <TableColumn>MỨC GIẢM</TableColumn>
                 <TableColumn>ĐIỀU KIỆN (MIN ORDER)</TableColumn>
                 <TableColumn>SỐ LƯỢNG</TableColumn>
+                <TableColumn>QUÀ TẶNG</TableColumn>
+                <TableColumn>ITEM YÊU CẦU</TableColumn>
                 <TableColumn>TRẠNG THÁI</TableColumn>
                 <TableColumn align="center">HÀNH ĐỘNG</TableColumn>
             </TableHeader>
@@ -65,6 +92,12 @@ export const VouchersTable = ({ vouchers, isLoading, onEdit, onToggleStatus, onD
                         </TableCell>
                         <TableCell>
                             {voucher.current_quantity !== undefined ? voucher.current_quantity : voucher.init_quantity} / {voucher.init_quantity || '∞'}
+                        </TableCell>
+                        <TableCell>
+                            {renderItems(voucher, VoucherItemType.ITEM_GIFT)}
+                        </TableCell>
+                        <TableCell>
+                            {renderItems(voucher, VoucherItemType.ITEM_REQUIRED)}
                         </TableCell>
                         <TableCell>
                             <Switch
@@ -99,3 +132,4 @@ export const VouchersTable = ({ vouchers, isLoading, onEdit, onToggleStatus, onD
         </Table>
     )
 }
+

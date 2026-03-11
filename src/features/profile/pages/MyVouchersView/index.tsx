@@ -1,22 +1,24 @@
 "use client"
 
-import React, { useState } from "react"
-import { useGetAllVouchers, useGetMyVouchers, useRedeemVoucher, useCollectVoucher } from "@/features/orders/hooks/useVoucher"
+import React, { useState, useMemo } from "react"
+import { useGetAllVouchers, useGetMyVouchers, useRedeemVoucher } from "@/features/orders/hooks/useVoucher"
 import { useGetMe, useGetMyLoyalty } from "@/features/profile/hooks/useProfile"
-import { ChevronLeft, Ticket, Gift, Percent, Star, AlertCircle } from "lucide-react"
+import { useGetAllProducts } from "@/features/products/hooks/useProduct"
+import { ChevronLeft, Ticket, Gift, Percent, Star, AlertCircle, PackageCheck } from "lucide-react"
 import Link from "next/link"
 import { motion } from "framer-motion"
-import { Voucher, VoucherType } from "@/features/orders/models/voucher"
+import { Voucher, VoucherType, VoucherItemType } from "@/features/orders/models/voucher"
 import { Button, Chip, addToast } from "@heroui/react"
 import { useQueryClient } from "@tanstack/react-query"
 import { QUERY_KEYS } from "@/constants/queryKeys"
 
-const VoucherCard = ({ voucher, isOwned, userPoints, onRedeem, isRedeeming }: {
+const VoucherCard = ({ voucher, isOwned, userPoints, onRedeem, isRedeeming, variantMap = {} }: {
     voucher: Voucher,
     isOwned: boolean,
     userPoints: number,
     onRedeem?: (id: string, pointCost: number) => void,
-    isRedeeming?: boolean
+    isRedeeming?: boolean,
+    variantMap?: Record<string, string>
 }) => {
     // Render Voucher Type Label
     const getVoucherInfo = (type: VoucherType) => {
@@ -32,8 +34,19 @@ const VoucherCard = ({ voucher, isOwned, userPoints, onRedeem, isRedeeming }: {
 
     const info = getVoucherInfo(voucher.type)
 
+    const giftItems = voucher.voucher_items?.filter(i => i.type === VoucherItemType.ITEM_GIFT) ?? []
+    const requiredItems = voucher.voucher_items?.filter(i => i.type === VoucherItemType.ITEM_REQUIRED) ?? []
+
     const renderDiscount = () => {
-        if (voucher.type === VoucherType.GIFT) return "Tặng quà đính kèm"
+        if (voucher.type === VoucherType.GIFT) {
+            if (giftItems.length > 0) {
+                return "Tặng: " + giftItems.map(i => {
+                    const name = variantMap[i.sku] ?? i.sku
+                    return `${name} ×${i.quantity}`
+                }).join(", ")
+            }
+            return "Tặng quà đính kèm"
+        }
         const suffix = (voucher.type === VoucherType.SHIPPING_PERCENTAGE || voucher.type === VoucherType.DISCOUNT_PERCENTAGE) ? "%" : "đ"
         return `Giảm ${Number(voucher.discount_value).toLocaleString()}${suffix}`
     }
@@ -79,6 +92,15 @@ const VoucherCard = ({ voucher, isOwned, userPoints, onRedeem, isRedeeming }: {
                             Giảm tối đa: {Number(voucher.max_discount_value).toLocaleString()}đ
                         </p>
                     )}
+                    {requiredItems.length > 0 && (
+                        <div className="mt-1 flex flex-wrap gap-1">
+                            {requiredItems.map((item, idx) => (
+                                <Chip key={idx} size="sm" variant="flat" color="warning" startContent={<PackageCheck size={12} />}>
+                                    Cần: {variantMap[item.sku] ?? item.sku} ×{item.quantity}
+                                </Chip>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 {/* Footer Action */}
@@ -119,7 +141,23 @@ export default function MyVouchersView() {
     const { data: myVouchers = [], isLoading: isLoadingMy, refetch: refetchMyVouchers } = useGetMyVouchers()
     const queryClient = useQueryClient()
     const { mutate: redeemVoucher, isPending: isRedeeming } = useRedeemVoucher()
-    const { mutate: collectVoucher, isPending: isCollecting } = useCollectVoucher()
+
+    // Fetch products to resolve variant names
+    const { data: productsData } = useGetAllProducts({
+        params: {},
+        pagination: { page: 1, pageSize: 100 },
+        enabled: true
+    })
+
+    const variantMap = useMemo<Record<string, string>>(() => {
+        const map: Record<string, string> = {}
+        productsData?.items?.forEach((p) => {
+            p.variants.forEach((v) => {
+                map[v.sku] = `${p.name}${v.attributes ? ` (${v.attributes})` : ""}`
+            })
+        })
+        return map
+    }, [productsData])
 
     const [activeTab, setActiveTab] = useState<"my_vouchers" | "exchange">("my_vouchers")
     const [redeemingId, setRedeemingId] = useState<string | null>(null)
@@ -157,12 +195,7 @@ export default function MyVouchersView() {
                 color: "danger"
             })
         }
-
-        if (pointCost > 0) {
-            redeemVoucher(voucherId, { onSuccess, onError })
-        } else {
-            collectVoucher(voucherId, { onSuccess, onError })
-        }
+        redeemVoucher(voucherId, { onSuccess, onError })
     }
 
     return (
@@ -215,7 +248,7 @@ export default function MyVouchersView() {
                                 ) : myVouchers.length > 0 ? (
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {myVouchers.map(v => (
-                                            <VoucherCard key={v.id} voucher={v} isOwned={true} userPoints={userPoints} />
+                                            <VoucherCard key={v.id} voucher={v} isOwned={true} userPoints={userPoints} variantMap={variantMap} />
                                         ))}
                                     </div>
                                 ) : (
@@ -253,7 +286,8 @@ export default function MyVouchersView() {
                                                 isOwned={false}
                                                 userPoints={userPoints}
                                                 onRedeem={handleRedeem}
-                                                isRedeeming={(isRedeeming || isCollecting) && redeemingId === v.id}
+                                                isRedeeming={(isRedeeming) && redeemingId === v.id}
+                                                variantMap={variantMap}
                                             />
                                         ))}
                                     </div>

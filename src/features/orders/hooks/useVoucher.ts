@@ -50,14 +50,3 @@ export const useRedeemVoucher = () => {
     })
 }
 
-export const useCollectVoucher = () => {
-    return useMutation({
-        mutationFn: (id: string) => voucherApi.collectVoucher(id)
-    })
-}
-
-export const useAssignVoucher = () => {
-    return useMutation({
-        mutationFn: ({ id, userIds }: { id: string; userIds: string[] }) => voucherApi.assignVoucher(id, userIds)
-    })
-}

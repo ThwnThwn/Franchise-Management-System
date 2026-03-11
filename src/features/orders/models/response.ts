@@ -33,6 +33,21 @@ export interface OrderItem {
     variantId: string
 }
 
+export enum OrderSaleItemType {
+    VOUCHER = 0,
+    WALLET = 1,
+    POINT = 2,
+    PROMOTION = 3,
+}
+
+export interface OrderSaleItem {
+    id: string
+    amount: number
+    type: OrderSaleItemType
+    referenceId?: string | null
+    name: string
+}
+
 export interface OrderHeader {
     id: string
     code: string
@@ -58,6 +73,7 @@ export interface OrderHeader {
 
 export interface Order extends OrderHeader {
     items: OrderItem[]
+    saleItems?: OrderSaleItem[]
 }
 
 export interface OrderSummary extends OrderHeader { }

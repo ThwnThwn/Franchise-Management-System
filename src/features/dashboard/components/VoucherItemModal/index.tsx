@@ -37,7 +37,7 @@ export const VoucherItemModal = ({ isOpen, onOpenChange, initialItems, onSave }:
     const handleAddItem = () => {
         setItems(prev => [
             ...prev,
-            { variant_id: "", quantity: 1, type: VoucherItemType.ITEM_GIFT }
+            { sku: "", quantity: 1, type: VoucherItemType.ITEM_GIFT }
         ])
     }
 
@@ -54,16 +54,15 @@ export const VoucherItemModal = ({ isOpen, onOpenChange, initialItems, onSave }:
     }
 
     const handleSave = () => {
-        // Filter out items without variant_id
-        const validItems = items.filter(item => !!item.variant_id)
+        const validItems = items.filter(item => !!item.sku)
         onSave(validItems)
         onOpenChange(false)
     }
 
-    // Flatten products into selection list of variants
+
     const variantOptions = productsData?.items?.flatMap(p =>
         p.variants.map(v => ({
-            id: v.id,
+            sku: v.sku,
             label: `${p.name} - ${v.sku} ${v.attributes ? `(${v.attributes})` : ""}`
         }))
     ) || []
@@ -96,11 +95,11 @@ export const VoucherItemModal = ({ isOpen, onOpenChange, initialItems, onSave }:
                                                     size="sm"
                                                     variant="bordered"
                                                     placeholder="Chọn..."
-                                                    selectedKeys={item.variant_id ? [item.variant_id] : []}
-                                                    onChange={(e) => handleUpdateItem(index, "variant_id", e.target.value)}
+                                                    selectedKeys={item.sku ? [item.sku] : []}
+                                                    onChange={(e) => handleUpdateItem(index, "sku", e.target.value)}
                                                 >
                                                     {variantOptions.map((opt) => (
-                                                        <SelectItem key={opt.id} textValue={opt.label}>
+                                                        <SelectItem key={opt.sku} textValue={opt.label}>
                                                             {opt.label}
                                                         </SelectItem>
                                                     ))}

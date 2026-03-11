@@ -1,18 +1,36 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useMemo } from "react"
 import { useGetAllVouchers, useUpdateVoucherStatus, useDeleteVoucher } from "@/features/orders/hooks/useVoucher"
+import { useGetAllProducts } from "@/features/products/hooks/useProduct"
 import { VouchersTable } from "../../components/VouchersTable"
 import { VoucherModal } from "../../components/VoucherModal"
-import { AssignVoucherModal } from "../../components/AssignVoucherModal"
 import { Voucher } from "@/features/orders/models/voucher"
 import { Button, Input } from "@heroui/react"
-import { Plus, Search } from "lucide-react"
+import { Plus, Search, Download } from "lucide-react"
+import { exportVouchersCsv, VariantNameMap } from "../../utils/exportVouchers"
 
 export const VouchersPageView = () => {
     const { data: vouchers, isLoading, refetch } = useGetAllVouchers()
     const { mutate: updateStatus } = useUpdateVoucherStatus()
     const { mutate: deleteVoucher } = useDeleteVoucher()
+
+    // Fetch products to resolve variant names for CSV export
+    const { data: productsData } = useGetAllProducts({
+        params: {},
+        pagination: { page: 1, pageSize: 100 },
+        enabled: true
+    })
+
+    const variantMap = useMemo<VariantNameMap>(() => {
+        const map: VariantNameMap = {}
+        productsData?.items?.forEach((p) => {
+            p.variants.forEach((v) => {
+                map[v.sku] = `${p.name} - ${v.sku}${v.attributes ? ` (${v.attributes})` : ""}`
+            })
+        })
+        return map
+    }, [productsData])
 
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [isAssignModalOpen, setIsAssignModalOpen] = useState(false)
@@ -69,6 +87,18 @@ export const VouchersPageView = () => {
                     startContent={<Search className="text-default-400" size={18} />}
                     className="max-w-xs"
                 />
+                <div className="ml-auto flex gap-2">
+                    <Button
+                        variant="bordered"
+                        color="success"
+                        size="sm"
+                        startContent={<Download size={16} />}
+                        onPress={() => exportVouchersCsv(filteredVouchers, variantMap)}
+                        isDisabled={filteredVouchers.length === 0}
+                    >
+                        Xuất CSV
+                    </Button>
+                </div>
             </div>
 
             <div className="bg-background rounded-2xl border border-default-100 shadow-sm overflow-hidden p-0">
@@ -79,6 +109,7 @@ export const VouchersPageView = () => {
                     onToggleStatus={handleToggleStatus}
                     onDelete={handleDelete}
                     onAssign={handleAssign}
+                    variantMap={variantMap}
                 />
             </div>
 
@@ -89,12 +120,6 @@ export const VouchersPageView = () => {
                 onSuccess={refetch}
             />
 
-            <AssignVoucherModal
-                isOpen={isAssignModalOpen}
-                onOpenChange={setIsAssignModalOpen}
-                voucher={selectedVoucher}
-                onSuccess={refetch}
-            />
         </div>
     )
 }

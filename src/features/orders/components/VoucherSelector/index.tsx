@@ -69,10 +69,10 @@ export function VoucherSelector({
 
         // Nếu là GIFT: Kiểm tra xem có yêu cầu sản phẩm cụ thể (ITEM_REQUIRED) không
         if (voucher.type === VoucherType.GIFT && voucher.voucher_items && voucher.voucher_items.length > 0) {
-            const requiredItem = voucher.voucher_items.find(i => i.type === VoucherItemType.ITEM_REQUIRED)
-            if (requiredItem) {
-                // Kiểm tra giỏ hàng có sản phẩm này và đủ số lượng không
-                const orderItem = order.items.find(i => i.variantId === requiredItem.variant_id)
+            const requiredItems = voucher.voucher_items.filter(i => i.type === VoucherItemType.ITEM_REQUIRED)
+            for (const requiredItem of requiredItems) {
+                // So sánh SKU của order item với SKU của required item
+                const orderItem = order.items.find(i => i.sku === requiredItem.sku)
                 if (!orderItem || orderItem.quantity < requiredItem.quantity) {
                     return { isEligible: false, reason: `Cần mua tối thiểu ${requiredItem.quantity} sản phẩm quy định` }
                 }
@@ -102,8 +102,8 @@ export function VoucherSelector({
                             <div
                                 key={voucher.id}
                                 className={`flex border-2 rounded-xl overflow-hidden transition-all ${isSelected ? 'border-primary bg-primary/5' :
-                                        isEligible ? 'border-default-200 hover:border-primary/50 cursor-pointer' :
-                                            'border-default-100 opacity-50 cursor-not-allowed bg-default-50/50'
+                                    isEligible ? 'border-default-200 hover:border-primary/50 cursor-pointer' :
+                                        'border-default-100 opacity-50 cursor-not-allowed bg-default-50/50'
                                     }`}
                                 onClick={() => {
                                     if (isEligible) {
@@ -113,8 +113,8 @@ export function VoucherSelector({
                             >
                                 {/* Cột trái - Icon */}
                                 <div className={`w-24 flex flex-col items-center justify-center border-r-2 border-dashed ${isSelected ? 'bg-primary/10 border-primary/20 text-primary' :
-                                        isEligible ? 'bg-default-100 border-default-200 text-default-500' :
-                                            'bg-default-50 border-default-100 text-default-300'
+                                    isEligible ? 'bg-default-100 border-default-200 text-default-500' :
+                                        'bg-default-50 border-default-100 text-default-300'
                                     }`}>
                                     {voucher.type === VoucherType.GIFT ? <Gift size={32} /> :
                                         voucher.type === VoucherType.SHIPPING_FIXED_AMOUNT || voucher.type === VoucherType.SHIPPING_PERCENTAGE ? <Truck size={32} /> :

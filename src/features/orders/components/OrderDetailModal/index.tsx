@@ -27,6 +27,9 @@ import { STRINGS } from "@/constants/strings"
 import { BackendError } from "@/models/common/respone"
 import { useRouter } from "next/navigation"
 import { omitRecord } from "@/utils/helpers/uiHelper"
+import { Voucher } from "@/features/orders/models/voucher"
+import { CreatePaymentRequest } from "@/features/orders/models/request"
+import { VoucherSelector } from "../VoucherSelector"
 
 interface OrderDetailModalProps {
     isOpen: boolean
@@ -46,6 +49,10 @@ export const OrderDetailModal = ({
     const { formatDateTime } = useDay({ defaultFormat: DEFAULT_DATE_FORMAT })
 
     const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | undefined>(undefined)
+    const [isVoucherOpen, setIsVoucherOpen] = useState(false)
+    const [shippingVoucher, setShippingVoucher] = useState<Voucher | null>(null)
+    const [discountVoucher, setDiscountVoucher] = useState<Voucher | null>(null)
+
     const { mutate: payment, isPending: isPaymentPending } = usePayment({
         id: orderId,
         onSuccess: (data: { paymentUrl: string }) => {
@@ -63,9 +70,21 @@ export const OrderDetailModal = ({
     const handlePayment = () => {
         if (paymentMethod === undefined) return
 
-        payment({
-            paymentMethod: paymentMethod
-        })
+        const req: CreatePaymentRequest = {
+            paymentMethod: paymentMethod,
+        }
+        if (shippingVoucher) {
+            req.voucherShipCode = shippingVoucher.code
+        }
+        if (discountVoucher) {
+            req.voucherDiscountCode = discountVoucher.code
+        }
+        payment(req)
+    }
+
+    const handleApplyVouchers = (ship: Voucher | null, discount: Voucher | null) => {
+        setShippingVoucher(ship)
+        setDiscountVoucher(discount)
     }
 
     const updateStatus = useUpdateOrderStatus({
@@ -129,7 +148,14 @@ export const OrderDetailModal = ({
                             </ModalHeader>
 
                             <ModalBody>
-                                <OrderDetail key={order.id} order={order} />
+                                <OrderDetail
+                                    key={order.id}
+                                    order={order}
+                                    appliedShippingVoucher={shippingVoucher}
+                                    appliedDiscountVoucher={discountVoucher}
+                                    onOpenVoucherSelector={() => setIsVoucherOpen(true)}
+                                    isCustomer
+                                />
                             </ModalBody>
 
                             <ModalFooter>
@@ -176,6 +202,16 @@ export const OrderDetailModal = ({
                     )}
                 </ModalContent>
             </ModalStyled>
+
+            <VoucherSelector
+                order={order}
+                isOpen={isVoucherOpen}
+                onOpenChange={setIsVoucherOpen}
+                onApplyVouchers={handleApplyVouchers}
+                appliedShippingVoucher={shippingVoucher}
+                appliedDiscountVoucher={discountVoucher}
+            />
         </>
     )
 }
+

@@ -13,7 +13,7 @@ export enum VoucherItemType {
 
 export interface VoucherItem {
     id: string
-    variant_id: string
+    sku: string
     quantity: number
     type: VoucherItemType
 }
@@ -37,7 +37,7 @@ export interface Voucher {
 }
 
 export interface CreateVoucherItemReq {
-    variant_id: string
+    sku: string
     quantity: number
     type: VoucherItemType
 }
@@ -57,7 +57,7 @@ export interface CreateVoucherRequest {
 
 export interface UpdateVoucherItemReq {
     id?: string
-    variant_id?: string
+    sku?: string
     quantity?: number
     type?: VoucherItemType
 }

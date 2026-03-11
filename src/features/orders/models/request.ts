@@ -14,8 +14,12 @@ export interface CreateOrderRequest {
 }
 
 export interface CreatePaymentRequest {
-    returnUrl?: string
+    returnUrl?: string | null
     paymentMethod: PaymentMethod
+    point?: number | null
+    voucherShipCode?: string | null
+    voucherDiscountCode?: string | null
+    appliedWalletAmount?: number | null
 }
 
 export interface UpdateOrderItem {
