@@ -37,7 +37,19 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
         _mediator = mediator;
         _mapper = mapper;
     }
-
+    /// <summary>
+    /// Tạo đơn hàng từ giỏ hàng
+    /// </summary>
+    /// <param name="request">The request received from the client.</param>
+    /// <param name="context">The context of the server-side call handler being invoked.</param>
+    /// <returns>
+    /// The response to send back to the client (wrapped by a task).
+    /// </returns>
+    /// <exception cref="RpcException"></exception>
+    /// <exception cref="Status">
+    /// Missing x-user-id in request headers
+    /// or
+    /// </exception>
     public override async Task<OrderReply> CreateOrder(CreateOrderRequest request, ServerCallContext context)
     {
         // Lấy UserId từ Metadata header
@@ -113,7 +125,19 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             );
         return reply;
     }
-
+    /// <summary>
+    /// Lấy thông tin đơn hàng theo ID
+    /// </summary>
+    /// <param name="request">The request received from the client.</param>
+    /// <param name="context">The context of the server-side call handler being invoked.</param>
+    /// <returns>
+    /// The response to send back to the client (wrapped by a task).
+    /// </returns>
+    /// <exception cref="RpcException"></exception>
+    /// <exception cref="Status">
+    /// Invalid order id
+    /// or
+    /// </exception>
     public override async Task<GetOrderByIdReply> GetOrderById(
         GetOrderByIdRequest request,
         ServerCallContext context)
@@ -187,7 +211,16 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             Order = orderMessage
         };
     }
-
+    /// <summary>
+    /// Lấy danh sách đơn hàng của khách hàng hiện tại
+    /// </summary>
+    /// <param name="request">The request received from the client.</param>
+    /// <param name="context">The context of the server-side call handler being invoked.</param>
+    /// <returns>
+    /// The response to send back to the client (wrapped by a task).
+    /// </returns>
+    /// <exception cref="RpcException"></exception>
+    /// <exception cref="Status">Missing x-user-id in request headers</exception>
     public override async Task<GetMyOrdersReply> GetMyOrders(GetMyOrdersRequest request, ServerCallContext context)
     {
         //Lấy x-user-id từ metadata
@@ -253,6 +286,12 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
 
     public override async Task<UpdateOrderStatusReply> UpdateOrderStatus(UpdateOrderStatusRequest request, ServerCallContext context)
     {
+        var roleSlug = context.RequestHeaders.FirstOrDefault(h =>
+            h.Key.Equals("x-role-slug", StringComparison.OrdinalIgnoreCase));
+        if (roleSlug == null)
+        {
+            throw new RpcException(new Status(StatusCode.Unauthenticated, "Missing x-role-slug in request headers"));
+        }
         //Validate orderId
         if (!Guid.TryParse(request.OrderId, out var orderId))
         {
@@ -273,7 +312,8 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             new UpdateOrderStatusReq
             {
                 OrderId = orderId,
-                Status = (Domain.Enums.OrderStatus)(int)request.Status
+                Status = (Domain.Enums.OrderStatus)(int)request.Status,
+                RoleSlug = roleSlug.ToString()
             }
         );
 

@@ -87,6 +87,11 @@ public sealed class UpdateOrderStatusCommandHandler
                     return $"Cancel fail due to no PaidAmout found in order with ID {order.Id}";
                 }
                 await _walletRepository.AddBalanceAsync(wallet.Id,order.PaidAmount.Value,wallet.RowVersion);
+
+                if(request.RoleSlug == "staff")
+                {
+                    // Hoàn Point + Voucher 
+                }
             }
         }
         // Đơn hàng hoàn thành
