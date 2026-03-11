@@ -184,8 +184,6 @@ public sealed class CreatePaymentHandler
                         {
                             // Update quantity
                             existing.Quantity += item.Quantity;
-                            var variant = variants.First(v => v.Sku == item.Sku);
-                            decimal unitPrice = variant.BasePrice.Value
                         }
                         else
                         {
