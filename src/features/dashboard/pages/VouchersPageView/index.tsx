@@ -1,7 +1,11 @@
 "use client"
 
 import React, { useState, useMemo } from "react"
-import { useGetAllVouchers, useUpdateVoucherStatus, useDeleteVoucher } from "@/features/orders/hooks/useVoucher"
+import {
+    useGetAllVouchers,
+    useUpdateVoucherStatus,
+    useDeleteVoucher
+} from "@/features/orders/hooks/useVoucher"
 import { useGetAllProducts } from "@/features/products/hooks/useProduct"
 import { VouchersTable } from "../../components/VouchersTable"
 import { VoucherModal } from "../../components/VoucherModal"
@@ -11,7 +15,7 @@ import { Plus, Search, Download } from "lucide-react"
 import { exportVouchersCsv, VariantNameMap } from "../../utils/exportVouchers"
 
 export const VouchersPageView = () => {
-    const { data: vouchers, isLoading, refetch } = useGetAllVouchers()
+    const { data: vouchers, isLoading } = useGetAllVouchers()
     const { mutate: updateStatus } = useUpdateVoucherStatus()
     const { mutate: deleteVoucher } = useDeleteVoucher()
 
@@ -33,7 +37,7 @@ export const VouchersPageView = () => {
     }, [productsData])
 
     const [isModalOpen, setIsModalOpen] = useState(false)
-    const [isAssignModalOpen, setIsAssignModalOpen] = useState(false)
+    // const [isAssignModalOpen, setIsAssignModalOpen] = useState(false)
     const [selectedVoucher, setSelectedVoucher] = useState<Voucher | null>(null)
     const [searchQuery, setSearchQuery] = useState("")
 
@@ -47,28 +51,23 @@ export const VouchersPageView = () => {
         setIsModalOpen(true)
     }
 
-    const handleAssign = (voucher: Voucher) => {
-        setSelectedVoucher(voucher)
-        setIsAssignModalOpen(true)
-    }
+    // const handleAssign = (voucher: Voucher) => {
+    //     setSelectedVoucher(voucher)
+    //     setIsAssignModalOpen(true)
+    // }
 
     const handleToggleStatus = (id: string, is_active: boolean) => {
-        updateStatus({ id, req: { is_active: !is_active } }, {
-            onSuccess: () => refetch()
-        })
+        updateStatus({ id, req: { is_active: !is_active } })
     }
 
     const handleDelete = (id: string) => {
         if (confirm("Bạn có chắc muốn xóa Voucher này?")) {
-            deleteVoucher(id, {
-                onSuccess: () => refetch()
-            })
+            deleteVoucher(id)
         }
     }
 
-    const filteredVouchers = vouchers?.filter(v =>
-        v.code.toLowerCase().includes(searchQuery.toLowerCase())
-    ) || []
+    const filteredVouchers =
+        vouchers?.filter((v) => v.code.toLowerCase().includes(searchQuery.toLowerCase())) || []
 
     return (
         <div className="p-6 space-y-6">
@@ -108,7 +107,7 @@ export const VouchersPageView = () => {
                     onEdit={handleEdit}
                     onToggleStatus={handleToggleStatus}
                     onDelete={handleDelete}
-                    onAssign={handleAssign}
+                    // onAssign={handleAssign}
                     variantMap={variantMap}
                 />
             </div>
@@ -117,9 +116,8 @@ export const VouchersPageView = () => {
                 isOpen={isModalOpen}
                 onOpenChange={setIsModalOpen}
                 voucher={selectedVoucher}
-                onSuccess={refetch}
+                // onSuccess={refetch}
             />
-
         </div>
     )
 }

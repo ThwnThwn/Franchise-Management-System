@@ -1,17 +1,30 @@
 "use client"
 
-import React, { useEffect, useState } from "react"
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Input, Select, SelectItem, Divider, Card, CardBody, addToast } from "@heroui/react"
-import { Voucher, VoucherType, CreateVoucherRequest, VoucherItemType, CreateVoucherItemReq } from "@/features/orders/models/voucher"
+import { useEffect, useState } from "react"
+import {
+    Modal,
+    ModalContent,
+    ModalHeader,
+    ModalBody,
+    ModalFooter,
+    Button,
+    Input,
+    Select,
+    SelectItem,
+    Divider,
+    addToast
+} from "@heroui/react"
+import { Voucher, VoucherType, CreateVoucherRequest } from "@/features/orders/models/voucher"
 import { useCreateVoucher, useUpdateVoucher } from "@/features/orders/hooks/useVoucher"
-import { Plus, Trash2, Package } from "lucide-react"
+import { Plus } from "lucide-react"
 import { VoucherItemModal } from "../VoucherItemModal"
+import { normalizeCurrency } from "@/utils/helpers/currency"
 
 interface VoucherModalProps {
     isOpen: boolean
     onOpenChange: (isOpen: boolean) => void
     voucher: Voucher | null
-    onSuccess: () => void
+    // onSuccess: () => void
 }
 
 const voucherTypes = [
@@ -22,12 +35,12 @@ const voucherTypes = [
     { value: VoucherType.GIFT, label: "Quà tặng" }
 ]
 
-const voucherItemTypes = [
-    { value: VoucherItemType.ITEM_GIFT, label: "Quà tặng (Item Gift)" },
-    { value: VoucherItemType.ITEM_REQUIRED, label: "Yêu cầu (Item Required)" }
-]
+// const voucherItemTypes = [
+//     { value: VoucherItemType.ITEM_GIFT, label: "Quà tặng (Item Gift)" },
+//     { value: VoucherItemType.ITEM_REQUIRED, label: "Yêu cầu (Item Required)" }
+// ]
 
-export const VoucherModal = ({ isOpen, onOpenChange, voucher, onSuccess }: VoucherModalProps) => {
+export const VoucherModal = ({ isOpen, onOpenChange, voucher }: VoucherModalProps) => {
     const isEditing = !!voucher
     const { mutate: createVoucher, isPending: isCreating } = useCreateVoucher()
     const { mutate: updateVoucher, isPending: isUpdating } = useUpdateVoucher()
@@ -49,6 +62,7 @@ export const VoucherModal = ({ isOpen, onOpenChange, voucher, onSuccess }: Vouch
     useEffect(() => {
         if (isOpen) {
             if (voucher) {
+                // eslint-disable-next-line react-hooks/set-state-in-effect
                 setFormData({
                     code: voucher.code,
                     type: voucher.type,
@@ -58,12 +72,15 @@ export const VoucherModal = ({ isOpen, onOpenChange, voucher, onSuccess }: Vouch
                     point_cost: voucher.point_cost,
                     init_quantity: voucher.init_quantity,
                     max_usage_per_user: voucher.max_usage_per_user,
-                    end_date: voucher.end_date ? new Date(voucher.end_date).toISOString().split('T')[0] : "",
-                    voucher_items: voucher.voucher_items?.map(item => ({
-                        sku: item.sku,
-                        quantity: item.quantity,
-                        type: item.type
-                    })) || []
+                    end_date: voucher.end_date
+                        ? new Date(voucher.end_date).toISOString().split("T")[0]
+                        : "",
+                    voucher_items:
+                        voucher.voucher_items?.map((item) => ({
+                            sku: item.sku,
+                            quantity: item.quantity,
+                            type: item.type
+                        })) || []
                 })
             } else {
                 setFormData({
@@ -84,8 +101,12 @@ export const VoucherModal = ({ isOpen, onOpenChange, voucher, onSuccess }: Vouch
     const handleSubmit = () => {
         const payload = {
             ...formData,
-            init_quantity: formData.init_quantity ? Number(formData.init_quantity) : undefined,
-            max_usage_per_user: formData.max_usage_per_user ? Number(formData.max_usage_per_user) : undefined,
+            init_quantity: formData.init_quantity
+                ? normalizeCurrency(formData.init_quantity)
+                : undefined,
+            max_usage_per_user: formData.max_usage_per_user
+                ? normalizeCurrency(formData.max_usage_per_user)
+                : undefined,
             voucher_items: formData.type === VoucherType.GIFT ? formData.voucher_items : undefined
         }
 
@@ -93,26 +114,30 @@ export const VoucherModal = ({ isOpen, onOpenChange, voucher, onSuccess }: Vouch
         if (!payload.max_discount_value) delete payload.max_discount_value
         if (!payload.min_order_value) delete payload.min_order_value
         if (!payload.point_cost) delete payload.point_cost
-        if (!payload.discount_value && payload.type === VoucherType.GIFT) delete payload.discount_value
+        if (!payload.discount_value && payload.type === VoucherType.GIFT)
+            delete payload.discount_value
         if (!payload.end_date) delete payload.end_date
 
         if (isEditing && voucher) {
-            const { code, init_quantity, ...updatePayload } = payload as any
-            updateVoucher({ id: voucher.id, req: updatePayload }, {
-                onSuccess: () => {
-                    onSuccess()
-                    addToast({
-                        title: "Thành công",
-                        description: "Đã cập nhật voucher",
-                        color: "success"
-                    })
-                    onOpenChange(false)
+            // const { code, init_quantity, ...updatePayload } = payload as any
+            updateVoucher(
+                { id: voucher.id, req: payload },
+                {
+                    onSuccess: () => {
+                        // onSuccess()
+                        addToast({
+                            title: "Thành công",
+                            description: "Đã cập nhật voucher",
+                            color: "success"
+                        })
+                        onOpenChange(false)
+                    }
                 }
-            })
+            )
         } else {
             createVoucher(payload as CreateVoucherRequest, {
                 onSuccess: () => {
-                    onSuccess()
+                    // onSuccess()
                     addToast({
                         title: "Thành công",
                         description: "Đã tạo voucher mới",
@@ -147,7 +172,9 @@ export const VoucherModal = ({ isOpen, onOpenChange, voucher, onSuccess }: Vouch
                                             value={formData.code}
                                             isDisabled={isEditing}
                                             isRequired
-                                            onValueChange={(val) => setFormData(prev => ({ ...prev, code: val }))}
+                                            onValueChange={(val) =>
+                                                setFormData((prev) => ({ ...prev, code: val }))
+                                            }
                                         />
 
                                         <Select
@@ -155,7 +182,12 @@ export const VoucherModal = ({ isOpen, onOpenChange, voucher, onSuccess }: Vouch
                                             variant="bordered"
                                             selectedKeys={[String(formData.type)]}
                                             isRequired
-                                            onChange={(e) => setFormData(prev => ({ ...prev, type: Number(e.target.value) }))}
+                                            onChange={(e) =>
+                                                setFormData((prev) => ({
+                                                    ...prev,
+                                                    type: Number(e.target.value)
+                                                }))
+                                            }
                                         >
                                             {voucherTypes.map((type) => (
                                                 <SelectItem key={String(type.value)}>
@@ -169,21 +201,39 @@ export const VoucherModal = ({ isOpen, onOpenChange, voucher, onSuccess }: Vouch
                                                 label="Giá trị giảm"
                                                 type="number"
                                                 variant="bordered"
-                                                placeholder={formData.type === VoucherType.DISCOUNT_PERCENTAGE || formData.type === VoucherType.SHIPPING_PERCENTAGE ? "Vd: 10 (%)" : "Vd: 50000 (đ)"}
+                                                placeholder={
+                                                    formData.type ===
+                                                        VoucherType.DISCOUNT_PERCENTAGE ||
+                                                    formData.type ===
+                                                        VoucherType.SHIPPING_PERCENTAGE
+                                                        ? "Vd: 10 (%)"
+                                                        : "Vd: 50000 (đ)"
+                                                }
                                                 value={formData.discount_value}
                                                 isRequired
-                                                onValueChange={(val) => setFormData(prev => ({ ...prev, discount_value: val }))}
+                                                onValueChange={(val) =>
+                                                    setFormData((prev) => ({
+                                                        ...prev,
+                                                        discount_value: val
+                                                    }))
+                                                }
                                             />
                                         )}
 
-                                        {(formData.type === VoucherType.DISCOUNT_PERCENTAGE || formData.type === VoucherType.SHIPPING_PERCENTAGE) && (
+                                        {(formData.type === VoucherType.DISCOUNT_PERCENTAGE ||
+                                            formData.type === VoucherType.SHIPPING_PERCENTAGE) && (
                                             <Input
                                                 label="Mức giảm tối đa (đ)"
                                                 type="number"
                                                 variant="bordered"
                                                 placeholder="Vd: 100000"
                                                 value={formData.max_discount_value}
-                                                onValueChange={(val) => setFormData(prev => ({ ...prev, max_discount_value: val }))}
+                                                onValueChange={(val) =>
+                                                    setFormData((prev) => ({
+                                                        ...prev,
+                                                        max_discount_value: val
+                                                    }))
+                                                }
                                             />
                                         )}
                                         <Input
@@ -191,20 +241,29 @@ export const VoucherModal = ({ isOpen, onOpenChange, voucher, onSuccess }: Vouch
                                             type="date"
                                             variant="bordered"
                                             value={formData.end_date}
-                                            onValueChange={(val) => setFormData(prev => ({ ...prev, end_date: val }))}
+                                            onValueChange={(val) =>
+                                                setFormData((prev) => ({ ...prev, end_date: val }))
+                                            }
                                         />
                                     </div>
 
                                     <div className="space-y-4">
                                         <Divider />
-                                        <h3 className="font-semibold text-sm">Điều kiện & Giới hạn</h3>
+                                        <h3 className="font-semibold text-sm">
+                                            Điều kiện & Giới hạn
+                                        </h3>
                                         <Input
                                             label="Giá trị đơn hàng tối thiểu (đ)"
                                             type="number"
                                             variant="bordered"
                                             placeholder="Vd: 200000"
                                             value={formData.min_order_value}
-                                            onValueChange={(val) => setFormData(prev => ({ ...prev, min_order_value: val }))}
+                                            onValueChange={(val) =>
+                                                setFormData((prev) => ({
+                                                    ...prev,
+                                                    min_order_value: val
+                                                }))
+                                            }
                                         />
 
                                         <Input
@@ -213,7 +272,12 @@ export const VoucherModal = ({ isOpen, onOpenChange, voucher, onSuccess }: Vouch
                                             variant="bordered"
                                             placeholder="Vd: 1000 (Để trống nếu tặng trực tiếp)"
                                             value={formData.point_cost}
-                                            onValueChange={(val) => setFormData(prev => ({ ...prev, point_cost: val }))}
+                                            onValueChange={(val) =>
+                                                setFormData((prev) => ({
+                                                    ...prev,
+                                                    point_cost: val
+                                                }))
+                                            }
                                         />
 
                                         {!isEditing && (
@@ -223,7 +287,12 @@ export const VoucherModal = ({ isOpen, onOpenChange, voucher, onSuccess }: Vouch
                                                 variant="bordered"
                                                 value={String(formData.init_quantity)}
                                                 isRequired
-                                                onValueChange={(val) => setFormData(prev => ({ ...prev, init_quantity: Number(val) }))}
+                                                onValueChange={(val) =>
+                                                    setFormData((prev) => ({
+                                                        ...prev,
+                                                        init_quantity: Number(val)
+                                                    }))
+                                                }
                                             />
                                         )}
 
@@ -234,7 +303,12 @@ export const VoucherModal = ({ isOpen, onOpenChange, voucher, onSuccess }: Vouch
                                             value={String(formData.max_usage_per_user)}
                                             isRequired
                                             description="Số lần một khách hàng có thể sở hữu/sử dụng voucher này."
-                                            onValueChange={(val) => setFormData(prev => ({ ...prev, max_usage_per_user: Number(val) }))}
+                                            onValueChange={(val) =>
+                                                setFormData((prev) => ({
+                                                    ...prev,
+                                                    max_usage_per_user: Number(val)
+                                                }))
+                                            }
                                         />
                                     </div>
                                 </div>
@@ -244,9 +318,15 @@ export const VoucherModal = ({ isOpen, onOpenChange, voucher, onSuccess }: Vouch
                                         <Divider />
                                         <div className="flex justify-between items-center bg-gray-50 p-4 rounded-xl border border-gray-100">
                                             <div>
-                                                <h3 className="font-bold text-sm text-gray-700">Quản lý Quà tặng / Yêu cầu</h3>
+                                                <h3 className="font-bold text-sm text-gray-700">
+                                                    Quản lý Quà tặng / Yêu cầu
+                                                </h3>
                                                 <p className="text-xs text-gray-500">
-                                                    Đã chọn: <span className="font-bold text-primary">{formData.voucher_items?.length || 0}</span> items
+                                                    Đã chọn:{" "}
+                                                    <span className="font-bold text-primary">
+                                                        {formData.voucher_items?.length || 0}
+                                                    </span>{" "}
+                                                    items
                                                 </p>
                                             </div>
                                             <Button
@@ -266,7 +346,11 @@ export const VoucherModal = ({ isOpen, onOpenChange, voucher, onSuccess }: Vouch
                                 <Button color="danger" variant="flat" onPress={onClose}>
                                     Hủy
                                 </Button>
-                                <Button color="primary" onPress={handleSubmit} isLoading={isCreating || isUpdating}>
+                                <Button
+                                    color="primary"
+                                    onPress={handleSubmit}
+                                    isLoading={isCreating || isUpdating}
+                                >
                                     {isEditing ? "Cập nhật" : "Tạo mới"}
                                 </Button>
                             </ModalFooter>
@@ -279,7 +363,7 @@ export const VoucherModal = ({ isOpen, onOpenChange, voucher, onSuccess }: Vouch
                 isOpen={isItemModalOpen}
                 onOpenChange={setIsItemModalOpen}
                 initialItems={formData.voucher_items || []}
-                onSave={(items) => setFormData(prev => ({ ...prev, voucher_items: items }))}
+                onSave={(items) => setFormData((prev) => ({ ...prev, voucher_items: items }))}
             />
         </>
     )

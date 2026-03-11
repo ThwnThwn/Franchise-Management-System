@@ -30,7 +30,7 @@ export const OrderItemRow = ({ item, sale, isGift = false }: OrderItemRowProps) 
                     <ImageStyled
                         src={item.imageUrl}
                         alt={item.productName}
-                        className={`h-full w-full object-cover ${isGift ? "grayscale-[30%]" : ""}`}
+                        className={`h-full w-full object-cover ${isGift ? "grayscale-30" : ""}`}
                     />
                     {isGift && (
                         <div className="absolute top-0 right-0 bg-success text-white text-[8px] font-bold px-1 rounded-bl-lg">

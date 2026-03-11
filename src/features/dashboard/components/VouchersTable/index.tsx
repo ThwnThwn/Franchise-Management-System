@@ -1,7 +1,19 @@
-import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Chip, Switch, Tooltip, Button } from "@heroui/react"
+import {
+    Table,
+    TableHeader,
+    TableColumn,
+    TableBody,
+    TableRow,
+    TableCell,
+    Chip,
+    Switch,
+    Tooltip,
+    Button
+} from "@heroui/react"
 import { Voucher, VoucherType, VoucherItemType } from "@/features/orders/models/voucher"
 import { Edit, Trash2, Gift, PackageCheck } from "lucide-react"
 import { VariantNameMap } from "../../utils/exportVouchers"
+import { normalizeCurrency } from "@/utils/helpers/currency"
 
 interface VouchersTableProps {
     vouchers: Voucher[]
@@ -9,27 +21,64 @@ interface VouchersTableProps {
     onEdit: (voucher: Voucher) => void
     onToggleStatus: (id: string, is_active: boolean) => void
     onDelete: (id: string) => void
-    onAssign: (voucher: Voucher) => void
+    // onAssign: (voucher: Voucher) => void
     variantMap?: VariantNameMap
 }
 
-export const VouchersTable = ({ vouchers, isLoading, onEdit, onToggleStatus, onDelete, onAssign, variantMap = {} }: VouchersTableProps) => {
-
+export const VouchersTable = ({
+    vouchers,
+    isLoading,
+    onEdit,
+    onToggleStatus,
+    onDelete
+    // onAssign,
+    // variantMap = {}
+}: VouchersTableProps) => {
     const renderType = (type: VoucherType) => {
         switch (type) {
-            case VoucherType.SHIPPING_FIXED_AMOUNT: return <Chip color="primary" variant="flat" size="sm">Freeship (Tiền)</Chip>
-            case VoucherType.SHIPPING_PERCENTAGE: return <Chip color="primary" variant="flat" size="sm">Freeship (%)</Chip>
-            case VoucherType.DISCOUNT_FIXED_AMOUNT: return <Chip color="success" variant="flat" size="sm">Ưu đãi (Tiền)</Chip>
-            case VoucherType.DISCOUNT_PERCENTAGE: return <Chip color="success" variant="flat" size="sm">Ưu đãi (%)</Chip>
-            case VoucherType.GIFT: return <Chip color="secondary" variant="flat" size="sm">Quà tặng</Chip>
-            default: return <Chip size="sm">{type}</Chip>
+            case VoucherType.SHIPPING_FIXED_AMOUNT:
+                return (
+                    <Chip color="primary" variant="flat" size="sm">
+                        Freeship (Tiền)
+                    </Chip>
+                )
+            case VoucherType.SHIPPING_PERCENTAGE:
+                return (
+                    <Chip color="primary" variant="flat" size="sm">
+                        Freeship (%)
+                    </Chip>
+                )
+            case VoucherType.DISCOUNT_FIXED_AMOUNT:
+                return (
+                    <Chip color="success" variant="flat" size="sm">
+                        Ưu đãi (Tiền)
+                    </Chip>
+                )
+            case VoucherType.DISCOUNT_PERCENTAGE:
+                return (
+                    <Chip color="success" variant="flat" size="sm">
+                        Ưu đãi (%)
+                    </Chip>
+                )
+            case VoucherType.GIFT:
+                return (
+                    <Chip color="secondary" variant="flat" size="sm">
+                        Quà tặng
+                    </Chip>
+                )
+            default:
+                return <Chip size="sm">{type}</Chip>
         }
     }
 
     const renderDiscountValue = (voucher: Voucher) => {
         if (voucher.type === VoucherType.GIFT) return "Theo Quà tặng"
-        const suffix = (voucher.type === VoucherType.SHIPPING_PERCENTAGE || voucher.type === VoucherType.DISCOUNT_PERCENTAGE) ? "%" : "đ"
-        return `${Number(voucher.discount_value).toLocaleString()}${suffix}`
+        const suffix =
+            voucher.type === VoucherType.SHIPPING_PERCENTAGE ||
+            voucher.type === VoucherType.DISCOUNT_PERCENTAGE
+                ? "%"
+                : "đ"
+        return `${normalizeCurrency(voucher.discount_value).toLocaleString()}${suffix}`
     }
 
     const renderItems = (voucher: Voucher, type: VoucherItemType) => {
@@ -38,14 +87,20 @@ export const VouchersTable = ({ vouchers, isLoading, onEdit, onToggleStatus, onD
         return (
             <div className="flex flex-col gap-1">
                 {items.map((item, idx) => {
-                    const name = variantMap[item.sku] ?? item.sku
+                    const name = item.sku ?? item.sku
                     return (
                         <Chip
                             key={idx}
                             size="sm"
                             variant="flat"
                             color={type === VoucherItemType.ITEM_GIFT ? "secondary" : "warning"}
-                            startContent={type === VoucherItemType.ITEM_GIFT ? <Gift size={12} /> : <PackageCheck size={12} />}
+                            startContent={
+                                type === VoucherItemType.ITEM_GIFT ? (
+                                    <Gift size={12} />
+                                ) : (
+                                    <PackageCheck size={12} />
+                                )
+                            }
                         >
                             {name} ×{item.quantity}
                         </Chip>
@@ -81,24 +136,33 @@ export const VouchersTable = ({ vouchers, isLoading, onEdit, onToggleStatus, onD
                         <TableCell>{renderType(voucher.type)}</TableCell>
                         <TableCell>
                             <div>
-                                <span className="font-medium text-slate-800">{renderDiscountValue(voucher)}</span>
+                                <span className="font-medium text-slate-800">
+                                    {renderDiscountValue(voucher)}
+                                </span>
                                 {voucher.max_discount_value && (
-                                    <div className="text-xs text-default-400">Tối đa {Number(voucher.max_discount_value).toLocaleString()}đ</div>
+                                    <div className="text-xs text-default-400">
+                                        Tối đa{" "}
+                                        {normalizeCurrency(
+                                            voucher.max_discount_value
+                                        ).toLocaleString()}
+                                        đ
+                                    </div>
                                 )}
                             </div>
                         </TableCell>
                         <TableCell>
-                            {voucher.min_order_value ? `${Number(voucher.min_order_value).toLocaleString()}đ` : 'Mọi đơn'}
+                            {voucher.min_order_value
+                                ? `${normalizeCurrency(voucher.min_order_value).toLocaleString()}đ`
+                                : "Mọi đơn"}
                         </TableCell>
                         <TableCell>
-                            {voucher.current_quantity !== undefined ? voucher.current_quantity : voucher.init_quantity} / {voucher.init_quantity || '∞'}
+                            {voucher.current_quantity !== undefined
+                                ? voucher.current_quantity
+                                : voucher.init_quantity}{" "}
+                            / {voucher.init_quantity || "∞"}
                         </TableCell>
-                        <TableCell>
-                            {renderItems(voucher, VoucherItemType.ITEM_GIFT)}
-                        </TableCell>
-                        <TableCell>
-                            {renderItems(voucher, VoucherItemType.ITEM_REQUIRED)}
-                        </TableCell>
+                        <TableCell>{renderItems(voucher, VoucherItemType.ITEM_GIFT)}</TableCell>
+                        <TableCell>{renderItems(voucher, VoucherItemType.ITEM_REQUIRED)}</TableCell>
                         <TableCell>
                             <Switch
                                 isSelected={voucher.is_active}
@@ -109,18 +173,36 @@ export const VouchersTable = ({ vouchers, isLoading, onEdit, onToggleStatus, onD
                         </TableCell>
                         <TableCell>
                             <div className="flex justify-center gap-2">
-                                <Tooltip content="Gán Voucher" color="secondary">
-                                    <Button isIconOnly size="sm" variant="light" color="secondary" onPress={() => onAssign(voucher)}>
-                                        <Gift size={16} />
-                                    </Button>
-                                </Tooltip>
+                                {/* <Tooltip content="Gán Voucher" color="secondary">
+                                    // <Button
+                                    //     isIconOnly
+                                    //     size="sm"
+                                    //     variant="light"
+                                    //     color="secondary"
+                                    //     onPress={() => onAssign(voucher)}
+                                    // >
+                                    //     <Gift size={16} />
+                                    // </Button>
+                                </Tooltip> */}
                                 <Tooltip content="Chỉnh sửa">
-                                    <Button isIconOnly size="sm" variant="light" onPress={() => onEdit(voucher)}>
+                                    <Button
+                                        isIconOnly
+                                        size="sm"
+                                        variant="light"
+                                        onPress={() => onEdit(voucher)}
+                                    >
                                         <Edit size={16} className="text-default-500" />
                                     </Button>
                                 </Tooltip>
                                 <Tooltip content="Xóa" color="danger">
-                                    <Button isIconOnly size="sm" variant="light" color="danger" onPress={() => onDelete(voucher.id)}>
+                                    <Button
+                                        isIconOnly
+                                        size="sm"
+                                        variant="light"
+                                        color="danger"
+                                        isDisabled={voucher.is_active}
+                                        onPress={() => onDelete(voucher.id)}
+                                    >
                                         <Trash2 size={16} />
                                     </Button>
                                 </Tooltip>
@@ -132,4 +214,3 @@ export const VouchersTable = ({ vouchers, isLoading, onEdit, onToggleStatus, onD
         </Table>
     )
 }
-
