@@ -31,6 +31,7 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, func
 		wire.FieldsOf(new(*config.Config), "InventoryServiceUrl"),
 		wire.FieldsOf(new(*config.Config), "FranchiseServiceUrl"),
 		wire.FieldsOf(new(*config.Config), "EngagementServiceUrl"),
+		wire.FieldsOf(new(*config.Config), "SupplierServiceUrl"),
 
 		// 3. Infrastructure
 		// cache.NewRedis,

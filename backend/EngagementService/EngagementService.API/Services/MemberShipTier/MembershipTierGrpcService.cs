@@ -40,6 +40,7 @@ namespace EngagementService.API.Services.MemberShipTier
 
         public async override Task<Empty> UpdateMembershipTier(UpdateMembershipTierRequest request, ServerCallContext context)
         {
+
             var updateReq = new Application.Dtos.MembershipTier.UpdateMembershipTierRequest();
             try
             {
@@ -87,7 +88,6 @@ namespace EngagementService.API.Services.MemberShipTier
 
         public async override Task<Empty> DeleteMembershipTier(DeleteMembershipTierRequest request, ServerCallContext context)
         {
-
             var id = Guid.TryParse(request.Id, out var parsedId) ? parsedId : Guid.Empty;
             var command = new Application.Features.MembershipTier.Commands.Delete.DeleteMembershipTierCommand
             (Id: id);

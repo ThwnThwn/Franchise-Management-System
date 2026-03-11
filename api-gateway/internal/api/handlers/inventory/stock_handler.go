@@ -4,7 +4,6 @@ import (
 	"api-gateway/internal/application/constants/errorcode"
 	"api-gateway/internal/application/gateways/inventory"
 	"api-gateway/internal/domain/models/ingredient"
-	"api-gateway/pkg/utils/grpcutils"
 	"api-gateway/pkg/utils/validation"
 	"net/http"
 
@@ -37,11 +36,7 @@ func (h *StockHandler) GetAllStock(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	res, err := h.stockGW.GetAllStock(ctx, &req)
 	if err != nil {
 		return err
@@ -76,11 +71,7 @@ func (h *StockHandler) GetStockByStoreId(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	res, err := h.stockGW.GetStockByStoreId(ctx, storeId, &req)
 	if err != nil {
 		return err
@@ -115,11 +106,7 @@ func (h *StockHandler) IncreaseStock(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	err = h.stockGW.IncreaseStock(ctx, storeId, req)
 	if err != nil {
 		return err

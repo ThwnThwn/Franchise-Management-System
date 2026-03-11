@@ -177,7 +177,7 @@ func (h *ShiftStaffHandler) GetMyTimeLogHistory(c *gin.Context) error {
 	}
 
 	// 3. SECURITY: Ép staffId phải là của chính mình
-	params.StaffID = stringutils.ToPtr(userId.String())
+	params.StaffId = stringutils.ToPtr(userId.String())
 
 	// 4. Gọi sang Franchise Service lấy logs
 	logRes, err := h.shiftGW.GetTimeLogs(ctx, &params)

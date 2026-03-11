@@ -34,7 +34,6 @@ message GetMyPointLogRep{
 }
 
 message GetMyPointLogRequest{
-    string id = 1;
     optional google.protobuf.Timestamp from_date = 2;
     optional google.protobuf.Timestamp to_date = 3;
     int32 page = 4;

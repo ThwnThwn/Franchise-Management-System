@@ -1482,6 +1482,60 @@
                 }
             }
         },
+        "/me/orders/payments": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Khách hàng tự xem lại lịch sử các đợt thanh toán đơn hàng của chính mình.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Lịch sử thanh toán của tôi (Customer)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "endDate",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "ISO-8601",
+                        "name": "startDate",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "0=Pending, 1=Paid, 2=Failed; omit for all",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_order_PaymentHistoryItem"
+                        }
+                    }
+                }
+            }
+        },
         "/me/points/logs": {
             "get": {
                 "security": [
@@ -1736,6 +1790,24 @@
                 "responses": {}
             }
         },
+        "/me/shift-swaps": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lấy toàn bộ các yêu cầu đổi ca mà tôi là người gửi hoặc người nhận.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shifts: Swaps"
+                ],
+                "summary": "Lấy danh sách yêu cầu đổi ca của tôi",
+                "responses": {}
+            }
+        },
         "/me/shifts": {
             "get": {
                 "security": [
@@ -1944,7 +2016,33 @@
                 "responses": {}
             }
         },
-        "/me/vouchers/redeem/{id}": {
+        "/me/vouchers": {
+            "get": {
+                "description": "Retrieve a list of all vouchers available in my account.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Vouchers"
+                ],
+                "summary": "Get My Vouchers",
+                "responses": {
+                    "200": {
+                        "description": "List of vouchers",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/api-gateway_internal_domain_models_voucher.VoucherResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/me/vouchers/{id}/redeem": {
             "post": {
                 "security": [
                     {
@@ -2157,6 +2255,180 @@
                     },
                     "401": {
                         "description": "Chưa đăng nhập",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/me/withdrawals": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lấy lịch sử rút tiền của chính người dùng đang đăng nhập (có phân trang).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Xem danh sách yêu cầu rút tiền của tôi",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6,
+                            7
+                        ],
+                        "type": "integer",
+                        "format": "int32",
+                        "x-enum-comments": {
+                            "WithdrawalStatusApproved": "Đã duyệt",
+                            "WithdrawalStatusCancelled": "Đã hủy",
+                            "WithdrawalStatusCompleted": "Thành công",
+                            "WithdrawalStatusFailed": "Thất bại",
+                            "WithdrawalStatusPending": "Chờ duyệt",
+                            "WithdrawalStatusProcessing": "Đang xử lý",
+                            "WithdrawalStatusRejected": "Từ chối"
+                        },
+                        "x-enum-descriptions": [
+                            "Chờ duyệt",
+                            "Đã duyệt",
+                            "Đang xử lý",
+                            "Thành công",
+                            "Thất bại",
+                            "Từ chối",
+                            "Đã hủy"
+                        ],
+                        "x-enum-varnames": [
+                            "WithdrawalStatusPending",
+                            "WithdrawalStatusApproved",
+                            "WithdrawalStatusProcessing",
+                            "WithdrawalStatusCompleted",
+                            "WithdrawalStatusFailed",
+                            "WithdrawalStatusRejected",
+                            "WithdrawalStatusCancelled"
+                        ],
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Danh sách yêu cầu",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_withdrawal_WithdrawalSummary"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Khách hàng tạo yêu cầu rút tiền từ ví vào tài khoản ngân hàng. Tiền sẽ bị tạm trừ ngay lập tức.\nDùng api https://api.vietqr.io/v2/banks để lấy bank code và name cho khách chọn\nVẫn cho 1 ô nhập tên ngân hàng nếu api lỗi hoặc khách ko thấy trong danh sách\nTrường hợp khách nhập tên ngân hàng thủ công thì ko cần code",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Tạo yêu cầu rút tiền mới",
+                "parameters": [
+                    {
+                        "description": "Thông tin yêu cầu rút tiền",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_withdrawal.CreateWithdrawalReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tạo thành công",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_withdrawal.WithdrawalBaseRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Dữ liệu không hợp lệ",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/me/withdrawals/{id}/cancel": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Người dùng tự hủy lệnh khi chưa được Admin xử lý (Trạng thái PENDING). Tiền hoàn về ví.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Khách hàng tự hủy yêu cầu rút tiền",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID của yêu cầu rút tiền",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Lý do hủy",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_withdrawal.CancelMyWithdrawalReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Hủy thành công",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2468,6 +2740,43 @@
                 }
             }
         },
+        "/orders/payments": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lấy danh sách lịch sử thanh toán của toàn hệ thống (Dành cho quản trị viên/kế toán).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Danh sách toàn bộ thanh toán (Admin)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_order_PaymentSummary"
+                        }
+                    }
+                }
+            }
+        },
         "/orders/reports/revenue": {
             "get": {
                 "security": [
@@ -2660,6 +2969,85 @@
                 }
             }
         },
+        "/orders/reports/sales-trend/export": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Tải xuống dữ liệu xu hướng doanh thu (doanh thu, lượng đơn hàng) dưới dạng file CSV.\nHỗ trợ các tham số lọc và phân quyền storeId tương tự như API lấy JSON.",
+                "produces": [
+                    "text/csv"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Xuất file CSV xu hướng doanh thu",
+                "parameters": [
+                    {
+                        "enum": [
+                            0,
+                            1,
+                            2
+                        ],
+                        "type": "integer",
+                        "default": 1,
+                        "example": 1,
+                        "description": "Mức độ gom nhóm dữ liệu. 0 = Hour, 1 = Day, 2 = Week.",
+                        "name": "aggregation",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "cat-001",
+                        "description": "ID Danh mục sản phẩm (Tùy chọn)",
+                        "name": "categoryId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2024-03-01T00:00:00Z",
+                        "description": "Thời gian bắt đầu. Bắt buộc nhập.",
+                        "name": "fromDate",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "123e4567-e89b-12d3-a456-426614174000",
+                        "description": "ID Cửa hàng (Tùy chọn)",
+                        "name": "storeId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2024-03-05T23:59:59Z",
+                        "description": "Thời gian kết thúc. Bắt buộc nhập.",
+                        "name": "toDate",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tệp CSV chứa dữ liệu xu hướng doanh thu",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "Lỗi dữ liệu đầu vào",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/orders/reports/volume": {
             "get": {
                 "security": [
@@ -2803,11 +3191,6 @@
                 }
             }
         },
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
->>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
         "/orders/vnpay/return": {
             "get": {
                 "description": "Endpoint for VNPay to redirect the browser after payment. Verifies the signature via gRPC and redirects to the Frontend UI.",
@@ -2866,10 +3249,6 @@
                 }
             }
         },
-<<<<<<< HEAD
->>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
-=======
->>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
         "/orders/{id}": {
             "get": {
                 "security": [
@@ -3281,6 +3660,52 @@
                     },
                     "400": {
                         "description": "Validation error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/products/variants": {
+            "get": {
+                "description": "Retrieve a list of product variants with simple info",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Get products by skus",
+                "parameters": [
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "name": "skus",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of products",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/api-gateway_internal_domain_models_product.ProductVariantDetail"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -4131,6 +4556,40 @@
                 }
             }
         },
+        "/shift-applications/{id}/review": {
+            "patch": {
+                "description": "Manager cập nhật trạng thái đơn (Approved/Rejected). ID đơn lấy từ Path.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shifts: Applications"
+                ],
+                "summary": "Duyệt hoặc từ chối đơn đăng ký nhận ca",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Application ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Kết quả duyệt đơn",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_shift.ReviewApplicationRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
         "/shift-availabilities": {
             "get": {
                 "security": [
@@ -4331,6 +4790,141 @@
                 "responses": {}
             }
         },
+        "/shift-swaps": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lấy toàn bộ các yêu cầu đổi ca.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shifts: Swaps"
+                ],
+                "summary": "Lấy danh sách yêu cầu đổi ca",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "storeId",
+                        "in": "query"
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/shift-swaps/{id}/approvals": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Sau khi 2 nhân viên đồng ý, Manager cần duyệt cuối để chính thức đổi ca.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shifts: Swaps"
+                ],
+                "summary": "Manager duyệt yêu cầu đổi ca cuối cùng",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Swap Request ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Kết quả duyệt của Manager",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_shift.ApproveSwapRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/shift-swaps/{id}/cancel": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Nhân viên gửi yêu cầu có thể tự hủy nếu yêu cầu chưa được phê duyệt.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shifts: Swaps"
+                ],
+                "summary": "Tự hủy yêu cầu đổi ca đã gửi",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Swap Request ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/shift-swaps/{id}/responses": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Nhân viên B nhận được yêu cầu và chọn Chấp nhận hoặc Từ chối.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shifts: Swaps"
+                ],
+                "summary": "Nhân viên phản hồi yêu cầu đổi ca (B phản hồi cho A)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Swap Request ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Phản hồi của nhân viên nhận yêu cầu",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_shift.RespondSwapRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
         "/shift-templates": {
             "get": {
                 "security": [
@@ -4496,27 +5090,23 @@
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "ID cửa hàng",
-                        "name": "storeId",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Từ ngày (YYYY-MM-DD)",
                         "name": "fromDate",
                         "in": "query"
                     },
                     {
-                        "type": "string",
-                        "description": "Đến ngày (YYYY-MM-DD)",
-                        "name": "toDate",
+                        "type": "integer",
+                        "description": "ShiftStatus enum",
+                        "name": "status",
                         "in": "query"
                     },
                     {
-                        "type": "integer",
-                        "description": "Trạng thái ca",
-                        "name": "status",
+                        "type": "string",
+                        "name": "storeId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "toDate",
                         "in": "query"
                     }
                 ],
@@ -4551,6 +5141,32 @@
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/api-gateway_internal_domain_models_shift.CreateShiftRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/shifts/auto-fill": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Hệ thống tự động tính toán và gán nhân viên phù hợp vào các ca làm việc còn trống (Draft) dựa trên lịch rảnh và quy tắc ca làm.",
+                "tags": [
+                    "Shifts: Assignment"
+                ],
+                "summary": "Tự động xếp người vào ca làm việc",
+                "parameters": [
+                    {
+                        "description": "Khoảng thời gian cần xếp ca tự động",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_shift.AutoFillShiftsRequest"
                         }
                     }
                 ],
@@ -4606,6 +5222,35 @@
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/api-gateway_internal_domain_models_shift.BulkCreateManualRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/shifts/bulk-open": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Chuyển trạng thái hàng loạt ca làm việc từ Draft sang Open để nhân viên có thể đăng ký nhận. StoreId được lấy tự động từ Token của Manager.",
+                "tags": [
+                    "Shifts: Bulk action"
+                ],
+                "summary": "Mở hàng loạt ca ra Chợ Ca (Shift Pool)",
+                "parameters": [
+                    {
+                        "description": "Danh sách ID các ca làm cần mở",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
                         }
                     }
                 ],
@@ -4864,6 +5509,60 @@
                 "responses": {}
             }
         },
+        "/shifts/{id}/applications": {
+            "get": {
+                "description": "Manager xem danh sách ứng viên kèm điểm Smart Score để đưa ra quyết định duyệt.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shifts: Applications"
+                ],
+                "summary": "Lấy danh sách các đơn đăng ký của một ca làm việc",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Shift ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            },
+            "post": {
+                "description": "Tạo một bản ghi ShiftApplication cho ca làm việc cụ thể. UserId lấy từ Token.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shifts: Applications"
+                ],
+                "summary": "Nhân viên đăng ký nhận ca (Tạo mới một đơn đăng ký)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Shift ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Ghi chú đăng ký",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_shift.ApplyForShiftRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
         "/shifts/{id}/publish": {
             "put": {
                 "description": "Chuyển trạng thái sang Published để nhân viên thấy được lịch.",
@@ -4878,6 +5577,72 @@
                         "name": "id",
                         "in": "path",
                         "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/shifts/{id}/releases": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Nhân viên trả lại ca làm đã nhận để người khác có thể đăng ký.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shifts: Swaps"
+                ],
+                "summary": "Nhả ca về Chợ Ca (Shift Pool)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Assignment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/shifts/{id}/swaps": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Nhân viên A chọn một ca của mình và yêu cầu đổi với nhân viên B.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shifts: Swaps"
+                ],
+                "summary": "Tạo yêu cầu đổi ca (A gửi cho B)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Assignment ID (Ca của người gửi)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Dữ liệu yêu cầu đổi ca",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_shift.RequestSwapRequest"
+                        }
                     }
                 ],
                 "responses": {}
@@ -4911,7 +5676,14 @@
                         }
                     }
                 ],
-                "responses": {}
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_shift.AssignStaffResponse"
+                        }
+                    }
+                }
             }
         },
         "/stores": {
@@ -5383,6 +6155,658 @@
                 }
             }
         },
+        "/suppliers": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "Suppliers"
+                ],
+                "summary": "Danh sách nhà cung cấp",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "GET dùng form tag cho Query String",
+                        "name": "code",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "name": "isActive",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_supplier_SupplierSummary"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Suppliers"
+                ],
+                "summary": "Tạo mới nhà cung cấp",
+                "parameters": [
+                    {
+                        "description": "Thông tin nhà cung cấp",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.CreateSupplierReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.SupplierBaseRes"
+                        }
+                    }
+                }
+            }
+        },
+        "/suppliers/payments": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Dành cho Admin/Kế toán theo dõi toàn bộ dòng tiền nhập hàng.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Suppliers / Payments"
+                ],
+                "summary": "Toàn bộ lịch sử thanh toán nhà cung cấp",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "purchaseOrderId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "supplierId",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_supplier_SupplierPaymentSummary"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Khởi tạo thanh toán bằng Tiền mặt (CASH) hoặc lấy URL VNPay để thanh toán.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Suppliers / Payments"
+                ],
+                "summary": "Tạo thanh toán cho đơn nhập hàng",
+                "parameters": [
+                    {
+                        "description": "Thông tin thanh toán",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.CreateSupplierPaymentReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.CreateSupplierPaymentRes"
+                        }
+                    }
+                }
+            }
+        },
+        "/suppliers/payments/vnpay/return": {
+            "get": {
+                "description": "Endpoint nhận redirect từ VNPay. Verify chữ ký qua gRPC và bẻ lái trình duyệt về giao diện Frontend.",
+                "produces": [
+                    "text/html"
+                ],
+                "tags": [
+                    "Suppliers / Payments"
+                ],
+                "summary": "Xử lý VNPay Return cho đơn nhập hàng (Supplier)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Số tiền giao dịch",
+                        "name": "vnp_Amount",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Mã ngân hàng",
+                        "name": "vnp_BankCode",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Thông tin đơn hàng",
+                        "name": "vnp_OrderInfo",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Mã phản hồi VNPAY",
+                        "name": "vnp_ResponseCode",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Mã tham chiếu (Mã Payment)",
+                        "name": "vnp_TxnRef",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Chữ ký bảo mật",
+                        "name": "vnp_SecureHash",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Path của FE muốn quay về (VD: /suppliers/purchase-orders/123)",
+                        "name": "redirectTo",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "302": {
+                        "description": "Redirect về Frontend App"
+                    }
+                }
+            }
+        },
+        "/suppliers/purchase-orders": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lấy danh sách đơn nhập hàng có phân trang và lọc theo Supplier, Store hoặc Status.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Suppliers / PurchaseOrders"
+                ],
+                "summary": "Danh sách đơn nhập hàng",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "storeId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "supplierId",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_supplier_PurchaseOrderSummary"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Tạo một bản ghi đơn nhập hàng mới ở trạng thái PENDING.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Suppliers / PurchaseOrders"
+                ],
+                "summary": "Tạo đơn nhập hàng mới",
+                "parameters": [
+                    {
+                        "description": "Thông tin đơn nhập hàng",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.CreatePurchaseOrderReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.PurchaseOrderBaseRes"
+                        }
+                    }
+                }
+            }
+        },
+        "/suppliers/purchase-orders/latest-prices": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Tra cứu giá của danh sách ID nguyên liệu dựa trên các hóa đơn nhập gần nhất.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Suppliers / PurchaseOrders"
+                ],
+                "summary": "Giá nhập mới nhất của nguyên liệu",
+                "parameters": [
+                    {
+                        "description": "Danh sách ID nguyên liệu",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.GetLatestPricesReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "number",
+                                "format": "float64"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/suppliers/purchase-orders/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lấy thông tin chi tiết của một đơn nhập hàng kèm danh sách nguyên liệu bên trong.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Suppliers / PurchaseOrders"
+                ],
+                "summary": "Chi tiết đơn nhập hàng",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID của đơn nhập hàng",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.PurchaseOrderDetail"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Chỉnh sửa thông tin đơn nhập hàng (chỉ thực hiện được khi đơn ở trạng thái cho phép).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Suppliers / PurchaseOrders"
+                ],
+                "summary": "Cập nhật đơn nhập hàng",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID của đơn nhập hàng",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Thông tin cập nhật",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.UpdatePurchaseOrderReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.PurchaseOrderBaseRes"
+                        }
+                    }
+                }
+            }
+        },
+        "/suppliers/purchase-orders/{id}/cancel": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Hủy bỏ đơn nhập hàng và ghi rõ lý do hủy.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Suppliers / PurchaseOrders"
+                ],
+                "summary": "Hủy đơn nhập hàng",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID của đơn nhập hàng",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Lý do hủy",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.CancelPurchaseOrderReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.PurchaseOrderBaseRes"
+                        }
+                    }
+                }
+            }
+        },
+        "/suppliers/purchase-orders/{id}/complete": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Xác nhận đã nhận đủ hàng và chốt đơn nhập hàng (thường dùng để tăng tồn kho).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Suppliers / PurchaseOrders"
+                ],
+                "summary": "Hoàn tất nhập hàng",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID của đơn nhập hàng",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.PurchaseOrderBaseRes"
+                        }
+                    }
+                }
+            }
+        },
+        "/suppliers/purchase-orders/{id}/payments": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lấy lịch sử các đợt trả tiền của một đơn nhập hàng cụ thể.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Suppliers / Payments"
+                ],
+                "summary": "Danh sách thanh toán của một PO",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID của đơn nhập hàng (Purchase Order)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.SupplierPaymentDetail"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/suppliers/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "Suppliers"
+                ],
+                "summary": "Chi tiết nhà cung cấp",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID nhà cung cấp",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.SupplierDetail"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "Suppliers"
+                ],
+                "summary": "Xóa nhà cung cấp",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID nhà cung cấp",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.SupplierBaseRes"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Suppliers"
+                ],
+                "summary": "Cập nhật nhà cung cấp",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID nhà cung cấp",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Thông tin cập nhật",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.UpdateSupplierReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.SupplierBaseRes"
+                        }
+                    }
+                }
+            }
+        },
         "/users": {
             "get": {
                 "security": [
@@ -5415,6 +6839,15 @@
                     {
                         "type": "string",
                         "name": "homeStoreId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "name": "ids",
                         "in": "query"
                     },
                     {
@@ -5960,6 +7393,16 @@
                         }
                     }
                 }
+            }
+        },
+        "/vnpay/ipn": {
+            "get": {
+                "description": "Nhận callback từ VNPay, phân loại đơn hàng và điều phối đến đúng Service qua gRPC.",
+                "tags": [
+                    "Payments"
+                ],
+                "summary": "VNPay IPN Dispatcher",
+                "responses": {}
             }
         },
         "/vouchers": {
@@ -6541,6 +7984,322 @@
                     }
                 }
             }
+        },
+        "/withdrawals": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Dành cho quản trị viên xem và lọc danh sách rút tiền của toàn bộ người dùng.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Xem toàn bộ danh sách yêu cầu rút tiền (Admin)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6,
+                            7
+                        ],
+                        "type": "integer",
+                        "format": "int32",
+                        "x-enum-comments": {
+                            "WithdrawalStatusApproved": "Đã duyệt",
+                            "WithdrawalStatusCancelled": "Đã hủy",
+                            "WithdrawalStatusCompleted": "Thành công",
+                            "WithdrawalStatusFailed": "Thất bại",
+                            "WithdrawalStatusPending": "Chờ duyệt",
+                            "WithdrawalStatusProcessing": "Đang xử lý",
+                            "WithdrawalStatusRejected": "Từ chối"
+                        },
+                        "x-enum-descriptions": [
+                            "Chờ duyệt",
+                            "Đã duyệt",
+                            "Đang xử lý",
+                            "Thành công",
+                            "Thất bại",
+                            "Từ chối",
+                            "Đã hủy"
+                        ],
+                        "x-enum-varnames": [
+                            "WithdrawalStatusPending",
+                            "WithdrawalStatusApproved",
+                            "WithdrawalStatusProcessing",
+                            "WithdrawalStatusCompleted",
+                            "WithdrawalStatusFailed",
+                            "WithdrawalStatusRejected",
+                            "WithdrawalStatusCancelled"
+                        ],
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "userId",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Danh sách yêu cầu",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_withdrawal_WithdrawalSummary"
+                        }
+                    }
+                }
+            }
+        },
+        "/withdrawals/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lấy đầy đủ thông tin một yêu cầu rút tiền bao gồm số tài khoản đầy đủ (Raw) và lịch sử xử lý.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Xem chi tiết yêu cầu rút tiền",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID của yêu cầu rút tiền",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_withdrawal.WithdrawalDetailRes"
+                        }
+                    },
+                    "404": {
+                        "description": "Không tìm thấy",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/withdrawals/{id}/approve": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "(Admin) Xác nhận yêu cầu hợp lệ và chuẩn bị chuyển tiền. Trạng thái chuyển sang APPROVED.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Duyệt yêu cầu rút tiền",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID của yêu cầu rút tiền",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Ghi chú duyệt",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_withdrawal.ApproveWithdrawalReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/withdrawals/{id}/cancel": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Dùng để hủy lệnh ở bất kỳ giai đoạn nào (Pending, Approved, Processing) TRỪ KHI đã thành công/hủy rồi. Hệ thống tự hoàn tiền vào ví.",
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Admin hủy yêu cầu (Dành cho hầu hết trạng thái)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID yêu cầu",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Lý do hủy từ Admin",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_withdrawal.CancelWithdrawalReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/withdrawals/{id}/complete": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "(Admin) Xác nhận đã chuyển khoản thành công. Phải upload ảnh bill (receiptFile) để minh chứng.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Hoàn tất yêu cầu rút tiền (Kèm hóa đơn)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID của yêu cầu rút tiền",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Ảnh chụp biên lai chuyển khoản (Bill)",
+                        "name": "receiptFile",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Mã giao dịch",
+                        "name": "bankTransactionId",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Hoàn tất",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/withdrawals/{id}/reject": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Dùng để từ chối lệnh khi đang PENDING. Hệ thống tự hoàn tiền vào ví.",
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Admin từ chối yêu cầu (Chỉ dành cho lệnh PENDING)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID yêu cầu",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Lý do từ chối",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_withdrawal.RejectWithdrawalReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -6630,6 +8389,18 @@
                 "RefundTicketStatus_REFUND_STATUS_FAILED",
                 "RefundTicketStatus_REFUND_STATUS_REJECTED",
                 "RefundTicketStatus_REFUND_STATUS_CANCELLED"
+            ]
+        },
+        "api-gateway_internal_domain_constants_enum.SupplierPaymentMethod": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+                0,
+                1
+            ],
+            "x-enum-varnames": [
+                "PaymentMethodCash",
+                "PaymentMethodVNPay"
             ]
         },
         "api-gateway_internal_domain_constants_enum.TimeLogStatus": {
@@ -6765,6 +8536,46 @@
                 "WalletTransactionPaymentMethod_PAYMENT_METHOD_CASH",
                 "WalletTransactionPaymentMethod_PAYMENT_METHOD_VNPAY",
                 "WalletTransactionPaymentMethod_PAYMENT_METHOD_WALLET"
+            ]
+        },
+        "api-gateway_internal_domain_constants_enum.WithdrawalStatus": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "x-enum-comments": {
+                "WithdrawalStatusApproved": "Đã duyệt",
+                "WithdrawalStatusCancelled": "Đã hủy",
+                "WithdrawalStatusCompleted": "Thành công",
+                "WithdrawalStatusFailed": "Thất bại",
+                "WithdrawalStatusPending": "Chờ duyệt",
+                "WithdrawalStatusProcessing": "Đang xử lý",
+                "WithdrawalStatusRejected": "Từ chối"
+            },
+            "x-enum-descriptions": [
+                "Chờ duyệt",
+                "Đã duyệt",
+                "Đang xử lý",
+                "Thành công",
+                "Thất bại",
+                "Từ chối",
+                "Đã hủy"
+            ],
+            "x-enum-varnames": [
+                "WithdrawalStatusPending",
+                "WithdrawalStatusApproved",
+                "WithdrawalStatusProcessing",
+                "WithdrawalStatusCompleted",
+                "WithdrawalStatusFailed",
+                "WithdrawalStatusRejected",
+                "WithdrawalStatusCancelled"
             ]
         },
         "api-gateway_internal_domain_models_auth.ConfirmOtpRequest": {
@@ -6918,6 +8729,40 @@
                 }
             }
         },
+        "api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_order_PaymentHistoryItem": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api-gateway_internal_domain_models_order.PaymentHistoryItem"
+                    }
+                },
+                "totalCount": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_order_PaymentSummary": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api-gateway_internal_domain_models_order.PaymentSummary"
+                    }
+                },
+                "totalCount": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
+                }
+            }
+        },
         "api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_point_LogResponse": {
             "type": "object",
             "properties": {
@@ -6925,6 +8770,57 @@
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/api-gateway_internal_domain_models_point.LogResponse"
+                    }
+                },
+                "totalCount": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_supplier_PurchaseOrderSummary": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.PurchaseOrderSummary"
+                    }
+                },
+                "totalCount": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_supplier_SupplierPaymentSummary": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.SupplierPaymentSummary"
+                    }
+                },
+                "totalCount": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_supplier_SupplierSummary": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.SupplierSummary"
                     }
                 },
                 "totalCount": {
@@ -6959,6 +8855,23 @@
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/api-gateway_internal_domain_models_wallet.WalletTransactionResponse"
+                    }
+                },
+                "totalCount": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_withdrawal_WithdrawalSummary": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api-gateway_internal_domain_models_withdrawal.WithdrawalSummary"
                     }
                 },
                 "totalCount": {
@@ -7218,10 +9131,22 @@
         "api-gateway_internal_domain_models_order.CreatePaymentRequest": {
             "type": "object",
             "properties": {
+                "appliedWalletAmount": {
+                    "type": "integer"
+                },
                 "paymentMethod": {
                     "$ref": "#/definitions/api-gateway_internal_domain_constants_enum.PaymentMethod"
                 },
+                "point": {
+                    "type": "integer"
+                },
                 "returnUrl": {
+                    "type": "string"
+                },
+                "voucherDiscountCode": {
+                    "type": "string"
+                },
+                "voucherShipCode": {
                     "type": "string"
                 }
             }
@@ -7303,6 +9228,68 @@
                     "type": "string"
                 },
                 "totalOrders": {
+                    "type": "integer"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_order.PaymentHistoryItem": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "orderCode": {
+                    "type": "string"
+                },
+                "orderId": {
+                    "type": "string"
+                },
+                "paymentDate": {
+                    "type": "string"
+                },
+                "paymentMethod": {
+                    "$ref": "#/definitions/api-gateway_internal_domain_constants_enum.PaymentMethod"
+                },
+                "status": {
+                    "description": "0=Pending, 1=Paid, 2=Failed",
+                    "type": "integer"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_order.PaymentSummary": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "method": {
+                    "$ref": "#/definitions/api-gateway_internal_domain_constants_enum.PaymentMethod"
+                },
+                "orderId": {
+                    "type": "string"
+                },
+                "paidAt": {
+                    "type": "string"
+                },
+                "status": {
                     "type": "integer"
                 }
             }
@@ -7470,6 +9457,32 @@
                 }
             }
         },
+        "api-gateway_internal_domain_models_product.ProductVariantDetail": {
+            "type": "object",
+            "properties": {
+                "attributes": {
+                    "type": "string"
+                },
+                "basePrice": {
+                    "type": "number"
+                },
+                "imageUrl": {
+                    "type": "string"
+                },
+                "productId": {
+                    "type": "string"
+                },
+                "productName": {
+                    "type": "string"
+                },
+                "sku": {
+                    "type": "string"
+                },
+                "variantId": {
+                    "type": "string"
+                }
+            }
+        },
         "api-gateway_internal_domain_models_product.UpdateProductRequest": {
             "type": "object",
             "properties": {
@@ -7573,6 +9586,39 @@
                 }
             }
         },
+        "api-gateway_internal_domain_models_shift.ApplyForShiftRequest": {
+            "type": "object",
+            "properties": {
+                "note": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_shift.ApproveSwapRequest": {
+            "type": "object",
+            "properties": {
+                "approve": {
+                    "type": "boolean"
+                },
+                "rejectReason": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_shift.AssignStaffResponse": {
+            "type": "object",
+            "properties": {
+                "success": {
+                    "type": "boolean"
+                },
+                "warnings": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api-gateway_internal_domain_models_shift.ValidationWarningDto"
+                    }
+                }
+            }
+        },
         "api-gateway_internal_domain_models_shift.AttendancePayload": {
             "type": "object",
             "properties": {
@@ -7583,6 +9629,21 @@
                     "type": "number"
                 },
                 "note": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_shift.AutoFillShiftsRequest": {
+            "type": "object",
+            "required": [
+                "endDate",
+                "startDate"
+            ],
+            "properties": {
+                "endDate": {
+                    "type": "string"
+                },
+                "startDate": {
                     "type": "string"
                 }
             }
@@ -7616,11 +9677,6 @@
         "api-gateway_internal_domain_models_shift.BulkCreateManualRequest": {
             "type": "object",
             "required": [
-                "daysOfWeek",
-                "endDate",
-                "endTime",
-                "startDate",
-                "startTime",
                 "storeId"
             ],
             "properties": {
@@ -7628,7 +9684,6 @@
                     "type": "integer"
                 },
                 "daysOfWeek": {
-                    "description": "[1, 3, 5]",
                     "type": "array",
                     "items": {
                         "type": "integer"
@@ -7647,11 +9702,9 @@
                     "type": "integer"
                 },
                 "startDate": {
-                    "description": "YYYY-MM-DD",
                     "type": "string"
                 },
                 "startTime": {
-                    "description": "HH:mm",
                     "type": "string"
                 },
                 "storeId": {
@@ -7732,14 +9785,12 @@
                     "type": "integer"
                 },
                 "shiftDate": {
-                    "description": "YYYY-MM-DD",
                     "type": "string"
                 },
                 "shiftTemplateId": {
                     "type": "string"
                 },
                 "startTime": {
-                    "description": "HH:mm",
                     "type": "string"
                 },
                 "storeId": {
@@ -7776,6 +9827,42 @@
                 }
             }
         },
+        "api-gateway_internal_domain_models_shift.RequestSwapRequest": {
+            "type": "object",
+            "required": [
+                "targetUserId"
+            ],
+            "properties": {
+                "reason": {
+                    "type": "string"
+                },
+                "targetUserId": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_shift.RespondSwapRequest": {
+            "type": "object",
+            "properties": {
+                "accept": {
+                    "type": "boolean"
+                },
+                "rejectReason": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_shift.ReviewApplicationRequest": {
+            "type": "object",
+            "properties": {
+                "isApproved": {
+                    "type": "boolean"
+                },
+                "reviewNote": {
+                    "type": "string"
+                }
+            }
+        },
         "api-gateway_internal_domain_models_shift.SaveShiftRuleRequest": {
             "type": "object",
             "properties": {
@@ -7785,6 +9872,12 @@
                 "allowShuttle": {
                     "type": "boolean"
                 },
+                "dailyOtThresholdHours": {
+                    "type": "integer"
+                },
+                "gracePeriodMinutes": {
+                    "type": "integer"
+                },
                 "maxHoursPerWeek": {
                     "type": "integer"
                 },
@@ -7793,6 +9886,9 @@
                 },
                 "storeId": {
                     "type": "string"
+                },
+                "weeklyOtThresholdHours": {
+                    "type": "integer"
                 }
             }
         },
@@ -7821,7 +9917,6 @@
                     "type": "string"
                 },
                 "status": {
-                    "description": "ShiftAssignmentStatus enum",
                     "type": "integer"
                 },
                 "userId": {
@@ -7845,6 +9940,7 @@
                     "type": "integer"
                 },
                 "endTime": {
+                    "description": "HH:mm",
                     "type": "string"
                 },
                 "id": {
@@ -7864,11 +9960,11 @@
                     "type": "string"
                 },
                 "startTime": {
-                    "description": "HH:mm:ss",
+                    "description": "HH:mm",
                     "type": "string"
                 },
                 "status": {
-                    "description": "ShiftStatus enum",
+                    "description": "0:Draft, 1:Published, 2:Completed, 3:Cancelled",
                     "type": "integer"
                 },
                 "storeId": {
@@ -7885,6 +9981,12 @@
                 "allowShuttle": {
                     "type": "boolean"
                 },
+                "dailyOtThresholdHours": {
+                    "type": "integer"
+                },
+                "gracePeriodMinutes": {
+                    "type": "integer"
+                },
                 "id": {
                     "type": "string"
                 },
@@ -7899,6 +10001,9 @@
                 },
                 "updatedAt": {
                     "type": "string"
+                },
+                "weeklyOtThresholdHours": {
+                    "type": "integer"
                 }
             }
         },
@@ -8028,6 +10133,7 @@
                     "type": "string"
                 },
                 "shiftTemplateId": {
+                    "description": "StoreId              *string `json:\"storeId,omitempty\"`",
                     "type": "string"
                 },
                 "startTime": {
@@ -8072,6 +10178,480 @@
                 },
                 "status": {
                     "$ref": "#/definitions/api-gateway_internal_domain_constants_enum.TimeLogStatus"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_shift.ValidationWarningDto": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "severity": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_supplier.CancelPurchaseOrderReq": {
+            "type": "object",
+            "properties": {
+                "reason": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_supplier.CreatePurchaseOrderItemReq": {
+            "type": "object",
+            "required": [
+                "ingredientId",
+                "quantity"
+            ],
+            "properties": {
+                "ingredientId": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "type": "number"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_supplier.CreatePurchaseOrderReq": {
+            "type": "object",
+            "required": [
+                "items",
+                "supplierId"
+            ],
+            "properties": {
+                "discountAmount": {
+                    "type": "number"
+                },
+                "expectedDeliveryDate": {
+                    "type": "string"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.CreatePurchaseOrderItemReq"
+                    }
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "referenceCode": {
+                    "type": "string"
+                },
+                "storeId": {
+                    "type": "string"
+                },
+                "supplierId": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_supplier.CreateSupplierPaymentReq": {
+            "type": "object",
+            "required": [
+                "purchaseOrderId"
+            ],
+            "properties": {
+                "method": {
+                    "$ref": "#/definitions/api-gateway_internal_domain_constants_enum.SupplierPaymentMethod"
+                },
+                "purchaseOrderId": {
+                    "type": "string"
+                },
+                "returnUrl": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_supplier.CreateSupplierPaymentRes": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "paymentId": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_supplier.CreateSupplierReq": {
+            "type": "object",
+            "required": [
+                "code",
+                "name"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "contactPerson": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "taxCode": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_supplier.GetLatestPricesReq": {
+            "type": "object",
+            "required": [
+                "ingredientIds"
+            ],
+            "properties": {
+                "ingredientIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_supplier.PurchaseOrderBaseRes": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_supplier.PurchaseOrderDetail": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "completedAt": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "discountAmount": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.PurchaseOrderItemDetail"
+                    }
+                },
+                "netAmount": {
+                    "type": "number"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "orderDate": {
+                    "type": "string"
+                },
+                "paidAmount": {
+                    "type": "number"
+                },
+                "paymentStatus": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "storeId": {
+                    "type": "string"
+                },
+                "supplierId": {
+                    "type": "string"
+                },
+                "supplierName": {
+                    "type": "string"
+                },
+                "totalAmount": {
+                    "type": "number"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_supplier.PurchaseOrderItemDetail": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "ingredientId": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "type": "number"
+                },
+                "totalPrice": {
+                    "type": "number"
+                },
+                "unitPrice": {
+                    "type": "number"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_supplier.PurchaseOrderSummary": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "netAmount": {
+                    "type": "number"
+                },
+                "orderDate": {
+                    "type": "string"
+                },
+                "paymentStatus": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "supplierName": {
+                    "type": "string"
+                },
+                "totalAmount": {
+                    "type": "number"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_supplier.SupplierBaseRes": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_supplier.SupplierDetail": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "contactPerson": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "isActive": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "taxCode": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_supplier.SupplierPaymentDetail": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "method": {
+                    "type": "integer"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "paidAt": {
+                    "type": "string"
+                },
+                "purchaseOrderId": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_supplier.SupplierPaymentSummary": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "method": {
+                    "type": "integer"
+                },
+                "paidAt": {
+                    "type": "string"
+                },
+                "purchaseOrderCode": {
+                    "type": "string"
+                },
+                "purchaseOrderId": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_supplier.SupplierSummary": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "contactPerson": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "isActive": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_supplier.UpdatePurchaseOrderReq": {
+            "type": "object",
+            "required": [
+                "items",
+                "supplierId"
+            ],
+            "properties": {
+                "discountAmount": {
+                    "type": "number"
+                },
+                "expectedDeliveryDate": {
+                    "type": "string"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.CreatePurchaseOrderItemReq"
+                    }
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "referenceCode": {
+                    "type": "string"
+                },
+                "storeId": {
+                    "type": "string"
+                },
+                "supplierId": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_supplier.UpdateSupplierReq": {
+            "type": "object",
+            "required": [
+                "code"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "contactPerson": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "isActive": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "taxCode": {
+                    "type": "string"
                 }
             }
         },
@@ -8225,11 +10805,11 @@
                 "quantity": {
                     "type": "integer"
                 },
+                "sku": {
+                    "type": "string"
+                },
                 "type": {
                     "$ref": "#/definitions/api-gateway_internal_domain_constants_enum.VoucherItemType"
-                },
-                "variant_id": {
-                    "type": "string"
                 }
             }
         },
@@ -8280,11 +10860,11 @@
                 "quantity": {
                     "type": "integer"
                 },
+                "sku": {
+                    "type": "string"
+                },
                 "type": {
                     "$ref": "#/definitions/api-gateway_internal_domain_constants_enum.VoucherItemType"
-                },
-                "variant_id": {
-                    "type": "string"
                 }
             }
         },
@@ -8334,11 +10914,11 @@
                 "quantity": {
                     "type": "integer"
                 },
+                "sku": {
+                    "type": "string"
+                },
                 "type": {
                     "type": "integer"
-                },
-                "variant_id": {
-                    "type": "string"
                 }
             }
         },
@@ -8537,10 +11117,10 @@
         "api-gateway_internal_domain_models_wallet.UpdateWalletStatusRequest": {
             "type": "object",
             "properties": {
-                "admin_notes": {
+                "adminNotes": {
                     "type": "string"
                 },
-                "new_status": {
+                "newStatus": {
                     "$ref": "#/definitions/api-gateway_internal_domain_constants_enum.WalletStatus"
                 },
                 "reason": {
@@ -8650,6 +11230,202 @@
                     "type": "string"
                 },
                 "walletId": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_withdrawal.ApproveWithdrawalReq": {
+            "type": "object",
+            "properties": {
+                "approvalNotes": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_withdrawal.CancelMyWithdrawalReq": {
+            "type": "object",
+            "required": [
+                "cancellationReason"
+            ],
+            "properties": {
+                "cancellationReason": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_withdrawal.CancelWithdrawalReq": {
+            "type": "object",
+            "required": [
+                "cancellationReason"
+            ],
+            "properties": {
+                "cancellationReason": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_withdrawal.CreateWithdrawalReq": {
+            "type": "object",
+            "required": [
+                "accountName",
+                "accountNumber",
+                "amount",
+                "bankName"
+            ],
+            "properties": {
+                "accountName": {
+                    "type": "string"
+                },
+                "accountNumber": {
+                    "type": "string"
+                },
+                "amount": {
+                    "type": "string"
+                },
+                "bankCode": {
+                    "type": "string"
+                },
+                "bankName": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_withdrawal.RejectWithdrawalReq": {
+            "type": "object",
+            "required": [
+                "rejectionReason"
+            ],
+            "properties": {
+                "rejectionReason": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_withdrawal.WithdrawalBaseRes": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_withdrawal.WithdrawalDetailRes": {
+            "type": "object",
+            "properties": {
+                "accountName": {
+                    "type": "string"
+                },
+                "amount": {
+                    "type": "string"
+                },
+                "approvalNotes": {
+                    "type": "string"
+                },
+                "bankCode": {
+                    "type": "string"
+                },
+                "bankName": {
+                    "type": "string"
+                },
+                "bankTransactionId": {
+                    "type": "string"
+                },
+                "cancellationReason": {
+                    "type": "string"
+                },
+                "completedAt": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "feeAmount": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "internalNotes": {
+                    "type": "string"
+                },
+                "maskedAccountNumber": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "processedById": {
+                    "type": "string"
+                },
+                "processedByName": {
+                    "type": "string"
+                },
+                "rawAccountNumber": {
+                    "type": "string"
+                },
+                "receiptImageUrl": {
+                    "type": "string"
+                },
+                "rejectionReason": {
+                    "type": "string"
+                },
+                "requestCode": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/api-gateway_internal_domain_constants_enum.WithdrawalStatus"
+                },
+                "transactionId": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_withdrawal.WithdrawalSummary": {
+            "type": "object",
+            "properties": {
+                "accountName": {
+                    "type": "string"
+                },
+                "amount": {
+                    "type": "string"
+                },
+                "bankCode": {
+                    "type": "string"
+                },
+                "bankName": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "feeAmount": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "maskedAccountNumber": {
+                    "type": "string"
+                },
+                "requestCode": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/api-gateway_internal_domain_constants_enum.WithdrawalStatus"
+                },
+                "userId": {
                     "type": "string"
                 }
             }

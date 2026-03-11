@@ -7,6 +7,7 @@ using SalesService.Application.Features.WalletTransactions.Queries.GetByCode;
 using SalesService.Application.Features.WalletTransactions.Queries.GetById;
 using SalesService.Application.Features.WalletTransactions.Queries.GetByUserId;
 using SalesService.Application.Features.WalletTransactions.Querries.GetByOrderId;
+using SalesService.Domain.Entities;
 using SalesService.Grpc;
 using DomainPaymentMethod = SalesService.Domain.Enums.PaymentMethod;
 using DomainReferenceType = SalesService.Domain.Enums.WalletReferenceType;
@@ -203,7 +204,7 @@ public sealed class WalletTransactionGrpcService : WalletTransactionGrpc.WalletT
         };
 
         response.Transactions.AddRange(
-            result.Value.Items.Select(MapToGrpcTransactionResponse));
+            result.Value.Items.Select(x => MapToGrpcTransactionResponse(x)));
 
         return response;
     }
@@ -434,7 +435,7 @@ public sealed class WalletTransactionGrpcService : WalletTransactionGrpc.WalletT
     // ========== MAPPING HELPERS ==========
 
     private static Grpc.WalletTransactionResponse MapToGrpcTransactionResponse(
-        dynamic transaction)
+        Application.Features.WalletTransactions.Dtos.WalletTransactionResponse transaction)
     {
         return new Grpc.WalletTransactionResponse
         {
@@ -448,8 +449,8 @@ public sealed class WalletTransactionGrpcService : WalletTransactionGrpc.WalletT
             TransactionCode = transaction.TransactionCode ?? "",
             Notes = transaction.Notes ?? "",
             Amount = transaction.Amount.ToString("F2"),
-            BalanceBefore = transaction.BalanceBefore.ToString("F2"),
-            BalanceAfter = transaction.BalanceAfter.ToString("F2"),
+            BalanceBefore = transaction.BalanceBefore?.ToString("F2") ?? "",
+            BalanceAfter = transaction.BalanceAfter?.ToString("F2") ?? "",
             TransactionType = MapDomainTransactionTypeToGrpc(transaction.TransactionType),
             Status = MapDomainTransactionStatusToGrpc(transaction.Status),
             ReferenceId = transaction.ReferenceId?.ToString() ?? "",

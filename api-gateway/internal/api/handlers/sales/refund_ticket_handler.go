@@ -5,7 +5,6 @@ import (
 	"api-gateway/internal/application/gateways/sales"
 	"api-gateway/internal/domain/models/wallet"
 	"api-gateway/pkg/utils/contextutils"
-	"api-gateway/pkg/utils/grpcutils"
 	"api-gateway/pkg/utils/validation"
 	"net/http"
 
@@ -46,10 +45,7 @@ func (h *RefundTicketHandler) GetMyRefunds(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
 	userId, err := contextutils.GetUserId(c)
 	if err != nil {
@@ -83,12 +79,9 @@ func (h *RefundTicketHandler) CreateRefund(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
-	err = h.refundGW.CreateRefundByCustomer(ctx, &req)
+	err := h.refundGW.CreateRefundByCustomer(ctx, &req)
 	if err != nil {
 		return err
 	}
@@ -124,10 +117,7 @@ func (h *RefundTicketHandler) GetAllRefunds(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
 	var targetUserId *uuid.UUID = nil
 	if req.UserId != nil && *req.UserId != "" {
@@ -170,10 +160,7 @@ func (h *RefundTicketHandler) GetRefundById(c *gin.Context) error {
 		return errorcode.ErrInvalidId
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
 	ctxUserId, err := contextutils.GetUserId(c)
 	if err != nil {
@@ -212,10 +199,7 @@ func (h *RefundTicketHandler) ApproveRefund(c *gin.Context) error {
 		return errorcode.ErrInvalidId
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
 	err = h.refundGW.Approve(ctx, ticketId, &req)
 	if err != nil {
@@ -249,10 +233,7 @@ func (h *RefundTicketHandler) RejectRefund(c *gin.Context) error {
 		return errorcode.ErrInvalidId
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
 	err = h.refundGW.Reject(ctx, ticketId, &req)
 	if err != nil {
@@ -286,10 +267,7 @@ func (h *RefundTicketHandler) CancelRefund(c *gin.Context) error {
 		return errorcode.ErrInvalidId
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
 	err = h.refundGW.Cancel(ctx, ticketId, &req)
 	if err != nil {
@@ -323,10 +301,7 @@ func (h *RefundTicketHandler) CompleteRefund(c *gin.Context) error {
 		return errorcode.ErrInvalidId
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
 	err = h.refundGW.SetComplete(ctx, ticketId, &req)
 	if err != nil {

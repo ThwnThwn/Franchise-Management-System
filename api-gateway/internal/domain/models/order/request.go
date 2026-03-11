@@ -20,11 +20,6 @@ type GetMyOrdersRequest struct {
 	common.PaginationQuery
 }
 
-type CreatePaymentRequest struct {
-	ReturnUrl     *string            `json:"returnUrl"`
-	PaymentMethod enum.PaymentMethod `json:"paymentMethod"`
-}
-
 type UpdateOrderStatus struct {
 	Status enum.OrderStatus `json:"status" binding:"required"`
 }

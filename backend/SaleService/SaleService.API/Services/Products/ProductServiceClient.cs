@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Grpc.Net.Client;
 using ProductService.API;
 using SalesService.Application.ClientInterface.Products;

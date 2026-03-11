@@ -24,10 +24,13 @@ namespace EngagementService.Application.Features.Voucher.Commands.UpdateVoucherS
             if(voucher == null)
                 throw new ArgumentException(VoucherMsg.NotFound);
 
-            voucher.IsActive = updateRequest.IsActive;
+            if(voucher.IsActive != updateRequest.IsActive)
+            {
+                voucher.IsActive = updateRequest.IsActive;
 
-            await _voucherRepository.UpdateAsync(voucher);  
-
+                await _voucherRepository.UpdateAsync(voucher);
+            }
+             
             return Unit.Value;
         }
     }

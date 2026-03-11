@@ -81,6 +81,7 @@ message OrderReply {
   repeated OrderItemReply items = 6;
   CheckEnoughStockResponse check_stock_respone = 7;
   optional OrderType type=8;
+  repeated OrderSaleItemReply sale_items = 9;
 }
 
 message OrderItemReply {
@@ -89,6 +90,19 @@ message OrderItemReply {
   double unit_price = 3;
 }
 
+message OrderSaleItemReply {
+  string id = 1;
+  double amount = 2;
+  OrderSaleItemType type = 3;
+  optional string reference_id = 4;
+  string name = 5;
+}
+enum OrderSaleItemType {
+  VOUCHER = 0;
+  WALLET = 1;
+  POINT = 2;
+  PROMOTION = 3;
+}
 message GetOrderByIdRequest {
   string id = 1;
 }
@@ -114,6 +128,7 @@ message Order {
   string store_id = 14;
   repeated OrderItem items = 15;
   OrderType type=16;
+  repeated OrderSaleItemReply sale_items = 17;
 }
 
 
@@ -282,6 +297,7 @@ message GetSalesTrendRequest {
   int32 aggregation = 3; // 0 = Hour, 1 = Day, 2 = Week
   optional string store_id = 4;
   optional string category_id = 5;
+  bool include_csv = 6; // Nếu true, trả về file CSV trong response
 }
 
 message SalesTrendDataPoint {
@@ -294,6 +310,7 @@ message GetSalesTrendReply {
   repeated SalesTrendDataPoint data_points = 1;
   optional string peak_period_label = 2;
   optional string slow_period_label = 3;
+  optional CsvFile csv_file = 4; // Xuất file CSV (nếu include_csv = true)
 }
 
 message PayOrderWithWalletRequest {

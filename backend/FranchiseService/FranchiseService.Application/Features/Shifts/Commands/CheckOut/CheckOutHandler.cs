@@ -60,9 +60,17 @@ public class CheckOutHandler : IRequestHandler<CheckOutCommand, bool>
 
         // 6. Gioi han thoi diem check-out: khong cho vuot qua X gio sau ket thuc ca
         var vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById(TimeConstants.DefaultTimeZoneId);
-        var shiftEndLocal = shift.ShiftDate.ToDateTime(shift.EndTime);
+
+        var endShiftDate = shift.ShiftDate;
+        if (shift.EndTime < shift.StartTime)
+        {
+            endShiftDate = endShiftDate.AddDays(1);
+        }
+
+        var shiftEndLocal = endShiftDate.ToDateTime(shift.EndTime);
         var shiftEndUtc = TimeZoneInfo.ConvertTimeToUtc(shiftEndLocal, vnTimeZone);
         var maxCheckOutTime = shiftEndUtc.AddHours(TimeConstants.MaxLateCheckOutHours);
+
         var now = DateTime.UtcNow;
 
         // Cap thoi diem check-out: neu vuot qua gioi han thi gioi han lai

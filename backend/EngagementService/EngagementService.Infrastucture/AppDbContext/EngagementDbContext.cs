@@ -208,7 +208,7 @@ public partial class EngagementDbContext : DbContext, IEngagementDbContext
 
             // Cấu hình Mapping Enum cho Voucher
             entity.Property(e => e.Type)
-                .HasColumnType("voucher_category")
+                .HasColumnType("voucher_type")
                 .HasColumnName("type");
 
             entity.Property(e => e.Code).HasMaxLength(50).HasColumnName("code");
@@ -245,11 +245,10 @@ public partial class EngagementDbContext : DbContext, IEngagementDbContext
             // Cấu hình Mapping Enum cho VoucherItemType
             entity.Property(e => e.Type)
                 .HasColumnType("voucher_item_type")
-                .HasDefaultValueSql("'REQUIRED'::voucher_item_type")
                 .HasColumnName("type");
 
             entity.Property(e => e.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").HasColumnName("updated_at");
-            entity.Property(e => e.VariantId).HasColumnName("variant_id");
+            entity.Property(e => e.Sku).HasColumnName("sku");
             entity.Property(e => e.VoucherId).HasColumnName("voucher_id");
 
             entity.HasOne(d => d.Voucher).WithMany(p => p.VoucherItems)
@@ -282,14 +281,11 @@ public partial class EngagementDbContext : DbContext, IEngagementDbContext
             entity.HasKey(e => e.Id).HasName("voucher_usages_pkey");
             entity.ToTable("voucher_usages");
             entity.HasIndex(e => e.OrderId, "idx_voucher_usages_order_id");
-            entity.HasIndex(e => e.StoreId, "idx_voucher_usages_store_id");
 
             entity.Property(e => e.Id).HasDefaultValueSql("uuid_generate_v4()").HasColumnName("id");
             entity.Property(e => e.AppliedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").HasColumnName("applied_at");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").HasColumnName("created_at");
-            entity.Property(e => e.DiscountAmount).HasPrecision(15, 3).HasDefaultValueSql("0").HasColumnName("discount_amount");
             entity.Property(e => e.OrderId).HasColumnName("order_id");
-            entity.Property(e => e.StoreId).HasColumnName("store_id");
             entity.Property(e => e.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").HasColumnName("updated_at");
             entity.Property(e => e.UserVoucherId).HasColumnName("user_voucher_id");
             entity.Property(e => e.VoucherId).HasColumnName("voucher_id");

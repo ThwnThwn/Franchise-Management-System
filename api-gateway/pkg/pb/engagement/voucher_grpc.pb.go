@@ -35,6 +35,10 @@ type VoucherGrpcClient interface {
 	GetVoucherByCode(ctx context.Context, in *GetVoucherByCodeRequest, opts ...grpc.CallOption) (*VoucherResponse, error)
 	// Xoá voucher
 	DeleteVoucher(ctx context.Context, in *DeleteVoucherRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// Lấy voucher của user
+	GetMyVouchers(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*VoucherListResponse, error)
+	// Use Voucher
+	UseVouchers(ctx context.Context, in *UseVoucherRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type voucherGrpcClient struct {
@@ -99,6 +103,24 @@ func (c *voucherGrpcClient) DeleteVoucher(ctx context.Context, in *DeleteVoucher
 	return out, nil
 }
 
+func (c *voucherGrpcClient) GetMyVouchers(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*VoucherListResponse, error) {
+	out := new(VoucherListResponse)
+	err := c.cc.Invoke(ctx, "/engagement.VoucherGrpc/GetMyVouchers", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *voucherGrpcClient) UseVouchers(ctx context.Context, in *UseVoucherRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/engagement.VoucherGrpc/UseVouchers", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // VoucherGrpcServer is the server API for VoucherGrpc service.
 // All implementations must embed UnimplementedVoucherGrpcServer
 // for forward compatibility
@@ -115,6 +137,10 @@ type VoucherGrpcServer interface {
 	GetVoucherByCode(context.Context, *GetVoucherByCodeRequest) (*VoucherResponse, error)
 	// Xoá voucher
 	DeleteVoucher(context.Context, *DeleteVoucherRequest) (*emptypb.Empty, error)
+	// Lấy voucher của user
+	GetMyVouchers(context.Context, *emptypb.Empty) (*VoucherListResponse, error)
+	// Use Voucher
+	UseVouchers(context.Context, *UseVoucherRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedVoucherGrpcServer()
 }
 
@@ -139,6 +165,12 @@ func (UnimplementedVoucherGrpcServer) GetVoucherByCode(context.Context, *GetVouc
 }
 func (UnimplementedVoucherGrpcServer) DeleteVoucher(context.Context, *DeleteVoucherRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteVoucher not implemented")
+}
+func (UnimplementedVoucherGrpcServer) GetMyVouchers(context.Context, *emptypb.Empty) (*VoucherListResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMyVouchers not implemented")
+}
+func (UnimplementedVoucherGrpcServer) UseVouchers(context.Context, *UseVoucherRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UseVouchers not implemented")
 }
 func (UnimplementedVoucherGrpcServer) mustEmbedUnimplementedVoucherGrpcServer() {}
 
@@ -261,6 +293,42 @@ func _VoucherGrpc_DeleteVoucher_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _VoucherGrpc_GetMyVouchers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VoucherGrpcServer).GetMyVouchers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/engagement.VoucherGrpc/GetMyVouchers",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VoucherGrpcServer).GetMyVouchers(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _VoucherGrpc_UseVouchers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UseVoucherRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VoucherGrpcServer).UseVouchers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/engagement.VoucherGrpc/UseVouchers",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VoucherGrpcServer).UseVouchers(ctx, req.(*UseVoucherRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // VoucherGrpc_ServiceDesc is the grpc.ServiceDesc for VoucherGrpc service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -291,6 +359,14 @@ var VoucherGrpc_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteVoucher",
 			Handler:    _VoucherGrpc_DeleteVoucher_Handler,
+		},
+		{
+			MethodName: "GetMyVouchers",
+			Handler:    _VoucherGrpc_GetMyVouchers_Handler,
+		},
+		{
+			MethodName: "UseVouchers",
+			Handler:    _VoucherGrpc_UseVouchers_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

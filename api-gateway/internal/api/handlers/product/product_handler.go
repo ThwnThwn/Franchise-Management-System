@@ -76,6 +76,32 @@ func (h *ProductHandler) GetProductById(c *gin.Context) error {
 	return nil
 }
 
+// GetProductVariants
+// @Summary      Get products by skus
+// @Description  Retrieve a list of product variants with simple info
+// @Tags         Products
+// @Accept       json
+// @Produce      json
+// @Param        query  query     product.GetProductVariantsRequest    true    "List of sku"
+// @Success      200    {array}   product.ProductVariantDetail         "List of products"
+// @Failure      500    {object}  map[string]string                    "Internal server error"
+// @Router       /products/variants [get]
+func (h *ProductHandler) GetProductVariants(c *gin.Context) error {
+	var req product.GetProductVariantsRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		return err
+	}
+
+	ctx := c.Request.Context()
+	res, err := h.productGW.GetProductVariants(ctx, &req)
+	if err != nil {
+		return err
+	}
+
+	c.JSON(http.StatusOK, res)
+	return nil
+}
+
 // CreateProduct
 // @Summary      Create New Product
 // @Description  Add a new product to the catalog.

@@ -34,6 +34,7 @@ public class OrderRepository : IOrderRepository
     {
         return await _context.Orders
             .Include(o => o.OrderItems)
+            .Include(o => o.OrderSaleItems)
             .FirstOrDefaultAsync(
                 o => o.Id == id && !o.IsDeleted,
                 cancellationToken);

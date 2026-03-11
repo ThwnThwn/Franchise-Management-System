@@ -11,6 +11,8 @@ func (p *ProductRouter) Init(r *gin.RouterGroup) {
 	productApi := r.Group("/products")
 	{
 		productApi.GET("", api.WrapHandler(p.productHl.GetProducts))
+		productApi.GET("/variants", api.WrapHandler(p.productHl.GetProductVariants))
+
 		productApi.GET("/:id", api.WrapHandler(p.productHl.GetProductById))
 	}
 

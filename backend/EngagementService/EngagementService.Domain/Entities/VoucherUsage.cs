@@ -14,10 +14,6 @@ public partial class VoucherUsage : IEntity
 
     public Guid OrderId { get; set; }
 
-    public Guid StoreId { get; set; }
-
-    public decimal? DiscountAmount { get; set; }
-
     public DateTimeOffset? AppliedAt { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; }

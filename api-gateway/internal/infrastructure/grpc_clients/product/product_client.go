@@ -69,6 +69,31 @@ func (c *ProductGrpcClient) GetProductById(ctx context.Context, id uuid.UUID) (*
 	return mapper.MapProductPbToProductModel(res.Product), nil
 }
 
+// GetProductVariants implements product.IProductService.
+func (c *ProductGrpcClient) GetProductVariants(ctx context.Context, req *product.GetProductVariantsRequest) ([]*product.ProductVariantDetail, error) {
+	res, err := c.client.GetProductsBySkus(ctx, &productPb.GetProductsBySkusRequest{
+		Skus: req.Skus,
+	})
+	if err != nil {
+		return []*product.ProductVariantDetail{}, err
+	}
+
+	items := make([]*product.ProductVariantDetail, 0, len(res.Variants))
+	for _, item := range res.Variants {
+		items = append(items, &product.ProductVariantDetail{
+			ProductId:   item.ProductId,
+			VariantId:   item.VariantId,
+			ProductName: item.ProductName,
+			Sku:         item.Sku,
+			Attributes:  item.Attributes,
+			BasePrice:   item.BasePrice,
+			ImageUrl:    item.ImageUrl,
+		})
+	}
+
+	return items, nil
+}
+
 // CreateProduct implements product.IProductService.
 func (c *ProductGrpcClient) CreateProduct(ctx context.Context, req *product.CreateProductRequest) error {
 	variants := make([]*productPb.CreateProductVariant, 0, len(req.Variants))

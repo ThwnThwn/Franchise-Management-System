@@ -39,20 +39,19 @@ func LoadConfig() *Config {
 		},
 
 		VNPay: VNPay{
+			IpnUrl: getEnv("VNPay__IpnUrl", "http://localhost:8080/api/vnpay/ipn"),
+
 			// Order (Customer Orders)
 			ReturnUrl:       getEnv("VNPay__ReturnUrl", "http://localhost:8080/api/orders/vnpay/return"),
 			ClientReturnUrl: getEnv("VNPay__ClientReturnUrl", "http://localhost:3000/orders"),
-			IpnUrl:          getEnv("VNPay__IpnUrl", "http://localhost:8080/api/orders/vnpay/ipn"),
 
 			// Wallet
 			WalletReturnUrl:       getEnv("VNPAY__WalletVNPayReturn", "http://localhost:8080/api/wallets/vnpay/return"),
 			WalletClientReturnUrl: getEnv("VNPAY__WalletVNPayClientReturnUrl", "http://localhost:3000/wallet"),
-			WalletIpnUrl:          getEnv("VNPAY__WalletVNPayIpnUrl", "http://localhost:8080/api/wallets/vnpay/ipn"),
 
 			// Supplier (Purchase Orders)
-			SupplierReturnUrl:       getEnv("VNPay__SupplierReturnUrl", "http://localhost:8080/api/suppliers/vnpay/return"),
+			SupplierReturnUrl:       getEnv("VNPay__SupplierReturnUrl", "http://localhost:8080/api/suppliers/payments/vnpay/return"),
 			SupplierClientReturnUrl: getEnv("VNPay__SupplierClientReturnUrl", "http://localhost:3000"),
-			SupplierIpnUrl:          getEnv("VNPay__SupplierIpnUrl", "http://localhost:8080/api/suppliers/vnpay/ipn"),
 		},
 
 		Port:           getEnv("GATEWAY_PORT", "8080"),
@@ -66,6 +65,7 @@ func LoadConfig() *Config {
 		InventoryServiceUrl:  InventoryServiceUrl(getEnvUrl("INVENTORY_SERVICE_URL", "localhost:5005")),
 		FranchiseServiceUrl:  FranchiseServiceUrl(getEnvUrl("FRANCHISE_SERVICE_URL", "localhost:5006")),
 		EngagementServiceUrl: EngagementServiceUrl(getEnvUrl("ENGAGEMENT_SERVICE_URL", "localhost:5007")),
+		SupplierServiceUrl:   SupplierServiceUrl(getEnvUrl("SUPPLIER_SERVICE_URL", "localhost:5008")),
 
 		JwtRefreshTokenExpDays:          getEnvInt("JWT_REFRESH_TOKEN_EXPIRATION_DAYS", 7),
 		JwtSecret:                       getEnv("JWT_SECRET", ""),

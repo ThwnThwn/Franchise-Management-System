@@ -64,8 +64,9 @@ public sealed class DepositWalletHandler
             Amount = request.Amount,
             TransactionType = TransactionType.Deposit,
             PaymentMethod = PaymentMethod.VNPay,
-            Status = TransactionStatus.Pending, 
+            Status = TransactionStatus.Pending,
             ReferenceType = WalletReferenceType.Deposit,
+            Description = $"Nạp {request.Amount} VND vào ví bằng VNPay",
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow
         };
@@ -81,7 +82,7 @@ public sealed class DepositWalletHandler
             Currency = "VND",
             Method = (int)PaymentMethod.VNPay,
             Status = (int)PaymentStatus.Pending,
-            ReferenceId = walletTransaction.Id,         
+            ReferenceId = walletTransaction.Id,
             ReferenceType = PaymentReferenceType.Deposit,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
@@ -94,8 +95,8 @@ public sealed class DepositWalletHandler
         var vnpSection = _config.GetSection("VNPay");
 
         var callbackUrl = vnpSection["WalletVNPayReturn"]!;
-        var frontendRedirectUrl = string.IsNullOrEmpty(request.ReturnUrl) 
-            ? vnpSection["WalletClientReturnUrl"] 
+        var frontendRedirectUrl = string.IsNullOrEmpty(request.ReturnUrl)
+            ? vnpSection["WalletClientReturnUrl"]
             : request.ReturnUrl;
 
         if (!string.IsNullOrEmpty(frontendRedirectUrl))
@@ -114,7 +115,7 @@ public sealed class DepositWalletHandler
             ["vnp_OrderInfo"] = $"Nap tien vao vi {command.UserId}",
             ["vnp_OrderType"] = "other",
             ["vnp_ReturnUrl"] = callbackUrl,
-            ["vnp_TxnRef"] = payment.Id.ToString() 
+            ["vnp_TxnRef"] = payment.Id.ToString()
         };
 
         var paymentUrl = VNPayHelper.BuildPaymentUrl(

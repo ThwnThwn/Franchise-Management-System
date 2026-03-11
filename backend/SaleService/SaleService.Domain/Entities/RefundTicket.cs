@@ -43,5 +43,11 @@ namespace SalesService.Domain.Entities
 
         public string? InternalNotes { get; set; }
         public Guid? CreatedByInternalUserId { get; set; }
+
+        public virtual WalletTransaction? OriginalTransaction { get; set; }
+
+        public virtual WalletTransaction? Transaction { get; set; }
+
+        public virtual Wallet? Wallet { get; set; }    
     }
 }

@@ -21,22 +21,11 @@ CREATE TYPE point_reason_code AS ENUM (
     'ORDER_RETURN_DEDUCT', -- Thu hồi điểm khi trả hàng
     'MANUAL_ADJUST'        -- Điều chỉnh thủ công bởi admin
 );
-<<<<<<< HEAD
-<<<<<<< HEAD
-CREATE TYPE voucher_category AS ENUM ('DISCOUNT', 'SHIPPING', 'GIFT');
-CREATE TYPE voucher_discount_type AS ENUM ('PERCENTAGE', 'FIXED_AMOUNT', 'GIFT_ITEM');
-=======
-=======
->>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 CREATE TYPE voucher_type AS ENUM ('DISCOUNT_PERCENTAGE',
                                     'DISCOUNT_FIXED_AMOUNT',
                                     'SHIPPING_PERCENTAGE', 
                                     'SHIPPING_FIXED_AMOUNT',
                                     'GIFT');
-<<<<<<< HEAD
->>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
-=======
->>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 CREATE TYPE user_voucher_status AS ENUM ('AVAILABLE', 'USED', 'EXPIRED');
 CREATE TYPE voucher_item_type AS ENUM ('ITEM_GIFT', 'ITEM_REQUIRED');
 
@@ -110,16 +99,7 @@ CREATE TABLE "point_rules" (
 CREATE TABLE "vouchers" (
     "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     "code" VARCHAR(50) NOT NULL,
-<<<<<<< HEAD
-<<<<<<< HEAD
-    "category" voucher_category NOT NULL,
-    "type" voucher_discount_type,
-=======
     "type" voucher_type NOT NULL,
->>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
-=======
-    "type" voucher_type NOT NULL,
->>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
     "discount_value" DECIMAL(15, 3) CHECK ("discount_value" >= 0),
     "max_discount_value" DECIMAL(15, 3) CHECK ("max_discount_value" >= 0),
     "min_order_value" DECIMAL(15, 3) DEFAULT 0 CHECK ("min_order_value" >= 0),
@@ -153,9 +133,9 @@ CREATE TABLE "user_vouchers" (
 CREATE TABLE "voucher_items" (
     "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     "voucher_id" UUID NOT NULL REFERENCES "vouchers"("id") ON DELETE CASCADE,
-    "variant_id" UUID NOT NULL, 
+    "sku" VARCHAR(50) NOT NULL, 
     "quantity" INT DEFAULT 1 CHECK ("quantity" > 0), -- Đã fix lỗi tên cột trong CHECK
-    "type" voucher_item_type DEFAULT 'ITEM_REQUIRED',
+    "type" voucher_item_type,
     "created_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     "is_deleted" BOOLEAN DEFAULT FALSE
@@ -166,8 +146,6 @@ CREATE TABLE "voucher_usages" (
     "user_voucher_id" UUID REFERENCES "user_vouchers"("id"),
     "voucher_id" UUID NOT NULL REFERENCES "vouchers"("id"),
     "order_id" UUID NOT NULL,
-    "store_id" UUID NOT NULL,
-    "discount_amount" DECIMAL(15, 3) DEFAULT 0,
     "applied_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     "created_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -187,7 +165,6 @@ CREATE INDEX "idx_point_logs_user_id" ON "point_logs"("user_id");
 CREATE INDEX "idx_loyalty_accounts_tier" ON "loyalty_accounts"("current_tier_id");
 CREATE INDEX "idx_user_vouchers_user_status" ON "user_vouchers"("user_id", "status");
 CREATE INDEX "idx_voucher_usages_order_id" ON "voucher_usages"("order_id");
-CREATE INDEX "idx_voucher_usages_store_id" ON "voucher_usages"("store_id");
 CREATE INDEX "idx_voucher_items_lookup" ON "voucher_items" ("voucher_id") WHERE "is_deleted" IS FALSE;
 CREATE INDEX IX_point_logs_expired_at ON "point_logs" ("expired_at") 
 WHERE "expired_at" IS NOT NULL;

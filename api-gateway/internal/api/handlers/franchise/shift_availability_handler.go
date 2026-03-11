@@ -5,7 +5,6 @@ import (
 	"api-gateway/internal/application/gateways/franchise"
 	"api-gateway/internal/domain/models/shift"
 	"api-gateway/pkg/utils/contextutils"
-	"api-gateway/pkg/utils/grpcutils"
 	"api-gateway/pkg/utils/stringutils"
 	"api-gateway/pkg/utils/validation"
 	"net/http"
@@ -44,7 +43,7 @@ func (h *ShiftAvailabilityHandler) GetMyHistory(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	params.UserID = stringutils.ToPtr(userID.String())
+	params.UserId = stringutils.ToPtr(userID.String())
 	res, err := h.shiftGW.GetAll(c.Request.Context(), &params)
 	if err != nil {
 		return err
@@ -72,11 +71,7 @@ func (h *ShiftAvailabilityHandler) Create(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	err = h.shiftGW.Create(ctx, userID, &req)
 	if err != nil {
 		return err
@@ -105,11 +100,7 @@ func (h *ShiftAvailabilityHandler) Update(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	userId, err := contextutils.GetUserId(c)
 	if err != nil {
 		return err
@@ -137,11 +128,7 @@ func (h *ShiftAvailabilityHandler) Delete(c *gin.Context) error {
 		return errorcode.ErrInvalidId
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	userId, err := contextutils.GetUserId(c)
 	if err != nil {
 		return err

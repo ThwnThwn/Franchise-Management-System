@@ -73,6 +73,15 @@ definitions:
     - RefundTicketStatus_REFUND_STATUS_FAILED
     - RefundTicketStatus_REFUND_STATUS_REJECTED
     - RefundTicketStatus_REFUND_STATUS_CANCELLED
+  api-gateway_internal_domain_constants_enum.SupplierPaymentMethod:
+    enum:
+    - 0
+    - 1
+    format: int32
+    type: integer
+    x-enum-varnames:
+    - PaymentMethodCash
+    - PaymentMethodVNPay
   api-gateway_internal_domain_constants_enum.TimeLogStatus:
     enum:
     - 0
@@ -182,6 +191,41 @@ definitions:
     - WalletTransactionPaymentMethod_PAYMENT_METHOD_CASH
     - WalletTransactionPaymentMethod_PAYMENT_METHOD_VNPAY
     - WalletTransactionPaymentMethod_PAYMENT_METHOD_WALLET
+  api-gateway_internal_domain_constants_enum.WithdrawalStatus:
+    enum:
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    format: int32
+    type: integer
+    x-enum-comments:
+      WithdrawalStatusApproved: Đã duyệt
+      WithdrawalStatusCancelled: Đã hủy
+      WithdrawalStatusCompleted: Thành công
+      WithdrawalStatusFailed: Thất bại
+      WithdrawalStatusPending: Chờ duyệt
+      WithdrawalStatusProcessing: Đang xử lý
+      WithdrawalStatusRejected: Từ chối
+    x-enum-descriptions:
+    - Chờ duyệt
+    - Đã duyệt
+    - Đang xử lý
+    - Thành công
+    - Thất bại
+    - Từ chối
+    - Đã hủy
+    x-enum-varnames:
+    - WithdrawalStatusPending
+    - WithdrawalStatusApproved
+    - WithdrawalStatusProcessing
+    - WithdrawalStatusCompleted
+    - WithdrawalStatusFailed
+    - WithdrawalStatusRejected
+    - WithdrawalStatusCancelled
   api-gateway_internal_domain_models_auth.ConfirmOtpRequest:
     properties:
       email:
@@ -284,11 +328,66 @@ definitions:
       name:
         type: string
     type: object
+  api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_order_PaymentHistoryItem:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/api-gateway_internal_domain_models_order.PaymentHistoryItem'
+        type: array
+      totalCount:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_order_PaymentSummary:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/api-gateway_internal_domain_models_order.PaymentSummary'
+        type: array
+      totalCount:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
   api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_point_LogResponse:
     properties:
       items:
         items:
           $ref: '#/definitions/api-gateway_internal_domain_models_point.LogResponse'
+        type: array
+      totalCount:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_supplier_PurchaseOrderSummary:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/api-gateway_internal_domain_models_supplier.PurchaseOrderSummary'
+        type: array
+      totalCount:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_supplier_SupplierPaymentSummary:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/api-gateway_internal_domain_models_supplier.SupplierPaymentSummary'
+        type: array
+      totalCount:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_supplier_SupplierSummary:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/api-gateway_internal_domain_models_supplier.SupplierSummary'
         type: array
       totalCount:
         type: integer
@@ -311,6 +410,17 @@ definitions:
       items:
         items:
           $ref: '#/definitions/api-gateway_internal_domain_models_wallet.WalletTransactionResponse'
+        type: array
+      totalCount:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_withdrawal_WithdrawalSummary:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/api-gateway_internal_domain_models_withdrawal.WithdrawalSummary'
         type: array
       totalCount:
         type: integer
@@ -480,9 +590,17 @@ definitions:
     type: object
   api-gateway_internal_domain_models_order.CreatePaymentRequest:
     properties:
+      appliedWalletAmount:
+        type: integer
       paymentMethod:
         $ref: '#/definitions/api-gateway_internal_domain_constants_enum.PaymentMethod'
+      point:
+        type: integer
       returnUrl:
+        type: string
+      voucherDiscountCode:
+        type: string
+      voucherShipCode:
         type: string
     type: object
   api-gateway_internal_domain_models_order.GetOrderVolumeReply:
@@ -537,6 +655,47 @@ definitions:
       storeId:
         type: string
       totalOrders:
+        type: integer
+    type: object
+  api-gateway_internal_domain_models_order.PaymentHistoryItem:
+    properties:
+      amount:
+        type: number
+      currency:
+        type: string
+      id:
+        type: string
+      orderCode:
+        type: string
+      orderId:
+        type: string
+      paymentDate:
+        type: string
+      paymentMethod:
+        $ref: '#/definitions/api-gateway_internal_domain_constants_enum.PaymentMethod'
+      status:
+        description: 0=Pending, 1=Paid, 2=Failed
+        type: integer
+    type: object
+  api-gateway_internal_domain_models_order.PaymentSummary:
+    properties:
+      amount:
+        type: number
+      code:
+        type: string
+      createdAt:
+        type: string
+      currency:
+        type: string
+      id:
+        type: string
+      method:
+        $ref: '#/definitions/api-gateway_internal_domain_constants_enum.PaymentMethod'
+      orderId:
+        type: string
+      paidAt:
+        type: string
+      status:
         type: integer
     type: object
   api-gateway_internal_domain_models_order.RevenueItem:
@@ -646,6 +805,23 @@ definitions:
       sku:
         type: string
     type: object
+  api-gateway_internal_domain_models_product.ProductVariantDetail:
+    properties:
+      attributes:
+        type: string
+      basePrice:
+        type: number
+      imageUrl:
+        type: string
+      productId:
+        type: string
+      productName:
+        type: string
+      sku:
+        type: string
+      variantId:
+        type: string
+    type: object
   api-gateway_internal_domain_models_product.UpdateProductRequest:
     properties:
       categoryId:
@@ -713,6 +889,27 @@ definitions:
       name:
         type: string
     type: object
+  api-gateway_internal_domain_models_shift.ApplyForShiftRequest:
+    properties:
+      note:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_shift.ApproveSwapRequest:
+    properties:
+      approve:
+        type: boolean
+      rejectReason:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_shift.AssignStaffResponse:
+    properties:
+      success:
+        type: boolean
+      warnings:
+        items:
+          $ref: '#/definitions/api-gateway_internal_domain_models_shift.ValidationWarningDto'
+        type: array
+    type: object
   api-gateway_internal_domain_models_shift.AttendancePayload:
     properties:
       latitude:
@@ -721,6 +918,16 @@ definitions:
         type: number
       note:
         type: string
+    type: object
+  api-gateway_internal_domain_models_shift.AutoFillShiftsRequest:
+    properties:
+      endDate:
+        type: string
+      startDate:
+        type: string
+    required:
+    - endDate
+    - startDate
     type: object
   api-gateway_internal_domain_models_shift.BulkCreateFromTemplateRequest:
     properties:
@@ -745,7 +952,6 @@ definitions:
       breakDurationMinutes:
         type: integer
       daysOfWeek:
-        description: '[1, 3, 5]'
         items:
           type: integer
         type: array
@@ -758,19 +964,12 @@ definitions:
       requiredStaffCount:
         type: integer
       startDate:
-        description: YYYY-MM-DD
         type: string
       startTime:
-        description: HH:mm
         type: string
       storeId:
         type: string
     required:
-    - daysOfWeek
-    - endDate
-    - endTime
-    - startDate
-    - startTime
     - storeId
     type: object
   api-gateway_internal_domain_models_shift.CandidateValidation:
@@ -817,12 +1016,10 @@ definitions:
       requiredStaffCount:
         type: integer
       shiftDate:
-        description: YYYY-MM-DD
         type: string
       shiftTemplateId:
         type: string
       startTime:
-        description: HH:mm
         type: string
       storeId:
         type: string
@@ -853,18 +1050,47 @@ definitions:
     - name
     - startTime
     type: object
+  api-gateway_internal_domain_models_shift.RequestSwapRequest:
+    properties:
+      reason:
+        type: string
+      targetUserId:
+        type: string
+    required:
+    - targetUserId
+    type: object
+  api-gateway_internal_domain_models_shift.RespondSwapRequest:
+    properties:
+      accept:
+        type: boolean
+      rejectReason:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_shift.ReviewApplicationRequest:
+    properties:
+      isApproved:
+        type: boolean
+      reviewNote:
+        type: string
+    type: object
   api-gateway_internal_domain_models_shift.SaveShiftRuleRequest:
     properties:
       allowShiftSwap:
         type: boolean
       allowShuttle:
         type: boolean
+      dailyOtThresholdHours:
+        type: integer
+      gracePeriodMinutes:
+        type: integer
       maxHoursPerWeek:
         type: integer
       minHoursBetweenShifts:
         type: integer
       storeId:
         type: string
+      weeklyOtThresholdHours:
+        type: integer
     type: object
   api-gateway_internal_domain_models_shift.ShiftAssignment:
     properties:
@@ -883,7 +1109,6 @@ definitions:
       shiftId:
         type: string
       status:
-        description: ShiftAssignmentStatus enum
         type: integer
       userId:
         type: string
@@ -899,6 +1124,7 @@ definitions:
       breakDurationMinutes:
         type: integer
       endTime:
+        description: HH:mm
         type: string
       id:
         type: string
@@ -912,10 +1138,10 @@ definitions:
       shiftTemplateId:
         type: string
       startTime:
-        description: HH:mm:ss
+        description: HH:mm
         type: string
       status:
-        description: ShiftStatus enum
+        description: 0:Draft, 1:Published, 2:Completed, 3:Cancelled
         type: integer
       storeId:
         type: string
@@ -926,6 +1152,10 @@ definitions:
         type: boolean
       allowShuttle:
         type: boolean
+      dailyOtThresholdHours:
+        type: integer
+      gracePeriodMinutes:
+        type: integer
       id:
         type: string
       maxHoursPerWeek:
@@ -936,6 +1166,8 @@ definitions:
         type: string
       updatedAt:
         type: string
+      weeklyOtThresholdHours:
+        type: integer
     type: object
   api-gateway_internal_domain_models_shift.ShiftRuleSettingsResponse:
     properties:
@@ -1020,6 +1252,7 @@ definitions:
       shiftDate:
         type: string
       shiftTemplateId:
+        description: StoreId              *string `json:"storeId,omitempty"`
         type: string
       startTime:
         type: string
@@ -1049,6 +1282,317 @@ definitions:
         $ref: '#/definitions/api-gateway_internal_domain_constants_enum.TimeLogStatus'
     required:
     - status
+    type: object
+  api-gateway_internal_domain_models_shift.ValidationWarningDto:
+    properties:
+      code:
+        type: string
+      message:
+        type: string
+      severity:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_supplier.CancelPurchaseOrderReq:
+    properties:
+      reason:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_supplier.CreatePurchaseOrderItemReq:
+    properties:
+      ingredientId:
+        type: string
+      quantity:
+        type: number
+    required:
+    - ingredientId
+    - quantity
+    type: object
+  api-gateway_internal_domain_models_supplier.CreatePurchaseOrderReq:
+    properties:
+      discountAmount:
+        type: number
+      expectedDeliveryDate:
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/api-gateway_internal_domain_models_supplier.CreatePurchaseOrderItemReq'
+        type: array
+      notes:
+        type: string
+      referenceCode:
+        type: string
+      storeId:
+        type: string
+      supplierId:
+        type: string
+    required:
+    - items
+    - supplierId
+    type: object
+  api-gateway_internal_domain_models_supplier.CreateSupplierPaymentReq:
+    properties:
+      method:
+        $ref: '#/definitions/api-gateway_internal_domain_constants_enum.SupplierPaymentMethod'
+      purchaseOrderId:
+        type: string
+      returnUrl:
+        type: string
+    required:
+    - purchaseOrderId
+    type: object
+  api-gateway_internal_domain_models_supplier.CreateSupplierPaymentRes:
+    properties:
+      code:
+        type: string
+      paymentId:
+        type: string
+      url:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_supplier.CreateSupplierReq:
+    properties:
+      address:
+        type: string
+      code:
+        type: string
+      contactPerson:
+        type: string
+      email:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+      taxCode:
+        type: string
+    required:
+    - code
+    - name
+    type: object
+  api-gateway_internal_domain_models_supplier.GetLatestPricesReq:
+    properties:
+      ingredientIds:
+        items:
+          type: string
+        type: array
+    required:
+    - ingredientIds
+    type: object
+  api-gateway_internal_domain_models_supplier.PurchaseOrderBaseRes:
+    properties:
+      code:
+        type: string
+      id:
+        type: string
+      message:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_supplier.PurchaseOrderDetail:
+    properties:
+      code:
+        type: string
+      completedAt:
+        type: string
+      createdAt:
+        type: string
+      discountAmount:
+        type: number
+      id:
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/api-gateway_internal_domain_models_supplier.PurchaseOrderItemDetail'
+        type: array
+      netAmount:
+        type: number
+      notes:
+        type: string
+      orderDate:
+        type: string
+      paidAmount:
+        type: number
+      paymentStatus:
+        type: integer
+      status:
+        type: integer
+      storeId:
+        type: string
+      supplierId:
+        type: string
+      supplierName:
+        type: string
+      totalAmount:
+        type: number
+      updatedAt:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_supplier.PurchaseOrderItemDetail:
+    properties:
+      id:
+        type: string
+      ingredientId:
+        type: string
+      quantity:
+        type: number
+      totalPrice:
+        type: number
+      unitPrice:
+        type: number
+    type: object
+  api-gateway_internal_domain_models_supplier.PurchaseOrderSummary:
+    properties:
+      code:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: string
+      netAmount:
+        type: number
+      orderDate:
+        type: string
+      paymentStatus:
+        type: integer
+      status:
+        type: integer
+      supplierName:
+        type: string
+      totalAmount:
+        type: number
+    type: object
+  api-gateway_internal_domain_models_supplier.SupplierBaseRes:
+    properties:
+      code:
+        type: string
+      id:
+        type: string
+      message:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_supplier.SupplierDetail:
+    properties:
+      address:
+        type: string
+      code:
+        type: string
+      contactPerson:
+        type: string
+      createdAt:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      isActive:
+        type: boolean
+      name:
+        type: string
+      phone:
+        type: string
+      taxCode:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_supplier.SupplierPaymentDetail:
+    properties:
+      amount:
+        type: number
+      code:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: string
+      method:
+        type: integer
+      notes:
+        type: string
+      paidAt:
+        type: string
+      purchaseOrderId:
+        type: string
+      status:
+        type: integer
+    type: object
+  api-gateway_internal_domain_models_supplier.SupplierPaymentSummary:
+    properties:
+      amount:
+        type: number
+      code:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: string
+      method:
+        type: integer
+      paidAt:
+        type: string
+      purchaseOrderCode:
+        type: string
+      purchaseOrderId:
+        type: string
+      status:
+        type: integer
+    type: object
+  api-gateway_internal_domain_models_supplier.SupplierSummary:
+    properties:
+      code:
+        type: string
+      contactPerson:
+        type: string
+      id:
+        type: string
+      isActive:
+        type: boolean
+      name:
+        type: string
+      phone:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_supplier.UpdatePurchaseOrderReq:
+    properties:
+      discountAmount:
+        type: number
+      expectedDeliveryDate:
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/api-gateway_internal_domain_models_supplier.CreatePurchaseOrderItemReq'
+        type: array
+      notes:
+        type: string
+      referenceCode:
+        type: string
+      storeId:
+        type: string
+      supplierId:
+        type: string
+    required:
+    - items
+    - supplierId
+    type: object
+  api-gateway_internal_domain_models_supplier.UpdateSupplierReq:
+    properties:
+      address:
+        type: string
+      code:
+        type: string
+      contactPerson:
+        type: string
+      email:
+        type: string
+      isActive:
+        type: boolean
+      name:
+        type: string
+      phone:
+        type: string
+      taxCode:
+        type: string
+    required:
+    - code
     type: object
   api-gateway_internal_domain_models_user.ChangePasswordRequest:
     properties:
@@ -1152,10 +1696,10 @@ definitions:
     properties:
       quantity:
         type: integer
+      sku:
+        type: string
       type:
         $ref: '#/definitions/api-gateway_internal_domain_constants_enum.VoucherItemType'
-      variant_id:
-        type: string
     type: object
   api-gateway_internal_domain_models_voucher.CreateVoucherRequest:
     properties:
@@ -1188,10 +1732,10 @@ definitions:
         type: string
       quantity:
         type: integer
+      sku:
+        type: string
       type:
         $ref: '#/definitions/api-gateway_internal_domain_constants_enum.VoucherItemType'
-      variant_id:
-        type: string
     type: object
   api-gateway_internal_domain_models_voucher.UpdateVoucherRequest:
     properties:
@@ -1223,10 +1767,10 @@ definitions:
         type: string
       quantity:
         type: integer
+      sku:
+        type: string
       type:
         type: integer
-      variant_id:
-        type: string
     type: object
   api-gateway_internal_domain_models_voucher.VoucherResponse:
     properties:
@@ -1355,9 +1899,9 @@ definitions:
     type: object
   api-gateway_internal_domain_models_wallet.UpdateWalletStatusRequest:
     properties:
-      admin_notes:
+      adminNotes:
         type: string
-      new_status:
+      newStatus:
         $ref: '#/definitions/api-gateway_internal_domain_constants_enum.WalletStatus'
       reason:
         type: string
@@ -1430,6 +1974,135 @@ definitions:
       userId:
         type: string
       walletId:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_withdrawal.ApproveWithdrawalReq:
+    properties:
+      approvalNotes:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_withdrawal.CancelMyWithdrawalReq:
+    properties:
+      cancellationReason:
+        type: string
+    required:
+    - cancellationReason
+    type: object
+  api-gateway_internal_domain_models_withdrawal.CancelWithdrawalReq:
+    properties:
+      cancellationReason:
+        type: string
+    required:
+    - cancellationReason
+    type: object
+  api-gateway_internal_domain_models_withdrawal.CreateWithdrawalReq:
+    properties:
+      accountName:
+        type: string
+      accountNumber:
+        type: string
+      amount:
+        type: string
+      bankCode:
+        type: string
+      bankName:
+        type: string
+      notes:
+        type: string
+    required:
+    - accountName
+    - accountNumber
+    - amount
+    - bankName
+    type: object
+  api-gateway_internal_domain_models_withdrawal.RejectWithdrawalReq:
+    properties:
+      rejectionReason:
+        type: string
+    required:
+    - rejectionReason
+    type: object
+  api-gateway_internal_domain_models_withdrawal.WithdrawalBaseRes:
+    properties:
+      id:
+        type: string
+      message:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_withdrawal.WithdrawalDetailRes:
+    properties:
+      accountName:
+        type: string
+      amount:
+        type: string
+      approvalNotes:
+        type: string
+      bankCode:
+        type: string
+      bankName:
+        type: string
+      bankTransactionId:
+        type: string
+      cancellationReason:
+        type: string
+      completedAt:
+        type: string
+      createdAt:
+        type: string
+      feeAmount:
+        type: string
+      id:
+        type: string
+      internalNotes:
+        type: string
+      maskedAccountNumber:
+        type: string
+      notes:
+        type: string
+      processedById:
+        type: string
+      processedByName:
+        type: string
+      rawAccountNumber:
+        type: string
+      receiptImageUrl:
+        type: string
+      rejectionReason:
+        type: string
+      requestCode:
+        type: string
+      status:
+        $ref: '#/definitions/api-gateway_internal_domain_constants_enum.WithdrawalStatus'
+      transactionId:
+        type: string
+      updatedAt:
+        type: string
+      userId:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_withdrawal.WithdrawalSummary:
+    properties:
+      accountName:
+        type: string
+      amount:
+        type: string
+      bankCode:
+        type: string
+      bankName:
+        type: string
+      createdAt:
+        type: string
+      feeAmount:
+        type: string
+      id:
+        type: string
+      maskedAccountNumber:
+        type: string
+      requestCode:
+        type: string
+      status:
+        $ref: '#/definitions/api-gateway_internal_domain_constants_enum.WithdrawalStatus'
+      userId:
         type: string
     type: object
   gin.H:
@@ -2399,6 +3072,40 @@ paths:
       summary: Get My Order History
       tags:
       - Orders
+  /me/orders/payments:
+    get:
+      description: Khách hàng tự xem lại lịch sử các đợt thanh toán đơn hàng của chính
+        mình.
+      parameters:
+      - in: query
+        name: endDate
+        type: string
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      - description: ISO-8601
+        in: query
+        name: startDate
+        type: string
+      - description: 0=Pending, 1=Paid, 2=Failed; omit for all
+        in: query
+        name: status
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_order_PaymentHistoryItem'
+      security:
+      - BearerAuth: []
+      summary: Lịch sử thanh toán của tôi (Customer)
+      tags:
+      - Orders
   /me/points/logs:
     get:
       consumes:
@@ -2564,6 +3271,17 @@ paths:
       summary: Lấy lịch sử đăng ký rảnh/bận của tôi
       tags:
       - 'Shifts: Availabilities'
+  /me/shift-swaps:
+    get:
+      description: Lấy toàn bộ các yêu cầu đổi ca mà tôi là người gửi hoặc người nhận.
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Lấy danh sách yêu cầu đổi ca của tôi
+      tags:
+      - 'Shifts: Swaps'
   /me/shifts:
     get:
       description: Retrieve shift schedule within a date range for the logged-in staff.
@@ -2699,7 +3417,24 @@ paths:
       summary: Lấy lịch sử chấm công cá nhân
       tags:
       - 'Shifts: Staff'
-  /me/vouchers/redeem/{id}:
+  /me/vouchers:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all vouchers available in my account.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of vouchers
+          schema:
+            items:
+              $ref: '#/definitions/api-gateway_internal_domain_models_voucher.VoucherResponse'
+            type: array
+      summary: Get My Vouchers
+      tags:
+      - Vouchers
+  /me/vouchers/{id}/redeem:
     post:
       consumes:
       - application/json
@@ -2843,6 +3578,130 @@ paths:
       summary: Xem lịch sử giao dịch ví của tôi
       tags:
       - Wallet Transactions
+  /me/withdrawals:
+    get:
+      description: Lấy lịch sử rút tiền của chính người dùng đang đăng nhập (có phân
+        trang).
+      parameters:
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      - enum:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        - 7
+        format: int32
+        in: query
+        name: status
+        type: integer
+        x-enum-comments:
+          WithdrawalStatusApproved: Đã duyệt
+          WithdrawalStatusCancelled: Đã hủy
+          WithdrawalStatusCompleted: Thành công
+          WithdrawalStatusFailed: Thất bại
+          WithdrawalStatusPending: Chờ duyệt
+          WithdrawalStatusProcessing: Đang xử lý
+          WithdrawalStatusRejected: Từ chối
+        x-enum-descriptions:
+        - Chờ duyệt
+        - Đã duyệt
+        - Đang xử lý
+        - Thành công
+        - Thất bại
+        - Từ chối
+        - Đã hủy
+        x-enum-varnames:
+        - WithdrawalStatusPending
+        - WithdrawalStatusApproved
+        - WithdrawalStatusProcessing
+        - WithdrawalStatusCompleted
+        - WithdrawalStatusFailed
+        - WithdrawalStatusRejected
+        - WithdrawalStatusCancelled
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Danh sách yêu cầu
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_withdrawal_WithdrawalSummary'
+      security:
+      - BearerAuth: []
+      summary: Xem danh sách yêu cầu rút tiền của tôi
+      tags:
+      - Withdrawals
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Khách hàng tạo yêu cầu rút tiền từ ví vào tài khoản ngân hàng. Tiền sẽ bị tạm trừ ngay lập tức.
+        Dùng api https://api.vietqr.io/v2/banks để lấy bank code và name cho khách chọn
+        Vẫn cho 1 ô nhập tên ngân hàng nếu api lỗi hoặc khách ko thấy trong danh sách
+        Trường hợp khách nhập tên ngân hàng thủ công thì ko cần code
+      parameters:
+      - description: Thông tin yêu cầu rút tiền
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_withdrawal.CreateWithdrawalReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Tạo thành công
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_withdrawal.WithdrawalBaseRes'
+        "400":
+          description: Dữ liệu không hợp lệ
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Tạo yêu cầu rút tiền mới
+      tags:
+      - Withdrawals
+  /me/withdrawals/{id}/cancel:
+    patch:
+      consumes:
+      - application/json
+      description: Người dùng tự hủy lệnh khi chưa được Admin xử lý (Trạng thái PENDING).
+        Tiền hoàn về ví.
+      parameters:
+      - description: UUID của yêu cầu rút tiền
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Lý do hủy
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_withdrawal.CancelMyWithdrawalReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Hủy thành công
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Khách hàng tự hủy yêu cầu rút tiền
+      tags:
+      - Withdrawals
   /membership-tiers:
     get:
       consumes:
@@ -3180,6 +4039,29 @@ paths:
       summary: Update Order Status
       tags:
       - Orders
+  /orders/payments:
+    get:
+      description: Lấy danh sách lịch sử thanh toán của toàn hệ thống (Dành cho quản
+        trị viên/kế toán).
+      parameters:
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_order_PaymentSummary'
+      security:
+      - BearerAuth: []
+      summary: Danh sách toàn bộ thanh toán (Admin)
+      tags:
+      - Orders
   /orders/reports/revenue:
     get:
       consumes:
@@ -3308,6 +4190,62 @@ paths:
       summary: Lấy biểu đồ xu hướng doanh thu
       tags:
       - Orders
+  /orders/reports/sales-trend/export:
+    get:
+      description: |-
+        Tải xuống dữ liệu xu hướng doanh thu (doanh thu, lượng đơn hàng) dưới dạng file CSV.
+        Hỗ trợ các tham số lọc và phân quyền storeId tương tự như API lấy JSON.
+      parameters:
+      - default: 1
+        description: Mức độ gom nhóm dữ liệu. 0 = Hour, 1 = Day, 2 = Week.
+        enum:
+        - 0
+        - 1
+        - 2
+        example: 1
+        in: query
+        name: aggregation
+        type: integer
+      - description: ID Danh mục sản phẩm (Tùy chọn)
+        example: cat-001
+        in: query
+        name: categoryId
+        type: string
+      - description: Thời gian bắt đầu. Bắt buộc nhập.
+        example: "2024-03-01T00:00:00Z"
+        in: query
+        name: fromDate
+        required: true
+        type: string
+      - description: ID Cửa hàng (Tùy chọn)
+        example: 123e4567-e89b-12d3-a456-426614174000
+        in: query
+        name: storeId
+        type: string
+      - description: Thời gian kết thúc. Bắt buộc nhập.
+        example: "2024-03-05T23:59:59Z"
+        in: query
+        name: toDate
+        required: true
+        type: string
+      produces:
+      - text/csv
+      responses:
+        "200":
+          description: Tệp CSV chứa dữ liệu xu hướng doanh thu
+          schema:
+            type: file
+        "400":
+          description: Lỗi dữ liệu đầu vào
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Xuất file CSV xu hướng doanh thu
+      tags:
+      - Orders
   /orders/reports/volume:
     get:
       consumes:
@@ -3408,11 +4346,6 @@ paths:
       summary: Export Order Volume (CSV)
       tags:
       - Orders
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
->>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
   /orders/vnpay/return:
     get:
       consumes:
@@ -3452,10 +4385,6 @@ paths:
       summary: Handle VNPay Return URL
       tags:
       - Payments
-<<<<<<< HEAD
->>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
-=======
->>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
   /permissions:
     get:
       consumes:
@@ -3733,6 +4662,36 @@ paths:
       security:
       - BearerAuth: []
       summary: Upload Product Image
+      tags:
+      - Products
+  /products/variants:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of product variants with simple info
+      parameters:
+      - collectionFormat: csv
+        in: query
+        items:
+          type: string
+        name: skus
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of products
+          schema:
+            items:
+              $ref: '#/definitions/api-gateway_internal_domain_models_product.ProductVariantDetail'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get products by skus
       tags:
       - Products
   /recipes:
@@ -4132,6 +5091,30 @@ paths:
       summary: Assign Permissions to Role
       tags:
       - Roles
+  /shift-applications/{id}/review:
+    patch:
+      consumes:
+      - application/json
+      description: Manager cập nhật trạng thái đơn (Approved/Rejected). ID đơn lấy
+        từ Path.
+      parameters:
+      - description: Application ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Kết quả duyệt đơn
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_shift.ReviewApplicationRequest'
+      produces:
+      - application/json
+      responses: {}
+      summary: Duyệt hoặc từ chối đơn đăng ký nhận ca
+      tags:
+      - 'Shifts: Applications'
   /shift-availabilities:
     get:
       description: Quản lý xem toàn bộ danh sách lịch rảnh/bận của nhân viên để sắp
@@ -4258,6 +5241,92 @@ paths:
       summary: Lưu cấu hình quy định ca làm
       tags:
       - 'Shifts: Rule'
+  /shift-swaps:
+    get:
+      description: Lấy toàn bộ các yêu cầu đổi ca.
+      parameters:
+      - in: query
+        name: status
+        type: integer
+      - in: query
+        name: storeId
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Lấy danh sách yêu cầu đổi ca
+      tags:
+      - 'Shifts: Swaps'
+  /shift-swaps/{id}/approvals:
+    patch:
+      consumes:
+      - application/json
+      description: Sau khi 2 nhân viên đồng ý, Manager cần duyệt cuối để chính thức
+        đổi ca.
+      parameters:
+      - description: Swap Request ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Kết quả duyệt của Manager
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_shift.ApproveSwapRequest'
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Manager duyệt yêu cầu đổi ca cuối cùng
+      tags:
+      - 'Shifts: Swaps'
+  /shift-swaps/{id}/cancel:
+    patch:
+      description: Nhân viên gửi yêu cầu có thể tự hủy nếu yêu cầu chưa được phê duyệt.
+      parameters:
+      - description: Swap Request ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Tự hủy yêu cầu đổi ca đã gửi
+      tags:
+      - 'Shifts: Swaps'
+  /shift-swaps/{id}/responses:
+    patch:
+      consumes:
+      - application/json
+      description: Nhân viên B nhận được yêu cầu và chọn Chấp nhận hoặc Từ chối.
+      parameters:
+      - description: Swap Request ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Phản hồi của nhân viên nhận yêu cầu
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_shift.RespondSwapRequest'
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Nhân viên phản hồi yêu cầu đổi ca (B phản hồi cho A)
+      tags:
+      - 'Shifts: Swaps'
   /shift-templates:
     get:
       description: Truy xuất toàn bộ danh sách các mẫu ca làm (Sáng, Chiều, Tối...)
@@ -4360,23 +5429,19 @@ paths:
       description: Truy xuất danh sách ca làm việc kèm bộ lọc (Dùng cho Calendar/List
         view).
       parameters:
-      - description: ID cửa hàng
-        in: query
-        name: storeId
-        required: true
-        type: string
-      - description: Từ ngày (YYYY-MM-DD)
-        in: query
+      - in: query
         name: fromDate
         type: string
-      - description: Đến ngày (YYYY-MM-DD)
-        in: query
-        name: toDate
-        type: string
-      - description: Trạng thái ca
+      - description: ShiftStatus enum
         in: query
         name: status
         type: integer
+      - in: query
+        name: storeId
+        type: string
+      - in: query
+        name: toDate
+        type: string
       responses:
         "200":
           description: OK
@@ -4457,6 +5522,45 @@ paths:
       summary: Cập nhật ca làm việc
       tags:
       - Shifts
+  /shifts/{id}/applications:
+    get:
+      description: Manager xem danh sách ứng viên kèm điểm Smart Score để đưa ra quyết
+        định duyệt.
+      parameters:
+      - description: Shift ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: Lấy danh sách các đơn đăng ký của một ca làm việc
+      tags:
+      - 'Shifts: Applications'
+    post:
+      consumes:
+      - application/json
+      description: Tạo một bản ghi ShiftApplication cho ca làm việc cụ thể. UserId
+        lấy từ Token.
+      parameters:
+      - description: Shift ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Ghi chú đăng ký
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_shift.ApplyForShiftRequest'
+      produces:
+      - application/json
+      responses: {}
+      summary: Nhân viên đăng ký nhận ca (Tạo mới một đơn đăng ký)
+      tags:
+      - 'Shifts: Applications'
   /shifts/{id}/publish:
     put:
       description: Chuyển trạng thái sang Published để nhân viên thấy được lịch.
@@ -4470,6 +5574,48 @@ paths:
       summary: Xuất bản ca làm
       tags:
       - Shifts
+  /shifts/{id}/releases:
+    patch:
+      description: Nhân viên trả lại ca làm đã nhận để người khác có thể đăng ký.
+      parameters:
+      - description: Assignment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Nhả ca về Chợ Ca (Shift Pool)
+      tags:
+      - 'Shifts: Swaps'
+  /shifts/{id}/swaps:
+    post:
+      consumes:
+      - application/json
+      description: Nhân viên A chọn một ca của mình và yêu cầu đổi với nhân viên B.
+      parameters:
+      - description: Assignment ID (Ca của người gửi)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Dữ liệu yêu cầu đổi ca
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_shift.RequestSwapRequest'
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Tạo yêu cầu đổi ca (A gửi cho B)
+      tags:
+      - 'Shifts: Swaps'
   /shifts/{shiftId}/assign:
     put:
       description: Thay đổi danh sách nhân viên được gán vào ca làm việc.
@@ -4487,8 +5633,29 @@ paths:
           items:
             type: string
           type: array
-      responses: {}
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_shift.AssignStaffResponse'
       summary: Cập nhật phân công nhân sự
+      tags:
+      - 'Shifts: Assignment'
+  /shifts/auto-fill:
+    put:
+      description: Hệ thống tự động tính toán và gán nhân viên phù hợp vào các ca
+        làm việc còn trống (Draft) dựa trên lịch rảnh và quy tắc ca làm.
+      parameters:
+      - description: Khoảng thời gian cần xếp ca tự động
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_shift.AutoFillShiftsRequest'
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Tự động xếp người vào ca làm việc
       tags:
       - 'Shifts: Assignment'
   /shifts/bulk-delete:
@@ -4525,6 +5692,25 @@ paths:
       security:
       - BearerAuth: []
       summary: Tạo ca làm việc thủ công hàng loạt
+      tags:
+      - 'Shifts: Bulk action'
+  /shifts/bulk-open:
+    put:
+      description: Chuyển trạng thái hàng loạt ca làm việc từ Draft sang Open để nhân
+        viên có thể đăng ký nhận. StoreId được lấy tự động từ Token của Manager.
+      parameters:
+      - description: Danh sách ID các ca làm cần mở
+        in: body
+        name: body
+        required: true
+        schema:
+          items:
+            type: string
+          type: array
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Mở hàng loạt ca ra Chợ Ca (Shift Pool)
       tags:
       - 'Shifts: Bulk action'
   /shifts/bulk-publish:
@@ -4945,6 +6131,416 @@ paths:
       summary: Get All Global Stock
       tags:
       - Store Stock
+  /suppliers:
+    get:
+      parameters:
+      - description: GET dùng form tag cho Query String
+        in: query
+        name: code
+        type: string
+      - in: query
+        name: isActive
+        type: boolean
+      - in: query
+        name: name
+        type: string
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_supplier_SupplierSummary'
+      security:
+      - BearerAuth: []
+      summary: Danh sách nhà cung cấp
+      tags:
+      - Suppliers
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Thông tin nhà cung cấp
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_supplier.CreateSupplierReq'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_supplier.SupplierBaseRes'
+      security:
+      - BearerAuth: []
+      summary: Tạo mới nhà cung cấp
+      tags:
+      - Suppliers
+  /suppliers/{id}:
+    delete:
+      parameters:
+      - description: UUID nhà cung cấp
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_supplier.SupplierBaseRes'
+      security:
+      - BearerAuth: []
+      summary: Xóa nhà cung cấp
+      tags:
+      - Suppliers
+    get:
+      parameters:
+      - description: UUID nhà cung cấp
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_supplier.SupplierDetail'
+      security:
+      - BearerAuth: []
+      summary: Chi tiết nhà cung cấp
+      tags:
+      - Suppliers
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: UUID nhà cung cấp
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Thông tin cập nhật
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_supplier.UpdateSupplierReq'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_supplier.SupplierBaseRes'
+      security:
+      - BearerAuth: []
+      summary: Cập nhật nhà cung cấp
+      tags:
+      - Suppliers
+  /suppliers/payments:
+    get:
+      description: Dành cho Admin/Kế toán theo dõi toàn bộ dòng tiền nhập hàng.
+      parameters:
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      - in: query
+        name: purchaseOrderId
+        type: string
+      - in: query
+        name: supplierId
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_supplier_SupplierPaymentSummary'
+      security:
+      - BearerAuth: []
+      summary: Toàn bộ lịch sử thanh toán nhà cung cấp
+      tags:
+      - Suppliers / Payments
+    post:
+      consumes:
+      - application/json
+      description: Khởi tạo thanh toán bằng Tiền mặt (CASH) hoặc lấy URL VNPay để
+        thanh toán.
+      parameters:
+      - description: Thông tin thanh toán
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_supplier.CreateSupplierPaymentReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_supplier.CreateSupplierPaymentRes'
+      security:
+      - BearerAuth: []
+      summary: Tạo thanh toán cho đơn nhập hàng
+      tags:
+      - Suppliers / Payments
+  /suppliers/payments/vnpay/return:
+    get:
+      description: Endpoint nhận redirect từ VNPay. Verify chữ ký qua gRPC và bẻ lái
+        trình duyệt về giao diện Frontend.
+      parameters:
+      - description: Số tiền giao dịch
+        in: query
+        name: vnp_Amount
+        type: string
+      - description: Mã ngân hàng
+        in: query
+        name: vnp_BankCode
+        type: string
+      - description: Thông tin đơn hàng
+        in: query
+        name: vnp_OrderInfo
+        type: string
+      - description: Mã phản hồi VNPAY
+        in: query
+        name: vnp_ResponseCode
+        type: string
+      - description: Mã tham chiếu (Mã Payment)
+        in: query
+        name: vnp_TxnRef
+        type: string
+      - description: Chữ ký bảo mật
+        in: query
+        name: vnp_SecureHash
+        type: string
+      - description: 'Path của FE muốn quay về (VD: /suppliers/purchase-orders/123)'
+        in: query
+        name: redirectTo
+        type: string
+      produces:
+      - text/html
+      responses:
+        "302":
+          description: Redirect về Frontend App
+      summary: Xử lý VNPay Return cho đơn nhập hàng (Supplier)
+      tags:
+      - Suppliers / Payments
+  /suppliers/purchase-orders:
+    get:
+      description: Lấy danh sách đơn nhập hàng có phân trang và lọc theo Supplier,
+        Store hoặc Status.
+      parameters:
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      - in: query
+        name: status
+        type: integer
+      - in: query
+        name: storeId
+        type: string
+      - in: query
+        name: supplierId
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_supplier_PurchaseOrderSummary'
+      security:
+      - BearerAuth: []
+      summary: Danh sách đơn nhập hàng
+      tags:
+      - Suppliers / PurchaseOrders
+    post:
+      consumes:
+      - application/json
+      description: Tạo một bản ghi đơn nhập hàng mới ở trạng thái PENDING.
+      parameters:
+      - description: Thông tin đơn nhập hàng
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_supplier.CreatePurchaseOrderReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_supplier.PurchaseOrderBaseRes'
+      security:
+      - BearerAuth: []
+      summary: Tạo đơn nhập hàng mới
+      tags:
+      - Suppliers / PurchaseOrders
+  /suppliers/purchase-orders/{id}:
+    get:
+      description: Lấy thông tin chi tiết của một đơn nhập hàng kèm danh sách nguyên
+        liệu bên trong.
+      parameters:
+      - description: UUID của đơn nhập hàng
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_supplier.PurchaseOrderDetail'
+      security:
+      - BearerAuth: []
+      summary: Chi tiết đơn nhập hàng
+      tags:
+      - Suppliers / PurchaseOrders
+    patch:
+      consumes:
+      - application/json
+      description: Chỉnh sửa thông tin đơn nhập hàng (chỉ thực hiện được khi đơn ở
+        trạng thái cho phép).
+      parameters:
+      - description: UUID của đơn nhập hàng
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Thông tin cập nhật
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_supplier.UpdatePurchaseOrderReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_supplier.PurchaseOrderBaseRes'
+      security:
+      - BearerAuth: []
+      summary: Cập nhật đơn nhập hàng
+      tags:
+      - Suppliers / PurchaseOrders
+  /suppliers/purchase-orders/{id}/cancel:
+    patch:
+      consumes:
+      - application/json
+      description: Hủy bỏ đơn nhập hàng và ghi rõ lý do hủy.
+      parameters:
+      - description: UUID của đơn nhập hàng
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Lý do hủy
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_supplier.CancelPurchaseOrderReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_supplier.PurchaseOrderBaseRes'
+      security:
+      - BearerAuth: []
+      summary: Hủy đơn nhập hàng
+      tags:
+      - Suppliers / PurchaseOrders
+  /suppliers/purchase-orders/{id}/complete:
+    patch:
+      description: Xác nhận đã nhận đủ hàng và chốt đơn nhập hàng (thường dùng để
+        tăng tồn kho).
+      parameters:
+      - description: UUID của đơn nhập hàng
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_supplier.PurchaseOrderBaseRes'
+      security:
+      - BearerAuth: []
+      summary: Hoàn tất nhập hàng
+      tags:
+      - Suppliers / PurchaseOrders
+  /suppliers/purchase-orders/{id}/payments:
+    get:
+      description: Lấy lịch sử các đợt trả tiền của một đơn nhập hàng cụ thể.
+      parameters:
+      - description: UUID của đơn nhập hàng (Purchase Order)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/api-gateway_internal_domain_models_supplier.SupplierPaymentDetail'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: Danh sách thanh toán của một PO
+      tags:
+      - Suppliers / Payments
+  /suppliers/purchase-orders/latest-prices:
+    post:
+      consumes:
+      - application/json
+      description: Tra cứu giá của danh sách ID nguyên liệu dựa trên các hóa đơn nhập
+        gần nhất.
+      parameters:
+      - description: Danh sách ID nguyên liệu
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_supplier.GetLatestPricesReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              format: float64
+              type: number
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Giá nhập mới nhất của nguyên liệu
+      tags:
+      - Suppliers / PurchaseOrders
   /users:
     get:
       consumes:
@@ -4960,6 +6556,12 @@ paths:
       - in: query
         name: homeStoreId
         type: string
+      - collectionFormat: csv
+        in: query
+        items:
+          type: string
+        name: ids
+        type: array
       - in: query
         name: keyword
         type: string
@@ -5317,6 +6919,14 @@ paths:
       summary: Update Variant Recipe
       tags:
       - Recipes
+  /vnpay/ipn:
+    get:
+      description: Nhận callback từ VNPay, phân loại đơn hàng và điều phối đến đúng
+        Service qua gRPC.
+      responses: {}
+      summary: VNPay IPN Dispatcher
+      tags:
+      - Payments
   /vouchers:
     get:
       consumes:
@@ -5695,6 +7305,220 @@ paths:
       summary: Xử lý Callback VNPay Return (Nạp tiền ví)
       tags:
       - Wallets
+  /withdrawals:
+    get:
+      description: Dành cho quản trị viên xem và lọc danh sách rút tiền của toàn bộ
+        người dùng.
+      parameters:
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      - enum:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        - 7
+        format: int32
+        in: query
+        name: status
+        type: integer
+        x-enum-comments:
+          WithdrawalStatusApproved: Đã duyệt
+          WithdrawalStatusCancelled: Đã hủy
+          WithdrawalStatusCompleted: Thành công
+          WithdrawalStatusFailed: Thất bại
+          WithdrawalStatusPending: Chờ duyệt
+          WithdrawalStatusProcessing: Đang xử lý
+          WithdrawalStatusRejected: Từ chối
+        x-enum-descriptions:
+        - Chờ duyệt
+        - Đã duyệt
+        - Đang xử lý
+        - Thành công
+        - Thất bại
+        - Từ chối
+        - Đã hủy
+        x-enum-varnames:
+        - WithdrawalStatusPending
+        - WithdrawalStatusApproved
+        - WithdrawalStatusProcessing
+        - WithdrawalStatusCompleted
+        - WithdrawalStatusFailed
+        - WithdrawalStatusRejected
+        - WithdrawalStatusCancelled
+      - in: query
+        name: userId
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Danh sách yêu cầu
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_common.PaginationResult-api-gateway_internal_domain_models_withdrawal_WithdrawalSummary'
+      security:
+      - BearerAuth: []
+      summary: Xem toàn bộ danh sách yêu cầu rút tiền (Admin)
+      tags:
+      - Withdrawals
+  /withdrawals/{id}:
+    get:
+      description: Lấy đầy đủ thông tin một yêu cầu rút tiền bao gồm số tài khoản
+        đầy đủ (Raw) và lịch sử xử lý.
+      parameters:
+      - description: UUID của yêu cầu rút tiền
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_withdrawal.WithdrawalDetailRes'
+        "404":
+          description: Không tìm thấy
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Xem chi tiết yêu cầu rút tiền
+      tags:
+      - Withdrawals
+  /withdrawals/{id}/approve:
+    patch:
+      consumes:
+      - application/json
+      description: (Admin) Xác nhận yêu cầu hợp lệ và chuẩn bị chuyển tiền. Trạng
+        thái chuyển sang APPROVED.
+      parameters:
+      - description: UUID của yêu cầu rút tiền
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Ghi chú duyệt
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_withdrawal.ApproveWithdrawalReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Thành công
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Duyệt yêu cầu rút tiền
+      tags:
+      - Withdrawals
+  /withdrawals/{id}/cancel:
+    patch:
+      description: Dùng để hủy lệnh ở bất kỳ giai đoạn nào (Pending, Approved, Processing)
+        TRỪ KHI đã thành công/hủy rồi. Hệ thống tự hoàn tiền vào ví.
+      parameters:
+      - description: ID yêu cầu
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Lý do hủy từ Admin
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_withdrawal.CancelWithdrawalReq'
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Admin hủy yêu cầu (Dành cho hầu hết trạng thái)
+      tags:
+      - Withdrawals
+  /withdrawals/{id}/complete:
+    patch:
+      consumes:
+      - multipart/form-data
+      description: (Admin) Xác nhận đã chuyển khoản thành công. Phải upload ảnh bill
+        (receiptFile) để minh chứng.
+      parameters:
+      - description: UUID của yêu cầu rút tiền
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Ảnh chụp biên lai chuyển khoản (Bill)
+        in: formData
+        name: receiptFile
+        required: true
+        type: file
+      - description: Mã giao dịch
+        in: formData
+        name: bankTransactionId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Hoàn tất
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Hoàn tất yêu cầu rút tiền (Kèm hóa đơn)
+      tags:
+      - Withdrawals
+  /withdrawals/{id}/reject:
+    patch:
+      description: Dùng để từ chối lệnh khi đang PENDING. Hệ thống tự hoàn tiền vào
+        ví.
+      parameters:
+      - description: ID yêu cầu
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Lý do từ chối
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_withdrawal.RejectWithdrawalReq'
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Admin từ chối yêu cầu (Chỉ dành cho lệnh PENDING)
+      tags:
+      - Withdrawals
 securityDefinitions:
   BearerAuth:
     description: 'Don''t forget to type "Bearer" before the token. For example: Bearer

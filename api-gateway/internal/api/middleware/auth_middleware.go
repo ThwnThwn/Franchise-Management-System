@@ -7,6 +7,7 @@ import (
 	"api-gateway/internal/application/gateways/identity"
 	"api-gateway/internal/domain/constants/jwttype"
 	"api-gateway/pkg/utils/contextutils"
+	"api-gateway/pkg/utils/grpcutils"
 	"api-gateway/pkg/utils/jwtutils"
 	"strings"
 
@@ -119,6 +120,16 @@ func (a *AuthMiddleware) ValidateToken(secret []byte) gin.HandlerFunc {
 		if claims.StoreId != nil {
 			c.Set(contextutils.CtxStoreId, *claims.StoreId)
 		}
+
+		grpcCtx, err := grpcutils.BuildAuthContext(c)
+		if err != nil {
+			abortWithErr(c, err)
+			return
+		}
+
+		// 3. GHI ĐÈ Request Context hiện tại bằng Context mới đã có gRPC Metadata
+		c.Request = c.Request.WithContext(grpcCtx)
+
 		c.Next()
 	}
 }

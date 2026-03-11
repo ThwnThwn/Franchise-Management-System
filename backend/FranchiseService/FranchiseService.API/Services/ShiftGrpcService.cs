@@ -539,7 +539,8 @@ namespace FranchiseService.API.Services
                         Id = item.Id.ToString(),
                         Date = item.Date.ToString("yyyy-MM-dd"),
                         StartTime = item.StartTime.ToString("HH:mm:ss"),
-                        EndTime = item.EndTime.ToString("HH:mm:ss")
+                        EndTime = item.EndTime.ToString("HH:mm:ss"),
+                        ShiftId = item.ShiftId.ToString(),
                     };
 
                     // Map thong tin cua hang

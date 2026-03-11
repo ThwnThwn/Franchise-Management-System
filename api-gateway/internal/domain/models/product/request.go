@@ -8,6 +8,10 @@ type GetProductsRequest struct {
 	CategoryId string `form:"categoryId"`
 }
 
+type GetProductVariantsRequest struct {
+	Skus []string `form:"skus"`
+}
+
 type GetProductsByKeywordRequest struct {
 	common.PaginationQuery
 	Keyword    *string `form:"keyword"`

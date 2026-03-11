@@ -55,11 +55,11 @@ public class GetSalesTrendQueryHandler : IRequestHandler<GetSalesTrendQuery, Res
         {
             var peak = filledData.MaxBy(x => x.Revenue);
             var slow = filledData.Where(x => x.OrderVolume > 0).MinBy(x => x.Revenue); // Only consider periods with at least 1 order for slowness, or min over all? Typically we include 0 as slow.
-            
-            response.PeakPeriodLabel = peak != null && peak.Revenue > 0 ? $"🔥 Peak: {peak.TimeLabel} ({peak.Revenue:N0}đ)" : null;
-            
+
+            response.PeakPeriodLabel = peak != null && peak.Revenue > 0 ? $"Peak: {peak.TimeLabel} ({peak.Revenue:N0}đ)" : null;
+
             var slowAbs = filledData.MinBy(x => x.Revenue);
-            response.SlowPeriodLabel = slowAbs != null ? $"💤 Slow: {slowAbs.TimeLabel} ({slowAbs.Revenue:N0}đ)" : null;
+            response.SlowPeriodLabel = slowAbs != null ? $"Slow: {slowAbs.TimeLabel} ({slowAbs.Revenue:N0}đ)" : null;
         }
 
         return Result<SalesTrendResponse>.Success(response);

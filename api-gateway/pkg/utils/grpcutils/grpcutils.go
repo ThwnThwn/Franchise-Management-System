@@ -17,14 +17,21 @@ import (
 )
 
 func BuildAuthContext(c *gin.Context) (context.Context, error) {
+	if md, ok := metadata.FromOutgoingContext(c.Request.Context()); ok {
+		if len(md.Get(contextutils.HeaderUserId)) > 0 {
+			return c.Request.Context(), nil
+		}
+	}
+
+	// 2. Logic build như cũ của ní
 	userId, err := contextutils.GetUserId(c)
 	if err != nil {
-		return nil, errorcode.ErrInvalidToken
+		return nil, errorcode.ErrInvalidAccessToken
 	}
 
 	roleSlug, err := contextutils.GetRoleSlug(c)
 	if err != nil {
-		return nil, errorcode.ErrInvalidToken
+		return nil, errorcode.ErrInvalidAccessToken
 	}
 
 	md := metadata.Pairs(
@@ -33,7 +40,7 @@ func BuildAuthContext(c *gin.Context) (context.Context, error) {
 	)
 
 	storeId, err := contextutils.GetStoreId(c)
-	if err != nil {
+	if err == nil {
 		md[contextutils.HeaderStoreId] = []string{fmt.Sprintf("%v", storeId)}
 	}
 

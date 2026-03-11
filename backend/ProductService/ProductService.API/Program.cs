@@ -28,7 +28,14 @@ public class Program
         });
 
         // Add services to the container.
-        builder.Services.AddGrpc();
+        var maxUploadSizeMB = int.Parse(builder.Configuration["MAX_UPLOAD_SIZE_MB"] ?? "10");
+        builder.Services.AddGrpc(options =>
+        {
+            options.Interceptors.Add<Interceptors.GrpcExceptionInterceptor>();
+
+            options.MaxReceiveMessageSize = maxUploadSizeMB * 1024 * 1024;
+            options.MaxSendMessageSize = maxUploadSizeMB * 1024 * 1024;
+        });
         builder.Services.AddGrpcReflection(); // Enable gRPC Server Reflection
         builder.Services.AddControllers();
 

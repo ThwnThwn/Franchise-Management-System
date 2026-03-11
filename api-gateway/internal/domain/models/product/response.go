@@ -25,3 +25,13 @@ type ProductVariant struct {
 	Cost       float64 `json:"cost"`
 	IsActive   bool    `json:"isActive"`
 }
+
+type ProductVariantDetail struct {
+	ProductId   string  `json:"productId"`
+	VariantId   string  `json:"variantId"`
+	ProductName string  `json:"productName"`
+	Sku         string  `json:"sku"`
+	Attributes  string  `json:"attributes"`
+	BasePrice   float64 `json:"basePrice"`
+	ImageUrl    string  `json:"imageUrl"`
+}

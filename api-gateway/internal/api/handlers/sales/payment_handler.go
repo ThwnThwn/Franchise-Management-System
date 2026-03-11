@@ -4,8 +4,8 @@ import (
 	"api-gateway/config"
 	"api-gateway/internal/application/constants/errorcode"
 	"api-gateway/internal/application/gateways/sales"
+	_ "api-gateway/internal/domain/models/common"
 	"api-gateway/internal/domain/models/order"
-	"api-gateway/pkg/utils/grpcutils"
 	"api-gateway/pkg/utils/validation"
 	"fmt"
 	"net/http"
@@ -55,11 +55,7 @@ func (h *PaymentHandler) CreatePaymentUrl(c *gin.Context) error {
 		return errorcode.ErrInvalidId
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	res, err := h.paymentGW.CreatePaymentUrl(ctx, orderId, &req)
 	if err != nil {
 		return err
@@ -68,6 +64,56 @@ func (h *PaymentHandler) CreatePaymentUrl(c *gin.Context) error {
 	c.JSON(http.StatusOK, gin.H{
 		"paymentUrl": res,
 	})
+	return nil
+}
+
+// GetAllPayments
+// @Summary      Danh sách toàn bộ thanh toán (Admin)
+// @Description  Lấy danh sách lịch sử thanh toán của toàn hệ thống (Dành cho quản trị viên/kế toán).
+// @Tags         Orders
+// @Produce      json
+// @Security     BearerAuth
+// @Param        query query order.GetAllPaymentsReq true "Tham số phân trang"
+// @Success      200 {object} common.PaginationResult[order.PaymentSummary]
+// @Router       /orders/payments [get]
+func (h *PaymentHandler) GetAllPayments(c *gin.Context) error {
+	var req order.GetAllPaymentsReq
+	if err := c.ShouldBindQuery(&req); err != nil {
+		return validation.TranslateValidationError(err)
+	}
+
+	ctx := c.Request.Context()
+	res, err := h.paymentGW.GetAll(ctx, &req)
+	if err != nil {
+		return err
+	}
+
+	c.JSON(http.StatusOK, res)
+	return nil
+}
+
+// GetMyPaymentHistory
+// @Summary      Lịch sử thanh toán của tôi (Customer)
+// @Description  Khách hàng tự xem lại lịch sử các đợt thanh toán đơn hàng của chính mình.
+// @Tags         Orders
+// @Produce      json
+// @Security     BearerAuth
+// @Param        query query order.GetMyPaymentHistoryReq true "Bộ lọc và phân trang"
+// @Success      200 {object} common.PaginationResult[order.PaymentHistoryItem]
+// @Router       /me/orders/payments [get]
+func (h *PaymentHandler) GetMyPaymentHistory(c *gin.Context) error {
+	var req order.GetMyPaymentHistoryReq
+	if err := c.ShouldBindQuery(&req); err != nil {
+		return validation.TranslateValidationError(err)
+	}
+
+	ctx := c.Request.Context()
+	res, err := h.paymentGW.GetMyHistory(ctx, &req)
+	if err != nil {
+		return err
+	}
+
+	c.JSON(http.StatusOK, res)
 	return nil
 }
 
@@ -110,7 +156,7 @@ func (h *PaymentHandler) ProcessVnPayReturn(c *gin.Context) error {
 	// LƯỚI LỌC BẢO MẬT NHIỀU LỚP:
 	// 1. Phải bắt đầu bằng "/" (Đảm bảo là Relative Path)
 	// 2. KHÔNG được bắt đầu bằng "//" (Trình duyệt sẽ bẻ lái sang domain khác, VD: //hacker.com)
-	// 3. KHÔNG được chứa "http://" hay "https://" (Chặn tuyệt đối link ngoại lai như bro nói)
+	// 3. KHÔNG được chứa "http://" hay "https://"
 	if redirectTo == "" ||
 		!strings.HasPrefix(redirectTo, "/") ||
 		strings.HasPrefix(redirectTo, "//") ||

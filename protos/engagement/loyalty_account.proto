@@ -122,6 +122,5 @@ message LoyaltyReportResponse {
 
 
 message RedeemVoucherRequest {
-  string account_id = 1;
   string voucher_id = 2;
 }

@@ -18,6 +18,14 @@ func NewNotFound(detail string) error {
 	}
 }
 
+func NewTooManyRequest(detail string) error {
+	return &ErrorResponse{
+		Status: http.StatusTooManyRequests,
+		Title:  "Quá nhiều yêu cầu",
+		Detail: detail,
+	}
+}
+
 func NewInternalError(detail string) error {
 	return &ErrorResponse{
 		Status: http.StatusInternalServerError,

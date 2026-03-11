@@ -6,11 +6,8 @@ namespace SalesService.Application.Persisitences.WalletTransactions;
 
 public interface IWalletTransactionRepository : IGenericRepository<WalletTransaction>
 {
-
-
     Task<PagedResult<WalletTransaction>> GetAllTransactionsAsync(
-    int page,
-    int pageSize,
+    int page, int pageSize,
     CancellationToken cancellationToken = default);
 
     Task<IEnumerable<WalletTransaction>> GetAllByWalletIdAsync(
@@ -40,7 +37,7 @@ public interface IWalletTransactionRepository : IGenericRepository<WalletTransac
     Task<WalletTransaction?> GetByReferenceAsync(
         Guid referenceId,
         WalletReferenceType referenceType,
-        CancellationToken cancellationToken=default);
+        CancellationToken cancellationToken = default);
 
     Task<WalletTransaction?> GetByTransactionCodeAsync(
         string transactionCode,
@@ -134,5 +131,4 @@ public interface IWalletTransactionRepository : IGenericRepository<WalletTransac
         int pageIndex,
         int pageSize,
         CancellationToken cancellationToken = default);
-
 }

@@ -60,8 +60,8 @@ namespace EngagementService.Infrastucture.Persistences.Repository
                 {
                     if (item.Quantity != null && item.Quantity > 0)
                         voucherItem.Quantity = (int)item.Quantity;
-                    if (item.VariantId != null)
-                        voucherItem.VariantId = (Guid)item.VariantId;
+                    if (item.Sku != null)
+                        voucherItem.Sku = item.Sku;
                     if (item.Type != null) ;
                     voucherItem.Type = (VoucherItemType)item.Type!;
                 }
@@ -70,7 +70,7 @@ namespace EngagementService.Infrastucture.Persistences.Repository
                     var newItem = new VoucherItem()
                     {
                         Quantity = (int)item.Quantity!,
-                        VariantId = (Guid)item.VariantId!,
+                        Sku = item.Sku!,
                         Type = (VoucherItemType)item.Type!,
                         VoucherId = dbVoucher.Id
                     };
@@ -80,7 +80,9 @@ namespace EngagementService.Infrastucture.Persistences.Repository
         }
         private void UpdateVoucher(Voucher dbVoucher, UpdateVoucherRequest updateRequest)
         {
-            if (updateRequest.DiscountValue != null)
+            var isGiftVoucher = dbVoucher.Type == VoucherType.GIFT;
+            var isFixAmountVoucher = dbVoucher.Type == VoucherType.SHIPPING_FIXED_AMOUNT || dbVoucher.Type == VoucherType.DISCOUNT_FIXED_AMOUNT;
+            if (updateRequest.DiscountValue != null && !isGiftVoucher)
             {
                 if (updateRequest.DiscountValue <= 0)
                     throw new ArgumentException(VoucherMsg.InvalidDiscountValue);
@@ -96,7 +98,7 @@ namespace EngagementService.Infrastucture.Persistences.Repository
                 }
             }
 
-            if (updateRequest.MaxDiscountValue != null)
+            if (updateRequest.MaxDiscountValue != null && !isGiftVoucher && !isFixAmountVoucher)
             {
                 if (updateRequest.MaxDiscountValue <= 0)
                     throw new ArgumentException(VoucherMsg.InvalidMaxDiscountValue);
@@ -142,6 +144,15 @@ namespace EngagementService.Infrastucture.Persistences.Repository
                 .FirstOrDefaultAsync(cancellationToken);
 
             return voucher;
+        }
+
+        public Task<List<Voucher>> GetAllVoucherAsync(CancellationToken cancellationToken)
+        {
+            return _dbContext.Vouchers
+                .Include(x => x.VoucherItems)
+                .Where(v => v.CurrentQuantity != 0)
+                .OrderByDescending(v => v.CreatedAt)
+                .ToListAsync(cancellationToken);
         }
     }
 }

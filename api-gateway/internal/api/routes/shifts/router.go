@@ -16,50 +16,96 @@ func (s *ShiftsRouter) Init(r *gin.RouterGroup) {
 	shiftApi := r.Group("/shifts")
 	shiftApi.Use(auth)
 	{
-		// 1. Lấy danh sách ca làm việc
+		// Lấy danh sách ca làm việc
 		shiftApi.GET("", s.authMW.PermissionCheck("shift.read"),
 			api.WrapHandler(s.shiftHl.GetAll))
 
-		// 2. Tạo ca làm mới
+		// Tạo ca làm mới
 		shiftApi.POST("", s.authMW.PermissionCheck("shift.write"),
 			api.WrapHandler(s.shiftHl.Create))
 
-		// 3. Lấy chi tiết một ca làm
+		shiftApi.PUT("/auto-fill", s.authMW.PermissionCheck("shift.write"),
+			api.WrapHandler(s.shiftHl.AutoFill))
+
+		// Lấy chi tiết một ca làm
 		shiftApi.GET("/:id", s.authMW.PermissionCheck("shift.read"),
 			api.WrapHandler(s.shiftHl.GetByID))
 
-		// 4. Cập nhật thông tin ca làm (Giờ giấc, số lượng nhân viên)
+		// Cập nhật thông tin ca làm (Giờ giấc, số lượng nhân viên)
 		shiftApi.PATCH("/:id", s.authMW.PermissionCheck("shift.write"),
 			api.WrapHandler(s.shiftHl.Update))
 
-		// 5. Xóa ca làm
+		// Xóa ca làm
 		shiftApi.DELETE("/:id", s.authMW.PermissionCheck("shift.delete"),
 			api.WrapHandler(s.shiftHl.Delete))
 
-		// 6. Xuất bản ca làm lẻ
+		// Xuất bản ca làm lẻ
 		shiftApi.PUT("/:id/publish", s.authMW.PermissionCheck("shift.publish"),
 			api.WrapHandler(s.shiftHl.Publish))
 
-		// 7. Cập nhật phân công nhân sự (Assign users)
+	}
+
+	// --- Phân công nhân sự ---
+	{
 		shiftApi.PUT("/:id/assign", s.authMW.PermissionCheck("shift.write"),
 			api.WrapHandler(s.shiftHl.UpdateAssignments))
 
-		// --- Thao tác hàng loạt (Bulk) ---
-		// 1. Tạo ca thủ công hàng loạt
+		shiftApi.POST("/:id/applications",
+			s.authMW.PermissionCheck("shift.application.write"),
+			api.WrapHandler(s.appHl.Apply))
+
+		shiftApi.GET("/:id/applications",
+			s.authMW.PermissionCheck("shift.application.read"),
+			api.WrapHandler(s.appHl.GetByShiftId))
+	}
+
+	// --- Thao tác hàng loạt (Bulk) ---
+	{
+		// Tạo ca thủ công hàng loạt
 		shiftApi.POST("/bulk-manual", s.authMW.PermissionCheck("shift.write"),
 			api.WrapHandler(s.bulkHl.CreateManual))
 
-		// 2. Tạo ca từ Template hàng loạt
+		// Tạo ca từ Template hàng loạt
 		shiftApi.POST("/bulk-template", s.authMW.PermissionCheck("shift.write"),
 			api.WrapHandler(s.bulkHl.CreateFromTemplate))
 
-		// 3. Công khai hàng loạt (Draft -> Published)
+		// Công khai hàng loạt (Draft -> Published)
 		shiftApi.PUT("/bulk-publish", s.authMW.PermissionCheck("shift.publish"),
 			api.WrapHandler(s.bulkHl.Publish))
 
-		// 4. Xóa hàng loạt (Chỉ ca Draft)
+		// Xóa hàng loạt (Chỉ ca Draft)
 		shiftApi.DELETE("/bulk-delete", s.authMW.PermissionCheck("shift.delete"),
 			api.WrapHandler(s.bulkHl.Delete))
+
+		shiftApi.PUT("/bulk-open", s.authMW.PermissionCheck("shift.delete"),
+			api.WrapHandler(s.bulkHl.Open))
+	}
+
+	// --- Swap ---
+	{
+		shiftApi.POST("/:id/swaps", s.authMW.PermissionCheck("shift.swap.write"),
+			api.WrapHandler(s.swapHl.RequestSwap))
+
+		shiftApi.PATCH("/:id/releases", s.authMW.PermissionCheck("shift.release.write"),
+			api.WrapHandler(s.swapHl.Release))
+	}
+	swapApi := r.Group("/shift-swaps")
+	swapApi.Use(auth)
+	{
+		swapApi.GET("", s.authMW.PermissionCheck("shift.swap.read"),
+			api.WrapHandler(s.swapHl.GetAll))
+
+		// Phản hồi từ đồng nghiệp (B phản hồi cho A)
+		swapApi.PATCH("/:id/responses", s.authMW.PermissionCheck("shift.swap.write"),
+			api.WrapHandler(s.swapHl.RespondSwap))
+
+		// Manager duyệt cuối cùng
+		swapApi.PATCH("/:id/approvals", s.authMW.PermissionCheck("shift.swap.approve"),
+			api.WrapHandler(s.swapHl.ApproveSwap))
+
+		// Hủy yêu cầu
+		swapApi.PATCH("/:id/cancel", s.authMW.PermissionCheck("shift.swap.cancel"),
+			api.WrapHandler(s.swapHl.CancelSwap))
 	}
 
 	// ==========================================
@@ -68,14 +114,12 @@ func (s *ShiftsRouter) Init(r *gin.RouterGroup) {
 	timeLogApi := shiftApi.Group("/time-logs")
 	{
 		// 1. Lấy toàn bộ nhật ký chấm công (kèm bộ lọc: store, staff, status, date)
-		timeLogApi.GET("",
-			s.authMW.PermissionCheck("shift.time_log.read"),
+		timeLogApi.GET("", s.authMW.PermissionCheck("shift.time_log.read"),
 			api.WrapHandler(s.shiftHl.GetAllTimeLogs),
 		)
 
 		// 2. Duyệt hoặc cập nhật trạng thái chấm công (Valid/Invalid + Note)
-		timeLogApi.PATCH("/:id",
-			s.authMW.PermissionCheck("shift.time_log.write"),
+		timeLogApi.PATCH("/:id", s.authMW.PermissionCheck("shift.time_log.write"),
 			api.WrapHandler(s.shiftHl.UpdateTimeLog),
 		)
 	}
@@ -139,6 +183,18 @@ func (s *ShiftsRouter) Init(r *gin.RouterGroup) {
 
 		availabilityApi.DELETE("/:id", s.authMW.PermissionCheck("shift.availability.delete"),
 			api.WrapHandler(s.availabilityHl.Delete))
+	}
+
+	// ==========================================
+	// NHÓM APPLY CA
+	// ==========================================
+	applicationApi := r.Group("/shift-applications")
+	applicationApi.Use(auth)
+	{
+		applicationApi.PATCH("/:id/review",
+			s.authMW.PermissionCheck("shift.application.write"),
+			api.WrapHandler(s.appHl.Review),
+		)
 	}
 
 	// ==========================================

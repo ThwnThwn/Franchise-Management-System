@@ -77,3 +77,15 @@ const (
 	RefundTicketMethod_REFUND_METHOD_TRANSFER RefundTicketMethod = 1
 	RefundTicketMethod_REFUND_METHOD_CASH     RefundTicketMethod = 2
 )
+
+type WithdrawalStatus int32
+
+const (
+	WithdrawalStatusPending    WithdrawalStatus = 1 // Chờ duyệt
+	WithdrawalStatusApproved   WithdrawalStatus = 2 // Đã duyệt
+	WithdrawalStatusProcessing WithdrawalStatus = 3 // Đang xử lý
+	WithdrawalStatusCompleted  WithdrawalStatus = 4 // Thành công
+	WithdrawalStatusFailed     WithdrawalStatus = 5 // Thất bại
+	WithdrawalStatusRejected   WithdrawalStatus = 6 // Từ chối
+	WithdrawalStatusCancelled  WithdrawalStatus = 7 // Đã hủy
+)

@@ -16,7 +16,7 @@ func (s *MyShiftsRouter) Init(r *gin.RouterGroup) {
 	{
 		// 1. Lấy ca hiện tại
 		myShiftApi.GET("/current",
-			s.authMW.PermissionCheck("me.current_shift"),
+			s.authMW.PermissionCheck("me.current_shift.read"),
 			api.WrapHandler(s.shiftStaffHl.GetUserCurrentShift),
 		)
 
@@ -35,18 +35,24 @@ func (s *MyShiftsRouter) Init(r *gin.RouterGroup) {
 		)
 
 		myShiftApi.GET("",
-			s.authMW.PermissionCheck("me.agenda"),
+			s.authMW.PermissionCheck("me.agenda.read"),
 			api.WrapHandler(s.shiftStaffHl.GetMyAgenda))
 
 		myShiftApi.GET("/time-logs",
-			s.authMW.PermissionCheck("me.time_log_history"),
+			s.authMW.PermissionCheck("me.time_log_history.read"),
 			api.WrapHandler(s.shiftStaffHl.GetMyTimeLogHistory),
 		)
 	}
 
 	availabilityApi := meApi.Group("/shift-availabilities")
 	{
-		// Lấy lịch sử đăng ký rảnh/bận của chính tôi
-		availabilityApi.GET("", api.WrapHandler(s.availabilityHl.GetMyHistory))
+		availabilityApi.GET("", s.authMW.PermissionCheck("me.availability.read"),
+			api.WrapHandler(s.availabilityHl.GetMyHistory))
+	}
+
+	swapApi := meApi.Group("/shift-swaps")
+	{
+		swapApi.GET("", s.authMW.PermissionCheck("shift.swap.read"),
+			api.WrapHandler(s.swapHl.GetMySwaps))
 	}
 }

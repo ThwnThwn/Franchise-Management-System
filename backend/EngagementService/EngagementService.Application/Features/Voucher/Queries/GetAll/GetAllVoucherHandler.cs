@@ -8,18 +8,29 @@ namespace EngagementService.Application.Features.Voucher.Queries.GetAll
     {
         private readonly IVoucherRepository _voucherRepository;
 
-        public GetAllVoucherHandler(IVoucherRepository voucherRepository)
+        private readonly IVoucherQueueRepository _voucherQueueRepository;
+
+        public GetAllVoucherHandler(IVoucherRepository voucherRepository, IVoucherQueueRepository voucherQueueRepository)
         {
             _voucherRepository = voucherRepository;
+            _voucherQueueRepository = voucherQueueRepository;
         }
         public async Task<IEnumerable<Domain.Entities.Voucher>> Handle(GetAllVoucherQuery request, CancellationToken cancellationToken)
         {
-            return await _voucherRepository.GetAllAsync(
-                    includes: new Expression<Func<Domain.Entities.Voucher, object>>[]
-                    {
-                        x => x.VoucherItems
-                    }
-            );
+            var vouchers = await _voucherRepository.GetAllVoucherAsync(cancellationToken);
+            
+            var voucherQueues = await _voucherQueueRepository.GetVouchersAndAmountInQueueAsync(cancellationToken);
+
+            foreach (var voucher in vouchers)
+            {
+                var queueInfo = voucherQueues.FirstOrDefault(vq => vq.VoucherId == voucher.Id);
+                if (queueInfo != null)
+                {
+                    voucher.CurrentQuantity -= queueInfo.Count;
+                }
+            }
+
+            return vouchers;
         }
     }
 }

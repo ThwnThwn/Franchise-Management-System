@@ -173,6 +173,15 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             ImageUrl = i.ImageUrl ?? string.Empty
         }));
 
+        orderMessage.SaleItems.AddRange(dto.SaleItems.Select(i => new OrderSaleItemReply
+        {
+            Id = i.Id.ToString(),
+            Amount = (double)i.Amount,
+            Type = (OrderSaleItemType)i.Type,
+            ReferenceId = i.ReferenceId.ToString(),
+            Name = i.Name
+
+        }));
         return new GetOrderByIdReply
         {
             Order = orderMessage
@@ -769,6 +778,17 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             OrderVolume = dp.OrderVolume,
             Revenue = (double)dp.Revenue
         }));
+
+        if (request.IncludeCsv)
+        {
+            var csvBytes = SalesTrendCsvExporter.Export(result.Value);
+            reply.CsvFile = new CsvFile
+            {
+                CsvRaw = ByteString.CopyFrom(csvBytes),
+                CsvFileName = $"sales-trend-{DateTime.UtcNow:yyyyMMddHHmmss}.csv"
+            };
+        }
+
 
         return reply;
     }

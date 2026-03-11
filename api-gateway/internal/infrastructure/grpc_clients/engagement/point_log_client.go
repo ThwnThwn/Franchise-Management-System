@@ -8,8 +8,6 @@ import (
 
 	engagementPb "api-gateway/pkg/pb/engagement"
 	"api-gateway/pkg/utils/timeutils"
-
-	"github.com/google/uuid"
 )
 
 type pointLogGrpcClient struct {
@@ -21,9 +19,9 @@ func ProvidePointLogClient(f *clientFactory) engagementGW.IPointLogService {
 }
 
 // GetMyPointLog implements engagement.IPointLogService.
-func (p *pointLogGrpcClient) GetMyPointLog(ctx context.Context, userId uuid.UUID, req *point.GetMyPointLogRequest) (common.PaginationResult[*point.LogResponse], error) {
+func (p *pointLogGrpcClient) GetMyPointLog(ctx context.Context, req *point.GetMyPointLogRequest) (common.PaginationResult[*point.LogResponse], error) {
 	res, err := p.client.GetMyPointLog(ctx, &engagementPb.GetMyPointLogRequest{
-		Id:       userId.String(),
+		// Id:       userId.String(),
 		FromDate: timeutils.ParseStringPtrToTimestamp(req.FromDate),
 		ToDate:   timeutils.ParseStringPtrToTimestamp(req.ToDate),
 		Page:     req.Page,

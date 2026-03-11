@@ -58,7 +58,7 @@ namespace EngagementService.Application.Features.Voucher.Commands.Create
 
                 case VoucherType.GIFT:
 
-                    if (request.VoucherItems == null || !request.VoucherItems.Any() || !request.VoucherItems.Any(t => t.Type == VoucherItemType.ITEM_REQUIRED) || !request.VoucherItems.Any(t => t.Type == VoucherItemType.ITEM_GIFT))
+                    if (request.VoucherItems == null || !request.VoucherItems.Any() || !request.VoucherItems.Any(t => t.Type == VoucherItemType.ITEM_GIFT))
                         throw new ArgumentException(VoucherMsg.EmptyVoucherItems);
 
                     if (!request.VoucherItems.All(item => item.Quantity > 0))
@@ -72,7 +72,7 @@ namespace EngagementService.Application.Features.Voucher.Commands.Create
                     {
 
                         Id = Guid.NewGuid(),
-                        VariantId = item.VariantId,
+                        Sku = item.Sku,
                         Quantity = item.Quantity,
                         Type = item.Type,
                         VoucherId = newVoucher.Id
@@ -97,13 +97,16 @@ namespace EngagementService.Application.Features.Voucher.Commands.Create
             if (request.EndDate < DateTimeOffset.UtcNow)
                 throw new ArgumentException(VoucherMsg.InvalidEndDate);
 
+            var isGiftVoucher = request.Type == VoucherType.GIFT;
+            var isFixAmountVoucher = request.Type == VoucherType.SHIPPING_FIXED_AMOUNT || request.Type == VoucherType.DISCOUNT_FIXED_AMOUNT;
+
             return new Domain.Entities.Voucher()
             {
                 Id = Guid.NewGuid(),
                 Code = code,
                 Type = request.Type,
-                DiscountValue = request.DiscountValue,
-                MaxDiscountValue = request.MaxDiscountValue,
+                DiscountValue = isGiftVoucher ? null : request.DiscountValue,
+                MaxDiscountValue = isGiftVoucher || isFixAmountVoucher ? null : request.MaxDiscountValue,
                 PointCost = request.PointCost,
                 MinOrderValue = request.MinOrderValue,
                 InitQuantity = request.InitQuantity,

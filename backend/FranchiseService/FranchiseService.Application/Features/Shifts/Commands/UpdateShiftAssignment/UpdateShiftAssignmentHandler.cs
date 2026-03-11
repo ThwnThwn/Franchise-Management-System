@@ -126,9 +126,10 @@ namespace FranchiseService.Application.Features.Shifts.Commands.UpdateShiftAssig
             }
 
             // Nếu có cảnh báo WARNING nhưng chưa xác nhận ghi đè, trả về cho FE
+            // Success = true vì request hợp lệ, nhưng FE cần kiểm tra Warnings để hiện popup xác nhận
             if (allWarnings.Any(w => w.Severity == "WARNING") && !request.ForceOverride)
             {
-                return new AssignStaffResult { Success = false, Warnings = allWarnings };
+                return new AssignStaffResult { Success = true, Warnings = allWarnings };
             }
 
             // Đánh dấu override nếu Manager đã xác nhận ghi đè cảnh báo

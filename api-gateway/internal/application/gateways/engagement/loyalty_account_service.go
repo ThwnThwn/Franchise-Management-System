@@ -14,5 +14,5 @@ type ILoyaltyAccountService interface {
 	GetLoyaltyReport(ctx context.Context, req *loyalty.GetLoyaltyReportRequest) (
 		*loyalty.LoyaltyReportResponse, *loyalty.LoyaltyExportResponse, error)
 
-	RedeemVoucher(ctx context.Context, userId, voucherId uuid.UUID) error
+	RedeemVoucher(ctx context.Context, voucherId uuid.UUID) error
 }
