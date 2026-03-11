@@ -1,4 +1,4 @@
-import { confirmDialog } from "@/hooks"
+import { confirmDialog, useDay } from "@/hooks"
 import {
     useAutoFillShifts,
     useBulkDeleteShift,
@@ -13,19 +13,22 @@ import dayjs from "dayjs"
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 export const useScheduleBulkActions = ({
-    currentDate,
+    // currentDate,
     dateRange,
     shiftsData
 }: {
-    currentDate: dayjs.Dayjs
+    // currentDate: dayjs.Dayjs
     dateRange: {
         fromDate: string
         toDate: string
     }
     shiftsData: ShiftResponse[] | undefined
 }) => {
-    const forOpenStartDate = currentDate.isAfter(dayjs(dateRange.fromDate))
-        ? currentDate
+    const { dateNow } = useDay()
+
+    const currDate = dateNow()
+    const forOpenStartDate = dayjs(currDate).isAfter(dayjs(dateRange.fromDate))
+        ? dayjs(currDate)
         : dayjs(dateRange.fromDate)
 
     const bulkPublish = useBulkPublishShift()

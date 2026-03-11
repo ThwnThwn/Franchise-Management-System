@@ -74,7 +74,7 @@ export default function ShiftSchedulerPageView() {
         handleAutoFill,
         isProcessing
     } = useScheduleBulkActions({
-        currentDate: currentDate,
+        // currentDate: currentDate,
         dateRange: dateRange,
         shiftsData: shiftsData
     })
@@ -158,7 +158,7 @@ export default function ShiftSchedulerPageView() {
                     isOpen={isBulkOpen}
                     onClose={onBulkClose}
                     storeId={storeId || ""}
-                    currentDate={currentDate}
+                    // currentDate={currentDate}
                     dateRange={dateRange}
                 />
             </>

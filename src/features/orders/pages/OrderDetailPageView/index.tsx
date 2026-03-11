@@ -21,7 +21,7 @@ import { BackendError } from "@/models/common/respone"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { omitRecord } from "@/utils/helpers/uiHelper"
 import { OrderDetail } from "@/features/orders/components"
-import { Printer, Ticket } from "lucide-react"
+import { Printer } from "lucide-react"
 import { RoleSlug } from "@/constants/enums"
 import { useGetRecipes } from "@/features/products/hooks/useRecipe"
 import { OrderStatusActions } from "@/features/orders/components/OrderStatusActions"
@@ -49,7 +49,6 @@ export default function OrderDetailPageView({ orderId }: { orderId: string }) {
         },
         enabled: !isCustomer && !!order
     })
-
 
     // const recipes = React.useMemo(() => {
     //     if (!order) return []
