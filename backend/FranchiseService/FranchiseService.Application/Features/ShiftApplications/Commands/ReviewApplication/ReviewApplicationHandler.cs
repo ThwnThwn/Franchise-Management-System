@@ -22,19 +22,22 @@ public class ReviewApplicationHandler : IRequestHandler<ReviewApplicationCommand
     private readonly IGenericRepository<Shift> _shiftRepository;
     private readonly IShiftRuleService _shiftRuleService;
     private readonly IShiftValidationService _validationService;
+    private readonly IShiftApplicationAutoRejectService _autoRejectService;
 
     public ReviewApplicationHandler(
         IGenericRepository<ShiftApplication> applicationRepository,
         IGenericRepository<ShiftAssignment> assignmentRepository,
         IGenericRepository<Shift> shiftRepository,
         IShiftRuleService shiftRuleService,
-        IShiftValidationService validationService)
+        IShiftValidationService validationService,
+        IShiftApplicationAutoRejectService autoRejectService)
     {
         _applicationRepository = applicationRepository;
         _assignmentRepository = assignmentRepository;
         _shiftRepository = shiftRepository;
         _shiftRuleService = shiftRuleService;
         _validationService = validationService;
+        _autoRejectService = autoRejectService;
     }
 
     public async Task<bool> Handle(
@@ -119,8 +122,8 @@ public class ReviewApplicationHandler : IRequestHandler<ReviewApplicationCommand
                 await _shiftRepository.UpdateAsync(shift);
 
                 // Tu dong tu choi tat ca don Pending con lai cua ca nay
-                await AutoRejectRemainingApplications(
-                    application.ShiftId, application.Id, request.ReviewedBy);
+                await _autoRejectService.RejectPendingApplicationsAsync(
+                    application.ShiftId, application.Id, request.ReviewedBy, cancellationToken);
             }
         }
         else
@@ -135,28 +138,5 @@ public class ReviewApplicationHandler : IRequestHandler<ReviewApplicationCommand
         }
 
         return true;
-    }
-
-    /// <summary>
-    /// Tu dong tu choi tat ca don Pending con lai khi ca da du nguoi.
-    /// Ghi ly do tu dong de Manager va nhan vien biet.
-    /// </summary>
-    private async Task AutoRejectRemainingApplications(
-        Guid shiftId, Guid excludeAppId, Guid reviewedBy)
-    {
-        var remainingApps = await _applicationRepository.GetAllAsync(
-            predicate: a => a.ShiftId == shiftId
-                         && a.Status == (int)ShiftApplicationStatus.Pending
-                         && a.Id != excludeAppId);
-
-        foreach (var app in remainingApps)
-        {
-            app.Status = (int)ShiftApplicationStatus.Rejected;
-            app.ReviewedAt = DateTimeOffset.UtcNow;
-            app.ReviewedBy = reviewedBy;
-            app.ReviewNote = "Tu dong tu choi: ca da du nguoi.";
-            app.UpdatedAt = DateTimeOffset.UtcNow;
-            await _applicationRepository.UpdateAsync(app);
-        }
     }
 }

@@ -1,4 +1,4 @@
-﻿using DotNetEnv;
+using DotNetEnv;
 using FluentValidation;
 using FranchiseService.API.Interceptors;
 using FranchiseService.Application.Behaviors;
@@ -77,6 +77,7 @@ namespace FranchiseService.API
             builder.Services.AddScoped<IShiftValidationService, ShiftValidationService>();
             builder.Services.AddScoped<IShiftRuleService, ShiftRuleService>();
             builder.Services.AddScoped<IOvertimeCalculationService, OvertimeCalculationService>();
+            builder.Services.AddScoped<IShiftApplicationAutoRejectService, ShiftApplicationAutoRejectService>();
             builder.Services.AddScoped<FranchiseService.Application.Features.ShiftSwaps.Helpers.SwapValidationHelper>();
 
 

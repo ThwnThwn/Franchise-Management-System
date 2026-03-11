@@ -2,12 +2,14 @@ using FranchiseService.Application.Persistences.Repositories;
 using FranchiseService.Domain.Entities;
 using FranchiseService.Domain.Enums;
 using MediatR;
+using SharedKernel.Constants;
 
 namespace FranchiseService.Application.Features.Shifts.Commands.BulkOpenShifts;
 
 /// <summary>
 /// Handler chuyen nhieu ca tu Draft sang Open (mo Cho Ca).
 /// Chi cho phep mo cac ca: Draft, chua du nguoi, ngay chua qua.
+/// "Hom nay" tinh theo mui gio Viet Nam.
 /// Dung batch fetch de tranh N+1 query.
 /// </summary>
 public class BulkOpenShiftsHandler : IRequestHandler<BulkOpenShiftsCommand, BulkOpenShiftsResult>
@@ -27,7 +29,7 @@ public class BulkOpenShiftsHandler : IRequestHandler<BulkOpenShiftsCommand, Bulk
         BulkOpenShiftsCommand request, CancellationToken cancellationToken)
     {
         var result = new BulkOpenShiftsResult();
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var today = GetTodayInVietnam();
 
         // Batch fetch: lay tat ca shifts cua Store trong 1 query duy nhat
         var allShifts = await _shiftRepository.GetAllAsync(
@@ -81,5 +83,12 @@ public class BulkOpenShiftsHandler : IRequestHandler<BulkOpenShiftsCommand, Bulk
         }
 
         return result;
+    }
+
+    private static DateOnly GetTodayInVietnam()
+    {
+        var vnTz = TimeZoneInfo.FindSystemTimeZoneById(TimeConstants.DefaultTimeZoneId);
+        var nowVn = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vnTz);
+        return DateOnly.FromDateTime(nowVn);
     }
 }
