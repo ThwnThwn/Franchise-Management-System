@@ -149,7 +149,8 @@ public sealed class VnPayReturnHandler
                 {
                     Id = order.CustomerId.Value,
                     OrderId = order.Id,
-                    Point = point
+                    Point = point,
+                    ActionType = UpdatePointType.Minus
                 };
                 _kafkaProducer.PublishAsync(KafkaTopics.UpdateUserPoint, userPoint);
             }
