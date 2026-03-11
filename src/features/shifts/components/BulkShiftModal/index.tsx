@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useCallback, useMemo } from "react"
+import React, { useCallback, useEffect, useMemo } from "react"
 import {
     ModalContent,
     ModalHeader,
@@ -35,14 +35,27 @@ import { DayOfWeekLabel } from "@/constants/labels"
 import { DayOfWeek } from "@/constants/enums"
 import { useDay } from "@/hooks"
 import { enumToValues } from "@/utils/helpers/arrayHelper"
+import dayjs from "dayjs"
 
 interface BulkShiftModalProps {
     isOpen: boolean
     onClose: () => void
     storeId: string
+
+    currentDate: dayjs.Dayjs
+    dateRange: {
+        fromDate: string
+        toDate: string
+    }
 }
 
-export const BulkShiftModal = ({ isOpen, onClose, storeId }: BulkShiftModalProps) => {
+export const BulkShiftModal = ({
+    isOpen,
+    onClose,
+    storeId,
+    currentDate,
+    dateRange
+}: BulkShiftModalProps) => {
     const { dateNow, formatDate, toDate, formatTime, toTime } = useDay({ defaultFormat: "HH:mm" })
 
     const minDateStr = dateNow()
@@ -92,6 +105,18 @@ export const BulkShiftModal = ({ isOpen, onClose, storeId }: BulkShiftModalProps
             }
         }
     })
+
+    useEffect(() => {
+        if (isOpen) {
+            const forOpenStartDate = currentDate.isAfter(dayjs(dateRange.fromDate))
+                ? currentDate.format("YYYY-MM-DD")
+                : dateRange.fromDate
+            formik.setFieldValue("startDate", forOpenStartDate)
+            formik.setFieldValue("endDate", dateRange.toDate)
+            formik.validateForm()
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isOpen])
 
     // 3. Chuyển đổi list Template thành Labels cho EnumPicker
     const templateLabels = useMemo(() => {

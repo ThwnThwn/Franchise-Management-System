@@ -239,14 +239,14 @@ export const ScheduleToolbar = ({
 
                     {/* 3. Nút Đẩy Lên Chợ Ca (Open) */}
                     <Badge
-                        content={forOpenCount || forDeleteCount}
+                        content={forOpenCount}
                         color="warning"
                         shape="circle"
                         size="sm"
-                        isInvisible={(forOpenCount || forDeleteCount) <= 0}
+                        isInvisible={forOpenCount <= 0}
                     >
                         <Tooltip
-                            content={`Mở ${forOpenCount || forDeleteCount} ca ra Chợ`}
+                            content={`Mở ${forOpenCount} ca ra Chợ`}
                             color="warning"
                             placement="top"
                         >
@@ -256,9 +256,7 @@ export const ScheduleToolbar = ({
                                 variant="flat"
                                 isIconOnly
                                 onPress={onBulkOpen}
-                                isDisabled={
-                                    isBulkProcessing || (forOpenCount || forDeleteCount) <= 0
-                                }
+                                isDisabled={isBulkProcessing || forOpenCount <= 0}
                             >
                                 <Globe size={18} className="text-warning-700" />
                             </Button>

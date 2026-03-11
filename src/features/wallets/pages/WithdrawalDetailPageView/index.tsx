@@ -153,6 +153,8 @@ export default function WithdrawalDetailPageView({ id }: { id: string }) {
 
             {/* MODAL UPLOAD ẢNH */}
             <ImageUploaderModal
+                label="Tải lên biên lai chuyển khoản"
+                saveLabel="Tiếp tục"
                 isOpen={isOpen}
                 onOpenChange={onOpenChange}
                 onClose={onClose}
@@ -162,7 +164,6 @@ export default function WithdrawalDetailPageView({ id }: { id: string }) {
                 isUploadPending={isCompleting}
                 formDataKey={UPLOAD_FORM_KEY}
                 requireCrop={false}
-                label="Tải lên biên lai chuyển khoản"
             />
         </div>
     )

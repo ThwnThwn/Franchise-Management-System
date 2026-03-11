@@ -8,7 +8,7 @@ import {
     ShoppingBag,
     FlaskConical,
     Ticket,
-    Receipt
+    Wallet
 } from "lucide-react"
 import { MenuItem } from "./types"
 
@@ -136,7 +136,7 @@ export const DASHBOARD_SIDEBAR_MENU: MenuItem[] = [
         ]
     },
     {
-        icon: <Receipt className="w-5 h-5" />,
+        icon: <Wallet className="w-5 h-5" />,
         label: "Ví",
         allowedRoles: [RoleSlug.Admin],
         subItems: [

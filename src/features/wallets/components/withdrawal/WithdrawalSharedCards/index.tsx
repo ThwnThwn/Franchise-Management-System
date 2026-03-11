@@ -1,11 +1,12 @@
 "use client"
 
 import { Chip, Button, Image } from "@heroui/react"
-import { Eye, EyeOff, Info, FileText, CheckCircle2, Landmark, ShieldCheck } from "lucide-react"
+import { Eye, EyeOff, FileText, CheckCircle2, Landmark, ShieldCheck } from "lucide-react"
 import dayjs from "dayjs"
 import { WithdrawalDetailRes } from "@/features/wallets/models/response"
 import { formatCurrencyWithSymbol } from "@/utils/helpers/currency"
 import { WithdrawalStatusColors, WithdrawalStatusLabels } from "@/features/wallets/constants"
+import { AlertStyled } from "@/components"
 
 // 1. Khối Tổng quan Số tiền
 export const OverviewCard = ({ detail }: { detail: WithdrawalDetailRes }) => (
@@ -142,17 +143,16 @@ export const AuditTrailCard = ({ detail }: { detail: WithdrawalDetailRes }) => {
 export const AlertCard = ({ detail }: { detail: WithdrawalDetailRes }) => {
     if (!detail.rejectionReason && !detail.cancellationReason && !detail.approvalNotes) return null
     const isSuccess = !!detail.approvalNotes
+
     return (
-        <div
-            className={`flex flex-col gap-2 p-3 rounded-xl border ${isSuccess ? "bg-primary-50 border-primary-100 text-primary-700" : "bg-danger-50 border-danger-100 text-danger-700"}`}
-        >
-            <div className="flex items-center gap-2 font-bold text-sm">
-                <Info size={18} /> {isSuccess ? "Ghi chú từ Quản trị viên" : "Lý do hủy/từ chối"}
-            </div>
-            <p className="text-sm italic pl-6">
-                {detail.rejectionReason || detail.cancellationReason || detail.approvalNotes}
-            </p>
-        </div>
+        <AlertStyled
+            title={isSuccess ? "Ghi chú từ Quản trị viên" : "Lý do hủy/từ chối"}
+            description={
+                detail.rejectionReason || detail.cancellationReason || detail.approvalNotes
+            }
+            color={isSuccess ? "primary" : "danger"}
+            className="max-w-full py-4"
+        />
     )
 }
 

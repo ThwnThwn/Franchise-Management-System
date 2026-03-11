@@ -34,7 +34,7 @@ export const ShiftForm = ({ formik, isSubmitable }: ShiftFormProps) => {
         }
     })
 
-    const minDateStr = dayjs().add(2, "day").format("YYYY-MM-DD")
+    const minDateStr = dayjs().format("YYYY-MM-DD")
     const { isInvalid, getErrorMessage } = useFormikHelpers(formik)
 
     const handleTemplateChange = useCallback(

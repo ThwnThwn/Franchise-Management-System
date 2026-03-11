@@ -14,7 +14,7 @@ import {
     Tabs,
     Tab
 } from "@heroui/react"
-import { Landmark } from "lucide-react"
+import { DollarSign } from "lucide-react"
 import dayjs from "dayjs"
 
 import { DashboardHeader } from "@/features/dashboard"
@@ -52,7 +52,7 @@ export default function AdminWithdrawalListPageView() {
     return (
         <div className="max-w-7xl mx-auto min-h-screen p-4 md:p-6 space-y-6">
             <DashboardHeader
-                icon={<Landmark className="text-white" />}
+                icon={<DollarSign className="text-white" />}
                 title="Quản lý Lệnh Rút Tiền"
                 description="Danh sách yêu cầu rút tiền từ người dùng toàn hệ thống"
             />

@@ -7,7 +7,8 @@ import {
     TableBody,
     TableRow,
     TableCell,
-    Spinner
+    Spinner,
+    Chip
 } from "@heroui/react"
 import dayjs from "dayjs"
 import { useGetMyTransactions } from "@/features/wallets/hooks"
@@ -15,6 +16,7 @@ import { PaginationStyled } from "@/components"
 import { PaginationParams } from "@/models/common/request"
 import { useState } from "react"
 import { formatCurrency, normalizeCurrency } from "@/utils/helpers/currency"
+import { TransactionStatusLabels, TransactionTypeColors } from "@/features/wallets/constants"
 
 export const WalletTransactionTable = () => {
     const [pagination, setPagination] = useState<PaginationParams>({ page: 1, pageSize: 10 })
@@ -35,11 +37,16 @@ export const WalletTransactionTable = () => {
         <>
             <Table aria-label="Biến động số dư" className="mt-4">
                 <TableHeader>
-                    <TableColumn>MÃ GIAO DỊCH</TableColumn>
-                    <TableColumn>THỜI GIAN</TableColumn>
-                    <TableColumn>NỘI DUNG</TableColumn>
-                    <TableColumn align="end">SỐ TIỀN (Đ)</TableColumn>
-                    <TableColumn align="end">SỐ DƯ SAU (Đ)</TableColumn>
+                    <TableColumn width="15%">MÃ GIAO DỊCH</TableColumn>
+                    <TableColumn width="15%">THỜI GIAN</TableColumn>
+                    <TableColumn width="30%">NỘI DUNG</TableColumn>
+                    <TableColumn width="12%" align="end">
+                        SỐ TIỀN (Đ)
+                    </TableColumn>
+                    <TableColumn width="15%" align="end">
+                        SỐ DƯ SAU (Đ)
+                    </TableColumn>
+                    <TableColumn width="13%">TRẠNG THÁI</TableColumn>
                 </TableHeader>
                 <TableBody items={data?.items || []} emptyContent="Chưa có giao dịch nào.">
                     {(item) => (
@@ -54,6 +61,11 @@ export const WalletTransactionTable = () => {
                             <TableCell>{renderAmount(item.amount)}</TableCell>
                             <TableCell className="text-default-500">
                                 {formatCurrency(item.balanceAfter)}
+                            </TableCell>
+                            <TableCell>
+                                <Chip variant="bordered" color={TransactionTypeColors[item.status]}>
+                                    {TransactionStatusLabels[item.status]}
+                                </Chip>
                             </TableCell>
                         </TableRow>
                     )}
