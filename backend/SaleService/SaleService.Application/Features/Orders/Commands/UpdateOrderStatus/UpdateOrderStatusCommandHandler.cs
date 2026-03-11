@@ -91,6 +91,29 @@ public sealed class UpdateOrderStatusCommandHandler
                 if(request.RoleSlug == "staff")
                 {
                     // Hoàn Point + Voucher 
+                    decimal point = order.OrderSaleItems
+                        .Where(x => x.Type == OrderSaleItemType.LoyaltyPoint)
+                        .Select(x => x.Amount)
+                        .FirstOrDefault();
+                    if (point != 0 || point != null)
+                    {
+                        UpdatePointEvent userPoint = new UpdatePointEvent
+                        {
+                            Id = order.CustomerId.Value,
+                            OrderId = order.Id,
+                            Point = point,
+                            ActionType = UpdatePointType.Add
+                        };
+                        _kafkaProducer.PublishAsync(KafkaTopics.UpdateUserPoint, userPoint);
+                    }
+
+                    // Kakfa Event Voucher
+                    ReverseVoucherEvent userVoucher = new ReverseVoucherEvent
+                    {
+                        OrderId = order.Id
+                    };
+                        _kafkaProducer.PublishAsync(KafkaTopics.ReverseUserVoucher, userVoucher);
+                    }
                 }
             }
         }
