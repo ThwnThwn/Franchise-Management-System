@@ -41,6 +41,8 @@ service ProductGrpc {
 
   // Recalculate variant costs from InventoryService MAC updates
   rpc RecalculateVariantCosts (RecalculateVariantCostsRequest) returns (google.protobuf.Empty);
+
+  rpc GetProductsByIds (GetProductsByIdsRequest) returns (GetProductsByIdsReply);
 }
 
 // ── GetProductBySku ──
@@ -248,4 +250,13 @@ message RecalculateVariantCostsRequest {
 message VariantCostUpdate {
     string variant_id = 1;
     double new_cost = 2;
+}
+
+message GetProductsByIdsRequest {
+  repeated string product_ids = 1;
+}
+
+message GetProductsByIdsReply {
+  repeated Product products = 1;
+  int32 total_count = 2;
 }

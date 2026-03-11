@@ -70,7 +70,7 @@ namespace EngagementService.Application.Features.Voucher.Commands.Create
                     //tạo voucher item
                     var voucherItems = request.VoucherItems.Select(item => new VoucherItem()
                     {
-                        
+
                         Id = Guid.NewGuid(),
                         Sku = item.Sku,
                         Quantity = item.Quantity,

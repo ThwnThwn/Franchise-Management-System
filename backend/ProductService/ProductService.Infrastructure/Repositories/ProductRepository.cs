@@ -266,4 +266,16 @@ public class ProductRepository : GenericRepository<Product>, IProductRepository
         await UpdateWithVariantsOnlyAsync(updatedProduct);
         await _dbContext.SaveChangesAsync();
     }
+
+    public async Task<List<Product>> GetProductsByIdsAsync(List<Guid> productIds)
+    {
+        if (productIds == null || !productIds.Any())
+            return new List<Product>();
+
+        return await _dbContext.Products
+            .Include(p => p.ProductVariants)
+            .Include(p => p.Category)        // nếu có navigation property
+            .Where(p => productIds.Contains(p.Id) && !p.IsDeleted)
+            .ToListAsync();
+    }
 }

@@ -28,4 +28,6 @@ public interface IProductRepository : IGenericRepository<Product>
     Task UpdateWithVariantsAsync(Product updatedProduct);
 
     Task<Product> UpdateWithVariantsOnlyAsync(Product updatedProduct);
+
+    Task<List<Product>> GetProductsByIdsAsync(List<Guid> productIds);
 }

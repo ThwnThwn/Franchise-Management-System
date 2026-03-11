@@ -38,7 +38,7 @@ namespace EngagementService.Application.Constants
         public const string InvalidMinOrderValue = "Giá trị đơn hàng tối thiểu không hợp lệ";
         public const string InactiveVoucher = "Mã giảm giá không hoạt động";
         public const string ExpiredVoucher = "Mã giảm giá đã hết hạn";
-        public const string UsageLimitReached = "Mã giảm giá đã đạt giới hạn sử dụng";  
+        public const string UsageLimitReached = "Mã giảm giá đã đạt giới hạn sử dụng";
         public const string OutOfStock = "Mã giảm giá đã hết hàng";
 
 

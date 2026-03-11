@@ -42,7 +42,7 @@ namespace EngagementService.Application.Dtos.Voucher
     public class UpdateVoucherRequest
     {
         public Guid Id { get; set; }
-        
+
         //public bool? IsActive { get; set; }
         public decimal? DiscountValue { get; set; }
 

@@ -1,5 +1,6 @@
 using SalesService.Application.Features.Orders.Queries.GetByIds;
 using SalesService.Application.Features.Orders.Queries.GetOrderVolume;
+using SalesService.Application.Features.Reports.Queries.CustomerPurchaseBehavior;
 using SalesService.Application.Features.Reports.Queries.GetRevenueReport;
 using SalesService.Application.Features.Reports.Queries.GetSalesTrend;
 using SalesService.Domain.Entities;
@@ -57,4 +58,13 @@ public interface IOrderRepository
         List<string>? categorySkus,
         Guid? storeId,
         CancellationToken cancellationToken = default);
+
+    Task<List<CustomerOrderStatDto>> GetCustomerOrderStatisticAsync(
+    Guid storeId,
+    DateTimeOffset? from,
+    DateTimeOffset? to,
+    int? minOrders,
+    int? maxOrders,
+    CancellationToken ct);
 }
+

@@ -81,7 +81,7 @@ namespace IdentityService.API
                 kafkaBootstrap = "localhost:9092";  // Use localhost when running outside Docker
             }
             builder.Configuration["KAFKA_BOOTSTRAP_SERVERS"] = kafkaBootstrap;
-            
+
             // --- APP SERVICES ---
             builder.Services.AddApplication();
             builder.Services.AddScoped<ITokenBlacklist, TokenBlacklist>();
