@@ -1,5 +1,4 @@
 ﻿using EngagementService.Application.Abstraction;
-using EngagementService.Application.Constants;
 using EngagementService.Application.Features.LoyaltyAccount.Commands.RedeemVoucher;
 using EngagementService.Application.Features.LoyaltyAccount.Queries.GetById;
 using EngagementService.Application.Features.LoyaltyAccount.Queries.GetByIdsFilter;
@@ -9,6 +8,7 @@ using EngagementService.Grpc.Protos.MembershipTier;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using MediatR;
+using SharedKernel.Events;
 
 namespace EngagementService.API.Services.LoyaltyAccount
 {
@@ -119,15 +119,16 @@ namespace EngagementService.API.Services.LoyaltyAccount
             return new Empty();
         }
 
-        public async override Task<Empty> DeductPoints(DeductPointRequest request, ServerCallContext context)
+        public async override Task<Empty> UpdatePoint( UpdatePointRequest request, ServerCallContext context)
         {
-            var req = new Application.Dtos.LoyaltyAccount.DeductPointRequest
+            var req = new Application.Dtos.LoyaltyAccount.UpdatePointRequest
             {
                 Id = Guid.Parse(request.Id),
-                PointToDeduct = decimal.Parse(request.PointToDeduct),
-                OrderId = Guid.Parse(request.OrderId)
+                Point = decimal.Parse(request.PointToDeduct),
+                OrderId = Guid.Parse(request.OrderId),
+                ActionType = (SharedKernel.Events.UpdatePointType)request.ActionType
             };
-            await _mediator.Send(new Application.Features.LoyaltyAccount.Commands.DetuctPoint.DeductPointCommand(req));
+            await _mediator.Send(new Application.Features.LoyaltyAccount.Commands.DetuctPoint.UpdatePointCommand(req));
             return new Empty();
         }
 

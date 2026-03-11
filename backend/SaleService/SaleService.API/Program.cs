@@ -157,7 +157,7 @@ public class Program
             registry.Register<OrderCancelledEvent>(KafkaTopics.OrderCancelled, KafkaTopics.OrderCancelled);
             registry.Register<ProcessOrderRewardEvent>(KafkaTopics.ProcessOrderReward, KafkaTopics.ProcessOrderReward);
             registry.Register<UseVouchersEvent>(KafkaTopics.DeductUserVoucher, KafkaTopics.DeductUserVoucher);
-            registry.Register<DeductPointEvent>(KafkaTopics.DedcutUserPoint, KafkaTopics.DedcutUserPoint);
+            registry.Register<UpdatePointEvent>(KafkaTopics.UpdateUserPoint, KafkaTopics.UpdateUserPoint);
             return registry;
         });
 

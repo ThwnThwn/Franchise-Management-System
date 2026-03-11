@@ -15,9 +15,9 @@ namespace EngagementService.Application.Features.Voucher.Commands.UpdateUserVouc
     {
         private readonly IUserVoucherRepository _userVoucherRepository;
         private readonly IVoucherUsageRepository _voucherUsageRepository;
-        private readonly ILoyaltyAccountUow _uow;
+        private readonly ILoyaltyUow _uow;
 
-        public UseVoucherHandler(IUserVoucherRepository userVoucherRepository, IVoucherUsageRepository voucherUsageRepository, ILoyaltyAccountUow uow)
+        public UseVoucherHandler(IUserVoucherRepository userVoucherRepository, IVoucherUsageRepository voucherUsageRepository, ILoyaltyUow uow)
         {
             _userVoucherRepository = userVoucherRepository;
             _voucherUsageRepository = voucherUsageRepository;
