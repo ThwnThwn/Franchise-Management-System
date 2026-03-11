@@ -2,12 +2,8 @@
 
 import React, { useMemo } from "react"
 import { Accordion, AccordionItem, Divider } from "@heroui/react"
-import { Order, OrderSaleItem, OrderSaleItemType } from "@/features/orders/models/response"
-import {
-    formatCurrency,
-    formatCurrencyWithSymbol,
-    normalizeCurrency
-} from "@/utils/helpers/currency"
+import { Order, OrderSaleItemType } from "@/features/orders/models/response"
+import { formatCurrencyWithSymbol } from "@/utils/helpers/currency"
 import { ORDER_TEXT, OrderStatus, PaymentMethodLabels } from "@/features/orders/constants"
 import { RecipeViewRes } from "@/features/products/models/recipes/response"
 import { RecipeIngredientList } from "@/features/products"
@@ -38,10 +34,6 @@ export const OrderDetail = ({
         return []
     }, [order])
 
-    const voucherMap = new Map<string, OrderSaleItem>(
-        (order.saleItems ?? []).map((item) => [item.name, item])
-    )
-
     // Calculate Discounts
     const calculateDiscount = () => {
         let discount = 0
@@ -51,16 +43,11 @@ export const OrderDetail = ({
 
         if (appliedDiscountVoucher) {
             if (appliedDiscountVoucher.type === VoucherType.DISCOUNT_FIXED_AMOUNT) {
-                discount += normalizeCurrency(appliedDiscountVoucher.discount_value || 0)
+                discount += Number(appliedDiscountVoucher.discount_value || 0)
             } else if (appliedDiscountVoucher.type === VoucherType.DISCOUNT_PERCENTAGE) {
-                let calculated =
-                    orderTotal *
-                    (normalizeCurrency(appliedDiscountVoucher.discount_value || 0) / 100)
+                let calculated = orderTotal * (Number(appliedDiscountVoucher.discount_value || 0) / 100)
                 if (appliedDiscountVoucher.max_discount_value) {
-                    calculated = Math.min(
-                        calculated,
-                        normalizeCurrency(appliedDiscountVoucher.max_discount_value)
-                    )
+                    calculated = Math.min(calculated, Number(appliedDiscountVoucher.max_discount_value))
                 }
                 discount += calculated
             }
@@ -68,16 +55,11 @@ export const OrderDetail = ({
 
         if (appliedShippingVoucher) {
             if (appliedShippingVoucher.type === VoucherType.SHIPPING_FIXED_AMOUNT) {
-                shippingDiscount += normalizeCurrency(appliedShippingVoucher.discount_value || 0)
+                shippingDiscount += Number(appliedShippingVoucher.discount_value || 0)
             } else if (appliedShippingVoucher.type === VoucherType.SHIPPING_PERCENTAGE) {
-                let calculated =
-                    orderTotal *
-                    (normalizeCurrency(appliedShippingVoucher.discount_value || 0) / 100)
+                let calculated = orderTotal * (Number(appliedShippingVoucher.discount_value || 0) / 100)
                 if (appliedShippingVoucher.max_discount_value) {
-                    calculated = Math.min(
-                        calculated,
-                        normalizeCurrency(appliedShippingVoucher.max_discount_value)
-                    )
+                    calculated = Math.min(calculated, Number(appliedShippingVoucher.max_discount_value))
                 }
                 shippingDiscount += calculated
             }
@@ -149,57 +131,28 @@ export const OrderDetail = ({
                 <div className="hidden print:flex flex-col">
                     {/* Danh sách SP khách mua */}
                     {order.items.map((item) => {
-                        const giftQty =
-                            order.saleItems?.filter(
-                                (s) =>
-                                    s.type === OrderSaleItemType.VOUCHER &&
-                                    s.amount <= 1 &&
-                                    (s.name
-                                        .toUpperCase()
-                                        .includes(item.productName.toUpperCase()) ||
-                                        s.name.toUpperCase().includes(item.sku.toUpperCase()))
-                            ).length || 0
+                        const giftQty = order.saleItems?.filter(
+                            (s) => s.type === OrderSaleItemType.VOUCHER && s.amount <= 1 && (s.name.toUpperCase().includes(item.productName.toUpperCase()) || s.name.toUpperCase().includes(item.sku.toUpperCase()))
+                        ).length || 0;
                         const buyQty = Math.max(0, item.quantity - giftQty)
 
                         if (buyQty <= 0) return null
                         return (
-                            <div
-                                key={`buy-${item.id}`}
-                                className="px-2 py-4 border-b border-default-100 last:border-none transition-none"
-                            >
-                                <OrderItemRow
-                                    item={item}
-                                    sale={voucherMap.get(item.sku)}
-                                    overrideQuantity={buyQty}
-                                />
+                            <div key={`buy-${item.id}`} className="px-2 py-4 border-b border-default-100 last:border-none transition-none">
+                                <OrderItemRow item={item} overrideQuantity={buyQty} />
                             </div>
                         )
                     })}
                     {/* Danh sách SP tặng */}
                     {order.items.map((item) => {
-                        const giftQty =
-                            order.saleItems?.filter(
-                                (s) =>
-                                    s.type === OrderSaleItemType.VOUCHER &&
-                                    s.amount <= 1 &&
-                                    (s.name
-                                        .toUpperCase()
-                                        .includes(item.productName.toUpperCase()) ||
-                                        s.name.toUpperCase().includes(item.sku.toUpperCase()))
-                            ).length || 0
+                        const giftQty = order.saleItems?.filter(
+                            (s) => s.type === OrderSaleItemType.VOUCHER && s.amount <= 1 && (s.name.toUpperCase().includes(item.productName.toUpperCase()) || s.name.toUpperCase().includes(item.sku.toUpperCase()))
+                        ).length || 0;
 
                         if (giftQty <= 0) return null
                         return (
-                            <div
-                                key={`gift-${item.id}`}
-                                className="px-2 py-4 border-b border-default-100 last:border-none transition-none"
-                            >
-                                <OrderItemRow
-                                    item={item}
-                                    sale={voucherMap.get(item.sku)}
-                                    isGift={true}
-                                    overrideQuantity={giftQty}
-                                />
+                            <div key={`gift-${item.id}`} className="px-2 py-4 border-b border-default-100 last:border-none transition-none">
+                                <OrderItemRow item={item} isGift={true} overrideQuantity={giftQty} />
                             </div>
                         )
                     })}
@@ -209,53 +162,28 @@ export const OrderDetail = ({
                     <div className="print-hidden flex flex-col">
                         {/* Danh sách SP khách mua */}
                         {order.items.map((item) => {
-                            const giftQty =
-                                order.saleItems?.filter(
-                                    (s) =>
-                                        s.type === OrderSaleItemType.VOUCHER &&
-                                        s.amount <= 0 &&
-                                        (s.name.includes(item.productName) ||
-                                            s.name.includes(item.sku))
-                                ).length || 0
+                            const giftQty = order.saleItems?.filter(
+                                (s) => s.type === OrderSaleItemType.VOUCHER && s.amount <= 0 && (s.name.includes(item.productName) || s.name.includes(item.sku))
+                            ).length || 0;
                             const buyQty = Math.max(0, item.quantity - giftQty)
 
                             if (buyQty <= 0) return null
                             return (
-                                <div
-                                    key={`buy-${item.id}`}
-                                    className="px-2 py-4 border-b border-default-100 last:border-none transition-none"
-                                >
-                                    <OrderItemRow
-                                        item={item}
-                                        sale={voucherMap.get(item.sku)}
-                                        overrideQuantity={buyQty}
-                                    />
+                                <div key={`buy-${item.id}`} className="px-2 py-4 border-b border-default-100 last:border-none transition-none">
+                                    <OrderItemRow item={item} overrideQuantity={buyQty} />
                                 </div>
                             )
                         })}
                         {/* Danh sách SP tặng */}
                         {order.items.map((item) => {
-                            const giftQty =
-                                order.saleItems?.filter(
-                                    (s) =>
-                                        s.type === OrderSaleItemType.VOUCHER &&
-                                        s.amount <= 0 &&
-                                        (s.name.includes(item.productName) ||
-                                            s.name.includes(item.sku))
-                                ).length || 0
+                            const giftQty = order.saleItems?.filter(
+                                (s) => s.type === OrderSaleItemType.VOUCHER && s.amount <= 0 && (s.name.includes(item.productName) || s.name.includes(item.sku))
+                            ).length || 0;
 
                             if (giftQty <= 0) return null
                             return (
-                                <div
-                                    key={`gift-${item.id}`}
-                                    className="px-2 py-4 border-b border-default-100 last:border-none transition-none"
-                                >
-                                    <OrderItemRow
-                                        item={item}
-                                        sale={voucherMap.get(item.sku)}
-                                        isGift={true}
-                                        overrideQuantity={giftQty}
-                                    />
+                                <div key={`gift-${item.id}`} className="px-2 py-4 border-b border-default-100 last:border-none transition-none">
+                                    <OrderItemRow item={item} isGift={true} overrideQuantity={giftQty} />
                                 </div>
                             )
                         })}
@@ -274,67 +202,43 @@ export const OrderDetail = ({
                             content: "px-4 pt-0"
                         }}
                     >
-                        {
-                            order.items.flatMap((item) => {
-                                const giftQty =
-                                    order.saleItems?.filter(
-                                        (s) =>
-                                            s.type === OrderSaleItemType.VOUCHER &&
-                                            s.amount <= 1 &&
-                                            (s.name
-                                                .toUpperCase()
-                                                .includes(item.productName.toUpperCase()) ||
-                                                s.name
-                                                    .toUpperCase()
-                                                    .includes(item.sku.toUpperCase()))
-                                    ).length || 0
-                                const buyQty = Math.max(0, item.quantity - giftQty)
+                        {order.items.flatMap((item) => {
+                            const giftQty = order.saleItems?.filter(
+                                (s) => s.type === OrderSaleItemType.VOUCHER && s.amount <= 1 && (s.name.toUpperCase().includes(item.productName.toUpperCase()) || s.name.toUpperCase().includes(item.sku.toUpperCase()))
+                            ).length || 0;
+                            const buyQty = Math.max(0, item.quantity - giftQty)
 
-                                const items = []
-                                if (buyQty > 0) {
-                                    items.push(
-                                        <AccordionItem
-                                            key={`buy-${item.id}`}
-                                            aria-label={item.productName}
-                                            title={
-                                                <OrderItemRow
-                                                    item={item}
-                                                    sale={voucherMap.get(item.sku)}
-                                                    overrideQuantity={buyQty}
-                                                />
-                                            }
-                                        >
-                                            <RecipeIngredientList
-                                                variantId={item.variantId}
-                                                recipes={recipes}
-                                            />
-                                        </AccordionItem>
-                                    )
-                                }
-                                if (giftQty > 0) {
-                                    items.push(
-                                        <AccordionItem
-                                            key={`gift-${item.id}`}
-                                            aria-label={`${item.productName} (Quà tặng)`}
-                                            title={
-                                                <OrderItemRow
-                                                    item={item}
-                                                    sale={voucherMap.get(item.sku)}
-                                                    isGift={true}
-                                                    overrideQuantity={giftQty}
-                                                />
-                                            }
-                                        >
-                                            <RecipeIngredientList
-                                                variantId={item.variantId}
-                                                recipes={recipes}
-                                            />
-                                        </AccordionItem>
-                                    )
-                                }
-                                return items
-                            }) as any
-                        }
+                            const items = []
+                            if (buyQty > 0) {
+                                items.push(
+                                    <AccordionItem
+                                        key={`buy-${item.id}`}
+                                        aria-label={item.productName}
+                                        title={<OrderItemRow item={item} overrideQuantity={buyQty} />}
+                                    >
+                                        <RecipeIngredientList
+                                            variantId={item.variantId}
+                                            recipes={recipes}
+                                        />
+                                    </AccordionItem>
+                                )
+                            }
+                            if (giftQty > 0) {
+                                items.push(
+                                    <AccordionItem
+                                        key={`gift-${item.id}`}
+                                        aria-label={`${item.productName} (Quà tặng)`}
+                                        title={<OrderItemRow item={item} isGift={true} overrideQuantity={giftQty} />}
+                                    >
+                                        <RecipeIngredientList
+                                            variantId={item.variantId}
+                                            recipes={recipes}
+                                        />
+                                    </AccordionItem>
+                                )
+                            }
+                            return items
+                        }) as any}
                     </Accordion>
                 )}
             </div>
@@ -360,98 +264,69 @@ export const OrderDetail = ({
                     </div>
 
                     {/* Voucher Section for PaymentPending */}
-                    {isCustomer &&
-                        order.status === OrderStatus.PaymentPending &&
-                        onOpenVoucherSelector && (
-                            <div className="pt-2">
-                                <Button
-                                    className="w-full bg-primary/10 text-primary border border-primary/20 font-bold"
-                                    onPress={onOpenVoucherSelector}
-                                    startContent={<Ticket size={18} />}
-                                >
-                                    {appliedShippingVoucher || appliedDiscountVoucher
-                                        ? "Đã chọn tối đa voucher"
-                                        : "Chọn hoặc nhập mã Khuyến mãi"}
-                                </Button>
+                    {isCustomer && order.status === OrderStatus.PaymentPending && onOpenVoucherSelector && (
+                        <div className="pt-2">
+                            <Button
+                                className="w-full bg-primary/10 text-primary border border-primary/20 font-bold"
+                                onPress={onOpenVoucherSelector}
+                                startContent={<Ticket size={18} />}
+                            >
+                                {appliedShippingVoucher || appliedDiscountVoucher
+                                    ? 'Đã chọn tối đa voucher'
+                                    : 'Chọn hoặc nhập mã Khuyến mãi'}
+                            </Button>
 
-                                {/* Discount lines currently applying */}
-                                {(appliedShippingVoucher || appliedDiscountVoucher) && (
-                                    <div className="mt-3 space-y-2">
-                                        {appliedDiscountVoucher && productDiscount > 0 && (
-                                            <div className="flex justify-between text-xs font-medium text-success">
-                                                <span>
-                                                    Giảm giá ({appliedDiscountVoucher.code})
-                                                </span>
-                                                <span>
-                                                    -{formatCurrencyWithSymbol(productDiscount)}
-                                                </span>
-                                            </div>
-                                        )}
-                                        {appliedShippingVoucher && shippingDiscount > 0 && (
-                                            <div className="flex justify-between text-xs font-medium text-success">
-                                                <span>
-                                                    Hỗ trợ phí ship ({appliedShippingVoucher.code})
-                                                </span>
-                                                <span>
-                                                    -{formatCurrencyWithSymbol(shippingDiscount)}
-                                                </span>
-                                            </div>
-                                        )}
-                                        {appliedDiscountVoucher?.type === VoucherType.GIFT && (
-                                            <div className="flex justify-between items-center text-xs font-medium text-success p-2 bg-success/10 rounded-lg">
-                                                <span>
-                                                    Quà tặng ({appliedDiscountVoucher.code})
-                                                </span>
-                                                <span className="px-2 py-0.5 bg-success text-white rounded-full text-[10px]">
-                                                    Đã áp dụng quà tặng
-                                                </span>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-                        )}
+                            {/* Discount lines currently applying */}
+                            {(appliedShippingVoucher || appliedDiscountVoucher) && (
+                                <div className="mt-3 space-y-2">
+                                    {appliedDiscountVoucher && productDiscount > 0 && (
+                                        <div className="flex justify-between text-xs font-medium text-success">
+                                            <span>Giảm giá ({appliedDiscountVoucher.code})</span>
+                                            <span>-{formatCurrencyWithSymbol(productDiscount)}</span>
+                                        </div>
+                                    )}
+                                    {appliedShippingVoucher && shippingDiscount > 0 && (
+                                        <div className="flex justify-between text-xs font-medium text-success">
+                                            <span>Hỗ trợ phí ship ({appliedShippingVoucher.code})</span>
+                                            <span>-{formatCurrencyWithSymbol(shippingDiscount)}</span>
+                                        </div>
+                                    )}
+                                    {appliedDiscountVoucher?.type === VoucherType.GIFT && (
+                                        <div className="flex justify-between items-center text-xs font-medium text-success p-2 bg-success/10 rounded-lg">
+                                            <span>Quà tặng ({appliedDiscountVoucher.code})</span>
+                                            <span className="px-2 py-0.5 bg-success text-white rounded-full text-[10px]">Đã áp dụng quà tặng</span>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )}
 
                     {/* Applied Discounts from Backend (For completed orders) */}
-                    {order.saleItems &&
-                        order.saleItems.length > 0 &&
-                        order.status !== OrderStatus.PaymentPending && (
-                            <div className="pt-2">
-                                <div className="mt-3 space-y-2">
-                                    {order.saleItems.map((saleItem, idx) => (
-                                        <div
-                                            key={saleItem.id || idx}
-                                            className="flex justify-between items-center text-xs font-medium text-success"
-                                        >
-                                            <div className="flex flex-col">
-                                                <span>
-                                                    {saleItem.type === OrderSaleItemType.VOUCHER
-                                                        ? "Voucher"
-                                                        : saleItem.type ===
-                                                            OrderSaleItemType.PROMOTION
-                                                          ? "Khuyến mãi"
-                                                          : saleItem.type ===
-                                                              OrderSaleItemType.POINT
-                                                            ? "Dùng điểm"
-                                                            : saleItem.type ===
-                                                                OrderSaleItemType.WALLET
-                                                              ? "Ví CFMS"
-                                                              : "Giảm giá"}
-                                                    {saleItem.name ? ` (${saleItem.name})` : ""}
-                                                </span>
-                                            </div>
-                                            {saleItem.amount > 0 ? (
-                                                <span>-{formatCurrency(saleItem.amount)}</span>
-                                            ) : (
-                                                <span className="px-2 py-0.5 bg-success text-white rounded-full text-[10px]">
-                                                    Quà tặng
-                                                </span>
-                                            )}
+                    {order.saleItems && order.saleItems.length > 0 && order.status !== OrderStatus.PaymentPending && (
+                        <div className="pt-2">
+                            <div className="mt-3 space-y-2">
+                                {order.saleItems.map((saleItem, idx) => (
+                                    <div key={saleItem.id || idx} className="flex justify-between items-center text-xs font-medium text-success">
+                                        <div className="flex flex-col">
+                                            <span>
+                                                {saleItem.type === OrderSaleItemType.VOUCHER ? "Voucher" :
+                                                    saleItem.type === OrderSaleItemType.PROMOTION ? "Khuyến mãi" :
+                                                        saleItem.type === OrderSaleItemType.POINT ? "Dùng điểm" :
+                                                            saleItem.type === OrderSaleItemType.WALLET ? "Ví CFMS" : "Giảm giá"}
+                                                {saleItem.name ? ` (${saleItem.name})` : ""}
+                                            </span>
                                         </div>
-                                    ))}
-                                </div>
+                                        {saleItem.amount > 0 ? (
+                                            <span>-{formatCurrencyWithSymbol(saleItem.amount)}</span>
+                                        ) : (
+                                            <span className="px-2 py-0.5 bg-success text-white rounded-full text-[10px]">Quà tặng</span>
+                                        )}
+                                    </div>
+                                ))}
                             </div>
-                        )}
+                        </div>
+                    )}
 
                     <div className="pt-2">
                         <div className="border-t border-dashed border-default-200 my-2" />
@@ -461,9 +336,7 @@ export const OrderDetail = ({
                             </span>
                             <span className="text-xl font-black text-primary flex flex-col items-end">
                                 {totalDiscount > 0 && (
-                                    <span className="text-xs text-default-400 line-through font-normal">
-                                        {formatCurrencyWithSymbol(order.totalAmount)}
-                                    </span>
+                                    <span className="text-xs text-default-400 line-through font-normal">{formatCurrencyWithSymbol(order.totalAmount)}</span>
                                 )}
                                 {formatCurrencyWithSymbol(finalAmount)}
                             </span>
@@ -474,3 +347,4 @@ export const OrderDetail = ({
         </div>
     )
 }
+

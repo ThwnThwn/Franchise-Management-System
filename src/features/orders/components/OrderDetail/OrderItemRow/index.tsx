@@ -3,17 +3,16 @@
 import React from "react"
 import { ImageStyled } from "@/components"
 import { formatCurrencyWithSymbol } from "@/utils/helpers/currency"
-import { OrderItem, OrderSaleItem } from "@/features/orders/models/response"
+import { OrderItem } from "@/features/orders/models/response"
 
 interface OrderItemRowProps {
     item: OrderItem
-    sale?: OrderSaleItem
     isGift?: boolean
     overrideQuantity?: number
 }
 
-export const OrderItemRow = ({ item, sale, isGift = false }: OrderItemRowProps) => {
-    const displayQuantity = sale ? item.quantity - sale.amount : item.quantity
+export const OrderItemRow = ({ item, isGift = false, overrideQuantity }: OrderItemRowProps) => {
+    const displayQuantity = overrideQuantity !== undefined ? overrideQuantity : item.quantity
     const displayTotal = isGift ? 0 : item.unitPrice * displayQuantity
 
     if (displayQuantity <= 0) return null

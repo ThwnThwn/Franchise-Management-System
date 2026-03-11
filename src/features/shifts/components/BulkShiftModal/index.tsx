@@ -42,7 +42,7 @@ interface BulkShiftModalProps {
     onClose: () => void
     storeId: string
 
-    // currentDate: dayjs.Dayjs
+    currentDate: dayjs.Dayjs
     dateRange: {
         fromDate: string
         toDate: string
@@ -53,7 +53,7 @@ export const BulkShiftModal = ({
     isOpen,
     onClose,
     storeId,
-    // currentDate,
+    currentDate,
     dateRange
 }: BulkShiftModalProps) => {
     const { dateNow, formatDate, toDate, formatTime, toTime } = useDay({ defaultFormat: "HH:mm" })
@@ -108,8 +108,8 @@ export const BulkShiftModal = ({
 
     useEffect(() => {
         if (isOpen) {
-            const forOpenStartDate = dayjs(minDateStr).isAfter(dayjs(dateRange.fromDate))
-                ? minDateStr
+            const forOpenStartDate = currentDate.isAfter(dayjs(dateRange.fromDate))
+                ? currentDate.format("YYYY-MM-DD")
                 : dateRange.fromDate
             formik.setFieldValue("startDate", forOpenStartDate)
             formik.setFieldValue("endDate", dateRange.toDate)

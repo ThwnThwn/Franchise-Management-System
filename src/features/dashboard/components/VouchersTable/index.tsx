@@ -6,12 +6,10 @@ import {
     TableRow,
     TableCell,
     Chip,
-    Switch,
-    Tooltip,
-    Button
+    Switch
 } from "@heroui/react"
 import { Voucher, VoucherType, VoucherItemType } from "@/features/orders/models/voucher"
-import { Edit, Trash2, Gift, PackageCheck } from "lucide-react"
+import { Gift, PackageCheck } from "lucide-react"
 import { VariantNameMap } from "../../utils/exportVouchers"
 import { normalizeCurrency } from "@/utils/helpers/currency"
 
@@ -28,9 +26,9 @@ interface VouchersTableProps {
 export const VouchersTable = ({
     vouchers,
     isLoading,
-    onEdit,
-    onToggleStatus,
-    onDelete
+    // onEdit,
+    onToggleStatus
+    // onDelete
     // onAssign,
     // variantMap = {}
 }: VouchersTableProps) => {
@@ -121,7 +119,7 @@ export const VouchersTable = ({
                 <TableColumn>QUÀ TẶNG</TableColumn>
                 <TableColumn>ITEM YÊU CẦU</TableColumn>
                 <TableColumn>TRẠNG THÁI</TableColumn>
-                <TableColumn align="center">HÀNH ĐỘNG</TableColumn>
+                {/* <TableColumn align="center">HÀNH ĐỘNG</TableColumn> */}
             </TableHeader>
             <TableBody
                 items={vouchers}
@@ -171,22 +169,12 @@ export const VouchersTable = ({
                                 onValueChange={(val) => onToggleStatus(voucher.id, !val)} // !val because param is current state
                             />
                         </TableCell>
-                        <TableCell>
+                        {/* <TableCell>
                             <div className="flex justify-center gap-2">
-                                {/* <Tooltip content="Gán Voucher" color="secondary">
-                                    // <Button
-                                    //     isIconOnly
-                                    //     size="sm"
-                                    //     variant="light"
-                                    //     color="secondary"
-                                    //     onPress={() => onAssign(voucher)}
-                                    // >
-                                    //     <Gift size={16} />
-                                    // </Button>
-                                </Tooltip> */}
                                 <Tooltip content="Chỉnh sửa">
                                     <Button
                                         isIconOnly
+                                        hidden
                                         size="sm"
                                         variant="light"
                                         onPress={() => onEdit(voucher)}
@@ -196,6 +184,7 @@ export const VouchersTable = ({
                                 </Tooltip>
                                 <Tooltip content="Xóa" color="danger">
                                     <Button
+                                        hidden
                                         isIconOnly
                                         size="sm"
                                         variant="light"
@@ -207,7 +196,7 @@ export const VouchersTable = ({
                                     </Button>
                                 </Tooltip>
                             </div>
-                        </TableCell>
+                        </TableCell> */}
                     </TableRow>
                 )}
             </TableBody>
