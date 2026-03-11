@@ -184,17 +184,6 @@ public sealed class CreatePaymentHandler
                         {
                             // Update quantity
                             existing.Quantity += item.Quantity;
-                            var variant = variants.First(v => v.Sku == item.Sku);
-                            decimal unitPrice = variant.BasePrice.Value;
-                            order.OrderSaleItems.Add(new Domain.Entities.OrderSaleItem
-                            {
-                                OrderId = order.Id,
-                                Name = item.Sku,
-                                Amount = item.Quantity,
-                                ReferenceId = item.VoucherId,
-                                Type = OrderSaleItemType.Voucher,
-                                IsDeleted = false
-                            });
                         }
                         else
                         {
@@ -214,6 +203,15 @@ public sealed class CreatePaymentHandler
                                 IsDeleted = false
                             });
                         }
+                        order.OrderSaleItems.Add(new Domain.Entities.OrderSaleItem
+                        {
+                            OrderId = order.Id,
+                            Name = item.Sku,
+                            Amount = item.Quantity,
+                            ReferenceId = item.VoucherId,
+                            Type = OrderSaleItemType.Voucher,
+                            IsDeleted = false
+                        });
                     }
                 }
 
