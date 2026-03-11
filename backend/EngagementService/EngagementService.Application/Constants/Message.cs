@@ -19,6 +19,7 @@ namespace EngagementService.Application.Constants
         public const string NotFound = "Không tìm thấy tài khoản thành viên";
         public const string InsufficientPoints = "Điểm không đủ để thực hiện hành động này";
         public const string AlreadyExists = "Tài khoản đã tồn tại";
+        public const string InvalidActionType = "Loại hành động không hợp lệ";
     }
 
     public static class VoucherMsg
