@@ -4,6 +4,7 @@ import React, { useState } from "react"
 import { useGetAllVouchers, useUpdateVoucherStatus, useDeleteVoucher } from "@/features/orders/hooks/useVoucher"
 import { VouchersTable } from "../../components/VouchersTable"
 import { VoucherModal } from "../../components/VoucherModal"
+import { AssignVoucherModal } from "../../components/AssignVoucherModal"
 import { Voucher } from "@/features/orders/models/voucher"
 import { Button, Input } from "@heroui/react"
 import { Plus, Search } from "lucide-react"
@@ -14,6 +15,7 @@ export const VouchersPageView = () => {
     const { mutate: deleteVoucher } = useDeleteVoucher()
 
     const [isModalOpen, setIsModalOpen] = useState(false)
+    const [isAssignModalOpen, setIsAssignModalOpen] = useState(false)
     const [selectedVoucher, setSelectedVoucher] = useState<Voucher | null>(null)
     const [searchQuery, setSearchQuery] = useState("")
 
@@ -25,6 +27,11 @@ export const VouchersPageView = () => {
     const handleEdit = (voucher: Voucher) => {
         setSelectedVoucher(voucher)
         setIsModalOpen(true)
+    }
+
+    const handleAssign = (voucher: Voucher) => {
+        setSelectedVoucher(voucher)
+        setIsAssignModalOpen(true)
     }
 
     const handleToggleStatus = (id: string, is_active: boolean) => {
@@ -71,12 +78,20 @@ export const VouchersPageView = () => {
                     onEdit={handleEdit}
                     onToggleStatus={handleToggleStatus}
                     onDelete={handleDelete}
+                    onAssign={handleAssign}
                 />
             </div>
 
             <VoucherModal
                 isOpen={isModalOpen}
                 onOpenChange={setIsModalOpen}
+                voucher={selectedVoucher}
+                onSuccess={refetch}
+            />
+
+            <AssignVoucherModal
+                isOpen={isAssignModalOpen}
+                onOpenChange={setIsAssignModalOpen}
                 voucher={selectedVoucher}
                 onSuccess={refetch}
             />
