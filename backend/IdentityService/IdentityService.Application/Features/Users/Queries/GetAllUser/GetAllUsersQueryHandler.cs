@@ -28,7 +28,12 @@ public class GetAllUsersQueryHandler : IRequestHandler<GetAllUsersQuery, PagedRe
         _saleServiceClient = saleServiceClient;
     }
 
-    
+    /// <summary>
+    /// Handles the specified query.
+    /// </summary>
+    /// <param name="query">The query.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns></returns>
     public async Task<PagedResult<UserRep>> Handle(GetAllUsersQuery query, CancellationToken cancellationToken)
     {
         List<Guid>? filteredUserIds = null;

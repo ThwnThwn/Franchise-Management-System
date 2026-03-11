@@ -15,7 +15,11 @@ namespace ProductService.Infrastructure.Repositories
         public CategoryRepository(IProductDbContext dbContext) : base(dbContext)
         {
         }
-
+        /// <summary>
+        /// Gets all categories asynchronous.
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
         public async Task<List<Category>> GetAllCategoriesAsync(
             CancellationToken cancellationToken = default)
         {
@@ -25,7 +29,11 @@ namespace ProductService.Infrastructure.Repositories
                 .OrderBy(c => c.Name)
                 .ToListAsync(cancellationToken);
         }
-
+        /// <summary>
+        /// Gets all asynchronous.
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
         public async Task<IEnumerable<Category>> GetAllAsync(
             CancellationToken cancellationToken = default)
         {
@@ -35,7 +43,12 @@ namespace ProductService.Infrastructure.Repositories
                 .OrderByDescending(c => c.CreatedAt)
                 .ToListAsync(cancellationToken);
         }
-
+        /// <summary>
+        /// Gets the by category identifier asynchronous.
+        /// </summary>
+        /// <param name="categoryId">The category identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
         public async Task<Category?> GetByCategoryIdAsync(
             Guid categoryId,
             CancellationToken cancellationToken = default)
@@ -45,7 +58,12 @@ namespace ProductService.Infrastructure.Repositories
                 .FirstOrDefaultAsync(c => c.Id == categoryId && c.IsDeleted == false,
                     cancellationToken);
         }
-
+        /// <summary>
+        /// Gets the by category name asynchronous.
+        /// </summary>
+        /// <param name="categoryName">Name of the category.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
         public async Task<Category?> GetByCategoryNameAsync(
         string categoryName,
         CancellationToken cancellationToken = default)
@@ -64,7 +82,12 @@ namespace ProductService.Infrastructure.Repositories
                 VietnameseHelper.RemoveVietnameseSigns(c.Name.Trim()).ToLower() == normalizedSearchName
             );
         }
-
+        /// <summary>
+        /// Gets the by category name containing asynchronous.
+        /// </summary>
+        /// <param name="categoryName">Name of the category.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
         public async Task<Category?> GetByCategoryNameContainingAsync(
             string categoryName,
             CancellationToken cancellationToken = default)
@@ -83,7 +106,12 @@ namespace ProductService.Infrastructure.Repositories
                 VietnameseHelper.RemoveVietnameseSigns(c.Name).ToLower().Contains(normalizedSearchName)
             );
         }
-
+        /// <summary>
+        /// Gets the by identifier with products asynchronous.
+        /// </summary>
+        /// <param name="categoryId">The category identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
         public async Task<Category?> GetByIdWithProductsAsync(
             Guid categoryId,
             CancellationToken cancellationToken = default)
@@ -94,7 +122,13 @@ namespace ProductService.Infrastructure.Repositories
                 .FirstOrDefaultAsync(c => c.Id == categoryId && c.IsDeleted == false,
                     cancellationToken);
         }
-
+        /// <summary>
+        /// Existses the by name asynchronous.
+        /// </summary>
+        /// <param name="categoryName">Name of the category.</param>
+        /// <param name="excludeCategoryId">The exclude category identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
         public async Task<bool> ExistsByNameAsync(
             string categoryName,
             Guid? excludeCategoryId = null,
@@ -112,7 +146,14 @@ namespace ProductService.Infrastructure.Repositories
 
             return await query.AnyAsync(cancellationToken);
         }
-
+        /// <summary>
+        /// Determines whether [has products asynchronous] [the specified category identifier].
+        /// </summary>
+        /// <param name="categoryId">The category identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>
+        ///   <c>true</c> if [has products asynchronous] [the specified category identifier]; otherwise, <c>false</c>.
+        /// </returns>
         public async Task<bool> HasProductsAsync(
             Guid categoryId,
             CancellationToken cancellationToken = default)
