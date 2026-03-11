@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useEffect, useState } from "react"
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Input, Select, SelectItem, Divider, Card, CardBody } from "@heroui/react"
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Input, Select, SelectItem, Divider, Card, CardBody, addToast } from "@heroui/react"
 import { Voucher, VoucherType, CreateVoucherRequest, VoucherItemType, CreateVoucherItemReq } from "@/features/orders/models/voucher"
 import { useCreateVoucher, useUpdateVoucher } from "@/features/orders/hooks/useVoucher"
 import { Plus, Trash2, Package } from "lucide-react"
@@ -101,6 +101,11 @@ export const VoucherModal = ({ isOpen, onOpenChange, voucher, onSuccess }: Vouch
             updateVoucher({ id: voucher.id, req: updatePayload }, {
                 onSuccess: () => {
                     onSuccess()
+                    addToast({
+                        title: "Thành công",
+                        description: "Đã cập nhật voucher",
+                        color: "success"
+                    })
                     onOpenChange(false)
                 }
             })
@@ -108,6 +113,11 @@ export const VoucherModal = ({ isOpen, onOpenChange, voucher, onSuccess }: Vouch
             createVoucher(payload as CreateVoucherRequest, {
                 onSuccess: () => {
                     onSuccess()
+                    addToast({
+                        title: "Thành công",
+                        description: "Đã tạo voucher mới",
+                        color: "success"
+                    })
                     onOpenChange(false)
                 }
             })

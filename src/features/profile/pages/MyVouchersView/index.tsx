@@ -1,13 +1,13 @@
 "use client"
 
 import React, { useState } from "react"
-import { useGetAllVouchers, useGetMyVouchers, useRedeemVoucher } from "@/features/orders/hooks/useVoucher"
+import { useGetAllVouchers, useGetMyVouchers, useRedeemVoucher, useCollectVoucher } from "@/features/orders/hooks/useVoucher"
 import { useGetMe, useGetMyLoyalty } from "@/features/profile/hooks/useProfile"
 import { ChevronLeft, Ticket, Gift, Percent, Star, AlertCircle } from "lucide-react"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { Voucher, VoucherType } from "@/features/orders/models/voucher"
-import { Button, Chip } from "@heroui/react"
+import { Button, Chip, addToast } from "@heroui/react"
 import { useQueryClient } from "@tanstack/react-query"
 import { QUERY_KEYS } from "@/constants/queryKeys"
 
@@ -15,7 +15,7 @@ const VoucherCard = ({ voucher, isOwned, userPoints, onRedeem, isRedeeming }: {
     voucher: Voucher,
     isOwned: boolean,
     userPoints: number,
-    onRedeem?: (id: string) => void,
+    onRedeem?: (id: string, pointCost: number) => void,
     isRedeeming?: boolean
 }) => {
     // Render Voucher Type Label
@@ -93,7 +93,7 @@ const VoucherCard = ({ voucher, isOwned, userPoints, onRedeem, isRedeeming }: {
                             variant={canRedeem && !isOutOfStock ? "solid" : "flat"}
                             isDisabled={!canRedeem || isOutOfStock}
                             isLoading={isRedeeming}
-                            onPress={() => onRedeem?.(voucher.id)}
+                            onPress={() => onRedeem?.(voucher.id, pointCost)}
                             size="sm"
                         >
                             {isOutOfStock ? "Hết lượt" : (pointCost > 0 ? "Đổi mã" : "Nhận mã")}
@@ -119,6 +119,7 @@ export default function MyVouchersView() {
     const { data: myVouchers = [], isLoading: isLoadingMy, refetch: refetchMyVouchers } = useGetMyVouchers()
     const queryClient = useQueryClient()
     const { mutate: redeemVoucher, isPending: isRedeeming } = useRedeemVoucher()
+    const { mutate: collectVoucher, isPending: isCollecting } = useCollectVoucher()
 
     const [activeTab, setActiveTab] = useState<"my_vouchers" | "exchange">("my_vouchers")
     const [redeemingId, setRedeemingId] = useState<string | null>(null)
@@ -133,21 +134,35 @@ export default function MyVouchersView() {
         return v.is_active && usageCount < maxUsage
     })
 
-    const handleRedeem = (voucherId: string) => {
+    const handleRedeem = (voucherId: string, pointCost: number) => {
         setRedeemingId(voucherId)
-        redeemVoucher(voucherId, {
-            onSuccess: () => {
-                refetchMyVouchers()
-                // Refresh points and logs
-                queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.LOYALTY_ACCOUNT] })
-                queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.POINT_LOGS] })
-                setRedeemingId(null)
-            },
-            onError: () => {
-                setRedeemingId(null)
-                alert("Đổi voucher thất bại! Điểm của bạn có thể không đủ hoặc voucher đã hết lượt.")
-            }
-        })
+
+        const onSuccess = () => {
+            refetchMyVouchers()
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.LOYALTY_ACCOUNT] })
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.POINT_LOGS] })
+            addToast({
+                title: "Thành công",
+                description: "Voucher đã được thêm vào kho của bạn",
+                color: "success"
+            })
+            setRedeemingId(null)
+        }
+
+        const onError = () => {
+            setRedeemingId(null)
+            addToast({
+                title: "Thất bại",
+                description: "Không thể nhận voucher. Vui lòng kiểm tra lại điểm hoặc số lượng.",
+                color: "danger"
+            })
+        }
+
+        if (pointCost > 0) {
+            redeemVoucher(voucherId, { onSuccess, onError })
+        } else {
+            collectVoucher(voucherId, { onSuccess, onError })
+        }
     }
 
     return (
@@ -238,7 +253,7 @@ export default function MyVouchersView() {
                                                 isOwned={false}
                                                 userPoints={userPoints}
                                                 onRedeem={handleRedeem}
-                                                isRedeeming={isRedeeming && redeemingId === v.id}
+                                                isRedeeming={(isRedeeming || isCollecting) && redeemingId === v.id}
                                             />
                                         ))}
                                     </div>

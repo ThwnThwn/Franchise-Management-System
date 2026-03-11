@@ -1,6 +1,6 @@
 import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Chip, Switch, Tooltip, Button } from "@heroui/react"
 import { Voucher, VoucherType } from "@/features/orders/models/voucher"
-import { Edit, Trash2 } from "lucide-react"
+import { Edit, Trash2, Gift } from "lucide-react"
 
 interface VouchersTableProps {
     vouchers: Voucher[]
@@ -8,9 +8,10 @@ interface VouchersTableProps {
     onEdit: (voucher: Voucher) => void
     onToggleStatus: (id: string, is_active: boolean) => void
     onDelete: (id: string) => void
+    onAssign: (voucher: Voucher) => void
 }
 
-export const VouchersTable = ({ vouchers, isLoading, onEdit, onToggleStatus, onDelete }: VouchersTableProps) => {
+export const VouchersTable = ({ vouchers, isLoading, onEdit, onToggleStatus, onDelete, onAssign }: VouchersTableProps) => {
 
     const renderType = (type: VoucherType) => {
         switch (type) {
@@ -75,6 +76,11 @@ export const VouchersTable = ({ vouchers, isLoading, onEdit, onToggleStatus, onD
                         </TableCell>
                         <TableCell>
                             <div className="flex justify-center gap-2">
+                                <Tooltip content="Gán Voucher" color="secondary">
+                                    <Button isIconOnly size="sm" variant="light" color="secondary" onPress={() => onAssign(voucher)}>
+                                        <Gift size={16} />
+                                    </Button>
+                                </Tooltip>
                                 <Tooltip content="Chỉnh sửa">
                                     <Button isIconOnly size="sm" variant="light" onPress={() => onEdit(voucher)}>
                                         <Edit size={16} className="text-default-500" />

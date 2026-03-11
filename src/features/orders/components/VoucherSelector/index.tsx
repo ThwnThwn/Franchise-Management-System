@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useMemo, useState } from "react"
-import { useGetAllVouchers } from "../../hooks/useVoucher"
+import { useGetMyVouchers } from "../../hooks/useVoucher"
 import { Voucher, VoucherType, VoucherItemType } from "../../models/voucher"
 import { Order } from "../../models/response"
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Chip } from "@heroui/react"
@@ -24,7 +24,7 @@ export function VoucherSelector({
     appliedShippingVoucher,
     appliedDiscountVoucher
 }: VoucherSelectorProps) {
-    const { data: vouchers, isLoading } = useGetAllVouchers()
+    const { data: vouchers, isLoading } = useGetMyVouchers()
 
     // Local state for selection before applying
     const [selectedShipping, setSelectedShipping] = useState<Voucher | null>(appliedShippingVoucher)

@@ -26,5 +26,11 @@ export const voucherApi = {
     },
     redeemVoucher: async (id: string): Promise<void> => {
         await axiosInstance.post(`/me/vouchers/${id}/redeem`)
+    },
+    collectVoucher: async (id: string): Promise<void> => {
+        await axiosInstance.post(`/me/vouchers/${id}/collect`)
+    },
+    assignVoucher: async (id: string, userIds: string[]): Promise<void> => {
+        await axiosInstance.post(`/vouchers/${id}/assign`, { userIds })
     }
 }
