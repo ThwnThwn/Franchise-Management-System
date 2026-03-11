@@ -1,5 +1,6 @@
-﻿using SalesService.Domain.Entities;
-using BuildingBlocks.Core.Pagination;
+﻿using BuildingBlocks.Core.Pagination;
+using SalesService.Application.Features.Reports.Queries.ProductPerformance;
+using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
 
 namespace SalesService.Application.Persisitences
@@ -94,7 +95,6 @@ namespace SalesService.Application.Persisitences
         Task<decimal> GetTotalRefundedAmountByTransactionIdAsync(
         Guid transactionId,
         CancellationToken cancellationToken = default);
-
 
     }
 }

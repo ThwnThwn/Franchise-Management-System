@@ -41,6 +41,7 @@ type ProductGrpcClient interface {
 	GetSkusByCategory(ctx context.Context, in *GetSkusByCategoryRequest, opts ...grpc.CallOption) (*GetSkusByCategoryReply, error)
 	// Recalculate variant costs from InventoryService MAC updates
 	RecalculateVariantCosts(ctx context.Context, in *RecalculateVariantCostsRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	GetProductsByIds(ctx context.Context, in *GetProductsByIdsRequest, opts ...grpc.CallOption) (*GetProductsByIdsReply, error)
 }
 
 type productGrpcClient struct {
@@ -168,6 +169,15 @@ func (c *productGrpcClient) RecalculateVariantCosts(ctx context.Context, in *Rec
 	return out, nil
 }
 
+func (c *productGrpcClient) GetProductsByIds(ctx context.Context, in *GetProductsByIdsRequest, opts ...grpc.CallOption) (*GetProductsByIdsReply, error) {
+	out := new(GetProductsByIdsReply)
+	err := c.cc.Invoke(ctx, "/product.ProductGrpc/GetProductsByIds", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ProductGrpcServer is the server API for ProductGrpc service.
 // All implementations must embed UnimplementedProductGrpcServer
 // for forward compatibility
@@ -190,6 +200,7 @@ type ProductGrpcServer interface {
 	GetSkusByCategory(context.Context, *GetSkusByCategoryRequest) (*GetSkusByCategoryReply, error)
 	// Recalculate variant costs from InventoryService MAC updates
 	RecalculateVariantCosts(context.Context, *RecalculateVariantCostsRequest) (*emptypb.Empty, error)
+	GetProductsByIds(context.Context, *GetProductsByIdsRequest) (*GetProductsByIdsReply, error)
 	mustEmbedUnimplementedProductGrpcServer()
 }
 
@@ -235,6 +246,9 @@ func (UnimplementedProductGrpcServer) GetSkusByCategory(context.Context, *GetSku
 }
 func (UnimplementedProductGrpcServer) RecalculateVariantCosts(context.Context, *RecalculateVariantCostsRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RecalculateVariantCosts not implemented")
+}
+func (UnimplementedProductGrpcServer) GetProductsByIds(context.Context, *GetProductsByIdsRequest) (*GetProductsByIdsReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetProductsByIds not implemented")
 }
 func (UnimplementedProductGrpcServer) mustEmbedUnimplementedProductGrpcServer() {}
 
@@ -483,6 +497,24 @@ func _ProductGrpc_RecalculateVariantCosts_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProductGrpc_GetProductsByIds_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetProductsByIdsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductGrpcServer).GetProductsByIds(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/product.ProductGrpc/GetProductsByIds",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductGrpcServer).GetProductsByIds(ctx, req.(*GetProductsByIdsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ProductGrpc_ServiceDesc is the grpc.ServiceDesc for ProductGrpc service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -541,6 +573,10 @@ var ProductGrpc_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RecalculateVariantCosts",
 			Handler:    _ProductGrpc_RecalculateVariantCosts_Handler,
+		},
+		{
+			MethodName: "GetProductsByIds",
+			Handler:    _ProductGrpc_GetProductsByIds_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

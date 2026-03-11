@@ -111,7 +111,7 @@ namespace IdentityService.Application.Features.Auth.Commands.ConfirmOtp
             await _otpStore.ResetOtpAttemptAsync(request.Email, register);
             await _otpStore.RemoveLastOtpRequestTimeAsync(request.Email, register);
 
-            
+
             //Create Loyalty Tier Account Through Kafka
             await _kafkaProducer.PublishAsync(KafkaTopics.LoyaltyTierAccount, new UserRegisteredEvent
             {

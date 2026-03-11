@@ -26,36 +26,62 @@ public class ProductGrpcService(
     private readonly IProductRepository _productRepository = productRepository;
 
     public override async Task<GetProductsReply> GetProducts(
-        GetProductsRequest request,
-        ServerCallContext context)
+    GetProductsRequest request,
+    ServerCallContext context)
     {
-        Guid? categoryId = null;
-
-        if (!string.IsNullOrWhiteSpace(request.CategoryId) &&
-            Guid.TryParse(request.CategoryId, out var parsed))
+        try
         {
-            categoryId = parsed;
-        }
+            Guid? categoryId = null;
+            if (!string.IsNullOrWhiteSpace(request.CategoryId) &&
+                Guid.TryParse(request.CategoryId, out var parsed))
+                categoryId = parsed;
 
-        var query = new GetProductsQuery(categoryId);
-        var result = await _mediator.Send(query, context.CancellationToken);
+            var query = new GetProductsQuery(categoryId);
+            var result = await _mediator.Send(query, context.CancellationToken);
 
-        if (!result.IsSuccess)
-        {
-            throw new RpcException(
-                new Status(StatusCode.Internal,
+            if (!result.IsSuccess)
+                throw new RpcException(new Status(StatusCode.Internal,
                     result.Errors.FirstOrDefault() ?? "Failed to get products"));
+
+            var reply = new GetProductsReply
+            {
+                TotalCount = result.Value.TotalCount
+            };
+
+            reply.Products.AddRange(result.Value.Products.Select(p =>
+            {
+                var product = new Product
+                {
+                    Id = p.Id.ToString(),
+                    Name = p.Name,
+                    Description = p.Description ?? "",
+                    ImageUrl = p.ImageUrl ?? "",
+                    IsActive = p.IsActive,
+                    CategoryId = p.CategoryId.ToString(),
+                    CategoryName = p.CategoryName ?? ""
+                };
+
+                product.Variants.AddRange(p.Sizes.Select(v => new ProductVariant
+                {
+                    Id = v.Id.ToString(),
+                    Sku = v.Sku ?? "",
+                    Name = v.Name ?? "",
+                    Attributes = v.Attributes ?? "",
+                    BasePrice = (double)v.BasePrice,
+                    Cost = (double)v.Cost,
+                    IsActive = v.IsActive
+                }));
+
+                return product;
+            }));
+
+            return reply;
         }
-
-        var reply = new GetProductsReply
+        catch (Exception ex)
         {
-            TotalCount = result.Value.TotalCount
-        };
-
-        reply.Products.AddRange(
-            _mapper.Map<List<Product>>(result.Value.Products));
-
-        return reply;
+            Console.WriteLine("ERROR: " + ex.ToString());
+            throw new RpcException(new Status(StatusCode.Internal, ex.Message));
+        }
     }
 
     public override async Task<GetProductByIdReply> GetProductById(
@@ -559,6 +585,54 @@ public class ProductGrpcService(
             .ToList();
 
         reply.Skus.AddRange(skus);
+
+        return reply;
+    }
+
+    public override async Task<GetProductsByIdsReply> GetProductsByIds(
+    GetProductsByIdsRequest request,
+    ServerCallContext context)
+    {
+        var productIds = request.ProductIds
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Select(id => Guid.TryParse(id, out var guid) ? guid : Guid.Empty)
+            .Where(id => id != Guid.Empty)
+            .Distinct()
+            .ToList();
+
+        if (!productIds.Any())
+            throw new RpcException(
+                new Status(StatusCode.InvalidArgument, "Product IDs are required"));
+
+        var products = await _productRepository.GetProductsByIdsAsync(productIds);
+
+        var reply = new GetProductsByIdsReply
+        {
+            TotalCount = products.Count
+        };
+
+        reply.Products.AddRange(products.Select(p => new Product
+        {
+            Id = p.Id.ToString(),
+            Name = p.Name,
+            Description = p.Description ?? "",
+            ImageUrl = p.ImageUrl ?? "",
+            IsActive = p.IsActive ?? true,
+            CategoryId = p.CategoryId.ToString(),
+            Variants =
+        {
+            p.ProductVariants.Select(v => new ProductVariant
+            {
+                Id = v.Id.ToString(),
+                Sku = v.Sku ?? "",
+                Name = v.Name ?? "",
+                Attributes = v.Attributes ?? "",
+                BasePrice = (double)v.BasePrice,
+                Cost = (double)v.Cost,
+                IsActive = v.IsActive ?? true
+            })
+        }
+        }));
 
         return reply;
     }

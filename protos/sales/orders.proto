@@ -36,8 +36,14 @@ service OrderGrpc {
   // Lấy số đơn hàng
   rpc GetCountOrderByUserIds (GetCountOrderByUserIdsRequest) returns (GetCountOrderByUserIdsResponse);
 
+  // Thống kê Product Performance
+  rpc GetProductPerformance (GetProductPerformanceRequest) returns (GetProductPerformanceReply);
+
   // Lấy dữ liệu biểu đồ phân tích xu hướng doanh thu và lượng đơn
   rpc GetSalesTrend (GetSalesTrendRequest) returns (GetSalesTrendReply);
+
+  // Thống kê Customer Purchase Behavior
+  rpc GetCustomerOrderPattern (GetCustomerOrderPatternRequest) returns (GetCustomerOrderPatternReply);
 }
 
 message GetCountOrderByUserIdsRequest{
@@ -333,4 +339,75 @@ message PayOrderWithWalletReply {
   string shop_transaction_code = 13;
 
   string paid_at = 14;
+}
+
+message GetProductPerformanceRequest {
+  string store_id = 1;
+  optional string from_date = 2;
+  optional string to_date = 3;
+  optional string category_id = 4;
+  optional string sort_by = 5;
+  optional string sort_order = 6;
+  int32 page_index = 7;
+  int32 page_size = 8;
+  optional bool include_csv = 9;
+}
+
+message GetProductPerformanceReply {
+  repeated ProductPerformanceItem items = 1;
+  int32 total_count = 2;
+  int32 page_index = 3;
+  int32 page_size = 4;
+  optional CsvFile csv_file = 5;
+}
+
+message ProductPerformanceItem {
+  string product_id = 1;
+  string product_name = 2;
+  string category_id = 3;
+  string category_name = 4;
+  int32 units_sold = 5;
+  double revenue = 6;
+  double cancelled_rate = 7;
+  int32 total_orders = 8;
+  int32 total_cancelled = 9;
+  PerformanceTag tag = 10;
+}
+
+enum PerformanceTag {
+  PERFORMANCE_TAG_NORMAL = 0;
+  PERFORMANCE_TAG_TOP = 1;
+  PERFORMANCE_TAG_BOTTOM = 2;
+}
+
+message GetCustomerOrderPatternRequest {
+  string store_id = 1;
+  optional string from_date = 2;
+  optional string to_date = 3;
+  optional int32 min_orders = 4;
+  optional int32 max_orders = 5;
+  optional string sort_by = 6;
+  optional string sort_order = 7;
+  int32 page_index = 8;
+  int32 page_size = 9;
+  optional bool include_csv = 10;
+}
+
+message GetCustomerOrderPatternReply {
+  repeated CustomerOrderPatternItem items = 1;
+  int32 total_count = 2;
+  int32 page_index = 3;
+  int32 page_size = 4;
+  optional CsvFile csv_file = 5;
+}
+
+message CustomerOrderPatternItem {
+  string customer_id = 1;
+  string full_name = 2;
+  string email = 3;
+  string phone = 4;
+  int32 total_orders = 5;
+  double average_order_value = 6;
+  double total_spent = 7;
+  string last_order_date = 8;
 }

@@ -37,7 +37,7 @@ public class GetAllUsersQueryHandler : IRequestHandler<GetAllUsersQuery, PagedRe
         var role = await _roleRepository.GetBySlugAsync(query.RoleSlug);
         var roleResponse = _mapper.Map<RoleUserRep>(role);
         // Lấy all User theo Field tier + range money 
-        if (query.TierId != null  || query.StartAt != null || query.EndAt != null)
+        if (query.TierId != null || query.StartAt != null || query.EndAt != null)
         {
             loyaltyResponse = await _engagementServiceClient.GetByFilter(query.TierId, query.StartAt, query.EndAt);
             filteredUserIds = loyaltyResponse.Select(x => x.Id).ToList();
@@ -60,7 +60,9 @@ public class GetAllUsersQueryHandler : IRequestHandler<GetAllUsersQuery, PagedRe
             filteredUserIds = matchedUsers;
         }
         // Lưu map key Id - value loyaltyResponse
+
         var loyaltyDict = loyaltyResponse?.ToDictionary(x => x.Id)?? new Dictionary<Guid, LoyaltyRes>();
+
         // Lưu Map key Id - value CountOrder
         var UserCountOrdersDict = orderCounts.ToDictionary(x => x.UserId, x => x.OrderCount);
 
@@ -110,9 +112,9 @@ public class GetAllUsersQueryHandler : IRequestHandler<GetAllUsersQuery, PagedRe
         });
 
         return new PagedResult<UserRep>(
-            dtos.ToList(), 
-            pagedUsers.TotalCount, 
-            pagedUsers.Page, 
+            dtos.ToList(),
+            pagedUsers.TotalCount,
+            pagedUsers.Page,
             pagedUsers.PageSize
         );
     }

@@ -22,6 +22,9 @@ public interface IProductServiceClient
     /// Get product SKUs by Category ID.
     /// </summary>
     Task<List<string>> GetSkusByCategoryAsync(Guid categoryId);
+
+    Task<List<ProductInfo>> GetProductsByCategoryAsync(Guid categoryId);
+    Task<List<ProductInfo>> GetProductsByIdsAsync(List<Guid> productIds);
 }
 
 public class ProductVariantInfo
@@ -33,4 +36,15 @@ public class ProductVariantInfo
     public string? Attributes { get; set; }
     public decimal? BasePrice { get; set; }
     public string? ImageUrl { get; set; }
+}
+
+public class ProductInfo
+{
+    public Guid ProductId { get; set; }
+    public string ProductName { get; set; } = default!;
+    public string? Description { get; set; }
+    public string? ImageUrl { get; set; }
+    public Guid CategoryId { get; set; }
+    public string? CategoryName { get; set; }
+    public bool IsActive { get; set; }
 }

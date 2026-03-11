@@ -42,8 +42,12 @@ type OrderGrpcClient interface {
 	PayOrderWithWallet(ctx context.Context, in *PayOrderWithWalletRequest, opts ...grpc.CallOption) (*PayOrderWithWalletReply, error)
 	// Lấy số đơn hàng
 	GetCountOrderByUserIds(ctx context.Context, in *GetCountOrderByUserIdsRequest, opts ...grpc.CallOption) (*GetCountOrderByUserIdsResponse, error)
+	// Thống kê Product Performance
+	GetProductPerformance(ctx context.Context, in *GetProductPerformanceRequest, opts ...grpc.CallOption) (*GetProductPerformanceReply, error)
 	// Lấy dữ liệu biểu đồ phân tích xu hướng doanh thu và lượng đơn
 	GetSalesTrend(ctx context.Context, in *GetSalesTrendRequest, opts ...grpc.CallOption) (*GetSalesTrendReply, error)
+	// Thống kê Customer Purchase Behavior
+	GetCustomerOrderPattern(ctx context.Context, in *GetCustomerOrderPatternRequest, opts ...grpc.CallOption) (*GetCustomerOrderPatternReply, error)
 }
 
 type orderGrpcClient struct {
@@ -144,9 +148,27 @@ func (c *orderGrpcClient) GetCountOrderByUserIds(ctx context.Context, in *GetCou
 	return out, nil
 }
 
+func (c *orderGrpcClient) GetProductPerformance(ctx context.Context, in *GetProductPerformanceRequest, opts ...grpc.CallOption) (*GetProductPerformanceReply, error) {
+	out := new(GetProductPerformanceReply)
+	err := c.cc.Invoke(ctx, "/order.OrderGrpc/GetProductPerformance", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *orderGrpcClient) GetSalesTrend(ctx context.Context, in *GetSalesTrendRequest, opts ...grpc.CallOption) (*GetSalesTrendReply, error) {
 	out := new(GetSalesTrendReply)
 	err := c.cc.Invoke(ctx, "/order.OrderGrpc/GetSalesTrend", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *orderGrpcClient) GetCustomerOrderPattern(ctx context.Context, in *GetCustomerOrderPatternRequest, opts ...grpc.CallOption) (*GetCustomerOrderPatternReply, error) {
+	out := new(GetCustomerOrderPatternReply)
+	err := c.cc.Invoke(ctx, "/order.OrderGrpc/GetCustomerOrderPattern", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -177,8 +199,12 @@ type OrderGrpcServer interface {
 	PayOrderWithWallet(context.Context, *PayOrderWithWalletRequest) (*PayOrderWithWalletReply, error)
 	// Lấy số đơn hàng
 	GetCountOrderByUserIds(context.Context, *GetCountOrderByUserIdsRequest) (*GetCountOrderByUserIdsResponse, error)
+	// Thống kê Product Performance
+	GetProductPerformance(context.Context, *GetProductPerformanceRequest) (*GetProductPerformanceReply, error)
 	// Lấy dữ liệu biểu đồ phân tích xu hướng doanh thu và lượng đơn
 	GetSalesTrend(context.Context, *GetSalesTrendRequest) (*GetSalesTrendReply, error)
+	// Thống kê Customer Purchase Behavior
+	GetCustomerOrderPattern(context.Context, *GetCustomerOrderPatternRequest) (*GetCustomerOrderPatternReply, error)
 	mustEmbedUnimplementedOrderGrpcServer()
 }
 
@@ -216,8 +242,14 @@ func (UnimplementedOrderGrpcServer) PayOrderWithWallet(context.Context, *PayOrde
 func (UnimplementedOrderGrpcServer) GetCountOrderByUserIds(context.Context, *GetCountOrderByUserIdsRequest) (*GetCountOrderByUserIdsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCountOrderByUserIds not implemented")
 }
+func (UnimplementedOrderGrpcServer) GetProductPerformance(context.Context, *GetProductPerformanceRequest) (*GetProductPerformanceReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetProductPerformance not implemented")
+}
 func (UnimplementedOrderGrpcServer) GetSalesTrend(context.Context, *GetSalesTrendRequest) (*GetSalesTrendReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSalesTrend not implemented")
+}
+func (UnimplementedOrderGrpcServer) GetCustomerOrderPattern(context.Context, *GetCustomerOrderPatternRequest) (*GetCustomerOrderPatternReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCustomerOrderPattern not implemented")
 }
 func (UnimplementedOrderGrpcServer) mustEmbedUnimplementedOrderGrpcServer() {}
 
@@ -412,6 +444,24 @@ func _OrderGrpc_GetCountOrderByUserIds_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OrderGrpc_GetProductPerformance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetProductPerformanceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderGrpcServer).GetProductPerformance(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/order.OrderGrpc/GetProductPerformance",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderGrpcServer).GetProductPerformance(ctx, req.(*GetProductPerformanceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _OrderGrpc_GetSalesTrend_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetSalesTrendRequest)
 	if err := dec(in); err != nil {
@@ -426,6 +476,24 @@ func _OrderGrpc_GetSalesTrend_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(OrderGrpcServer).GetSalesTrend(ctx, req.(*GetSalesTrendRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OrderGrpc_GetCustomerOrderPattern_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCustomerOrderPatternRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderGrpcServer).GetCustomerOrderPattern(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/order.OrderGrpc/GetCustomerOrderPattern",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderGrpcServer).GetCustomerOrderPattern(ctx, req.(*GetCustomerOrderPatternRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -478,8 +546,16 @@ var OrderGrpc_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _OrderGrpc_GetCountOrderByUserIds_Handler,
 		},
 		{
+			MethodName: "GetProductPerformance",
+			Handler:    _OrderGrpc_GetProductPerformance_Handler,
+		},
+		{
 			MethodName: "GetSalesTrend",
 			Handler:    _OrderGrpc_GetSalesTrend_Handler,
+		},
+		{
+			MethodName: "GetCustomerOrderPattern",
+			Handler:    _OrderGrpc_GetCustomerOrderPattern_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

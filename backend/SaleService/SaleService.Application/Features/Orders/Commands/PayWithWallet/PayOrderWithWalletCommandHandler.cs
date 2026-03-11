@@ -15,7 +15,7 @@ public sealed class PayOrderWithWalletCommandHandler
     private readonly IOrderRepository _orderRepository;
     private readonly IWalletRepository _walletRepository;
     private readonly IWalletTransactionRepository _transactionRepository;
-    private static readonly Guid SHOP_OWNER_WALLET_ID = Guid.Parse("645ca1f5-dec2-4fce-93cf-4edff3511300");
+    private static readonly Guid SHOP_OWNER_ID = Guid.Parse("98767548-91c3-42ba-94f6-1d21f2292ca6");
 
     public PayOrderWithWalletCommandHandler(
         IOrderRepository orderRepository,
@@ -70,8 +70,8 @@ public sealed class PayOrderWithWalletCommandHandler
         }
 
         // 4. Get shop owner wallet
-        var shopWallet = await _walletRepository.GetByIdAsync(
-            SHOP_OWNER_WALLET_ID,
+        var shopWallet = await _walletRepository.GetByUserIdAsync(
+            SHOP_OWNER_ID,
             cancellationToken);
 
         if (shopWallet == null)

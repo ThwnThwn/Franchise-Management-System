@@ -195,12 +195,12 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
                 query = query.Where(u => u.Role.Slug == roleSlug);
             }
             // Filter by StoreId
-            if(!string.IsNullOrEmpty(StoredId.ToString()))
+            if (!string.IsNullOrEmpty(StoredId.ToString()))
             {
                 query = query.Where(u => u.HomeStoreId == StoredId);
             }
             // Filter by bool CurrentHourlyWage
-            if(HasHourlyWage == true)
+            if (HasHourlyWage == true)
             {
                 query = query.Where(u => u.CurrentHourlyWage != null);
             }
@@ -219,8 +219,8 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
                 return null;
 
             // 2. Thực hiện truy vấn an toàn
-            var customer =  await _dbContext.Users
-                .AsNoTracking() 
+            var customer = await _dbContext.Users
+                .AsNoTracking()
                 .FirstOrDefaultAsync(u => u.Phone != null && u.Phone == phone);
             return customer;
         }
@@ -248,7 +248,7 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
         public async Task<List<User>> GetUsersByEmailAsync(string? email)
         {
             // 2. Thực hiện truy vấn an toàn
-            if(string.IsNullOrWhiteSpace(email))
+            if (string.IsNullOrWhiteSpace(email))
                 email = "";
 
             var customers = await _dbContext.Users
