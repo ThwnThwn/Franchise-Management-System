@@ -15,7 +15,14 @@ public class GetAllRolesQueryHandler : IRequestHandler<GetAllRolesQuery, IReadOn
         _roleRepository = roleRepository;
         _mapper = mapper;
     }
-
+    /// <summary>
+    /// Handles a request
+    /// </summary>
+    /// <param name="request">The request</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>
+    /// Response from the request
+    /// </returns>
     public async Task<IReadOnlyList<RoleRep>> Handle(GetAllRolesQuery request, CancellationToken cancellationToken)
     {
         var roles = await _roleRepository.GetAllAsync();

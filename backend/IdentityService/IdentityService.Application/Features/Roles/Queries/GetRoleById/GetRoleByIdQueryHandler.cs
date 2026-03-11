@@ -15,7 +15,14 @@ public class GetRoleByIdQueryHandler : IRequestHandler<GetRoleByIdQuery, RoleRep
         _roleRepository = roleRepository;
         _mapper = mapper;
     }
-
+    /// <summary>
+    /// Handles a request
+    /// </summary>
+    /// <param name="request">The request</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>
+    /// Response from the request
+    /// </returns>
     public async Task<RoleRep?> Handle(GetRoleByIdQuery request, CancellationToken cancellationToken)
     {
         var role = await _roleRepository.GetByIdAsync(request.Id);

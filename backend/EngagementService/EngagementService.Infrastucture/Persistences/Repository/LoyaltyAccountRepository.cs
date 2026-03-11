@@ -16,7 +16,11 @@ namespace EngagementService.Infrastucture.Persistences.Repository
         {
 
         }
-
+        /// <summary>
+        /// Gets the by user identifier asynchronous.
+        /// </summary>
+        /// <param name="userId">The user identifier.</param>
+        /// <returns></returns>
         public async Task<LoyaltyAccount?> GetByUserIdAsync(Guid userId)
         {
             return await _dbContext.LoyaltyAccounts
@@ -25,7 +29,14 @@ namespace EngagementService.Infrastucture.Persistences.Repository
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Id == userId);
         }
-
+        /// <summary>
+        /// Gets the loyalty report data asynchronous.
+        /// </summary>
+        /// <param name="from">From.</param>
+        /// <param name="to">To.</param>
+        /// <param name="tierId">The tier identifier.</param>
+        /// <param name="ct">The ct.</param>
+        /// <returns></returns>
         public async Task<LoyaltyReportDto> GetLoyaltyReportDataAsync(DateTime? from, DateTime? to, string? tierId, CancellationToken ct)
         {
             var accountQuery = _dbContext.LoyaltyAccounts
@@ -81,7 +92,11 @@ namespace EngagementService.Infrastucture.Persistences.Repository
                 TierDistribution = tierDistribution
             };
         }
-
+        /// <summary>
+        /// Gets the user by ids asynchronous.
+        /// </summary>
+        /// <param name="userIds">The user ids.</param>
+        /// <returns></returns>
         public async Task<IEnumerable<LoyaltyAccount?>> GetUserByIdsAsync(List<Guid> userIds)
         {
             return await _dbContext.LoyaltyAccounts
@@ -91,6 +106,13 @@ namespace EngagementService.Infrastucture.Persistences.Repository
                 .Where(x => userIds.Contains(x.Id))
                 .ToListAsync();
         }
+        /// <summary>
+        /// Gets the by filter handler.
+        /// </summary>
+        /// <param name="tierId">The tier identifier.</param>
+        /// <param name="startAt">The start at.</param>
+        /// <param name="endAt">The end at.</param>
+        /// <returns></returns>
         public async Task<IEnumerable<LoyaltyAccount?>> GetByFilterHandler(Guid? tierId, decimal? startAt, decimal? endAt)
         {
             var query = _dbContext.LoyaltyAccounts
@@ -118,7 +140,13 @@ namespace EngagementService.Infrastucture.Persistences.Repository
 
             return await query.ToListAsync();
         }
-
+        /// <summary>
+        /// Redeems the voucher asynchronous.
+        /// </summary>
+        /// <param name="_pointRuleCache">The point rule cache.</param>
+        /// <param name="account">The account.</param>
+        /// <param name="voucher">The voucher.</param>
+        /// <param name="ct">The ct.</param>
         public async Task RedeemVoucherAsync(IPointRuleCache _pointRuleCache, LoyaltyAccount account, Voucher voucher, CancellationToken ct)
         {
             var balanceBefore = account!.AvailablePoints;
@@ -174,8 +202,13 @@ namespace EngagementService.Infrastucture.Persistences.Repository
 
         //    if (voucher.CurrentQuantity <= 0)
         //        throw new InvalidOperationException(VoucherMsg.OutOfStock);
-        //}
-
+        //}        
+        /// <summary>
+        /// Gets for update asynchronous.
+        /// </summary>
+        /// <param name="accountId">The account identifier.</param>
+        /// <param name="ct">The ct.</param>
+        /// <returns></returns>
         public async Task<LoyaltyAccount?> GetForUpdateAsync(Guid accountId, CancellationToken ct)
         {
             var account = await _dbContext.LoyaltyAccounts

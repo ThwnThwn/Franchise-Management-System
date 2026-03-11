@@ -26,7 +26,21 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, UserR
         _currentUser = currentUser;
         _roleRepository = roleRepository;
     }
-
+    /// <summary>
+    /// Handles the specified command.
+    /// </summary>
+    /// <param name="command">The command.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns></returns>
+    /// <exception cref="ConflictDuplicateException">
+    /// Email '{request.Email}' đã tồn tại
+    /// or
+    /// Username '{request.Username}' đã tồn tại
+    /// or
+    /// Số điện thoại '{request.Phone}' đã tồn tại
+    /// </exception>
+    /// <exception cref="Exception">Không tìm thấy vai trò '{request.RoleSlug}'</exception>
+    /// <exception cref="BusinessException"></exception>
     public async Task<UserRep?> Handle(UpdateUserCommand command, CancellationToken cancellationToken)
     {
         var request = command.Request;

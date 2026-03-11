@@ -12,7 +12,10 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
         public RoleRepository(IIdentityDbContext dbContext) : base(dbContext)
         {
         }
-
+        /// <summary>
+        /// Gets all details asynchronous.
+        /// </summary>
+        /// <returns></returns>
         public async Task<IEnumerable<Role>> GetAllDetailsAsync()
         {
             return await _dbContext.Roles
@@ -20,7 +23,11 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
                 .OrderBy(r => r.CreatedAt)
                 .ToListAsync();
         }
-
+        /// <summary>
+        /// Gets the by identifier details asynchronous.
+        /// </summary>
+        /// <param name="id">The identifier.</param>
+        /// <returns></returns>
         public async Task<Role?> GetByIdDetailsAsync(Guid id)
         {
             var role = await _dbContext.Roles
@@ -28,7 +35,11 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
                 .FirstOrDefaultAsync(r => r.Id == id);
             return role;
         }
-
+        /// <summary>
+        /// Gets the by name asynchronous.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <returns></returns>
         public async Task<Role?> GetByNameAsync(string name)
         {
             var role = await _dbContext.Roles
@@ -36,7 +47,11 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
                 .FirstOrDefaultAsync();
             return role;
         }
-
+        /// <summary>
+        /// Gets the by slug asynchronous.
+        /// </summary>
+        /// <param name="slug">The slug.</param>
+        /// <returns></returns>
         public async Task<Role?> GetBySlugAsync(string slug)
         {
             var role = await _dbContext.Roles

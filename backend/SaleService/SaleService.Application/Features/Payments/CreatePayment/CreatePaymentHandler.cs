@@ -14,10 +14,12 @@ using SalesService.Application.Interfaces.Payments;
 using SalesService.Application.Mapping.Orders;
 using SalesService.Application.Persisitences.Orders;
 using SalesService.Application.Persisitences.Outbox;
+using SalesService.Application.Persisitences.Wallets;
 using SalesService.Application.Signals;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
 using SharedKernel.Constants;
+using SharedKernel.Events;
 using SharedKernel.Infrastructure.Extensions;
 using SharedKernel.Infrastructure.Kafka;
 
@@ -36,6 +38,7 @@ public sealed class CreatePaymentHandler
     private readonly IProductServiceClient _productServiceClient;
     private readonly IInventoryServiceClient _inventoryServiceClient;
     private readonly IIdentityServiceClient _identityServiceClient;
+    private readonly IWalletRepository _walletRepository;
 
     public CreatePaymentHandler(
         IOrderRepository orderRepository,
@@ -47,7 +50,8 @@ public sealed class CreatePaymentHandler
         IEngagementServiceClient engagementServiceClient,
         IProductServiceClient productServiceClient,
         IInventoryServiceClient inventoryServiceClient,
-        IIdentityServiceClient identityServiceClient)
+        IIdentityServiceClient identityServiceClient,
+        IWalletRepository walletRepository)
     {
         _orderRepository = orderRepository;
         _paymentRepository = paymentRepository;
@@ -59,6 +63,7 @@ public sealed class CreatePaymentHandler
         _productServiceClient = productServiceClient;
         _inventoryServiceClient = inventoryServiceClient;
         _identityServiceClient = identityServiceClient;
+        _walletRepository = walletRepository;
     }
 
     public async Task<Result<CreatePaymentRes>> Handle(
@@ -87,24 +92,30 @@ public sealed class CreatePaymentHandler
             return Result.Error("CustomerID is null");
         }
         // ================= Sale Order Items =================
-        // Get User's Vouchers
+        // ==========================================================
+        // ================= Get User's Vouchers ====================
+        // ==========================================================
         if (!string.IsNullOrWhiteSpace(request.VoucherDiscountCode) || !string.IsNullOrWhiteSpace(request.VoucherShipCode))
         {
+            // Get Voucher
             var vouchers = await _engagementServiceClient.GetMyVoucherAsync(order.CustomerId.Value);
             var voucherMap = vouchers.ToDictionary(v => v.Code, StringComparer.OrdinalIgnoreCase);
             Voucher? voucherDiscount = null;
             Voucher? voucherShip = null;
+            List<Guid> voucherList = new List<Guid>();
             if (!string.IsNullOrWhiteSpace(request.VoucherDiscountCode) &&
                 !voucherMap.TryGetValue(request.VoucherDiscountCode, out voucherDiscount))
             {
                 return Result.NotFound("Voucher Discount not found or not owned by user");
             }
+            if (voucherDiscount != null) voucherList.Add(voucherDiscount.Id);
 
             if (!string.IsNullOrWhiteSpace(request.VoucherShipCode) &&
                 !voucherMap.TryGetValue(request.VoucherShipCode, out voucherShip))
             {
                 return Result.NotFound("Voucher Ship not found or not owned by user");
             }
+            if (voucherShip != null) voucherList.Add(voucherShip.Id);
 
             // Voucher Discount 
             if (voucherDiscount.MinOrderValue <= order.Subtotal)
@@ -233,11 +244,22 @@ public sealed class CreatePaymentHandler
                         IsDeleted = false
                     });
                 }
+
+                // Kakfa Event Voucher
+                UseVouchersEvent userVoucherEvent = new UseVouchersEvent
+                {
+                    OrderId = order.Id,
+                    UserId = order.CustomerId.Value,
+                    VoucherIds = voucherList
+                };
+                if (userVoucherEvent != null) _kafkaProducer.PublishAsync(KafkaTopics.DeductUserVoucher, userVoucherEvent);
             }
         }
 
-        // Loyalty 
-        if(request.Point != null)
+        // ==========================================================
+        // ===================== Loyalty  ===========================
+        // ==========================================================
+        if (request.Point != null)
         {
             // Point Engagement
             var user = await _identityServiceClient.GetUserByIdAsync(order.CustomerId.Value);
@@ -260,9 +282,38 @@ public sealed class CreatePaymentHandler
                     IsDeleted = false
                 });
             }
+            // Kakfa Event Point
+            DeductPointEvent userPoint = new DeductPointEvent
+            {
+                Id = order.CustomerId.Value,
+                OrderId = order.Id,
+                PointToDeduct = (decimal)request.Point
+            };
+            if (userPoint != null) _kafkaProducer.PublishAsync(KafkaTopics.DedcutUserPoint, userPoint);
         }
 
-        // ================= CREATE PAYMENT =================
+        // ==========================================================
+        // ===================== Wallet User ========================
+        // ==========================================================
+        if(request.Wallet != null)
+        {
+            var userWallet = await _walletRepository.GetByUserIdAsync(order.CustomerId.Value);
+            if (userWallet != null)
+            {
+                if(userWallet.Balance >= request.Wallet)
+                {
+                    voucherDiscountAmount += request.Wallet;
+                    await _walletRepository.DeductBalanceAsync(userWallet.Id, request.Wallet.Value, userWallet.RowVersion);
+                }
+                else
+                {
+                    return Result.NotFound("User Wallet Balance is lower then request Wallet");
+                }
+            }
+        }
+        // ==========================================================
+        // ================== CREATE PAYMENT ========================
+        // ==========================================================
         var payment = new Payment
         {
             Id = Guid.NewGuid(),

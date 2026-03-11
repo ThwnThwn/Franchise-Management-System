@@ -10,7 +10,11 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
         public PermissionRepository(IIdentityDbContext dbContext) : base(dbContext)
         {
         }
-
+        /// <summary>
+        /// Gets all by role identifier.
+        /// </summary>
+        /// <param name="roleId">The role identifier.</param>
+        /// <returns></returns>
         public async Task<IEnumerable<Permission>> GetAllByRoleId(Guid roleId)
         {
             return await _dbContext.Permissions.AsNoTracking()
@@ -19,7 +23,11 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
         }
-
+        /// <summary>
+        /// Gets the list by slugs asynchronous.
+        /// </summary>
+        /// <param name="permissionSlugs">The permission slugs.</param>
+        /// <returns></returns>
         public async Task<IEnumerable<Permission>> GetListBySlugsAsync(IEnumerable<string> permissionSlugs)
         {
             return await _dbContext.Permissions.AsNoTracking()
@@ -27,7 +35,12 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
         }
-
+        /// <summary>
+        /// Gets the slugs by role slug asynchronous.
+        /// </summary>
+        /// <param name="roleSlug">The role slug.</param>
+        /// <param name="onlyActive">if set to <c>true</c> [only active].</param>
+        /// <returns></returns>
         public async Task<IEnumerable<string>> GetSlugsByRoleSlugAsync(string roleSlug, bool onlyActive)
         {
             var query = _dbContext.Permissions.AsNoTracking();

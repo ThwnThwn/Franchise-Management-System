@@ -10,8 +10,11 @@ namespace EngagementService.Infrastucture.Persistences.Repository
     {
         private readonly EngagementDbContext _dbContext = dbContext;
 
-        private IDbContextTransaction? _currentTransaction; // EF Core Tx
-
+        private IDbContextTransaction? _currentTransaction; // EF Core Tx        
+        /// <summary>
+        /// Begins the transaction asynchronous.
+        /// </summary>
+        /// <param name="ct">The ct.</param>
         public async Task BeginTransactionAsync(CancellationToken ct = default)
         {
             if (_currentTransaction != null) return;
@@ -20,7 +23,11 @@ namespace EngagementService.Infrastucture.Persistences.Repository
 
             _currentTransaction = await _dbContext.Database.BeginTransactionAsync(ct);
         }
-
+        /// <summary>
+        /// Saves the changes asynchronous.
+        /// </summary>
+        /// <param name="ct">The ct.</param>
+        /// <returns></returns>
         public async Task<int> SaveChangesAsync(CancellationToken ct = default)
         {
             try
@@ -38,13 +45,18 @@ namespace EngagementService.Infrastucture.Persistences.Repository
             }
             finally { ClearTransaction(); }
         }
-
+        /// <summary>
+        /// Rollbacks the asynchronous.
+        /// </summary>
+        /// <param name="ct">The ct.</param>
         public async Task RollbackAsync(CancellationToken ct = default)
         {
             if (_currentTransaction != null) await _currentTransaction.RollbackAsync(ct);
             ClearTransaction();
         }
-
+        /// <summary>
+        /// Clears the transaction.
+        /// </summary>
         private void ClearTransaction()
         {
             _currentTransaction?.Dispose();

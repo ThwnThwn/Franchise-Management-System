@@ -16,7 +16,11 @@ namespace EngagementService.Infrastucture.Persistences.Repository
         public UserVoucherRepository(IEngagementDbContext dbContext) : base(dbContext)
         {
         }
-
+        /// <summary>
+        /// Gets the by user identifier asynchronous.
+        /// </summary>
+        /// <param name="id">The identifier.</param>
+        /// <returns></returns>
         public async Task<List<UserVoucher>> GetByUserIdAsync(Guid id)
         {
             var userVouchers = await _dbSet
@@ -25,7 +29,12 @@ namespace EngagementService.Infrastucture.Persistences.Repository
                 .Where(uv => uv.UserId == id && uv.Status == UserVoucherStatus.AVAILABLE).ToListAsync();
             return userVouchers;
         }
-
+        /// <summary>
+        /// Gets the by voucher ids asynchronous.
+        /// </summary>
+        /// <param name="voucherId">The voucher identifier.</param>
+        /// <param name="userId">The user identifier.</param>
+        /// <returns></returns>
         public async Task<List<UserVoucher>> GetByVoucherIdsAsync(List<Guid> voucherId, Guid userId)
         {
             var userVouchers = await _dbSet

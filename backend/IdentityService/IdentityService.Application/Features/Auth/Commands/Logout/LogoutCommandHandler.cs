@@ -20,7 +20,25 @@ public class LogoutCommandHandler : IRequestHandler<LogoutCommand, bool>
         _refreshTokenRepository = refreshTokenRepository;
         _tokenBlacklist = tokenBlacklist;
     }
-
+    /// <summary>
+    /// Handles a request
+    /// </summary>
+    /// <param name="request">The request</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>
+    /// Response from the request
+    /// </returns>
+    /// <exception cref="UnauthorizedAccessException">
+    /// Invalid refresh token
+    /// or
+    /// Invalid token format
+    /// or
+    /// Token is not a refresh token
+    /// or
+    /// Refresh token not found
+    /// or
+    /// Token does not belong to user
+    /// </exception>
     public async Task<bool> Handle(LogoutCommand request, CancellationToken cancellationToken)
     {
         // Validate JWT refresh token
