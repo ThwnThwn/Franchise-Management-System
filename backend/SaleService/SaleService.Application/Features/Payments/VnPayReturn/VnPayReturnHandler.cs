@@ -1,18 +1,21 @@
 
-using System.Text.Json;
 using Ardalis.Result;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using SalesService.Application.Dtos.Voucher;
 using SalesService.Application.Helpers;
 using SalesService.Application.Interfaces.Payments;
 using SalesService.Application.Mapping.Orders;
 using SalesService.Application.Persisitences.Outbox;
+using SalesService.Application.Persisitences.Wallets;
 using SalesService.Application.Signals;
 using SalesService.Domain.Enums;
 using SharedKernel.Constants;
 using SharedKernel.Events;
 using SharedKernel.Infrastructure.Extensions;
+using SharedKernel.Infrastructure.Kafka;
+using System.Text.Json;
 
 namespace SalesService.Application.Features.Payments.VnPayReturn;
 
@@ -22,17 +25,23 @@ public sealed class VnPayReturnHandler
     private readonly IPaymentRepository _paymentRepository;
     private readonly IConfiguration _config;
     private readonly ILogger<VnPayReturnHandler> _logger;
+    private readonly IKafkaProducer _kafkaProducer;
+    private readonly IWalletRepository _walletRepository;
 
     public VnPayReturnHandler(
         IPaymentRepository paymentRepository,
         IConfiguration config,
         IOutboxRepository outboxRepository,
         IOutboxSignal outboxSignal,
-        ILogger<VnPayReturnHandler> logger)
+        ILogger<VnPayReturnHandler> logger,
+        IKafkaProducer kafkaProducer,
+        IWalletRepository walletRepository)
     {
         _paymentRepository = paymentRepository;
         _config = config;
         _logger = logger;
+        _kafkaProducer = kafkaProducer;
+        _walletRepository = walletRepository;
     }
 
     public async Task<Result<VnPayReturnResponse>> Handle(
@@ -98,7 +107,7 @@ public sealed class VnPayReturnHandler
         }
 
         var payment = await _paymentRepository.GetByIdWithOrderAsync(paymentId, cancellationToken);
-
+        var order = payment.Order;
         if (payment == null)
         {
             return Result.NotFound("Payment not found");
@@ -110,6 +119,55 @@ public sealed class VnPayReturnHandler
 
         if (isSuccess)
         {
+            //=================
+            // Kakfa Event Voucher
+            //=================
+            List<Guid> voucherList = order.OrderSaleItems
+                .Where(x => x.Type == OrderSaleItemType.Voucher)
+                .Select(x => x.ReferenceId.Value)
+                .ToList();
+            if (voucherList.Any())
+            {
+                UseVouchersEvent userVoucherEvent = new UseVouchersEvent
+                {
+                    OrderId = order.Id,
+                    UserId = order.CustomerId.Value,
+                    VoucherIds = voucherList
+                };
+                _kafkaProducer.PublishAsync(KafkaTopics.DeductUserVoucher, userVoucherEvent);
+            }
+            //=================
+            // Kakfa Event Point
+            //=================
+            decimal point = order.OrderSaleItems
+                .Where(x => x.Type == OrderSaleItemType.LoyaltyPoint)
+                .Select(x => x.Amount)
+                .FirstOrDefault(); 
+            if(point != 0 || point != null)
+            {
+                DeductPointEvent userPoint = new DeductPointEvent
+                {
+                    Id = order.CustomerId.Value,
+                    OrderId = order.Id,
+                    PointToDeduct = point
+                };
+                _kafkaProducer.PublishAsync(KafkaTopics.DedcutUserPoint, userPoint);
+            }
+            //=================
+            // Wallet Event 
+            //=================
+            var userWallet = await _walletRepository.GetByUserIdAsync(order.CustomerId.Value);
+            decimal walletAmount = order.OrderSaleItems
+                .Where(x => x.Type == OrderSaleItemType.Wallet)
+                .Select(x => x.Amount)
+                .FirstOrDefault();
+            if(walletAmount != 0 || walletAmount != 0)
+            {
+                await _walletRepository.DeductBalanceAsync(userWallet.Id, walletAmount, userWallet.RowVersion);
+
+            }
+            //=================
+            // log
             _logger.LogInformation("VNPay Return: Giao dịch thành công cho PaymentId {PaymentId}. Chờ IPN xử lý DB.", payment.Id);
         }
         else
