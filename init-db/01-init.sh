@@ -30,12 +30,18 @@ run_sql_script() {
     local db_name=$1
     local file_path=$2
     
-    if [ -f "$file_path" ]; then
-        echo "--- Executing $file_path into $db_name ---"
-        PGPASSWORD=$POSTGRES_PASSWORD psql -U "$POSTGRES_USER" -d "$db_name" -f "$file_path"
-    else
-        echo -e "${RED}ERROR:${NC} File not found: $file_path"
+    echo "--- Executing $file_path into $db_name ---"
+    
+    if [ ! -f "$file_path" ]; then
+        echo -e "${RED}ERROR:${NC} File $file_path NOT FOUND!"
         exit 1
+    fi
+
+    if psql -U "$POSTGRES_USER" -d "$db_name" -f "$file_path"; then
+        echo -e "${GREEN}SUCCESS:${NC} Applied $file_path to $db_name"
+    else
+        echo -e "${RED}CRITICAL ERROR:${NC} Failed to apply $file_path to $db_name"
+        exit 1 
     fi
 }
 
@@ -57,7 +63,7 @@ run_sql_script "sales_db" "/docker-entrypoint-initdb.d/schemas/04-sales.sql"
 run_sql_script "notification_db" "/docker-entrypoint-initdb.d/schemas/05-notification.sql"
 run_sql_script "inventory_db" "/docker-entrypoint-initdb.d/schemas/05-inventory.sql"
 run_sql_script "franchise_db" "/docker-entrypoint-initdb.d/schemas/06-franchise.sql"
-run_sql_script "payment_db" "/docker-entrypoint-initdb.d/schemas/07-payment.sql"
+# run_sql_script "payment_db" "/docker-entrypoint-initdb.d/schemas/07-payment.sql"
 run_sql_script "engagement_db" "/docker-entrypoint-initdb.d/schemas/08-engagement.sql"
 run_sql_script "supplier_db" "/docker-entrypoint-initdb.d/schemas/09-supplier.sql"
 
