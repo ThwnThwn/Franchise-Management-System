@@ -1,9 +1,4 @@
-<<<<<<< HEAD
-﻿using Ardalis.Result;
-=======
 using Ardalis.Result;
-using DocumentFormat.OpenXml.VariantTypes;
->>>>>>> be/deliveryOrder
 using MediatR;
 using Microsoft.Extensions.Logging;
 using SalesService.Application.AppExceptions;
