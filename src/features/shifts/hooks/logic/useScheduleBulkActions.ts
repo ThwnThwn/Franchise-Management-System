@@ -79,7 +79,10 @@ export const useScheduleBulkActions = ({
             }
 
             // 2. Logic cho Publish nhanh: Những ca chưa ban hành (Draft hoặc đang ở Chợ Ca)
-            if (s.status === ShiftStatus.Draft || s.status === ShiftStatus.Open) {
+            if (
+                s.assignedStaffCount === s.requiredStaffCount &&
+                (s.status === ShiftStatus.Draft || s.status === ShiftStatus.Open)
+            ) {
                 result.forPublish.push(s.id)
             }
         })

@@ -8,7 +8,7 @@ export type AgendaViewMode = "list" | "calendar"
 
 export const useAgendaLogic = () => {
     const [currentDate, setCurrentDate] = useState(dayjs())
-    const [viewMode, setViewMode] = useState<AgendaViewMode>("list")
+    const [viewMode, setViewMode] = useState<AgendaViewMode>("calendar")
 
     const dateRange = useMemo(() => {
         return {

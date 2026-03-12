@@ -102,7 +102,7 @@ export const StaffSwapView = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
                         {ongoingSwaps.length === 0 ? (
                             <p className="text-default-400 italic p-4">
-                                Không có giao dịch nào đang diễn ra.
+                                Không có đơn đổi ca nào đang diễn ra.
                             </p>
                         ) : (
                             ongoingSwaps.map((swap) => (
@@ -121,9 +121,7 @@ export const StaffSwapView = () => {
                 <Tab key="history" title="Lịch sử">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
                         {historySwaps.length === 0 ? (
-                            <p className="text-default-400 italic p-4">
-                                Chưa có lịch sử giao dịch nào.
-                            </p>
+                            <p className="text-default-400 italic p-4">Chưa có lịch sử đổi ca.</p>
                         ) : (
                             historySwaps.map((swap) => (
                                 <SwapRequestCard

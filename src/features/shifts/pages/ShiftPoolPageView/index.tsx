@@ -5,9 +5,9 @@ import { useDisclosure, Spinner } from "@heroui/react"
 import { Megaphone } from "lucide-react"
 
 import {
-    ShiftPoolToolbar,
     ShiftPoolListView,
-    ShiftPoolDetailModal
+    ShiftPoolDetailModal,
+    AgendaToolbar
 } from "@/features/shifts/components"
 import { DashboardHeader } from "@/features/dashboard"
 
@@ -18,8 +18,16 @@ import { ShiftStatus } from "@/features/shifts/constants"
 import { useTokenStore } from "@/hooks"
 
 export default function ShiftPoolPageView() {
-    const { currentDate, dateRange, handleNext, handlePrev, handleToday, handleJumpToDate } =
-        useAgendaLogic()
+    const {
+        currentDate,
+        viewMode,
+        setViewMode,
+        dateRange,
+        handleNext,
+        handlePrev,
+        handleToday,
+        handleJumpToDate
+    } = useAgendaLogic()
 
     const storeId = useTokenStore((s) => s.storeId) || ""
 
@@ -67,8 +75,10 @@ export default function ShiftPoolPageView() {
                 description="Tìm kiếm và đăng ký các ca làm đang còn trống"
             />
 
-            <ShiftPoolToolbar
+            <AgendaToolbar
                 currentDate={currentDate}
+                viewMode={viewMode}
+                onViewChange={setViewMode}
                 onNext={handleNext}
                 onPrev={handlePrev}
                 onToday={handleToday}
@@ -83,7 +93,9 @@ export default function ShiftPoolPageView() {
                 ) : (
                     <ShiftPoolListView
                         shifts={shifts || []}
+                        viewMode={viewMode}
                         selectedDate={currentDate}
+                        dateRange={dateRange}
                         onCardClick={handleCardClick}
                         // onApplyClick={handleApplyShift}
                         // isApplyingId={applyingShiftId}

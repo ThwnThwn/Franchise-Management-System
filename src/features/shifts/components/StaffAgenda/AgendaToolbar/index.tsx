@@ -116,17 +116,6 @@ export const AgendaToolbar = ({
             {/* Switcher: Chỉ hiện trên Desktop (md:flex) */}
             <ButtonGroup size="sm" className="hidden md:flex bg-default-100 p-1 rounded-xl">
                 <Button
-                    startContent={<List size={16} />}
-                    className={
-                        viewMode === "list"
-                            ? "bg-white shadow-sm font-bold text-primary"
-                            : "bg-transparent"
-                    }
-                    onPress={() => onViewChange("list")}
-                >
-                    Theo ngày
-                </Button>
-                <Button
                     startContent={<CalendarIcon size={16} />}
                     className={
                         viewMode === "calendar"
@@ -136,6 +125,17 @@ export const AgendaToolbar = ({
                     onPress={() => onViewChange("calendar")}
                 >
                     Theo tuần
+                </Button>
+                <Button
+                    startContent={<List size={16} />}
+                    className={
+                        viewMode === "list"
+                            ? "bg-white shadow-sm font-bold text-primary"
+                            : "bg-transparent"
+                    }
+                    onPress={() => onViewChange("list")}
+                >
+                    Theo ngày
                 </Button>
             </ButtonGroup>
         </div>
