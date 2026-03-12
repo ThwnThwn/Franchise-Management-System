@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 GREEN='\033[0;32m'
 RED='\033[0;31m'
@@ -29,9 +30,13 @@ run_sql_script() {
     local db_name=$1
     local file_path=$2
     
-    echo "--- Executing $file_path into $db_name ---"
-    # Force psql connect to DB (-d) to run file (-f)
-    psql -U "$POSTGRES_USER" -d "$db_name" -f "$file_path"
+    if [ -f "$file_path" ]; then
+        echo "--- Executing $file_path into $db_name ---"
+        PGPASSWORD=$POSTGRES_PASSWORD psql -U "$POSTGRES_USER" -d "$db_name" -f "$file_path"
+    else
+        echo -e "${RED}ERROR:${NC} File not found: $file_path"
+        exit 1
+    fi
 }
 
 # Core Services

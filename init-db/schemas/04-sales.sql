@@ -68,7 +68,6 @@ CREATE TABLE IF NOT EXISTS order_items (
 );
 CREATE INDEX idx_order_items_order ON order_items(order_id);
 
-<<<<<<< HEAD
 -- 2.2. Order Sale Items (Discounts / Reductions applied to order)
 CREATE TABLE IF NOT EXISTS order_sale_items (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -86,11 +85,10 @@ CREATE TABLE IF NOT EXISTS order_sale_items (
     order_id UUID NOT NULL,
     CONSTRAINT fk_order_sale_items_order FOREIGN KEY (order_id) REFERENCES orders(id)
 );
+CREATE INDEX IF NOT EXISTS idx_order_sale_items_order ON order_sale_items(order_id);
+CREATE INDEX IF NOT EXISTS idx_order_sale_items_ref ON order_sale_items(reference_id);
 
-CREATE INDEX idx_order_sale_items_order ON order_sale_items(order_id);
-CREATE INDEX idx_order_sale_items_ref ON order_sale_items(ref_id);
-=======
--- 2.2 Order Trackings
+-- 2.3 Order Trackings
 CREATE TABLE IF NOT EXISTS order_trackings (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     order_id UUID NOT NULL,
@@ -103,10 +101,8 @@ CREATE TABLE IF NOT EXISTS order_trackings (
     CONSTRAINT fk_order_trackings_order
         FOREIGN KEY (order_id) REFERENCES orders(id)
 );
-CREATE INDEX IF NOT EXISTS idx_order_trackings_order
-ON order_trackings(order_id);
+CREATE INDEX IF NOT EXISTS idx_order_trackings_order ON order_trackings(order_id);
 
->>>>>>> be/deliveryOrder
 -- 3. Payments
 CREATE TABLE IF NOT EXISTS payments (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
