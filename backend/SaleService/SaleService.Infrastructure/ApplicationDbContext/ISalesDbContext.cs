@@ -17,6 +17,7 @@ public interface ISalesDbContext : IDisposable
     DbSet<WalletEvent> WalletEvents { get; set; }
     DbSet<WalletTransaction> WalletTransactions { get; set; }
     DbSet<RefundTicket> RefundTickets { get; set; }
+    DbSet<OrderTracking> OrderTrackings { get; set; }
 
     public DbSet<T> Set<T>() where T : class, IEntity;
 

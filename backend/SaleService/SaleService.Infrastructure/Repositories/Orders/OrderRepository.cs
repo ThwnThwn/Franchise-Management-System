@@ -500,6 +500,7 @@ public class OrderRepository : IOrderRepository
         return (time.Year, week);
     }
 
+<<<<<<< HEAD
     public async Task<List<CustomerOrderStatDto>> GetCustomerOrderStatisticAsync(
     Guid storeId,
     DateTimeOffset? from,
@@ -550,6 +551,38 @@ public class OrderRepository : IOrderRepository
             grouped = grouped.Where(g => g.TotalOrders <= maxOrders.Value).ToList();
 
         return grouped;
+=======
+    public async Task<(List<OrderTracking> Items, int TotalCount)> GetOrderTrackingsAsync(
+        Guid? storeId,
+        Guid? orderId,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _context.OrderTrackings
+            .Include(t => t.Order)
+            .AsNoTracking();
+
+        if (storeId.HasValue)
+        {
+            query = query.Where(t => t.Order != null && t.Order.StoreId == storeId.Value);
+        }
+
+        if (orderId.HasValue)
+        {
+            query = query.Where(t => t.OrderId == orderId.Value);
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .OrderByDescending(t => t.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return (items, totalCount);
+>>>>>>> be/deliveryOrder
     }
 }
 

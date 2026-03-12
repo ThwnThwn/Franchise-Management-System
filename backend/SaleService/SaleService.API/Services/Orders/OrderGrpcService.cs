@@ -1,10 +1,11 @@
-using AutoMapper;
+﻿using AutoMapper;
 using DocumentFormat.OpenXml.Office2016.Excel;
 using Google.Protobuf;
 using Grpc.Core;
 using MediatR;
 using Org.BouncyCastle.Asn1.Ocsp;
 using SalesService.Application.Features.Orders.Commands.Create;
+using SalesService.Application.Features.Orders.Commands.AssignStaff;
 using SalesService.Application.Features.Orders.Commands.PayWithWallet;
 using SalesService.Application.Features.Orders.Commands.Update;
 using SalesService.Application.Features.Orders.Commands.UpdateOrderStatus;
@@ -24,6 +25,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using SalesService.Application.Features.Orders.Queries.GetOrderTrackings;
+using Microsoft.Extensions.Logging;
 
 namespace SalesService.API.Services.Orders;
 
@@ -31,11 +34,13 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
 {
     private readonly IMediator _mediator;
     private readonly IMapper _mapper;
+    private readonly ILogger<OrderGrpcService> _logger;
 
-    public OrderGrpcService(IMediator mediator, IMapper mapper)
+    public OrderGrpcService(IMediator mediator, IMapper mapper, ILogger<OrderGrpcService> logger)
     {
         _mediator = mediator;
         _mapper = mapper;
+        _logger = logger;
     }
     /// <summary>
     /// Tạo đơn hàng từ giỏ hàng
@@ -50,6 +55,7 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
     /// Missing x-user-id in request headers
     /// or
     /// </exception>
+
     public override async Task<OrderReply> CreateOrder(CreateOrderRequest request, ServerCallContext context)
     {
         // Lấy UserId từ Metadata header
@@ -64,17 +70,26 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
         var customerId = Guid.Parse(userIdEntry.Value);
 
         // Map từ gRPC request sang DTO
+        var targetType = request.HasType ? (SalesService.Domain.Enums.OrderType)(int)request.Type : SalesService.Domain.Enums.OrderType.Pickup;
+
+        _logger.LogInformation("CreateOrder request received: StoreId={StoreId}, RawType={RawType}, TargetType={TargetType}, Address={Address}, HasLat={HasLat}, HasLong={HasLong}",
+            request.StoreId, (int)request.Type, targetType, request.Address, request.HasLatitude, request.HasLongitude);
+
         var createOrderRequest = new CreateOrderRequestDto
         {
             Notes = string.IsNullOrWhiteSpace(request.Notes) ? null : request.Notes,
             CustomerId = customerId,
             StoreId = string.IsNullOrWhiteSpace(request.StoreId) ? null : Guid.Parse(request.StoreId),
-            Type = (SalesService.Domain.Enums.OrderType)request.Type,
+            Type = targetType,
+            ScheduledTime = string.IsNullOrWhiteSpace(request.ScheduledTime) ? null : TimeOnly.Parse(request.ScheduledTime),
             Items = request.Items.Select(item => new CartItemDto
             {
                 Sku = item.Sku,
                 Quantity = item.Quantity
-            }).ToList()
+            }).ToList(),
+            Address = string.IsNullOrWhiteSpace(request.Address) ? null : request.Address,
+            Latitude = request.HasLatitude ? request.Latitude : null,
+            Longitude = request.HasLongitude ? request.Longitude : null
         };
 
         var command = new CreateOrderCommand(createOrderRequest);
@@ -93,11 +108,17 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             OrderCode = result.Value.OrderCode ?? string.Empty, // Tránh lỗi null cũ
             TotalAmount = (double)result.Value.TotalAmount,
             CustomerId = customerId.ToString(),
-            Type=(OrderType)result.Value.Type , 
+            Type = (OrderType)result.Value.Type,
             CheckStockRespone = new CheckEnoughStockResponse
             {
                 IsEnough = result.Value.CheckEnoughStockRes.IsEnough
             },
+            ScheduledTime = result.Value.ScheduledTime?.ToString("O") ?? string.Empty,
+            ShippingFee = (double)result.Value.ShippingFee,
+            Address = result.Value.Address ?? string.Empty,
+            Latitude = result.Value.Latitude ?? 0,
+            Longitude = result.Value.Longitude ?? 0,
+            Distance = (double)(result.Value.Distance ?? 0)
         };
 
         // Sử dụng AddRange để đẩy dữ liệu vào list read-only
@@ -182,7 +203,12 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             UpdatedAt = dto.UpdatedAt.ToString("O"),
             CustomerId = dto.CustomerId.ToString(),
             StoreId = dto.StoreId?.ToString() ?? string.Empty,
-            Type = (OrderType)dto.Type
+            Type = (OrderType)dto.Type,
+            ScheduledTime = dto.ScheduledTime?.ToString("O") ?? string.Empty,
+            ShippingFee = (double)dto.ShippingFee,
+            Address = dto.Address ?? string.Empty,
+            Latitude = dto.Latitude ?? 0,
+            Longitude = dto.Longitude ?? 0
         };
 
         orderMessage.Items.AddRange(dto.Items.Select(i => new OrderItem
@@ -270,7 +296,12 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
                 Tax = order.Tax.HasValue ? (double)order.Tax.Value : -1,
                 PaidAmount = order.PaidAmount.HasValue ? (double)order.PaidAmount.Value : -1,
                 PaymentMethod = order.PaymentMethod ?? -1,
-                Type= (OrderType)order.OrderType
+                Type = (OrderType)order.OrderType,
+                ScheduledTime = order.ScheduledTime?.ToString("O") ?? string.Empty,
+                ShippingFee = (double)order.ShippingFee,
+                Address = order.Address ?? string.Empty,
+                Latitude = order.Latitude ?? 0,
+                Longitude = order.Longitude ?? 0
             };
 
             if (!string.IsNullOrEmpty(order.Notes))
@@ -365,7 +396,8 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             CheckStockRespone = new CheckEnoughStockResponse
             {
                 IsEnough = result.CheckEnoughStockRes.IsEnough
-            }
+            },
+            ShippingFee = (double)(result.ShippingFee ?? 0)
         };
 
         // Add shortage items if any
@@ -450,7 +482,12 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
                 Tax = order.Tax.HasValue ? (double)order.Tax.Value : -1,
                 PaidAmount = order.PaidAmount.HasValue ? (double)order.PaidAmount.Value : -1,
                 PaymentMethod = order.PaymentMethod ?? -1,
-                Type = (OrderType)order.OrderType
+                Type = (OrderType)order.OrderType,
+                ScheduledTime = order.ScheduledTime?.ToString("O") ?? string.Empty,
+                ShippingFee = (double)order.ShippingFee,
+                Address = order.Address ?? string.Empty,
+                Latitude = order.Latitude ?? 0,
+                Longitude = order.Longitude ?? 0
             };
 
             if (!string.IsNullOrEmpty(order.Notes))
@@ -658,9 +695,9 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
 
             PaidAt = dto.PaidAt.ToString("O")
         };
-    }    
-    
-    public override async Task<GetCountOrderByUserIdsResponse>GetCountOrderByUserIds(GetCountOrderByUserIdsRequest request,ServerCallContext context)
+    }
+
+    public override async Task<GetCountOrderByUserIdsResponse> GetCountOrderByUserIds(GetCountOrderByUserIdsRequest request, ServerCallContext context)
     {
         if (request.UserId == null || request.UserId.Count == 0)
             return new GetCountOrderByUserIdsResponse();
@@ -828,8 +865,6 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
                 CsvFileName = $"sales-trend-{DateTime.UtcNow:yyyyMMddHHmmss}.csv"
             };
         }
-
-
         return reply;
     }
 
@@ -904,4 +939,83 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
         return reply;
     }
 
+    public override async Task<AssignStaffToDeliveryReply> AssignStaffToDelivery(
+        AssignStaffToDeliveryRequest request,
+        ServerCallContext context)
+    {
+        if (!Guid.TryParse(request.OrderId, out var orderId))
+            throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid order_id format."));
+
+        Guid? staffId = null;
+        if (request.HasStaffId && !string.IsNullOrWhiteSpace(request.StaffId))
+        {
+            if (!Guid.TryParse(request.StaffId, out var parsedStaffId))
+                throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid staff_id format."));
+            staffId = parsedStaffId;
+        }
+
+        var command = new AssignStaffToDeliveryCommand(orderId, staffId);
+        var result = await _mediator.Send(command, context.CancellationToken);
+
+        if (result.Status == Ardalis.Result.ResultStatus.NotFound)
+            throw new RpcException(new Status(StatusCode.NotFound, result.Errors.FirstOrDefault() ?? "Order not found."));
+
+        if (!result.IsSuccess)
+            throw new RpcException(new Status(StatusCode.InvalidArgument, result.Errors.FirstOrDefault() ?? "Failed to assign staff."));
+
+        var dto = result.Value;
+        return new AssignStaffToDeliveryReply
+        {
+            OrderId = dto.OrderId.ToString(),
+            OrderCode = dto.OrderCode,
+            DelivererId = dto.DelivererId?.ToString() ?? string.Empty,
+            Message = dto.Message
+        };
+    }
+
+    public override async Task<GetOrderTrackingsReply> GetOrderTrackings(
+        GetOrderTrackingsRequest request,
+        ServerCallContext context)
+    {
+        Guid? storeId = null;
+        if (!string.IsNullOrWhiteSpace(request.StoreId))
+        {
+            if (Guid.TryParse(request.StoreId, out var parsedStoreId))
+                storeId = parsedStoreId;
+        }
+
+        Guid? orderId = null;
+        if (!string.IsNullOrWhiteSpace(request.OrderId))
+        {
+            if (Guid.TryParse(request.OrderId, out var parsedOrderId))
+                orderId = parsedOrderId;
+        }
+
+        var page = request.Page > 0 ? request.Page : 1;
+        var pageSize = request.PageSize > 0 ? request.PageSize : 10;
+
+        var query = new GetOrderTrackingsQuery(storeId, orderId, page, pageSize);
+        var result = await _mediator.Send(query, context.CancellationToken);
+
+        if (!result.IsSuccess)
+            throw new RpcException(new Status(StatusCode.Internal, result.Errors.FirstOrDefault() ?? "Failed to get order trackings."));
+
+        var response = new GetOrderTrackingsReply
+        {
+            TotalCount = result.Value.TotalCount
+        };
+
+        response.Trackings.AddRange(result.Value.Trackings.Select(t => new OrderTrackingMessage
+        {
+            Id = t.Id.ToString(),
+            OrderId = t.OrderId.ToString(),
+            OrderCode = t.OrderCode,
+            Status = t.Status,
+            Action = t.Action,
+            Note = t.Note,
+            CreatedAt = t.CreatedAt.ToString("O")
+        }));
+
+        return response;
+    }
 }

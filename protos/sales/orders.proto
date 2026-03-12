@@ -41,6 +41,11 @@ service OrderGrpc {
 
   // Lấy dữ liệu biểu đồ phân tích xu hướng doanh thu và lượng đơn
   rpc GetSalesTrend (GetSalesTrendRequest) returns (GetSalesTrendReply);
+  // Gán nhân viên giao hàng cho đơn hàng
+  rpc AssignStaffToDelivery (AssignStaffToDeliveryRequest) returns (AssignStaffToDeliveryReply);
+
+  // Lấy lịch sử theo dõi đơn hàng
+  rpc GetOrderTrackings (GetOrderTrackingsRequest) returns (GetOrderTrackingsReply);
 
   // Thống kê Customer Purchase Behavior
   rpc GetCustomerOrderPattern (GetCustomerOrderPatternRequest) returns (GetCustomerOrderPatternReply);
@@ -63,7 +68,11 @@ message CreateOrderRequest {
   repeated CartItem items = 1;
   string notes = 2;
   string storeId = 3;
-  OrderType type =4;
+  optional OrderType type = 4;
+  optional string scheduled_time = 5;
+  optional double latitude = 6;
+  optional double longitude = 7;
+  optional string address = 8;
 }
 
 message CartItem {
@@ -82,6 +91,12 @@ message OrderReply {
   CheckEnoughStockResponse check_stock_respone = 7;
   optional OrderType type=8;
   repeated OrderSaleItemReply sale_items = 9;
+  optional string scheduled_time = 10;
+  double shipping_fee = 11;
+  optional double latitude = 12;
+  optional double longitude = 13;
+  optional string address = 14;
+  optional double distance = 15;
 }
 
 message OrderItemReply {
@@ -129,6 +144,11 @@ message Order {
   repeated OrderItem items = 15;
   OrderType type=16;
   repeated OrderSaleItemReply sale_items = 17;
+  optional string scheduled_time = 18;
+  double shipping_fee = 19;
+  optional double latitude = 20;
+  optional double longitude = 21;
+  optional string address = 22;
 }
 
 
@@ -169,6 +189,11 @@ message OrderSummary {
   string customer_id = 13;
   string store_id = 14;
   OrderType type=15;
+  optional string scheduled_time = 16;
+  double shipping_fee = 17;
+  optional double latitude = 18;
+  optional double longitude = 19;
+  optional string address = 20;
 }
 
 
@@ -340,6 +365,39 @@ message PayOrderWithWalletReply {
 
   string paid_at = 14;
 }
+message AssignStaffToDeliveryRequest {
+  string order_id = 1;
+  optional string staff_id = 2; // Nếu không có, hệ thống sẽ tự chọn (chưa hỗ trợ)
+}
+
+message AssignStaffToDeliveryReply {
+  string order_id = 1;
+  string order_code = 2;
+  string deliverer_id = 3;
+  string message = 4;
+}
+
+message GetOrderTrackingsRequest {
+  optional string store_id = 1;
+  optional string order_id = 2;
+  optional int32 page = 3;
+  optional int32 page_size = 4;
+}
+
+message GetOrderTrackingsReply {
+  repeated OrderTrackingMessage trackings = 1;
+  int32 total_count = 2;
+}
+
+message OrderTrackingMessage {
+  string id = 1;
+  string order_id = 2;
+  string order_code = 3;
+  int32 status = 4;
+  string action = 5;
+  string note = 6;
+  string created_at = 7;
+}
 
 message GetProductPerformanceRequest {
   string store_id = 1;
@@ -378,36 +436,4 @@ enum PerformanceTag {
   PERFORMANCE_TAG_NORMAL = 0;
   PERFORMANCE_TAG_TOP = 1;
   PERFORMANCE_TAG_BOTTOM = 2;
-}
-
-message GetCustomerOrderPatternRequest {
-  string store_id = 1;
-  optional string from_date = 2;
-  optional string to_date = 3;
-  optional int32 min_orders = 4;
-  optional int32 max_orders = 5;
-  optional string sort_by = 6;
-  optional string sort_order = 7;
-  int32 page_index = 8;
-  int32 page_size = 9;
-  optional bool include_csv = 10;
-}
-
-message GetCustomerOrderPatternReply {
-  repeated CustomerOrderPatternItem items = 1;
-  int32 total_count = 2;
-  int32 page_index = 3;
-  int32 page_size = 4;
-  optional CsvFile csv_file = 5;
-}
-
-message CustomerOrderPatternItem {
-  string customer_id = 1;
-  string full_name = 2;
-  string email = 3;
-  string phone = 4;
-  int32 total_orders = 5;
-  double average_order_value = 6;
-  double total_spent = 7;
-  string last_order_date = 8;
 }
