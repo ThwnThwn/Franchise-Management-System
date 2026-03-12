@@ -24,6 +24,8 @@ type Config struct {
 
 	MaxUploadSizeMb       int
 	GatewayTimeoutSeconds int
+	RateLimitPerSec       int
+	RateLimitBurst        int
 }
 
 type Logger struct {

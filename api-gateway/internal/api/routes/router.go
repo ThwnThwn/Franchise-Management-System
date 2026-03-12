@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"golang.org/x/time/rate"
 )
 
 func NewEngine(cfg *config.Config, aR *AppRouter) *gin.Engine {
@@ -23,7 +24,7 @@ func NewEngine(cfg *config.Config, aR *AppRouter) *gin.Engine {
 	r.Use(middleware.CORSMiddleware())
 	r.Use(middleware.GlobalTimeoutMiddleware(time.Duration(cfg.GatewayTimeoutSeconds) * time.Second))
 
-	r.Use(middleware.RateLimitMiddleware(2, 1000))
+	r.Use(middleware.RateLimitMiddleware(rate.Limit(cfg.RateLimitPerSec), cfg.RateLimitBurst))
 	middleware.StartCleanupJob(5*time.Minute, 1*time.Minute)
 
 	// Health check cho Gateway

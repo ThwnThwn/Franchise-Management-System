@@ -73,6 +73,8 @@ func LoadConfig() *Config {
 
 		MaxUploadSizeMb:       getEnvInt("MAX_UPLOAD_SIZE_MB", 10),
 		GatewayTimeoutSeconds: getEnvInt("GATEWAY_TIMEOUT_SECONDS", 180),
+		RateLimitPerSec:       getEnvInt("RATE_LIMIT_PER_SEC", 20),
+		RateLimitBurst:        getEnvInt("RATE_LIMIT_BURST", 50),
 	}
 	return cfg
 }
