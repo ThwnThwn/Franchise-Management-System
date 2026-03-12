@@ -499,8 +499,6 @@ public class OrderRepository : IOrderRepository
         var week = System.Globalization.CultureInfo.InvariantCulture.Calendar.GetWeekOfYear(time, System.Globalization.CalendarWeekRule.FirstFourDayWeek, DayOfWeek.Monday);
         return (time.Year, week);
     }
-
-<<<<<<< HEAD
     public async Task<List<CustomerOrderStatDto>> GetCustomerOrderStatisticAsync(
     Guid storeId,
     DateTimeOffset? from,
@@ -518,10 +516,10 @@ public class OrderRepository : IOrderRepository
             .AsNoTracking();
 
         if (from.HasValue)
-            query = query.Where(o => o.CreatedAt >= from.Value.ToUniversalTime()); 
+            query = query.Where(o => o.CreatedAt >= from.Value.ToUniversalTime());
 
         if (to.HasValue)
-            query = query.Where(o => o.CreatedAt <= to.Value.ToUniversalTime()); 
+            query = query.Where(o => o.CreatedAt <= to.Value.ToUniversalTime());
 
         var orders = await query
             .Select(o => new
@@ -551,7 +549,7 @@ public class OrderRepository : IOrderRepository
             grouped = grouped.Where(g => g.TotalOrders <= maxOrders.Value).ToList();
 
         return grouped;
-=======
+    }
     public async Task<(List<OrderTracking> Items, int TotalCount)> GetOrderTrackingsAsync(
         Guid? storeId,
         Guid? orderId,
@@ -582,7 +580,6 @@ public class OrderRepository : IOrderRepository
             .ToListAsync(cancellationToken);
 
         return (items, totalCount);
->>>>>>> be/deliveryOrder
     }
 }
 

@@ -15,14 +15,11 @@ using SalesService.API.Services.Payments;
 using SalesService.API.Services.Products;
 using SalesService.API.Services;
 using SalesService.API.Services.Wallets;
-<<<<<<< HEAD
 using SalesService.API.Services.Withdrawal;
 using SalesService.Application.ClientInterface.Engagement;
-=======
 using SalesService.API.Services.Geocoding;
 using SalesService.Application.Interfaces;
 using SalesService.Application.Interfaces.Geocoding;
->>>>>>> be/deliveryOrder
 using SalesService.Application.ClientInterface.Inventory;
 using SalesService.Application.ClientInterface.Products;
 using SalesService.Application.Interfaces.Identity;

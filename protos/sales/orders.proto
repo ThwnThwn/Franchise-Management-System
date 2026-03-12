@@ -437,3 +437,38 @@ enum PerformanceTag {
   PERFORMANCE_TAG_TOP = 1;
   PERFORMANCE_TAG_BOTTOM = 2;
 }
+
+message GetCustomerOrderPatternRequest {
+  string store_id = 1;
+  optional string from_date = 2;
+  optional string to_date = 3;
+  optional int32 min_orders = 4;
+  optional int32 max_orders = 5;
+  optional string sort_by = 6;
+  optional string sort_order = 7;
+  int32 page_index = 8;
+  int32 page_size = 9;
+  optional bool include_csv = 10;
+}
+
+
+
+message GetCustomerOrderPatternReply {
+  repeated CustomerOrderPatternItem items = 1;
+  int32 total_count = 2;
+  int32 page_index = 3;
+  int32 page_size = 4;
+  optional CsvFile csv_file = 5;
+}
+
+message CustomerOrderPatternItem {
+  string customer_id = 1;
+  string full_name = 2;
+  string email = 3;
+  string phone = 4;
+  int32 total_orders = 5;
+  double average_order_value = 6;
+  double total_spent = 7;
+  string last_order_date = 8;
+}
+
