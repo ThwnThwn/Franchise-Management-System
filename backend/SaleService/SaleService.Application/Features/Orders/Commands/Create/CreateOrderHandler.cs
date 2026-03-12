@@ -220,6 +220,16 @@ public sealed class CreateOrderHandler
                     currentLat = geocodeResult.Latitude;
                     currentLong = geocodeResult.Longitude;
                 }
+                else
+                {
+                    return Result.Error("Could not determine location from the provided address. Please check your address again.");
+                }
+            }
+
+            // Ensure we have coordinates for delivery
+            if (!currentLat.HasValue || !currentLong.HasValue)
+            {
+                return Result.Error("Delivery coordinates or a valid address are required to place a delivery order.");
             }
 
             // Logic bậc thang tính phí ship
