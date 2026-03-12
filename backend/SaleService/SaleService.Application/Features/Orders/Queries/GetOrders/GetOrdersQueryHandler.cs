@@ -32,6 +32,7 @@ public class GetOrdersQueryHandler : IRequestHandler<GetOrdersQuery, Result<GetO
             o.Id,
             o.Code,
             o.Subtotal,
+            o.ShippingFee,
             o.Tax,
             o.TotalAmount,
             o.PaidAmount,
@@ -43,7 +44,11 @@ public class GetOrdersQueryHandler : IRequestHandler<GetOrdersQuery, Result<GetO
             o.CreatedAt,
             o.UpdatedAt,
             o.CustomerId,
-            o.StoreId
+            o.StoreId,
+            o.ScheduledTime,
+            o.Address,
+            o.Latitude,
+            o.Longitude
         )).ToList();
 
         //return Result.Success(new GetOrdersResponse(orderDtos, totalCount));

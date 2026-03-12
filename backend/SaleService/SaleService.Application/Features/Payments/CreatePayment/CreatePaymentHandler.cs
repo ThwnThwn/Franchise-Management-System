@@ -1,4 +1,5 @@
 using Ardalis.Result;
+using DocumentFormat.OpenXml.Spreadsheet;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using SalesService.Application.AppExceptions;
@@ -102,20 +103,17 @@ public sealed class CreatePaymentHandler
             var voucherMap = vouchers.ToDictionary(v => v.Code, StringComparer.OrdinalIgnoreCase);
             Voucher? voucherDiscount = null;
             Voucher? voucherShip = null;
-            List<Guid> voucherList = new List<Guid>();
             if (!string.IsNullOrWhiteSpace(request.VoucherDiscountCode) &&
                 !voucherMap.TryGetValue(request.VoucherDiscountCode, out voucherDiscount))
             {
                 return Result.NotFound("Voucher Discount not found or not owned by user");
             }
-            if (voucherDiscount != null) voucherList.Add(voucherDiscount.Id);
 
             if (!string.IsNullOrWhiteSpace(request.VoucherShipCode) &&
                 !voucherMap.TryGetValue(request.VoucherShipCode, out voucherShip))
             {
                 return Result.NotFound("Voucher Ship not found or not owned by user");
             }
-            if (voucherShip != null) voucherList.Add(voucherShip.Id);
 
             // Voucher Discount 
             if (voucherDiscount.MinOrderValue <= order.Subtotal)
@@ -243,14 +241,7 @@ public sealed class CreatePaymentHandler
                     });
                 }
 
-                // Kakfa Event Voucher
-                UseVouchersEvent userVoucherEvent = new UseVouchersEvent
-                {
-                    OrderId = order.Id,
-                    UserId = order.CustomerId.Value,
-                    VoucherIds = voucherList
-                };
-                if (userVoucherEvent != null) _kafkaProducer.PublishAsync(KafkaTopics.DeductUserVoucher, userVoucherEvent);
+                
             }
         }
 
@@ -280,16 +271,8 @@ public sealed class CreatePaymentHandler
                     IsDeleted = false
                 });
             }
-            // Kakfa Event Point
-            DeductPointEvent userPoint = new DeductPointEvent
-            {
-                Id = order.CustomerId.Value,
-                OrderId = order.Id,
-                PointToDeduct = (decimal)request.Point
-            };
-            if (userPoint != null) _kafkaProducer.PublishAsync(KafkaTopics.DedcutUserPoint, userPoint);
+            
         }
-
         // ==========================================================
         // ===================== Wallet User ========================
         // ==========================================================
@@ -301,7 +284,15 @@ public sealed class CreatePaymentHandler
                 if(userWallet.Balance >= request.Wallet)
                 {
                     voucherDiscountAmount += request.Wallet;
-                    await _walletRepository.DeductBalanceAsync(userWallet.Id, request.Wallet.Value, userWallet.RowVersion);
+                    order.OrderSaleItems.Add(new Domain.Entities.OrderSaleItem
+                    {
+                        OrderId = order.Id,
+                        Name = "Wallet",
+                        Amount = request.Wallet.Value,
+                        ReferenceId = userWallet.Id,
+                        Type = OrderSaleItemType.Wallet,
+                        IsDeleted = false
+                    });
                 }
                 else
                 {
@@ -354,6 +345,58 @@ public sealed class CreatePaymentHandler
                 _outboxRepository.AddEvent(orderPaidEvent, KafkaTopics.OrderPaid);
             }
 
+            /// Order Sale Item 
+            if(order.OrderSaleItems.Any())
+            {
+                //=================
+                // Kakfa Event Voucher
+                //=================
+                List<Guid> voucherList = order.OrderSaleItems
+                    .Where(x => x.Type == OrderSaleItemType.Voucher)
+                    .Select(x => x.ReferenceId.Value)
+                    .ToList();
+                if (voucherList.Any())
+                {
+                    UseVouchersEvent userVoucherEvent = new UseVouchersEvent
+                    {
+                        OrderId = order.Id,
+                        UserId = order.CustomerId.Value,
+                        VoucherIds = voucherList
+                    };
+                    _kafkaProducer.PublishAsync(KafkaTopics.DeductUserVoucher, userVoucherEvent);
+                }
+                //=================
+                // Kakfa Event Point
+                //=================
+                decimal point = order.OrderSaleItems
+                    .Where(x => x.Type == OrderSaleItemType.LoyaltyPoint)
+                    .Select(x => x.Amount)
+                    .FirstOrDefault();
+                if (point != 0 || point != null)
+                {
+                    UpdatePointEvent userPoint = new UpdatePointEvent
+                    {
+                        Id = order.CustomerId.Value,
+                        OrderId = order.Id,
+                        Point = point,
+                        ActionType = UpdatePointType.Minus
+                    };
+                    _kafkaProducer.PublishAsync(KafkaTopics.UpdateUserPoint, userPoint);
+                }
+                //=================
+                // Wallet Event 
+                //=================
+                var userWallet = await _walletRepository.GetByUserIdAsync(order.CustomerId.Value);
+                decimal walletAmount = order.OrderSaleItems
+                    .Where(x => x.Type == OrderSaleItemType.Wallet)
+                    .Select(x => x.Amount)
+                    .FirstOrDefault();
+                if (walletAmount != 0 || walletAmount != 0)
+                {
+                    await _walletRepository.DeductBalanceAsync(userWallet.Id, walletAmount, userWallet.RowVersion);
+
+                }
+            }
             _outboxSignal.Pulse();
 
             return Result.Success(new CreatePaymentRes { Url = "" });

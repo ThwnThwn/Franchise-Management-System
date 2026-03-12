@@ -77,6 +77,7 @@ public sealed class UpdateOrderStatusCommandHandler
             });
             if(order.Status == OrderStatus.ConfirmationPending && order.PaymentMethod == PaymentMethod.VNPay)
             {
+                //Hoàn về wallet
                 var wallet = await _walletRepository.GetByUserIdAsync(order.CustomerId.Value);
                 if(wallet == null || wallet.RowVersion == null)
                 {
@@ -87,8 +88,36 @@ public sealed class UpdateOrderStatusCommandHandler
                     return $"Cancel fail due to no PaidAmout found in order with ID {order.Id}";
                 }
                 await _walletRepository.AddBalanceAsync(wallet.Id,order.PaidAmount.Value,wallet.RowVersion);
+
+                if(request.RoleSlug == "staff")
+                {
+                    // Hoàn Point + Voucher 
+                    decimal point = order.OrderSaleItems
+                        .Where(x => x.Type == OrderSaleItemType.LoyaltyPoint)
+                        .Select(x => x.Amount)
+                        .FirstOrDefault();
+                    if (point != 0 || point != null)
+                    {
+                        UpdatePointEvent userPoint = new UpdatePointEvent
+                        {
+                            Id = order.CustomerId.Value,
+                            OrderId = order.Id,
+                            Point = point,
+                            ActionType = UpdatePointType.Add
+                        };
+                        _kafkaProducer.PublishAsync(KafkaTopics.UpdateUserPoint, userPoint);
+                    }
+
+                    // Kakfa Event Voucher
+                    ReverseVoucherEvent userVoucher = new ReverseVoucherEvent
+                    {
+                        OrderId = order.Id
+                    };
+                        _kafkaProducer.PublishAsync(KafkaTopics.ReverseUserVoucher, userVoucher);
+                }
             }
         }
+        
         // Đơn hàng hoàn thành
         if (request.Status == OrderStatus.Completed)
         {

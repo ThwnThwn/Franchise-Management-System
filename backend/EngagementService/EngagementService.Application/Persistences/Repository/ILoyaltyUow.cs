@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace EngagementService.Application.Persistences.Repository
 {
-    public interface ILoyaltyAccountUow
+    public interface ILoyaltyUow
     {
         /// <summary>
         /// Mở Transaction tích hợp CAP Outbox.

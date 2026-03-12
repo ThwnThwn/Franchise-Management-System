@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace EngagementService.Application.Features.LoyaltyAccount.Commands.DetuctPoint
 {
-    public record class DeductPointCommand(DeductPointRequest Request) : IRequest<Unit>
+    public record class UpdatePointCommand(UpdatePointRequest Request) : IRequest<Unit>
     {
     }
 }

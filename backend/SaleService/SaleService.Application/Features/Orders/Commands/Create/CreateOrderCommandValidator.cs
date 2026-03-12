@@ -13,9 +13,7 @@ public class CreateOrderCommandValidator : AbstractValidator<CreateOrderCommand>
         RuleForEach(x => x.Request.Items)
             .SetValidator(new CartItemDtoValidator());
 
-        RuleFor(x => x.Request.Type)
-            .NotEmpty()
-            .WithMessage("Order type cannot be empty");
+
     }
 }
 

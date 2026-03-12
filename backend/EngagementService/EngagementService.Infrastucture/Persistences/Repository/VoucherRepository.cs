@@ -40,6 +40,9 @@ namespace EngagementService.Infrastucture.Persistences.Repository
             if (voucherDb.IsActive)
                 throw new ArgumentException(VoucherMsg.ActiveVoucher);
 
+            if(voucherDb.CurrentQuantity != voucherDb.InitQuantity)
+                throw new ArgumentException(VoucherMsg.VoucherInUsed);
+
             UpdateVoucher(voucherDb, voucherUpdate);
 
             if (voucherDb.Type == VoucherType.GIFT && (voucherUpdate.VoucherItems != null || voucherUpdate.VoucherItems!.Count() > 0))

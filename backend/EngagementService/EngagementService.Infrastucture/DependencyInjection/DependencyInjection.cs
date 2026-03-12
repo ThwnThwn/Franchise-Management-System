@@ -45,7 +45,7 @@ public static class DependencyInjection
         services.AddScoped<IUserVoucherRepository, UserVoucherRepository>();
         services.AddScoped<IVoucherUsageRepository, VoucherUsageRepository>();
 
-        services.AddScoped<ILoyaltyAccountUow, LoyaltyAccountUow>();
+        services.AddScoped<ILoyaltyUow, LoyaltyUow>();
 
 
         services.AddHostedService<CleanupPointLogJob>();

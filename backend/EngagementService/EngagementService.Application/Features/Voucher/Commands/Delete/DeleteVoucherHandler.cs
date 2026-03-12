@@ -20,6 +20,9 @@ namespace EngagementService.Application.Features.Voucher.Commands.Delete
             if (voucher.IsActive)
                 throw new InvalidOperationException(VoucherMsg.ActiveVoucher);
 
+            if (voucher.CurrentQuantity != voucher.InitQuantity)
+                throw new ArgumentException(VoucherMsg.VoucherInUsed);
+
             await _voucherRepository.DeleteAsync(request.Id);
             return Unit.Value;
         }

@@ -33,6 +33,9 @@ service VoucherGrpc {
 
   //Use Voucher
   rpc UseVouchers (UseVoucherRequest) returns (google.protobuf.Empty);
+
+  //Reverse Vouchers
+  rpc ReverseVouchers (ReverseVouchersRequest) returns (google.protobuf.Empty);
 }
 
 // Định nghĩa các Enum dựa trên code C# của bạn
@@ -152,4 +155,8 @@ message UseVoucherRequest{
   repeated string voucher_ids = 1;
   string order_id = 2;
   string user_id = 3;
+}
+
+message ReverseVouchersRequest {
+  string order_id = 1;
 }
