@@ -8,11 +8,16 @@ using SalesService.API.GrpcServices;
 using SalesService.API.Middleware;
 using SalesService.API.Services.CartItems;
 using SalesService.API.Services.Identity;
+using SalesService.API.Services.Franchise;
 using SalesService.API.Services.Inventory;
 using SalesService.API.Services.Orders;
 using SalesService.API.Services.Payments;
 using SalesService.API.Services.Products;
+using SalesService.API.Services;
 using SalesService.API.Services.Wallets;
+using SalesService.API.Services.Geocoding;
+using SalesService.Application.Interfaces;
+using SalesService.Application.Interfaces.Geocoding;
 using SalesService.Application.ClientInterface.Inventory;
 using SalesService.Application.ClientInterface.Products;
 using SalesService.Application.Interfaces.Identity;
@@ -140,6 +145,15 @@ public class Program
 
         // Register IdentityService gRPC client
         builder.Services.AddSingleton<IIdentityServiceClient, IdentityServiceClient>();
+
+        // Register FranchiseService gRPC client
+        builder.Services.AddSingleton<SalesService.Application.Interfaces.Franchise.IFranchiseServiceClient, FranchiseServiceClient>();
+
+        // Register DistanceService
+        builder.Services.AddHttpClient<SalesService.Application.Interfaces.IDistanceService, DistanceService>();
+
+        // Register GeocodingService
+        builder.Services.AddHttpClient<IGeocodingService, NominatimGeocodingService>();
 
         // Register Kafka Producer Registry
         builder.Services.AddSingleton<KafkaProducerRegistry>(sp =>
@@ -307,6 +321,11 @@ public class Program
         app.MapGrpcReflectionService(); // Enable gRPC Server Reflection endpoint
         app.MapGet("/", () => "Sale Service API is running. Visit /swagger for API documentation.");
 
+        app.MapGet("/api/test-geocode", async (string address, IGeocodingService geocodingService) =>
+        {
+            var result = await geocodingService.GeocodeAsync(address);
+            return result != null ? Results.Ok(result) : Results.NotFound(new { message = "Address not found", address });
+        });
         app.Run();
     }
 }

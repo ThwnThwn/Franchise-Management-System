@@ -1,4 +1,4 @@
-﻿using Ardalis.Result;
+using Ardalis.Result;
 using MediatR;
 using SalesService.Application.Persisitences.Orders;
 using SalesService.Domain.Entities;
@@ -40,6 +40,7 @@ public sealed class GetOrderByIdQueryHandler
             OrderId = order.Id,
             OrderCode = order.Code,
             Subtotal = order.Subtotal,
+            ShippingFee = order.ShippingFee,
             Tax = order.Tax,
             TotalAmount = order.TotalAmount,
             PaidAmount = order.PaidAmount,
@@ -48,6 +49,10 @@ public sealed class GetOrderByIdQueryHandler
                 : null,
             Status = (int)order.Status,
             Type = order.Type,
+            ScheduledTime = order.ScheduledTime,
+            Address = order.Address,
+            Latitude = order.Latitude,
+            Longitude = order.Longitude,
             PaidAt = order.PaidAt,
             Notes = order.Notes,
             CreatedAt = order.CreatedAt,

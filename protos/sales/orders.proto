@@ -38,6 +38,12 @@ service OrderGrpc {
 
   // Lấy dữ liệu biểu đồ phân tích xu hướng doanh thu và lượng đơn
   rpc GetSalesTrend (GetSalesTrendRequest) returns (GetSalesTrendReply);
+
+  // Gán nhân viên giao hàng cho đơn hàng
+  rpc AssignStaffToDelivery (AssignStaffToDeliveryRequest) returns (AssignStaffToDeliveryReply);
+
+  // Lấy lịch sử theo dõi đơn hàng
+  rpc GetOrderTrackings (GetOrderTrackingsRequest) returns (GetOrderTrackingsReply);
 }
 
 message GetCountOrderByUserIdsRequest{
@@ -57,7 +63,11 @@ message CreateOrderRequest {
   repeated CartItem items = 1;
   string notes = 2;
   string storeId = 3;
-  OrderType type =4;
+  optional OrderType type = 4;
+  optional string scheduled_time = 5;
+  optional double latitude = 6;
+  optional double longitude = 7;
+  optional string address = 8;
 }
 
 message CartItem {
@@ -75,6 +85,12 @@ message OrderReply {
   repeated OrderItemReply items = 6;
   CheckEnoughStockResponse check_stock_respone = 7;
   optional OrderType type=8;
+  optional string scheduled_time = 9;
+  double shipping_fee = 10;
+  optional double latitude = 11;
+  optional double longitude = 12;
+  optional string address = 13;
+  optional double distance = 14;
 }
 
 message OrderItemReply {
@@ -108,6 +124,11 @@ message Order {
   string store_id = 14;
   repeated OrderItem items = 15;
   OrderType type=16;
+  optional string scheduled_time = 17;
+  double shipping_fee = 18;
+  optional double latitude = 19;
+  optional double longitude = 20;
+  optional string address = 21;
 }
 
 
@@ -148,6 +169,11 @@ message OrderSummary {
   string customer_id = 13;
   string store_id = 14;
   OrderType type=15;
+  optional string scheduled_time = 16;
+  double shipping_fee = 17;
+  optional double latitude = 18;
+  optional double longitude = 19;
+  optional string address = 20;
 }
 
 
@@ -319,3 +345,37 @@ message PayOrderWithWalletReply {
 
   string paid_at = 14;
 }
+
+message AssignStaffToDeliveryRequest {
+  string order_id = 1;
+  optional string staff_id = 2; // Nếu không có, hệ thống sẽ tự chọn (chưa hỗ trợ)
+}
+
+message AssignStaffToDeliveryReply {
+  string order_id = 1;
+  string order_code = 2;
+  string deliverer_id = 3;
+  string message = 4;
+}
+
+message GetOrderTrackingsRequest {
+  optional string store_id = 1;
+  optional string order_id = 2;
+  optional int32 page = 3;
+  optional int32 page_size = 4;
+}
+
+message GetOrderTrackingsReply {
+  repeated OrderTrackingMessage trackings = 1;
+  int32 total_count = 2;
+}
+
+message OrderTrackingMessage {
+  string id = 1;
+  string order_id = 2;
+  string order_code = 3;
+  int32 status = 4;
+  string action = 5;
+  string note = 6;
+  string created_at = 7;
+}

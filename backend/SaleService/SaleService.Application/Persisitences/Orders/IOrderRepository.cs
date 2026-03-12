@@ -57,4 +57,11 @@ public interface IOrderRepository
         List<string>? categorySkus,
         Guid? storeId,
         CancellationToken cancellationToken = default);
+
+    Task<(List<OrderTracking> Items, int TotalCount)> GetOrderTrackingsAsync(
+        Guid? storeId,
+        Guid? orderId,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default);
 }

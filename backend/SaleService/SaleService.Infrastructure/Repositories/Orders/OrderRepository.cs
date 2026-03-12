@@ -408,4 +408,36 @@ public class OrderRepository : IOrderRepository
         var week = System.Globalization.CultureInfo.InvariantCulture.Calendar.GetWeekOfYear(time, System.Globalization.CalendarWeekRule.FirstFourDayWeek, DayOfWeek.Monday);
         return (time.Year, week);
     }
+
+    public async Task<(List<OrderTracking> Items, int TotalCount)> GetOrderTrackingsAsync(
+        Guid? storeId,
+        Guid? orderId,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _context.OrderTrackings
+            .Include(t => t.Order)
+            .AsNoTracking();
+
+        if (storeId.HasValue)
+        {
+            query = query.Where(t => t.Order != null && t.Order.StoreId == storeId.Value);
+        }
+
+        if (orderId.HasValue)
+        {
+            query = query.Where(t => t.OrderId == orderId.Value);
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .OrderByDescending(t => t.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return (items, totalCount);
+    }
 }

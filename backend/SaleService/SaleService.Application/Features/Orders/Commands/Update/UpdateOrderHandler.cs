@@ -1,4 +1,4 @@
-﻿using Ardalis.Result;
+using Ardalis.Result;
 using DocumentFormat.OpenXml.VariantTypes;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -152,7 +152,7 @@ namespace SalesService.Application.Features.Orders.Commands.Update
             // Tax = 10%
             const decimal taxRate = 0.1m;
             var tax = subtotal * taxRate;
-            var totalAmount = subtotal + tax;
+            var totalAmount = subtotal + tax + order.ShippingFee;
 
             order.Subtotal = subtotal;
             order.Tax = tax;
@@ -174,6 +174,7 @@ namespace SalesService.Application.Features.Orders.Commands.Update
                     UnitPrice = x.UnitPrice
                 }).ToList(),
                 TotalAmount = order.TotalAmount,
+                ShippingFee = order.ShippingFee,
                 CheckEnoughStockRes = new CheckEnoughStockRes
                 {
                     IsEnough = true

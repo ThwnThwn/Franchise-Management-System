@@ -15,6 +15,10 @@ public sealed class CreateOrderRequestDto
     public Guid? CustomerId { get; set; }
     public Guid? StoreId { get; set; }
     public OrderType? Type { get; set; }
+    public TimeOnly? ScheduledTime { get; set; }
+    public double? Latitude { get; set; }
+    public double? Longitude { get; set; }
+    public string? Address { get; set; }
 }
 
 public sealed class CartItemDto
@@ -32,8 +36,14 @@ public sealed class CreateOrderResponseDto
 
     public Guid? StoreId { get; set; }
     public decimal? TotalAmount { get; set; }
+    public decimal ShippingFee { get; set; }
     public CheckEnoughStockRes CheckEnoughStockRes { get; set; } = new();
     public OrderType? Type { get; set; }
+    public TimeOnly? ScheduledTime { get; set; }
+    public double? Latitude { get; set; }
+    public double? Longitude { get; set; }
+    public string? Address { get; set; }
+    public decimal? Distance { get; set; }
 }
 public sealed class OrderItemDto
 {
