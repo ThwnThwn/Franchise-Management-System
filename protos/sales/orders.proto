@@ -86,7 +86,6 @@ message OrderReply {
   double total_amount = 3;
   string customer_id = 4;
   string store_id = 5;
-
   repeated OrderItemReply items = 6;
   CheckEnoughStockResponse check_stock_respone = 7;
   optional OrderType type=8;

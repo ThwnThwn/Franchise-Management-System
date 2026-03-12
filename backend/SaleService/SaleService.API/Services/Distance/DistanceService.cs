@@ -2,7 +2,7 @@ using Microsoft.Extensions.Configuration;
 using SalesService.Application.Interfaces;
 using System.Text.Json;
 
-namespace SalesService.API.Services;
+namespace SalesService.API.Services.Distance;
 
 public class DistanceService : IDistanceService
 {
@@ -22,13 +22,13 @@ public class DistanceService : IDistanceService
             // OSRM format: lon,lat;lon,lat
             var url = $"{_osrmBaseUrl}/route/v1/driving/{startLong},{startLat};{endLong},{endLat}?overview=false";
             var response = await _httpClient.GetAsync(url);
-            
+
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
                 using var doc = JsonDocument.Parse(content);
                 var root = doc.RootElement;
-                
+
                 if (root.TryGetProperty("routes", out var routes) && routes.GetArrayLength() > 0)
                 {
                     // distance is in meters
@@ -51,11 +51,11 @@ public class DistanceService : IDistanceService
         var R = 6371; // Earth radius in km
         var dLat = ToRadians(lat2 - lat1);
         var dLon = ToRadians(lon2 - lon1);
-        
+
         var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
                 Math.Cos(ToRadians(lat1)) * Math.Cos(ToRadians(lat2)) *
                 Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
-        
+
         var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
         return R * c;
     }

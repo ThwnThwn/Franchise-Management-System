@@ -13,7 +13,6 @@ using SalesService.API.Services.Inventory;
 using SalesService.API.Services.Orders;
 using SalesService.API.Services.Payments;
 using SalesService.API.Services.Products;
-using SalesService.API.Services;
 using SalesService.API.Services.Wallets;
 using SalesService.API.Services.Withdrawal;
 using SalesService.Application.ClientInterface.Engagement;
@@ -32,6 +31,7 @@ using SharedKernel.Constants;
 using SharedKernel.Events;
 using SharedKernel.Infrastructure.Kafka;
 using Yarp.ReverseProxy.Configuration;
+using SalesService.API.Services.Distance;
 
 namespace SalesService.API;
 
