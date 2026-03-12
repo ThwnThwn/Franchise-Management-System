@@ -1,15 +1,16 @@
-image: node:20-alpine
-
 stages:
     - deploy
 
 deploy_production:
     stage: deploy
+    tags:
+        - frontend-deploy
     script:
+        # 1. Cài đặt Vercel CLI (nếu trên VPS chưa có)
         - npm install --global vercel
-        - vercel pull --yes --environment=production --token=$VERCEL_TOKEN
-        - vercel build --prod --token=$VERCEL_TOKEN
-        - vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN
+        # 2. Deploy lên Vercel bằng bộ 3 biến môi trường đã nạp trong GitLab
+        # Lệnh này sẽ nén source code và đẩy lên Vercel để Vercel tự build trên đó.
+        - vercel deploy --prod --token=$VERCEL_TOKEN --yes
     rules:
         - if: $CI_COMMIT_TAG =~ /^v\d+/
           when: always
