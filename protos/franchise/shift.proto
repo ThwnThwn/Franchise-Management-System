@@ -10,6 +10,9 @@ service ShiftGrpcService {
   // Lấy lịch làm việc hôm nay của nhân viên
   rpc GetUserCurrentShift (GetUserCurrentShiftRequest) returns (GetUserCurrentShiftResponse);
 
+  // Lấy danh sách nhân viên đang trong ca làm việc tại cửa hàng
+  rpc GetActiveStaffsAtStore (GetActiveStaffsAtStoreRequest) returns (GetActiveStaffsAtStoreResponse);
+
   // --- NEW RPCs FOR SHIFT MANAGEMENT ---
   
   // Lấy danh sách ca làm việc (Filter)
@@ -467,4 +470,21 @@ message AutoFillShiftsResponse {
   int32 filled_count = 2;
   int32 total_slots = 3;
   repeated string unfilled_shift_ids = 4;
+}
+
+// --- ACTIVE STAFFS AT STORE ---
+message GetActiveStaffsAtStoreRequest {
+  string store_id = 1;
+}
+
+message GetActiveStaffsAtStoreResponse {
+  repeated ActiveStaffDto staffs = 1;
+}
+
+message ActiveStaffDto {
+  string user_id = 1;
+  string first_name = 2;
+  string last_name = 3;
+  string email = 4;
+  string avatar_url = 5;
 }

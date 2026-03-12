@@ -110,8 +110,41 @@ services:
     networks:
       - chb-network
 
+    # ==========================================
+  # 7. ROUTING ENGINE: OSRM (Open Source Routing Machine)
   # ==========================================
-  # 6. NGROK TẠO TUNNEL CHO VNPAY (Sale + Supplier Service)
+  osrm:
+    image: osrm/osrm-backend
+    container_name: chb_osrm
+    restart: always
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./osrm_data:/data
+    # Tự động hóa quá trình xử lý dữ liệu nếu chưa tồn tại
+    entrypoint: >
+      /bin/sh -c "
+        if [ ! -f /data/Saigon.osrm ]; then
+          echo 'Data not found, starting preprocessing...' &&
+          osrm-extract -p /opt/car.lua /data/Saigon.osm.pbf &&
+          osrm-partition /data/Saigon.osrm &&
+          osrm-customize /data/Saigon.osrm;
+        fi;
+        echo 'Starting OSRM server...' &&
+        osrm-routed --algorithm mld /data/Saigon.osrm;
+      "
+    # Giới hạn tài nguyên để bảo vệ Server
+    deploy:
+      resources:
+        limits:
+          memory: 512M    # Giới hạn tối đa 512MB RAM (rất dư cho map Sài Gòn)
+        reservations:
+          memory: 256M    # Luôn giữ chỗ ít nhất 256MB RAM
+    networks:
+      - chb-network
+
+  # ==========================================
+  # 8. NGROK TẠO TUNNEL CHO VNPAY (Sale + Supplier Service)
   #    Dashboard: http://localhost:4040
   #    Sale:     http://localhost:4040 → Tunnels → sale_service
   #    Supplier: http://localhost:4040 → Tunnels → supplier_service

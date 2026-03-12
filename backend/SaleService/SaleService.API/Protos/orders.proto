@@ -38,6 +38,9 @@ service OrderGrpc {
 
   // Lấy dữ liệu biểu đồ phân tích xu hướng doanh thu và lượng đơn
   rpc GetSalesTrend (GetSalesTrendRequest) returns (GetSalesTrendReply);
+
+  // Gán nhân viên giao hàng cho đơn hàng
+  rpc AssignStaff (AssignStaffRequest) returns (AssignStaffReply);
 }
 
 message GetCountOrderByUserIdsRequest{
@@ -57,7 +60,8 @@ message CreateOrderRequest {
   repeated CartItem items = 1;
   string notes = 2;
   string storeId = 3;
-  OrderType type =4;
+  optional OrderType type = 4;
+  optional string scheduled_time = 5;
 }
 
 message CartItem {
@@ -75,6 +79,7 @@ message OrderReply {
   repeated OrderItemReply items = 6;
   CheckEnoughStockResponse check_stock_respone = 7;
   optional OrderType type=8;
+  optional string scheduled_time = 9;
 }
 
 message OrderItemReply {
@@ -108,6 +113,7 @@ message Order {
   string store_id = 14;
   repeated OrderItem items = 15;
   OrderType type=16;
+  optional string scheduled_time = 17;
 }
 
 
@@ -148,6 +154,7 @@ message OrderSummary {
   string customer_id = 13;
   string store_id = 14;
   OrderType type=15;
+  optional string scheduled_time = 16;
 }
 
 
@@ -318,4 +325,16 @@ message PayOrderWithWalletReply {
   string shop_transaction_code = 13;
 
   string paid_at = 14;
+}
+
+message AssignStaffRequest {
+  string order_id = 1;
+  optional string staff_id = 2; // Nếu không có, hệ thống sẽ tự chọn (chưa hỗ trợ)
+}
+
+message AssignStaffReply {
+  string order_id = 1;
+  string order_code = 2;
+  string deliverer_id = 3;
+  string message = 4;
 }

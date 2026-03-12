@@ -1,4 +1,4 @@
-﻿CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- 0. Cart Items
 CREATE TABLE IF NOT EXISTS cart_items (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -28,13 +28,20 @@ CREATE TABLE IF NOT EXISTS orders (
     notes VARCHAR(255),
     
     type INT, -- 0.Delivery, 1.Pickup
+    shipping_fee DECIMAL(12,3) NOT NULL DEFAULT 0,
+    address VARCHAR(500),
+    latitude DOUBLE PRECISION,
+    longitude DOUBLE PRECISION,
+    distance DECIMAL(12,3),
 
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     is_deleted BOOLEAN DEFAULT FALSE,
 
     customer_id UUID,
-    store_id UUID
+    store_id UUID,
+    delivery_id UUID,
+    scheduled_time TIME   
 );
 CREATE UNIQUE INDEX idx_orders_code ON orders(code);
 CREATE INDEX idx_orders_customer_created ON orders(customer_id, created_at DESC) WHERE customer_id IS NOT NULL;
@@ -61,6 +68,7 @@ CREATE TABLE IF NOT EXISTS order_items (
 );
 CREATE INDEX idx_order_items_order ON order_items(order_id);
 
+<<<<<<< HEAD
 -- 2.2. Order Sale Items (Discounts / Reductions applied to order)
 CREATE TABLE IF NOT EXISTS order_sale_items (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -81,6 +89,24 @@ CREATE TABLE IF NOT EXISTS order_sale_items (
 
 CREATE INDEX idx_order_sale_items_order ON order_sale_items(order_id);
 CREATE INDEX idx_order_sale_items_ref ON order_sale_items(ref_id);
+=======
+-- 2.2 Order Trackings
+CREATE TABLE IF NOT EXISTS order_trackings (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    order_id UUID NOT NULL,
+    status INT,
+    action VARCHAR(255) NOT NULL,
+    note VARCHAR(500),
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_order_trackings_order
+        FOREIGN KEY (order_id) REFERENCES orders(id)
+);
+CREATE INDEX IF NOT EXISTS idx_order_trackings_order
+ON order_trackings(order_id);
+
+>>>>>>> be/deliveryOrder
 -- 3. Payments
 CREATE TABLE IF NOT EXISTS payments (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

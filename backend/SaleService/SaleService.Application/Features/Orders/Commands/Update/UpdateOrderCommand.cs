@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using SalesService.Application.Dtos.Inventory;
 
 namespace SalesService.Application.Features.Orders.Commands.Update
@@ -29,6 +29,7 @@ namespace SalesService.Application.Features.Orders.Commands.Update
         public string? OrderCode { get; set; } = default!;
         public List<OrderItemDto> Items { get; set; } = new();
         public decimal? TotalAmount { get; set; }
+        public decimal? ShippingFee { get; set; }
         public CheckEnoughStockRes CheckEnoughStockRes { get; set; } = new();
     }
     public sealed class OrderItemDto

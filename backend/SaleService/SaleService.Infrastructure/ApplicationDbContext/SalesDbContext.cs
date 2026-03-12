@@ -41,6 +41,7 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
     public virtual DbSet<WalletEvent> WalletEvents { get; set; }
     public virtual DbSet<WalletTransaction> WalletTransactions { get; set; }
     public virtual DbSet<RefundTicket> RefundTickets { get; set; }
+    public virtual DbSet<OrderTracking> OrderTrackings { get; set; }
 
     public DbSet<T> Set<T>() where T : class, IEntity => base.Set<T>();
 
@@ -169,9 +170,13 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
             entity.Property(e => e.Status)
                 .HasColumnName("status");
             entity.Property(e => e.StoreId).HasColumnName("store_id");
+            entity.Property(e => e.DelivererId).HasColumnName("delivery_id");
             entity.Property(e => e.Subtotal)
                 .HasPrecision(12, 3)
                 .HasColumnName("subtotal");
+            entity.Property(e => e.ShippingFee)
+                .HasPrecision(12, 3)
+                .HasColumnName("shipping_fee");
             entity.Property(e => e.Tax)
                 .HasPrecision(12, 3)
                 .HasColumnName("tax");
@@ -179,6 +184,15 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
                 .HasPrecision(12, 3)
                 .HasColumnName("total_amount");
             entity.Property(e => e.Type).HasColumnName("type");
+            entity.Property(e => e.Address)
+                .HasMaxLength(500)
+                .HasColumnName("address");
+            entity.Property(e => e.Latitude).HasColumnName("latitude");
+            entity.Property(e => e.Longitude).HasColumnName("longitude");
+            entity.Property(e => e.Distance).HasColumnName("distance");
+            entity.Property(e => e.ScheduledTime)
+                .HasColumnName("scheduled_time")
+                .HasColumnType("time without time zone");
             entity.Property(e => e.UpdatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("updated_at");
@@ -225,6 +239,39 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
                 .HasForeignKey(d => d.OrderId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_order_items_order");
+        });
+
+        modelBuilder.Entity<OrderTracking>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("order_trackings_pkey");
+
+            entity.ToTable("order_trackings");
+
+            entity.HasIndex(e => e.OrderId, "idx_order_trackings_order");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasColumnName("id");
+            entity.Property(e => e.Action)
+                .HasMaxLength(255)
+                .HasColumnName("action");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_at");
+            entity.Property(e => e.CreatedBy).HasColumnName("created_by");
+            entity.Property(e => e.Note)
+                .HasMaxLength(500)
+                .HasColumnName("note");
+            entity.Property(e => e.OrderId).HasColumnName("order_id");
+            entity.Property(e => e.Status).HasColumnName("status");
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("updated_at");
+
+            entity.HasOne(d => d.Order).WithMany(p => p.OrderTrackings)
+                .HasForeignKey(d => d.OrderId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_order_trackings_order");
         });
 
         modelBuilder.Entity<OutboxMessage>(entity =>

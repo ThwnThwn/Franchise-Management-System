@@ -58,13 +58,17 @@ public interface IOrderRepository
         List<string>? categorySkus,
         Guid? storeId,
         CancellationToken cancellationToken = default);
-
     Task<List<CustomerOrderStatDto>> GetCustomerOrderStatisticAsync(
-    Guid storeId,
-    DateTimeOffset? from,
-    DateTimeOffset? to,
-    int? minOrders,
-    int? maxOrders,
-    CancellationToken ct);
+        Guid storeId,
+        DateTimeOffset? from,
+        DateTimeOffset? to,
+        int? minOrders,
+        int? maxOrders,
+        CancellationToken ct);
+    Task<(List<OrderTracking> Items, int TotalCount)> GetOrderTrackingsAsync(
+        Guid? storeId,
+        Guid? orderId,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default);
 }
-
