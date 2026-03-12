@@ -10,7 +10,8 @@ deploy_production:
         # - npm install --global vercel
         # 2. Deploy lên Vercel bằng bộ 3 biến môi trường đã nạp trong GitLab
         # Lệnh này sẽ nén source code và đẩy lên Vercel để Vercel tự build trên đó.
-        - /usr/bin/vercel deploy --prod --token=$VERCEL_TOKEN --yes
+        - if [ -z "$VERCEL_TOKEN" ]; then echo "Token is MISSING"; exit 1; else echo "Token is FOUND"; fi
+        - /usr/bin/vercel deploy --prod --token="${VERCEL_TOKEN}" --yes
     rules:
         - if: $CI_COMMIT_TAG =~ /^v\d+/
           when: always
