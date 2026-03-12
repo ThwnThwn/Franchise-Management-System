@@ -52,7 +52,7 @@ namespace IdentityService.API
             builder.Services.AddAuthorization();
 
             // --- DATABASE & REDIS ---
-            var dbConn = builder.Configuration["IDENTITY_DB_CONN"]
+            var dbConn = builder.Configuration["IDENTITY_DB_CONNECTION"]
                 ?? "Host=localhost;Port=5432;Database=identity_db;Username=admin;Password=12345";
             var redisConn = builder.Configuration["REDIS_CONFIGURATION"]
                 ?? "localhost:6379,abortConnect=false";

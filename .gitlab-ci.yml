@@ -1,0 +1,31 @@
+stages:
+  - deploy
+
+deploy_backend:
+  stage: deploy
+  tags:
+    - backend-deploy
+  script:
+    - echo "Đang triển khai Backend..."
+
+    # 1. Chép file .env từ "nhà kho" cố định vào thư mục code vừa kéo về
+    - cp /home/gitlab-runner/chb_env_config .env
+
+    # 2. Khởi động hạ tầng cơ sở
+    - docker compose -f docker-compose.prod.yml up -d postgres redis zookeeper kafka
+    - sleep 10
+
+    # 3. Build và Up theo cụm
+    - docker compose -f docker-compose.prod.yml up -d --build identity-service product-service
+    - docker compose -f docker-compose.prod.yml up -d --build sales-service notification-service
+    - docker compose -f docker-compose.prod.yml up -d --build inventory-service franchise-service
+    - docker compose -f docker-compose.prod.yml up -d --build engagement-service supplier-service
+    - docker compose -f docker-compose.prod.yml up -d --build api-gateway
+
+    # 4. Dọn dẹp rác Docker
+    - docker image prune -f
+
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v\d+/
+      when: always
+    - when: never

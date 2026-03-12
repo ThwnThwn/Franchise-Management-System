@@ -7,22 +7,29 @@ using NotificationService.Infrastructure.Data;
 using NotificationService.Infrastructure.Repositories;
 using NotificationService.Infrastructure.Services;
 using SharedKernel.Infrastructure.Kafka;
+
 // Load environment variables
 Env.Load("../../../.env");
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables();
 // DATABASE
-var dbConn = builder.Configuration["NOTIFICATION_DB_CONN"]
+var dbConn = builder.Configuration["NOTIFICATION_DB_CONNECTION"]
     ?? "Host=localhost;Port=5432;Database=notification_db;Username=admin;Password=12345";
 builder.Services.AddDbContext<NotificationDbContext>(options =>
     options.UseNpgsql(dbConn));
 
 // KAFKA - Override for local development
-var kafkaBootstrap = Environment.GetEnvironmentVariable("KAFKA_BOOTSTRAP_SERVERS") ?? "localhost:9092";
-if (kafkaBootstrap.Contains("kafka:"))
+var kafkaBootstrap = Environment.GetEnvironmentVariable("KAFKA_BOOTSTRAP_SERVERS") 
+                     ?? builder.Configuration["KAFKA_BOOTSTRAP_SERVERS"] 
+                     ?? "localhost:9092";
+
+bool isDocker = Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true";
+
+if (!isDocker)
 {
-    kafkaBootstrap = "localhost:9092";  // Use localhost when running outside Docker
+    kafkaBootstrap = "localhost:9092";
 }
+
 builder.Configuration["KAFKA_BOOTSTRAP_SERVERS"] = kafkaBootstrap;
 
 // SMTP SETTINGS

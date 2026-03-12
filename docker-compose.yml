@@ -95,20 +95,20 @@ services:
   # ==========================================
   # 5. SEARCH ENGINE: ELASTICSEARCH
   # ==========================================
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.2
-    container_name: chb_elasticsearch
-    restart: always
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false # Tắt bảo mật để Dev local cho dễ
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m" # Giới hạn RAM
-    ports:
-      - "${ELASTIC_PORT:-9200}:9200"
-    volumes:
-      - elastic_data:/usr/share/elasticsearch/data
-    networks:
-      - chb-network
+  # elasticsearch:
+  #   image: docker.elastic.co/elasticsearch/elasticsearch:8.12.2
+  #   container_name: chb_elasticsearch
+  #   restart: always
+  #   environment:
+  #     - discovery.type=single-node
+  #     - xpack.security.enabled=false # Tắt bảo mật để Dev local cho dễ
+  #     - "ES_JAVA_OPTS=-Xms512m -Xmx512m" # Giới hạn RAM
+  #   ports:
+  #     - "${ELASTIC_PORT:-9200}:9200"
+  #   volumes:
+  #     - elastic_data:/usr/share/elasticsearch/data
+  #   networks:
+  #     - chb-network
 
   # ==========================================
   # 6. NGROK TẠO TUNNEL CHO VNPAY (Sale + Supplier Service)
