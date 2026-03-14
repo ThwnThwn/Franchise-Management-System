@@ -5,6 +5,6 @@
         Voucher,
         Wallet,
         LoyaltyPoint,
-        Promotion
+        DiscountRate
     }
 }
