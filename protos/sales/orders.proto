@@ -115,7 +115,7 @@ enum OrderSaleItemType {
   VOUCHER = 0;
   WALLET = 1;
   POINT = 2;
-  PROMOTION = 3;
+  DISCOUNTRATE = 3;
 }
 message GetOrderByIdRequest {
   string id = 1;

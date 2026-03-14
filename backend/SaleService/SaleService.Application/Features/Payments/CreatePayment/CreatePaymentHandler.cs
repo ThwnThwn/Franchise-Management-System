@@ -82,13 +82,13 @@ public sealed class CreatePaymentHandler
         }
 
         var order = await _orderRepository.GetByIdAsync(request.OrderId, cancellationToken);
-        decimal? voucherDiscountAmount = 0;
+        decimal? discountAmount = 0;
         if (order == null || order.IsDeleted)
             return Result.NotFound($"Order '{request.OrderId}' not found.");
         if (order.Status == OrderStatus.Completed)
             return Result.Error("Order already paid.");
         // Check CusomterID in Order
-        if(order.CustomerId == Guid.Empty)
+        if (order.CustomerId == Guid.Empty)
         {
             return Result.Error("CustomerID is null");
         }
@@ -118,18 +118,18 @@ public sealed class CreatePaymentHandler
             // Voucher Discount 
             if (voucherDiscount.MinOrderValue <= order.Subtotal)
             {
-                
-                if(voucherDiscount.VoucherItems.Count > 0)
+
+                if (voucherDiscount.VoucherItems.Count > 0)
                 {
                     var voucherItem = voucherDiscount.VoucherItems;
                     var requiredItemsVoucher = voucherDiscount.VoucherItems
                         .Where(v => v.Type == VoucherItemType.ITEM_REQUIRED)
                         .ToList();
 
-                    foreach ( var requiredItem in requiredItemsVoucher)
+                    foreach (var requiredItem in requiredItemsVoucher)
                     {
                         var orderItem = order.OrderItems.Where(x => x.Sku == requiredItem.Sku).FirstOrDefault();
-                        if(orderItem.Quantity < requiredItem.Quantity)
+                        if (orderItem.Quantity < requiredItem.Quantity)
                         {
                             throw new Exception($"Voucher {voucherDiscount.Code} require {requiredItem.Quantity} {requiredItem.Sku}");
                         }
@@ -215,8 +215,8 @@ public sealed class CreatePaymentHandler
 
                 else if (voucherDiscount.Type.Equals(VoucherType.DISCOUNT_PERCENTAGE))
                 {
-                    voucherDiscountAmount = order.Subtotal * voucherDiscount.DiscountValue/100;
-                    voucherDiscountAmount = voucherDiscountAmount > voucherDiscount.MaxDiscountValue ? voucherDiscount.MaxDiscountValue : voucherDiscountAmount;
+                    discountAmount = order.Subtotal * voucherDiscount.DiscountValue / 100;
+                    discountAmount = discountAmount > voucherDiscount.MaxDiscountValue ? voucherDiscount.MaxDiscountValue : discountAmount;
                     order.OrderSaleItems.Add(new Domain.Entities.OrderSaleItem
                     {
                         OrderId = order.Id,
@@ -229,7 +229,7 @@ public sealed class CreatePaymentHandler
                 }
                 else if (voucherDiscount.Type.Equals(VoucherType.DISCOUNT_FIXED_AMOUNT))
                 {
-                    voucherDiscountAmount = voucherDiscount.DiscountValue;
+                    discountAmount = voucherDiscount.DiscountValue;
                     order.OrderSaleItems.Add(new Domain.Entities.OrderSaleItem
                     {
                         OrderId = order.Id,
@@ -241,184 +241,211 @@ public sealed class CreatePaymentHandler
                     });
                 }
 
-                
+
             }
         }
 
         // ==========================================================
         // ===================== Loyalty  ===========================
-        // ==========================================================
+        // =========================================================
+        // Point
+        // Point Engagement
+        var user = await _identityServiceClient.GetUserByIdAsync(order.CustomerId.Value);
         if (request.Point != null)
         {
-            // Point Engagement
-            var user = await _identityServiceClient.GetUserByIdAsync(order.CustomerId.Value);
-
-            if(user != null)
+            if (user != null)
             {
                 var point = await _engagementServiceClient.GetMyPointByEmailAsync(user.Email);
                 if (point < request.Point)
                 {
                     return Result.NotFound("User point is lower then request Point");
                 }
-                voucherDiscountAmount += request.Point * user.LoyaltyTier.CurrentTier.ValuePerPoint;
+                discountAmount += request.Point * user.LoyaltyTier.CurrentTier.ValuePerPoint;
                 order.OrderSaleItems.Add(new Domain.Entities.OrderSaleItem
                 {
                     OrderId = order.Id,
                     Name = user.LoyaltyTier.CurrentTier.Name,
-                    Amount = voucherDiscountAmount.Value,
+                    Amount = discountAmount.Value,
                     ReferenceId = user.LoyaltyTier.CurrentTier.Id,
                     Type = OrderSaleItemType.LoyaltyPoint,
                     IsDeleted = false
                 });
             }
-            
         }
-        // ==========================================================
-        // ===================== Wallet User ========================
-        // ==========================================================
-        if(request.Wallet != null)
+        // Discount Rate
+        if (user.LoyaltyTier != null)
         {
-            var userWallet = await _walletRepository.GetByUserIdAsync(order.CustomerId.Value);
-            if (userWallet != null)
+            if (user.LoyaltyTier.CurrentTier != null)
             {
-                if(userWallet.Balance >= request.Wallet)
+                var discountRateAmount = order.Subtotal * ((decimal)user.LoyaltyTier.CurrentTier.DiscountRate);
+                if(discountRateAmount > 0)
                 {
-                    voucherDiscountAmount += request.Wallet;
+                    discountAmount += discountRateAmount;
                     order.OrderSaleItems.Add(new Domain.Entities.OrderSaleItem
                     {
                         OrderId = order.Id,
-                        Name = "Wallet",
-                        Amount = request.Wallet.Value,
-                        ReferenceId = userWallet.Id,
-                        Type = OrderSaleItemType.Wallet,
+                        Name = user.LoyaltyTier.CurrentTier.Name,
+                        Amount = discountRateAmount,
+                        ReferenceId = user.LoyaltyTier.CurrentTier.Id,
+                        Type = OrderSaleItemType.DiscountRate,
                         IsDeleted = false
                     });
                 }
-                else
-                {
-                    return Result.NotFound("User Wallet Balance is lower then request Wallet");
-                }
             }
         }
-        // ==========================================================
-        // ================== CREATE PAYMENT ========================
-        // ==========================================================
-        var payment = new Payment
-        {
-            Id = Guid.NewGuid(),
-            OrderId = order.Id,
-            Code = $"PAY-{DateTime.UtcNow:yyyyMMddHHmmss}",
-            Amount = order.TotalAmount - voucherDiscountAmount.Value < 0 ? 0 : order.TotalAmount - voucherDiscountAmount.Value,
-            Currency = "VND",
-            Method = (int)request.PaymentMethod,// 0 = Cash | 1 = VNPay
-            Status = (int)PaymentStatus.Pending,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
-            IsDeleted = false
-        };
+            //Calculate SubTotal, Tax, TotalAmount
+            order.Subtotal = order.Subtotal - discountAmount.Value < 0 ? 0 : order.Subtotal - discountAmount.Value;
+            order.Tax = order.Subtotal * (decimal)0.1;
+            order.TotalAmount = order.Subtotal + order.Tax;
 
-        await _paymentRepository.CreateAsync(payment, cancellationToken);
-
-        // ==========================================================
-        // ================= CASH FLOW ==============================
-        // ==========================================================
-        if (request.PaymentMethod == PaymentMethod.Cash)
-        {
-            // ===== UPDATE ORDER =====
-            order.PaidAmount = payment.Amount;
-            order.PaymentMethod = PaymentMethod.Cash;
-            order.Status = OrderStatus.ConfirmationPending;
-            order.PaidAt = DateTimeOffset.UtcNow;
-            order.UpdatedAt = DateTimeOffset.UtcNow;
-
-            await _orderRepository.UpdateAsync(order, cancellationToken);
-
-            // ===== OUTBOX EVENTS =====
-            if (order.OrderItems.Any())
+            // ==========================================================
+            // ================== CREATE PAYMENT ========================
+            // ==========================================================
+            var payment = new Payment
             {
-                var orderStatusEvent = OrderToKafka.MapToOrderStatusEvent(order);
-                _outboxRepository.AddEvent(orderStatusEvent, KafkaTopics.OrderNotifications);
-                await _kafkaProducer.PublishAsync(KafkaTopics.OrderNotifications, orderStatusEvent);
-
-                // 2. OrderPaidEvent → InventoryService (trừ kho)
-                var orderPaidEvent = OrderToKafka.MapToOrderPaidEvent(order);
-                _outboxRepository.AddEvent(orderPaidEvent, KafkaTopics.OrderPaid);
-            }
-
-            /// Order Sale Item 
-            if(order.OrderSaleItems.Any())
+                Id = Guid.NewGuid(),
+                OrderId = order.Id,
+                Code = $"PAY-{DateTime.UtcNow:yyyyMMddHHmmss}",
+                Amount = order.TotalAmount,
+                Currency = "VND",
+                Method = (int)request.PaymentMethod,// 0 = Cash | 1 = VNPay
+                Status = (int)PaymentStatus.Pending,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                IsDeleted = false
+            };
+            // ==========================================================
+            // ===================== Wallet User ========================
+            // ==========================================================
+            if (request.Wallet != null)
             {
-                //=================
-                // Kakfa Event Voucher
-                //=================
-                List<Guid> voucherList = order.OrderSaleItems
-                    .Where(x => x.Type == OrderSaleItemType.Voucher)
-                    .Select(x => x.ReferenceId.Value)
-                    .ToList();
-                if (voucherList.Any())
-                {
-                    UseVouchersEvent userVoucherEvent = new UseVouchersEvent
-                    {
-                        OrderId = order.Id,
-                        UserId = order.CustomerId.Value,
-                        VoucherIds = voucherList
-                    };
-                    _kafkaProducer.PublishAsync(KafkaTopics.DeductUserVoucher, userVoucherEvent);
-                }
-                //=================
-                // Kakfa Event Point
-                //=================
-                decimal point = order.OrderSaleItems
-                    .Where(x => x.Type == OrderSaleItemType.LoyaltyPoint)
-                    .Select(x => x.Amount)
-                    .FirstOrDefault();
-                if (point != 0 || point != null)
-                {
-                    UpdatePointEvent userPoint = new UpdatePointEvent
-                    {
-                        Id = order.CustomerId.Value,
-                        OrderId = order.Id,
-                        Point = point,
-                        ActionType = UpdatePointType.Minus
-                    };
-                    _kafkaProducer.PublishAsync(KafkaTopics.UpdateUserPoint, userPoint);
-                }
-                //=================
-                // Wallet Event 
-                //=================
                 var userWallet = await _walletRepository.GetByUserIdAsync(order.CustomerId.Value);
-                decimal walletAmount = order.OrderSaleItems
-                    .Where(x => x.Type == OrderSaleItemType.Wallet)
-                    .Select(x => x.Amount)
-                    .FirstOrDefault();
-                if (walletAmount != 0 || walletAmount != 0)
+                if (userWallet != null)
                 {
-                    await _walletRepository.DeductBalanceAsync(userWallet.Id, walletAmount, userWallet.RowVersion);
-
+                    if (userWallet.Balance >= request.Wallet)
+                    {
+                        payment.Amount -= request.Wallet.Value;
+                        order.OrderSaleItems.Add(new Domain.Entities.OrderSaleItem
+                        {
+                            OrderId = order.Id,
+                            Name = "Wallet",
+                            Amount = request.Wallet.Value,
+                            ReferenceId = userWallet.Id,
+                            Type = OrderSaleItemType.Wallet,
+                            IsDeleted = false
+                        });
+                    }
+                    else
+                    {
+                        return Result.NotFound("User Wallet Balance is lower then request Wallet");
+                    }
                 }
             }
-            _outboxSignal.Pulse();
+            
 
-            return Result.Success(new CreatePaymentRes { Url = "" });
+            await _paymentRepository.CreateAsync(payment, cancellationToken);
+
+            // ==========================================================
+            // ================= CASH FLOW ==============================
+            // ==========================================================
+            if (request.PaymentMethod == PaymentMethod.Cash)
+            {
+                // ===== UPDATE ORDER =====
+                order.PaidAmount = payment.Amount;
+                order.PaymentMethod = PaymentMethod.Cash;
+                order.Status = OrderStatus.ConfirmationPending;
+                order.PaidAt = DateTimeOffset.UtcNow;
+                order.UpdatedAt = DateTimeOffset.UtcNow;
+
+                await _orderRepository.UpdateAsync(order, cancellationToken);
+
+                // ===== OUTBOX EVENTS =====
+                if (order.OrderItems.Any())
+                {
+                    var orderStatusEvent = OrderToKafka.MapToOrderStatusEvent(order);
+                    _outboxRepository.AddEvent(orderStatusEvent, KafkaTopics.OrderNotifications);
+                    await _kafkaProducer.PublishAsync(KafkaTopics.OrderNotifications, orderStatusEvent);
+
+                    // 2. OrderPaidEvent → InventoryService (trừ kho)
+                    var orderPaidEvent = OrderToKafka.MapToOrderPaidEvent(order);
+                    _outboxRepository.AddEvent(orderPaidEvent, KafkaTopics.OrderPaid);
+                }
+
+                /// Order Sale Item 
+                if (order.OrderSaleItems.Any())
+                {
+                    //=================
+                    // Kakfa Event Voucher
+                    //=================
+                    List<Guid> voucherList = order.OrderSaleItems
+                        .Where(x => x.Type == OrderSaleItemType.Voucher)
+                        .Select(x => x.ReferenceId.Value)
+                        .ToList();
+                    if (voucherList.Any())
+                    {
+                        UseVouchersEvent userVoucherEvent = new UseVouchersEvent
+                        {
+                            OrderId = order.Id,
+                            UserId = order.CustomerId.Value,
+                            VoucherIds = voucherList
+                        };
+                        _kafkaProducer.PublishAsync(KafkaTopics.DeductUserVoucher, userVoucherEvent);
+                    }
+                    //=================
+                    // Kakfa Event Point
+                    //=================
+                    decimal point = order.OrderSaleItems
+                        .Where(x => x.Type == OrderSaleItemType.LoyaltyPoint)
+                        .Select(x => x.Amount)
+                        .FirstOrDefault();
+                    if (point != 0 || point != null)
+                    {
+                        UpdatePointEvent userPoint = new UpdatePointEvent
+                        {
+                            Id = order.CustomerId.Value,
+                            OrderId = order.Id,
+                            Point = point,
+                            ActionType = UpdatePointType.Minus
+                        };
+                        _kafkaProducer.PublishAsync(KafkaTopics.UpdateUserPoint, userPoint);
+                    }
+                    //=================
+                    // Wallet Event 
+                    //=================
+                    var userWallet = await _walletRepository.GetByUserIdAsync(order.CustomerId.Value);
+                    decimal walletAmount = order.OrderSaleItems
+                        .Where(x => x.Type == OrderSaleItemType.Wallet)
+                        .Select(x => x.Amount)
+                        .FirstOrDefault();
+                    if (walletAmount != 0 || walletAmount != 0)
+                    {
+                        await _walletRepository.DeductBalanceAsync(userWallet.Id, walletAmount, userWallet.RowVersion);
+
+                    }
+                }
+                _outboxSignal.Pulse();
+
+                return Result.Success(new CreatePaymentRes { Url = "" });
+            }
+
+            // ==========================================================
+            // ================= VNPAY FLOW =============================
+            // ==========================================================
+
+            var vnpSection = _config.GetSection("VNPay");
+
+            var paymentUrl = VNPayHelper.BuildPaymentUrl(
+                vnpSection["PaymentUrl"]!,
+                vnpSection["HashSecret"]!,
+                BuildVNPayParams(vnpSection, order, payment, request.ReturnUrl)
+            );
+
+            return Result.Success(new CreatePaymentRes
+            {
+                Url = paymentUrl
+            });
         }
-
-        // ==========================================================
-        // ================= VNPAY FLOW =============================
-        // ==========================================================
-
-        var vnpSection = _config.GetSection("VNPay");
-
-        var paymentUrl = VNPayHelper.BuildPaymentUrl(
-            vnpSection["PaymentUrl"]!,
-            vnpSection["HashSecret"]!,
-            BuildVNPayParams(vnpSection, order, payment, request.ReturnUrl)
-        );
-
-        return Result.Success(new CreatePaymentRes
-        {
-            Url = paymentUrl
-        });
-    }
+    
 
     private Dictionary<string, string> BuildVNPayParams(
         IConfigurationSection vnpSection,
