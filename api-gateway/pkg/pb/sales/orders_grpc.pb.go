@@ -46,6 +46,10 @@ type OrderGrpcClient interface {
 	GetProductPerformance(ctx context.Context, in *GetProductPerformanceRequest, opts ...grpc.CallOption) (*GetProductPerformanceReply, error)
 	// Lấy dữ liệu biểu đồ phân tích xu hướng doanh thu và lượng đơn
 	GetSalesTrend(ctx context.Context, in *GetSalesTrendRequest, opts ...grpc.CallOption) (*GetSalesTrendReply, error)
+	// Gán nhân viên giao hàng cho đơn hàng
+	AssignStaffToDelivery(ctx context.Context, in *AssignStaffToDeliveryRequest, opts ...grpc.CallOption) (*AssignStaffToDeliveryReply, error)
+	// Lấy lịch sử theo dõi đơn hàng
+	GetOrderTrackings(ctx context.Context, in *GetOrderTrackingsRequest, opts ...grpc.CallOption) (*GetOrderTrackingsReply, error)
 	// Thống kê Customer Purchase Behavior
 	GetCustomerOrderPattern(ctx context.Context, in *GetCustomerOrderPatternRequest, opts ...grpc.CallOption) (*GetCustomerOrderPatternReply, error)
 }
@@ -166,6 +170,24 @@ func (c *orderGrpcClient) GetSalesTrend(ctx context.Context, in *GetSalesTrendRe
 	return out, nil
 }
 
+func (c *orderGrpcClient) AssignStaffToDelivery(ctx context.Context, in *AssignStaffToDeliveryRequest, opts ...grpc.CallOption) (*AssignStaffToDeliveryReply, error) {
+	out := new(AssignStaffToDeliveryReply)
+	err := c.cc.Invoke(ctx, "/order.OrderGrpc/AssignStaffToDelivery", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *orderGrpcClient) GetOrderTrackings(ctx context.Context, in *GetOrderTrackingsRequest, opts ...grpc.CallOption) (*GetOrderTrackingsReply, error) {
+	out := new(GetOrderTrackingsReply)
+	err := c.cc.Invoke(ctx, "/order.OrderGrpc/GetOrderTrackings", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *orderGrpcClient) GetCustomerOrderPattern(ctx context.Context, in *GetCustomerOrderPatternRequest, opts ...grpc.CallOption) (*GetCustomerOrderPatternReply, error) {
 	out := new(GetCustomerOrderPatternReply)
 	err := c.cc.Invoke(ctx, "/order.OrderGrpc/GetCustomerOrderPattern", in, out, opts...)
@@ -203,6 +225,10 @@ type OrderGrpcServer interface {
 	GetProductPerformance(context.Context, *GetProductPerformanceRequest) (*GetProductPerformanceReply, error)
 	// Lấy dữ liệu biểu đồ phân tích xu hướng doanh thu và lượng đơn
 	GetSalesTrend(context.Context, *GetSalesTrendRequest) (*GetSalesTrendReply, error)
+	// Gán nhân viên giao hàng cho đơn hàng
+	AssignStaffToDelivery(context.Context, *AssignStaffToDeliveryRequest) (*AssignStaffToDeliveryReply, error)
+	// Lấy lịch sử theo dõi đơn hàng
+	GetOrderTrackings(context.Context, *GetOrderTrackingsRequest) (*GetOrderTrackingsReply, error)
 	// Thống kê Customer Purchase Behavior
 	GetCustomerOrderPattern(context.Context, *GetCustomerOrderPatternRequest) (*GetCustomerOrderPatternReply, error)
 	mustEmbedUnimplementedOrderGrpcServer()
@@ -247,6 +273,12 @@ func (UnimplementedOrderGrpcServer) GetProductPerformance(context.Context, *GetP
 }
 func (UnimplementedOrderGrpcServer) GetSalesTrend(context.Context, *GetSalesTrendRequest) (*GetSalesTrendReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSalesTrend not implemented")
+}
+func (UnimplementedOrderGrpcServer) AssignStaffToDelivery(context.Context, *AssignStaffToDeliveryRequest) (*AssignStaffToDeliveryReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AssignStaffToDelivery not implemented")
+}
+func (UnimplementedOrderGrpcServer) GetOrderTrackings(context.Context, *GetOrderTrackingsRequest) (*GetOrderTrackingsReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOrderTrackings not implemented")
 }
 func (UnimplementedOrderGrpcServer) GetCustomerOrderPattern(context.Context, *GetCustomerOrderPatternRequest) (*GetCustomerOrderPatternReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCustomerOrderPattern not implemented")
@@ -480,6 +512,42 @@ func _OrderGrpc_GetSalesTrend_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OrderGrpc_AssignStaffToDelivery_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AssignStaffToDeliveryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderGrpcServer).AssignStaffToDelivery(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/order.OrderGrpc/AssignStaffToDelivery",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderGrpcServer).AssignStaffToDelivery(ctx, req.(*AssignStaffToDeliveryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OrderGrpc_GetOrderTrackings_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetOrderTrackingsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderGrpcServer).GetOrderTrackings(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/order.OrderGrpc/GetOrderTrackings",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderGrpcServer).GetOrderTrackings(ctx, req.(*GetOrderTrackingsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _OrderGrpc_GetCustomerOrderPattern_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetCustomerOrderPatternRequest)
 	if err := dec(in); err != nil {
@@ -552,6 +620,14 @@ var OrderGrpc_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetSalesTrend",
 			Handler:    _OrderGrpc_GetSalesTrend_Handler,
+		},
+		{
+			MethodName: "AssignStaffToDelivery",
+			Handler:    _OrderGrpc_AssignStaffToDelivery_Handler,
+		},
+		{
+			MethodName: "GetOrderTrackings",
+			Handler:    _OrderGrpc_GetOrderTrackings_Handler,
 		},
 		{
 			MethodName: "GetCustomerOrderPattern",

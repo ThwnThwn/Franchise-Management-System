@@ -5,16 +5,16 @@ import "api-gateway/internal/domain/constants/enum"
 type CreateVoucherRequest struct {
 	Code             string           `json:"code"`
 	Type             enum.VoucherType `json:"type"`
-	DiscountValue    *string          `json:"discount_value"`
-	MaxDiscountValue *string          `json:"max_discount_value"`
-	MinOrderValue    *string          `json:"min_order_value"`
-	PointCost        *string          `json:"point_cost"`
-	InitQuantity     *int32           `json:"init_quantity"`
-	MaxUsagePerUser  *int32           `json:"max_usage_per_user"`
+	DiscountValue    *string          `json:"discountValue"`
+	MaxDiscountValue *string          `json:"maxDiscountValue"`
+	MinOrderValue    *string          `json:"minOrderValue"`
+	PointCost        *string          `json:"pointCost"`
+	InitQuantity     *int32           `json:"initQuantity"`
+	MaxUsagePerUser  *int32           `json:"maxUsagePerUser"`
 
-	EndDate *string `json:"end_date"`
+	EndDate *string `json:"endDate"`
 
-	VoucherItems []*CreateVoucherItemReq `json:"voucher_items"`
+	VoucherItems []*CreateVoucherItemReq `json:"voucherItems"`
 }
 
 type CreateVoucherItemReq struct {
@@ -24,15 +24,15 @@ type CreateVoucherItemReq struct {
 }
 
 type UpdateVoucherRequest struct {
-	DiscountValue    *string `json:"discount_value"`
-	MaxDiscountValue *string `json:"max_discount_value"`
-	MinOrderValue    *string `json:"min_order_value"`
-	PointCost        *string `json:"point_cost"`
-	MaxUsagePerUser  *int32  `json:"max_usage_per_user"`
+	DiscountValue    *string `json:"discountValue"`
+	MaxDiscountValue *string `json:"maxDiscountValue"`
+	MinOrderValue    *string `json:"minOrderValue"`
+	PointCost        *string `json:"pointCost"`
+	MaxUsagePerUser  *int32  `json:"maxUsagePerUser"`
 
-	EndDate *string `json:"end_date"`
+	EndDate *string `json:"endDate"`
 
-	VoucherItems []*UpdateVoucherItemReq `json:"voucher_items"`
+	VoucherItems []*UpdateVoucherItemReq `json:"voucherItems"`
 }
 
 type UpdateVoucherItemReq struct {
@@ -43,5 +43,5 @@ type UpdateVoucherItemReq struct {
 }
 
 type UpdateVoucherStatusRequest struct {
-	IsActive bool `json:"is_active"`
+	IsActive bool `json:"isActive"`
 }

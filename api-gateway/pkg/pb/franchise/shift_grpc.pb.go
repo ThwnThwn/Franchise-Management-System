@@ -25,6 +25,8 @@ type ShiftGrpcServiceClient interface {
 	// --- EXISTING RPC ---
 	// Lấy lịch làm việc hôm nay của nhân viên
 	GetUserCurrentShift(ctx context.Context, in *GetUserCurrentShiftRequest, opts ...grpc.CallOption) (*GetUserCurrentShiftResponse, error)
+	// Lấy danh sách nhân viên đang trong ca làm việc tại cửa hàng
+	GetActiveStaffsAtStore(ctx context.Context, in *GetActiveStaffsAtStoreRequest, opts ...grpc.CallOption) (*GetActiveStaffsAtStoreResponse, error)
 	// Lấy danh sách ca làm việc (Filter)
 	GetShifts(ctx context.Context, in *GetShiftsRequest, opts ...grpc.CallOption) (*GetShiftsResponse, error)
 	// Lấy chi tiết 1 ca
@@ -73,6 +75,15 @@ func NewShiftGrpcServiceClient(cc grpc.ClientConnInterface) ShiftGrpcServiceClie
 func (c *shiftGrpcServiceClient) GetUserCurrentShift(ctx context.Context, in *GetUserCurrentShiftRequest, opts ...grpc.CallOption) (*GetUserCurrentShiftResponse, error) {
 	out := new(GetUserCurrentShiftResponse)
 	err := c.cc.Invoke(ctx, "/franchise.ShiftGrpcService/GetUserCurrentShift", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shiftGrpcServiceClient) GetActiveStaffsAtStore(ctx context.Context, in *GetActiveStaffsAtStoreRequest, opts ...grpc.CallOption) (*GetActiveStaffsAtStoreResponse, error) {
+	out := new(GetActiveStaffsAtStoreResponse)
+	err := c.cc.Invoke(ctx, "/franchise.ShiftGrpcService/GetActiveStaffsAtStore", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -257,6 +268,8 @@ type ShiftGrpcServiceServer interface {
 	// --- EXISTING RPC ---
 	// Lấy lịch làm việc hôm nay của nhân viên
 	GetUserCurrentShift(context.Context, *GetUserCurrentShiftRequest) (*GetUserCurrentShiftResponse, error)
+	// Lấy danh sách nhân viên đang trong ca làm việc tại cửa hàng
+	GetActiveStaffsAtStore(context.Context, *GetActiveStaffsAtStoreRequest) (*GetActiveStaffsAtStoreResponse, error)
 	// Lấy danh sách ca làm việc (Filter)
 	GetShifts(context.Context, *GetShiftsRequest) (*GetShiftsResponse, error)
 	// Lấy chi tiết 1 ca
@@ -301,6 +314,9 @@ type UnimplementedShiftGrpcServiceServer struct {
 
 func (UnimplementedShiftGrpcServiceServer) GetUserCurrentShift(context.Context, *GetUserCurrentShiftRequest) (*GetUserCurrentShiftResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserCurrentShift not implemented")
+}
+func (UnimplementedShiftGrpcServiceServer) GetActiveStaffsAtStore(context.Context, *GetActiveStaffsAtStoreRequest) (*GetActiveStaffsAtStoreResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetActiveStaffsAtStore not implemented")
 }
 func (UnimplementedShiftGrpcServiceServer) GetShifts(context.Context, *GetShiftsRequest) (*GetShiftsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetShifts not implemented")
@@ -386,6 +402,24 @@ func _ShiftGrpcService_GetUserCurrentShift_Handler(srv interface{}, ctx context.
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShiftGrpcServiceServer).GetUserCurrentShift(ctx, req.(*GetUserCurrentShiftRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShiftGrpcService_GetActiveStaffsAtStore_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetActiveStaffsAtStoreRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShiftGrpcServiceServer).GetActiveStaffsAtStore(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/franchise.ShiftGrpcService/GetActiveStaffsAtStore",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShiftGrpcServiceServer).GetActiveStaffsAtStore(ctx, req.(*GetActiveStaffsAtStoreRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -742,6 +776,10 @@ var ShiftGrpcService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUserCurrentShift",
 			Handler:    _ShiftGrpcService_GetUserCurrentShift_Handler,
+		},
+		{
+			MethodName: "GetActiveStaffsAtStore",
+			Handler:    _ShiftGrpcService_GetActiveStaffsAtStore_Handler,
 		},
 		{
 			MethodName: "GetShifts",

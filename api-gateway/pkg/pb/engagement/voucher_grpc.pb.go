@@ -39,6 +39,8 @@ type VoucherGrpcClient interface {
 	GetMyVouchers(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*VoucherListResponse, error)
 	// Use Voucher
 	UseVouchers(ctx context.Context, in *UseVoucherRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// Reverse Vouchers
+	ReverseVouchers(ctx context.Context, in *ReverseVouchersRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type voucherGrpcClient struct {
@@ -121,6 +123,15 @@ func (c *voucherGrpcClient) UseVouchers(ctx context.Context, in *UseVoucherReque
 	return out, nil
 }
 
+func (c *voucherGrpcClient) ReverseVouchers(ctx context.Context, in *ReverseVouchersRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/engagement.VoucherGrpc/ReverseVouchers", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // VoucherGrpcServer is the server API for VoucherGrpc service.
 // All implementations must embed UnimplementedVoucherGrpcServer
 // for forward compatibility
@@ -141,6 +152,8 @@ type VoucherGrpcServer interface {
 	GetMyVouchers(context.Context, *emptypb.Empty) (*VoucherListResponse, error)
 	// Use Voucher
 	UseVouchers(context.Context, *UseVoucherRequest) (*emptypb.Empty, error)
+	// Reverse Vouchers
+	ReverseVouchers(context.Context, *ReverseVouchersRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedVoucherGrpcServer()
 }
 
@@ -171,6 +184,9 @@ func (UnimplementedVoucherGrpcServer) GetMyVouchers(context.Context, *emptypb.Em
 }
 func (UnimplementedVoucherGrpcServer) UseVouchers(context.Context, *UseVoucherRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UseVouchers not implemented")
+}
+func (UnimplementedVoucherGrpcServer) ReverseVouchers(context.Context, *ReverseVouchersRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReverseVouchers not implemented")
 }
 func (UnimplementedVoucherGrpcServer) mustEmbedUnimplementedVoucherGrpcServer() {}
 
@@ -329,6 +345,24 @@ func _VoucherGrpc_UseVouchers_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _VoucherGrpc_ReverseVouchers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReverseVouchersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VoucherGrpcServer).ReverseVouchers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/engagement.VoucherGrpc/ReverseVouchers",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VoucherGrpcServer).ReverseVouchers(ctx, req.(*ReverseVouchersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // VoucherGrpc_ServiceDesc is the grpc.ServiceDesc for VoucherGrpc service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -367,6 +401,10 @@ var VoucherGrpc_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UseVouchers",
 			Handler:    _VoucherGrpc_UseVouchers_Handler,
+		},
+		{
+			MethodName: "ReverseVouchers",
+			Handler:    _VoucherGrpc_ReverseVouchers_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

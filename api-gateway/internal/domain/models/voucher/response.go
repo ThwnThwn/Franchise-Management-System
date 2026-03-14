@@ -5,19 +5,19 @@ type VoucherResponse struct {
 	Code string `json:"code"`
 	Type int32  `json:"type"`
 
-	DiscountValue    *string `json:"discount_value"`
-	MaxDiscountValue *string `json:"max_discount_value"`
-	MinOrderValue    *string `json:"min_order_value"`
-	PointCost        *string `json:"point_cost"`
-	InitQuantity     *int32  `json:"init_quantity"`
-	CurrentQuantity  *int32  `json:"current_quantity"`
-	MaxUsagePerUser  *int32  `json:"max_usage_per_user"`
-	IsActive         bool    `json:"is_active"`
-	EndDate          *string `json:"end_date"`
+	DiscountValue    *string `json:"discountValue"`
+	MaxDiscountValue *string `json:"maxDiscountValue"`
+	MinOrderValue    *string `json:"minOrderValue"`
+	PointCost        *string `json:"pointCost"`
+	InitQuantity     *int32  `json:"initQuantity"`
+	CurrentQuantity  *int32  `json:"currentQuantity"`
+	MaxUsagePerUser  *int32  `json:"maxUsagePerUser"`
+	IsActive         bool    `json:"isActive"`
+	EndDate          *string `json:"endDate"`
 
-	CreatedAt    *string                `json:"created_at"`
-	UpdatedAt    *string                `json:"updated_at"`
-	VoucherItems []*VoucherItemResponse `json:"voucher_items"`
+	CreatedAt    *string                `json:"createdAt"`
+	UpdatedAt    *string                `json:"updatedAt"`
+	VoucherItems []*VoucherItemResponse `json:"voucherItems"`
 }
 
 type VoucherItemResponse struct {

@@ -32,7 +32,7 @@ type LoyaltyAccountGrpcClient interface {
 	// Hàm Upsert nhận vào UpSertRequest và không trả ra gì
 	CreateLoyaltyAccount(ctx context.Context, in *CreateLoyaltyAccountRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// Hàm trừ điểm khi xử dụng
-	DeductPoints(ctx context.Context, in *DeductPointRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	UpdatePoint(ctx context.Context, in *UpdatePointRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// RPC lấy báo cáo (trả về dữ liệu thô)
 	GetLoyaltyReport(ctx context.Context, in *GetLoyaltyReportRequest, opts ...grpc.CallOption) (*LoyaltyReportResponse, error)
 	// Rpc Redeem voucher
@@ -83,9 +83,9 @@ func (c *loyaltyAccountGrpcClient) CreateLoyaltyAccount(ctx context.Context, in 
 	return out, nil
 }
 
-func (c *loyaltyAccountGrpcClient) DeductPoints(ctx context.Context, in *DeductPointRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *loyaltyAccountGrpcClient) UpdatePoint(ctx context.Context, in *UpdatePointRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/engagement.LoyaltyAccountGrpc/DeductPoints", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engagement.LoyaltyAccountGrpc/UpdatePoint", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +123,7 @@ type LoyaltyAccountGrpcServer interface {
 	// Hàm Upsert nhận vào UpSertRequest và không trả ra gì
 	CreateLoyaltyAccount(context.Context, *CreateLoyaltyAccountRequest) (*emptypb.Empty, error)
 	// Hàm trừ điểm khi xử dụng
-	DeductPoints(context.Context, *DeductPointRequest) (*emptypb.Empty, error)
+	UpdatePoint(context.Context, *UpdatePointRequest) (*emptypb.Empty, error)
 	// RPC lấy báo cáo (trả về dữ liệu thô)
 	GetLoyaltyReport(context.Context, *GetLoyaltyReportRequest) (*LoyaltyReportResponse, error)
 	// Rpc Redeem voucher
@@ -147,8 +147,8 @@ func (UnimplementedLoyaltyAccountGrpcServer) GetByFilter(context.Context, *GetBy
 func (UnimplementedLoyaltyAccountGrpcServer) CreateLoyaltyAccount(context.Context, *CreateLoyaltyAccountRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateLoyaltyAccount not implemented")
 }
-func (UnimplementedLoyaltyAccountGrpcServer) DeductPoints(context.Context, *DeductPointRequest) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeductPoints not implemented")
+func (UnimplementedLoyaltyAccountGrpcServer) UpdatePoint(context.Context, *UpdatePointRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdatePoint not implemented")
 }
 func (UnimplementedLoyaltyAccountGrpcServer) GetLoyaltyReport(context.Context, *GetLoyaltyReportRequest) (*LoyaltyReportResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetLoyaltyReport not implemented")
@@ -241,20 +241,20 @@ func _LoyaltyAccountGrpc_CreateLoyaltyAccount_Handler(srv interface{}, ctx conte
 	return interceptor(ctx, in, info, handler)
 }
 
-func _LoyaltyAccountGrpc_DeductPoints_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeductPointRequest)
+func _LoyaltyAccountGrpc_UpdatePoint_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdatePointRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(LoyaltyAccountGrpcServer).DeductPoints(ctx, in)
+		return srv.(LoyaltyAccountGrpcServer).UpdatePoint(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engagement.LoyaltyAccountGrpc/DeductPoints",
+		FullMethod: "/engagement.LoyaltyAccountGrpc/UpdatePoint",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(LoyaltyAccountGrpcServer).DeductPoints(ctx, req.(*DeductPointRequest))
+		return srv.(LoyaltyAccountGrpcServer).UpdatePoint(ctx, req.(*UpdatePointRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -319,8 +319,8 @@ var LoyaltyAccountGrpc_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _LoyaltyAccountGrpc_CreateLoyaltyAccount_Handler,
 		},
 		{
-			MethodName: "DeductPoints",
-			Handler:    _LoyaltyAccountGrpc_DeductPoints_Handler,
+			MethodName: "UpdatePoint",
+			Handler:    _LoyaltyAccountGrpc_UpdatePoint_Handler,
 		},
 		{
 			MethodName: "GetLoyaltyReport",
