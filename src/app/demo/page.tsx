@@ -7,7 +7,7 @@ import React from "react"
 
 // Hàm giả lập API
 const mockUploadImages = async (formData: FormData) => {
-    console.group("🚀 START MOCK UPLOAD")
+    console.group("START MOCK UPLOAD")
 
     // 1. Kiểm tra xem FormData có gì bên trong
     // Lưu ý: console.log(formData) trực tiếp sẽ thấy rỗng, phải loop qua entries

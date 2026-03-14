@@ -9,8 +9,7 @@ import {
     TimeLogTable,
     TimeLogCalendar,
     TimeLogUpdateModal,
-    EmptyTimeLogState,
-    BackToShiftsLink
+    EmptyTimeLogState
 } from "@/features/shifts/components"
 import { useTimeLogLogic } from "@/features/shifts/hooks"
 import { useGetAllTimeLogs, useGetMyTimeLogHistory } from "@/features/shifts/hooks"
@@ -77,7 +76,6 @@ export default function TimeLogManagementPageView() {
                             : "Xem lại lịch sử chấm công và phản hồi từ quản lý"
                     }
                 />
-                <BackToShiftsLink />
             </div>
 
             {/* Toolbar hợp nhất */}

@@ -1,9 +1,9 @@
 "use client"
-import React, { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import "./index.css"
 import { NavbarBrand, NavbarContent, NavbarItem } from "@heroui/react"
 import Link from "next/link"
-import { ButtonStyled, NavbarStyled, LogoStyled, ButtonIconStyled, StoreChip } from "@/components/"
+import { ButtonStyled, NavbarStyled, LogoStyled, ButtonIconStyled } from "@/components/"
 import {
     useCartDrawerDiscloresureSingleton,
     useLoginDiscloresureSingleton,
@@ -17,37 +17,34 @@ import { motion } from "framer-motion"
 import { createPortal } from "react-dom"
 import { STRINGS } from "@/constants/strings"
 import { CHB, CHB_SHORT } from "@/constants/constants"
-import { CartButton, useCartStore } from "@/features/cart"
+import { CartButton } from "@/features/cart"
 import { RoleSlug } from "@/constants/enums"
-import { useGetStoreById } from "@/features/stores"
-
-type MenuKey = "home" | "stores" | "menu" | "about" | "contact" | undefined
-type MenuItem = { key: Exclude<MenuKey, undefined>; label: string }
+import { getMenuKeyFromPath, MAIN_MENUS, MenuKey } from "@/constants/menu/navbar"
 
 export function Navbar() {
     const pathname = usePathname()
     // handle when login
     const isLoggedIn = useTokenStore((s) => !!s.accessToken)
     const roleSlug = useTokenStore((s) => s.roleSlug)
-    const storeId = useTokenStore((s) => s.storeId)
+    // const storeId = useTokenStore((s) => s.storeId)
 
     const isStoreDisplay =
         roleSlug === RoleSlug.Customer ||
         roleSlug === RoleSlug.Staff ||
         roleSlug === RoleSlug.Manager
-    const storeFromCart = useCartStore((s) => s.currentStore)
-    const { data: storeFromApi } = useGetStoreById({
-        id: storeId || "",
-        enabled: roleSlug === RoleSlug.Staff || roleSlug === RoleSlug.Manager
-    })
+    // const storeFromCart = useCartStore((s) => s.currentStore)
+    // const { data: storeFromApi } = useGetStoreById({
+    //     id: storeId || "",
+    //     enabled: roleSlug === RoleSlug.Staff || roleSlug === RoleSlug.Manager
+    // })
 
-    const store = useMemo(() => {
-        if (roleSlug === RoleSlug.Customer) return storeFromCart
+    // const store = useMemo(() => {
+    //     if (roleSlug === RoleSlug.Customer) return storeFromCart
 
-        if (roleSlug === RoleSlug.Admin) return undefined
+    //     if (roleSlug === RoleSlug.Admin) return undefined
 
-        return storeFromApi
-    }, [roleSlug, storeFromApi, storeFromCart])
+    //     return storeFromApi
+    // }, [roleSlug, storeFromApi, storeFromCart])
 
     const { onOpen: onOpenLogin } = useLoginDiscloresureSingleton()
     const { onOpen: onCartDrawerOpen } = useCartDrawerDiscloresureSingleton()
@@ -58,40 +55,10 @@ export function Navbar() {
     const [isHiddenNavbar, setIsHiddenNavbar] = useState(false)
     const [lastScrollY, setLastScrollY] = useState(0)
     const [isOpen, setIsOpen] = useState(false) // mobile drawer state
-    // set active key
-    const { menuKey } = useMemo(() => {
-        const segment = pathname.split("/").filter(Boolean)[0]
 
-        const mapSegmentToMenuKey = (segment: string | undefined): MenuKey => {
-            switch (segment) {
-                case "":
-                case undefined:
-                    return "home"
-                case "stores":
-                    return "stores"
-                case "menu":
-                    return "menu"
-                default:
-                    return undefined
-            }
-        }
-
-        return {
-            firstSegment: segment,
-            menuKey: mapSegmentToMenuKey(segment)
-        }
-    }, [pathname])
-
+    const menuKey = useMemo(() => getMenuKeyFromPath(pathname), [pathname])
     const [activeMenuKey, setActiveMenuKey] = useState<MenuKey>(menuKey)
-    const menus = useMemo(
-        () =>
-            [
-                { key: "home", label: STRINGS.NAVBAR.HOME },
-                { key: "menu", label: "Menu" },
-                { key: "stores", label: "Cửa hàng" }
-            ] satisfies MenuItem[],
-        []
-    )
+
     useEffect(() => {
         setActiveMenuKey(menuKey)
     }, [menuKey])
@@ -194,16 +161,15 @@ export function Navbar() {
             </NavbarBrand>
             {/* middle content */}
             <NavbarContent className="hidden sm:flex gap-4 justify-center">
-                {menus.map((menu) => (
+                {MAIN_MENUS.map((menu) => (
                     <NavbarItem
                         id={menu.key}
                         key={menu.key}
-                        isActive={activeMenuKey == menu.key}
-                        className={`""text-center px-3 w-fit"
-                            ${isCollapse ? "text-white" : "text-inherit"}`}
+                        isActive={activeMenuKey === menu.key}
+                        className={`text-center px-3 w-fit ${isCollapse ? "text-white" : "text-inherit"}`}
                     >
                         <Link
-                            href={menu.key === "home" ? "/" : "/" + menu.key}
+                            href={menu.href}
                             onClick={() => setActiveMenuKey(menu.key)}
                             className="h-full flex items-center"
                         >
@@ -237,31 +203,27 @@ export function Navbar() {
                         transition={{ type: "spring", stiffness: 260, damping: 25 }}
                         className="fixed top-19 left-0 w-full bg-white shadow-lg flex flex-col items-center z-999 pb-3"
                     >
-                        {menus.map((menu) => {
-                            const isActive =
-                                pathname === (menu.key === "home" ? "/" : `/${menu.key}`)
+                        {MAIN_MENUS.map((menu) => {
+                            const isActive = pathname === menu.href
                             return (
-                                <button
+                                <Link
                                     key={menu.key}
+                                    href={menu.href}
+                                    onClick={() => setIsOpen(false)}
                                     className={`text-lg block w-full py-2 text-center font-medium ${
                                         isActive
                                             ? "text-white font-semibold bg-primary"
                                             : "text-black hover:text-white hover:bg-primary"
                                     }`}
                                 >
-                                    <Link
-                                        href={menu.key === "home" ? "/" : "/" + menu.key}
-                                        onClick={() => setIsOpen(false)}
-                                    >
-                                        {menu.label}
-                                    </Link>
-                                </button>
+                                    {menu.label}
+                                </Link>
                             )
                         })}
                     </motion.div>
                 </div>
 
-                {store && <StoreChip storeName={store.name} className="hover:cursor-auto" />}
+                {/* {store && <StoreChip storeName={store.name} className="hover:cursor-auto" />} */}
 
                 {isStoreDisplay && (
                     <div className="items-center">

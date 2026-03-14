@@ -343,8 +343,7 @@ export default function ProductFormPageView({ productId }: { productId?: string 
                 isLoading={isSubmitting}
                 onSave={() => formik.handleSubmit()}
                 onReset={() => formik.resetForm()}
-                title={isEditMode ? undefined : "Thông báo"}
-                message={isEditMode ? "Thông tin sản phẩm đã thay đổi." : "Tạo sản phẩm"}
+                message={isEditMode ? undefined : "Tạo sản phẩm"}
             />
         </div>
     )

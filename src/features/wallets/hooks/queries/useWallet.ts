@@ -63,7 +63,13 @@ export const useTopUpWallet = ({ onSuccess }: { onSuccess?: (url: string) => voi
  * [Story: Admin xem ví của một User cụ thể]
  * Dùng khi Admin cần kiểm tra số dư của khách để xử lý khiếu nại hoặc rút tiền.
  */
-export const useGetWalletByUserId = (userId: string, enabled = true) => {
+export const useGetWalletByUserId = ({
+    userId = "",
+    enabled = true
+}: {
+    userId?: string
+    enabled: boolean
+}) => {
     return useQuery<WalletResponse>({
         queryKey: [QUERY_KEYS.WALLETS, userId],
         queryFn: () => walletApi.getByUserId(userId),

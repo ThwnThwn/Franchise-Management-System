@@ -22,7 +22,7 @@ export const usePrintInvoice = () => {
                     <title>In hóa đơn - CHB Coffee</title>
                     ${styles}
                     <style>
-                        /* 🚀 ĐÈ BỆT MỌI CSS CŨ ĐANG LÀM ẨN NỘI DUNG */
+                        /* ĐÈ BỆT MỌI CSS CŨ ĐANG LÀM ẨN NỘI DUNG */
                         @media print {
                             @page { margin: 0; size: auto; }
                             body { 

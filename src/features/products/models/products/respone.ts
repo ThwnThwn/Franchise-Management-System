@@ -31,3 +31,13 @@ export interface ProductAttribute {
     value: string
     originalKey: string
 }
+
+export interface ProductVariantDetail {
+    productId: string
+    variantId: string
+    productName: string
+    sku: string
+    attributes: string
+    basePrice: number
+    imageUrl: string
+}

@@ -61,8 +61,12 @@ module.exports = {
 
                         // 2. Warning (Cảnh báo): Vàng nghệ / Cam đất
                         warning: {
-                            DEFAULT: "#B45309", // Màu cam nâu (Amber 700) nhìn rất ấm
-                            foreground: "#FFFFFF" // Chữ trắng cho nổi
+                            50: "#FFFBEB", // Màu kem bơ (Rất nhạt để làm nền box)
+                            100: "#FEF3C7", // Màu váng sữa
+                            200: "#FDE68A",
+                            400: "#F59E0B", // Màu cam mật ong (Dùng cho icon/border)
+                            DEFAULT: "#B45309",
+                            foreground: "#FFFFFF"
                         },
 
                         // 3. Danger (Nguy hiểm/Lỗi): Đỏ gạch trầm

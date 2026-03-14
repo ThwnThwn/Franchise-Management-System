@@ -41,3 +41,10 @@ export const ORDER_STATUS_TRANSITION_POLICY: Record<OrderStatus, OrderStatus[]> 
     [OrderStatus.Completed]: [],
     [OrderStatus.Cancelled]: []
 }
+
+export enum OrderSaleItemType {
+    VOUCHER = 0,
+    WALLET = 1,
+    POINT = 2,
+    PROMOTION = 3
+}

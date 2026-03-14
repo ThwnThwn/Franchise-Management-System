@@ -16,7 +16,7 @@ interface Props {
     isLoading?: boolean
 }
 
-export const OrderStatusActions = ({ currentStatus, onUpdate, isLoading }: Props) => {
+export const OrderStatusActions = ({ currentStatus, onUpdate, isLoading = false }: Props) => {
     const canManual = isManualActionRequired(currentStatus)
     const nextStatuses = ORDER_STATUS_TRANSITION_POLICY[currentStatus]
 

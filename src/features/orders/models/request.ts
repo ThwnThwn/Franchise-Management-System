@@ -14,12 +14,12 @@ export interface CreateOrderRequest {
 }
 
 export interface CreatePaymentRequest {
-    returnUrl?: string | null
+    returnUrl?: string
     paymentMethod: PaymentMethod
-    point?: number | null
-    voucherShipCode?: string | null
-    voucherDiscountCode?: string | null
-    appliedWalletAmount?: number | null
+    point?: number
+    voucherShipCode?: string
+    voucherDiscountCode?: string
+    appliedWalletAmount?: number
 }
 
 export interface UpdateOrderItem {
@@ -40,17 +40,16 @@ export interface GetOrdersQuery {
 
 /** GET /orders/reports/revenue */
 export interface GetRevenueReportQuery {
-    fromDate?: string   // e.g. "2024-01-01T00:00:00Z"
-    toDate?: string     // e.g. "2024-01-31T23:59:59Z"
+    fromDate?: string // e.g. "2024-01-01T00:00:00Z"
+    toDate?: string // e.g. "2024-01-31T23:59:59Z"
     storeId?: string
     categoryId?: string
 }
 
 /** GET /orders/reports/volume */
 export interface GetOrderVolumeQuery {
-    fromDate?: string   // e.g. "2024-05-20"
-    toDate?: string     // e.g. "2024-05-27"
+    fromDate?: string // e.g. "2024-05-20"
+    toDate?: string // e.g. "2024-05-27"
     storeId?: string
     status?: OrderStatus
 }
-

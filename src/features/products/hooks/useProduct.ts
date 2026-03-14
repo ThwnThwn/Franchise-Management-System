@@ -73,6 +73,15 @@ export const useGetProductById = ({ id, enabled = true }: { id: string; enabled?
     })
 }
 
+export const useGetProductVariants = (skus: string[], enabled = true) => {
+    return useQuery({
+        queryKey: ["product-variants", skus],
+        queryFn: () => productApi.getProductVariants({ skus }),
+        enabled: enabled && skus.length > 0,
+        staleTime: 1000 * 60 * 5
+    })
+}
+
 export const useCreateProduct = ({ onSuccess }: { onSuccess?: () => void } = {}) => {
     const queryClient = useQueryClient()
     const key = [QUERY_KEYS.PRODUCTS]

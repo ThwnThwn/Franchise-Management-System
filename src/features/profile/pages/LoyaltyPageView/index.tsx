@@ -45,7 +45,7 @@ export default function LoyaltyPageView() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50/50 pb-20">
+        <div className="min-h-screen min-w-4xl bg-gray-50/50 pb-20 rounded-2xl overflow-hidden">
             {/* Header / Hero */}
             <div className="bg-linear-to-br from-amber-700 to-amber-900 pt-8 pb-32 px-4 md:px-8 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
@@ -214,7 +214,7 @@ export default function LoyaltyPageView() {
                                                             Giảm giá hóa đơn
                                                         </span>
                                                         <span className="font-bold text-gray-900">
-                                                            {tier.discountRate}%
+                                                            {tier.discountRate * 100}%
                                                         </span>
                                                     </div>
                                                     <div className="flex justify-between items-center bg-gray-50 p-3 rounded-xl">

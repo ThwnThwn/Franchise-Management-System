@@ -5,7 +5,6 @@ import {
     AgendaListView,
     AgendaToolbar,
     CurrentShiftCard,
-    GoToTimeLogLink,
     StaffShiftCalendar,
     ViewShiftDetailModal
 } from "@/features/shifts/components"
@@ -101,7 +100,7 @@ export default function StaffAgendaPageView() {
                     title="Lịch Làm Việc"
                     description="Theo dõi ca làm và đồng nghiệp trong tuần"
                 />
-                <GoToTimeLogLink />
+                {/* <GoToTimeLogLink /> */}
             </div>
 
             <section className="animate-in fade-in slide-in-from-top-4 duration-700">

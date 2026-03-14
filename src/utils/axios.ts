@@ -1,5 +1,5 @@
 import { BACKEND_API_URL } from "@/constants/env"
-import { useTokenStore } from "@/hooks"
+import { useTokenStore } from "@/hooks/singleton/store"
 import { BackendError } from "@/models/common/respone"
 import axios from "axios"
 import qs from "qs"

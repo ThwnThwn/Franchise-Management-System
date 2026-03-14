@@ -4,16 +4,16 @@ import { RoleUserResponse } from "@/models/role"
 export interface MembershipTier {
     id: string
     name: string
-    minSpendRequired: number
+    minSpendRequired: string
     discountRate: number
-    amountPerPoint: number
-    valuePerPoint: number
+    amountPerPoint: string
+    valuePerPoint: string
 }
 
 export interface LoyaltyResponse {
     id: string
-    availablePoints: number
-    totalSpent: number
+    availablePoints: string
+    totalSpent: string
     currentTier: MembershipTier
 }
 

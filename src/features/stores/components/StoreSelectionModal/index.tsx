@@ -5,7 +5,7 @@ import StoreList from "@/features/stores/components/StoreList"
 import { StoreDetailDto } from "@/features/stores/models/schema/response"
 import { useUserLocation } from "@/features/stores/hooks/useUserLocation"
 import { ModalStyled } from "@/components"
-import { useGetNearbyStores } from "@/features/stores"
+import { useGetNearbyStores, useGetStores } from "@/features/stores"
 import Link from "next/link"
 
 type StoreSelectionModalProps = {
@@ -35,25 +35,22 @@ export function StoreSelectionModal({
     })
 
     // Fallback: Get all stores if GPS is disabled or not found
-    // const { data: allStoresData, isLoading: isLoadingAll } = useGetStores({
-    //     pagination: {
-    //         page: 1,
-    //         pageSize: LIMIT
-    //     },
-    //     params: {}
-    // })
+    const { data: allStoresData, isLoading: isLoadingAll } = useGetStores({
+        pagination: {
+            page: 1,
+            pageSize: LIMIT
+        },
+        params: {}
+    })
 
     // Determine which data to show
     const showNearby = enabled && nearbyData && nearbyData.items && nearbyData.items.length > 0
-    const stores = nearbyData?.items
-    const isLoading = isLoadingNearby
-    const totalCount = nearbyData?.totalCount
     const emptyMessage = enabled
         ? `Không tìm thấy cửa hàng nào gần nhất trong khu vực ${RADIUS_KM} km`
         : "Cho phép GPS để xem cửa hàng gần nhất"
-    // const stores = showNearby ? nearbyData?.items : allStoresData?.items
-    // const isLoading = showNearby ? isLoadingNearby : isLoadingAll
-    // const totalCount = showNearby ? nearbyData?.totalCount : allStoresData?.totalCount
+    const stores = showNearby ? nearbyData?.items : allStoresData?.items
+    const isLoading = showNearby ? isLoadingNearby : isLoadingAll
+    const totalCount = showNearby ? nearbyData?.totalCount : allStoresData?.totalCount
 
     return (
         <ModalStyled
@@ -69,11 +66,11 @@ export function StoreSelectionModal({
                         <ModalHeader className="flex flex-col gap-1">
                             <h3>Chọn cửa hàng</h3>
                             <div className="text-sm italic text-secondary font-normal">
-                                {showNearby &&
-                                    `Dưới đây là ${totalCount || 0} cửa hàng gần nhất trong khu vực ${RADIUS_KM} km`}
-                                {/* {showNearby
+                                {/* {showNearby &&
+                                    `Dưới đây là ${totalCount || 0} cửa hàng gần nhất trong khu vực ${RADIUS_KM} km`} */}
+                                {showNearby
                                     ? `Dưới đây là ${totalCount || 0} cửa hàng gần nhất trong khu vực ${RADIUS_KM} km`
-                                    : `Dưới đây là ${totalCount || 0} cửa hàng gần nhất`} */}
+                                    : `Dưới đây là ${totalCount || 0} cửa hàng gần nhất`}
                             </div>
                         </ModalHeader>
                         <ModalBody className="pb-6 overflow-visible">

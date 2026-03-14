@@ -1,6 +1,5 @@
 "use client"
 
-import React from "react"
 import { ImageStyled } from "@/components"
 import { formatCurrencyWithSymbol } from "@/utils/helpers/currency"
 import { OrderItem } from "@/features/orders/models/response"
@@ -69,7 +68,7 @@ export const OrderItemRow = ({ item, isGift = false, overrideQuantity }: OrderIt
             <div
                 className={`col-span-2 text-right font-black text-sm pr-2 ${isGift ? "text-success" : "text-slate-900"}`}
             >
-                {isGift ? "0 ₫" : formatCurrencyWithSymbol(displayTotal)}
+                {isGift ? "FREE" : formatCurrencyWithSymbol(displayTotal)}
             </div>
         </div>
     )

@@ -9,8 +9,7 @@ import {
     ShiftCalendar,
     ScheduleStats,
     BulkShiftModal,
-    StaffWorkloadSummary,
-    GoToTimeLogLink
+    StaffWorkloadSummary
 } from "@/features/shifts/components"
 import {
     useGetShifts,
@@ -93,7 +92,7 @@ export default function ShiftSchedulerPageView() {
                     title="Xếp Lịch Làm Việc"
                     description="Quản lý ca làm và phân công nhân sự"
                 />
-                <GoToTimeLogLink />
+                {/* <GoToTimeLogLink /> */}
             </div>
 
             <div className="space-y-3">

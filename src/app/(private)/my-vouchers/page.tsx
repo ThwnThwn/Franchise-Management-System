@@ -1,4 +1,4 @@
-import MyVouchersView from "@/features/profile/pages/MyVouchersView"
+import MyVouchersView from "@/features/vouchers/pages/MyVouchersView"
 
 export const metadata = {
     title: "Voucher của tôi | CH&B",

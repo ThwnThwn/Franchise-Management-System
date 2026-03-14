@@ -36,3 +36,7 @@ export type UpdateProductVariant = {
     cost?: number
     isActive?: boolean
 }
+
+export interface GetProductVariantsRequest {
+    skus: string[]
+}

@@ -2,10 +2,11 @@ import { buildQueryParams } from "@/utils/helpers/axiosHelper"
 import {
     CreateProductRequest,
     GetAllProductParams,
+    GetProductVariantsRequest,
     UpdateProductRequest
 } from "@/features/products/models/products/request"
 import axiosInstance from "@/utils/axios"
-import { Product } from "../models/products/respone"
+import { Product, ProductVariantDetail } from "@/features/products/models/products/respone"
 import { PaginationParams } from "@/models/common/request"
 import { PageResult } from "@/models/common/respone"
 
@@ -32,6 +33,15 @@ export const productApi = {
     // Lấy chi tiết sản phẩm
     getById: async ({ id }: { id: string }): Promise<Product> => {
         const res = await axiosInstance.get(`/products/${id}`)
+        return res.data
+    },
+
+    getProductVariants: async (
+        params: GetProductVariantsRequest
+    ): Promise<ProductVariantDetail[]> => {
+        const res = await axiosInstance.get<ProductVariantDetail[]>("/products/variants", {
+            params
+        })
         return res.data
     },
 

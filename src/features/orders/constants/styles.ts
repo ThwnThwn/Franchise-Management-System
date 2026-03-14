@@ -1,5 +1,7 @@
 import { ChipProps } from "@heroui/react"
-import { OrderStatus } from "./enum"
+import { OrderSaleItemType, OrderStatus } from "./enum"
+import { Coins, LucideProps, Tag, Ticket, Wallet } from "lucide-react"
+import React from "react"
 
 export const OrderStatusColors: Record<OrderStatus, ChipProps["color"]> = {
     [OrderStatus.PaymentPending]: "default", // Xám: Chưa có dòng tiền vào, trạng thái tĩnh
@@ -12,10 +14,19 @@ export const OrderStatusColors: Record<OrderStatus, ChipProps["color"]> = {
     [OrderStatus.Cancelled]: "danger" // Đỏ: Có vấn đề hoặc bị hủy
 }
 
-// export const OrderStatusColors: Record<OrderStatus, ChipProps["color"]> = {
-//     [OrderStatus.PaymentPending]: "default",
-//     [OrderStatus.Preparing]: "secondary",
-//     [OrderStatus.Ready]: "primary",
-//     [OrderStatus.Completed]: "success",
-//     [OrderStatus.Cancel]: "danger"
-// }
+export const OrderSaleItemTypeColors: Record<OrderSaleItemType, ChipProps["color"]> = {
+    [OrderSaleItemType.VOUCHER]: "warning", // Vàng cam
+    [OrderSaleItemType.WALLET]: "success", // Xanh lá (tiền bạc)
+    [OrderSaleItemType.POINT]: "primary", // Màu chủ đạo của app (điểm)
+    [OrderSaleItemType.PROMOTION]: "danger" // Đỏ (hot deal/sale)
+}
+
+export const OrderSaleItemTypeIcons: Record<
+    OrderSaleItemType,
+    React.ForwardRefExoticComponent<Omit<LucideProps, "ref"> & React.RefAttributes<SVGSVGElement>>
+> = {
+    [OrderSaleItemType.VOUCHER]: Ticket,
+    [OrderSaleItemType.WALLET]: Wallet,
+    [OrderSaleItemType.POINT]: Coins,
+    [OrderSaleItemType.PROMOTION]: Tag
+}

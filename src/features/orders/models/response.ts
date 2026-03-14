@@ -1,4 +1,4 @@
-import { OrderStatus, PaymentMethod } from "@/features/orders/constants"
+import { OrderSaleItemType, OrderStatus, PaymentMethod } from "@/features/orders/constants"
 import { StoreDetailDto } from "@/features/stores"
 
 export interface ShortageItem {
@@ -33,18 +33,11 @@ export interface OrderItem {
     variantId: string
 }
 
-export enum OrderSaleItemType {
-    VOUCHER = 0,
-    WALLET = 1,
-    POINT = 2,
-    PROMOTION = 3,
-}
-
 export interface OrderSaleItem {
     id: string
     amount: number
     type: OrderSaleItemType
-    referenceId?: string | null
+    referenceId?: string
     name: string
 }
 
@@ -76,7 +69,7 @@ export interface Order extends OrderHeader {
     saleItems?: OrderSaleItem[]
 }
 
-export interface OrderSummary extends OrderHeader { }
+export interface OrderSummary extends OrderHeader {}
 
 // ── Analytics API response types ──────────────────────────────────────────────
 
@@ -98,7 +91,7 @@ export interface GetRevenueReportReply {
 }
 
 export interface OrderVolumeADay {
-    date: string              // e.g. "2024-05-20"
+    date: string // e.g. "2024-05-20"
     totalOrders: number
     canceledOrder: number
     completedOrder: number
@@ -109,4 +102,3 @@ export interface OrderVolumeADay {
 export interface GetOrderVolumeReply {
     orders: OrderVolumeADay[]
 }
-

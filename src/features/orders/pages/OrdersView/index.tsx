@@ -66,15 +66,6 @@ export default function OrdersView() {
                     ))
                 })()}
             </div>
-
-            {/* {selectedOrder && (
-                <OrderDetailModal
-                    isOpen={isOpen}
-                    onOpenChange={onOpenChange}
-                    onClose={onClose}
-                    orderId={selectedOrder.id}
-                />
-            )} */}
         </div>
     )
 }

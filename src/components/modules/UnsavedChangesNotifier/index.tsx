@@ -3,7 +3,7 @@
 import React from "react"
 import { createPortal } from "react-dom"
 import { motion, AnimatePresence } from "framer-motion"
-import { RotateCcw, Save } from "lucide-react"
+import { AlertTriangle, RotateCcw, Save } from "lucide-react"
 import { ButtonIconStyled } from "@/components"
 
 type Props = {
@@ -11,7 +11,7 @@ type Props = {
     isLoading: boolean
     onSave: () => void
     onReset: () => void
-    title?: string
+    // title?: string
     message?: string
 }
 
@@ -20,7 +20,7 @@ export function UnsavedChangesNotifier({
     isLoading,
     onSave,
     onReset,
-    title = "Cẩn thận!",
+    // title,
     message = "Bạn có thay đổi chưa lưu."
 }: Props) {
     if (typeof document === "undefined") return null
@@ -33,11 +33,14 @@ export function UnsavedChangesNotifier({
                     animate={{ y: 0, x: "-50%", opacity: 1 }}
                     exit={{ y: 100, x: "-50%", opacity: 0 }}
                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                    className="fixed bottom-8 left-1/2 z-51 bg-slate-900 border border-slate-700 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-6 min-w-[320px] max-w-[90vw]"
+                    className="fixed bottom-8 left-1/2 z-51 bg-warning-50 border border-warning-200 px-6 py-4 rounded-2xl shadow-xl flex items-center gap-6"
                 >
+                    <div className="p-2 bg-warning-100 rounded-full text-warning">
+                        <AlertTriangle size={20} />
+                    </div>
+
                     <div className="flex flex-col">
-                        <span className="text-sm font-bold text-warning">{title}</span>
-                        <span className="text-xs text-slate-400 font-medium">{message}</span>
+                        <span className="text-sm font-bold text-warning">{message}</span>
                     </div>
 
                     <div className="ml-auto flex items-center gap-3">
@@ -45,7 +48,7 @@ export function UnsavedChangesNotifier({
                             <ButtonIconStyled
                                 size="sm"
                                 variant="light"
-                                className="text-white hover:bg-white/10"
+                                color="warning"
                                 onPress={onReset}
                                 title="Khôi phục"
                             >

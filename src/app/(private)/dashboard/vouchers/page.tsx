@@ -1,4 +1,4 @@
-import { VouchersPageView } from "@/features/dashboard/pages"
+import VouchersPageView from "@/features/vouchers/pages/VouchersPageView"
 
 export const metadata = {
     title: "Vouchers Management",
