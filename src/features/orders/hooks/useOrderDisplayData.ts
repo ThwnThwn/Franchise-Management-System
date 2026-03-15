@@ -76,18 +76,17 @@ export const useOrderDisplayData = ({
 
     const isPending = order?.status === OrderStatus.PaymentPending
 
-    // BỘ NÃO TÍNH TOÁN
     const pricing = useMemo(() => {
         const subtotal = order?.subtotal || 0
 
-        // B1: Giảm Hạng & Voucher
+        // Giảm Hạng & Voucher
         const tierDiscount = subtotal * discountRate
 
         const voucherDiscounts = isPending
             ? calculateTemporaryDiscount(subtotal, appliedShippingVoucher, appliedDiscountVoucher)
             : { productDiscount: 0, shippingDiscount: 0, totalDiscount: 0 }
 
-        // B2: Tính Trần cho Điểm (Tiền còn lại trước Thuế)
+        // Tính Trần cho Điểm (Tiền còn lại trước Thuế)
         const amountToClearPreTax = Math.max(
             subtotal -
                 tierDiscount -
@@ -96,26 +95,30 @@ export const useOrderDisplayData = ({
             0
         )
 
-        // B3: Xử lý ĐIỂM (Auto Adjust)
+        // Xử lý ĐIỂM (Auto Adjust)
         const maxPointsByMoney = Math.floor(amountToClearPreTax / valuePerPoint)
         const safePoints = isPending
             ? Math.min(requestedPoints, availablePointBalance, maxPointsByMoney)
             : 0
         const pointValueDeduction = safePoints * valuePerPoint
 
-        // B4: Tính Thuế (Giữ nguyên số lẻ để cộng dồn chính xác)
+        // Tính số tiền chịu thuế
         const taxableAmount = Math.max(amountToClearPreTax - pointValueDeduction, 0)
-        const calculatedTax = isPending ? taxableAmount * 0.1 : order?.tax || 0
 
-        // B5: Tiền SAU THUẾ LÀM TRÒN CHỐT HẠ Ở ĐÂY
-        const totalAfterTax = Math.round(taxableAmount + calculatedTax)
+        // Tính TỔNG TIỀN TRƯỚC (Làm tròn chốt hạ)
+        const totalAfterTax = isPending
+            ? Math.round(taxableAmount * 1.1) // 100% gốc + 10% thuế
+            : order?.totalAmount || 0
 
-        // B6: Xử lý VÍ (Trần là tiền sau Thuế đã làm tròn)
+        // TÍNH NGƯỢC LẠI THUẾ ĐỂ HIỂN THỊ UI (Để đảm bảo Tax + Taxable = Total)
+        const calculatedTax = isPending ? totalAfterTax - taxableAmount : order?.tax || 0
+
+        // Xử lý VÍ (Trần là tiền sau Thuế đã làm tròn)
         const safeWallet = isPending
             ? Math.min(requestedWallet, availableWalletBalance, totalAfterTax)
             : 0
 
-        // B7: Tiền mặt cuối cùng
+        // Tiền mặt cuối cùng
         const finalAmount = isPending
             ? Math.max(totalAfterTax - safeWallet, 0)
             : order?.totalAmount || 0

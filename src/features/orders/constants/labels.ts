@@ -32,5 +32,5 @@ export const OrderSaleItemTypeLabels: Record<OrderSaleItemType, string> = {
     [OrderSaleItemType.VOUCHER]: "Voucher",
     [OrderSaleItemType.WALLET]: "Dùng từ ví",
     [OrderSaleItemType.POINT]: "Điểm thưởng",
-    [OrderSaleItemType.PROMOTION]: "Khuyến mãi"
+    [OrderSaleItemType.DISCOUNT_RATE]: "Giảm từ hạng thành viên"
 }

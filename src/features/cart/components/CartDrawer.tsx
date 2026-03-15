@@ -334,7 +334,7 @@ export default function CartDrawer() {
                                     <span>{formatCurrencyWithSymbol(selectedTotal)}</span>
                                 </div>
                                 <div className="flex justify-between text-sm text-default-500">
-                                    <span>Thuế VAT (10%):</span>
+                                    <span>Thuế VAT dự kiến (10%):</span>
                                     <span>{formatCurrencyWithSymbol(tax)}</span>
                                 </div>
                                 <Divider className="my-1" />

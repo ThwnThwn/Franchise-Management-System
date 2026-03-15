@@ -77,7 +77,7 @@ export const OrderPaymentSummary = ({
                 if (isProductGift) return false
             }
 
-            // 3. Giữ lại PROMOTION và các loại giảm giá khác
+            // 3. Giữ lại DISCOUNT_RATE và các loại giảm giá khác
             return true
         }) || []
 
@@ -216,22 +216,14 @@ export const OrderPaymentSummary = ({
                             {formatCurrencyWithSymbol(isPending ? calculatedTax : order.tax)}
                         </span>
                     </div>
-                    {backEndWalletDeductions.length > 0 && (
-                        <div className="space-y-2 border-t border-dashed border-default-100">
-                            {backEndWalletDeductions.map((sale, idx) => (
-                                <SaleRow key={`wallet-${idx}`} sale={sale} />
-                            ))}
-                        </div>
-                    )}
                 </div>
 
                 <Divider className="my-4 border-default-300" />
 
                 {/* --- PHẦN 3: TỔNG HÓA ĐƠN --- */}
-
                 <div className="flex justify-between items-center">
                     <div>
-                        <span className="font-black uppercase tracking-tighter text-default-400 text-xs">
+                        <span className="font-black uppercase tracking-tighter text-default-700 text-sm">
                             Tổng hóa đơn
                         </span>
                         <p className="text-[10px] text-default-400 italic">
@@ -241,14 +233,47 @@ export const OrderPaymentSummary = ({
                     <div className="flex flex-col items-end">
                         {(discounts.totalDiscount > 0 || appliedPoint > 0) && (
                             <span className="text-xs text-default-400 line-through font-medium">
-                                {formatCurrencyWithSymbol(order.subtotal + order.subtotal * 0.1)}
+                                {formatCurrencyWithSymbol(order.subtotal + calculatedTax)}
                             </span>
                         )}
-                        <span className="text-3xl font-black text-primary drop-shadow-sm tracking-tight">
-                            {formatCurrencyWithSymbol(isPending ? totalAfterTax : order.paidAmount)}
+                        {/* Số này nhỏ hơn một chút để nhường Spotlight cho số Final ở dưới */}
+                        <span className="text-xl font-black text-default-800 tracking-tight">
+                            {formatCurrencyWithSymbol(
+                                isPending ? totalAfterTax : order.totalAmount
+                            )}
                         </span>
                     </div>
                 </div>
+
+                {/* --- PHẦN 4: THANH TOÁN (Chỉ hiện khi đã thanh toán xong) --- */}
+                {!isPending && (
+                    <>
+                        <div className="space-y-3 bg-default-50 p-3 rounded-xl">
+                            {/* Lịch sử dùng Ví từ Backend */}
+                            {backEndWalletDeductions.length > 0 && (
+                                <div className="space-y-2">
+                                    {backEndWalletDeductions.map((sale, idx) => (
+                                        <SaleRow key={`wallet-${idx}`} sale={sale} />
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* Số tiền chốt hạ đã trả */}
+                            <div className="flex justify-between items-center pt-1">
+                                <div>
+                                    <span className="font-black uppercase tracking-tighter text-default-400 text-xs">
+                                        Đã thanh toán
+                                    </span>
+                                </div>
+                                <div className="flex flex-col items-end">
+                                    <span className="text-3xl font-black text-primary drop-shadow-sm tracking-tight">
+                                        {formatCurrencyWithSymbol(order.paidAmount)}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </>
+                )}
             </div>
         </div>
     )

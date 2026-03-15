@@ -46,5 +46,5 @@ export enum OrderSaleItemType {
     VOUCHER = 0,
     WALLET = 1,
     POINT = 2,
-    PROMOTION = 3
+    DISCOUNT_RATE = 3
 }

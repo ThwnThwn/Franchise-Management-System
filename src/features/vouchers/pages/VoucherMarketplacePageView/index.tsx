@@ -7,7 +7,7 @@ import { Voucher } from "@/features/vouchers/models/response"
 import { VoucherCard, VoucherViewModal } from "@/features/vouchers/components"
 import { Button } from "@heroui/react"
 import { formatCurrency, normalizeCurrency } from "@/utils/helpers/currency"
-import { useTokenStore } from "@/hooks"
+import { useLoginDiscloresureSingleton, useTokenStore } from "@/hooks"
 import { RoleSlug } from "@/constants/enums"
 
 export default function VoucherMarketplacePageView({
@@ -15,6 +15,9 @@ export default function VoucherMarketplacePageView({
 }: {
     initialVouchers: Voucher[]
 }) {
+    const isLogined = useTokenStore((s) => !!s.accessToken)
+    const { onOpen: onLoginOpen } = useLoginDiscloresureSingleton()
+
     const { data: user } = useGetMe()
     const isCustomer = useTokenStore((s) => s.roleSlug === RoleSlug.Customer)
     const { data: loyalty } = useGetMyLoyalty(user?.email)
@@ -31,6 +34,15 @@ export default function VoucherMarketplacePageView({
     const { redeemWithConfirm, isPending: isRedeeming } = useRedeemVoucher({
         onSuccess: () => setViewingVoucher(undefined)
     })
+
+    const handleRedeem = (voucher: Voucher) => {
+        if (!isLogined) {
+            onLoginOpen()
+            return
+        }
+
+        redeemWithConfirm(voucher)
+    }
 
     return (
         <div className="space-y-6 min-h-[80vh] w-7xl max-w-7xl mx-auto px-4 md:px-8">
@@ -70,7 +82,7 @@ export default function VoucherMarketplacePageView({
                                 myPoints={myPoints}
                                 isRedeeming={isRedeeming}
                                 onView={() => setViewingVoucher(voucher)}
-                                onRedeem={() => redeemWithConfirm(voucher)}
+                                onRedeem={() => handleRedeem(voucher)}
                             />
                         ))}
                 </div>
@@ -85,7 +97,7 @@ export default function VoucherMarketplacePageView({
                     <Button
                         color="warning"
                         isDisabled={myPoints < normalizeCurrency(viewingVoucher?.pointCost || 0)}
-                        onPress={() => redeemWithConfirm(viewingVoucher!)}
+                        onPress={() => handleRedeem(viewingVoucher!)}
                     >
                         Đổi {formatCurrency(viewingVoucher?.pointCost)} Điểm
                     </Button>
