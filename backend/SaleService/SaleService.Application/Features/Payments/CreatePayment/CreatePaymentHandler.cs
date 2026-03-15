@@ -186,54 +186,64 @@ public sealed class CreatePaymentHandler(
 
         // Cập nhật Inventory cho Gift Items
         var giftItems = voucherDiscount.VoucherItems.Where(v => v.Type == VoucherItemType.ITEM_GIFT).ToList();
-        var skus = giftItems.Select(x => x.Sku ?? "").ToList();
-        var variants = await productServiceClient.GetListProductVariantsBySkusAsync(skus);
-
-        if (variants.Count != skus.Count) 
-            throw new Exception("Không tìm thấy đủ sản phẩm được tặng.");
-
-        var newReserveItems = variants.Select(v => new AmountVariant { 
-            VariantId = v.VariantId, 
-            Sku = v.Sku, 
-            Amount = giftItems.First(i => i.Sku == v.Sku).Quantity 
-        }).ToList();
-
-        // Inventory: Release & Reserve
-        await inventoryServiceClient.ReleaseStockAsync(new ReleaseStockReq { 
-            OrderId = order.Id, StoreId = order.StoreId!.Value 
-        });
-
-        var reserveRes = await inventoryServiceClient.ReserveStockAsync(new ReserveStockReq { 
-            OrderId = order.Id, StoreId = order.StoreId!.Value, 
-            Items = newReserveItems 
-        });
-        if (!reserveRes.IsEnough) throw new Exception($"Cập nhật kho thất bại: {reserveRes.ShortageItems}");
-
-        // Add OrderItems & SaleItems
-        foreach (var item in giftItems)
+        // List co thi moi chay
+        if (giftItems.Any())
         {
-            var existing = order.OrderItems
-                .FirstOrDefault(x => x.Sku == item.Sku);
+            var skus = giftItems.Select(x => x.Sku ?? "").ToList();
+            var variants = await productServiceClient.GetListProductVariantsBySkusAsync(skus);
 
-            if (existing != null) existing.Quantity += item.Quantity;
-            else
+            if (variants.Count != skus.Count)
+                throw new Exception("Không tìm thấy đủ sản phẩm được tặng.");
+
+            var newReserveItems = variants.Select(v => new AmountVariant
             {
-                var variant = variants.First(v => v.Sku == item.Sku);
-                order.OrderItems.Add(new OrderItem
+                VariantId = v.VariantId,
+                Sku = v.Sku,
+                Amount = giftItems.First(i => i.Sku == v.Sku).Quantity
+            }).ToList();
+
+            // Inventory: Release & Reserve
+            await inventoryServiceClient.ReleaseStockAsync(new ReleaseStockReq
+            {
+                OrderId = order.Id,
+                StoreId = order.StoreId!.Value
+            });
+
+            var reserveRes = await inventoryServiceClient.ReserveStockAsync(new ReserveStockReq
+            {
+                OrderId = order.Id,
+                StoreId = order.StoreId!.Value,
+                Items = newReserveItems
+            });
+            if (!reserveRes.IsEnough) throw new Exception($"Cập nhật kho thất bại: {reserveRes.ShortageItems}");
+
+            // Add OrderItems & SaleItems
+            foreach (var item in giftItems)
+            {
+                var existing = order.OrderItems
+                    .FirstOrDefault(x => x.Sku == item.Sku);
+
+                if (existing != null) existing.Quantity += item.Quantity;
+                else
                 {
-                    OrderId = order.Id,
-                    ProductId = variant.ProductId,
-                    VariantId = variant.VariantId,
-                    Quantity = item.Quantity,
-                    UnitPrice = variant.BasePrice ?? 0,
-                    ProductName = variant.ProductName,
-                    Sku = variant.Sku,
-                    ImageUrl = variant.ImageUrl,
-                    IsDeleted = false
-                });
+                    var variant = variants.First(v => v.Sku == item.Sku);
+                    order.OrderItems.Add(new OrderItem
+                    {
+                        OrderId = order.Id,
+                        ProductId = variant.ProductId,
+                        VariantId = variant.VariantId,
+                        Quantity = item.Quantity,
+                        UnitPrice = variant.BasePrice ?? 0,
+                        ProductName = variant.ProductName,
+                        Sku = variant.Sku,
+                        ImageUrl = variant.ImageUrl,
+                        IsDeleted = false
+                    });
+                }
+                AddOrderSaleItem(order, item.Sku ?? "", item.Quantity, item.VoucherId, OrderSaleItemType.Voucher);
             }
-            AddOrderSaleItem(order, item.Sku ?? "", item.Quantity, item.VoucherId, OrderSaleItemType.Voucher);
         }
+        
     }
 
     private async Task<decimal> ProcessLoyaltyAsync(CreatePaymentReq request, Order order, Guid customerId)
