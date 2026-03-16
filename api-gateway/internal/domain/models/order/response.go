@@ -41,6 +41,14 @@ type OrderHeader struct {
 	UpdatedAt     time.Time                  `json:"updatedAt"`
 	CustomerId    string                     `json:"customerId"`
 	Store         *store.StoreDetailResponse `json:"store"`
+
+	Type          enum.OrderType `json:"type"`
+	ScheduledTime *string        `json:"scheduledTime"`
+	ShippingFee   float64        `json:"shippingFee"`
+	Latitude      *float64       `json:"latitude"`
+	Longitude     *float64       `json:"longitude"`
+	Distance      *float64       `json:"distance"`
+	Address       *string        `json:"address"`
 }
 
 func (h *OrderHeader) GetStoreId() string {

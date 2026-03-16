@@ -8333,6 +8333,18 @@ const docTemplate = `{
                 "OrderStatus_CANCEL"
             ]
         },
+        "api-gateway_internal_domain_constants_enum.OrderType": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+                0,
+                1
+            ],
+            "x-enum-varnames": [
+                "OrderType_Delivery",
+                "OrderType_Pickup"
+            ]
+        },
         "api-gateway_internal_domain_constants_enum.PaymentMethod": {
             "type": "integer",
             "format": "int32",
@@ -9120,6 +9132,9 @@ const docTemplate = `{
                 "storeId"
             ],
             "properties": {
+                "address": {
+                    "type": "string"
+                },
                 "items": {
                     "type": "array",
                     "items": {
@@ -9129,8 +9144,15 @@ const docTemplate = `{
                 "notes": {
                     "type": "string"
                 },
+                "scheduledTime": {
+                    "description": "\"HH:mm\"",
+                    "type": "string"
+                },
                 "storeId": {
                     "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/api-gateway_internal_domain_constants_enum.OrderType"
                 }
             }
         },
@@ -10825,31 +10847,31 @@ const docTemplate = `{
                 "code": {
                     "type": "string"
                 },
-                "discount_value": {
+                "discountValue": {
                     "type": "string"
                 },
-                "end_date": {
+                "endDate": {
                     "type": "string"
                 },
-                "init_quantity": {
+                "initQuantity": {
                     "type": "integer"
                 },
-                "max_discount_value": {
+                "maxDiscountValue": {
                     "type": "string"
                 },
-                "max_usage_per_user": {
+                "maxUsagePerUser": {
                     "type": "integer"
                 },
-                "min_order_value": {
+                "minOrderValue": {
                     "type": "string"
                 },
-                "point_cost": {
+                "pointCost": {
                     "type": "string"
                 },
                 "type": {
                     "$ref": "#/definitions/api-gateway_internal_domain_constants_enum.VoucherType"
                 },
-                "voucher_items": {
+                "voucherItems": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/api-gateway_internal_domain_models_voucher.CreateVoucherItemReq"
@@ -10877,25 +10899,25 @@ const docTemplate = `{
         "api-gateway_internal_domain_models_voucher.UpdateVoucherRequest": {
             "type": "object",
             "properties": {
-                "discount_value": {
+                "discountValue": {
                     "type": "string"
                 },
-                "end_date": {
+                "endDate": {
                     "type": "string"
                 },
-                "max_discount_value": {
+                "maxDiscountValue": {
                     "type": "string"
                 },
-                "max_usage_per_user": {
+                "maxUsagePerUser": {
                     "type": "integer"
                 },
-                "min_order_value": {
+                "minOrderValue": {
                     "type": "string"
                 },
-                "point_cost": {
+                "pointCost": {
                     "type": "string"
                 },
-                "voucher_items": {
+                "voucherItems": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/api-gateway_internal_domain_models_voucher.UpdateVoucherItemReq"
@@ -10906,7 +10928,7 @@ const docTemplate = `{
         "api-gateway_internal_domain_models_voucher.UpdateVoucherStatusRequest": {
             "type": "object",
             "properties": {
-                "is_active": {
+                "isActive": {
                     "type": "boolean"
                 }
             }
@@ -10934,46 +10956,46 @@ const docTemplate = `{
                 "code": {
                     "type": "string"
                 },
-                "created_at": {
+                "createdAt": {
                     "type": "string"
                 },
-                "current_quantity": {
+                "currentQuantity": {
                     "type": "integer"
                 },
-                "discount_value": {
+                "discountValue": {
                     "type": "string"
                 },
-                "end_date": {
+                "endDate": {
                     "type": "string"
                 },
                 "id": {
                     "type": "string"
                 },
-                "init_quantity": {
+                "initQuantity": {
                     "type": "integer"
                 },
-                "is_active": {
+                "isActive": {
                     "type": "boolean"
                 },
-                "max_discount_value": {
+                "maxDiscountValue": {
                     "type": "string"
                 },
-                "max_usage_per_user": {
+                "maxUsagePerUser": {
                     "type": "integer"
                 },
-                "min_order_value": {
+                "minOrderValue": {
                     "type": "string"
                 },
-                "point_cost": {
+                "pointCost": {
                     "type": "string"
                 },
                 "type": {
                     "type": "integer"
                 },
-                "updated_at": {
+                "updatedAt": {
                     "type": "string"
                 },
-                "voucher_items": {
+                "voucherItems": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/api-gateway_internal_domain_models_voucher.VoucherItemResponse"

@@ -22,6 +22,7 @@ namespace SalesService.Application.Features.Orders.Queries.GetMyOrders
         TimeOnly? ScheduledTime,
         string? Address,
         double? Latitude,
-        double? Longitude
+        double? Longitude,
+        decimal? Distance
     );
 }

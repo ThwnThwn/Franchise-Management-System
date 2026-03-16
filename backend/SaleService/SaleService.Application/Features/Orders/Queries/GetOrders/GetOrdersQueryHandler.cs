@@ -48,7 +48,8 @@ public class GetOrdersQueryHandler : IRequestHandler<GetOrdersQuery, Result<GetO
             o.ScheduledTime,
             o.Address,
             o.Latitude,
-            o.Longitude
+            o.Longitude,
+            o.Distance
         )).ToList();
 
         //return Result.Success(new GetOrdersResponse(orderDtos, totalCount));

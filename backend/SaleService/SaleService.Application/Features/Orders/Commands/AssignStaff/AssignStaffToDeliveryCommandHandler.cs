@@ -76,7 +76,7 @@ public sealed class AssignStaffToDeliveryCommandHandler
 
             // 2b. Check if the staff is currently in an active shift
             var shiftInfo = await _franchiseServiceClient.GetUserCurrentShiftAsync(command.StaffId.Value);
-            
+
             if (shiftInfo == null || !shiftInfo.HasShiftToday)
             {
                 return Result<AssignStaffToDeliveryResult>.Error(
@@ -133,7 +133,7 @@ public sealed class AssignStaffToDeliveryCommandHandler
 
             var activeStaffIds = await _franchiseServiceClient.GetActiveStaffsAtStoreAsync(order.StoreId.Value);
 
-            if (activeStaffIds == null || !activeStaffIds.Any())
+            if (activeStaffIds == null || activeStaffIds.Count == 0)
             {
                 return Result<AssignStaffToDeliveryResult>.Error("No staff members are currently on shift at this store.");
             }
@@ -165,14 +165,14 @@ public sealed class AssignStaffToDeliveryCommandHandler
         order.DelivererId = assignedStaffId;
         order.Status = OrderStatus.Delivering; // 5 = Delivering
         order.UpdatedAt = DateTimeOffset.UtcNow;
-        
+
         order.OrderTrackings.Add(new OrderTracking
         {
             OrderId = order.Id,
             Status = order.Status,
             Action = "Đã phân công nhân viên giao hàng",
             Note = $"Đơn hàng đã được chuyển trạng thái sang Đang giao và gán cho nhân viên: {assignedStaffId}.",
-            CreatedBy = Guid.Empty, 
+            CreatedBy = Guid.Empty,
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow
         });

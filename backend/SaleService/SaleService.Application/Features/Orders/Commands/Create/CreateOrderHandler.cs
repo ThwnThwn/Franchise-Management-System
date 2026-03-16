@@ -13,6 +13,7 @@ using SalesService.Domain.Enums;
 using SalesService.Application.Interfaces;
 using SalesService.Application.Interfaces.Franchise;
 using SalesService.Application.Interfaces.Geocoding;
+using DocumentFormat.OpenXml.Spreadsheet;
 
 namespace SalesService.Application.Features.Orders.Commands.Create;
 
@@ -55,7 +56,7 @@ public sealed class CreateOrderHandler
         CreateOrderCommand request,
         CancellationToken cancellationToken)
     {
-        if (request.Request.Items == null || !request.Request.Items.Any())
+        if (request.Request.Items == null || request.Request.Items.Count == 0)
         {
             return Result.Error("Cart is empty. Please add items to cart.");
         }
@@ -197,10 +198,6 @@ public sealed class CreateOrderHandler
             });
         }
 
-        // tax 10%
-        const decimal taxRate = 0.1m;
-        decimal tax = subtotal * taxRate;
-
         // shipping fee logic
         decimal shippingFee = 0;
         double? currentLat = request.Request.Latitude;
@@ -271,7 +268,9 @@ public sealed class CreateOrderHandler
             }
         }
 
-        decimal totalAmount = subtotal + tax + shippingFee;
+        decimal preTaxAmount = subtotal + shippingFee;
+        decimal totalAmount = Math.Round(preTaxAmount * 1.1m);
+        decimal tax = totalAmount - preTaxAmount;
 
         var order = new Order
         {

@@ -61,17 +61,27 @@ public sealed class CreatePaymentHandler(
             return Result.Error("Order này đã hoàn thành.");
 
         bool isGuest = order.CustomerId == null || order.CustomerId == Guid.Empty;
-        decimal totalDiscountAmount = 0m;
+
+        decimal totalProductDiscount = 0m;
+        decimal totalShippingDiscount = 0m;
 
         if (!isGuest)
         {
             var customerId = order.CustomerId!.Value;
-            totalDiscountAmount += await ProcessVouchersAsync(request, order, customerId, cancellationToken);
-            totalDiscountAmount += await ProcessLoyaltyAsync(request, order, customerId);
+            // Hứng kết quả trả về từ Tuple
+            var (prodDiscount, shipDiscount) = await ProcessVouchersAsync(request, order, customerId, cancellationToken);
+
+            totalProductDiscount += prodDiscount;
+            totalShippingDiscount += shipDiscount;
+
+            // Điểm thưởng thường trừ vào tiền hàng
+            totalProductDiscount += await ProcessLoyaltyAsync(request, order, customerId);
         }
 
         // Tính số tiền chịu thuế (chưa làm tròn)
-        decimal taxableAmount = Math.Max(0, order.Subtotal - totalDiscountAmount);
+        decimal taxableItemAmount = Math.Max(0, order.Subtotal - totalProductDiscount);
+        decimal taxableShippingAmount = Math.Max(0, order.ShippingFee - totalShippingDiscount);
+        decimal taxableAmount = taxableItemAmount + taxableShippingAmount;
 
         // Tính TỔNG TIỀN CHỐT HẠ (nhân 1.1 để thêm 10% thuế) và Làm tròn thành số nguyên
         order.TotalAmount = Math.Round(taxableAmount * 1.1m);
@@ -117,7 +127,7 @@ public sealed class CreatePaymentHandler(
         // --- CASH FLOW ---
         if (request.PaymentMethod == PaymentMethod.Cash)
         {
-            await ProcessCashFlowEventsAsync(request, order, payment, fetchedWallet, cancellationToken);
+            await ProcessCashFlowEventsAsync(request, order, fetchedWallet, cancellationToken);
             return Result.Success(new CreatePaymentRes { Url = "" });
         }
 
@@ -135,12 +145,14 @@ public sealed class CreatePaymentHandler(
     // ======================== HELPER METHODS =================================
     // =========================================================================
 
-    private async Task<decimal> ProcessVouchersAsync(CreatePaymentReq request, Order order, Guid customerId, CancellationToken cancellationToken)
+    private async Task<(decimal ProductDiscount, decimal ShippingDiscount)> ProcessVouchersAsync(CreatePaymentReq request, Order order, Guid customerId, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(request.VoucherDiscountCode) && string.IsNullOrWhiteSpace(request.VoucherShipCode)) 
-            return 0;
+        if (string.IsNullOrWhiteSpace(request.VoucherDiscountCode) && string.IsNullOrWhiteSpace(request.VoucherShipCode))
+            return (0, 0);
 
-        decimal discount = 0;
+        decimal productDiscount = 0;
+        decimal shippingDiscount = 0;
+
         var vouchers = await engagementServiceClient.GetMyVoucherAsync(customerId);
         var voucherMap = vouchers.ToDictionary(v => v.Code, StringComparer.OrdinalIgnoreCase);
 
@@ -160,17 +172,44 @@ public sealed class CreatePaymentHandler(
                 {
                     decimal calc = order.Subtotal * voucherDiscount.DiscountValue.GetValueOrDefault() / 100m;
                     decimal applied = voucherDiscount.MaxDiscountValue.HasValue ? Math.Min(calc, voucherDiscount.MaxDiscountValue.Value) : calc;
-                    discount += applied;
-                    AddOrderSaleItem(order, voucherDiscount.Code, applied, voucherDiscount.Id, OrderSaleItemType.Voucher);
+                    productDiscount += applied;
+                    AddOrderSaleItem(order, $"Giảm giá SP: {voucherDiscount.Code}", applied, voucherDiscount.Id, OrderSaleItemType.Voucher);
                 }
                 else if (voucherDiscount.Type == VoucherType.DISCOUNT_FIXED_AMOUNT)
                 {
-                    discount += voucherDiscount.DiscountValue.GetValueOrDefault();
-                    AddOrderSaleItem(order, voucherDiscount.Code, voucherDiscount.DiscountValue.GetValueOrDefault(), voucherDiscount.Id, OrderSaleItemType.Voucher);
+                    productDiscount += voucherDiscount.DiscountValue.GetValueOrDefault();
+                    AddOrderSaleItem(order, $"Giảm giá SP: {voucherDiscount.Code}", voucherDiscount.DiscountValue.GetValueOrDefault(), voucherDiscount.Id, OrderSaleItemType.Voucher);
                 }
             }
         }
-        return discount;
+
+        if (!string.IsNullOrWhiteSpace(request.VoucherShipCode))
+        {
+            if (!voucherMap.TryGetValue(request.VoucherShipCode, out var voucherShip))
+                throw new BusinessException("Không tìm thấy mã miễn phí vận chuyển được áp dụng");
+
+            // Điều kiện áp dụng Freeship thường xét trên Subtotal
+            if ((voucherShip.MinOrderValue ?? 0) <= order.Subtotal)
+            {
+                // Tính toán mức giảm: Không bao giờ được giảm vượt quá tiền ship thực tế
+                decimal calcFreeship = voucherShip.Type == VoucherType.DISCOUNT_PERCENTAGE // Ít khi có freeship % nhưng cứ check cho chắc
+                    ? order.ShippingFee * voucherShip.DiscountValue.GetValueOrDefault() / 100m
+                    : voucherShip.DiscountValue.GetValueOrDefault(); // Hoặc lấy Maximum Fix Amount (ví dụ mã Giảm 15k phí ship)
+
+                // Nếu voucherShip có MaxDiscountValue, áp dụng giới hạn
+                decimal appliedShip = voucherShip.MaxDiscountValue.HasValue
+                    ? Math.Min(calcFreeship, voucherShip.MaxDiscountValue.Value)
+                    : calcFreeship;
+
+                // BÓP CHẶT: Phí ship giảm không được lớn hơn Phí ship của đơn hàng
+                appliedShip = Math.Min(appliedShip, order.ShippingFee);
+
+                shippingDiscount += appliedShip;
+                AddOrderSaleItem(order, $"Miễn phí Ship: {voucherShip.Code}", appliedShip, voucherShip.Id, OrderSaleItemType.Voucher);
+            }
+        }
+
+        return (productDiscount, shippingDiscount);
     }
 
     private async Task HandleVoucherGiftItemsAsync(Order order, Voucher voucherDiscount)
@@ -188,7 +227,7 @@ public sealed class CreatePaymentHandler(
         var giftItems = voucherDiscount.VoucherItems.Where(v => v.Type == VoucherItemType.ITEM_GIFT).ToList();
         // List co thi moi chay
         if (giftItems.Count == 0) return;
-        
+
         var skus = giftItems.Select(x => x.Sku ?? "").ToList();
         var variants = await productServiceClient.GetListProductVariantsBySkusAsync(skus);
 
@@ -254,7 +293,7 @@ public sealed class CreatePaymentHandler(
         if (request.Point != null && request.Point > 0)
         {
             var pointBalance = await engagementServiceClient.GetMyPointByEmailAsync(user.Email);
-            if (pointBalance < request.Point) 
+            if (pointBalance < request.Point)
                 throw new BusinessException("Điểm còn lại trong tài khoản không đủ.");
 
             decimal pointValue = request.Point.Value * user.LoyaltyTier.CurrentTier.ValuePerPoint;
@@ -277,10 +316,10 @@ public sealed class CreatePaymentHandler(
 
     private async Task<Wallet> ProcessWalletAsync(CreatePaymentReq request, Order order, Payment payment, Guid customerId)
     {
-        var userWallet = await walletRepository.GetByUserIdAsync(customerId) 
+        var userWallet = await walletRepository.GetByUserIdAsync(customerId)
             ?? throw new BusinessException("Không tìm thấy ví.");
 
-        if (userWallet.Balance < request.Wallet) 
+        if (userWallet.Balance < request.Wallet)
             throw new BusinessException("Số dư ví không đủ.");
 
         payment.Amount -= request.Wallet!.Value;
@@ -289,8 +328,8 @@ public sealed class CreatePaymentHandler(
         return userWallet;
     }
 
-    private async Task ProcessCashFlowEventsAsync(CreatePaymentReq request, 
-        Order order, Payment payment, Wallet? userWallet, 
+    private async Task ProcessCashFlowEventsAsync(CreatePaymentReq request,
+        Order order, Wallet? userWallet,
         CancellationToken cancellationToken
     )
     {
@@ -314,9 +353,10 @@ public sealed class CreatePaymentHandler(
 
             if (voucherIds.Count != 0)
             {
-                await kafkaProducer.PublishAsync(KafkaTopics.DeductUserVoucher, new UseVouchersEvent { 
-                    OrderId = order.Id, 
-                    UserId = order.CustomerId!.Value, 
+                await kafkaProducer.PublishAsync(KafkaTopics.DeductUserVoucher, new UseVouchersEvent
+                {
+                    OrderId = order.Id,
+                    UserId = order.CustomerId!.Value,
                     VoucherIds = voucherIds
                 });
             }
@@ -324,11 +364,12 @@ public sealed class CreatePaymentHandler(
             // Kafka Point (Lấy thẳng từ request, không đọc nhầm Amount)
             if (request.Point != null && request.Point > 0)
             {
-                await kafkaProducer.PublishAsync(KafkaTopics.UpdateUserPoint, new UpdatePointEvent { 
-                    Id = order.CustomerId!.Value, 
-                    OrderId = order.Id, 
-                    Point = request.Point.Value, 
-                    ActionType = UpdatePointType.Minus 
+                await kafkaProducer.PublishAsync(KafkaTopics.UpdateUserPoint, new UpdatePointEvent
+                {
+                    Id = order.CustomerId!.Value,
+                    OrderId = order.Id,
+                    Point = request.Point.Value,
+                    ActionType = UpdatePointType.Minus
                 });
             }
 
@@ -336,7 +377,7 @@ public sealed class CreatePaymentHandler(
             var walletItem = order.OrderSaleItems.FirstOrDefault(x => x.Type == OrderSaleItemType.Wallet);
             if (userWallet != null && walletItem != null && walletItem.Amount > 0)
             {
-                var rowVersion = userWallet.RowVersion 
+                var rowVersion = userWallet.RowVersion
                     ?? throw new Exception("Thiếu row version.");
 
                 await walletRepository.DeductBalanceAsync(userWallet.Id, walletItem.Amount, rowVersion, cancellationToken);

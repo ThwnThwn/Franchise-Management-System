@@ -38,6 +38,10 @@ func (o *OrderGrpcClient) CreateOrder(ctx context.Context, req *order.CreateOrde
 		Items:   pbItems,
 		Notes:   req.Notes,
 		StoreId: req.StoreId,
+
+		Type:          (*salesPb.OrderType)(req.Type),
+		ScheduledTime: req.ScheduledTime,
+		Address:       req.Address,
 	})
 	if err != nil {
 		return nil, err

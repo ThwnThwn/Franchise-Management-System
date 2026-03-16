@@ -9,6 +9,10 @@ type CreateOrderRequest struct {
 	Items   []*CartItem `json:"items" binding:"required"`
 	Notes   string      `json:"notes"`
 	StoreId string      `json:"storeId" binding:"required"`
+
+	Type          *enum.OrderType `json:"type"`
+	ScheduledTime *string         `json:"scheduledTime"` // "HH:mm"
+	Address       *string         `json:"address"`
 }
 
 type CartItem struct {

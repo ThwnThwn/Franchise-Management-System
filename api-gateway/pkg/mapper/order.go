@@ -1,6 +1,7 @@
 package mapper
 
 import (
+	"api-gateway/internal/domain/constants/enum"
 	"api-gateway/internal/domain/models/order"
 	"api-gateway/internal/domain/models/store"
 	"api-gateway/pkg/pb/sales"
@@ -75,6 +76,14 @@ func MapOrderSummaryPbToModel(orderPb *sales.OrderSummary) *order.OrderSummary {
 			Store: &store.StoreDetailResponse{
 				Id: orderPb.StoreId,
 			},
+
+			Type:          enum.OrderType(orderPb.Type),
+			ScheduledTime: orderPb.ScheduledTime,
+			ShippingFee:   orderPb.ShippingFee,
+			Latitude:      orderPb.Latitude,
+			Longitude:     orderPb.Longitude,
+			Distance:      orderPb.Distance,
+			Address:       orderPb.Address,
 		},
 	}
 }
@@ -98,6 +107,14 @@ func MapOrderPbToHeaderModel(orderPb *sales.Order) *order.OrderHeader {
 		Store: &store.StoreDetailResponse{
 			Id: orderPb.StoreId,
 		},
+
+		Type:          enum.OrderType(orderPb.Type),
+		ScheduledTime: orderPb.ScheduledTime,
+		ShippingFee:   orderPb.ShippingFee,
+		Latitude:      orderPb.Latitude,
+		Longitude:     orderPb.Longitude,
+		Distance:      orderPb.Distance,
+		Address:       orderPb.Address,
 	}
 }
 

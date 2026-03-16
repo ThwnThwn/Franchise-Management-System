@@ -4,7 +4,7 @@ using SalesService.Domain.Enums;
 
 namespace SalesService.Application.Features.Orders.Queries.GetById
 {
-    public sealed record GetOrderByIdQuery(Guid OrderId): IRequest<Result<GetOrderByIdResponse>>;
+    public sealed record GetOrderByIdQuery(Guid OrderId) : IRequest<Result<GetOrderByIdResponse>>;
 
     public sealed class GetOrderByIdResponse
     {
@@ -28,6 +28,7 @@ namespace SalesService.Application.Features.Orders.Queries.GetById
         public string? Address { get; set; }
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
+        public decimal? Distance { get; set; }
 
         public List<OrderItemDto> Items { get; set; } = new();
         public List<OrderSaleItemDto> SaleItems { get; set; } = new();
@@ -44,6 +45,7 @@ namespace SalesService.Application.Features.Orders.Queries.GetById
         public Guid ProductId { get; set; }
         public Guid VariantId { get; set; }
     }
+
     public sealed class OrderSaleItemDto
     {
         public Guid Id { get; set; }

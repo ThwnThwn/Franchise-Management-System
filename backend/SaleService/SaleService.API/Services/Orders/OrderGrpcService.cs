@@ -1,11 +1,9 @@
 ﻿using AutoMapper;
-using DocumentFormat.OpenXml.Office2016.Excel;
 using Google.Protobuf;
 using Grpc.Core;
 using MediatR;
-using Org.BouncyCastle.Asn1.Ocsp;
-using SalesService.Application.Features.Orders.Commands.Create;
 using SalesService.Application.Features.Orders.Commands.AssignStaff;
+using SalesService.Application.Features.Orders.Commands.Create;
 using SalesService.Application.Features.Orders.Commands.PayWithWallet;
 using SalesService.Application.Features.Orders.Commands.Update;
 using SalesService.Application.Features.Orders.Commands.UpdateOrderStatus;
@@ -13,20 +11,12 @@ using SalesService.Application.Features.Orders.Queries.GetById;
 using SalesService.Application.Features.Orders.Queries.GetByIds;
 using SalesService.Application.Features.Orders.Queries.GetMyOrders;
 using SalesService.Application.Features.Orders.Queries.GetOrders;
+using SalesService.Application.Features.Orders.Queries.GetOrderTrackings;
 using SalesService.Application.Features.Orders.Queries.GetOrderVolume;
 using SalesService.Application.Features.Reports.Queries.CustomerPurchaseBehavior;
-using SalesService.Application.Features.Reports.Queries.GetProductPerformance;
 using SalesService.Application.Features.Reports.Queries.GetRevenueReport;
 using SalesService.Application.Features.Reports.Queries.GetSalesTrend;
 using SalesService.Application.Features.Reports.Queries.ProductPerformance;
-using SalesService.Domain.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using SalesService.Application.Features.Orders.Queries.GetOrderTrackings;
-using Microsoft.Extensions.Logging;
 
 namespace SalesService.API.Services.Orders;
 
@@ -42,6 +32,7 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
         _mapper = mapper;
         _logger = logger;
     }
+
     /// <summary>
     /// Tạo đơn hàng từ giỏ hàng
     /// </summary>
@@ -146,6 +137,7 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             );
         return reply;
     }
+
     /// <summary>
     /// Lấy thông tin đơn hàng theo ID
     /// </summary>
@@ -203,15 +195,16 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             UpdatedAt = dto.UpdatedAt.ToString("O"),
             CustomerId = dto.CustomerId.ToString(),
             StoreId = dto.StoreId?.ToString() ?? string.Empty,
-            Type = (OrderType)dto.Type,
-            ScheduledTime = dto.ScheduledTime?.ToString("O") ?? string.Empty,
-            ShippingFee = (double)dto.ShippingFee,
-            Address = dto.Address ?? string.Empty,
-            Latitude = dto.Latitude ?? 0,
-            Longitude = dto.Longitude ?? 0
+            Type = (OrderType?)dto?.Type ?? OrderType.Pickup,
+            ScheduledTime = dto?.ScheduledTime?.ToString("O") ?? string.Empty,
+            ShippingFee = (double?)dto?.ShippingFee ?? 0,
+            Address = dto?.Address ?? string.Empty,
+            Latitude = dto?.Latitude ?? 0,
+            Longitude = dto?.Longitude ?? 0,
+            Distance = (double?)dto?.Distance ?? 0,
         };
 
-        orderMessage.Items.AddRange(dto.Items.Select(i => new OrderItem
+        orderMessage.Items.AddRange(dto?.Items.Select(i => new OrderItem
         {
             Id = i.Id.ToString(),
             ProductId = i.ProductId.ToString(),
@@ -223,20 +216,20 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             ImageUrl = i.ImageUrl ?? string.Empty
         }));
 
-        orderMessage.SaleItems.AddRange(dto.SaleItems.Select(i => new OrderSaleItemReply
+        orderMessage.SaleItems.AddRange(dto?.SaleItems.Select(i => new OrderSaleItemReply
         {
             Id = i.Id.ToString(),
             Amount = (double)i.Amount,
             Type = (OrderSaleItemType)i.Type,
             ReferenceId = i.ReferenceId.ToString(),
             Name = i.Name
-
         }));
         return new GetOrderByIdReply
         {
             Order = orderMessage
         };
     }
+
     /// <summary>
     /// Lấy danh sách đơn hàng của khách hàng hiện tại
     /// </summary>
@@ -301,7 +294,8 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
                 ShippingFee = (double)order.ShippingFee,
                 Address = order.Address ?? string.Empty,
                 Latitude = order.Latitude ?? 0,
-                Longitude = order.Longitude ?? 0
+                Longitude = order.Longitude ?? 0,
+                Distance = (double?)order?.Distance ?? 0,
             };
 
             if (!string.IsNullOrEmpty(order.Notes))
@@ -487,7 +481,8 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
                 ShippingFee = (double)order.ShippingFee,
                 Address = order.Address ?? string.Empty,
                 Latitude = order.Latitude ?? 0,
-                Longitude = order.Longitude ?? 0
+                Longitude = order.Longitude ?? 0,
+                Distance = (double?)order?.Distance ?? 0,
             };
 
             if (!string.IsNullOrEmpty(order.Notes))
@@ -886,8 +881,6 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
         toDate = new DateTimeOffset(toDt, TimeSpan.FromHours(7))
                      .AddDays(1).AddTicks(-1);
 
-
-
         var query = new GetCustomerOrderPatternQuery(
             StoreId: storeId,
             FromDate: fromDate,
@@ -918,7 +911,7 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
         reply.Items.AddRange(result.Value.Items.Select(item => new CustomerOrderPatternItem
         {
             CustomerId = item.CustomerId.ToString(),
-            FullName = item.FullName??"",
+            FullName = item.FullName ?? "",
             Email = item.Email ?? "",
             Phone = item.Phone ?? "",
             TotalOrders = item.TotalOrders,

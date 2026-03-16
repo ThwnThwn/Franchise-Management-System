@@ -21,6 +21,15 @@ definitions:
     - OrderStatus_DELIVERING
     - OrderStatus_COMPLETED
     - OrderStatus_CANCEL
+  api-gateway_internal_domain_constants_enum.OrderType:
+    enum:
+    - 0
+    - 1
+    format: int32
+    type: integer
+    x-enum-varnames:
+    - OrderType_Delivery
+    - OrderType_Pickup
   api-gateway_internal_domain_constants_enum.PaymentMethod:
     enum:
     - 0
@@ -576,14 +585,21 @@ definitions:
     type: object
   api-gateway_internal_domain_models_order.CreateOrderRequest:
     properties:
+      address:
+        type: string
       items:
         items:
           $ref: '#/definitions/api-gateway_internal_domain_models_order.CartItem'
         type: array
       notes:
         type: string
+      scheduledTime:
+        description: '"HH:mm"'
+        type: string
       storeId:
         type: string
+      type:
+        $ref: '#/definitions/api-gateway_internal_domain_constants_enum.OrderType'
     required:
     - items
     - storeId
@@ -1705,23 +1721,23 @@ definitions:
     properties:
       code:
         type: string
-      discount_value:
+      discountValue:
         type: string
-      end_date:
+      endDate:
         type: string
-      init_quantity:
+      initQuantity:
         type: integer
-      max_discount_value:
+      maxDiscountValue:
         type: string
-      max_usage_per_user:
+      maxUsagePerUser:
         type: integer
-      min_order_value:
+      minOrderValue:
         type: string
-      point_cost:
+      pointCost:
         type: string
       type:
         $ref: '#/definitions/api-gateway_internal_domain_constants_enum.VoucherType'
-      voucher_items:
+      voucherItems:
         items:
           $ref: '#/definitions/api-gateway_internal_domain_models_voucher.CreateVoucherItemReq'
         type: array
@@ -1739,26 +1755,26 @@ definitions:
     type: object
   api-gateway_internal_domain_models_voucher.UpdateVoucherRequest:
     properties:
-      discount_value:
+      discountValue:
         type: string
-      end_date:
+      endDate:
         type: string
-      max_discount_value:
+      maxDiscountValue:
         type: string
-      max_usage_per_user:
+      maxUsagePerUser:
         type: integer
-      min_order_value:
+      minOrderValue:
         type: string
-      point_cost:
+      pointCost:
         type: string
-      voucher_items:
+      voucherItems:
         items:
           $ref: '#/definitions/api-gateway_internal_domain_models_voucher.UpdateVoucherItemReq'
         type: array
     type: object
   api-gateway_internal_domain_models_voucher.UpdateVoucherStatusRequest:
     properties:
-      is_active:
+      isActive:
         type: boolean
     type: object
   api-gateway_internal_domain_models_voucher.VoucherItemResponse:
@@ -1776,33 +1792,33 @@ definitions:
     properties:
       code:
         type: string
-      created_at:
+      createdAt:
         type: string
-      current_quantity:
+      currentQuantity:
         type: integer
-      discount_value:
+      discountValue:
         type: string
-      end_date:
+      endDate:
         type: string
       id:
         type: string
-      init_quantity:
+      initQuantity:
         type: integer
-      is_active:
+      isActive:
         type: boolean
-      max_discount_value:
+      maxDiscountValue:
         type: string
-      max_usage_per_user:
+      maxUsagePerUser:
         type: integer
-      min_order_value:
+      minOrderValue:
         type: string
-      point_cost:
+      pointCost:
         type: string
       type:
         type: integer
-      updated_at:
+      updatedAt:
         type: string
-      voucher_items:
+      voucherItems:
         items:
           $ref: '#/definitions/api-gateway_internal_domain_models_voucher.VoucherItemResponse'
         type: array

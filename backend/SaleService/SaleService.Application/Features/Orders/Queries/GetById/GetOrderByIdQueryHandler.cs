@@ -53,6 +53,8 @@ public sealed class GetOrderByIdQueryHandler
             Address = order.Address,
             Latitude = order.Latitude,
             Longitude = order.Longitude,
+            Distance = order.Distance,
+
             PaidAt = order.PaidAt,
             Notes = order.Notes,
             CreatedAt = order.CreatedAt,

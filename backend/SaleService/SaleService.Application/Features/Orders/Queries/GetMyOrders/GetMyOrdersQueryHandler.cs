@@ -47,7 +47,8 @@ namespace SalesService.Application.Features.Orders.Queries.GetMyOrders
                 o.ScheduledTime,
                 o.Address,
                 o.Latitude,
-                o.Longitude
+                o.Longitude,
+                o.Distance
             )).ToList();
             return new GetMyOrdersResponse(orderDtos, totalCount);
         }
