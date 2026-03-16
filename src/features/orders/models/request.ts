@@ -1,4 +1,4 @@
-import { OrderStatus, PaymentMethod } from "@/features/orders/constants"
+import { OrderStatus, OrderType, PaymentMethod } from "@/features/orders/constants"
 
 export interface CartItemCreateRequest {
     sku: string
@@ -7,10 +7,16 @@ export interface CartItemCreateRequest {
 
 export interface CreateOrderRequest {
     items: CartItemCreateRequest[]
-    // tax: number
-    // paymentMethod: PaymentMethod
     notes: string
     storeId?: string
+
+    type: OrderType
+
+    /**
+     * Chỉ lấy trong ngày nên chỉ nhận "HH:mm", dùng kết hợp dayjs
+     */
+    scheduledTime?: string
+    address?: string // bắt buộc nếu OrderType.Delivery
 }
 
 export interface CreatePaymentRequest {

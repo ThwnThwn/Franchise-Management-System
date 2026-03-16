@@ -48,3 +48,8 @@ export enum OrderSaleItemType {
     POINT = 2,
     DISCOUNT_RATE = 3
 }
+
+export enum OrderType {
+    Delivery = 0,
+    Pickup = 1
+}

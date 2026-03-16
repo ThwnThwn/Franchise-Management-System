@@ -1,23 +1,32 @@
 "use client"
 
-import React, { useEffect, useRef, useState } from "react"
-import { addToast, Divider } from "@heroui/react"
-import { X, ShoppingBag, AlertTriangle } from "lucide-react"
-import { CartItem } from "./CartItem"
-import { ButtonIconStyled, ButtonStyled, CheckboxStyled } from "@/components"
+import { useEffect, useRef, useState } from "react"
+import { addToast } from "@heroui/react"
+import { X, ShoppingBag } from "lucide-react"
+import { ButtonIconStyled, CheckboxStyled } from "@/components"
 import { useCartStore } from "@/features/cart/store"
-import { useCreateOrder } from "@/features/orders"
+import { OrderType, useCreateOrder } from "@/features/orders"
 import { useRouter } from "next/navigation"
 import { useCartDrawerDiscloresureSingleton, useTokenStore } from "@/hooks"
-import { useGetCart, useUpdateCartItem, useDeleteListCartItem } from "../hooks/useCartQuery"
+import {
+    useGetCart,
+    useUpdateCartItem,
+    useDeleteListCartItem
+} from "@/features/cart/hooks/useCartQuery"
 import { RoleSlug } from "@/constants/enums"
-import { formatCurrencyWithSymbol } from "@/utils/helpers/currency"
 import { debouncedWrapper } from "@/utils/helpers/axiosHelper"
-import { motion, AnimatePresence } from "framer-motion"
+import { useGetMe } from "@/features/profile/hooks"
+import { CheckoutFormValues, checkoutSchema } from "./schema"
+import { useFormik } from "formik"
+import { CartList } from "./CartList"
+import { CheckoutForm } from "./CheckoutForm"
+import { CartFooter } from "./CartFooter"
 
 const TAX_RATE = 0.1
 
 export default function CartDrawer() {
+    const { data: user } = useGetMe()
+
     // Quản lý trạng thái đóng mở Drawer và điều hướng trang
     const { isOpen, onClose } = useCartDrawerDiscloresureSingleton()
     const router = useRouter()
@@ -170,27 +179,47 @@ export default function CartDrawer() {
         }
     })
 
-    const handleCheckout = async () => {
-        if (!currentStore) {
-            addToast({
-                title: "Vui lòng chọn cửa hàng để tiếp tục!",
-                color: "warning"
-            })
-            return
-        }
-
-        if (selectedItems.length === 0) return
-        setShortageMap({}) // Reset danh sách lỗi trước khi gửi yêu cầu thanh toán mới
-
-        await createOrderMutation.mutateAsync({
-            items: selectedItems.map((item) => ({
-                sku: item.sku,
-                quantity: optimisticQuantities[item.sku] ?? item.quantity
-            })),
+    // --- SETUP FORMIK ---
+    const formik = useFormik<CheckoutFormValues>({
+        initialValues: {
+            type: OrderType.Delivery,
+            address: "", // Sẽ được update khi user load xong
             notes: "",
-            storeId: currentStore.id
-        })
-    }
+            scheduledTime: ""
+        },
+        validationSchema: checkoutSchema,
+        onSubmit: async (values) => {
+            // Chặn nếu chưa chọn cửa hàng
+            if (!currentStore) {
+                addToast({ title: "Vui lòng chọn cửa hàng!", color: "warning" })
+                return
+            }
+
+            if (selectedItems.length === 0) return
+            setShortageMap({})
+
+            // Gắn payload từ Formik vào Mutation
+            await createOrderMutation.mutateAsync({
+                items: selectedItems.map((item) => ({
+                    sku: item.sku,
+                    quantity: optimisticQuantities[item.sku] ?? item.quantity
+                })),
+                storeId: currentStore.id,
+                type: values.type,
+                address: values.type === OrderType.Delivery ? values.address : undefined,
+                notes: values.notes || "",
+                scheduledTime: values.scheduledTime || undefined
+            })
+        }
+    })
+
+    // Cập nhật địa chỉ mặc định khi API user trả về data
+    useEffect(() => {
+        if (user?.address && !formik.values.address) {
+            formik.setFieldValue("address", user.address)
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user])
 
     // Kiểm tra xem có bất kỳ sản phẩm nào đang được chọn bị dính lỗi kho hay không
     const hasShortageError = selectedItems.some((item) => shortageMap[item.sku] !== undefined)
@@ -236,130 +265,31 @@ export default function CartDrawer() {
                                 <p className="text-sm">Hãy thêm sản phẩm vào giỏ hàng</p>
                             </div>
                         ) : (
-                            <div className="space-y-3">
-                                {items.map((item) => {
-                                    // So khớp lỗi dựa trên sku
-                                    const maxAvailable = shortageMap[item.sku]
-                                    const isShortage = maxAvailable !== undefined
-
-                                    return (
-                                        <div key={item.sku} className="flex flex-col gap-2 mb-0">
-                                            <div
-                                                className={`flex items-center gap-2 p-2 rounded-2xl transition-all border-2 ${
-                                                    isShortage
-                                                        ? "bg-danger-50 border-danger-200"
-                                                        : "border-transparent"
-                                                }`}
-                                                onClick={() => handleSelectItem(item.sku)}
-                                            >
-                                                <div onClick={(e) => e.stopPropagation()}>
-                                                    <CheckboxStyled
-                                                        isSelected={selectedKeys.has(item.sku)}
-                                                        onValueChange={() =>
-                                                            handleSelectItem(item.sku)
-                                                        }
-                                                    />
-                                                </div>
-                                                <div className="flex-1">
-                                                    <CartItem
-                                                        item={{
-                                                            ...item,
-                                                            quantity:
-                                                                optimisticQuantities[item.sku] ??
-                                                                item.quantity
-                                                        }}
-                                                        onUpdateQuantity={(_, qty) =>
-                                                            handleUpdateQuantity(item.sku, qty)
-                                                        }
-                                                        onRemove={() => handleRemoveItem(item.sku)}
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <AnimatePresence>
-                                                {isShortage && (
-                                                    <motion.div
-                                                        initial={{ height: 0, opacity: 0, y: -10 }}
-                                                        animate={{
-                                                            height: "auto",
-                                                            opacity: 1,
-                                                            y: 0
-                                                        }}
-                                                        exit={{ height: 0, opacity: 0, y: -10 }}
-                                                        transition={{
-                                                            duration: 0.2,
-                                                            ease: "easeOut"
-                                                        }}
-                                                        className="overflow-hidden"
-                                                    >
-                                                        <div className="flex items-center gap-2 px-10 pt-1 pb-2 text-[11px] font-bold text-danger">
-                                                            <AlertTriangle
-                                                                size={14}
-                                                                className="shrink-0"
-                                                            />
-                                                            <span className="leading-tight">
-                                                                Kho chỉ còn {maxAvailable} món.
-                                                            </span>
-                                                            <button
-                                                                className="ml-auto underline text-primary active:scale-95 transition-transform"
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation()
-                                                                    handleUpdateQuantity(
-                                                                        item.sku,
-                                                                        maxAvailable
-                                                                    )
-                                                                }}
-                                                            >
-                                                                {maxAvailable <= 0
-                                                                    ? "Xoá khỏi giỏ hàng"
-                                                                    : "Cập nhật ngay"}
-                                                            </button>
-                                                        </div>
-                                                    </motion.div>
-                                                )}
-                                            </AnimatePresence>
-                                        </div>
-                                    )
-                                })}
-                            </div>
+                            <>
+                                <CartList
+                                    items={items}
+                                    selectedKeys={selectedKeys}
+                                    optimisticQuantities={optimisticQuantities}
+                                    shortageMap={shortageMap}
+                                    onSelectItem={handleSelectItem}
+                                    onUpdateQuantity={handleUpdateQuantity}
+                                    onRemoveItem={handleRemoveItem}
+                                />
+                                <CheckoutForm formik={formik} />
+                            </>
                         )}
                     </div>
 
                     {/* Phần chân trang: Hiển thị tổng tiền và nút mua hàng */}
-                    {items.length > 0 && (
-                        <div className="border-t p-4 space-y-4 bg-background shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
-                            <div className="space-y-2">
-                                <div className="flex justify-between text-sm text-default-500">
-                                    <span>Đã chọn ({selectedItems.length}):</span>
-                                    <span>{formatCurrencyWithSymbol(selectedTotal)}</span>
-                                </div>
-                                <div className="flex justify-between text-sm text-default-500">
-                                    <span>Thuế VAT dự kiến (10%):</span>
-                                    <span>{formatCurrencyWithSymbol(tax)}</span>
-                                </div>
-                                <Divider className="my-1" />
-                                <div className="flex justify-between items-center font-bold">
-                                    <span className="text-md">Tổng thanh toán:</span>
-                                    <span className="text-xl text-primary">
-                                        {formatCurrencyWithSymbol(finalTotal)}
-                                    </span>
-                                </div>
-                            </div>
-
-                            {/* Nút thanh toán: Thay đổi kiểu dáng và trạng thái dựa trên lỗi kho */}
-                            <ButtonStyled
-                                color={hasShortageError ? "default" : "primary"}
-                                className="font-bold h-12 shadow-lg"
-                                onPress={handleCheckout}
-                                isLoading={createOrderMutation.isPending}
-                                isDisabled={selectedItems.length === 0 || hasShortageError}
-                            >
-                                {hasShortageError
-                                    ? "Vui lòng điều chỉnh giỏ hàng"
-                                    : `Mua hàng (${selectedItems.length})`}
-                            </ButtonStyled>
-                        </div>
-                    )}
+                    <CartFooter
+                        selectedCount={selectedItems.length}
+                        selectedTotal={selectedTotal}
+                        tax={tax}
+                        finalTotal={finalTotal}
+                        isLoading={createOrderMutation.isPending}
+                        hasShortageError={hasShortageError}
+                        onSubmit={() => formik.handleSubmit()}
+                    />
                 </div>
             </div>
         </>

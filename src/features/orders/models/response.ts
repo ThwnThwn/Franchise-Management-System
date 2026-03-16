@@ -1,4 +1,9 @@
-import { OrderSaleItemType, OrderStatus, PaymentMethod } from "@/features/orders/constants"
+import {
+    OrderSaleItemType,
+    OrderStatus,
+    OrderType,
+    PaymentMethod
+} from "@/features/orders/constants"
 import { StoreDetailDto } from "@/features/stores"
 
 export interface ShortageItem {
@@ -61,7 +66,13 @@ export interface OrderHeader {
     customerId?: string
     store?: StoreDetailDto
 
-    items: OrderItem[]
+    type: OrderType
+    scheduledTime?: string
+    shippingFee: number
+    latitude?: number
+    longitude?: number
+    distance?: number
+    address?: string
 }
 
 export interface Order extends OrderHeader {

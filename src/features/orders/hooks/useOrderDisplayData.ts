@@ -78,6 +78,7 @@ export const useOrderDisplayData = ({
 
     const pricing = useMemo(() => {
         const subtotal = order?.subtotal || 0
+        const shippingFee = order?.shippingFee || 0
 
         // Giảm Hạng & Voucher
         const tierDiscount = subtotal * discountRate
@@ -86,39 +87,47 @@ export const useOrderDisplayData = ({
             ? calculateTemporaryDiscount(subtotal, appliedShippingVoucher, appliedDiscountVoucher)
             : { productDiscount: 0, shippingDiscount: 0, totalDiscount: 0 }
 
-        // Tính Trần cho Điểm (Tiền còn lại trước Thuế)
-        const amountToClearPreTax = Math.max(
-            subtotal -
-                tierDiscount -
-                voucherDiscounts.productDiscount -
-                voucherDiscounts.shippingDiscount,
+        // ==========================================
+        // XỬ LÝ TIỀN HÀNG (Product)
+        // ==========================================
+        const productPreTax = Math.max(
+            subtotal - tierDiscount - voucherDiscounts.productDiscount,
             0
         )
 
-        // Xử lý ĐIỂM (Auto Adjust)
-        const maxPointsByMoney = Math.floor(amountToClearPreTax / valuePerPoint)
+        // Tính Trần cho Điểm (Điểm thưởng chỉ được trừ vào tiền hàng, không trừ vào tiền ship)
+        const maxPointsByMoney = Math.floor(productPreTax / valuePerPoint)
         const safePoints = isPending
             ? Math.min(requestedPoints, availablePointBalance, maxPointsByMoney)
             : 0
         const pointValueDeduction = safePoints * valuePerPoint
 
-        // Tính số tiền chịu thuế
-        const taxableAmount = Math.max(amountToClearPreTax - pointValueDeduction, 0)
+        // Chốt số tiền hàng chịu thuế
+        const taxableItemAmount = Math.max(productPreTax - pointValueDeduction, 0)
 
-        // Tính TỔNG TIỀN TRƯỚC (Làm tròn chốt hạ)
-        const totalAfterTax = isPending
-            ? Math.round(taxableAmount * 1.1) // 100% gốc + 10% thuế
-            : order?.totalAmount || 0
+        // ==========================================
+        // XỬ LÝ TIỀN SHIP (Shipping)
+        // ==========================================
+        const taxableShippingAmount = Math.max(shippingFee - voucherDiscounts.shippingDiscount, 0)
 
-        // TÍNH NGƯỢC LẠI THUẾ ĐỂ HIỂN THỊ UI (Để đảm bảo Tax + Taxable = Total)
+        // ==========================================
+        // TỔNG HỢP VÀ TÍNH THUẾ (Khớp 100% với Backend)
+        // ==========================================
+        const taxableAmount = taxableItemAmount + taxableShippingAmount
+
+        // Tính TỔNG TIỀN CHỐT HẠ (nhân 1.1) & Làm tròn thành số nguyên
+        const totalAfterTax = isPending ? Math.round(taxableAmount * 1.1) : order?.totalAmount || 0
+
+        // Tính NGƯỢC LẠI THUẾ (Đảm bảo Tax + Taxable = Total)
         const calculatedTax = isPending ? totalAfterTax - taxableAmount : order?.tax || 0
 
-        // Xử lý VÍ (Trần là tiền sau Thuế đã làm tròn)
+        // ==========================================
+        // XỬ LÝ VÍ & TIỀN CUỐI CÙNG
+        // ==========================================
         const safeWallet = isPending
             ? Math.min(requestedWallet, availableWalletBalance, totalAfterTax)
             : 0
 
-        // Tiền mặt cuối cùng
         const finalAmount = isPending
             ? Math.max(totalAfterTax - safeWallet, 0)
             : order?.totalAmount || 0
@@ -138,6 +147,7 @@ export const useOrderDisplayData = ({
     }, [
         isPending,
         order?.subtotal,
+        order?.shippingFee,
         order?.tax,
         order?.totalAmount,
         discountRate,

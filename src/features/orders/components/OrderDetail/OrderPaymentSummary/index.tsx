@@ -136,6 +136,12 @@ export const OrderPaymentSummary = ({
                             {formatCurrencyWithSymbol(order.subtotal)}
                         </span>
                     </div>
+                    <div className="flex justify-between text-sm font-medium">
+                        <span className="text-default-500">Phí giao hàng (Chưa thuế)</span>
+                        <span className="text-default-800 font-bold">
+                            {formatCurrencyWithSymbol(order.shippingFee)}
+                        </span>
+                    </div>
 
                     {/* --- CÁC KHOẢN GIẢM TRỪ TRƯỚC THUẾ --- */}
                     <div className="space-y-2">

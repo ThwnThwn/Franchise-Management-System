@@ -1,6 +1,5 @@
-import React from "react"
 import { CardHeader, CardBody, CardFooter, Chip, Divider } from "@heroui/react"
-import { Order } from "@/features/orders/models/response"
+import { OrderSummary } from "@/features/orders/models/response"
 import { Calendar } from "lucide-react"
 import { formatCurrencyWithSymbol } from "@/utils/helpers/currency"
 import { CardStyled } from "@/components"
@@ -9,8 +8,8 @@ import { useDay } from "@/hooks"
 import { DEFAULT_DATE_FORMAT } from "@/constants/constants"
 
 interface OrderCardProps {
-    order: Order
-    onClick: (order: Order) => void
+    order: OrderSummary
+    onClick: (order: OrderSummary) => void
     isLatest?: boolean
 }
 

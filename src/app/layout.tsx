@@ -5,8 +5,8 @@ import React from "react"
 import { AppProviders } from "@/providers"
 import { ClientHydration, Navbar, Modals } from "@/components"
 import Footer from "@/components/shared/Footer"
-import CartDrawer from "@/features/cart/components/CartDrawer"
 import { ScrollToTopButton } from "@/components/shared/ScrollToTopButton"
+import CartDrawer from "@/features/cart/components/CartDrawer"
 
 const geistSans = Geist({
     variable: "--font-geist-sans",

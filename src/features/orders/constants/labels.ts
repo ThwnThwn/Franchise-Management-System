@@ -1,4 +1,4 @@
-import { OrderSaleItemType, OrderStatus, PaymentMethod } from "./enum"
+import { OrderSaleItemType, OrderStatus, OrderType, PaymentMethod } from "./enum"
 
 export const PaymentMethodLabels: Record<PaymentMethod, string> = {
     [PaymentMethod.Unknown]: "Chưa chọn",
@@ -33,4 +33,9 @@ export const OrderSaleItemTypeLabels: Record<OrderSaleItemType, string> = {
     [OrderSaleItemType.WALLET]: "Dùng từ ví",
     [OrderSaleItemType.POINT]: "Điểm thưởng",
     [OrderSaleItemType.DISCOUNT_RATE]: "Giảm từ hạng thành viên"
+}
+
+export const OrderTypeLabel: Record<OrderType, string> = {
+    [OrderType.Delivery]: "Giao hàng tận nơi",
+    [OrderType.Pickup]: "Nhận tại cửa hàng"
 }

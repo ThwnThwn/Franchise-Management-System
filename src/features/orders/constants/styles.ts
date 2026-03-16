@@ -1,5 +1,5 @@
 import { ChipProps } from "@heroui/react"
-import { OrderSaleItemType, OrderStatus } from "./enum"
+import { OrderSaleItemType, OrderStatus, OrderType } from "./enum"
 import { Coins, Award, Ticket, Wallet } from "lucide-react"
 
 export const OrderStatusColors: Record<OrderStatus, ChipProps["color"]> = {
@@ -25,4 +25,9 @@ export const OrderSaleItemTypeIcons: Record<OrderSaleItemType, typeof Ticket> = 
     [OrderSaleItemType.WALLET]: Wallet,
     [OrderSaleItemType.POINT]: Coins,
     [OrderSaleItemType.DISCOUNT_RATE]: Award
+}
+
+export const OrderTypeColor: Record<OrderType, ChipProps["color"]> = {
+    [OrderType.Delivery]: "primary",
+    [OrderType.Pickup]: "warning"
 }
