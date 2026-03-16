@@ -112,6 +112,11 @@ export const DASHBOARD_SIDEBAR_MENU: MenuItem[] = [
                 allowedRoles: [RoleSlug.Admin]
             },
             {
+                label: "Nhà cung cấp",
+                href: "/dashboard/suppliers",
+                allowedRoles: [RoleSlug.Admin]
+            },
+            {
                 label: "Kho",
                 href: "/dashboard/inventory",
                 allowedRoles: [RoleSlug.Manager]
