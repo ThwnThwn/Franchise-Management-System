@@ -1,7 +1,8 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-import { ModalStyled, InputStyled, ButtonStyled } from "@/components"
+import Link from "next/link"
+import { ModalStyled, InputStyled, ButtonStyled, DatePickerStyled } from "@/components"
 import {
     ModalContent,
     ModalHeader,
@@ -11,26 +12,30 @@ import {
     Select,
     SelectItem,
     Autocomplete,
-    AutocompleteItem
+    AutocompleteItem,
+    SharedSelection,
+    DateValue
 } from "@heroui/react"
+import { CalendarDate } from "@internationalized/date"
 import { PackagePlus, Truck, Store } from "lucide-react"
 import { IngredientItem } from "../../models/response"
 import { StoreDetailDto } from "@/features/stores/models/schema/response"
 import { useTokenStore } from "@/hooks"
+import { SupplierSelect } from "@/features/suppliers"
 
 // ===========================================================
 // CONSTANTS
 // ===========================================================
 
-// const UNITS_OF_MEASURE = [
-//     { label: "Grams (g)", value: "g" },
-//     { label: "Kilograms (kg)", value: "kg" },
-//     { label: "Mililiters (ml)", value: "ml" },
-//     { label: "Liters (l)", value: "l" },
-//     { label: "Units (pcs)", value: "pcs" },
-//     { label: "Tablespoon (tbsp)", value: "tbsp" },
-//     { label: "Teaspoon (tsp)", value: "tsp" }
-// ] as const
+const UNITS_OF_MEASURE = [
+    { label: "Grams (g)", value: "g" },
+    { label: "Kilograms (kg)", value: "kg" },
+    { label: "Mililiters (ml)", value: "ml" },
+    { label: "Liters (l)", value: "l" },
+    { label: "Units (pcs)", value: "pcs" },
+    { label: "Tablespoon (tbsp)", value: "tbsp" },
+    { label: "Teaspoon (tsp)", value: "tsp" }
+] as const
 
 type FormState = {
     storeId: string
@@ -102,6 +107,7 @@ export function AddIngredientStockModal({
 
     const [form, setForm] = useState<FormState>(INITIAL_FORM)
     const [errors, setErrors] = useState<FormErrors>({})
+
 
     useEffect(() => {
         if (isOpen) {
@@ -274,13 +280,13 @@ export function AddIngredientStockModal({
                             />
                         </div>
 
-                        {/* <div className="grid grid-cols-2 gap-3"> 
-                        <div className="flex flex-col gap-1">
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="flex flex-col gap-1">
                                 <label className="text-sm font-medium text-slate-700">
-                                    Unit of Measure <span className="text-danger">*</span>
-                                </label> 
+                                    Đơn vị đo lường <span className="text-danger">*</span>
+                                </label>
                                 <Select
-                                    label="Unit of Measure"
+                                    label="Đơn vị đo lường"
                                     placeholder="Chọn đơn vị"
                                     selectedKeys={form.unit ? [form.unit] : []}
                                     isInvalid={!!errors.unit}
@@ -292,7 +298,6 @@ export function AddIngredientStockModal({
                                         popoverContent: "z-50"
                                     }}
                                     isRequired
-                                    isDisabled
                                 >
                                     {UNITS_OF_MEASURE.map((u) => (
                                         <SelectItem key={u.value} textValue={u.label}>
@@ -300,8 +305,8 @@ export function AddIngredientStockModal({
                                         </SelectItem>
                                     ))}
                                 </Select>
-                            </div> 
-                        </div> */}
+                            </div>
+                        </div>
 
                         {/* ── Min Threshold ── */}
                         {/* <InputStyled
@@ -324,20 +329,37 @@ export function AddIngredientStockModal({
                             description="Hệ thống cảnh báo khi số lượng tồn xuống dưới mức này"
                             isDisabled
                         /> */}
-
-                        {/* ── Supplier Info ── */}
-                        {/* <InputStyled
-                            label="Supplier Info"
-                            placeholder="Tên nhà cung cấp, mã đơn hàng… (tuỳ chọn)"
-                            value={form.supplierInfo}
-                            onChange={(e) => handleChange("supplierInfo", e.target.value)}
-                        /> */}
+                        {/* ── Supplier Selection ── */}
+                        <div className="flex flex-col gap-1">
+                            <div className="flex justify-between items-center px-1">
+                                <label className="text-sm font-medium text-slate-700">
+                                    Nhà cung cấp (tùy chọn)
+                                </label>
+                                <Link
+                                    href="/dashboard/suppliers"
+                                    className="text-xs text-primary hover:underline font-medium"
+                                >
+                                    Tùy chỉnh nhà cung cấp
+                                </Link>
+                            </div>
+                            <div className="flex items-end gap-2">
+                                <SupplierSelect
+                                    label=""
+                                    className="flex-1"
+                                    value={form.supplierInfo}
+                                    onSelectionChange={(keys: SharedSelection) => {
+                                        const key = Array.from(keys)[0]
+                                        handleChange("supplierInfo", key ? String(key) : "")
+                                    }}
+                                />
+                            </div>
+                        </div>
 
                         {/* ── Expiration Date ── */}
-                        {/* <DatePickerStyled
-                            label="Expiration Date (optional)"
-                            placeholderValue={parseDate("2025-01-01")}
-                            onChange={(date) =>
+                        <DatePickerStyled
+                            label="Ngày hết hạn (tùy chọn)"
+                            labelPlacement="outside"
+                            onChange={(date: DateValue | null) =>
                                 handleChange(
                                     "expirationDate",
                                     date
@@ -345,8 +367,7 @@ export function AddIngredientStockModal({
                                         : ""
                                 )
                             }
-                            minValue={parseDate(new Date().toISOString().split("T")[0])}
-                        /> */}
+                        />
                     </div>
                 </ModalBody>
 

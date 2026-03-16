@@ -28,5 +28,6 @@ export const QUERY_KEYS = {
     MEMBERSHIP_TIERS: "membership-tiers" as const,
     POINT_LOGS: "point-logs" as const,
     VOUCHERS: "vouchers" as const,
-    MY_VOUCHERS: "my-vouchers" as const
+    MY_VOUCHERS: "my-vouchers" as const,
+    SUPPLIERS: "suppliers" as const
 }
