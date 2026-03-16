@@ -1,8 +1,9 @@
-﻿using System.Linq.Expressions;
-using FranchiseService.Domain.Commons;
+﻿using FranchiseService.Domain.Commons;
 using FranchiseService.Domain.Entities;
+using FranchiseService.Domain.Models;
 using FranchiseService.Infrastructure.Interceptor;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace FranchiseService.Infrastructure.ApplicationDbContext;
 
@@ -50,6 +51,8 @@ public partial class FranchiseDbContext : DbContext, IFranchiseDbContext
     /// Yeu cau doi ca giua 2 nhan vien
     /// </summary>
     public virtual DbSet<ShiftSwapRequest> ShiftSwapRequests { get; set; }
+
+    public virtual DbSet<FranchiseApplication> FranchiseApplications { get; set; }
 
     public new DbSet<T> Set<T>() where T : class, IEntity => base.Set<T>();
 
@@ -573,6 +576,82 @@ public partial class FranchiseDbContext : DbContext, IFranchiseDbContext
             
             entity.HasIndex(e => e.ProcessedOn, "ix_outbox_messages_processed_on")
                   .HasFilter("processed_on IS NULL");
+        });
+
+        modelBuilder.Entity<FranchiseApplication>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("franchise_applications_pkey");
+
+            entity.ToTable("franchise_applications");
+
+            entity.HasIndex(e => e.DocusealSubmissionId, "idx_franchise_app_docuseal_id");
+
+            entity.HasIndex(e => e.Email, "idx_franchise_app_email");
+
+            entity.HasIndex(e => e.IdentityNumber, "idx_franchise_app_identity");
+
+            entity.HasIndex(e => e.ReviewedBy, "idx_franchise_app_reviewed_by");
+
+            entity.HasIndex(e => e.Status, "idx_franchise_app_status");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasColumnName("id");
+            entity.Property(e => e.AdminNote).HasColumnName("admin_note");
+            entity.Property(e => e.ContractPdfUrl)
+                .HasMaxLength(500)
+                .HasColumnName("contract_pdf_url");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_at");
+            entity.Property(e => e.DocusealSubmissionId).HasColumnName("docuseal_submission_id");
+            entity.Property(e => e.Email)
+                .HasMaxLength(255)
+                .HasColumnName("email");
+            entity.Property(e => e.FullName)
+                .HasMaxLength(255)
+                .HasColumnName("full_name");
+            entity.Property(e => e.IdentityNumber)
+                .HasMaxLength(20)
+                .HasColumnName("identity_number");
+            entity.Property(e => e.IsDeleted)
+                .HasDefaultValue(false)
+                .HasColumnName("is_deleted");
+            entity.Property(e => e.LandCertificatePublicId)
+                .HasMaxLength(100)
+                .HasColumnName("land_certificate_public_id");
+            entity.Property(e => e.LandCertificateUrl)
+                .HasMaxLength(500)
+                .HasColumnName("land_certificate_url");
+            entity.Property(e => e.ManagerId).HasColumnName("manager_id");
+            entity.Property(e => e.Phone)
+                .HasMaxLength(20)
+                .HasColumnName("phone");
+            entity.Property(e => e.ReviewedAt).HasColumnName("reviewed_at");
+            entity.Property(e => e.ReviewedBy).HasColumnName("reviewed_by");
+            entity.Property(e => e.Status)
+                .HasDefaultValue(0)
+                .HasColumnName("status");
+            entity.Property(e => e.StoreAddress).HasColumnName("store_address");
+            entity.Property(e => e.StoreFrontPublicId)
+                .HasMaxLength(100)
+                .HasColumnName("store_front_public_id");
+            entity.Property(e => e.StoreFrontUrl)
+                .HasMaxLength(500)
+                .HasColumnName("store_front_url");
+            entity.Property(e => e.StoreId).HasColumnName("store_id");
+            entity.Property(e => e.StoreLatitude)
+                .HasPrecision(10, 8)
+                .HasColumnName("store_latitude");
+            entity.Property(e => e.StoreLongitude)
+                .HasPrecision(11, 8)
+                .HasColumnName("store_longitude");
+            entity.Property(e => e.StoreSizeSqm)
+                .HasPrecision(10, 2)
+                .HasColumnName("store_size_sqm");
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("updated_at");
         });
     }
 
