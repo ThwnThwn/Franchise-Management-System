@@ -9,6 +9,7 @@ namespace EngagementService.Infrastucture.AppDbContext;
 public partial class EngagementDbContext : DbContext, IEngagementDbContext
 {
     private readonly UpdateTimestampInterceptor _updateInterceptor;
+
     public EngagementDbContext()
     {
     }
@@ -18,6 +19,8 @@ public partial class EngagementDbContext : DbContext, IEngagementDbContext
     {
         _updateInterceptor = updateInterceptor;
     }
+
+    public virtual DbSet<Campaign> Campaigns { get; set; }
 
     public virtual DbSet<LoyaltyAccount> LoyaltyAccounts { get; set; }
 
@@ -35,12 +38,14 @@ public partial class EngagementDbContext : DbContext, IEngagementDbContext
 
     public virtual DbSet<VoucherUsage> VoucherUsages { get; set; }
     public virtual DbSet<PointRule> PointRules { get; set; }
+
     public DbSet<T> Set<T>() where T : class, IEntity => base.Set<T>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         optionsBuilder.AddInterceptors(_updateInterceptor);
     }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // 1. Đăng ký các Postgres Enum bằng kiểu dữ liệu C# (Generic)
@@ -56,6 +61,32 @@ public partial class EngagementDbContext : DbContext, IEngagementDbContext
         base.OnModelCreating(modelBuilder);
 
         // --- NHÓM 1: QUẢN LÝ ĐIỂM VÀ HẠNG ---
+
+        modelBuilder.Entity<Campaign>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("campaigns_pkey");
+
+            entity.ToTable("campaigns");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasColumnName("id");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_at");
+            entity.Property(e => e.Description).HasColumnName("description");
+            entity.Property(e => e.EndDate).HasColumnName("end_date");
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true)
+                .HasColumnName("is_active");
+            entity.Property(e => e.Name)
+                .HasMaxLength(255)
+                .HasColumnName("name");
+            entity.Property(e => e.StartDate).HasColumnName("start_date");
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("updated_at");
+        });
 
         modelBuilder.Entity<LoyaltyAccount>(entity =>
         {
@@ -214,9 +245,11 @@ public partial class EngagementDbContext : DbContext, IEngagementDbContext
             entity.Property(e => e.Code).HasMaxLength(50).HasColumnName("code");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").HasColumnName("created_at");
             entity.Property(e => e.CurrentQuantity).HasColumnName("current_quantity");
+            entity.Property(e => e.ReservedQuantity).HasColumnName("reserved_quantity");
             entity.Property(e => e.DiscountValue).HasPrecision(15, 3).HasColumnName("discount_value");
             entity.Property(e => e.MaxDiscountValue).HasPrecision(15, 3).HasColumnName("max_discount_value");
             entity.Property(e => e.EndDate).HasColumnName("end_date");
+            entity.Property(e => e.StartDate).HasColumnName("start_date");
             entity.Property(e => e.InitQuantity).HasColumnName("init_quantity");
             entity.Property(e => e.IsActive).HasDefaultValue(true).HasColumnName("is_active");
             entity.Property(e => e.IsDeleted).HasDefaultValue(false).HasColumnName("is_deleted");

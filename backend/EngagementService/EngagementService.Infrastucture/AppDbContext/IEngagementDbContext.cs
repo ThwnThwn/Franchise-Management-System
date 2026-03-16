@@ -24,6 +24,7 @@ namespace EngagementService.Infrastucture.AppDbContext
         DbSet<VoucherUsage> VoucherUsages { get; set; }
 
         DbSet<PointRule> PointRules { get; set; }
+        DbSet<Campaign> Campaigns { get; set; }
 
         public DbSet<T> Set<T>() where T : class, IEntity;
 

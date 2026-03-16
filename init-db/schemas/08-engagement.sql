@@ -96,23 +96,54 @@ CREATE TABLE "point_rules" (
 -- NHÓM 2: QUẢN LÝ VOUCHER & KHUYẾN MÃI
 -- ---------------------------------------------------------
 
+CREATE TABLE "campaigns" (
+    "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    "name" VARCHAR(255) NOT NULL,
+    "description" TEXT,
+    "start_date" TIMESTAMP WITH TIME ZONE NOT NULL,
+    "end_date" TIMESTAMP WITH TIME ZONE NOT NULL,
+    "is_active" BOOLEAN DEFAULT TRUE,
+    "created_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "check_campaign_time" CHECK ("end_date" > "start_date")
+);
+
 CREATE TABLE "vouchers" (
     "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    "campaign_id" UUID REFERENCES "campaigns"("id") ON DELETE SET NULL,
+    
     "code" VARCHAR(50) NOT NULL,
     "type" voucher_type NOT NULL,
     "discount_value" DECIMAL(15, 3) CHECK ("discount_value" >= 0),
     "max_discount_value" DECIMAL(15, 3) CHECK ("max_discount_value" >= 0),
     "min_order_value" DECIMAL(15, 3) DEFAULT 0 CHECK ("min_order_value" >= 0),
+
     "point_cost" DECIMAL(15, 3) DEFAULT 0 CHECK ("point_cost" >= 0),
     "init_quantity" INT,
     "current_quantity" INT,
+    "reserved_quantity" INT,
     "max_usage_per_user" INT, 
+
     "is_active" BOOLEAN DEFAULT TRUE,
+    "start_date" TIMESTAMP WITH TIME ZONE,
     "end_date" TIMESTAMP WITH TIME ZONE,
+
     "created_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     "is_deleted" BOOLEAN DEFAULT FALSE,
-    CONSTRAINT "check_quantity_logic" CHECK ("current_quantity" <= "init_quantity")
+
+    CONSTRAINT "check_quantity_logic" CHECK ("current_quantity" <= "init_quantity"),
+    CONSTRAINT "check_voucher_logic" CHECK (
+        (
+            "campaign_id" IS NOT NULL 
+            AND "start_date" IS NULL 
+            AND "end_date" IS NULL
+        )
+        OR
+        (
+            "campaign_id" IS NULL
+        )
+    )
 );
 
 CREATE UNIQUE INDEX "uq_voucher_code_active" ON "vouchers" ("code") WHERE ("is_deleted" IS FALSE);
