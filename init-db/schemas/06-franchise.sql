@@ -394,3 +394,62 @@ CREATE TABLE IF NOT EXISTS shift_swap_requests (
 
 CREATE INDEX idx_swap_source_user ON shift_swap_requests(source_user_id, status);
 CREATE INDEX idx_swap_target_user ON shift_swap_requests(target_user_id, status);
+
+-- Bảng lưu hồ sơ đăng ký nhượng quyền (Bản đầy đủ)
+CREATE TABLE IF NOT EXISTS franchise_applications (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    
+    store_id  UUID NOT NULL,
+    manager_id UUID NOT NULL, 
+    -- Thông tin cá nhân đối tác
+    full_name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    phone VARCHAR(20) NOT NULL,
+    identity_number VARCHAR(20) NOT NULL, 
+    
+    -- Thông tin mặt bằng & Pháp lý
+    store_address TEXT NOT NULL,
+    store_latitude DECIMAL(10, 8),
+    store_longitude DECIMAL(11, 8),
+    store_size_sqm DECIMAL(10, 2),
+    
+    -- Lưu trữ trên Cloudinary cho Giấy chứng nhận đất đai
+    land_certificate_url VARCHAR(500),      -- Link ảnh để xem
+    land_certificate_public_id VARCHAR(100), -- ID để quản lý/xóa trên Cloudinary
+    
+    -- Lưu trữ trên Cloudinary cho Ảnh mặt bằng (nếu cần)
+    store_front_url VARCHAR(500),
+    store_front_public_id VARCHAR(100),
+    
+    -- Trạng thái phê duyệt
+    status INT DEFAULT 0, -- 0: Pending, 1: Approved, 2: Rejected
+    admin_note TEXT,
+    
+    -- Liên kết với DocuSeal
+    docuseal_submission_id INT,
+    contract_pdf_url VARCHAR(500), -- Hợp đồng sau khi ký xong cũng nên đẩy lên Cloudinary/S3
+    
+    -- Audit
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    reviewed_at TIMESTAMP WITH TIME ZONE,
+    reviewed_by UUID
+);
+-- 1. Lọc theo trạng thái (Admin Dashboard dùng nhiều nhất)
+-- Giúp Admin xem nhanh danh sách "Chờ duyệt", "Đã duyệt", v.v.
+CREATE INDEX idx_franchise_app_status ON franchise_applications(status);
+
+-- 2. Tìm kiếm theo thông tin cá nhân (Email & CCCD)
+-- Dùng khi khách hàng muốn kiểm tra tiến độ hồ sơ hoặc khi DocuSeal gửi webhook trả về theo email
+CREATE INDEX idx_franchise_app_email ON franchise_applications(email);
+CREATE INDEX idx_franchise_app_identity ON franchise_applications(identity_number);
+
+-- 3. Tìm kiếm theo DocuSeal Submission ID
+-- Cực kỳ quan trọng để xử lý Webhook. Khi DocuSeal báo "Ký xong", nó gửi về SubmissionID, 
+-- bạn cần dùng ID này để tìm đúng bản ghi ứng dụng để update.
+CREATE INDEX idx_franchise_app_docuseal_id ON franchise_applications(docuseal_submission_id);
+
+-- 4. Tìm kiếm theo người duyệt (Admin)
+-- Để thống kê năng suất của các Admin hoặc kiểm tra lịch sử duyệt
+CREATE INDEX idx_franchise_app_reviewed_by ON franchise_applications(reviewed_by);

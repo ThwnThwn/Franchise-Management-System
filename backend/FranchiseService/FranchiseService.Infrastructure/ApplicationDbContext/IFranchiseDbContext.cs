@@ -1,5 +1,6 @@
 ﻿using FranchiseService.Domain.Commons;
 using FranchiseService.Domain.Entities;
+using FranchiseService.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
@@ -26,6 +27,8 @@ namespace FranchiseService.Infrastructure.ApplicationDbContext
         DbSet<TimeLog> TimeLogs { get; set; }
         
         DbSet<OutboxMessage> OutboxMessages { get; set; }
+
+        DbSet<FranchiseApplication> FranchiseApplications { get; set; }
 
         public DbSet<T> Set<T>() where T : class, IEntity;
 
