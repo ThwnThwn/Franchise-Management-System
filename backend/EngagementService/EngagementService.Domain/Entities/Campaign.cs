@@ -20,5 +20,5 @@ public partial class Campaign : IEntity
 
     public DateTimeOffset UpdatedAt { get; set; }
 
-    public virtual ICollection<Voucher> Vouchers { get; set; } = [];
+    public virtual ICollection<Voucher> Vouchers { get; set; } = new List<Voucher>();
 }

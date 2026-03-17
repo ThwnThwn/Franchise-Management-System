@@ -44,4 +44,7 @@ public partial class Voucher : SoftDeletedEntity, IEntity
     public virtual ICollection<VoucherQueue> VoucherQueues { get; set; } = [];
 
     public virtual ICollection<VoucherUsage> VoucherUsages { get; set; } = [];
+
+    public Guid? CampaignId { get; set; }   
+    public Campaign? Campaign { get; set; }
 }

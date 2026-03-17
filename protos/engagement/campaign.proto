@@ -1,0 +1,83 @@
+syntax = "proto3";
+
+option csharp_namespace = "EngagementService.Grpc.Protos.CampaignGrpc";
+option go_package = "api-gateway/pkg/pb/engagement";
+
+package engagement;
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+// Service định nghĩa các hành động liên quan đến Campagin
+service CampaignGrpc {
+  rpc CreateCampaign (CreateCampaignRequest) returns (CampaignResponse);
+}
+
+// ===== REQUEST =====
+message CreateCampaignRequest {
+  string name = 1;
+  string description = 2;
+
+  google.protobuf.Timestamp start_date = 3;
+  google.protobuf.Timestamp end_date = 4;
+
+  repeated string voucher_ids = 5;
+}
+
+// ===== RESPONSE =====
+message CampaignResponse {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+
+  google.protobuf.Timestamp start_date = 4;
+  google.protobuf.Timestamp end_date = 5;
+
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+
+  repeated Voucher vouchers = 8;
+}
+
+// ===== VOUCHER =====
+message Voucher {
+  string id = 1;
+  string code = 2;
+  VoucherType type = 3;
+
+  optional double discount_value = 4;
+  optional double max_discount_value = 5;
+  optional double min_order_value = 6;
+  optional double point_cost = 7;
+  
+  optional int32 init_quantity = 8;
+  optional int32 current_quantity = 9;
+  optional int32 max_usage_per_user = 10;
+  bool is_active = 11;
+
+  google.protobuf.Timestamp end_date = 12;
+  google.protobuf.Timestamp created_at = 13;
+  google.protobuf.Timestamp updated_at = 14;
+
+  repeated VoucherItem voucher_items = 15;
+}
+
+// ===== VOUCHER ITEM =====
+message VoucherItem {
+  string id = 1;
+  string voucher_id = 2;
+  string sku = 3;
+
+  optional int32 quantity = 4;
+  optional VoucherItemType type = 5;
+}
+enum VoucherType {
+  DISCOUNT_PERCENTAGE = 0;
+  DISCOUNT_FIXED_AMOUNT = 1;
+  SHIPPING_PERCENTAGE = 2;
+  SHIPPING_FIXED_AMOUNT = 3;
+  GIFT = 4;
+}
+enum VoucherItemType {
+  ITEM_GIFT = 0;
+  ITEM_REQUIRED = 1;
+}

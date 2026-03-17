@@ -44,7 +44,7 @@ public static class DependencyInjection
         services.AddScoped<IVoucherQueueRepository, VoucherQueueRepository>();
         services.AddScoped<IUserVoucherRepository, UserVoucherRepository>();
         services.AddScoped<IVoucherUsageRepository, VoucherUsageRepository>();
-
+        services.AddScoped<ICampaignRepository, CampaginRepository>();
         services.AddScoped<ILoyaltyUow, LoyaltyUow>();
 
 
