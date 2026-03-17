@@ -2,6 +2,8 @@
 using EngagementService.Application.Dtos.Campaign.Request;
 using EngagementService.Application.Dtos.Campaign.Response;
 using EngagementService.Application.Features.Campaign.Commands.Create;
+using EngagementService.Application.Features.Campaign.Queries.GetAll;
+using EngagementService.Application.Features.Campaign.Queries.GetById;
 using EngagementService.Grpc.Protos.CampaignGrpc;
 using EngagementService.Grpc.Protos.VoucherGrpc;
 using Google.Protobuf;
@@ -42,6 +44,28 @@ namespace EngagementService.API.Services.Campagin
             var response = MapCampaignToGrpc(result);
             return response;
         }
+
+        public override async Task<CampaignResponse> GetById(GetByIdRequest request,ServerCallContext context)
+        {
+            var query = new GetByIdQuery(Guid.Parse(request.Id));
+
+            var result = await _mediator.Send(query);
+            //Result - gRPC Response
+            var response = MapCampaignToGrpc(result);
+            return response;
+        }
+        public override async Task<ListCampaignResponse> GetAll(Google.Protobuf.WellKnownTypes.Empty request, ServerCallContext context)
+        {
+            var result = await _mediator.Send(new GetAllQuery());
+
+            var response = new ListCampaignResponse();
+            response.Campaigns.AddRange(
+                result.Select(MapCampaignToGrpc) 
+            );
+
+            return response;
+        }
+
         //===================================
         ////=========HELPER METHOD===========
         //===================================
@@ -90,7 +114,7 @@ namespace EngagementService.API.Services.Campagin
                         Type = (Grpc.Protos.CampaignGrpc.VoucherItemType)vi.Type,
                         Quantity = vi.Quantity ,
                         Sku = vi.Sku
-                    })
+                    }) ?? Enumerable.Empty<Grpc.Protos.CampaignGrpc.VoucherItem>()
                 },
             }));
             return response;

@@ -10,9 +10,17 @@ import "google/protobuf/timestamp.proto";
 // Service định nghĩa các hành động liên quan đến Campagin
 service CampaignGrpc {
   rpc CreateCampaign (CreateCampaignRequest) returns (CampaignResponse);
+
+  rpc GetById (GetByIdRequest) returns (CampaignResponse);
+
+  rpc GetAll (google.protobuf.Empty) returns (ListCampaignResponse);
 }
 
 // ===== REQUEST =====
+message GetByIdRequest{
+  string id = 1;
+}
+
 message CreateCampaignRequest {
   string name = 1;
   string description = 2;
@@ -24,6 +32,9 @@ message CreateCampaignRequest {
 }
 
 // ===== RESPONSE =====
+message ListCampaignResponse{
+  repeated CampaignResponse Campaigns = 1;
+}
 message CampaignResponse {
   string id = 1;
   string name = 2;
