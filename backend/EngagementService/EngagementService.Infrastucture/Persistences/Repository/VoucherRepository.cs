@@ -184,5 +184,13 @@ namespace EngagementService.Infrastucture.Persistences.Repository
                 .OrderByDescending(v => v.CreatedAt)
                 .ToListAsync(cancellationToken);
         }
+
+        public async Task<IEnumerable<Voucher>> GetVoucherByIdsAsync(Guid[] ids)
+        {
+            return await _dbContext.Vouchers
+                .Where(v => ids.Contains(v.Id))
+                .Include(v => v.VoucherItems) 
+                .ToListAsync();
+        }
     }
 }

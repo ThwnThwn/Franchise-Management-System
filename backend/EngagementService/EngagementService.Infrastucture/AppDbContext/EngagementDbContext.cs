@@ -257,7 +257,11 @@ public partial class EngagementDbContext : DbContext, IEngagementDbContext
             entity.Property(e => e.MinOrderValue).HasPrecision(15, 3).HasDefaultValueSql("0").HasColumnName("min_order_value");
             entity.Property(e => e.PointCost).HasPrecision(15, 3).HasDefaultValueSql("0").HasColumnName("point_cost");
             entity.Property(e => e.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").HasColumnName("updated_at");
-
+            entity.Property(e => e.CampaignId).HasColumnName("campaign_id");
+            entity.HasOne(v => v.Campaign)
+                .WithMany(c => c.Vouchers)
+                .HasForeignKey(v => v.CampaignId)
+                .IsRequired(false);
             // Ràng buộc kiểm tra số lượng (CHECK Constraint)
             entity.HasCheckConstraint("check_quantity_logic", "\"current_quantity\" <= \"init_quantity\"");
 

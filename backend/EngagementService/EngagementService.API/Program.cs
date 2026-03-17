@@ -2,6 +2,7 @@
 
 using DotNetEnv;
 using EngagementService.API.BackgroundJob;
+using EngagementService.API.Services.Campagin;
 using EngagementService.API.Services.Identity;
 using EngagementService.API.Services.LoyaltyAccount;
 using EngagementService.API.Services.MemberShipTier;
@@ -10,6 +11,7 @@ using EngagementService.API.Services.Voucher;
 using EngagementService.Application.Abstraction;
 using EngagementService.Application.ClientInterface;
 using EngagementService.Application.DependencyInjection;
+using EngagementService.Application.Mapper.Campaign;
 using EngagementService.Domain.Constants;
 using EngagementService.Infrastucture.AppDbContext;
 using EngagementService.Infrastucture.DependencyInjection;
@@ -29,7 +31,7 @@ public class Program
         Env.Load("../../../.env");
 
         var builder = WebApplication.CreateBuilder(args);
-
+        builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
         // Add environment variables to configuration
         builder.Configuration.AddEnvironmentVariables();
 
@@ -147,6 +149,7 @@ public class Program
         app.MapGrpcService<MembershipTierGrpcService>();
         app.MapGrpcService<PointLogGrpcService>();
         app.MapGrpcService<VoucherGrpcService>();
+        app.MapGrpcService<CampaignGrpcClient>();
         using (var scope = app.Services.CreateScope())
         {
             var services = scope.ServiceProvider;
