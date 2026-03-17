@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace EngagementService.Infrastucture.Persistences.Repository
 {
@@ -14,6 +15,23 @@ namespace EngagementService.Infrastucture.Persistences.Repository
     {
         public CampaginRepository(IEngagementDbContext dbContext) : base(dbContext)
         {
+        }
+
+        public async Task<IEnumerable<Campaign>> GetAllCampaign()
+        {
+            return await _dbContext.Campaigns
+                 .Include(c => c.Vouchers)
+                    .ThenInclude(v => v.VoucherItems)
+                 .ToListAsync();
+        }
+
+        public async Task<Campaign?> GetCampaignById(Guid id)
+        {
+            return await _dbContext.Campaigns
+                 .Where(c => c.Id == id)
+                 .Include(c => c.Vouchers)
+                    .ThenInclude(v => v.VoucherItems)
+                 .FirstOrDefaultAsync();
         }
 
         public async Task<Campaign?> GetCampaignByName(string name)

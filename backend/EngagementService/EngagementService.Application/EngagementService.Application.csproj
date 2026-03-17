@@ -34,7 +34,4 @@
 		<Protobuf Include="..\..\..\protos\engagement\*.proto" GrpcServices="Server" ProtoRoot="..\..\..\protos" />
 
 	</ItemGroup>
-	<ItemGroup>
-	  <Folder Include="Features\Campaign\Queries\" />
-	</ItemGroup>
 </Project>

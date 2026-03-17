@@ -40,6 +40,8 @@ namespace EngagementService.Application.Features.Campaign.Commands.Create
             {
                 voucher.CampaignId = campaign.Id;
                 voucher.Campaign = campaign;
+                voucher.EndDate = campaign.EndDate;
+                voucher.UpdatedAt = campaign.UpdatedAt;
             }
             await _campaignRepository.AddAsync(campaign);
             return _mapper.Map<CampaginRes>(campaign);
