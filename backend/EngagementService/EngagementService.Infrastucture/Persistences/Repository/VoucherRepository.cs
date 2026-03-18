@@ -14,6 +14,7 @@ namespace EngagementService.Infrastucture.Persistences.Repository
         public VoucherRepository(IEngagementDbContext dbContext) : base(dbContext)
         {
         }
+
         /// <summary>
         /// Gets the voucher by code asynchronous.
         /// </summary>
@@ -25,6 +26,7 @@ namespace EngagementService.Infrastucture.Persistences.Repository
                  .Where(v => v.Code == code)
                  .FirstOrDefaultAsync();
         }
+
         /// <summary>
         /// Updates the voucher asynchronous.
         /// </summary>
@@ -40,7 +42,7 @@ namespace EngagementService.Infrastucture.Persistences.Repository
             if (voucherDb.IsActive)
                 throw new ArgumentException(VoucherMsg.ActiveVoucher);
 
-            if(voucherDb.CurrentQuantity != voucherDb.InitQuantity)
+            if (voucherDb.CurrentQuantity != voucherDb.InitQuantity)
                 throw new ArgumentException(VoucherMsg.VoucherInUsed);
 
             UpdateVoucher(voucherDb, voucherUpdate);
@@ -52,6 +54,7 @@ namespace EngagementService.Infrastucture.Persistences.Repository
 
             await _dbContext.SaveChangesAsync();
         }
+
         /// <summary>
         /// Updates the voucher item.
         /// </summary>
@@ -93,6 +96,7 @@ namespace EngagementService.Infrastucture.Persistences.Repository
                 }
             }
         }
+
         /// <summary>
         /// Updates the voucher.
         /// </summary>
@@ -126,7 +130,6 @@ namespace EngagementService.Infrastucture.Persistences.Repository
                 dbVoucher.MaxDiscountValue = updateRequest.MaxDiscountValue;
             }
 
-
             if (updateRequest.PointCost != null)
             {
                 if (updateRequest.PointCost < 0)
@@ -134,14 +137,12 @@ namespace EngagementService.Infrastucture.Persistences.Repository
                 dbVoucher.PointCost = updateRequest.PointCost;
             }
 
-
             if (updateRequest.MinOrderValue != null)
             {
                 if (updateRequest.MinOrderValue < 0)
                     throw new ArgumentException(VoucherMsg.InvalidMinOrderValue);
                 dbVoucher.MinOrderValue = updateRequest.MinOrderValue;
             }
-
 
             if (updateRequest.MaxUsagePerUser != null)
             {
@@ -157,6 +158,7 @@ namespace EngagementService.Infrastucture.Persistences.Repository
                 dbVoucher.EndDate = updateRequest.EndDate;
             }
         }
+
         /// <summary>
         /// Gets for update asynchronous.
         /// </summary>
@@ -171,6 +173,7 @@ namespace EngagementService.Infrastucture.Persistences.Repository
 
             return voucher;
         }
+
         /// <summary>
         /// Gets all voucher asynchronous.
         /// </summary>
@@ -180,7 +183,7 @@ namespace EngagementService.Infrastucture.Persistences.Repository
         {
             return _dbContext.Vouchers
                 .Include(x => x.VoucherItems)
-                .Where(v => v.CurrentQuantity != 0)
+                .Where(v => v.CurrentQuantity != 0 && v.CampaignId == null)
                 .OrderByDescending(v => v.CreatedAt)
                 .ToListAsync(cancellationToken);
         }
@@ -188,8 +191,8 @@ namespace EngagementService.Infrastucture.Persistences.Repository
         public async Task<IEnumerable<Voucher>> GetVoucherByIdsAsync(Guid[] ids)
         {
             return await _dbContext.Vouchers
-                .Where(v => ids.Contains(v.Id))
-                .Include(v => v.VoucherItems) 
+                .Where(v => ids.Contains(v.Id) && v.CampaignId == null)
+                .Include(v => v.VoucherItems)
                 .ToListAsync();
         }
     }

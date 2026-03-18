@@ -24,6 +24,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CampaignGrpcClient interface {
 	CreateCampaign(ctx context.Context, in *CreateCampaignRequest, opts ...grpc.CallOption) (*CampaignResponse, error)
+	UpdateActiveStatus(ctx context.Context, in *UpdateActiveStatusRequest, opts ...grpc.CallOption) (*CampaignResponse, error)
 	GetById(ctx context.Context, in *GetByIdRequest, opts ...grpc.CallOption) (*CampaignResponse, error)
 	GetAll(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListCampaignResponse, error)
 }
@@ -39,6 +40,15 @@ func NewCampaignGrpcClient(cc grpc.ClientConnInterface) CampaignGrpcClient {
 func (c *campaignGrpcClient) CreateCampaign(ctx context.Context, in *CreateCampaignRequest, opts ...grpc.CallOption) (*CampaignResponse, error) {
 	out := new(CampaignResponse)
 	err := c.cc.Invoke(ctx, "/engagement.CampaignGrpc/CreateCampaign", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *campaignGrpcClient) UpdateActiveStatus(ctx context.Context, in *UpdateActiveStatusRequest, opts ...grpc.CallOption) (*CampaignResponse, error) {
+	out := new(CampaignResponse)
+	err := c.cc.Invoke(ctx, "/engagement.CampaignGrpc/UpdateActiveStatus", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -68,6 +78,7 @@ func (c *campaignGrpcClient) GetAll(ctx context.Context, in *emptypb.Empty, opts
 // for forward compatibility
 type CampaignGrpcServer interface {
 	CreateCampaign(context.Context, *CreateCampaignRequest) (*CampaignResponse, error)
+	UpdateActiveStatus(context.Context, *UpdateActiveStatusRequest) (*CampaignResponse, error)
 	GetById(context.Context, *GetByIdRequest) (*CampaignResponse, error)
 	GetAll(context.Context, *emptypb.Empty) (*ListCampaignResponse, error)
 	mustEmbedUnimplementedCampaignGrpcServer()
@@ -79,6 +90,9 @@ type UnimplementedCampaignGrpcServer struct {
 
 func (UnimplementedCampaignGrpcServer) CreateCampaign(context.Context, *CreateCampaignRequest) (*CampaignResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateCampaign not implemented")
+}
+func (UnimplementedCampaignGrpcServer) UpdateActiveStatus(context.Context, *UpdateActiveStatusRequest) (*CampaignResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateActiveStatus not implemented")
 }
 func (UnimplementedCampaignGrpcServer) GetById(context.Context, *GetByIdRequest) (*CampaignResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetById not implemented")
@@ -113,6 +127,24 @@ func _CampaignGrpc_CreateCampaign_Handler(srv interface{}, ctx context.Context, 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CampaignGrpcServer).CreateCampaign(ctx, req.(*CreateCampaignRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CampaignGrpc_UpdateActiveStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateActiveStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CampaignGrpcServer).UpdateActiveStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/engagement.CampaignGrpc/UpdateActiveStatus",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CampaignGrpcServer).UpdateActiveStatus(ctx, req.(*UpdateActiveStatusRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -163,6 +195,10 @@ var CampaignGrpc_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateCampaign",
 			Handler:    _CampaignGrpc_CreateCampaign_Handler,
+		},
+		{
+			MethodName: "UpdateActiveStatus",
+			Handler:    _CampaignGrpc_UpdateActiveStatus_Handler,
 		},
 		{
 			MethodName: "GetById",
