@@ -1,3 +1,4 @@
+using FranchiseService.Application.Constants;
 using FranchiseService.Application.Persistences.Repositories;
 using FranchiseService.Domain.Entities;
 using FranchiseService.Domain.Enums;
@@ -87,7 +88,7 @@ public class BulkOpenShiftsHandler : IRequestHandler<BulkOpenShiftsCommand, Bulk
 
     private static DateOnly GetTodayInVietnam()
     {
-        var vnTz = TimeZoneInfo.FindSystemTimeZoneById(TimeConstants.DefaultTimeZoneId);
+        var vnTz = TimeZoneInfo.FindSystemTimeZoneById(DateConstants.GetVietnamTimeZoneId());
         var nowVn = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vnTz);
         return DateOnly.FromDateTime(nowVn);
     }

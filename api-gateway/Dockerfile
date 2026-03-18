@@ -23,7 +23,7 @@ FROM alpine:latest AS final
 WORKDIR /app
 
 # Cài chứng chỉ SSL để Gateway gọi được API HTTPS ra ngoài (VNPAY, v.v.)
-RUN apk --no-cache add ca-certificates
+RUN apk --no-cache add ca-certificates tzdata
 
 # Copy file binary Linux từ Stage 1 sang Stage 2
 COPY --from=build /app/bin/main .

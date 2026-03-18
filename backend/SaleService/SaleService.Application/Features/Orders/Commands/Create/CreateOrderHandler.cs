@@ -13,7 +13,7 @@ using SalesService.Domain.Enums;
 using SalesService.Application.Interfaces;
 using SalesService.Application.Interfaces.Franchise;
 using SalesService.Application.Interfaces.Geocoding;
-using DocumentFormat.OpenXml.Spreadsheet;
+using SalesService.Application.Constants;
 
 namespace SalesService.Application.Features.Orders.Commands.Create;
 
@@ -104,7 +104,7 @@ public sealed class CreateOrderHandler
         if (request.Request.ScheduledTime.HasValue)
         {
             var scheduledTime = request.Request.ScheduledTime.Value;
-            var tzId = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows) ? "SE Asia Standard Time" : "Asia/Ho_Chi_Minh";
+            var tzId = DateConstants.GetVietnamTimeZoneId();
             var vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById(tzId);
             var currentTime = TimeOnly.FromTimeSpan(TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vnTimeZone).TimeOfDay);
             var minPreparationTime = TimeSpan.FromMinutes(30);

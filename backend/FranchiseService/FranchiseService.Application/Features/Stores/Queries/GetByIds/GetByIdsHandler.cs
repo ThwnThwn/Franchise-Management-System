@@ -1,4 +1,5 @@
-﻿using FranchiseService.Application.Features.Stores.Dtos;
+﻿using FranchiseService.Application.Constants;
+using FranchiseService.Application.Features.Stores.Dtos;
 using FranchiseService.Application.Repositories;
 using FranchiseService.Domain.Enums;
 using MediatR;
@@ -20,7 +21,7 @@ namespace FranchiseService.Application.Features.Stores.Queries.GetByIds
             var resultList = request.Ids?
                 .Select(s => Guid.TryParse(s, out var g) ? (Guid?)g : null)
                 .Where(g => g.HasValue)
-                .Select(g => g.Value)
+                .Select(g => g ?? Guid.Empty)
                 .ToList() ?? [];
 
             if (resultList.Count == 0) return [];
@@ -30,7 +31,7 @@ namespace FranchiseService.Application.Features.Stores.Queries.GetByIds
             if (stores == null || !stores.Any()) return [];
 
             // 3. Chuẩn bị dữ liệu thời gian (Tính 1 lần duy nhất ở ngoài vòng lặp)
-            var vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+            var vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById(DateConstants.GetVietnamTimeZoneId());
             var vnTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vnTimeZone);
             var currentDay = (int)vnTime.DayOfWeek;
             var currentTime = TimeOnly.FromDateTime(vnTime);

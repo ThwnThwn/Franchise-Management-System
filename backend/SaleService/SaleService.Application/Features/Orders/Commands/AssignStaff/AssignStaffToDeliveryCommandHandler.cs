@@ -4,9 +4,9 @@ using Microsoft.Extensions.Logging;
 using SalesService.Application.Interfaces.Identity;
 using SalesService.Application.Interfaces.Franchise;
 using SalesService.Application.Persisitences.Orders;
-using System.Runtime.InteropServices;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
+using SalesService.Application.Constants;
 
 namespace SalesService.Application.Features.Orders.Commands.AssignStaff;
 
@@ -90,7 +90,7 @@ public sealed class AssignStaffToDeliveryCommandHandler
             }
 
             // Evaluate if within shift timeframe
-            var tzId = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "SE Asia Standard Time" : "Asia/Ho_Chi_Minh";
+            var tzId = DateConstants.GetVietnamTimeZoneId();
             var vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById(tzId);
             var currentLocalTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vnTimeZone).TimeOfDay;
 

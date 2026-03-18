@@ -1,3 +1,4 @@
+using FranchiseService.Application.Constants;
 using FranchiseService.Application.Persistences.Repositories;
 using FranchiseService.Application.Services;
 using FranchiseService.Domain.Entities;
@@ -48,7 +49,7 @@ public class CheckInHandler : IRequestHandler<CheckInCommand, Guid>
             throw new InvalidOperationException("Chi co the check-in khi ca lam viec da duoc phat hanh.");
 
         // 3. Chuyen doi gio ca lam viec tu gio Viet Nam sang UTC
-        var vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById(TimeConstants.DefaultTimeZoneId);
+        var vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById(DateConstants.GetVietnamTimeZoneId());
 
         var shiftLocalStart = shift.ShiftDate.ToDateTime(shift.StartTime);
         var shiftStartUtc = TimeZoneInfo.ConvertTimeToUtc(shiftLocalStart, vnTimeZone);

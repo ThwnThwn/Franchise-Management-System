@@ -1,3 +1,4 @@
+using FranchiseService.Application.Constants;
 using FranchiseService.Application.Repositories;
 using FranchiseService.Domain.Entities;
 using MediatR;
@@ -19,7 +20,7 @@ namespace FranchiseService.Application.Features.Shifts.Queries.GetActiveStaffsAt
         public async Task<List<ActiveStaffDto>> Handle(GetActiveStaffsAtStoreQuery request, CancellationToken cancellationToken)
         {
             // 1. Determine "Today" and "Now" in Vietnam timezone
-            var tzId = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "SE Asia Standard Time" : "Asia/Ho_Chi_Minh";
+            var tzId = DateConstants.GetVietnamTimeZoneId();
             var vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById(tzId);
             var nowVn = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vnTimeZone);
             var todayVn = DateOnly.FromDateTime(nowVn);

@@ -1,3 +1,4 @@
+using FranchiseService.Application.Constants;
 using FranchiseService.Application.Persistences.Repositories;
 using FranchiseService.Domain.Entities;
 using FranchiseService.Domain.Enums;
@@ -32,7 +33,7 @@ public class OvertimeCalculationService : IOvertimeCalculationService
 
         // Tinh moc bat dau thuc te: lay Max(CheckInAt, ShiftStartTime)
         // De tranh tinh luong cho viec di som truoc gio ca
-        var vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById(TimeConstants.DefaultTimeZoneId);
+        var vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById(DateConstants.GetVietnamTimeZoneId());
         var shiftLocalTime = shift.ShiftDate.ToDateTime(shift.StartTime);
         var shiftStartUtc = TimeZoneInfo.ConvertTimeToUtc(shiftLocalTime, vnTimeZone);
 

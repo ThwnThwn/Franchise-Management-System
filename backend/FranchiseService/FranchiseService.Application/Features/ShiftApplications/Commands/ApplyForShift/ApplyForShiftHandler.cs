@@ -1,3 +1,4 @@
+using FranchiseService.Application.Constants;
 using FranchiseService.Application.Persistences.Repositories;
 using FranchiseService.Application.Services;
 using FranchiseService.Domain.Entities;
@@ -97,7 +98,7 @@ public class ApplyForShiftHandler : IRequestHandler<ApplyForShiftCommand, Guid>
 
     private static DateOnly GetTodayInVietnam()
     {
-        var vnTz = TimeZoneInfo.FindSystemTimeZoneById(TimeConstants.DefaultTimeZoneId);
+        var vnTz = TimeZoneInfo.FindSystemTimeZoneById(DateConstants.GetVietnamTimeZoneId());
         var nowVn = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vnTz);
         return DateOnly.FromDateTime(nowVn);
     }

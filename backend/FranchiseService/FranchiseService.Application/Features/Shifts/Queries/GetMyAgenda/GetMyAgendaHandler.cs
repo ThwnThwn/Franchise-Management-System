@@ -1,4 +1,5 @@
 using FranchiseService.Application.ClientInterfaces;
+using FranchiseService.Application.Constants;
 using FranchiseService.Application.Features.Shifts.DTOs;
 using FranchiseService.Application.Repositories;
 using FranchiseService.Domain.Enums;
@@ -60,7 +61,7 @@ public class GetMyAgendaHandler : IRequestHandler<GetMyAgendaQuery, List<StaffSh
         // Tính isOpenNow dùng logic chuẩn (StoreStatus + StoreHours + giờ hiện tại)
         var vnTime = TimeZoneInfo.ConvertTimeFromUtc(
             DateTime.UtcNow,
-            TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));
+            TimeZoneInfo.FindSystemTimeZoneById(DateConstants.GetVietnamTimeZoneId()));
         var currentDay = (int)vnTime.DayOfWeek;
         var currentTime = TimeOnly.FromDateTime(vnTime);
 

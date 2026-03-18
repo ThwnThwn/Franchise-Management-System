@@ -1,4 +1,5 @@
 using FluentValidation;
+using FranchiseService.Application.Constants;
 using SharedKernel.Constants;
 
 namespace FranchiseService.Application.Features.Shifts.Commands.AutoFillShifts;
@@ -32,7 +33,7 @@ public class AutoFillShiftsValidator : AbstractValidator<AutoFillShiftsCommand>
     /// </summary>
     private static DateOnly GetTodayInVietnam()
     {
-        var vnTz = TimeZoneInfo.FindSystemTimeZoneById(TimeConstants.DefaultTimeZoneId);
+        var vnTz = TimeZoneInfo.FindSystemTimeZoneById(DateConstants.GetVietnamTimeZoneId());
         var nowVn = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vnTz);
         return DateOnly.FromDateTime(nowVn);
     }
