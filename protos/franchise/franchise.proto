@@ -19,7 +19,7 @@ service FranchiseGrpcService {
     rpc GetAllApplications (GetAllApplicationsRequest) returns (GetAllApplicationsResponse);
 
     // 4. Admin xử lý đơn (Duyệt hoặc Từ chối)
-    rpc ReviewApplication (ReviewApplicationRequest) returns (FranchiseApplicationResponse);
+    rpc ReviewApplication (ReviewFranchiseApplicationRequest) returns (FranchiseApplicationResponse);
 }
 
 // --- Messages cho chức năng Submit ---
@@ -67,7 +67,7 @@ message GetAllApplicationsResponse {
 
 // --- Messages gộp Duyệt & Từ chối ---
 
-message ReviewApplicationRequest {
+message ReviewFranchiseApplicationRequest {
     string id = 1;
     
     // Action: 1 là Approve (Duyệt), 2 là Reject (Từ chối)

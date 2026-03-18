@@ -5,11 +5,7 @@ using EngagementService.Application.Features.Campaign.Commands.Create;
 using EngagementService.Application.Features.Campaign.Queries.GetAll;
 using EngagementService.Application.Features.Campaign.Queries.GetById;
 using EngagementService.Grpc.Protos.CampaignGrpc;
-using EngagementService.Grpc.Protos.VoucherGrpc;
-using Google.Protobuf;
 using Grpc.Core;
-using Grpc.Net.Client;
-using IdentityService.Grpc.Protos.User;
 using MediatR;
 
 namespace EngagementService.API.Services.Campagin
@@ -27,7 +23,7 @@ namespace EngagementService.API.Services.Campagin
             _logger = logger;
         }
 
-        public override async Task<CampaignResponse> CreateCampaign(CreateCampaignRequest request,ServerCallContext context)
+        public override async Task<CampaignResponse> CreateCampaign(CreateCampaignRequest request, ServerCallContext context)
         {
             //Map gRPC - Command
             var command = new CreateCampaginCommand(new CreateCampaginReq
@@ -45,7 +41,7 @@ namespace EngagementService.API.Services.Campagin
             return response;
         }
 
-        public override async Task<CampaignResponse> GetById(GetByIdRequest request,ServerCallContext context)
+        public override async Task<CampaignResponse> GetById(GetByIdRequest request, ServerCallContext context)
         {
             var query = new GetByIdQuery(Guid.Parse(request.Id));
 
@@ -54,13 +50,14 @@ namespace EngagementService.API.Services.Campagin
             var response = MapCampaignToGrpc(result);
             return response;
         }
+
         public override async Task<ListCampaignResponse> GetAll(Google.Protobuf.WellKnownTypes.Empty request, ServerCallContext context)
         {
             var result = await _mediator.Send(new GetAllQuery());
 
             var response = new ListCampaignResponse();
             response.Campaigns.AddRange(
-                result.Select(MapCampaignToGrpc) 
+                result.Select(MapCampaignToGrpc)
             );
 
             return response;
@@ -86,15 +83,15 @@ namespace EngagementService.API.Services.Campagin
                     .FromDateTimeOffset(result.UpdatedAt),
             };
             //Map vouchers
-            response.Vouchers.AddRange(result.Vouchers.Select(v => new Grpc.Protos.CampaignGrpc.Voucher
+            response.Vouchers.AddRange(result.Vouchers.Select(v => new Grpc.Protos.VoucherGrpc.VoucherResponse
             {
                 Id = v.Id.ToString(),
                 Code = v.Code,
-                Type = (Grpc.Protos.CampaignGrpc.VoucherType)v.Type,
-                DiscountValue = (double)(v.DiscountValue ?? 0),
-                MaxDiscountValue = (double)(v.MaxDiscountValue ?? 0),
-                MinOrderValue = (double)(v.MinOrderValue ?? 0),
-                PointCost = (double)(v.PointCost ?? 0),
+                Type = (Grpc.Protos.VoucherGrpc.VoucherType)v.Type,
+                DiscountValue = v.DiscountValue?.ToString() ?? "",
+                MaxDiscountValue = v.MaxDiscountValue?.ToString() ?? "",
+                MinOrderValue = v.MinOrderValue?.ToString() ?? "",
+                PointCost = v.PointCost?.ToString() ?? "",
                 InitQuantity = v.InitQuantity ?? 0,
                 CurrentQuantity = v.CurrentQuantity ?? 0,
                 MaxUsagePerUser = v.MaxUsagePerUser ?? 0,
@@ -108,13 +105,13 @@ namespace EngagementService.API.Services.Campagin
                     .FromDateTimeOffset(v.UpdatedAt),
                 VoucherItems =
                 {
-                    v.VoucherItems.Select(vi => new Grpc.Protos.CampaignGrpc.VoucherItem
+                    v.VoucherItems.Select(vi => new Grpc.Protos.VoucherGrpc.VoucherItemResponse
                     {
                         Id = vi.Id.ToString(),
-                        Type = (Grpc.Protos.CampaignGrpc.VoucherItemType)vi.Type,
+                        Type = (Grpc.Protos.VoucherGrpc.VoucherItemType)vi.Type,
                         Quantity = vi.Quantity ,
                         Sku = vi.Sku
-                    }) ?? Enumerable.Empty<Grpc.Protos.CampaignGrpc.VoucherItem>()
+                    })
                 },
             }));
             return response;
