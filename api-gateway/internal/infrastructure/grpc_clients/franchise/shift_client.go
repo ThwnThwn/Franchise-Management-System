@@ -60,6 +60,29 @@ func (s *shiftGrpcClient) GetUserCurrentShift(ctx context.Context, id uuid.UUID)
 	}, nil
 }
 
+// GetActiveStaffsAtStore implements franchise.IShiftService.
+func (s *shiftGrpcClient) GetActiveStaffsAtStore(ctx context.Context, storeId uuid.UUID) ([]*shift.ActiveStaffDto, error) {
+	res, err := s.client.GetActiveStaffsAtStore(ctx, &franchisePb.GetActiveStaffsAtStoreRequest{
+		StoreId: storeId.String(),
+	})
+	if err != nil {
+		return []*shift.ActiveStaffDto{}, err
+	}
+
+	items := make([]*shift.ActiveStaffDto, 0, len(res.Staffs))
+	for _, item := range res.Staffs {
+		items = append(items, &shift.ActiveStaffDto{
+			Id:        item.UserId,
+			FirstName: item.FirstName,
+			LastName:  item.LastName,
+			Email:     item.Email,
+			AvatarUrl: item.AvatarUrl,
+		})
+	}
+
+	return items, nil
+}
+
 // GetShifts implements franchise.IShiftService.
 func (s *shiftGrpcClient) GetShifts(ctx context.Context, req *shift.GetShiftsParams) ([]*shift.ShiftResponse, error) {
 	var statusValue int32 = -1

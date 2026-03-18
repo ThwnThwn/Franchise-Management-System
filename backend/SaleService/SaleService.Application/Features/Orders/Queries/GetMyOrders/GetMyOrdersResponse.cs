@@ -19,6 +19,7 @@ namespace SalesService.Application.Features.Orders.Queries.GetMyOrders
         DateTimeOffset UpdatedAt,
         Guid? CustomerId,
         Guid? StoreId,
+        Guid? DelivererId,
         TimeOnly? ScheduledTime,
         string? Address,
         double? Latitude,

@@ -45,6 +45,7 @@ public class GetOrdersQueryHandler : IRequestHandler<GetOrdersQuery, Result<GetO
             o.UpdatedAt,
             o.CustomerId,
             o.StoreId,
+            DelivererId: o.DelivererId,
             o.ScheduledTime,
             o.Address,
             o.Latitude,

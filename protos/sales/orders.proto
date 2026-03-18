@@ -143,12 +143,14 @@ message Order {
   repeated OrderItem items = 15;
   OrderType type=16;
   repeated OrderSaleItemReply sale_items = 17;
-  optional string scheduled_time = 18;
-  double shipping_fee = 19;
-  optional double latitude = 20;
-  optional double longitude = 21;
-  optional double distance = 22;
-  optional string address = 23;
+
+  optional string deliverer_id = 18;
+  optional string scheduled_time = 19;
+  double shipping_fee = 20;
+  optional double latitude = 21;
+  optional double longitude = 22;
+  optional double distance = 23;
+  optional string address = 24;
 }
 
 
@@ -189,12 +191,14 @@ message OrderSummary {
   string customer_id = 13;
   string store_id = 14;
   OrderType type=15;
-  optional string scheduled_time = 16;
-  double shipping_fee = 17;
-  optional double latitude = 18;
-  optional double longitude = 19;
-  optional double distance = 20;
-  optional string address = 21;
+
+  optional string deliverer_id = 16;
+  optional string scheduled_time = 17;
+  double shipping_fee = 18;
+  optional double latitude = 19;
+  optional double longitude = 20;
+  optional double distance = 21;
+  optional string address = 22;
 }
 
 

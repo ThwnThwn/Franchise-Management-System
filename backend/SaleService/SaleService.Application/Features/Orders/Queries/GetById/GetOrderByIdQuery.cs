@@ -24,6 +24,8 @@ namespace SalesService.Application.Features.Orders.Queries.GetById
         public Guid? CustomerId { get; set; }
         public Guid? StoreId { get; set; }
         public OrderType? Type { get; set; }
+
+        public Guid? DelivererId { get; set; }
         public TimeOnly? ScheduledTime { get; set; }
         public string? Address { get; set; }
         public double? Latitude { get; set; }

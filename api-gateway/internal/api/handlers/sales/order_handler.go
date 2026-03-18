@@ -3,6 +3,7 @@ package sales
 import (
 	"api-gateway/internal/application/constants/errorcode"
 	"api-gateway/internal/application/gateways/franchise"
+	"api-gateway/internal/application/gateways/identity"
 	"api-gateway/internal/application/gateways/sales"
 	"api-gateway/internal/domain/models/order"
 	"api-gateway/pkg/mapper"
@@ -18,15 +19,18 @@ import (
 type OrderHandler struct {
 	orderGW sales.IOrderService
 	storeGW franchise.IStoreService
+	userGW  identity.IUserService
 }
 
 func NewOrderHandler(
 	orderGW sales.IOrderService,
 	storeGW franchise.IStoreService,
+	userGW identity.IUserService,
 ) *OrderHandler {
 	return &OrderHandler{
 		orderGW: orderGW,
 		storeGW: storeGW,
+		userGW:  userGW,
 	}
 }
 
@@ -72,6 +76,18 @@ func (h *OrderHandler) GetOrders(c *gin.Context) error {
 		res.Items = mapper.MapStoreToOrderHeaders(res.Items, stores)
 	}
 
+	deliveryManIds := sliceutils.CollectUniqueIDs(res.Items, func(o *order.OrderSummary) string {
+		if o.DeliveryMan != nil {
+			return o.DeliveryMan.Id
+		}
+		return ""
+	})
+
+	deliveryMans, err := h.userGW.GetByIds(ctx, deliveryManIds)
+	if err == nil {
+		res.Items = mapper.MapDeliveryManToOrderHeaders(res.Items, deliveryMans)
+	}
+
 	c.JSON(http.StatusOK, res)
 	return nil
 }
@@ -105,6 +121,21 @@ func (h *OrderHandler) GetOrderById(c *gin.Context) error {
 		store, err := h.storeGW.GetStoreDetail(ctx, storeId)
 		if err == nil {
 			res.Store = store
+		}
+	}
+
+	if deliveryManId, err := uuid.Parse(res.DeliveryMan.Id); err == nil {
+		deliveryMan, err := h.userGW.GetById(ctx, deliveryManId)
+		if err == nil {
+			res.DeliveryMan = &order.DeliveryMan{
+				Id:        deliveryMan.Id,
+				Username:  deliveryMan.Username,
+				Email:     deliveryMan.Email,
+				Phone:     deliveryMan.Phone,
+				FirstName: deliveryMan.FirstName,
+				LastName:  &deliveryMan.LastName,
+				AvatarUrl: deliveryMan.AvatarUrl,
+			}
 		}
 	}
 
@@ -150,6 +181,18 @@ func (h *OrderHandler) GetMyOrders(c *gin.Context) error {
 	if err == nil {
 		// Chỉ map nếu lấy được store, không thì trả về data gốc
 		res = mapper.MapStoreToOrderHeaders(res, stores)
+	}
+
+	deliveryManIds := sliceutils.CollectUniqueIDs(res, func(o *order.OrderSummary) string {
+		if o.DeliveryMan != nil {
+			return o.DeliveryMan.Id
+		}
+		return ""
+	})
+
+	deliveryMans, err := h.userGW.GetByIds(ctx, deliveryManIds)
+	if err == nil {
+		res = mapper.MapDeliveryManToOrderHeaders(res, deliveryMans)
 	}
 
 	c.JSON(http.StatusOK, res)
@@ -243,6 +286,83 @@ func (h *OrderHandler) UpdateOrderStatus(c *gin.Context) error {
 
 	ctx := c.Request.Context()
 	err = h.orderGW.UpdateStatus(ctx, orderId, req.Status)
+	if err != nil {
+		return err
+	}
+
+	c.JSON(http.StatusOK, gin.H{})
+	return nil
+}
+
+// AssignStaffToDelivery
+// @Summary      Assign Staff To Delivery
+// @Description  Gán nhân viên vào ca làm để giao hàng
+// @Tags         Orders
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id       path     string                              true  "Order UUID"
+// @Param        request  body     order.AssignStaffToDeliveryRequest  true  "Chứa staff id"
+// @Success      200      {object} map[string]interface{}              "Success"
+// @Failure      400      {object} map[string]string        		   "Validation error"
+// @Router       /orders/{id}/delivery/assign [post]
+func (h *OrderHandler) AssignStaffToDelivery(c *gin.Context) error {
+	id := c.Param("id")
+	orderId, err := uuid.Parse(id)
+	if err != nil {
+		return errorcode.ErrInvalidId
+	}
+
+	var req order.AssignStaffToDeliveryRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		return validation.TranslateValidationError(err)
+	}
+
+	ctx := c.Request.Context()
+	err = h.orderGW.AssignStaffToDelivery(ctx, orderId, &req)
+	if err != nil {
+		return err
+	}
+
+	c.JSON(http.StatusOK, gin.H{})
+	return nil
+}
+
+// SelfAssignStaffToDelivery
+// @Summary      Self Assign Staff To Delivery
+// @Description  Tự gán bản thân vào ca làm để giao hàng
+// @Tags         Orders
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id       path     string                              	   true  "Order UUID"
+// @Param        request  body     order.AssignStaffToDeliveryRequest      true  "Chứa staff id"
+// @Success      200      {object} map[string]interface{}              	   "Success"
+// @Failure      400      {object} map[string]string        		       "Validation error"
+// @Router       /orders/{id}/delivery/me/assign [post]
+func (h *OrderHandler) SelfAssignStaffToDelivery(c *gin.Context) error {
+	id := c.Param("id")
+	orderId, err := uuid.Parse(id)
+	if err != nil {
+		return errorcode.ErrInvalidId
+	}
+
+	var req order.AssignStaffToDeliveryRequest
+	if c.Request.Body != nil && c.Request.Body != http.NoBody {
+		if err := c.ShouldBindJSON(&req); err != nil {
+			return validation.TranslateValidationError(err)
+		}
+	}
+
+	userId, err := contextutils.GetUserId(c)
+	if err != nil {
+		return err
+	}
+
+	req.StaffId = &userId
+
+	ctx := c.Request.Context()
+	err = h.orderGW.AssignStaffToDelivery(ctx, orderId, &req)
 	if err != nil {
 		return err
 	}

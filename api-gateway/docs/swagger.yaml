@@ -572,6 +572,11 @@ definitions:
       valuePerPoint:
         type: string
     type: object
+  api-gateway_internal_domain_models_order.AssignStaffToDeliveryRequest:
+    properties:
+      staffId:
+        type: string
+    type: object
   api-gateway_internal_domain_models_order.CartItem:
     properties:
       quantity:
@@ -903,6 +908,19 @@ definitions:
       description:
         type: string
       name:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_shift.ActiveStaffDto:
+    properties:
+      avatarUrl:
+        type: string
+      email:
+        type: string
+      firstName:
+        type: string
+      id:
+        type: string
+      lastName:
         type: string
     type: object
   api-gateway_internal_domain_models_shift.ApplyForShiftRequest:
@@ -3983,6 +4001,78 @@ paths:
       summary: Update Order Items
       tags:
       - Orders
+  /orders/{id}/delivery/assign:
+    post:
+      consumes:
+      - application/json
+      description: Gán nhân viên vào ca làm để giao hàng
+      parameters:
+      - description: Order UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Chứa staff id
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_order.AssignStaffToDeliveryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Assign Staff To Delivery
+      tags:
+      - Orders
+  /orders/{id}/delivery/me/assign:
+    post:
+      consumes:
+      - application/json
+      description: Tự gán bản thân vào ca làm để giao hàng
+      parameters:
+      - description: Order UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Chứa staff id
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_order.AssignStaffToDeliveryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Self Assign Staff To Delivery
+      tags:
+      - Orders
   /orders/{id}/payment:
     post:
       consumes:
@@ -5933,6 +6023,37 @@ paths:
               type: string
             type: object
       summary: Check Store Availability
+      tags:
+      - Stores
+  /stores/{id}/staffs/active:
+    get:
+      consumes:
+      - application/json
+      description: Lấy danh sách staff đang trong ca làm hiện tại của store
+      parameters:
+      - description: Store UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Danh sách nhân viên
+          schema:
+            items:
+              $ref: '#/definitions/api-gateway_internal_domain_models_shift.ActiveStaffDto'
+            type: array
+        "400":
+          description: Invalid ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get Active Staffs At Store
       tags:
       - Stores
   /stores/{id}/stock:

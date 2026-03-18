@@ -20,4 +20,6 @@ type IOrderService interface {
 	GetRevenueReport(ctx context.Context, req *order.GetRevenueReportRequest, includeCsv bool) (*order.GetRevenueReportReply, *order.CsvFile, error)
 	GetOrderVolume(ctx context.Context, req *order.GetOrderVolumeRequest, includeCsv bool) (*order.GetOrderVolumeReply, *order.CsvFile, error)
 	GetSalesTrend(ctx context.Context, req *order.GetSalesTrendRequest, includeCsv bool) (*order.GetSalesTrendReply, *order.CsvFile, error)
+
+	AssignStaffToDelivery(ctx context.Context, orderId uuid.UUID, req *order.AssignStaffToDeliveryRequest) error
 }

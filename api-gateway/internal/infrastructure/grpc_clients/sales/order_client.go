@@ -7,6 +7,7 @@ import (
 	"api-gateway/internal/domain/models/order"
 	"api-gateway/pkg/mapper"
 	salesPb "api-gateway/pkg/pb/sales"
+	"api-gateway/pkg/utils/stringutils"
 	"context"
 
 	"github.com/google/uuid"
@@ -292,4 +293,13 @@ func (o *OrderGrpcClient) GetSalesTrend(ctx context.Context, req *order.GetSales
 		PeakPeriodLabel: res.PeakPeriodLabel,
 		SlowPeriodLabel: res.SlowPeriodLabel,
 	}, nil, nil
+}
+
+// AssignStaffToDelivery implements sales.IOrderService.
+func (o *OrderGrpcClient) AssignStaffToDelivery(ctx context.Context, orderId uuid.UUID, req *order.AssignStaffToDeliveryRequest) error {
+	_, err := o.client.AssignStaffToDelivery(ctx, &salesPb.AssignStaffToDeliveryRequest{
+		OrderId: orderId.String(),
+		StaffId: stringutils.UuidPtrToStringPtr(req.StaffId),
+	})
+	return err
 }

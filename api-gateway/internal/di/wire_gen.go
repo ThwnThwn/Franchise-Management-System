@@ -120,7 +120,8 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, func
 		return nil, nil, err
 	}
 	iStoreService := franchise.ProvideStoreClient(franchiseClientFactory)
-	storeHandler := franchise2.NewStoreHandler(iStoreService)
+	iShiftService := franchise.ProvideShiftClient(franchiseClientFactory)
+	storeHandler := franchise2.NewStoreHandler(iStoreService, iShiftService)
 	inventoryServiceUrl := cfg.InventoryServiceUrl
 	inventoryClientFactory, cleanup6, err := inventory.NewInventoryClientFactory(inventoryServiceUrl, l)
 	if err != nil {
@@ -135,7 +136,6 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, func
 	stockHandler := inventory2.NewStockHandler(iStockService)
 	stockRouter := stock.NewRouter(cfg, authMiddleware, stockHandler)
 	storeRouter := stores.NewRouter(cfg, authMiddleware, storeHandler, stockRouter)
-	iShiftService := franchise.ProvideShiftClient(franchiseClientFactory)
 	iUserService := identity.ProvideUserClient(identityClientFactory)
 	shiftStaffHandler := franchise2.NewShiftStaffHandler(iShiftService, iUserService)
 	iShiftAvailabilityService := franchise.ProvideShiftAvailabilityClient(franchiseClientFactory)
@@ -190,7 +190,7 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, func
 	categoryRouter := categories2.NewRouter(cfg, authMiddleware, categoryHandler)
 	variantRouter := variants.NewRouter(cfg, authMiddleware, recipeHandler)
 	iOrderService := sales.ProvideOrderClient(salesClientFactory)
-	orderHandler := sales2.NewOrderHandler(iOrderService, iStoreService)
+	orderHandler := sales2.NewOrderHandler(iOrderService, iStoreService, iUserService)
 	paymentHandler := sales2.NewPaymentHandler(cfg, iPaymentService)
 	orderRouter := orders.NewRouter(cfg, authMiddleware, orderHandler, paymentHandler)
 	iCartService := sales.ProvideCartClient(salesClientFactory)

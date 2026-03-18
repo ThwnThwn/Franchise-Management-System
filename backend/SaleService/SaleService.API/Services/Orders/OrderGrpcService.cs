@@ -196,6 +196,8 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             CustomerId = dto.CustomerId.ToString(),
             StoreId = dto.StoreId?.ToString() ?? string.Empty,
             Type = (OrderType?)dto?.Type ?? OrderType.Pickup,
+
+            DelivererId = dto?.DelivererId?.ToString() ?? string.Empty,
             ScheduledTime = dto?.ScheduledTime?.ToString("O") ?? string.Empty,
             ShippingFee = (double?)dto?.ShippingFee ?? 0,
             Address = dto?.Address ?? string.Empty,
@@ -289,16 +291,18 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
                 Tax = order.Tax.HasValue ? (double)order.Tax.Value : -1,
                 PaidAmount = order.PaidAmount.HasValue ? (double)order.PaidAmount.Value : -1,
                 PaymentMethod = order.PaymentMethod ?? -1,
-                Type = (OrderType)order.OrderType,
-                ScheduledTime = order.ScheduledTime?.ToString("O") ?? string.Empty,
-                ShippingFee = (double)order.ShippingFee,
-                Address = order.Address ?? string.Empty,
-                Latitude = order.Latitude ?? 0,
-                Longitude = order.Longitude ?? 0,
+                Type = (OrderType?)order.OrderType ?? OrderType.Pickup,
+
+                DelivererId = order?.DelivererId?.ToString() ?? string.Empty,
+                ScheduledTime = order?.ScheduledTime?.ToString("O") ?? string.Empty,
+                ShippingFee = (double?)order?.ShippingFee ?? 0,
+                Address = order?.Address ?? string.Empty,
+                Latitude = order?.Latitude ?? 0,
+                Longitude = order?.Longitude ?? 0,
                 Distance = (double?)order?.Distance ?? 0,
             };
 
-            if (!string.IsNullOrEmpty(order.Notes))
+            if (!string.IsNullOrEmpty(order?.Notes))
             {
                 orderSummary.Notes = order.Notes;
             }
@@ -476,16 +480,18 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
                 Tax = order.Tax.HasValue ? (double)order.Tax.Value : -1,
                 PaidAmount = order.PaidAmount.HasValue ? (double)order.PaidAmount.Value : -1,
                 PaymentMethod = order.PaymentMethod ?? -1,
-                Type = (OrderType)order.OrderType,
-                ScheduledTime = order.ScheduledTime?.ToString("O") ?? string.Empty,
-                ShippingFee = (double)order.ShippingFee,
-                Address = order.Address ?? string.Empty,
-                Latitude = order.Latitude ?? 0,
-                Longitude = order.Longitude ?? 0,
+                Type = (OrderType?)order.OrderType ?? OrderType.Pickup,
+
+                DelivererId = order?.DelivererId?.ToString() ?? string.Empty,
+                ScheduledTime = order?.ScheduledTime?.ToString("O") ?? string.Empty,
+                ShippingFee = (double?)order?.ShippingFee ?? 0,
+                Address = order?.Address ?? string.Empty,
+                Latitude = order?.Latitude ?? 0,
+                Longitude = order?.Longitude ?? 0,
                 Distance = (double?)order?.Distance ?? 0,
             };
 
-            if (!string.IsNullOrEmpty(order.Notes))
+            if (!string.IsNullOrEmpty(order?.Notes))
             {
                 summary.Notes = order.Notes;
             }

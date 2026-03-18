@@ -12,6 +12,7 @@ type IShiftService interface {
 	// Lấy lịch làm việc hôm nay của nhân viên (Để App biết đang làm ở Store nào)
 	GetUserCurrentShift(ctx context.Context, id uuid.UUID) (
 		*shift.UserCurrentShiftResponse, error)
+	GetActiveStaffsAtStore(ctx context.Context, storeId uuid.UUID) ([]*shift.ActiveStaffDto, error)
 
 	GetShifts(ctx context.Context, req *shift.GetShiftsParams) ([]*shift.ShiftResponse, error)
 	GetById(ctx context.Context, id uuid.UUID) (*shift.ShiftResponse, error)

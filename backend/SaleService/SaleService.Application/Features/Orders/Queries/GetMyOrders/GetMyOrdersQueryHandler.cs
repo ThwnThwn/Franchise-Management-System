@@ -44,6 +44,7 @@ namespace SalesService.Application.Features.Orders.Queries.GetMyOrders
                 o.UpdatedAt,
                 o.CustomerId,
                 o.StoreId,
+                DelivererId: o.DelivererId,
                 o.ScheduledTime,
                 o.Address,
                 o.Latitude,

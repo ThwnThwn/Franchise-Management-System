@@ -3,6 +3,7 @@ package franchise
 import (
 	"api-gateway/internal/application/constants/errorcode"
 	"api-gateway/internal/application/gateways/franchise"
+	_ "api-gateway/internal/domain/models/shift"
 	"api-gateway/internal/domain/models/store"
 	"net/http"
 
@@ -12,10 +13,17 @@ import (
 
 type StoreHandler struct {
 	storeGW franchise.IStoreService
+	shiftGW franchise.IShiftService
 }
 
-func NewStoreHandler(storeGW franchise.IStoreService) *StoreHandler {
-	return &StoreHandler{storeGW: storeGW}
+func NewStoreHandler(
+	storeGW franchise.IStoreService,
+	shiftGW franchise.IShiftService,
+) *StoreHandler {
+	return &StoreHandler{
+		storeGW: storeGW,
+		shiftGW: shiftGW,
+	}
 }
 
 // GetStores
@@ -125,5 +133,33 @@ func (h *StoreHandler) CheckStoreAvailability(c *gin.Context) error {
 		"isAvailable": isAvailable,
 		"message":     msg,
 	})
+	return nil
+}
+
+// GetActiveStaffsAtStore
+// @Summary      Get Active Staffs At Store
+// @Description  Lấy danh sách staff đang trong ca làm hiện tại của store
+// @Tags         Stores
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        id   path      string  true  "Store UUID"
+// @Success      200  {array}   shift.ActiveStaffDto   "Danh sách nhân viên"
+// @Failure      400  {object}  map[string]string      "Invalid ID format"
+// @Router       /stores/{id}/staffs/active [get]
+func (h *StoreHandler) GetActiveStaffsAtStore(c *gin.Context) error {
+	id := c.Param("id")
+	storeId, err := uuid.Parse(id)
+	if err != nil {
+		return errorcode.ErrInvalidId
+	}
+
+	ctx := c.Request.Context()
+	res, err := h.shiftGW.GetActiveStaffsAtStore(ctx, storeId)
+	if err != nil {
+		return err
+	}
+
+	c.JSON(http.StatusOK, res)
 	return nil
 }

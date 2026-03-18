@@ -54,6 +54,11 @@ func (o *OrderRouter) Init(r *gin.RouterGroup) {
 
 		orderApi.POST("/:id/payment", o.authMW.PermissionCheck("order.payment"),
 			api.WrapHandler(o.paymentHl.CreatePaymentUrl))
+
+		orderApi.POST("/:id/delivery/assign", o.authMW.PermissionCheck("order.delivery.assign"),
+			api.WrapHandler(o.orderHl.AssignStaffToDelivery))
+		orderApi.POST("/:id/delivery/me/assign", o.authMW.PermissionCheck("order.delivery.assign"),
+			api.WrapHandler(o.orderHl.SelfAssignStaffToDelivery))
 	}
 
 	payments := r.Group("/orders/payments")
@@ -63,7 +68,7 @@ func (o *OrderRouter) Init(r *gin.RouterGroup) {
 		payments.GET("", o.authMW.PermissionCheck("payment.read.all"), api.WrapHandler(o.paymentHl.GetAllPayments))
 	}
 
-	// 👤 Nhóm dành cho khách hàng tự xem đơn của mình
+	// Nhóm dành cho khách hàng tự xem đơn của mình
 	myOrderApi := r.Group("/me/orders")
 	myOrderApi.Use(o.authMW.ValidateToken([]byte(o.cfg.JwtSecret)))
 	{

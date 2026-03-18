@@ -31,6 +31,14 @@ type ShiftAssignment struct {
 	Email      string   `json:"email"`
 }
 
+type ActiveStaffDto struct {
+	Id        string `json:"id"`
+	FirstName string `json:"firstName"`
+	LastName  string `json:"lastName"`
+	Email     string `json:"email"`
+	AvatarUrl string `json:"avatarUrl"`
+}
+
 // ===============================
 // My schedule & Agenda (Staff)
 // ===============================

@@ -49,6 +49,8 @@ public sealed class GetOrderByIdQueryHandler
                 : null,
             Status = (int)order.Status,
             Type = order.Type,
+
+            DelivererId = order.DelivererId,
             ScheduledTime = order.ScheduledTime,
             Address = order.Address,
             Latitude = order.Latitude,

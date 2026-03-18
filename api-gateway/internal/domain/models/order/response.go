@@ -26,6 +26,16 @@ type ShortageItem struct {
 	MaxFeasibleQuantity int32  `json:"maxFeasibleQuantity"`
 }
 
+type DeliveryMan struct {
+	Id        string  `json:"id"`
+	Username  string  `json:"username"`
+	Email     string  `json:"email"`
+	Phone     string  `json:"phone"`
+	FirstName string  `json:"firstName"`
+	LastName  *string `json:"lastName"`
+	AvatarUrl *string `json:"avatarUrl"`
+}
+
 type OrderHeader struct {
 	Id            string                     `json:"id"`
 	Code          string                     `json:"code"`
@@ -43,6 +53,7 @@ type OrderHeader struct {
 	Store         *store.StoreDetailResponse `json:"store"`
 
 	Type          enum.OrderType `json:"type"`
+	DeliveryMan   *DeliveryMan   `json:"deliveryMan"`
 	ScheduledTime *string        `json:"scheduledTime"`
 	ShippingFee   float64        `json:"shippingFee"`
 	Latitude      *float64       `json:"latitude"`
@@ -60,6 +71,17 @@ func (h *OrderHeader) GetStoreId() string {
 
 func (h *OrderHeader) SetStore(s *store.StoreDetailResponse) {
 	h.Store = s
+}
+
+func (h *OrderHeader) GetDeliveryManId() string {
+	if h.DeliveryMan != nil {
+		return h.DeliveryMan.Id
+	}
+	return ""
+}
+
+func (h *OrderHeader) SetDeliveryMan(d *DeliveryMan) {
+	h.DeliveryMan = d
 }
 
 type Order struct {
