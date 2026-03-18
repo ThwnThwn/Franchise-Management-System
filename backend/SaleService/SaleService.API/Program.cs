@@ -118,12 +118,17 @@ public class Program
         builder.Services.AddEndpointsApiExplorer();
 
         // KAFKA - Override for local development
-        var kafkaBootstrap = Environment.GetEnvironmentVariable("KAFKA_BOOTSTRAP_SERVERS") ?? "localhost:9092";
-        if (kafkaBootstrap.Contains("kafka:"))
+        var kafkaBootstrap = Environment.GetEnvironmentVariable("KAFKA_BOOTSTRAP_SERVERS") 
+                     ?? builder.Configuration["KAFKA_BOOTSTRAP_SERVERS"] 
+                     ?? "localhost:9092";
+
+        bool isDocker = Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true";
+        if (!isDocker)
         {
-            kafkaBootstrap = "localhost:9092";  // Use localhost when running outside Docker
+            kafkaBootstrap = "localhost:9092";
         }
         builder.Configuration["KAFKA_BOOTSTRAP_SERVERS"] = kafkaBootstrap;
+        
         // KAFKA CONSUMER (Generic)
         builder.Services.AddKafkaConsumer(config =>
         {

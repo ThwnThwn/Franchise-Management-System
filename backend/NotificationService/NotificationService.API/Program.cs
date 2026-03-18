@@ -24,12 +24,10 @@ var kafkaBootstrap = Environment.GetEnvironmentVariable("KAFKA_BOOTSTRAP_SERVERS
                      ?? "localhost:9092";
 
 bool isDocker = Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true";
-
 if (!isDocker)
 {
     kafkaBootstrap = "localhost:9092";
 }
-
 builder.Configuration["KAFKA_BOOTSTRAP_SERVERS"] = kafkaBootstrap;
 
 // SMTP SETTINGS

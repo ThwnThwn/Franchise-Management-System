@@ -163,6 +163,7 @@ services:
       - .env
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
+      - DOTNET_RUNNING_IN_CONTAINER=true
       - KAFKA_BOOTSTRAP_SERVERS=chb_kafka:29092
     depends_on:
       postgres:
@@ -183,6 +184,7 @@ services:
       - .env
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
+      - DOTNET_RUNNING_IN_CONTAINER=true
       - KAFKA_BOOTSTRAP_SERVERS=chb_kafka:29092
     depends_on:
       postgres:
@@ -203,6 +205,7 @@ services:
       - .env
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
+      - DOTNET_RUNNING_IN_CONTAINER=true
       - KAFKA_BOOTSTRAP_SERVERS=chb_kafka:29092
     depends_on:
       postgres:
@@ -223,6 +226,7 @@ services:
       - .env
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
+      - DOTNET_RUNNING_IN_CONTAINER=true
       - KAFKA_BOOTSTRAP_SERVERS=chb_kafka:29092
     depends_on:
       postgres:
@@ -243,6 +247,7 @@ services:
       - .env
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
+      - DOTNET_RUNNING_IN_CONTAINER=true
       - KAFKA_BOOTSTRAP_SERVERS=chb_kafka:29092
     depends_on:
       postgres:
@@ -263,6 +268,7 @@ services:
       - .env
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
+      - DOTNET_RUNNING_IN_CONTAINER=true
       - KAFKA_BOOTSTRAP_SERVERS=chb_kafka:29092
     depends_on:
       postgres:
@@ -283,6 +289,7 @@ services:
       - .env
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
+      - DOTNET_RUNNING_IN_CONTAINER=true
       - KAFKA_BOOTSTRAP_SERVERS=chb_kafka:29092
     depends_on:
       postgres:
@@ -303,6 +310,7 @@ services:
       - .env
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
+      - DOTNET_RUNNING_IN_CONTAINER=true
       - KAFKA_BOOTSTRAP_SERVERS=chb_kafka:29092
     depends_on:
       postgres:
