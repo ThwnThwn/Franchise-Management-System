@@ -46,7 +46,7 @@ export default function OrderDetailPageView({ orderId }: { orderId: string }) {
 
     const { data: wallet } = useGetWalletByUserId({
         userId: user?.id,
-        enabled: !!user?.id
+        enabled: !!user?.id && user.role?.slug === RoleSlug.Customer
     })
 
     const { data: recipes, isLoading: isRecipeLoading } = useGetRecipes({

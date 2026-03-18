@@ -7,7 +7,8 @@ import { TopUpWalletRequest } from "@/features/wallets/models/request"
 import { WalletResponse } from "@/features/wallets/models/response"
 import { BackendError } from "@/models/common/respone"
 import { addToast } from "@heroui/react"
-import { promptDialog } from "@/hooks"
+import { promptDialog, useTokenStore } from "@/hooks"
+import { RoleSlug } from "@/constants/enums"
 
 /**
  * HOOKS CHO WALLET
@@ -23,10 +24,12 @@ import { promptDialog } from "@/hooks"
  * Lấy thông tin số dư, trạng thái ví của người dùng đang đăng nhập.
  */
 export const useGetMyWallet = (enabled = true) => {
+    const roleSlug = useTokenStore((s) => s.roleSlug)
+
     return useQuery<WalletResponse>({
         queryKey: [QUERY_KEYS.WALLETS, QUERY_KEYS.ME],
         queryFn: () => walletApi.getMyWallet(),
-        enabled
+        enabled: enabled && roleSlug === RoleSlug.Customer
     })
 }
 
