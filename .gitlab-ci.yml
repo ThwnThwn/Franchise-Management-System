@@ -6,23 +6,50 @@ deploy_backend:
   tags:
     - backend-deploy
   script:
-    - echo "Đang triển khai Backend..."
+    - echo "Deploying Backend..."
 
-    # 1. Chép file .env từ "nhà kho" cố định vào thư mục code vừa kéo về
+    # Copy environment variables from the runner's secure storage
     - cp /home/gitlab-runner/chb_env_config .env
 
-    # 2. Khởi động hạ tầng cơ sở
-    - docker compose -f docker-compose.prod.yml up -d postgres redis zookeeper kafka
-    - sleep 10
+    # Start OSRM early in the background to allow time for data loading
+    - echo "Starting OSRM (Routing Engine)..."
+    - docker compose -f docker-compose.prod.yml up -d osrm
 
-    # 3. Build và Up theo cụm
-    - docker compose -f docker-compose.prod.yml up -d --build identity-service product-service
-    - docker compose -f docker-compose.prod.yml up -d --build sales-service notification-service
-    - docker compose -f docker-compose.prod.yml up -d --build inventory-service franchise-service
-    - docker compose -f docker-compose.prod.yml up -d --build engagement-service supplier-service
+    # Start core infrastructure (DB, Cache, Message Broker)
+    - echo "Starting Database & Message Brokers..."
+    - docker compose -f docker-compose.prod.yml up -d postgres redis zookeeper kafka
+    - sleep 15
+
+    # Build and deploy each service sequentially (Crucial for 2GB RAM + Swap limit)
+    - echo "Building Identity Service..."
+    - docker compose -f docker-compose.prod.yml up -d --build identity-service
+
+    - echo "Building Product Service..."
+    - docker compose -f docker-compose.prod.yml up -d --build product-service
+
+    - echo "Building Sales Service..."
+    - docker compose -f docker-compose.prod.yml up -d --build sales-service
+
+    - echo "Building Notification Service..."
+    - docker compose -f docker-compose.prod.yml up -d --build notification-service
+
+    - echo "Building Inventory Service..."
+    - docker compose -f docker-compose.prod.yml up -d --build inventory-service
+
+    - echo "Building Franchise Service..."
+    - docker compose -f docker-compose.prod.yml up -d --build franchise-service
+
+    - echo "Building Engagement Service..."
+    - docker compose -f docker-compose.prod.yml up -d --build engagement-service
+
+    - echo "Building Supplier Service..."
+    - docker compose -f docker-compose.prod.yml up -d --build supplier-service
+
+    - echo "Building API Gateway..."
     - docker compose -f docker-compose.prod.yml up -d --build api-gateway
 
-    # 4. Dọn dẹp rác Docker
+    # Clean up to free up disk space
+    - echo "Pruning unused Docker images..."
     - docker image prune -f
 
   rules:

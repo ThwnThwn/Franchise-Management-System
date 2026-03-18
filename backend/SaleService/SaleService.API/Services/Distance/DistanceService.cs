@@ -20,7 +20,9 @@ public class DistanceService : IDistanceService
         try
         {
             // OSRM format: lon,lat;lon,lat
-            var url = $"{_osrmBaseUrl}/route/v1/driving/{startLong},{startLat};{endLong},{endLat}?overview=false";
+            var baseUrl = _osrmBaseUrl.TrimEnd('/');
+            var url = $"{baseUrl}/route/v1/driving/{startLong},{startLat};{endLong},{endLat}?overview=false";
+            
             var response = await _httpClient.GetAsync(url);
 
             if (response.IsSuccessStatusCode)

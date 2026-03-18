@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   # ==========================================
-  # 1. DATABASE: POSTGRESQL
+  # DATABASE: POSTGRESQL
   # ==========================================
   postgres:
     image: postgres:16-alpine
@@ -29,7 +29,7 @@ services:
       - chb-network
 
   # ==========================================
-  # 2. CACHE: REDIS
+  # CACHE: REDIS
   # ==========================================
   redis:
     image: redis:alpine
@@ -47,7 +47,7 @@ services:
       - chb-network
 
   # ==========================================
-  # 3. MESSAGE BROKER: KAFKA & ZOOKEEPER
+  # MESSAGE BROKER: KAFKA & ZOOKEEPER
   # ==========================================
   zookeeper:
     image: confluentinc/cp-zookeeper:7.6.1
@@ -94,7 +94,36 @@ services:
       - chb-network
 
   # ==========================================
-  # 4. API GATEWAY (GOLANG)
+  # ROUTING ENGINE: OSRM (Open Source Routing Machine)
+  # ==========================================
+  osrm:
+    image: osrm/osrm-backend
+    container_name: chb_osrm
+    restart: always
+    volumes:
+      - ./osrm_data:/data
+    entrypoint: >
+      /bin/sh -c "
+        if [ ! -f /data/Saigon.osrm ]; then
+          echo 'Data not found, starting preprocessing...' &&
+          osrm-extract -p /opt/car.lua /data/Saigon.osm.pbf &&
+          osrm-partition /data/Saigon.osrm &&
+          osrm-customize /data/Saigon.osrm;
+        fi;
+        echo 'Starting OSRM server...' &&
+        osrm-routed --algorithm mld /data/Saigon.osrm;
+      "
+    deploy:
+      resources:
+        limits:
+          memory: 512M # Giới hạn tối đa RAM để không ăn lẹm tài nguyên của service khác
+        reservations:
+          memory: 256M # Giữ chỗ 256MB RAM
+    networks:
+      - chb-network
+
+  # ==========================================
+  # API GATEWAY (GOLANG)
   # ==========================================
   api-gateway:
     build:
@@ -123,7 +152,7 @@ services:
       - chb-network
 
   # ==========================================
-  # 5. BACKEND SERVICES (.NET)
+  # BACKEND SERVICES (.NET)
   # ==========================================
   identity-service:
     build:
