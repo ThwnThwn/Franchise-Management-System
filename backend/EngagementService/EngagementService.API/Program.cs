@@ -91,9 +91,11 @@ public class Program
         var redisConn = builder.Configuration["REDIS_CONFIGURATION"]
                 ?? "localhost:6379,abortConnect=false";
         var tierDb = builder.Configuration["REDIS_TIER_DB"] ?? "2";
+        var campaignDb = builder.Configuration["REDIS_CAMP_DB"] ?? "3";
         builder.Services.AddInfrastructure(
             redisConn,
-            tierDb
+            tierDb,
+            campaignDb
         );
 
         // Register gRPC Exception Interceptor

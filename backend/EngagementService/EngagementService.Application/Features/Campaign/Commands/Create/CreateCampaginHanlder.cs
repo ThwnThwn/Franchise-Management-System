@@ -29,7 +29,7 @@ namespace EngagementService.Application.Features.Campaign.Commands.Create
         {
             var request = command.Request;
             IEnumerable<Domain.Entities.Voucher> vouchers = await _voucherRepository.GetVoucherByIdsAsync(request.VoucherIds.ToArray());
-            if(!vouchers.Any())
+            if(!vouchers.Any() && vouchers.Count() != request.VoucherIds.Count())
             {
                 throw new ArgumentException("Vouchers failed to be added into campaign - CreateHandler");
             }
