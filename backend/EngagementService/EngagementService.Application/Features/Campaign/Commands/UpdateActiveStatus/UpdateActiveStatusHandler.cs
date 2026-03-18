@@ -34,6 +34,8 @@ namespace EngagementService.Application.Features.Campaign.Commands.UpdateActiveS
                 throw new ArgumentNullException($"campign with Id {request.Id} is null" + nameof(command));
             }
             campaign.IsActive = request.IsActive;
+            campaign.Vouchers.ToList().ForEach(v => v.IsActive = request.IsActive);
+
             await _campaignRepository.UpdateAsync(campaign);
             return _mapper.Map<CampaginRes>(campaign);
         }
