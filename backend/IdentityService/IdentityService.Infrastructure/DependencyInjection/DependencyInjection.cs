@@ -38,6 +38,7 @@ public static class DependencyInjection
         {
             blackListDbInt = 0;
         }
+
         services.AddSingleton<IConnectionMultiplexer>(sp =>
         {
             var configuration = ConfigurationOptions.Parse(redisConnectionString, true);
