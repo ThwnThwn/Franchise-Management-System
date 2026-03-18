@@ -28,7 +28,7 @@ export const OrderStatusActions = ({ currentStatus, onUpdate, isLoading = false 
                 Hành động tiếp theo
             </p>
 
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap justify-center gap-3">
                 {nextStatuses.map((status, index) => {
                     const isPrimary = index === 0 && status !== OrderStatus.Cancelled
 

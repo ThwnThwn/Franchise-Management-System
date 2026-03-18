@@ -19,6 +19,10 @@ export interface CreateOrderRequest {
     address?: string // bắt buộc nếu OrderType.Delivery
 }
 
+export interface AssignStaffToDeliveryRequest {
+    staffId?: string
+}
+
 export interface CreatePaymentRequest {
     returnUrl?: string
     paymentMethod: PaymentMethod

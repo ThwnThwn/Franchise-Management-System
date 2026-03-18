@@ -87,3 +87,20 @@ export const useGetNearbyStores = ({
         enabled: enabled
     })
 }
+
+export const useGetActiveStaffs = ({
+    storeId,
+    enabled = true
+}: {
+    storeId?: string
+    enabled?: boolean
+}) => {
+    return useQuery({
+        queryKey: [QUERY_KEYS.STORES, QUERY_KEYS.STORE_ACTIVE_STAFFS, storeId],
+        queryFn: async () => {
+            if (!storeId) return []
+            return await storeApi.getActiveStaffs(storeId)
+        },
+        enabled: enabled && !!storeId
+    })
+}

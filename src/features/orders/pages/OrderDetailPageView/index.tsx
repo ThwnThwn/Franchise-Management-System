@@ -137,7 +137,7 @@ export default function OrderDetailPageView({ orderId }: { orderId: string }) {
                     </div>
                 </div>
 
-                <CardBody className="p-8 md:p-12">
+                <CardBody className="px-8 py-5 md:p-12">
                     <div className="min-h-50">
                         {/* TRUYỀN DATA ĐÃ TÍNH XUỐNG ORDER DETAIL */}
                         <OrderDetail

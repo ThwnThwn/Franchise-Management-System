@@ -14,7 +14,7 @@ import { User } from "@/models/user"
 import { WalletResponse } from "@/features/wallets/models/response"
 import { OrderItemDisplay } from "@/features/orders/types"
 
-export const OrderDetail = (props: {
+interface Props {
     order: Order
     user?: User
     wallet?: WalletResponse
@@ -45,7 +45,9 @@ export const OrderDetail = (props: {
     appliedShippingVoucher?: Voucher
     appliedDiscountVoucher?: Voucher
     onOpenVoucherSelector?: () => void
-}) => {
+}
+
+export const OrderDetail = (props: Props) => {
     const {
         order,
         user,
@@ -72,7 +74,7 @@ export const OrderDetail = (props: {
     }, [order.status, order.items])
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-3">
             <OrderInfoCard order={order} />
 
             <OrderItemsSection

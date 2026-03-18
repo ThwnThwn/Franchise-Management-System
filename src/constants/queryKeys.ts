@@ -13,6 +13,7 @@ export const QUERY_KEYS = {
     INGREDIENTS: "ingredients" as const,
     INGREDIENT_CATEGORIES: "ingredient-categories" as const,
     SHIFTS: "shifts" as const,
+    STORE_ACTIVE_STAFFS: "active-staffs" as const,
     AGENDA: "agenda" as const,
     SHIFT_SWAPS: "shift-swaps" as const,
     SHIFT_CANDIDATES: "shift-candidates" as const,

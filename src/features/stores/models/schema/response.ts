@@ -8,3 +8,11 @@ export type StoreDetailDto = {
     longitude?: number
     isOpenNow: boolean
 }
+
+export interface ActiveStaffDto {
+    id: string
+    firstName: string
+    lastName: string
+    email: string
+    avatarUrl: string
+}

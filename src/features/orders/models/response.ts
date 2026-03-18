@@ -46,6 +46,16 @@ export interface OrderSaleItem {
     name: string
 }
 
+export interface DeliveryMan {
+    id: string
+    username: string
+    email: string
+    phone: string
+    firstName: string
+    lastName?: string
+    avatarUrl?: string
+}
+
 export interface OrderHeader {
     id: string
     code: string
@@ -67,6 +77,8 @@ export interface OrderHeader {
     store?: StoreDetailDto
 
     type: OrderType
+
+    deliveryMan?: DeliveryMan
     scheduledTime?: string
     shippingFee: number
     latitude?: number

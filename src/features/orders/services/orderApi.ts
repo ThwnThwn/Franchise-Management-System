@@ -12,7 +12,8 @@ import {
     GetOrdersQuery,
     GetRevenueReportQuery,
     GetOrderVolumeQuery,
-    UpdateOrderItem
+    UpdateOrderItem,
+    AssignStaffToDeliveryRequest
 } from "@/features/orders/models/request"
 import { OrderStatus } from "../constants"
 import { PaginationParams } from "@/models/common/request"
@@ -95,6 +96,20 @@ export const ordersApi = {
         return res.data
     },
 
+    assignStaffToDelivery: async ({
+        id,
+        req
+    }: {
+        id: string
+        req: AssignStaffToDeliveryRequest
+    }): Promise<void> => {
+        await axiosInstance.post(`/orders/${id}/delivery/assign`, req)
+    },
+
+    selfAssignStaffToDelivery: async ({ id }: { id: string }): Promise<void> => {
+        await axiosInstance.post(`/orders/${id}/delivery/me/assign`)
+    },
+
     // ── Analytics ──────────────────────────────────────────────────────────────
 
     /** GET /orders/reports/revenue - Doanh thu theo sản phẩm */
@@ -145,4 +160,3 @@ export const ordersApi = {
         URL.revokeObjectURL(url)
     }
 }
-

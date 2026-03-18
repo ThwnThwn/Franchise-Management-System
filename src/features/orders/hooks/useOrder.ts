@@ -5,7 +5,7 @@ import { addToast } from "@heroui/react"
 import { STRINGS } from "@/constants/strings"
 import { ORDER_TEXT, OrderStatus } from "@/features/orders/constants"
 import { BackendError, PageResult } from "@/models/common/respone"
-import { useTokenStore } from "@/hooks"
+import { confirmDialog, useTokenStore } from "@/hooks"
 import { RoleSlug } from "@/constants/enums"
 import { OrderReply, OrderSummary } from "@/features/orders/models/response"
 import {
@@ -211,6 +211,73 @@ export const usePayment = ({
     })
 }
 
+export const useAssignStaffToDelivery = ({ onSuccess }: { onSuccess?: () => void } = {}) => {
+    const queryClient = useQueryClient()
+
+    return useMutation({
+        mutationFn: ordersApi.assignStaffToDelivery,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ORDERS], exact: false })
+
+            addToast({
+                title: STRINGS.COMMON.SUCCESS,
+                description: "Đã gán nhân viên giao hàng thành công",
+                color: "success"
+            })
+            onSuccess?.()
+        },
+        onError: (error: BackendError) => {
+            addToast({
+                title: error.title || STRINGS.COMMON.ERROR,
+                description: error.detail,
+                color: "danger"
+            })
+        }
+    })
+}
+
+export const useSelfAssignStaffToDelivery = ({ onSuccess }: { onSuccess?: () => void } = {}) => {
+    const queryClient = useQueryClient()
+
+    const mutation = useMutation({
+        mutationFn: ordersApi.selfAssignStaffToDelivery,
+        onSuccess: () => {
+            // Invalidate lại list order hiện tại để nó biến mất (hoặc cập nhật trạng thái)
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ORDERS], exact: false })
+
+            addToast({
+                title: STRINGS.COMMON.SUCCESS,
+                description: "Nhận giao đơn hàng thành công",
+                color: "success"
+            })
+            onSuccess?.()
+        },
+        onError: (error: BackendError) => {
+            addToast({
+                title: error.title || STRINGS.COMMON.ERROR,
+                description: error.detail,
+                color: "danger"
+            })
+        }
+    })
+
+    // Wrapper: Bọc Confirm Dialog chống bấm nhầm
+    const assignWithConfirm = async (id: string) => {
+        const isConfirmed = await confirmDialog({
+            title: "Xác nhận nhận đơn",
+            message: "Bạn có chắc chắn muốn nhận giao đơn hàng này không?",
+            variant: "success",
+            confirmText: "Đồng ý nhận"
+        })
+
+        if (isConfirmed) {
+            mutation.mutate({ id })
+        }
+    }
+
+    return { ...mutation, assignWithConfirm }
+}
+
 // ── Analytics Hooks ───────────────────────────────────────────────────────────
 
 export const useGetRevenueReport = (query: GetRevenueReportQuery) => {
@@ -254,4 +321,3 @@ export const useExportOrderVolume = () => {
         }
     })
 }
-

@@ -36,7 +36,7 @@ export const ORDER_STATUS_TRANSITION_POLICY: Record<OrderStatus, OrderStatus[]> 
     [OrderStatus.ConfirmationPending]: [OrderStatus.Confirmed],
     [OrderStatus.Confirmed]: [OrderStatus.Preparing],
     [OrderStatus.Preparing]: [OrderStatus.ReadyForPickup],
-    [OrderStatus.ReadyForPickup]: [OrderStatus.Delivering, OrderStatus.Completed],
+    [OrderStatus.ReadyForPickup]: [OrderStatus.Completed],
     [OrderStatus.Delivering]: [OrderStatus.Completed],
     [OrderStatus.Completed]: [],
     [OrderStatus.Cancelled]: []
