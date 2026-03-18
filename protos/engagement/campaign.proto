@@ -12,6 +12,8 @@ import "engagement/voucher.proto";
 service CampaignGrpc {
   rpc CreateCampaign (CreateCampaignRequest) returns (CampaignResponse);
 
+  rpc UpdateActiveStatus (UpdateActiveStatusRequest) returns (CampaignResponse);
+
   rpc GetById (GetByIdRequest) returns (CampaignResponse);
 
   rpc GetAll (google.protobuf.Empty) returns (ListCampaignResponse);
@@ -20,6 +22,11 @@ service CampaignGrpc {
 // ===== REQUEST =====
 message GetByIdRequest{
   string id = 1;
+}
+
+message UpdateActiveStatusRequest{
+  string id = 1;
+  bool isActive = 2;
 }
 
 message CreateCampaignRequest {
@@ -48,4 +55,5 @@ message CampaignResponse {
   google.protobuf.Timestamp updated_at = 7;
 
   repeated VoucherResponse vouchers = 8;
+  bool isActive = 9;
 }

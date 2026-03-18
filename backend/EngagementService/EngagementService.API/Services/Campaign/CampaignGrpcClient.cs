@@ -2,6 +2,7 @@
 using EngagementService.Application.Dtos.Campaign.Request;
 using EngagementService.Application.Dtos.Campaign.Response;
 using EngagementService.Application.Features.Campaign.Commands.Create;
+using EngagementService.Application.Features.Campaign.Commands.UpdateActiveStatus;
 using EngagementService.Application.Features.Campaign.Queries.GetAll;
 using EngagementService.Application.Features.Campaign.Queries.GetById;
 using EngagementService.Grpc.Protos.CampaignGrpc;
@@ -33,6 +34,20 @@ namespace EngagementService.API.Services.Campagin
                 StartDate = request.StartDate.ToDateTime(),
                 EndDate = request.EndDate.ToDateTime(),
                 VoucherIds = request.VoucherIds.Select(Guid.Parse).ToList()
+            });
+            var result = await _mediator.Send(command);
+
+            //Result - gRPC Response
+            var response = MapCampaignToGrpc(result);
+            return response;
+        }
+
+        public override async Task<CampaignResponse> UpdateActiveStatus(UpdateActiveStatusRequest request, ServerCallContext context)
+        {
+            var command = new UpdateActiveStatusCommand(new UpdateActiveStatusReq
+            {
+                Id = Guid.Parse(request.Id),
+                IsActive = request.IsActive,
             });
             var result = await _mediator.Send(command);
 
@@ -81,6 +96,7 @@ namespace EngagementService.API.Services.Campagin
                     .FromDateTimeOffset(result.CreatedAt),
                 UpdatedAt = Google.Protobuf.WellKnownTypes.Timestamp
                     .FromDateTimeOffset(result.UpdatedAt),
+                IsActive = result.IsActive.Value,
             };
             //Map vouchers
             response.Vouchers.AddRange(result.Vouchers.Select(v => new Grpc.Protos.VoucherGrpc.VoucherResponse
