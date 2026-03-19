@@ -1,0 +1,1566 @@
+basePath: /api
+definitions:
+  enum.TimeLogStatus:
+    enum:
+    - 0
+    - 1
+    - 2
+    type: integer
+    x-enum-comments:
+      TimeLogStatus_INVALID: "2"
+      TimeLogStatus_PROCESSING: "0"
+      TimeLogStatus_VALID: "1"
+    x-enum-descriptions:
+    - "0"
+    - "1"
+    - "2"
+    x-enum-varnames:
+    - TimeLogStatus_PROCESSING
+    - TimeLogStatus_VALID
+    - TimeLogStatus_INVALID
+  gin.H:
+    additionalProperties: {}
+    type: object
+  shift.ActiveStaffDto:
+    properties:
+      avatarUrl:
+        type: string
+      email:
+        type: string
+      firstName:
+        type: string
+      id:
+        type: string
+      lastName:
+        type: string
+    type: object
+  shift.ApplyForShiftRequest:
+    properties:
+      note:
+        type: string
+    type: object
+  shift.ApproveSwapRequest:
+    properties:
+      approve:
+        type: boolean
+      rejectReason:
+        type: string
+    type: object
+  shift.AssignStaffResponse:
+    properties:
+      success:
+        type: boolean
+      warnings:
+        items:
+          $ref: '#/definitions/shift.ValidationWarningDto'
+        type: array
+    type: object
+  shift.AttendancePayload:
+    properties:
+      latitude:
+        type: number
+      longitude:
+        type: number
+      note:
+        type: string
+    type: object
+  shift.AutoFillShiftsRequest:
+    properties:
+      endDate:
+        type: string
+      startDate:
+        type: string
+    required:
+    - endDate
+    - startDate
+    type: object
+  shift.BulkCreateFromTemplateRequest:
+    properties:
+      endDate:
+        type: string
+      requiredStaffCount:
+        type: integer
+      startDate:
+        type: string
+      storeId:
+        type: string
+      templateId:
+        type: string
+    required:
+    - endDate
+    - startDate
+    - storeId
+    - templateId
+    type: object
+  shift.BulkCreateManualRequest:
+    properties:
+      breakDurationMinutes:
+        type: integer
+      daysOfWeek:
+        items:
+          type: integer
+        type: array
+      endDate:
+        type: string
+      endTime:
+        type: string
+      note:
+        type: string
+      requiredStaffCount:
+        type: integer
+      startDate:
+        type: string
+      startTime:
+        type: string
+      storeId:
+        type: string
+    required:
+    - storeId
+    type: object
+  shift.CandidateValidation:
+    properties:
+      isOverLimit:
+        type: boolean
+      isRestTimeInvalid:
+        type: boolean
+      isShuttleInvalid:
+        type: boolean
+      restHours:
+        type: number
+      weeklyHours:
+        type: number
+    type: object
+  shift.CreateShiftAvailabilityRequest:
+    properties:
+      dayOfWeek:
+        type: integer
+      endTime:
+        type: string
+      isAvailable:
+        type: boolean
+      isRecurring:
+        type: boolean
+      note:
+        type: string
+      specificDate:
+        type: string
+      startTime:
+        type: string
+    required:
+    - endTime
+    - startTime
+    type: object
+  shift.CreateShiftRequest:
+    properties:
+      breakDurationMinutes:
+        type: integer
+      endTime:
+        type: string
+      note:
+        type: string
+      requiredStaffCount:
+        type: integer
+      shiftDate:
+        type: string
+      shiftTemplateId:
+        type: string
+      startTime:
+        type: string
+      storeId:
+        type: string
+    required:
+    - endTime
+    - requiredStaffCount
+    - shiftDate
+    - startTime
+    - storeId
+    type: object
+  shift.CreateShiftTemplateRequest:
+    properties:
+      breakDurationMinutes:
+        type: integer
+      code:
+        type: string
+      endTime:
+        type: string
+      name:
+        type: string
+      startTime:
+        type: string
+      storeId:
+        type: string
+    required:
+    - code
+    - endTime
+    - name
+    - startTime
+    type: object
+  shift.RequestSwapRequest:
+    properties:
+      reason:
+        type: string
+      targetUserId:
+        type: string
+    required:
+    - targetUserId
+    type: object
+  shift.RespondSwapRequest:
+    properties:
+      accept:
+        type: boolean
+      rejectReason:
+        type: string
+    type: object
+  shift.ReviewApplicationRequest:
+    properties:
+      isApproved:
+        type: boolean
+      reviewNote:
+        type: string
+    type: object
+  shift.SaveShiftRuleRequest:
+    properties:
+      allowShiftSwap:
+        type: boolean
+      allowShuttle:
+        type: boolean
+      dailyOtThresholdHours:
+        type: integer
+      gracePeriodMinutes:
+        type: integer
+      maxHoursPerWeek:
+        type: integer
+      minHoursBetweenShifts:
+        type: integer
+      storeId:
+        type: string
+      weeklyOtThresholdHours:
+        type: integer
+    type: object
+  shift.ShiftAssignment:
+    properties:
+      avatarUrl:
+        type: string
+      email:
+        type: string
+      firstName:
+        type: string
+      hourlyWage:
+        type: number
+      id:
+        type: string
+      lastName:
+        type: string
+      shiftId:
+        type: string
+      status:
+        type: integer
+      userId:
+        type: string
+    type: object
+  shift.ShiftResponse:
+    properties:
+      assignedStaffCount:
+        type: integer
+      assignments:
+        items:
+          $ref: '#/definitions/shift.ShiftAssignment'
+        type: array
+      breakDurationMinutes:
+        type: integer
+      endTime:
+        description: HH:mm
+        type: string
+      id:
+        type: string
+      note:
+        type: string
+      requiredStaffCount:
+        type: integer
+      shiftDate:
+        description: YYYY-MM-DD
+        type: string
+      shiftTemplateId:
+        type: string
+      startTime:
+        description: HH:mm
+        type: string
+      status:
+        description: 0:Draft, 1:Published, 2:Completed, 3:Cancelled
+        type: integer
+      storeId:
+        type: string
+    type: object
+  shift.ShiftRuleResponse:
+    properties:
+      allowShiftSwap:
+        type: boolean
+      allowShuttle:
+        type: boolean
+      dailyOtThresholdHours:
+        type: integer
+      gracePeriodMinutes:
+        type: integer
+      id:
+        type: string
+      maxHoursPerWeek:
+        type: integer
+      minHoursBetweenShifts:
+        type: integer
+      storeId:
+        type: string
+      updatedAt:
+        type: string
+      weeklyOtThresholdHours:
+        type: integer
+    type: object
+  shift.ShiftRuleSettingsResponse:
+    properties:
+      global:
+        $ref: '#/definitions/shift.ShiftRuleResponse'
+      stores:
+        items:
+          $ref: '#/definitions/shift.ShiftRuleResponse'
+        type: array
+    type: object
+  shift.ShiftTemplateResponse:
+    properties:
+      breakDurationMinutes:
+        type: integer
+      code:
+        type: string
+      createdAt:
+        type: string
+      endTime:
+        type: string
+      id:
+        type: string
+      isActive:
+        type: boolean
+      name:
+        type: string
+      startTime:
+        type: string
+      storeId:
+        type: string
+    type: object
+  shift.StaffAssignmentCandidate:
+    properties:
+      avatarUrl:
+        type: string
+      currentHourlyWage:
+        type: number
+      firstName:
+        type: string
+      id:
+        type: string
+      isAssigned:
+        type: boolean
+      isAvailable:
+        type: boolean
+      isConflict:
+        type: boolean
+      lastName:
+        type: string
+      note:
+        type: string
+      validation:
+        $ref: '#/definitions/shift.CandidateValidation'
+    type: object
+  shift.UpdateShiftAvailabilityRequest:
+    properties:
+      dayOfWeek:
+        type: integer
+      endTime:
+        type: string
+      isAvailable:
+        type: boolean
+      isRecurring:
+        type: boolean
+      note:
+        type: string
+      specificDate:
+        type: string
+      startTime:
+        type: string
+    type: object
+  shift.UpdateShiftRequest:
+    properties:
+      breakDurationMinutes:
+        type: integer
+      endTime:
+        type: string
+      note:
+        type: string
+      requiredStaffCount:
+        type: integer
+      shiftDate:
+        type: string
+      shiftTemplateId:
+        description: StoreId              *string `json:"storeId,omitempty"`
+        type: string
+      startTime:
+        type: string
+      status:
+        type: integer
+    type: object
+  shift.UpdateShiftTemplateRequest:
+    properties:
+      breakDurationMinutes:
+        type: integer
+      code:
+        type: string
+      endTime:
+        type: string
+      isActive:
+        type: boolean
+      name:
+        type: string
+      startTime:
+        type: string
+    type: object
+  shift.UpdateTimeLogRequest:
+    properties:
+      managerNote:
+        type: string
+      status:
+        $ref: '#/definitions/enum.TimeLogStatus'
+    required:
+    - status
+    type: object
+  shift.ValidationWarningDto:
+    properties:
+      code:
+        type: string
+      message:
+        type: string
+      severity:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+  description: API docs for CHD Gateway.
+  termsOfService: http://swagger.io/terms/
+  title: API Gateway Documentation
+  version: "1.0"
+paths:
+  /me/shift-availabilities:
+    get:
+      description: Truy xuất danh sách lịch rảnh/bận đã đăng ký của nhân viên hiện
+        tại kèm phân trang.
+      parameters:
+      - in: query
+        name: dayOfWeek
+        type: integer
+      - in: query
+        name: fromDate
+        type: string
+      - in: query
+        name: isAvailable
+        type: boolean
+      - in: query
+        name: isRecurring
+        type: boolean
+      - in: query
+        name: keyword
+        type: string
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      - in: query
+        name: storeId
+        type: string
+      - in: query
+        name: toDate
+        type: string
+      - in: query
+        name: userId
+        type: string
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Lấy lịch sử đăng ký rảnh/bận của tôi
+      tags:
+      - 'Shifts: Availabilities'
+  /me/shift-swaps:
+    get:
+      description: Lấy toàn bộ các yêu cầu đổi ca mà tôi là người gửi hoặc người nhận.
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Lấy danh sách yêu cầu đổi ca của tôi
+      tags:
+      - 'Shifts: Swaps'
+  /me/shifts:
+    get:
+      description: Retrieve shift schedule within a date range for the logged-in staff.
+      parameters:
+      - description: Start Date (YYYY-MM-DD)
+        in: query
+        name: startDate
+        required: true
+        type: string
+      - description: End Date (YYYY-MM-DD)
+        in: query
+        name: endDate
+        required: true
+        type: string
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Get Staff Agenda
+      tags:
+      - 'Shifts: Staff'
+  /me/shifts/assignments/{id}/check-in:
+    put:
+      description: Check-in to a specific shift assignment using GPS location.
+      parameters:
+      - description: Assignment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: GPS & Note
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/shift.AttendancePayload'
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Staff Check-in
+      tags:
+      - 'Shifts: Staff'
+  /me/shifts/current:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve the current active shift for the logged-in user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Current shift details
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get My Current Shift
+      tags:
+      - 'Shifts: Staff'
+  /me/shifts/logs/{id}/check-out:
+    put:
+      description: Check-out from an active shift log.
+      parameters:
+      - description: Log ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: GPS & Note
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/shift.AttendancePayload'
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Staff Check-out
+      tags:
+      - 'Shifts: Staff'
+  /me/shifts/time-logs:
+    get:
+      description: Staff xem lại danh sách các bản ghi chấm công của chính mình. Gateway
+        tự động gắn StaffID từ Token.
+      parameters:
+      - description: 'Format: YYYY-MM-DD'
+        in: query
+        name: fromDate
+        type: string
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      - in: query
+        name: staffId
+        type: string
+      - enum:
+        - 0
+        - 1
+        - 2
+        in: query
+        name: status
+        type: integer
+        x-enum-comments:
+          TimeLogStatus_INVALID: "2"
+          TimeLogStatus_PROCESSING: "0"
+          TimeLogStatus_VALID: "1"
+        x-enum-descriptions:
+        - "0"
+        - "1"
+        - "2"
+        x-enum-varnames:
+        - TimeLogStatus_PROCESSING
+        - TimeLogStatus_VALID
+        - TimeLogStatus_INVALID
+      - in: query
+        name: storeId
+        type: string
+      - in: query
+        name: toDate
+        type: string
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Lấy lịch sử chấm công cá nhân
+      tags:
+      - 'Shifts: Staff'
+  /shift-applications/{id}/review:
+    patch:
+      consumes:
+      - application/json
+      description: Manager cập nhật trạng thái đơn (Approved/Rejected). ID đơn lấy
+        từ Path.
+      parameters:
+      - description: Application ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Kết quả duyệt đơn
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/shift.ReviewApplicationRequest'
+      produces:
+      - application/json
+      responses: {}
+      summary: Duyệt hoặc từ chối đơn đăng ký nhận ca
+      tags:
+      - 'Shifts: Applications'
+  /shift-availabilities:
+    get:
+      description: Quản lý xem toàn bộ danh sách lịch rảnh/bận của nhân viên để sắp
+        ca làm việc.
+      parameters:
+      - in: query
+        name: dayOfWeek
+        type: integer
+      - in: query
+        name: fromDate
+        type: string
+      - in: query
+        name: isAvailable
+        type: boolean
+      - in: query
+        name: isRecurring
+        type: boolean
+      - in: query
+        name: keyword
+        type: string
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      - in: query
+        name: storeId
+        type: string
+      - in: query
+        name: toDate
+        type: string
+      - in: query
+        name: userId
+        type: string
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Quản lý toàn bộ lịch rảnh/bận
+      tags:
+      - 'Shifts: Availabilities'
+    post:
+      description: Gửi đơn đăng ký thời gian rảnh hoặc bận để quản lý sắp ca.
+      parameters:
+      - description: Dữ liệu đăng ký
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/shift.CreateShiftAvailabilityRequest'
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Đăng ký lịch rảnh/bận mới
+      tags:
+      - 'Shifts: Availabilities'
+  /shift-availabilities/{id}:
+    delete:
+      description: Xóa bỏ đơn đăng ký lịch rảnh/bận đã gửi.
+      parameters:
+      - description: ID lịch đăng ký
+        in: path
+        name: id
+        required: true
+        type: string
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Hủy/Xóa lịch rảnh/bận
+      tags:
+      - 'Shifts: Availabilities'
+    patch:
+      description: Chỉnh sửa đơn đăng ký lịch rảnh/bận đã gửi dựa trên ID.
+      parameters:
+      - description: ID lịch đăng ký
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Dữ liệu cập nhật
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/shift.UpdateShiftAvailabilityRequest'
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Cập nhật lịch rảnh/bận
+      tags:
+      - 'Shifts: Availabilities'
+  /shift-rules:
+    get:
+      description: Lấy thông tin cấu hình luật ca làm việc (Global và theo Store)
+        để hiển thị trên trang cài đặt.
+      parameters:
+      - description: ID cửa hàng (Nếu muốn lọc theo store cụ thể)
+        in: query
+        name: storeId
+        type: string
+      responses:
+        "200":
+          description: Dữ liệu cấu hình
+          schema:
+            $ref: '#/definitions/shift.ShiftRuleSettingsResponse'
+      security:
+      - BearerAuth: []
+      summary: Lấy cấu hình quy định ca làm
+      tags:
+      - 'Shifts: Rule'
+    put:
+      description: Cập nhật hoặc tạo mới các quy định về ca làm việc (Giờ tối đa,
+        thời gian nghỉ...).
+      parameters:
+      - description: Dữ liệu quy định cần lưu
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/shift.SaveShiftRuleRequest'
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Lưu cấu hình quy định ca làm
+      tags:
+      - 'Shifts: Rule'
+  /shift-swaps:
+    get:
+      description: Lấy toàn bộ các yêu cầu đổi ca.
+      parameters:
+      - in: query
+        name: status
+        type: integer
+      - in: query
+        name: storeId
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Lấy danh sách yêu cầu đổi ca
+      tags:
+      - 'Shifts: Swaps'
+  /shift-swaps/{id}/approvals:
+    patch:
+      consumes:
+      - application/json
+      description: Sau khi 2 nhân viên đồng ý, Manager cần duyệt cuối để chính thức
+        đổi ca.
+      parameters:
+      - description: Swap Request ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Kết quả duyệt của Manager
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/shift.ApproveSwapRequest'
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Manager duyệt yêu cầu đổi ca cuối cùng
+      tags:
+      - 'Shifts: Swaps'
+  /shift-swaps/{id}/cancel:
+    patch:
+      description: Nhân viên gửi yêu cầu có thể tự hủy nếu yêu cầu chưa được phê duyệt.
+      parameters:
+      - description: Swap Request ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Tự hủy yêu cầu đổi ca đã gửi
+      tags:
+      - 'Shifts: Swaps'
+  /shift-swaps/{id}/responses:
+    patch:
+      consumes:
+      - application/json
+      description: Nhân viên B nhận được yêu cầu và chọn Chấp nhận hoặc Từ chối.
+      parameters:
+      - description: Swap Request ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Phản hồi của nhân viên nhận yêu cầu
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/shift.RespondSwapRequest'
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Nhân viên phản hồi yêu cầu đổi ca (B phản hồi cho A)
+      tags:
+      - 'Shifts: Swaps'
+  /shift-templates:
+    get:
+      description: Truy xuất toàn bộ danh sách các mẫu ca làm (Sáng, Chiều, Tối...)
+        theo Store.
+      parameters:
+      - in: query
+        name: isActive
+        type: boolean
+      - in: query
+        name: keyword
+        type: string
+      - in: query
+        name: storeId
+        type: string
+      responses:
+        "200":
+          description: Danh sách mẫu ca
+          schema:
+            items:
+              $ref: '#/definitions/shift.ShiftTemplateResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: Lấy danh sách mẫu ca làm việc
+      tags:
+      - 'Shifts: Template'
+    post:
+      description: Định nghĩa một khung giờ làm việc mẫu (mã code, tên, giờ bắt đầu/kết
+        thúc).
+      parameters:
+      - description: Thông tin mẫu ca
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/shift.CreateShiftTemplateRequest'
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Tạo mẫu ca làm mới
+      tags:
+      - 'Shifts: Template'
+  /shift-templates/{id}:
+    delete:
+      description: Gỡ bỏ hoàn toàn một mẫu ca làm khỏi hệ thống.
+      parameters:
+      - description: ID mẫu ca
+        in: path
+        name: id
+        required: true
+        type: string
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Xóa mẫu ca làm việc
+      tags:
+      - 'Shifts: Template'
+    get:
+      description: Lấy thông tin chi tiết cấu hình của một mẫu ca làm việc dựa trên
+        ID.
+      parameters:
+      - description: ID mẫu ca
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/shift.ShiftTemplateResponse'
+      security:
+      - BearerAuth: []
+      summary: Chi tiết mẫu ca làm việc
+      tags:
+      - 'Shifts: Template'
+    patch:
+      description: Chỉnh sửa cấu hình khung giờ hoặc tên của mẫu ca làm việc hiện
+        có.
+      parameters:
+      - description: ID mẫu ca
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Dữ liệu cập nhật
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/shift.UpdateShiftTemplateRequest'
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Cập nhật mẫu ca làm việc
+      tags:
+      - 'Shifts: Template'
+  /shifts:
+    get:
+      description: Truy xuất danh sách ca làm việc kèm bộ lọc (Dùng cho Calendar/List
+        view).
+      parameters:
+      - in: query
+        name: fromDate
+        type: string
+      - description: ShiftStatus enum
+        in: query
+        name: status
+        type: integer
+      - in: query
+        name: storeId
+        type: string
+      - in: query
+        name: toDate
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/shift.ShiftResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: Lấy danh sách ca làm việc
+      tags:
+      - Shifts
+    post:
+      description: Tạo một ca làm việc mới cho cửa hàng.
+      parameters:
+      - description: Thông tin ca làm
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/shift.CreateShiftRequest'
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Tạo ca làm mới
+      tags:
+      - Shifts
+  /shifts/{id}:
+    delete:
+      description: Xóa ca làm (Chỉ khi ở trạng thái Draft/Planning).
+      parameters:
+      - description: ID ca làm
+        in: path
+        name: id
+        required: true
+        type: string
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Xóa ca làm việc
+      tags:
+      - Shifts
+    get:
+      description: Lấy thông tin chi tiết ca làm và danh sách nhân viên đã gán.
+      parameters:
+      - description: ID ca làm
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/shift.ShiftResponse'
+      security:
+      - BearerAuth: []
+      summary: Lấy chi tiết một ca làm
+      tags:
+      - Shifts
+    patch:
+      description: Cập nhật giờ giấc hoặc số lượng nhân viên cần thiết cho ca làm.
+      parameters:
+      - description: ID ca làm
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Dữ liệu cập nhật
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/shift.UpdateShiftRequest'
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Cập nhật ca làm việc
+      tags:
+      - Shifts
+  /shifts/{id}/applications:
+    get:
+      description: Manager xem danh sách ứng viên kèm điểm Smart Score để đưa ra quyết
+        định duyệt.
+      parameters:
+      - description: Shift ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: Lấy danh sách các đơn đăng ký của một ca làm việc
+      tags:
+      - 'Shifts: Applications'
+    post:
+      consumes:
+      - application/json
+      description: Tạo một bản ghi ShiftApplication cho ca làm việc cụ thể. UserId
+        lấy từ Token.
+      parameters:
+      - description: Shift ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Ghi chú đăng ký
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/shift.ApplyForShiftRequest'
+      produces:
+      - application/json
+      responses: {}
+      summary: Nhân viên đăng ký nhận ca (Tạo mới một đơn đăng ký)
+      tags:
+      - 'Shifts: Applications'
+  /shifts/{id}/publish:
+    put:
+      description: Chuyển trạng thái sang Published để nhân viên thấy được lịch.
+      parameters:
+      - description: ID ca làm
+        in: path
+        name: id
+        required: true
+        type: string
+      responses: {}
+      summary: Xuất bản ca làm
+      tags:
+      - Shifts
+  /shifts/{id}/releases:
+    patch:
+      description: Nhân viên trả lại ca làm đã nhận để người khác có thể đăng ký.
+      parameters:
+      - description: Assignment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Nhả ca về Chợ Ca (Shift Pool)
+      tags:
+      - 'Shifts: Swaps'
+  /shifts/{id}/swaps:
+    post:
+      consumes:
+      - application/json
+      description: Nhân viên A chọn một ca của mình và yêu cầu đổi với nhân viên B.
+      parameters:
+      - description: Assignment ID (Ca của người gửi)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Dữ liệu yêu cầu đổi ca
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/shift.RequestSwapRequest'
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Tạo yêu cầu đổi ca (A gửi cho B)
+      tags:
+      - 'Shifts: Swaps'
+  /shifts/{shiftId}/assign:
+    put:
+      description: Thay đổi danh sách nhân viên được gán vào ca làm việc.
+      parameters:
+      - description: ID ca làm
+        in: path
+        name: shiftId
+        required: true
+        type: string
+      - description: Danh sách User ID
+        in: body
+        name: body
+        required: true
+        schema:
+          items:
+            type: string
+          type: array
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/shift.AssignStaffResponse'
+      summary: Cập nhật phân công nhân sự
+      tags:
+      - 'Shifts: Assignment'
+  /shifts/auto-fill:
+    put:
+      description: Hệ thống tự động tính toán và gán nhân viên phù hợp vào các ca
+        làm việc còn trống (Draft) dựa trên lịch rảnh và quy tắc ca làm.
+      parameters:
+      - description: Khoảng thời gian cần xếp ca tự động
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/shift.AutoFillShiftsRequest'
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Tự động xếp người vào ca làm việc
+      tags:
+      - 'Shifts: Assignment'
+  /shifts/bulk-delete:
+    delete:
+      description: Xóa hàng loạt các ca làm việc (Chỉ áp dụng cho các ca đang ở trạng
+        thái Nháp).
+      parameters:
+      - description: Danh sách ID các ca làm cần xóa
+        in: body
+        name: body
+        required: true
+        schema:
+          items:
+            type: string
+          type: array
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Xóa hàng loạt ca làm việc
+      tags:
+      - 'Shifts: Bulk action'
+  /shifts/bulk-manual:
+    post:
+      description: Tạo nhiều ca làm việc cùng lúc dựa trên khung giờ và các ngày trong
+        tuần được chọn.
+      parameters:
+      - description: Dữ liệu tạo hàng loạt
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/shift.BulkCreateManualRequest'
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Tạo ca làm việc thủ công hàng loạt
+      tags:
+      - 'Shifts: Bulk action'
+  /shifts/bulk-open:
+    put:
+      description: Chuyển trạng thái hàng loạt ca làm việc từ Draft sang Open để nhân
+        viên có thể đăng ký nhận. StoreId được lấy tự động từ Token của Manager.
+      parameters:
+      - description: Danh sách ID các ca làm cần mở
+        in: body
+        name: body
+        required: true
+        schema:
+          items:
+            type: string
+          type: array
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Mở hàng loạt ca ra Chợ Ca (Shift Pool)
+      tags:
+      - 'Shifts: Bulk action'
+  /shifts/bulk-publish:
+    put:
+      description: Chuyển trạng thái hàng loạt ca làm từ Draft sang Published để nhân
+        viên có thể thấy lịch.
+      parameters:
+      - description: Danh sách ID các ca làm cần công khai
+        in: body
+        name: body
+        required: true
+        schema:
+          items:
+            type: string
+          type: array
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Công khai ca làm việc hàng loạt
+      tags:
+      - 'Shifts: Bulk action'
+  /shifts/bulk-template:
+    post:
+      description: Tạo hàng loạt ca làm việc trong một khoảng thời gian dựa trên các
+        Shift Template có sẵn.
+      parameters:
+      - description: Dữ liệu tạo từ mẫu
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/shift.BulkCreateFromTemplateRequest'
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Tạo ca làm việc từ mẫu hàng loạt
+      tags:
+      - 'Shifts: Bulk action'
+  /shifts/time-logs:
+    get:
+      description: Manager lấy toàn bộ nhật ký chấm công trong Store kèm bộ lọc.
+      parameters:
+      - description: 'Format: YYYY-MM-DD'
+        in: query
+        name: fromDate
+        type: string
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      - in: query
+        name: staffId
+        type: string
+      - enum:
+        - 0
+        - 1
+        - 2
+        in: query
+        name: status
+        type: integer
+        x-enum-comments:
+          TimeLogStatus_INVALID: "2"
+          TimeLogStatus_PROCESSING: "0"
+          TimeLogStatus_VALID: "1"
+        x-enum-descriptions:
+        - "0"
+        - "1"
+        - "2"
+        x-enum-varnames:
+        - TimeLogStatus_PROCESSING
+        - TimeLogStatus_VALID
+        - TimeLogStatus_INVALID
+      - in: query
+        name: storeId
+        type: string
+      - in: query
+        name: toDate
+        type: string
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Lấy danh sách chấm công
+      tags:
+      - 'Shifts: Time log'
+  /shifts/time-logs/{id}:
+    patch:
+      description: Manager phê duyệt (Valid) hoặc từ chối (Invalid) ca làm thực tế
+        của nhân viên.
+      parameters:
+      - description: ID nhật ký chấm công
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Dữ liệu cập nhật
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/shift.UpdateTimeLogRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BearerAuth: []
+      summary: Duyệt hoặc cập nhật chấm công
+      tags:
+      - 'Shifts: Time log'
+  /stores:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of stores with optional filtering (e.g., by city,
+        district).
+      parameters:
+      - description: Tìm theo tên
+        in: query
+        name: keyword
+        type: string
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of stores
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get All Stores
+      tags:
+      - Stores
+  /stores/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve full details of a specific store by its ID.
+      parameters:
+      - description: Store UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Store details
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Store not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get Store Details
+      tags:
+      - Stores
+  /stores/{id}/availability:
+    get:
+      consumes:
+      - application/json
+      description: Check if a store is currently open or active.
+      parameters:
+      - description: Store UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Availability status
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Check Store Availability
+      tags:
+      - Stores
+  /stores/{id}/staffs/active:
+    get:
+      consumes:
+      - application/json
+      description: Lấy danh sách staff đang trong ca làm hiện tại của store
+      parameters:
+      - description: Store UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Danh sách nhân viên
+          schema:
+            items:
+              $ref: '#/definitions/shift.ActiveStaffDto'
+            type: array
+        "400":
+          description: Invalid ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get Active Staffs At Store
+      tags:
+      - Stores
+  /stores/{storeId}/shifts/{shiftId}/candidates:
+    get:
+      description: Kiểm tra xung đột lịch và quy định để gợi ý nhân viên cho ca làm.
+      parameters:
+      - description: ID cửa hàng
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: ID ca làm
+        in: path
+        name: shiftId
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/shift.StaffAssignmentCandidate'
+            type: array
+      summary: Lấy danh sách ứng viên khả dụng
+      tags:
+      - 'Shifts: Assignment'
+  /stores/nearby:
+    get:
+      consumes:
+      - application/json
+      description: Find stores based on current location (Lat/Long) and radius.
+      parameters:
+      - description: Mặc định 10 quán
+        in: query
+        name: limit
+        type: integer
+      - description: Mặc định 5km nếu không truyền
+        in: query
+        name: radiusKm
+        type: number
+      - in: query
+        name: userLat
+        required: true
+        type: number
+      - in: query
+        name: userLong
+        required: true
+        type: number
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of nearby stores
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Find Nearby Stores
+      tags:
+      - Stores
+securityDefinitions:
+  BearerAuth:
+    description: 'Don''t forget to type "Bearer" before the token. For example: Bearer
+      eyJhbG...'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

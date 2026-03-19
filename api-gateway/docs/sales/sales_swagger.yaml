@@ -1,0 +1,2523 @@
+basePath: /api
+definitions:
+  cart.DeleteCartItemsRequest:
+    properties:
+      skus:
+        items:
+          type: string
+        type: array
+    type: object
+  cart.UpsertCartItemRequest:
+    properties:
+      quantity:
+        type: integer
+      sku:
+        type: string
+    type: object
+  common.PaginationResult-order_PaymentHistoryItem:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/order.PaymentHistoryItem'
+        type: array
+      totalCount:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  common.PaginationResult-order_PaymentSummary:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/order.PaymentSummary'
+        type: array
+      totalCount:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  common.PaginationResult-wallet_RefundTicketSummary:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/wallet.RefundTicketSummary'
+        type: array
+      totalCount:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  common.PaginationResult-wallet_WalletTransactionResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/wallet.WalletTransactionResponse'
+        type: array
+      totalCount:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  common.PaginationResult-withdrawal_WithdrawalSummary:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/withdrawal.WithdrawalSummary'
+        type: array
+      totalCount:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  enum.OrderStatus:
+    enum:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    format: int32
+    type: integer
+    x-enum-varnames:
+    - OrderStatus_PAYMENT_PENDING
+    - OrderStatus_CONFIRMATION_PENDING
+    - OrderStatus_CONFIRMED
+    - OrderStatus_PREPARING
+    - OrderStatus_READY_FOR_PICKUP
+    - OrderStatus_DELIVERING
+    - OrderStatus_COMPLETED
+    - OrderStatus_CANCEL
+  enum.OrderType:
+    enum:
+    - 0
+    - 1
+    format: int32
+    type: integer
+    x-enum-varnames:
+    - OrderType_Delivery
+    - OrderType_Pickup
+  enum.PaymentMethod:
+    enum:
+    - 0
+    - 1
+    format: int32
+    type: integer
+    x-enum-varnames:
+    - PaymentMethod_CASH
+    - PaymentMethod_VNPAY
+  enum.RefundReasonType:
+    enum:
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    format: int32
+    type: integer
+    x-enum-varnames:
+    - RefundReasonType_REFUND_REASON_NORMAL_PROCESS
+    - RefundReasonType_REFUND_REASON_SYSTEM_ERROR
+    - RefundReasonType_REFUND_REASON_CUSTOMER_COMPLAINT
+    - RefundReasonType_REFUND_REASON_GOODWILL_GESTURE
+    - RefundReasonType_REFUND_REASON_COMPENSATION
+  enum.RefundTicketMethod:
+    enum:
+    - 1
+    - 2
+    format: int32
+    type: integer
+    x-enum-varnames:
+    - RefundTicketMethod_REFUND_METHOD_TRANSFER
+    - RefundTicketMethod_REFUND_METHOD_CASH
+  enum.RefundTicketStatus:
+    enum:
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    format: int32
+    type: integer
+    x-enum-varnames:
+    - RefundTicketStatus_REFUND_STATUS_PENDING
+    - RefundTicketStatus_REFUND_STATUS_APPROVED
+    - RefundTicketStatus_REFUND_STATUS_PROCESSING
+    - RefundTicketStatus_REFUND_STATUS_COMPLETED
+    - RefundTicketStatus_REFUND_STATUS_FAILED
+    - RefundTicketStatus_REFUND_STATUS_REJECTED
+    - RefundTicketStatus_REFUND_STATUS_CANCELLED
+  enum.TransactionStatus:
+    enum:
+    - 1
+    - 2
+    - 3
+    - 4
+    format: int32
+    type: integer
+    x-enum-varnames:
+    - TransactionStatus_TRANSACTION_STATUS_PENDING
+    - TransactionStatus_TRANSACTION_STATUS_COMPLETED
+    - TransactionStatus_TRANSACTION_STATUS_FAILED
+    - TransactionStatus_TRANSACTION_STATUS_CANCELLED
+  enum.TransactionType:
+    enum:
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    format: int32
+    type: integer
+    x-enum-varnames:
+    - TransactionType_TRANSACTION_TYPE_DEPOSIT
+    - TransactionType_TRANSACTION_TYPE_PAYMENT
+    - TransactionType_TRANSACTION_TYPE_REFUND
+    - TransactionType_TRANSACTION_TYPE_ADJUSTMENT
+    - TransactionType_TRANSACTION_TYPE_WITHDRAWAL
+    - TransactionType_TRANSACTION_TYPE_TRANSFER
+  enum.WalletReferenceType:
+    enum:
+    - 1
+    - 2
+    - 3
+    - 4
+    format: int32
+    type: integer
+    x-enum-varnames:
+    - WalletReferenceType_REFERENCE_TYPE_ORDER
+    - WalletReferenceType_REFERENCE_TYPE_REFUND_TICKET
+    - WalletReferenceType_REFERENCE_TYPE_INTERNAL_USER
+    - WalletReferenceType_REFERENCE_TYPE_SYSTEM
+  enum.WalletStatus:
+    enum:
+    - 1
+    - 2
+    - 3
+    - 4
+    format: int32
+    type: integer
+    x-enum-varnames:
+    - WalletStatus_WALLET_STATUS_INACTIVE
+    - WalletStatus_WALLET_STATUS_ACTIVE
+    - WalletStatus_WALLET_STATUS_LOCKED
+    - WalletStatus_WALLET_STATUS_SUSPENDED
+  enum.WalletTransactionPaymentMethod:
+    enum:
+    - 1
+    - 2
+    - 3
+    format: int32
+    type: integer
+    x-enum-varnames:
+    - WalletTransactionPaymentMethod_PAYMENT_METHOD_CASH
+    - WalletTransactionPaymentMethod_PAYMENT_METHOD_VNPAY
+    - WalletTransactionPaymentMethod_PAYMENT_METHOD_WALLET
+  enum.WithdrawalStatus:
+    enum:
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    format: int32
+    type: integer
+    x-enum-comments:
+      WithdrawalStatusApproved: Đã duyệt
+      WithdrawalStatusCancelled: Đã hủy
+      WithdrawalStatusCompleted: Thành công
+      WithdrawalStatusFailed: Thất bại
+      WithdrawalStatusPending: Chờ duyệt
+      WithdrawalStatusProcessing: Đang xử lý
+      WithdrawalStatusRejected: Từ chối
+    x-enum-descriptions:
+    - Chờ duyệt
+    - Đã duyệt
+    - Đang xử lý
+    - Thành công
+    - Thất bại
+    - Từ chối
+    - Đã hủy
+    x-enum-varnames:
+    - WithdrawalStatusPending
+    - WithdrawalStatusApproved
+    - WithdrawalStatusProcessing
+    - WithdrawalStatusCompleted
+    - WithdrawalStatusFailed
+    - WithdrawalStatusRejected
+    - WithdrawalStatusCancelled
+  order.AssignStaffToDeliveryRequest:
+    properties:
+      staffId:
+        type: string
+    type: object
+  order.CartItem:
+    properties:
+      quantity:
+        maximum: 100000
+        type: integer
+      sku:
+        type: string
+    required:
+    - quantity
+    - sku
+    type: object
+  order.CreateOrderRequest:
+    properties:
+      address:
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/order.CartItem'
+        type: array
+      notes:
+        type: string
+      scheduledTime:
+        description: '"HH:mm"'
+        type: string
+      storeId:
+        type: string
+      type:
+        $ref: '#/definitions/enum.OrderType'
+    required:
+    - items
+    - storeId
+    type: object
+  order.CreatePaymentRequest:
+    properties:
+      appliedWalletAmount:
+        type: integer
+      paymentMethod:
+        $ref: '#/definitions/enum.PaymentMethod'
+      point:
+        type: integer
+      returnUrl:
+        type: string
+      voucherDiscountCode:
+        type: string
+      voucherShipCode:
+        type: string
+    type: object
+  order.GetOrderVolumeReply:
+    properties:
+      orders:
+        items:
+          $ref: '#/definitions/order.OrderVolumeADay'
+        type: array
+    type: object
+  order.GetRevenueReportReply:
+    properties:
+      categoryId:
+        type: string
+      fromDate:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/order.RevenueItem'
+        type: array
+      overallTotalRevenue:
+        type: number
+      toDate:
+        example: "2024-01-31T23:59:59Z"
+        type: string
+    type: object
+  order.GetSalesTrendReply:
+    properties:
+      dataPoints:
+        items:
+          $ref: '#/definitions/order.SalesTrendDataPoint'
+        type: array
+      peakPeriodLabel:
+        type: string
+      slowPeriodLabel:
+        type: string
+    type: object
+  order.OrderVolumeADay:
+    properties:
+      canceledOrder:
+        type: integer
+      completedOrder:
+        type: integer
+      date:
+        example: "2024-05-20"
+        type: string
+      statusCounts:
+        additionalProperties:
+          format: int32
+          type: integer
+        type: object
+      storeId:
+        type: string
+      totalOrders:
+        type: integer
+    type: object
+  order.PaymentHistoryItem:
+    properties:
+      amount:
+        type: number
+      currency:
+        type: string
+      id:
+        type: string
+      orderCode:
+        type: string
+      orderId:
+        type: string
+      paymentDate:
+        type: string
+      paymentMethod:
+        $ref: '#/definitions/enum.PaymentMethod'
+      status:
+        description: 0=Pending, 1=Paid, 2=Failed
+        type: integer
+    type: object
+  order.PaymentSummary:
+    properties:
+      amount:
+        type: number
+      code:
+        type: string
+      createdAt:
+        type: string
+      currency:
+        type: string
+      id:
+        type: string
+      method:
+        $ref: '#/definitions/enum.PaymentMethod'
+      orderId:
+        type: string
+      paidAt:
+        type: string
+      status:
+        type: integer
+    type: object
+  order.RevenueItem:
+    properties:
+      productName:
+        type: string
+      quantitySold:
+        type: integer
+      sku:
+        type: string
+      storeId:
+        type: string
+      totalRevenue:
+        type: number
+      unitPrice:
+        type: number
+    type: object
+  order.SalesTrendDataPoint:
+    properties:
+      orderVolume:
+        type: integer
+      revenue:
+        type: number
+      timeLabel:
+        type: string
+    type: object
+  order.UpdateOrderItem:
+    properties:
+      quantity:
+        maximum: 100000
+        type: integer
+      sku:
+        type: string
+    required:
+    - quantity
+    - sku
+    type: object
+  order.UpdateOrderStatus:
+    properties:
+      status:
+        $ref: '#/definitions/enum.OrderStatus'
+    required:
+    - status
+    type: object
+  wallet.ApproveRefundRequest:
+    properties:
+      approvalNotes:
+        type: string
+    type: object
+  wallet.CancelRefundRequest:
+    properties:
+      cancellationReason:
+        type: string
+    type: object
+  wallet.CreateRefundByCustomerRequest:
+    properties:
+      amount:
+        type: string
+      reason:
+        type: string
+    type: object
+  wallet.RefundTicketDetail:
+    properties:
+      amount:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: string
+      originalTransactionId:
+        type: string
+      reason:
+        type: string
+      refundAmount:
+        type: string
+      refundMethod:
+        $ref: '#/definitions/enum.RefundTicketMethod'
+      refundReason:
+        $ref: '#/definitions/enum.RefundReasonType'
+      rejectionReason:
+        type: string
+      status:
+        $ref: '#/definitions/enum.RefundTicketStatus'
+      ticketCode:
+        type: string
+      transactionId:
+        type: string
+      updatedAt:
+        type: string
+      userId:
+        type: string
+      walletId:
+        type: string
+    type: object
+  wallet.RefundTicketSummary:
+    properties:
+      amount:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: string
+      reason:
+        type: string
+      refundAmount:
+        type: string
+      status:
+        $ref: '#/definitions/enum.RefundTicketStatus'
+      ticketCode:
+        type: string
+      transactionId:
+        type: string
+      updatedAt:
+        type: string
+      userId:
+        type: string
+    type: object
+  wallet.RejectRefundRequest:
+    properties:
+      rejectNotes:
+        type: string
+    type: object
+  wallet.SetCompleteRefundRequest:
+    properties:
+      completeNotes:
+        type: string
+    type: object
+  wallet.TopUpWalletRequest:
+    properties:
+      amount:
+        type: number
+      returnUrl:
+        type: string
+    type: object
+  wallet.UpdateWalletStatusRequest:
+    properties:
+      adminNotes:
+        type: string
+      newStatus:
+        $ref: '#/definitions/enum.WalletStatus'
+      reason:
+        type: string
+    type: object
+  wallet.WalletResponse:
+    properties:
+      balance:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: string
+      status:
+        $ref: '#/definitions/enum.WalletStatus'
+      updatedAt:
+        type: string
+      userId:
+        type: string
+    type: object
+  wallet.WalletTransactionResponse:
+    properties:
+      amount:
+        type: string
+      balanceAfter:
+        type: string
+      balanceBefore:
+        type: string
+      completedAt:
+        type: string
+      createdAt:
+        type: string
+      description:
+        type: string
+      externalTransactionId:
+        type: string
+      failedAt:
+        type: string
+      failureReason:
+        type: string
+      id:
+        type: string
+      initiatedBy:
+        type: string
+      metadata:
+        type: string
+      notes:
+        type: string
+      orderId:
+        type: string
+      parentTransactionId:
+        type: string
+      paymentMethod:
+        $ref: '#/definitions/enum.WalletTransactionPaymentMethod'
+      processedAt:
+        type: string
+      processedBy:
+        type: string
+      referenceId:
+        type: string
+      referenceType:
+        $ref: '#/definitions/enum.WalletReferenceType'
+      status:
+        $ref: '#/definitions/enum.TransactionStatus'
+      transactionCode:
+        type: string
+      transactionType:
+        $ref: '#/definitions/enum.TransactionType'
+      updatedAt:
+        type: string
+      userId:
+        type: string
+      walletId:
+        type: string
+    type: object
+  withdrawal.ApproveWithdrawalReq:
+    properties:
+      approvalNotes:
+        type: string
+    type: object
+  withdrawal.CancelMyWithdrawalReq:
+    properties:
+      cancellationReason:
+        type: string
+    required:
+    - cancellationReason
+    type: object
+  withdrawal.CancelWithdrawalReq:
+    properties:
+      cancellationReason:
+        type: string
+    required:
+    - cancellationReason
+    type: object
+  withdrawal.CreateWithdrawalReq:
+    properties:
+      accountName:
+        type: string
+      accountNumber:
+        type: string
+      amount:
+        type: string
+      bankCode:
+        type: string
+      bankName:
+        type: string
+      notes:
+        type: string
+    required:
+    - accountName
+    - accountNumber
+    - amount
+    - bankName
+    type: object
+  withdrawal.RejectWithdrawalReq:
+    properties:
+      rejectionReason:
+        type: string
+    required:
+    - rejectionReason
+    type: object
+  withdrawal.WithdrawalBaseRes:
+    properties:
+      id:
+        type: string
+      message:
+        type: string
+    type: object
+  withdrawal.WithdrawalDetailRes:
+    properties:
+      accountName:
+        type: string
+      amount:
+        type: string
+      approvalNotes:
+        type: string
+      bankCode:
+        type: string
+      bankName:
+        type: string
+      bankTransactionId:
+        type: string
+      cancellationReason:
+        type: string
+      completedAt:
+        type: string
+      createdAt:
+        type: string
+      feeAmount:
+        type: string
+      id:
+        type: string
+      internalNotes:
+        type: string
+      maskedAccountNumber:
+        type: string
+      notes:
+        type: string
+      processedById:
+        type: string
+      processedByName:
+        type: string
+      rawAccountNumber:
+        type: string
+      receiptImageUrl:
+        type: string
+      rejectionReason:
+        type: string
+      requestCode:
+        type: string
+      status:
+        $ref: '#/definitions/enum.WithdrawalStatus'
+      transactionId:
+        type: string
+      updatedAt:
+        type: string
+      userId:
+        type: string
+    type: object
+  withdrawal.WithdrawalSummary:
+    properties:
+      accountName:
+        type: string
+      amount:
+        type: string
+      bankCode:
+        type: string
+      bankName:
+        type: string
+      createdAt:
+        type: string
+      feeAmount:
+        type: string
+      id:
+        type: string
+      maskedAccountNumber:
+        type: string
+      requestCode:
+        type: string
+      status:
+        $ref: '#/definitions/enum.WithdrawalStatus'
+      userId:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+  description: API docs for CHD Gateway.
+  termsOfService: http://swagger.io/terms/
+  title: API Gateway Documentation
+  version: "1.0"
+paths:
+  /me/cart:
+    delete:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Clear My Cart
+      tags:
+      - Cart
+    get:
+      consumes:
+      - application/json
+      description: Retrieve current user's shopping cart.
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Get My Cart
+      tags:
+      - Cart
+  /me/cart/items:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: List of Item IDs
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/cart.DeleteCartItemsRequest'
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Remove Items from My Cart
+      tags:
+      - Cart
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Item details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/cart.UpsertCartItemRequest'
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Add Item to My Cart
+      tags:
+      - Cart
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Update details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/cart.UpsertCartItemRequest'
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Update Item in My Cart
+      tags:
+      - Cart
+  /me/orders:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of orders placed by the current logged-in user
+        with optional filtering.
+      parameters:
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of orders
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get My Order History
+      tags:
+      - Orders
+  /me/orders/payments:
+    get:
+      description: Khách hàng tự xem lại lịch sử các đợt thanh toán đơn hàng của chính
+        mình.
+      parameters:
+      - in: query
+        name: endDate
+        type: string
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      - description: ISO-8601
+        in: query
+        name: startDate
+        type: string
+      - description: 0=Pending, 1=Paid, 2=Failed; omit for all
+        in: query
+        name: status
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.PaginationResult-order_PaymentHistoryItem'
+      security:
+      - BearerAuth: []
+      summary: Lịch sử thanh toán của tôi (Customer)
+      tags:
+      - Orders
+  /me/refunds:
+    get:
+      description: Lấy danh sách các ticket hoàn tiền do chính user đang đăng nhập
+        tạo (có phân trang).
+      parameters:
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      - enum:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        - 7
+        format: int32
+        in: query
+        name: status
+        type: integer
+        x-enum-varnames:
+        - RefundTicketStatus_REFUND_STATUS_PENDING
+        - RefundTicketStatus_REFUND_STATUS_APPROVED
+        - RefundTicketStatus_REFUND_STATUS_PROCESSING
+        - RefundTicketStatus_REFUND_STATUS_COMPLETED
+        - RefundTicketStatus_REFUND_STATUS_FAILED
+        - RefundTicketStatus_REFUND_STATUS_REJECTED
+        - RefundTicketStatus_REFUND_STATUS_CANCELLED
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Danh sách ticket
+          schema:
+            $ref: '#/definitions/common.PaginationResult-wallet_RefundTicketSummary'
+        "400":
+          description: Tham số không hợp lệ
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Chưa đăng nhập
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Xem danh sách yêu cầu hoàn tiền của tôi
+      tags:
+      - Refunds
+    post:
+      consumes:
+      - application/json
+      description: Khách hàng chủ động tạo một yêu cầu hoàn tiền (ticket) cho một
+        giao dịch/đơn hàng.
+      parameters:
+      - description: Thông tin yêu cầu hoàn tiền
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/wallet.CreateRefundByCustomerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Tạo thành công
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Dữ liệu đầu vào không hợp lệ
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Tạo yêu cầu hoàn tiền mới
+      tags:
+      - Refunds
+  /me/wallet:
+    get:
+      description: Lấy thông tin ví và số dư hiện tại của người dùng đang đăng nhập.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Thông tin chi tiết của ví
+          schema:
+            $ref: '#/definitions/wallet.WalletResponse'
+        "401":
+          description: Chưa đăng nhập hoặc token không hợp lệ
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Lỗi hệ thống nội bộ
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Xem ví cá nhân
+      tags:
+      - Wallets
+  /me/wallet/top-up:
+    post:
+      consumes:
+      - application/json
+      description: Tạo link thanh toán qua cổng VNPay để người dùng nạp tiền vào ví
+        cá nhân.
+      parameters:
+      - description: 'Thông tin nạp tiền (VD: số tiền)'
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/wallet.TopUpWalletRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'Trả về URL để redirect sang VNPay { paymentUrl: ''...'' }'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Dữ liệu đầu vào không hợp lệ
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Chưa đăng nhập
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Lỗi hệ thống hoặc lỗi kết nối cổng thanh toán
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Nạp tiền vào ví
+      tags:
+      - Wallets
+  /me/wallet/transactions:
+    get:
+      description: Lấy danh sách các giao dịch ví (nạp tiền, trừ tiền, hoàn tiền...)
+        của người dùng đang đăng nhập có phân trang.
+      parameters:
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Danh sách giao dịch
+          schema:
+            $ref: '#/definitions/common.PaginationResult-wallet_WalletTransactionResponse'
+        "400":
+          description: Tham số không hợp lệ
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Chưa đăng nhập
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Xem lịch sử giao dịch ví của tôi
+      tags:
+      - Wallet Transactions
+  /me/withdrawals:
+    get:
+      description: Lấy lịch sử rút tiền của chính người dùng đang đăng nhập (có phân
+        trang).
+      parameters:
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      - enum:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        - 7
+        format: int32
+        in: query
+        name: status
+        type: integer
+        x-enum-comments:
+          WithdrawalStatusApproved: Đã duyệt
+          WithdrawalStatusCancelled: Đã hủy
+          WithdrawalStatusCompleted: Thành công
+          WithdrawalStatusFailed: Thất bại
+          WithdrawalStatusPending: Chờ duyệt
+          WithdrawalStatusProcessing: Đang xử lý
+          WithdrawalStatusRejected: Từ chối
+        x-enum-descriptions:
+        - Chờ duyệt
+        - Đã duyệt
+        - Đang xử lý
+        - Thành công
+        - Thất bại
+        - Từ chối
+        - Đã hủy
+        x-enum-varnames:
+        - WithdrawalStatusPending
+        - WithdrawalStatusApproved
+        - WithdrawalStatusProcessing
+        - WithdrawalStatusCompleted
+        - WithdrawalStatusFailed
+        - WithdrawalStatusRejected
+        - WithdrawalStatusCancelled
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Danh sách yêu cầu
+          schema:
+            $ref: '#/definitions/common.PaginationResult-withdrawal_WithdrawalSummary'
+      security:
+      - BearerAuth: []
+      summary: Xem danh sách yêu cầu rút tiền của tôi
+      tags:
+      - Withdrawals
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Khách hàng tạo yêu cầu rút tiền từ ví vào tài khoản ngân hàng. Tiền sẽ bị tạm trừ ngay lập tức.
+        Dùng api https://api.vietqr.io/v2/banks để lấy bank code và name cho khách chọn
+        Vẫn cho 1 ô nhập tên ngân hàng nếu api lỗi hoặc khách ko thấy trong danh sách
+        Trường hợp khách nhập tên ngân hàng thủ công thì ko cần code
+      parameters:
+      - description: Thông tin yêu cầu rút tiền
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/withdrawal.CreateWithdrawalReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Tạo thành công
+          schema:
+            $ref: '#/definitions/withdrawal.WithdrawalBaseRes'
+        "400":
+          description: Dữ liệu không hợp lệ
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Tạo yêu cầu rút tiền mới
+      tags:
+      - Withdrawals
+  /me/withdrawals/{id}/cancel:
+    patch:
+      consumes:
+      - application/json
+      description: Người dùng tự hủy lệnh khi chưa được Admin xử lý (Trạng thái PENDING).
+        Tiền hoàn về ví.
+      parameters:
+      - description: UUID của yêu cầu rút tiền
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Lý do hủy
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/withdrawal.CancelMyWithdrawalReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Hủy thành công
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Khách hàng tự hủy yêu cầu rút tiền
+      tags:
+      - Withdrawals
+  /orders:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of orders placed with optional filtering.
+      parameters:
+      - in: query
+        name: code
+        type: string
+      - in: query
+        name: fromDate
+        type: string
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      - in: query
+        name: paymentMethod
+        type: integer
+      - in: query
+        name: status
+        type: integer
+      - in: query
+        name: storeId
+        type: string
+      - in: query
+        name: toDate
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of orders
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get Orders History
+      tags:
+      - Orders
+    post:
+      consumes:
+      - application/json
+      description: Create a new order based on the provided items and shipping information.
+      parameters:
+      - description: Order creation details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/order.CreateOrderRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Created Order Data
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Place New Order
+      tags:
+      - Orders
+  /orders/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve full details of a specific order by its ID.
+      parameters:
+      - description: Order UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Order details
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Order not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get Order Details
+      tags:
+      - Orders
+    put:
+      consumes:
+      - application/json
+      description: Update the list of items in an existing order (usually allowed
+        only when order is in 'Pending' state).
+      parameters:
+      - description: Order UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: List of items to update
+        in: body
+        name: request
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/order.UpdateOrderItem'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated Order Data
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update Order Items
+      tags:
+      - Orders
+  /orders/{id}/delivery/assign:
+    post:
+      consumes:
+      - application/json
+      description: Gán nhân viên vào ca làm để giao hàng
+      parameters:
+      - description: Order UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Chứa staff id
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/order.AssignStaffToDeliveryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Assign Staff To Delivery
+      tags:
+      - Orders
+  /orders/{id}/delivery/me/assign:
+    post:
+      consumes:
+      - application/json
+      description: Tự gán bản thân vào ca làm để giao hàng
+      parameters:
+      - description: Order UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Chứa staff id
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/order.AssignStaffToDeliveryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Self Assign Staff To Delivery
+      tags:
+      - Orders
+  /orders/{id}/payment:
+    post:
+      consumes:
+      - application/json
+      description: Generate a payment link (VNPay) for the specific order.
+      parameters:
+      - description: Order UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Payment details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/order.CreatePaymentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Payment URL
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Generate Payment URL
+      tags:
+      - Orders
+  /orders/{id}/status:
+    patch:
+      consumes:
+      - application/json
+      description: Change the status of an order (e.g., to 'Cancelled', 'Completed').
+      parameters:
+      - description: Order UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: New Status
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/order.UpdateOrderStatus'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update Order Status
+      tags:
+      - Orders
+  /orders/payments:
+    get:
+      description: Lấy danh sách lịch sử thanh toán của toàn hệ thống (Dành cho quản
+        trị viên/kế toán).
+      parameters:
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.PaginationResult-order_PaymentSummary'
+      security:
+      - BearerAuth: []
+      summary: Danh sách toàn bộ thanh toán (Admin)
+      tags:
+      - Orders
+  /orders/reports/revenue:
+    get:
+      consumes:
+      - application/json
+      description: Get detailed revenue breakdown by product and category for charts.
+      parameters:
+      - in: query
+        name: categoryId
+        type: string
+      - example: "2024-01-01T00:00:00Z"
+        in: query
+        name: fromDate
+        type: string
+      - in: query
+        name: storeId
+        type: string
+      - example: "2024-01-31T23:59:59Z"
+        in: query
+        name: toDate
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Revenue data
+          schema:
+            $ref: '#/definitions/order.GetRevenueReportReply'
+      security:
+      - BearerAuth: []
+      summary: Get Revenue Report (JSON)
+      tags:
+      - Orders
+  /orders/reports/revenue/export:
+    get:
+      description: Download revenue report as a CSV file for bookkeeping.
+      parameters:
+      - in: query
+        name: categoryId
+        type: string
+      - example: "2024-01-01T00:00:00Z"
+        in: query
+        name: fromDate
+        type: string
+      - in: query
+        name: storeId
+        type: string
+      - example: "2024-01-31T23:59:59Z"
+        in: query
+        name: toDate
+        type: string
+      produces:
+      - text/csv
+      responses:
+        "200":
+          description: CSV File
+          schema:
+            type: file
+      security:
+      - BearerAuth: []
+      summary: Export Revenue Report (CSV)
+      tags:
+      - Orders
+  /orders/reports/sales-trend:
+    get:
+      consumes:
+      - application/json
+      description: |-
+        Lấy dữ liệu xu hướng doanh thu (doanh thu, lượng đơn hàng) trong một khoảng thời gian được gom nhóm (giờ/ngày/tuần).
+        LƯU Ý VỀ PHÂN QUYỀN (StoreId):
+        - Nếu là Admin: Có thể truyền tham số storeId để xem cụ thể một cửa hàng, hoặc không truyền (bỏ trống) để xem dữ liệu của toàn hệ thống.
+        - Nếu là Manager/Staff: Truyền storeId hay không thì hệ thống cũng sẽ tự động ghi đè (override) bằng ID cửa hàng của tài khoản đang đăng nhập.
+      parameters:
+      - default: 1
+        description: Mức độ gom nhóm dữ liệu. 0 = Hour, 1 = Day, 2 = Week.
+        enum:
+        - 0
+        - 1
+        - 2
+        example: 1
+        in: query
+        name: aggregation
+        type: integer
+      - description: ID Danh mục sản phẩm (Tùy chọn)
+        example: cat-001
+        in: query
+        name: categoryId
+        type: string
+      - description: Thời gian bắt đầu. Bắt buộc nhập.
+        example: "2024-03-01T00:00:00Z"
+        in: query
+        name: fromDate
+        required: true
+        type: string
+      - description: ID Cửa hàng (Tùy chọn)
+        example: 123e4567-e89b-12d3-a456-426614174000
+        in: query
+        name: storeId
+        type: string
+      - description: Thời gian kết thúc. Bắt buộc nhập.
+        example: "2024-03-05T23:59:59Z"
+        in: query
+        name: toDate
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Dữ liệu xu hướng và nhãn thời gian cao điểm/thấp điểm
+          schema:
+            $ref: '#/definitions/order.GetSalesTrendReply'
+        "400":
+          description: Lỗi dữ liệu đầu vào (Bad Request)
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Lỗi xác thực (Unauthorized)
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Lấy biểu đồ xu hướng doanh thu
+      tags:
+      - Orders
+  /orders/reports/sales-trend/export:
+    get:
+      description: |-
+        Tải xuống dữ liệu xu hướng doanh thu (doanh thu, lượng đơn hàng) dưới dạng file CSV.
+        Hỗ trợ các tham số lọc và phân quyền storeId tương tự như API lấy JSON.
+      parameters:
+      - default: 1
+        description: Mức độ gom nhóm dữ liệu. 0 = Hour, 1 = Day, 2 = Week.
+        enum:
+        - 0
+        - 1
+        - 2
+        example: 1
+        in: query
+        name: aggregation
+        type: integer
+      - description: ID Danh mục sản phẩm (Tùy chọn)
+        example: cat-001
+        in: query
+        name: categoryId
+        type: string
+      - description: Thời gian bắt đầu. Bắt buộc nhập.
+        example: "2024-03-01T00:00:00Z"
+        in: query
+        name: fromDate
+        required: true
+        type: string
+      - description: ID Cửa hàng (Tùy chọn)
+        example: 123e4567-e89b-12d3-a456-426614174000
+        in: query
+        name: storeId
+        type: string
+      - description: Thời gian kết thúc. Bắt buộc nhập.
+        example: "2024-03-05T23:59:59Z"
+        in: query
+        name: toDate
+        required: true
+        type: string
+      produces:
+      - text/csv
+      responses:
+        "200":
+          description: Tệp CSV chứa dữ liệu xu hướng doanh thu
+          schema:
+            type: file
+        "400":
+          description: Lỗi dữ liệu đầu vào
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Xuất file CSV xu hướng doanh thu
+      tags:
+      - Orders
+  /orders/reports/volume:
+    get:
+      consumes:
+      - application/json
+      description: Get daily order counts and status breakdown for line charts.
+      parameters:
+      - example: "2024-05-20"
+        in: query
+        name: fromDate
+        type: string
+      - enum:
+        - 0
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        - 7
+        format: int32
+        in: query
+        name: status
+        type: integer
+        x-enum-varnames:
+        - OrderStatus_PAYMENT_PENDING
+        - OrderStatus_CONFIRMATION_PENDING
+        - OrderStatus_CONFIRMED
+        - OrderStatus_PREPARING
+        - OrderStatus_READY_FOR_PICKUP
+        - OrderStatus_DELIVERING
+        - OrderStatus_COMPLETED
+        - OrderStatus_CANCEL
+      - in: query
+        name: storeId
+        type: string
+      - example: "2024-05-27"
+        in: query
+        name: toDate
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Order volume data
+          schema:
+            $ref: '#/definitions/order.GetOrderVolumeReply'
+      security:
+      - BearerAuth: []
+      summary: Get Order Volume Statistics (JSON)
+      tags:
+      - Orders
+  /orders/reports/volume/export:
+    get:
+      description: Download daily order statistics as a CSV file.
+      parameters:
+      - example: "2024-05-20"
+        in: query
+        name: fromDate
+        type: string
+      - enum:
+        - 0
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        - 7
+        format: int32
+        in: query
+        name: status
+        type: integer
+        x-enum-varnames:
+        - OrderStatus_PAYMENT_PENDING
+        - OrderStatus_CONFIRMATION_PENDING
+        - OrderStatus_CONFIRMED
+        - OrderStatus_PREPARING
+        - OrderStatus_READY_FOR_PICKUP
+        - OrderStatus_DELIVERING
+        - OrderStatus_COMPLETED
+        - OrderStatus_CANCEL
+      - in: query
+        name: storeId
+        type: string
+      - example: "2024-05-27"
+        in: query
+        name: toDate
+        type: string
+      produces:
+      - text/csv
+      responses:
+        "200":
+          description: CSV File
+          schema:
+            type: file
+      security:
+      - BearerAuth: []
+      summary: Export Order Volume (CSV)
+      tags:
+      - Orders
+  /orders/vnpay/return:
+    get:
+      consumes:
+      - application/json
+      description: Endpoint for VNPay to redirect the browser after payment. Verifies
+        the signature via gRPC and redirects to the Frontend UI.
+      parameters:
+      - description: Transaction Amount
+        in: query
+        name: vnp_Amount
+        type: string
+      - description: Bank Code
+        in: query
+        name: vnp_BankCode
+        type: string
+      - description: Order Information
+        in: query
+        name: vnp_OrderInfo
+        type: string
+      - description: VNPAY Response Code
+        in: query
+        name: vnp_ResponseCode
+        type: string
+      - description: Transaction Reference
+        in: query
+        name: vnp_TxnRef
+        type: string
+      - description: Security Hash
+        in: query
+        name: vnp_SecureHash
+        type: string
+      produces:
+      - text/html
+      responses:
+        "302":
+          description: Redirects to the Frontend React application
+      summary: Handle VNPay Return URL
+      tags:
+      - Payments
+  /refunds:
+    get:
+      description: Dành cho Staff, Manager, Admin lấy danh sách các ticket hoàn tiền.
+        Có thể truyền thêm `userId` vào query để lọc riêng của một người.
+      parameters:
+      - description: Lọc theo UUID của người dùng cụ thể (Tùy chọn)
+        in: query
+        name: userId
+        type: string
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      - enum:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        - 7
+        format: int32
+        in: query
+        name: status
+        type: integer
+        x-enum-varnames:
+        - RefundTicketStatus_REFUND_STATUS_PENDING
+        - RefundTicketStatus_REFUND_STATUS_APPROVED
+        - RefundTicketStatus_REFUND_STATUS_PROCESSING
+        - RefundTicketStatus_REFUND_STATUS_COMPLETED
+        - RefundTicketStatus_REFUND_STATUS_FAILED
+        - RefundTicketStatus_REFUND_STATUS_REJECTED
+        - RefundTicketStatus_REFUND_STATUS_CANCELLED
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Danh sách ticket
+          schema:
+            $ref: '#/definitions/common.PaginationResult-wallet_RefundTicketSummary'
+        "400":
+          description: Tham số không hợp lệ
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Chưa đăng nhập
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Xem toàn bộ danh sách hoàn tiền
+      tags:
+      - Refunds
+  /refunds/{id}:
+    get:
+      description: Lấy thông tin chi tiết của ticket hoàn tiền. Tầng Service sẽ tự
+        check quyền dựa trên ctxUserId.
+      parameters:
+      - description: UUID của ticket hoàn tiền
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/wallet.RefundTicketDetail'
+        "404":
+          description: Không tìm thấy ticket
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Xem chi tiết một yêu cầu hoàn tiền
+      tags:
+      - Refunds
+  /refunds/{id}/approve:
+    patch:
+      consumes:
+      - application/json
+      description: (Admin) Chấp nhận và tiến hành hoàn tiền cho khách.
+      parameters:
+      - description: UUID của ticket hoàn tiền
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Lý do duyệt
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/wallet.ApproveRefundRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Thành công
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Duyệt yêu cầu hoàn tiền
+      tags:
+      - Refunds
+  /refunds/{id}/cancel:
+    patch:
+      consumes:
+      - application/json
+      description: (Customer/Admin) Hủy bỏ ticket hoàn tiền (thường do khách hàng
+        đổi ý).
+      parameters:
+      - description: UUID của ticket hoàn tiền
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Lý do hủy
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/wallet.CancelRefundRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Thành công
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Hủy yêu cầu hoàn tiền
+      tags:
+      - Refunds
+  /refunds/{id}/complete:
+    patch:
+      consumes:
+      - application/json
+      description: (Staff/Manager/Admin) Xác nhận quá trình chuyển tiền đã xong, đóng
+        ticket.
+      parameters:
+      - description: UUID của ticket hoàn tiền
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Ghi chú hoàn tất
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/wallet.SetCompleteRefundRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Thành công
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Đánh dấu hoàn tất hoàn tiền
+      tags:
+      - Refunds
+  /refunds/{id}/reject:
+    patch:
+      consumes:
+      - application/json
+      description: (Admin) Từ chối yêu cầu hoàn tiền kèm theo lý do cụ thể.
+      parameters:
+      - description: UUID của ticket hoàn tiền
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Lý do từ chối
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/wallet.RejectRefundRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Thành công
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Từ chối yêu cầu hoàn tiền
+      tags:
+      - Refunds
+  /wallets/{id}/status:
+    patch:
+      consumes:
+      - application/json
+      description: Dành cho Quản trị viên khóa (tạm dừng) hoặc mở khóa ví của người
+        dùng.
+      parameters:
+      - description: UUID của ví cần cập nhật
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Thông tin trạng thái mới
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/wallet.UpdateWalletStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'Thông báo cập nhật thành công { message: ''...'' }'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Dữ liệu đầu vào hoặc UUID ví không hợp lệ
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Chưa đăng nhập
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Không có quyền thao tác (Forbidden)
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Cập nhật trạng thái ví (Admin)
+      tags:
+      - Wallets
+  /wallets/transactions:
+    get:
+      description: Dành cho Staff, Manager, Admin lấy danh sách giao dịch. Có thể
+        truyền thêm `userId` vào query để lọc riêng giao dịch của một người.
+      parameters:
+      - description: Lọc theo UUID của người dùng cụ thể (Tùy chọn)
+        in: query
+        name: userId
+        type: string
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Danh sách giao dịch
+          schema:
+            $ref: '#/definitions/common.PaginationResult-wallet_WalletTransactionResponse'
+        "400":
+          description: Tham số không hợp lệ
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Chưa đăng nhập
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Không có quyền thao tác
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Xem toàn bộ giao dịch ví hệ thống
+      tags:
+      - Wallet Transactions
+  /wallets/transactions/{id}:
+    get:
+      description: Xem chi tiết một giao dịch ví thông qua UUID của giao dịch. Tầng
+        service sẽ tự kiểm tra xem `ctxUserId` có quyền xem ID này hay không.
+      parameters:
+      - description: UUID của giao dịch
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/wallet.WalletTransactionResponse'
+        "404":
+          description: Không tìm thấy giao dịch
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Lấy chi tiết giao dịch bằng ID
+      tags:
+      - Wallet Transactions
+  /wallets/transactions/code/{code}:
+    get:
+      description: 'Xem chi tiết một giao dịch ví thông qua mã code (VD: WT-12345).'
+      parameters:
+      - description: Mã giao dịch (Code)
+        in: path
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/wallet.WalletTransactionResponse'
+        "404":
+          description: Không tìm thấy giao dịch
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Lấy chi tiết giao dịch bằng Mã giao dịch
+      tags:
+      - Wallet Transactions
+  /wallets/users/{userId}:
+    get:
+      description: Dành cho Staff, Manager, Admin lấy thông tin ví của một user bất
+        kỳ thông qua User ID.
+      parameters:
+      - description: UUID của người dùng cần xem
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Thông tin chi tiết của ví
+          schema:
+            $ref: '#/definitions/wallet.WalletResponse'
+        "400":
+          description: ID người dùng không đúng định dạng UUID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Chưa đăng nhập
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Không có quyền thao tác (Forbidden)
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Không tìm thấy ví của người dùng này
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Xem ví của người dùng
+      tags:
+      - Wallets
+  /wallets/vnpay/return:
+    get:
+      description: Endpoint hứng callback từ VNPay sau khi khách thanh toán xong.
+        Thực hiện xác thực chữ ký gRPC và bẻ lái (redirect) về Frontend kèm theo trạng
+        thái giao dịch.
+      parameters:
+      - description: 'Đường dẫn Frontend muốn bẻ lái về (VD: /my-wallet)'
+        in: query
+        name: redirectTo
+        type: string
+      - description: Số tiền giao dịch (nhân 100)
+        in: query
+        name: vnp_Amount
+        type: string
+      - description: Mã phản hồi từ VNPay (00 là thành công)
+        in: query
+        name: vnp_ResponseCode
+        type: string
+      - description: Mã tham chiếu giao dịch nội bộ
+        in: query
+        name: vnp_TxnRef
+        type: string
+      - description: Mã băm bảo mật checksum
+        in: query
+        name: vnp_SecureHash
+        type: string
+      produces:
+      - text/html
+      responses:
+        "302":
+          description: Chuyển hướng (Redirect) về ứng dụng Frontend
+      summary: Xử lý Callback VNPay Return (Nạp tiền ví)
+      tags:
+      - Wallets
+  /withdrawals:
+    get:
+      description: Dành cho quản trị viên xem và lọc danh sách rút tiền của toàn bộ
+        người dùng.
+      parameters:
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      - enum:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        - 7
+        format: int32
+        in: query
+        name: status
+        type: integer
+        x-enum-comments:
+          WithdrawalStatusApproved: Đã duyệt
+          WithdrawalStatusCancelled: Đã hủy
+          WithdrawalStatusCompleted: Thành công
+          WithdrawalStatusFailed: Thất bại
+          WithdrawalStatusPending: Chờ duyệt
+          WithdrawalStatusProcessing: Đang xử lý
+          WithdrawalStatusRejected: Từ chối
+        x-enum-descriptions:
+        - Chờ duyệt
+        - Đã duyệt
+        - Đang xử lý
+        - Thành công
+        - Thất bại
+        - Từ chối
+        - Đã hủy
+        x-enum-varnames:
+        - WithdrawalStatusPending
+        - WithdrawalStatusApproved
+        - WithdrawalStatusProcessing
+        - WithdrawalStatusCompleted
+        - WithdrawalStatusFailed
+        - WithdrawalStatusRejected
+        - WithdrawalStatusCancelled
+      - in: query
+        name: userId
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Danh sách yêu cầu
+          schema:
+            $ref: '#/definitions/common.PaginationResult-withdrawal_WithdrawalSummary'
+      security:
+      - BearerAuth: []
+      summary: Xem toàn bộ danh sách yêu cầu rút tiền (Admin)
+      tags:
+      - Withdrawals
+  /withdrawals/{id}:
+    get:
+      description: Lấy đầy đủ thông tin một yêu cầu rút tiền bao gồm số tài khoản
+        đầy đủ (Raw) và lịch sử xử lý.
+      parameters:
+      - description: UUID của yêu cầu rút tiền
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/withdrawal.WithdrawalDetailRes'
+        "404":
+          description: Không tìm thấy
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Xem chi tiết yêu cầu rút tiền
+      tags:
+      - Withdrawals
+  /withdrawals/{id}/approve:
+    patch:
+      consumes:
+      - application/json
+      description: (Admin) Xác nhận yêu cầu hợp lệ và chuẩn bị chuyển tiền. Trạng
+        thái chuyển sang APPROVED.
+      parameters:
+      - description: UUID của yêu cầu rút tiền
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Ghi chú duyệt
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/withdrawal.ApproveWithdrawalReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Thành công
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Duyệt yêu cầu rút tiền
+      tags:
+      - Withdrawals
+  /withdrawals/{id}/cancel:
+    patch:
+      description: Dùng để hủy lệnh ở bất kỳ giai đoạn nào (Pending, Approved, Processing)
+        TRỪ KHI đã thành công/hủy rồi. Hệ thống tự hoàn tiền vào ví.
+      parameters:
+      - description: ID yêu cầu
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Lý do hủy từ Admin
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/withdrawal.CancelWithdrawalReq'
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Admin hủy yêu cầu (Dành cho hầu hết trạng thái)
+      tags:
+      - Withdrawals
+  /withdrawals/{id}/complete:
+    patch:
+      consumes:
+      - multipart/form-data
+      description: (Admin) Xác nhận đã chuyển khoản thành công. Phải upload ảnh bill
+        (receiptFile) để minh chứng.
+      parameters:
+      - description: UUID của yêu cầu rút tiền
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Ảnh chụp biên lai chuyển khoản (Bill)
+        in: formData
+        name: receiptFile
+        required: true
+        type: file
+      - description: Mã giao dịch
+        in: formData
+        name: bankTransactionId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Hoàn tất
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Hoàn tất yêu cầu rút tiền (Kèm hóa đơn)
+      tags:
+      - Withdrawals
+  /withdrawals/{id}/reject:
+    patch:
+      description: Dùng để từ chối lệnh khi đang PENDING. Hệ thống tự hoàn tiền vào
+        ví.
+      parameters:
+      - description: ID yêu cầu
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Lý do từ chối
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/withdrawal.RejectWithdrawalReq'
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Admin từ chối yêu cầu (Chỉ dành cho lệnh PENDING)
+      tags:
+      - Withdrawals
+securityDefinitions:
+  BearerAuth:
+    description: 'Don''t forget to type "Bearer" before the token. For example: Bearer
+      eyJhbG...'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

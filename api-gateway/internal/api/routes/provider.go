@@ -2,6 +2,7 @@ package routes
 
 import (
 	"api-gateway/internal/api/routes/auth"
+	"api-gateway/internal/api/routes/campaigns"
 	"api-gateway/internal/api/routes/carts"
 	"api-gateway/internal/api/routes/categories"
 	"api-gateway/internal/api/routes/ingredients"
@@ -40,6 +41,7 @@ type AppRouter struct {
 	*membershiptiers.MembershipTierRouter
 	*points.PointLogRouter
 	*vouchers.VoucherRouter
+	*campaigns.CampaignRouter
 
 	// Franchise
 	*stores.StoreRouter
@@ -80,6 +82,7 @@ var RouterSet = wire.NewSet(
 	membershiptiers.NewRouter,
 	points.NewRouter,
 	vouchers.NewRouter,
+	campaigns.NewRouter,
 
 	// Franchise
 	stores.NewRouter,

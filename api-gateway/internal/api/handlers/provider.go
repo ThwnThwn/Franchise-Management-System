@@ -13,30 +13,6 @@ import (
 	"github.com/google/wire"
 )
 
-type AppHandlers struct {
-	vnpay.VnPayHandlers
-
-	engagement.EngagementHandlers
-
-	// Franchise
-	franchise.FranchiseHandlers
-
-	// Identity
-	identity.IdentityHandlers
-
-	// Product
-	product.ProductHandlers
-
-	// Sales
-	sales.SalesHandlers
-
-	// Inventory
-	inventory.InventoryHandlers
-
-	// Supplier
-	supplier.SupplierHandlers
-}
-
 // Gom nhóm tất cả Handler lại
 var HandlerSet = wire.NewSet(
 	vnpay.ProviderSet,

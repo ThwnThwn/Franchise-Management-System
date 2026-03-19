@@ -1,0 +1,27 @@
+basePath: /api
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+  description: API docs for CHD Gateway.
+  termsOfService: http://swagger.io/terms/
+  title: API Gateway Documentation
+  version: "1.0"
+paths:
+  /vnpay/ipn:
+    get:
+      description: Nhận callback từ VNPay, phân loại đơn hàng và điều phối đến đúng
+        Service qua gRPC.
+      responses: {}
+      summary: VNPay IPN Dispatcher
+      tags:
+      - Payments
+securityDefinitions:
+  BearerAuth:
+    description: 'Don''t forget to type "Bearer" before the token. For example: Bearer
+      eyJhbG...'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

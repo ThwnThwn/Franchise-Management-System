@@ -19,6 +19,7 @@ import (
 	"api-gateway/internal/api/middleware"
 	"api-gateway/internal/api/routes"
 	"api-gateway/internal/api/routes/auth"
+	"api-gateway/internal/api/routes/campaigns"
 	"api-gateway/internal/api/routes/carts"
 	categories2 "api-gateway/internal/api/routes/categories"
 	"api-gateway/internal/api/routes/ingredients"
@@ -110,6 +111,9 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, func
 	iVoucherService := engagement.ProvideVoucherClient(engagementClientFactory)
 	voucherHandler := engagement2.NewVoucherHandler(iVoucherService, iLoyaltyAccountService)
 	voucherRouter := vouchers.NewRouter(cfg, authMiddleware, voucherHandler)
+	iCampaignService := engagement.ProvideCampaignClient(engagementClientFactory)
+	campaignHandler := engagement2.NewCampaignHandler(iCampaignService)
+	campaignRouter := campaigns.NewRouter(cfg, authMiddleware, campaignHandler)
 	franchiseServiceUrl := cfg.FranchiseServiceUrl
 	franchiseClientFactory, cleanup5, err := franchise.NewFranchiseClientFactory(franchiseServiceUrl, l)
 	if err != nil {
@@ -221,6 +225,7 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, func
 		MembershipTierRouter: membershipTierRouter,
 		PointLogRouter:       pointLogRouter,
 		VoucherRouter:        voucherRouter,
+		CampaignRouter:       campaignRouter,
 		StoreRouter:          storeRouter,
 		MyShiftsRouter:       myShiftsRouter,
 		ShiftsRouter:         shiftsRouter,

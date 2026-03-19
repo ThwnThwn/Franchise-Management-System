@@ -19,6 +19,7 @@ var ClientSet = wire.NewSet(
 	engagement.ProvideMembershipTierClient,
 	engagement.ProvidePointLogClient,
 	engagement.ProvideVoucherClient,
+	engagement.ProvideCampaignClient,
 
 	// Franchise Service
 	franchise.NewFranchiseClientFactory,
