@@ -1,13 +1,8 @@
-﻿using EngagementService.Application.Persistences.Repository;
+﻿using System.Linq.Expressions;
+using EngagementService.Application.Persistences.Repository;
 using EngagementService.Domain.Entities;
 using EngagementService.Infrastucture.AppDbContext;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace EngagementService.Infrastucture.Persistences.Repository
 {
@@ -17,9 +12,18 @@ namespace EngagementService.Infrastucture.Persistences.Repository
         {
         }
 
-        public async Task<IEnumerable<Campaign>> GetAllCampaign()
+        public async Task<IEnumerable<Campaign>> GetAllCampaign(
+            Expression<Func<Campaign, bool>>? predicate = null
+        )
         {
-            return await _dbContext.Campaigns
+            var query = _dbContext.Campaigns.AsQueryable();
+
+            if (predicate != null)
+            {
+                query = query.Where(predicate);
+            }
+
+            return await query
                  .Include(c => c.Vouchers)
                     .ThenInclude(v => v.VoucherItems)
                  .ToListAsync();

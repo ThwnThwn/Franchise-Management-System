@@ -36,6 +36,21 @@ func (c *campaignGrpcClient) GetAll(ctx context.Context) ([]*campaign.CampaignRe
 	return items, nil
 }
 
+// GetActive implements engagement.ICampaignService.
+func (c *campaignGrpcClient) GetActive(ctx context.Context) ([]*campaign.CampaignResponse, error) {
+	res, err := c.client.GetActive(ctx, &emptypb.Empty{})
+	if err != nil {
+		return []*campaign.CampaignResponse{}, err
+	}
+
+	items := make([]*campaign.CampaignResponse, 0, len(res.Campaigns))
+	for _, item := range res.Campaigns {
+		items = append(items, mapper.MapCampaignPbToModel(item))
+	}
+
+	return items, nil
+}
+
 // GetById implements engagement.ICampaignService.
 func (c *campaignGrpcClient) GetById(ctx context.Context, id uuid.UUID) (*campaign.CampaignResponse, error) {
 	res, err := c.client.GetById(ctx, &engagementPb.GetByIdRequest{

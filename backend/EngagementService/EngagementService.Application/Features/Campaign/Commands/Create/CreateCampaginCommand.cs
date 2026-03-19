@@ -9,5 +9,5 @@ using System.Threading.Tasks;
 
 namespace EngagementService.Application.Features.Campaign.Commands.Create
 {
-    public record CreateCampaginCommand(CreateCampaginReq Request) : IRequest<CampaginRes>;
+    public record CreateCampaginCommand(CreateCampaginReq Request) : IRequest<CampaignRes>;
 }

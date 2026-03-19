@@ -9,6 +9,7 @@ import (
 
 type ICampaignService interface {
 	GetAll(ctx context.Context) ([]*campaign.CampaignResponse, error)
+	GetActive(ctx context.Context) ([]*campaign.CampaignResponse, error)
 	GetById(ctx context.Context, id uuid.UUID) (*campaign.CampaignResponse, error)
 
 	Create(ctx context.Context, req *campaign.CreateCampaignRequest) error

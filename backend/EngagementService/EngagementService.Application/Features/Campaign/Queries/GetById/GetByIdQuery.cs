@@ -8,5 +8,5 @@ using System.Threading.Tasks;
 
 namespace EngagementService.Application.Features.Campaign.Queries.GetById
 {
-    public record class GetByIdQuery(Guid id) : IRequest<CampaginRes>;
+    public record class GetByIdQuery(Guid id) : IRequest<CampaignRes>;
 }

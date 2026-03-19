@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace EngagementService.Application.Features.Campaign.Commands.Create
 {
-    public class CreateCampaginHanlder : IRequestHandler<CreateCampaginCommand, CampaginRes>
+    public class CreateCampaginHanlder : IRequestHandler<CreateCampaginCommand, CampaignRes>
     {
         private readonly IVoucherRepository _voucherRepository;
         private readonly ICampaignRepository _campaignRepository;
@@ -25,7 +25,7 @@ namespace EngagementService.Application.Features.Campaign.Commands.Create
             _mapper = mapper;
         }
 
-        public async Task<CampaginRes> Handle(CreateCampaginCommand command, CancellationToken cancellationToken)
+        public async Task<CampaignRes> Handle(CreateCampaginCommand command, CancellationToken cancellationToken)
         {
             var request = command.Request;
             IEnumerable<Domain.Entities.Voucher> vouchers = await _voucherRepository.GetVoucherByIdsAsync(request.VoucherIds.ToArray());
@@ -43,7 +43,7 @@ namespace EngagementService.Application.Features.Campaign.Commands.Create
                 voucher.UpdatedAt = DateTimeOffset.Now;
             }
             await _campaignRepository.AddAsync(campaign);
-            return _mapper.Map<CampaginRes>(campaign);
+            return _mapper.Map<CampaignRes>(campaign);
         }
     }
 }

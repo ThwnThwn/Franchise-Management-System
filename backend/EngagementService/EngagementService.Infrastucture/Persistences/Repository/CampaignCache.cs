@@ -31,7 +31,7 @@ namespace EngagementService.Infrastucture.Persistences.Repository
         }
 
         // Up Campaign len redis
-        public async Task WarmUpVoucherAsync(Guid voucherId, int quanity, DateTime endDate)
+        public async Task WarmUpVoucherAsync(Guid voucherId, int quanity, DateTimeOffset endDate)
         {
             var db = _redis.GetDatabase(_dbIndex);
             var stockKey = $"v_stock:{voucherId}";
@@ -44,7 +44,7 @@ namespace EngagementService.Infrastucture.Persistences.Repository
             await db.KeyDeleteAsync(usersKey);
 
             // set TTL - tự xóa
-            var ttl = (endDate - DateTime.UtcNow).Add(TimeSpan.FromHours(1));
+            var ttl = (endDate - DateTimeOffset.UtcNow).Add(TimeSpan.FromHours(1));
             if (ttl.Ticks > 0)
             {
                 await db.KeyExpireAsync(stockKey, ttl);
@@ -56,7 +56,7 @@ namespace EngagementService.Infrastucture.Persistences.Repository
         {
             var db = _redis.GetDatabase(_dbIndex);
             var stockKey = $"v_stock:{voucherId}";
-            var usersKey = $"v_users:{voucherId}"; // mốt sẽ gắn userID vô 
+            var usersKey = $"v_users:{voucherId}"; // mốt sẽ gắn userID vô
 
             return (int)await db.ScriptEvaluateAsync(_redeemScript, new
             {

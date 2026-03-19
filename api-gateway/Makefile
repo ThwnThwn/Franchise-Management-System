@@ -96,7 +96,7 @@ SWAGGER_TARGETS := $(addprefix swagger-, $(HANDLER_NAMES))
 
 # Điểm neo chính: Nếu có cờ target=... thì chạy 1 cái, không thì chạy tất cả (SWAGGER_TARGETS)
 swagger: $(if $(target), swagger-$(target), $(SWAGGER_TARGETS))
-	@echo "=> Swagger docs generation completed! (Check folder ./$(SWAGGER_DOCS_DIR))"
+	@echo "Swagger docs generation completed! (Check folder ./$(SWAGGER_DOCS_DIR))"
 
 # Rule động xử lý từng thư mục (Dấu % đại diện cho tên folder)
 swagger-%:

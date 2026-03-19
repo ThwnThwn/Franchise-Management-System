@@ -17,6 +17,8 @@ service CampaignGrpc {
   rpc GetById (GetByIdRequest) returns (CampaignResponse);
 
   rpc GetAll (google.protobuf.Empty) returns (ListCampaignResponse);
+
+  rpc GetActive (google.protobuf.Empty) returns (ListCampaignResponse);
 }
 
 // ===== REQUEST =====

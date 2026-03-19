@@ -65,9 +65,9 @@ func (v *voucherGrpcClient) GetMyVouchers(ctx context.Context) ([]*voucher.Vouch
 }
 
 // Create implements engagement.IVoucherService.
-func (v *voucherGrpcClient) Create(ctx context.Context, req *voucher.CreateVoucherRequest) error {
+func (v *voucherGrpcClient) Create(ctx context.Context, req *voucher.CreateVoucherRequest) (*voucher.VoucherResponse, error) {
 	if req == nil {
-		return errorcode.NewBadRequest("Request data is missing")
+		return nil, errorcode.NewBadRequest("Request data is missing")
 	}
 
 	items := make([]*engagementPb.CreateVoucherItemReq, 0, len(req.VoucherItems))
@@ -83,7 +83,7 @@ func (v *voucherGrpcClient) Create(ctx context.Context, req *voucher.CreateVouch
 		})
 	}
 
-	_, err := v.client.CreateVoucher(ctx, &engagementPb.CreateVoucherRequest{
+	res, err := v.client.CreateVoucher(ctx, &engagementPb.CreateVoucherRequest{
 		Code:             req.Code,
 		Type:             engagementPb.VoucherType(req.Type),
 		DiscountValue:    req.DiscountValue,
@@ -96,7 +96,7 @@ func (v *voucherGrpcClient) Create(ctx context.Context, req *voucher.CreateVouch
 		VoucherItems:     items,
 	})
 
-	return err
+	return mapper.MapVoucherResponsePbToModel(res), err
 }
 
 func (v *voucherGrpcClient) Update(ctx context.Context, id uuid.UUID, req *voucher.UpdateVoucherRequest) error {

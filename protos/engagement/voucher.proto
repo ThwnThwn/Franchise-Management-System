@@ -11,7 +11,7 @@ import "google/protobuf/timestamp.proto";
 // Service định nghĩa các hành động liên quan đến Voucher
 service VoucherGrpc {
   // Hàm tạo Voucher nhận vào CreateVoucherRequest và trả về Empty
-  rpc CreateVoucher (CreateVoucherRequest) returns (google.protobuf.Empty);
+  rpc CreateVoucher (CreateVoucherRequest) returns (VoucherResponse);
 
   //Hàm update Voucher
   rpc UpdateVoucher (UpdateVoucherRequest) returns (google.protobuf.Empty);

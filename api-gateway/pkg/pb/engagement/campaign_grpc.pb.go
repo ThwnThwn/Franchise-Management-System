@@ -27,6 +27,7 @@ type CampaignGrpcClient interface {
 	UpdateActiveStatus(ctx context.Context, in *UpdateActiveStatusRequest, opts ...grpc.CallOption) (*CampaignResponse, error)
 	GetById(ctx context.Context, in *GetByIdRequest, opts ...grpc.CallOption) (*CampaignResponse, error)
 	GetAll(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListCampaignResponse, error)
+	GetActive(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListCampaignResponse, error)
 }
 
 type campaignGrpcClient struct {
@@ -73,6 +74,15 @@ func (c *campaignGrpcClient) GetAll(ctx context.Context, in *emptypb.Empty, opts
 	return out, nil
 }
 
+func (c *campaignGrpcClient) GetActive(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListCampaignResponse, error) {
+	out := new(ListCampaignResponse)
+	err := c.cc.Invoke(ctx, "/engagement.CampaignGrpc/GetActive", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CampaignGrpcServer is the server API for CampaignGrpc service.
 // All implementations must embed UnimplementedCampaignGrpcServer
 // for forward compatibility
@@ -81,6 +91,7 @@ type CampaignGrpcServer interface {
 	UpdateActiveStatus(context.Context, *UpdateActiveStatusRequest) (*CampaignResponse, error)
 	GetById(context.Context, *GetByIdRequest) (*CampaignResponse, error)
 	GetAll(context.Context, *emptypb.Empty) (*ListCampaignResponse, error)
+	GetActive(context.Context, *emptypb.Empty) (*ListCampaignResponse, error)
 	mustEmbedUnimplementedCampaignGrpcServer()
 }
 
@@ -99,6 +110,9 @@ func (UnimplementedCampaignGrpcServer) GetById(context.Context, *GetByIdRequest)
 }
 func (UnimplementedCampaignGrpcServer) GetAll(context.Context, *emptypb.Empty) (*ListCampaignResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAll not implemented")
+}
+func (UnimplementedCampaignGrpcServer) GetActive(context.Context, *emptypb.Empty) (*ListCampaignResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetActive not implemented")
 }
 func (UnimplementedCampaignGrpcServer) mustEmbedUnimplementedCampaignGrpcServer() {}
 
@@ -185,6 +199,24 @@ func _CampaignGrpc_GetAll_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CampaignGrpc_GetActive_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CampaignGrpcServer).GetActive(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/engagement.CampaignGrpc/GetActive",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CampaignGrpcServer).GetActive(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // CampaignGrpc_ServiceDesc is the grpc.ServiceDesc for CampaignGrpc service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -207,6 +239,10 @@ var CampaignGrpc_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAll",
 			Handler:    _CampaignGrpc_GetAll_Handler,
+		},
+		{
+			MethodName: "GetActive",
+			Handler:    _CampaignGrpc_GetActive_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

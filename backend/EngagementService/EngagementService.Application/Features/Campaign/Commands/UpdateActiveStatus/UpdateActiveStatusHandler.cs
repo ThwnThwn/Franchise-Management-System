@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace EngagementService.Application.Features.Campaign.Commands.UpdateActiveStatus
 {
-    public class UpdateActiveStatusHandler : IRequestHandler<UpdateActiveStatusCommand, CampaginRes>
+    public class UpdateActiveStatusHandler : IRequestHandler<UpdateActiveStatusCommand, CampaignRes>
     {
         private readonly ICampaignRepository _campaignRepository;
         private readonly IMapper _mapper;
@@ -25,7 +25,7 @@ namespace EngagementService.Application.Features.Campaign.Commands.UpdateActiveS
             _campaignCache = campaignCache;
         }
 
-        public async Task<CampaginRes> Handle(UpdateActiveStatusCommand command, CancellationToken cancellationToken)
+        public async Task<CampaignRes> Handle(UpdateActiveStatusCommand command, CancellationToken cancellationToken)
         {
             var request = command.Request;
             if(request.Id == null)
@@ -62,7 +62,7 @@ namespace EngagementService.Application.Features.Campaign.Commands.UpdateActiveS
                 }
             }
 
-            return _mapper.Map<CampaginRes>(campaign);
+            return _mapper.Map<CampaignRes>(campaign);
         }
     }
 }

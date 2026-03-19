@@ -13,43 +13,4 @@ var ProviderSet = wire.NewSet(
 	NewShiftBulkHandler,
 	NewShiftRuleHandler,
 	NewShiftTemplateHandler,
-
-	// NewFranchiseHandlers,
 )
-
-// type FranchiseHandlers struct {
-// 	*StoreHandler
-
-// 	*ShiftHandler
-// 	*ShiftApplicationHandler
-// 	*ShiftStaffHandler
-// 	*ShiftSwapHandler
-// 	*ShiftAvailabilityHandler
-// 	*ShiftBulkHandler
-// 	*ShiftRuleHandler
-// 	*ShiftTemplateHandler
-// }
-
-// func NewFranchiseHandlers(
-// 	store *StoreHandler,
-// 	shift *ShiftHandler,
-// 	app *ShiftApplicationHandler,
-// 	shiftStaff *ShiftStaffHandler,
-// 	swap *ShiftSwapHandler,
-// 	shiftAvailability *ShiftAvailabilityHandler,
-// 	shiftBulk *ShiftBulkHandler,
-// 	shiftRule *ShiftRuleHandler,
-// 	shiftTemplate *ShiftTemplateHandler,
-// ) FranchiseHandlers {
-// 	return FranchiseHandlers{
-// 		StoreHandler:             store,
-// 		ShiftHandler:             shift,
-// 		ShiftApplicationHandler:  app,
-// 		ShiftStaffHandler:        shiftStaff,
-// 		ShiftSwapHandler:         swap,
-// 		ShiftAvailabilityHandler: shiftAvailability,
-// 		ShiftBulkHandler:         shiftBulk,
-// 		ShiftRuleHandler:         shiftRule,
-// 		ShiftTemplateHandler:     shiftTemplate,
-// 	}
-// }

@@ -12,7 +12,7 @@ namespace EngagementService.Application.Mapper.Campaign
             CreateMap<CreateCampaginReq, Domain.Entities.Campaign>();
 
             //Respone Mapping
-            CreateMap<Domain.Entities.Campaign, CampaginRes>();
+            CreateMap<Domain.Entities.Campaign, CampaignRes>();
             CreateMap<Domain.Entities.Voucher, Dtos.Campaign.Response.Voucher>();
             CreateMap<Domain.Entities.VoucherItem, Dtos.Campaign.Response.VoucherItem>();
         }

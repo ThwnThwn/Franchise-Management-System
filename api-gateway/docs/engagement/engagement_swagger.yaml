@@ -454,6 +454,26 @@ paths:
       summary: Cập nhật trạng thái hoạt động của chiến dịch
       tags:
       - Campaigns
+  /campaigns/active:
+    get:
+      description: Lấy các chiến dịch / chương trình khuyến mãi hiện công khai trên
+        hệ thống.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Danh sách chiến dịch
+          schema:
+            items:
+              $ref: '#/definitions/campaign.CampaignResponse'
+            type: array
+        "500":
+          description: Lỗi hệ thống (Internal Server Error)
+          schema:
+            type: object
+      summary: Lấy danh sách chiến dịch đang công khai
+      tags:
+      - Campaigns
   /loyalty/accounts:
     get:
       consumes:
@@ -791,10 +811,9 @@ paths:
       - application/json
       responses:
         "201":
-          description: Success
+          description: Voucher details
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/voucher.VoucherResponse'
       security:
       - BearerAuth: []
       summary: Create New Voucher

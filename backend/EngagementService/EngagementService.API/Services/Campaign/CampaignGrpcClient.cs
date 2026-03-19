@@ -3,6 +3,7 @@ using EngagementService.Application.Dtos.Campaign.Request;
 using EngagementService.Application.Dtos.Campaign.Response;
 using EngagementService.Application.Features.Campaign.Commands.Create;
 using EngagementService.Application.Features.Campaign.Commands.UpdateActiveStatus;
+using EngagementService.Application.Features.Campaign.Queries.GetActive;
 using EngagementService.Application.Features.Campaign.Queries.GetAll;
 using EngagementService.Application.Features.Campaign.Queries.GetById;
 using EngagementService.Grpc.Protos.CampaignGrpc;
@@ -31,8 +32,8 @@ namespace EngagementService.API.Services.Campagin
             {
                 Name = request.Name,
                 Description = request.Description,
-                StartDate = request.StartDate.ToDateTime(),
-                EndDate = request.EndDate.ToDateTime(),
+                StartDate = request.StartDate.ToDateTimeOffset(),
+                EndDate = request.EndDate.ToDateTimeOffset(),
                 VoucherIds = request.VoucherIds.Select(Guid.Parse).ToList()
             });
             var result = await _mediator.Send(command);
@@ -78,10 +79,20 @@ namespace EngagementService.API.Services.Campagin
             return response;
         }
 
+        public override async Task<ListCampaignResponse> GetActive(Google.Protobuf.WellKnownTypes.Empty request, ServerCallContext context)
+        {
+            var result = await _mediator.Send(new GetActiveQuery());
+            var response = new ListCampaignResponse();
+            response.Campaigns.AddRange(
+                result.Select(MapCampaignToGrpc)
+            );
+            return response;
+        }
+
         //===================================
         ////=========HELPER METHOD===========
         //===================================
-        public CampaignResponse MapCampaignToGrpc(CampaginRes result)
+        public CampaignResponse MapCampaignToGrpc(CampaignRes result)
         {
             var response = new CampaignResponse
             {
@@ -89,14 +100,14 @@ namespace EngagementService.API.Services.Campagin
                 Name = result.Name,
                 Description = result.Description ?? "",
                 StartDate = Google.Protobuf.WellKnownTypes.Timestamp
-                    .FromDateTime(result.StartDate.ToUniversalTime()),
+                    .FromDateTimeOffset(result.StartDate),
                 EndDate = Google.Protobuf.WellKnownTypes.Timestamp
-                    .FromDateTime(result.EndDate.ToUniversalTime()),
+                    .FromDateTimeOffset(result.EndDate),
                 CreatedAt = Google.Protobuf.WellKnownTypes.Timestamp
                     .FromDateTimeOffset(result.CreatedAt),
                 UpdatedAt = Google.Protobuf.WellKnownTypes.Timestamp
                     .FromDateTimeOffset(result.UpdatedAt),
-                IsActive = result.IsActive.Value,
+                IsActive = result.IsActive ?? false,
             };
             //Map vouchers
             response.Vouchers.AddRange(result.Vouchers.Select(v => new Grpc.Protos.VoucherGrpc.VoucherResponse

@@ -9,5 +9,5 @@ using System.Threading.Tasks;
 
 namespace EngagementService.Application.Features.Campaign.Commands.UpdateActiveStatus
 {
-    public record UpdateActiveStatusCommand(UpdateActiveStatusReq Request) : IRequest<CampaginRes>;
+    public record UpdateActiveStatusCommand(UpdateActiveStatusReq Request) : IRequest<CampaignRes>;
 }

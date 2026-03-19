@@ -10,10 +10,8 @@ func (c *CampaignRouter) Init(r *gin.RouterGroup) {
 	// Group chính: /campaigns
 	campaignApi := r.Group("/campaigns")
 	{
-		// GET /campaigns
 		campaignApi.GET("", api.WrapHandler(c.campaignHl.GetAll))
-
-		// GET /campaigns/:id
+		campaignApi.GET("/active", api.WrapHandler(c.campaignHl.GetActive))
 		campaignApi.GET("/:id", api.WrapHandler(c.campaignHl.GetById))
 	}
 

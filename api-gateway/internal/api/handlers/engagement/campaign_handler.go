@@ -43,6 +43,26 @@ func (h *CampaignHandler) GetAll(c *gin.Context) error {
 	return nil
 }
 
+// GetActive
+// @Summary      Lấy danh sách chiến dịch đang công khai
+// @Description  Lấy các chiến dịch / chương trình khuyến mãi hiện công khai trên hệ thống.
+// @Tags         Campaigns
+// @Produce      json
+// @Success      200 {array}   campaign.CampaignResponse "Danh sách chiến dịch"
+// @Failure      500 {object}  object "Lỗi hệ thống (Internal Server Error)"
+// @Router       /campaigns/active [get]
+func (h *CampaignHandler) GetActive(c *gin.Context) error {
+	ctx := c.Request.Context()
+
+	res, err := h.campaignGW.GetActive(ctx)
+	if err != nil {
+		return err
+	}
+
+	c.JSON(http.StatusOK, res)
+	return nil
+}
+
 // GetById
 // @Summary      Lấy chi tiết chiến dịch
 // @Description  Lấy thông tin chi tiết của một chiến dịch dựa vào ID.

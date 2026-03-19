@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace EngagementService.Application.Features.Campaign.Queries.GetById
 {
-    public class GetByIdHandler : IRequestHandler<GetByIdQuery, CampaginRes>
+    public class GetByIdHandler : IRequestHandler<GetByIdQuery, CampaignRes>
     {
         private readonly ICampaignRepository _campaignRepository;
         private readonly IMapper _mapper;
@@ -20,7 +20,7 @@ namespace EngagementService.Application.Features.Campaign.Queries.GetById
             _mapper = mapper;
         }
 
-        public async Task<CampaginRes> Handle(GetByIdQuery request, CancellationToken cancellationToken)
+        public async Task<CampaignRes> Handle(GetByIdQuery request, CancellationToken cancellationToken)
         {
             var campaign = await _campaignRepository.GetCampaignById(request.id);
 
@@ -28,7 +28,7 @@ namespace EngagementService.Application.Features.Campaign.Queries.GetById
             {
                 throw new ArgumentNullException($"campaign is null with id: {request.id} - GetById");
             }
-            return _mapper.Map<CampaginRes>(campaign);
+            return _mapper.Map<CampaignRes>(campaign);
         }
     }
 }

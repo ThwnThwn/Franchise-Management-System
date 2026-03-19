@@ -106,6 +106,35 @@ const docTemplateengagement = `{
                 }
             }
         },
+        "/campaigns/active": {
+            "get": {
+                "description": "Lấy các chiến dịch / chương trình khuyến mãi hiện công khai trên hệ thống.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Campaigns"
+                ],
+                "summary": "Lấy danh sách chiến dịch đang công khai",
+                "responses": {
+                    "200": {
+                        "description": "Danh sách chiến dịch",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/campaign.CampaignResponse"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Lỗi hệ thống (Internal Server Error)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
         "/campaigns/{id}": {
             "get": {
                 "description": "Lấy thông tin chi tiết của một chiến dịch dựa vào ID.",
@@ -761,10 +790,9 @@ const docTemplateengagement = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": "Success",
+                        "description": "Voucher details",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/voucher.VoucherResponse"
                         }
                     }
                 }

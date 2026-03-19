@@ -24,7 +24,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type VoucherGrpcClient interface {
 	// Hàm tạo Voucher nhận vào CreateVoucherRequest và trả về Empty
-	CreateVoucher(ctx context.Context, in *CreateVoucherRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	CreateVoucher(ctx context.Context, in *CreateVoucherRequest, opts ...grpc.CallOption) (*VoucherResponse, error)
 	// Hàm update Voucher
 	UpdateVoucher(ctx context.Context, in *UpdateVoucherRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// Hàm update voucher status
@@ -51,8 +51,8 @@ func NewVoucherGrpcClient(cc grpc.ClientConnInterface) VoucherGrpcClient {
 	return &voucherGrpcClient{cc}
 }
 
-func (c *voucherGrpcClient) CreateVoucher(ctx context.Context, in *CreateVoucherRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
+func (c *voucherGrpcClient) CreateVoucher(ctx context.Context, in *CreateVoucherRequest, opts ...grpc.CallOption) (*VoucherResponse, error) {
+	out := new(VoucherResponse)
 	err := c.cc.Invoke(ctx, "/engagement.VoucherGrpc/CreateVoucher", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -137,7 +137,7 @@ func (c *voucherGrpcClient) ReverseVouchers(ctx context.Context, in *ReverseVouc
 // for forward compatibility
 type VoucherGrpcServer interface {
 	// Hàm tạo Voucher nhận vào CreateVoucherRequest và trả về Empty
-	CreateVoucher(context.Context, *CreateVoucherRequest) (*emptypb.Empty, error)
+	CreateVoucher(context.Context, *CreateVoucherRequest) (*VoucherResponse, error)
 	// Hàm update Voucher
 	UpdateVoucher(context.Context, *UpdateVoucherRequest) (*emptypb.Empty, error)
 	// Hàm update voucher status
@@ -161,7 +161,7 @@ type VoucherGrpcServer interface {
 type UnimplementedVoucherGrpcServer struct {
 }
 
-func (UnimplementedVoucherGrpcServer) CreateVoucher(context.Context, *CreateVoucherRequest) (*emptypb.Empty, error) {
+func (UnimplementedVoucherGrpcServer) CreateVoucher(context.Context, *CreateVoucherRequest) (*VoucherResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateVoucher not implemented")
 }
 func (UnimplementedVoucherGrpcServer) UpdateVoucher(context.Context, *UpdateVoucherRequest) (*emptypb.Empty, error) {

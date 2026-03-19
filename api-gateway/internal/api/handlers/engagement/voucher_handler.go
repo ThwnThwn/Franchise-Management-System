@@ -100,7 +100,7 @@ func (h *VoucherHandler) GetMyVouchers(c *gin.Context) error {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        request body      voucher.CreateVoucherRequest  true  "Voucher details"
-// @Success      201    {object}  map[string]interface{}      "Success"
+// @Success      201     {object}  voucher.VoucherResponse "Voucher details"
 // @Router       /vouchers [post]
 func (h *VoucherHandler) CreateVoucher(c *gin.Context) error {
 	var req voucher.CreateVoucherRequest
@@ -110,12 +110,12 @@ func (h *VoucherHandler) CreateVoucher(c *gin.Context) error {
 
 	ctx := c.Request.Context()
 
-	err := h.voucherGW.Create(ctx, &req)
+	res, err := h.voucherGW.Create(ctx, &req)
 	if err != nil {
 		return err
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "Tạo voucher thành công"})
+	c.JSON(http.StatusCreated, res)
 	return nil
 }
 
