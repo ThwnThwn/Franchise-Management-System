@@ -42,29 +42,13 @@ export default function ShiftPoolPageView() {
         enabled: !!storeId
     })
 
-    // Lấy hook apply có bọc sẵn Dialog nãy mình viết
-    // const { applyWithConfirm } = useApplyForShift()
-    // const [applyingShiftId, setApplyingShiftId] = useState<string | null>(null)
-
-    // Xử lý khi nhân viên bấm "Nhận Ca"
-    // const handleApplyShift = async (shiftId: string) => {
-    //     setApplyingShiftId(shiftId)
-    //     try {
-    //         await applyWithConfirm(shiftId)
-    //     } catch {
-    //         // User bấm hủy Dialog hoặc lỗi thì nó văng vào đây (đã xử lý toast trong hook)
-    //     } finally {
-    //         setApplyingShiftId(null)
-    //     }
-    // }
-
     // Modal chi tiết ca
     const { isOpen, onOpen, onClose } = useDisclosure()
     const [selectedShift, setSelectedShift] = useState<ShiftResponse | null>(null)
 
     const handleCardClick = (shift: ShiftResponse) => {
         setSelectedShift(shift)
-        onOpen() // Chỗ này ní tự gắn cái Modal Detail của ní vào nhé
+        onOpen()
     }
 
     return (

@@ -15,7 +15,7 @@ export interface AttendanceUIConfig {
 
 // Kết quả trả về từ useAttendanceWatcher
 export interface AttendanceStatus {
-    shift: UserCurrentShift // Nên map đúng type ShiftResponse của ní
+    shift: UserCurrentShift
     isComingUp: boolean
     isLate: boolean
     isOngoing: boolean

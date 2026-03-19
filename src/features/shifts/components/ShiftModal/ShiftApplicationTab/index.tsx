@@ -211,13 +211,6 @@ export const ShiftApplicationTab = ({ shiftId }: ShiftApplicationTabProps) => {
                                         {ShiftApplicationStatusLabels[app.status]}
                                     </Chip>
                                 </div>
-
-                                {/* Nếu Manager có để lại lời nhắn khi duyệt/từ chối (giả định field này tên là reviewNote, ní sửa lại theo API trả về nhé) */}
-                                {/* {(app as any).reviewNote && (
-                                    <div className="text-xs text-default-500 bg-white p-2 rounded border mt-1 ml-10">
-                                        <span className="font-bold">Ghi chú duyệt:</span> {(app as any).reviewNote}
-                                    </div>
-                                )} */}
                             </div>
                         ))}
                     </div>

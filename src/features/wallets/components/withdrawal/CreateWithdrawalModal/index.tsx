@@ -16,7 +16,7 @@ import { Landmark, Wallet } from "lucide-react"
 import { ModalStyled, ButtonStyled, InputStyled } from "@/components"
 import { useCreateWithdrawal, useGetMyWallet } from "@/features/wallets/hooks"
 import { formatCurrency, formatCurrencyWithSymbol } from "@/utils/helpers/currency"
-import { useFormikHelpers } from "@/hooks" // Import bảo bối của ní vào đây
+import { useFormikHelpers } from "@/hooks"
 import { getWithdrawalSchema } from "./schema"
 import { VIETQR_API_URL } from "@/constants/env"
 

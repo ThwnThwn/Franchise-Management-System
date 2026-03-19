@@ -141,7 +141,6 @@ export default function WithdrawalPageView() {
                     </TableBody>
                 </TableStyled>
 
-                {/* Khối Phân Trang chuẩn bài của ní */}
                 {(data?.items || []).length > 0 && (data?.totalPages || 0) > 1 && !isLoading && (
                     <PaginationStyled
                         page={pagination.page ?? 1}

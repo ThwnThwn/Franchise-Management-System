@@ -19,7 +19,7 @@ import dayjs from "dayjs"
 import { ButtonStyled, ModalStyled } from "@/components"
 import { ShiftResponse } from "@/features/shifts/models/response"
 import { useTokenStore, useUserHelper } from "@/hooks"
-import { useGetApplicationsByShiftId, useApplyForShift } from "@/features/shifts/hooks" // Trỏ đường dẫn cho đúng nha ní
+import { useGetApplicationsByShiftId, useApplyForShift } from "@/features/shifts/hooks"
 import { ShiftApplicationStatusLabels } from "@/features/shifts/constants/labels"
 import { ShiftApplicationStatusColors } from "@/features/shifts/constants/styles"
 
@@ -30,7 +30,7 @@ interface ShiftPoolDetailModalProps {
 }
 
 export const ShiftPoolDetailModal = ({ isOpen, onClose, shift }: ShiftPoolDetailModalProps) => {
-    const userId = useTokenStore((s) => s.userId) // Giả định ní có lưu userId trong token store
+    const userId = useTokenStore((s) => s.userId)
     const { toFullName } = useUserHelper()
 
     // 1. Fetch danh sách đơn apply NGAY KHI MỞ MODAL

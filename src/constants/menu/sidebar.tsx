@@ -8,7 +8,8 @@ import {
     ShoppingBag,
     FlaskConical,
     Ticket,
-    Wallet
+    Wallet,
+    Megaphone
 } from "lucide-react"
 import { MenuItem } from "./types"
 
@@ -94,7 +95,13 @@ export const DASHBOARD_SIDEBAR_MENU: MenuItem[] = [
         icon: <Ticket className="w-5 h-5" />,
         label: "Voucher",
         href: "/dashboard/vouchers",
-        allowedRoles: [RoleSlug.Admin, RoleSlug.Manager]
+        allowedRoles: [RoleSlug.Admin]
+    },
+    {
+        icon: <Megaphone className="w-5 h-5" />,
+        label: "Chiến dịch",
+        href: "/dashboard/campaigns",
+        allowedRoles: [RoleSlug.Admin]
     },
     {
         icon: <FlaskConical className="w-5 h-5" />,

@@ -23,7 +23,6 @@ export function CartFooter({
     hasShortageError,
     onSubmit
 }: CartFooterProps) {
-    // Nếu chưa chọn món nào thì không cần render Footer (Tùy logic UI của ní, thường thì ẩn luôn cho đẹp)
     if (selectedCount === 0) return null
 
     return (

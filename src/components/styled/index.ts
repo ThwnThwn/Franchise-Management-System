@@ -16,7 +16,7 @@ export * from "./CheckboxStyled"
 /* ========================= D ========================= */
 export * from "./DatePickerStyled"
 export * from "./DateRangePickerStyled"
-export * from "./DateTimeStyled"
+export * from "./DateTimePickerStyled"
 export * from "./DropdownStyled"
 
 /* ========================= F ========================= */

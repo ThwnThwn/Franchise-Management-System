@@ -9,6 +9,7 @@ import { Button } from "@heroui/react"
 import { formatCurrency, normalizeCurrency } from "@/utils/helpers/currency"
 import { useLoginDiscloresureSingleton, useTokenStore } from "@/hooks"
 import { RoleSlug } from "@/constants/enums"
+import CampaignSection from "@/features/campaigns/components/CampaignSection"
 
 export default function VoucherMarketplacePageView({
     initialVouchers
@@ -46,6 +47,7 @@ export default function VoucherMarketplacePageView({
 
     return (
         <div className="space-y-6 min-h-[80vh] w-7xl max-w-7xl mx-auto px-4 md:px-8">
+            <CampaignSection />
             <div className="mb-8">
                 <h1 className="text-3xl font-black text-[#4b3621]">Chợ Voucher Khách Hàng</h1>
                 <p className="text-default-500">

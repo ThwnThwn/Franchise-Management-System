@@ -14,27 +14,31 @@ import { confirmDialog } from "@/hooks"
 import { Voucher } from "../models/response"
 import { formatCurrency, normalizeCurrency } from "@/utils/helpers/currency"
 
-export const useGetAllVouchers = (initialData?: Voucher[]) => {
+export const useGetAllVouchers = (
+    initialData?: Voucher[],
+    { enabled = true }: { enabled?: boolean } = {}
+) => {
     return useQuery({
         queryKey: [QUERY_KEYS.VOUCHERS],
         queryFn: () => voucherApi.getAll(),
+        enabled: enabled,
         initialData: initialData
     })
 }
 
-export const useCreateVoucher = ({ onSuccess }: { onSuccess?: () => void } = {}) => {
+export const useCreateVoucher = ({ onSuccess }: { onSuccess?: (res: Voucher) => void } = {}) => {
     const queryClient = useQueryClient()
 
     return useMutation({
         mutationFn: (req: CreateVoucherRequest) => voucherApi.create(req),
-        onSuccess: () => {
+        onSuccess: (res) => {
             queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.VOUCHERS] })
             addToast({
                 title: STRINGS.COMMON.SUCCESS,
                 description: "Tạo voucher mới thành công!",
                 color: "success"
             })
-            onSuccess?.()
+            onSuccess?.(res)
         },
         onError: (error: BackendError) => {
             addToast({

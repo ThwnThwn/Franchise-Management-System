@@ -15,9 +15,8 @@ export const voucherApi = {
         const res = await axiosInstance.post("/vouchers", req)
         return res.data
     },
-    update: async (id: string, req: UpdateVoucherRequest): Promise<Voucher> => {
-        const res = await axiosInstance.put(`/vouchers/${id}`, req)
-        return res.data
+    update: async (id: string, req: UpdateVoucherRequest): Promise<void> => {
+        await axiosInstance.put(`/vouchers/${id}`, req)
     },
     updateStatus: async (id: string, req: UpdateVoucherStatusRequest): Promise<void> => {
         await axiosInstance.patch(`/vouchers/${id}/status`, req)

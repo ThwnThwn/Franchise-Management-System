@@ -32,7 +32,7 @@ export default function MyVouchersView() {
                     >
                         <ChevronLeft size={20} /> Quay lại Hồ sơ
                     </Link>
-                    <div className="flex justify-between items-center">
+                    <div className="flex justify-between items-center gap-6">
                         <div>
                             <h1 className="text-3xl font-black text-white mb-2 tracking-tight">
                                 Túi Quà Của Tôi

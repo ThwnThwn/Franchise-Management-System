@@ -21,16 +21,23 @@ interface Props {
     isOpen: boolean
     onOpenChange: (isOpen: boolean) => void
     voucher?: Voucher
+
+    onSuccessCallback?: (newVoucherId: string) => void
 }
 
 export type VoucherTabType = "discount" | "shipping" | "gift"
 
-export const VoucherModal = ({ isOpen, onOpenChange, voucher }: Props) => {
+export const VoucherModal = ({ isOpen, onOpenChange, voucher, onSuccessCallback }: Props) => {
     const isEditing = !!voucher
 
     // API Mutations
     const { mutate: createVoucher, isPending: isCreating } = useCreateVoucher({
-        onSuccess: () => onOpenChange(false)
+        onSuccess: (res) => {
+            onOpenChange(false)
+            if (onSuccessCallback && res?.id) {
+                onSuccessCallback(res.id)
+            }
+        }
     })
     const { mutate: updateVoucher, isPending: isUpdating } = useUpdateVoucher({
         onSuccess: () => onOpenChange(false)

@@ -3,7 +3,7 @@
 import { cn, DatePicker, DatePickerProps } from "@heroui/react"
 import React from "react"
 
-export function DateTimeStyled(props: DatePickerProps) {
+export function DateTimePickerStyled(props: DatePickerProps) {
     return (
         <DatePicker
             hideTimeZone

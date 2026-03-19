@@ -87,7 +87,6 @@ export const splitOrderItems = (
         const isInCart = order.items.some((i) => i.sku.toUpperCase() === gift.sku.toUpperCase())
 
         if (!isInCart) {
-            // Lookup thông tin từ cái Map ní vừa truyền vào
             const info = variantMap[gift.sku.toUpperCase()]
 
             giftItems.push({
