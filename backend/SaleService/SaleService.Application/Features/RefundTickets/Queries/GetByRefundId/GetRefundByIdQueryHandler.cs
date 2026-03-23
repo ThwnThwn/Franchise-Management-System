@@ -1,4 +1,5 @@
 ﻿using Ardalis.Result;
+using DocumentFormat.OpenXml.VariantTypes;
 using MediatR;
 using SalesService.Application.Interfaces.Identity;
 using SalesService.Application.Persisitences;
@@ -34,13 +35,16 @@ public sealed class GetRefundByIdQueryHandler
 
         if (ticket == null)
             return Result.NotFound($"Refund ticket not found for id '{request.RefundTicketId}'");
-
+        if (ticket.WalletId == null || ticket.OriginalTransactionId == null)
+        {
+            throw new ArgumentException(nameof(ticket.WalletId) + nameof(ticket.OriginalTransactionId));
+        }
         return Result.Success(new GetRefundByIdResponse
         {
             Id = ticket.Id,
             TicketCode = ticket.TicketCode,
             Amount = ticket.Amount,
-            Reason = ticket.Reason,
+            Reason = ticket.Reason ?? "No reason provided",
             WalletId = ticket.WalletId.Value,
             TransactionId = ticket.TransactionId,
             OriginalTransactionId = ticket.OriginalTransactionId.Value,

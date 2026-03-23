@@ -1,6 +1,7 @@
 ﻿using Ardalis.Result;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualBasic;
 using SalesService.Application.Persisitences.Wallets;
 using SalesService.Application.Persisitences.WalletTransactions;
 using SalesService.Domain.Entities;
@@ -89,7 +90,14 @@ public sealed class DeductBalanceCommandHandler
                         nameof(request.ExternalTransactionId),
                         $"ExternalTransactionId '{request.ExternalTransactionId}' already exists for a different wallet."));
                 }
-
+                if (wallet == null)
+                {
+                    throw new Exception("wallet is null");
+                }
+                else if (wallet.RowVersion == null)
+                {
+                    throw new Exception("RowVersion is null");
+                }
                 return Result.Success(new DeductBalanceCommandResponse
                 {
                     WalletId = existingTxn.WalletId.Value,
@@ -145,7 +153,14 @@ public sealed class DeductBalanceCommandHandler
             var updatedWallet = await _walletRepository.GetByIdAsync(
                 wallet.Id,
                 cancellationToken);
-
+            if(updatedWallet == null)
+            {
+                throw new Exception("updatedWallet is null");
+            }
+            else if(updatedWallet.RowVersion == null)
+            {
+                throw new Exception("RowVersion is null");
+            }
             var response = new DeductBalanceCommandResponse
             {
                 WalletId = updatedWallet!.Id,

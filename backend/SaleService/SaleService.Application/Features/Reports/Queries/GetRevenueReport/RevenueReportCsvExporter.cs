@@ -26,7 +26,7 @@ public static class RevenueReportCsvExporter
             if (includeStoreColumn)
             {
                 sb.AppendLine(string.Join(",",
-                    Escape(item.StoreId?.ToString()), // <-- must exist in DTO
+                    Escape(item.StoreId?.ToString() ?? string.Empty), // <-- must exist in DTO
                     Escape(item.ProductName),
                     Escape(item.Sku),
                     item.QuantitySold,

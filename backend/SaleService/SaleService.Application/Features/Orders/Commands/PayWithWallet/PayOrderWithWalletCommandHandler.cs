@@ -150,6 +150,11 @@ public sealed class PayOrderWithWalletCommandHandler
 
         try
         {
+            if(customerWallet.RowVersion == null)
+            {
+                throw new ArgumentException(nameof(customerWallet.RowVersion));
+            }
+
             // 9. Update customer wallet balance
             var customerUpdated = await _walletRepository.UpdateBalanceAsync(
                 customerWallet.Id,
@@ -160,6 +165,10 @@ public sealed class PayOrderWithWalletCommandHandler
             if (!customerUpdated)
                 return Result.Error("Failed to update customer wallet");
 
+            if (shopWallet.RowVersion == null)
+            {
+                throw new ArgumentException(nameof(shopWallet.RowVersion));
+            }
             // 10. Update shop wallet balance
             var shopUpdated = await _walletRepository.UpdateBalanceAsync(
                 shopWallet.Id,

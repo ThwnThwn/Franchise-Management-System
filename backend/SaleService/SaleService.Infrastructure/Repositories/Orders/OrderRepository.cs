@@ -373,7 +373,7 @@ public class OrderRepository : IOrderRepository
         .AsNoTracking()
         .Where(o => o.CustomerId.HasValue &&
             userIds.Contains(o.CustomerId.Value))
-        .GroupBy(o => o.CustomerId.Value)
+        .GroupBy(o => o.CustomerId ?? Guid.Empty)
         .Select(g => new
         {
             UserId = g.Key,

@@ -31,8 +31,9 @@ public class KafkaConsumerBackgroundService : BackgroundService
         _logger = logger;
         _registry = registry;
 
-        var refreshInterval = int.Parse(configuration["KAFKA_METADATA_REFRESH_MS"]);
-
+        var configValue = configuration["KAFKA_METADATA_REFRESH_MS"]
+            ?? throw new InvalidOperationException("KAFKA_METADATA_REFRESH_MS is not configured.");
+        var refreshInterval = int.Parse(configValue);
         var config = new ConsumerConfig
         {
             BootstrapServers = configuration["KAFKA_BOOTSTRAP_SERVERS"] ?? "localhost:9092",

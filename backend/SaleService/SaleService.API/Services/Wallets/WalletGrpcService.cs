@@ -112,7 +112,7 @@ public sealed class WalletGrpcService : WalletGrpc.WalletGrpcBase
                     new AddBalanceCommand.AddBalanceCommandRequest
                     {
                         Amount = amount,
-                        RowVersion = wallet.RowVersion, // Current version from DB
+                        RowVersion = wallet.RowVersion!, // Current version from DB
                         Description = request.Description,
                         PaymentMethod = MapGrpcPaymentMethodToDomain(request.PaymentMethod),
                         ExternalTransactionId = string.IsNullOrWhiteSpace(request.ExternalTransactionId)
@@ -217,7 +217,7 @@ public sealed class WalletGrpcService : WalletGrpc.WalletGrpcBase
                     new DeductBalanceCommand.DeductBalanceCommandRequest
                     {
                         Amount = amount,
-                        RowVersion = wallet.RowVersion,
+                        RowVersion = wallet.RowVersion!,
                         Description = request.Description,
                         PaymentMethod = MapGrpcPaymentMethodToDomain(request.PaymentMethod),
                         ExternalTransactionId = string.IsNullOrWhiteSpace(request.ExternalTransactionId)

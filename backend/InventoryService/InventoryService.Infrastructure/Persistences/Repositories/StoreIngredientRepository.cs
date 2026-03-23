@@ -123,7 +123,7 @@ namespace InventoryService.Infrastructure.Persistences.Repositories
             }
             catch (Exception ex)
             {
-                throw new Application.AppExceptions.DbUpdateException("Lỗi update db");
+                throw new Application.AppExceptions.DbUpdateException("Lỗi update db "+ ex);
             }
         }
 

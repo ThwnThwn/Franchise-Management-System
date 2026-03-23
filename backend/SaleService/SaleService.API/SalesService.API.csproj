@@ -23,7 +23,6 @@
 		<Protobuf Include="..\..\..\backend\ProductService\ProductService.API\Protos\*.proto" GrpcServices="Client" ProtoRoot="..\..\..\backend\ProductService\ProductService.API\Protos" />
 		<Protobuf Include="..\..\..\protos\identity\*.proto" GrpcServices="Client" ProtoRoot="..\..\..\protos" />
 		<Protobuf Include="..\..\..\protos\sales\*.proto" GrpcServices="Server" ProtoRoot="..\..\..\protos" />
-		<Protobuf Include="..\..\..\protos\engagement\*.proto" GrpcServices="Client" ProtoRoot="..\..\..\protos" />
 		<Protobuf Include="..\..\..\protos\franchise\shift.proto" GrpcServices="Client" ProtoRoot="..\..\..\protos" />
 		<Protobuf Include="..\..\..\protos\franchise\store.proto" GrpcServices="Client" ProtoRoot="..\..\..\protos" />
 	</ItemGroup>

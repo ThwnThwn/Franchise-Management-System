@@ -93,12 +93,11 @@ public sealed class GetProductPerformanceHandler
 
                 var unitsSold = g.Sum(x => x.Quantity);
                 var revenue = g.Sum(x => x.Quantity * x.UnitPrice);
-
                 return new ProductPerformanceResponse
                 {
                     ProductId = productId,
                     ProductName = productInfo?.ProductName ?? g.First().ProductName,
-                    CategoryId = productInfo.CategoryId,
+                    CategoryId = productInfo?.CategoryId ?? Guid.Empty,
                     CategoryName = productInfo?.CategoryName,
                     UnitsSold = unitsSold,
                     Revenue = revenue,

@@ -7,7 +7,7 @@ namespace SalesService.Application.Persisitences
 {
     public interface IRefundTicketRepository : IGenericRepository<RefundTicket>
     {
-        Task<RefundTicket> GetByTicketIdAsync(
+        Task<RefundTicket?> GetByTicketIdAsync(
             Guid ticketId,
             CancellationToken cancellationToken);
 

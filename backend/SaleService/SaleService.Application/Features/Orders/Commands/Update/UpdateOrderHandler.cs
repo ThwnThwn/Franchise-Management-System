@@ -116,12 +116,15 @@ namespace SalesService.Application.Features.Orders.Commands.Update
             {
                 var existing = order.OrderItems
                     .FirstOrDefault(x => x.Sku == item.Sku);
-
                 if (existing != null)
                 {
                     // Update quantity
                     existing.Quantity = item.Quantity;
                     var variant = variants.First(v => v.Sku == item.Sku);
+                    if(variant.BasePrice == null)
+                    {
+                        throw new ArgumentException(nameof(variant.BasePrice));
+                    }
                     decimal unitPrice = variant.BasePrice.Value;
                     subtotal += unitPrice * item.Quantity;
                 }
@@ -129,6 +132,10 @@ namespace SalesService.Application.Features.Orders.Commands.Update
                 {
                     // Add new item
                     var variant = variants.First(v => v.Sku == item.Sku);
+                    if (variant.BasePrice == null)
+                    {
+                        throw new ArgumentException(nameof(variant.BasePrice));
+                    }
                     decimal unitPrice = variant.BasePrice.Value;
                     subtotal += unitPrice * item.Quantity;
                     order.OrderItems.Add(new Domain.Entities.OrderItem

@@ -84,13 +84,17 @@ namespace SalesService.API.Services.CartItems
             });
 
             var result = await _mediator.Send(command);
-
+            var productResponse = await _productServiceClient.GetProductVariantBySkuAsync(result.Sku);
+            if (productResponse == null)
+            {
+                throw new Exception($"Product variant not found for SKU: {result.Sku} ");
+            }
             return new CartItemReply
             {
                 Id = result.Id.ToString(),
                 CustomerId = result.CustomerId.ToString(),
                 Sku = result.Sku,
-                ProductName = (await _productServiceClient.GetProductVariantBySkuAsync(result.Sku)).ProductName,
+                ProductName = productResponse.ProductName ?? string.Empty,
                 Quantity = result.Quantity,
                 BasePrice = (double)result.BasePrice
             };

@@ -75,14 +75,14 @@ public class WalletController : ControllerBase
             return walletResult.ToActionResult();
 
         var wallet = walletResult.Value;
-
+        
         var command = new AddBalanceCommand(
             wallet.Id,
             userId,
             new AddBalanceCommand.AddBalanceCommandRequest
             {
                 Amount = request.Amount,
-                RowVersion = wallet.RowVersion,
+                RowVersion = wallet.RowVersion ?? Array.Empty<byte>(),
                 Description = request.Description,
                 PaymentMethod = request.PaymentMethod,
                 ExternalTransactionId = request.ExternalTransactionId
@@ -130,7 +130,7 @@ public class WalletController : ControllerBase
             new DeductBalanceCommand.DeductBalanceCommandRequest
             {
                 Amount = request.Amount,
-                RowVersion = wallet.RowVersion,
+                RowVersion = wallet.RowVersion ?? Array.Empty<byte>(),
                 Description = request.Description,
                 PaymentMethod = request.PaymentMethod,
                 ExternalTransactionId = request.ExternalTransactionId

@@ -18,7 +18,7 @@ public class UpdateWarehouseCommandValidator : AbstractValidator<UpdateWarehouse
             .When(x => !string.IsNullOrWhiteSpace(x.Name));
 
         RuleFor(x => x.Status)
-            .Must(s => Enum.IsDefined(typeof(WarehouseService.Domain.Enums.WarehouseStatus), s))
+            .Must(s => Enum.IsDefined(typeof(WarehouseService.Domain.Enums.WarehouseStatus), s!))
             .WithMessage("Warehouse status is invalid.")
             .When(x => x.Status.HasValue);
 

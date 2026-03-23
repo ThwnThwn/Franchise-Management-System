@@ -11,10 +11,6 @@ public partial class WarehouseDbContext : Microsoft.EntityFrameworkCore.DbContex
 {
     private readonly UpdateTimestampInterceptor _updateInterceptor;
 
-    public WarehouseDbContext()
-    {
-    }
-
     public WarehouseDbContext(DbContextOptions<WarehouseDbContext> options, UpdateTimestampInterceptor updateTimestampInterceptor)
         : base(options)
     {

@@ -35,6 +35,11 @@ public sealed class InternalUserCreateRefundTicketCommandHandler
         var request = command.Request;
         var internalUserOverride = command.InternalUserOverride;
 
+        if( internalUserOverride == null )
+        {
+            throw new ArgumentNullException("internalUserOverride is empty internalUserOverrideHanler");
+        }
+
         if (request.Amount <= 0)
             return Result.Invalid(new ValidationError(
                 nameof(request.Amount),

@@ -71,7 +71,7 @@ namespace InventoryService.API.Services.Inventory
             }
             catch (ParseException ex)
             {
-                throw new ParseException("Lỗi định dạng dữ liệu đầu vào");
+                throw new ParseException("Lỗi định dạng dữ liệu đầu vào "+ ex);
             }
 
             var res = await _mediator.Send(new Application.Features.StoreIngredient.Queries.GetAllStock.GetAllStockQuery()

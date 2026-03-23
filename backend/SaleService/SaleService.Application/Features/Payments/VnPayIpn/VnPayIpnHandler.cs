@@ -106,7 +106,17 @@ public sealed class VnPayIpnHandler
         if (payment == null)
         {
             _logger.LogWarning("[IPN] Payment {PaymentId} not found", paymentId);
-            return Result.Success(new VnPayIpnResponse { RspCode = "01", Message = "Order not found" });
+            throw new Exception("payment is null |VnpayHandler");
+        }
+        // ── PHÂN NHÁNH: Wallet Deposit vs Order ──────────────────────────────
+        if (payment.ReferenceType == PaymentReferenceType.Deposit && payment.ReferenceId.HasValue)
+        {
+            return await HandleWalletDepositIpnAsync(payment, responseCode, transactionNo, query, cancellationToken);
+        }
+        // Kiểm tra xem Payment đã được cập nhật trước đó chưa (IPN có thể gọi nhiều lần)
+        if (payment.Status == (int)PaymentStatus.Paid || payment.Status == (int)PaymentStatus.Failed)
+        {
+            return Result.Success(new VnPayIpnResponse { RspCode = "02", Message = "Order already confirmed" });
         }
 
         // Nếu là thanh toán đơn hàng (không phải nạp ví) và có OrderId, load thêm Order
@@ -114,23 +124,11 @@ public sealed class VnPayIpnHandler
         {
             payment = await _paymentRepository.GetByIdWithOrderAsync(paymentId, cancellationToken);
         }
-
-        // Kiểm tra xem Payment đã được cập nhật trước đó chưa (IPN có thể gọi nhiều lần)
-        if (payment.Status == (int)PaymentStatus.Paid || payment.Status == (int)PaymentStatus.Failed)
-        {
-            return Result.Success(new VnPayIpnResponse { RspCode = "02", Message = "Order already confirmed" });
-        }
-
-        // ── PHÂN NHÁNH: Wallet Deposit vs Order ──────────────────────────────
-        if (payment.ReferenceType == PaymentReferenceType.Deposit && payment.ReferenceId.HasValue)
-        {
-            return await HandleWalletDepositIpnAsync(payment, responseCode, transactionNo, query, cancellationToken);
-        }
-
+        
         // xác thực số tiền
         if (long.TryParse(amountStr, out var vnpAmount))
         {
-            var expected = (long)(payment.Amount * 100);
+            var expected = (long)(payment!.Amount * 100);
             if (expected != vnpAmount)
             {
                 await AddPaymentEvent(payment.Id, "VNPAY_IPN_AMOUNT_MISMATCH", query, cancellationToken);
