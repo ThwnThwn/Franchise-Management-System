@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using ProductService.Domain.Commons;
 using ProductService.Domain.Entities;
@@ -8,32 +6,22 @@ using ProductService.Infrastructure.Interceptor;
 
 namespace ProductService.Infrastructure.ApplicationDbContext;
 
-public partial class ProductDbContext : DbContext, IProductDbContext
+public partial class ProductDbContext(
+    DbContextOptions<ProductDbContext> options,
+    UpdateTimestampInterceptor updateTimestampInterceptor
+) : DbContext(options), IProductDbContext
 {
-    private readonly UpdateTimestampInterceptor _updateInterceptor;
-
-    public ProductDbContext()
-    {
-    }
-
-    public ProductDbContext(DbContextOptions<ProductDbContext> options,
-        UpdateTimestampInterceptor updateTimestampInterceptor)
-        : base(options)
-    {
-        _updateInterceptor = updateTimestampInterceptor;
-    }
-
     public virtual DbSet<Category> Categories { get; set; }
 
     public virtual DbSet<Product> Products { get; set; }
 
     public virtual DbSet<ProductVariant> ProductVariants { get; set; }
 
-    public DbSet<T> Set<T>() where T : class, IEntity => base.Set<T>();
+    public new DbSet<T> Set<T>() where T : class, IEntity => base.Set<T>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.AddInterceptors(_updateInterceptor);
+        optionsBuilder.AddInterceptors(updateTimestampInterceptor);
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

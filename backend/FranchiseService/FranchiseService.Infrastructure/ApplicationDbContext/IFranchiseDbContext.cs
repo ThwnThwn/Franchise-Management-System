@@ -25,7 +25,7 @@ namespace FranchiseService.Infrastructure.ApplicationDbContext
         DbSet<StoreHour> StoreHours { get; set; }
 
         DbSet<TimeLog> TimeLogs { get; set; }
-        
+
         DbSet<OutboxMessage> OutboxMessages { get; set; }
 
         DbSet<FranchiseApplication> FranchiseApplications { get; set; }

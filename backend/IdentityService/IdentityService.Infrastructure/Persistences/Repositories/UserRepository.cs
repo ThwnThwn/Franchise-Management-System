@@ -13,6 +13,7 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
         public UserRepository(IIdentityDbContext dbContext) : base(dbContext)
         {
         }
+
         /// <summary>
         /// Adds the with role asynchronous.
         /// </summary>
@@ -29,6 +30,7 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
 
             return createdUser;
         }
+
         /// <summary>
         /// Gets all with role asynchronous.
         /// </summary>
@@ -42,6 +44,7 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
                 .AsSingleQuery()
                 .ToListAsync();
         }
+
         /// <summary>
         /// Gets the by email asynchronous.
         /// </summary>
@@ -58,6 +61,7 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
                 .FirstOrDefaultAsync(u => u.Email != null && u.Email.ToLower() == email.ToLower());
             //.FirstOrDefaultAsync(u => u.Email == email);
         }
+
         /// <summary>
         /// Gets the by username asynchronous.
         /// </summary>
@@ -74,6 +78,7 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
                 .FirstOrDefaultAsync();
             return user;
         }
+
         /// <summary>
         /// Gets the by email or user name asynchronous.
         /// </summary>
@@ -92,6 +97,7 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
                     u.Email == key || u.Username == key
                 );
         }
+
         /// <summary>
         /// Gets the by identifier asynchronous.
         /// </summary>
@@ -104,6 +110,7 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
                .FirstOrDefaultAsync(u => u.Id == id && !u.IsDeleted);
             return user;
         }
+
         /// <summary>
         /// Gets the manager by store identifier asynchronous.
         /// </summary>
@@ -115,11 +122,12 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
                 .Include(u => u.Role)
                 .Where(u =>
                     u.HomeStoreId == storeId &&
-                    u.Role.Slug == "manager" &&
+                    u.Role != null && u.Role.Slug == "manager" &&
                     !u.IsDeleted
                 )
                 .FirstOrDefaultAsync();
         }
+
         /// <summary>
         /// Gets the users by role slug asynchronous.
         /// </summary>
@@ -134,13 +142,14 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
 
             if (!string.IsNullOrWhiteSpace(roleSlug))
             {
-                query = query.Where(u => u.Role.Slug == roleSlug);
+                query = query.Where(u => u.Role != null && u.Role.Slug == roleSlug);
             }
 
             return await query
                 .OrderByDescending(u => u.CreatedAt)
                 .ToListAsync();
         }
+
         /// <summary>
         /// Gets the by ids.
         /// </summary>
@@ -153,6 +162,7 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
                 .Cast<User?>()
                 .ToListAsync();
         }
+
         /// <summary>
         /// Gets the paged users asynchronous.
         /// </summary>
@@ -172,7 +182,7 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
                 .AsNoTracking()
                 .Where(u => !u.IsDeleted);
 
-            // Nếu mà không null thì tức đang có filter loyalty 
+            // Nếu mà không null thì tức đang có filter loyalty
             if (ids != null && ids.Any())
             {
                 query = query.Where(u => ids.Contains(u.Id));
@@ -192,7 +202,7 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
             // Filter by role
             if (!string.IsNullOrEmpty(roleSlug))
             {
-                query = query.Where(u => u.Role.Slug == roleSlug);
+                query = query.Where(u => u.Role != null && u.Role.Slug == roleSlug);
             }
             // Filter by StoreId
             if (!string.IsNullOrEmpty(StoredId.ToString()))
@@ -207,6 +217,7 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
             query = query.OrderByDescending(u => u.CreatedAt);
             return await query.ToPagedListAsync(pageIndex, pageSize, cancellationToken);
         }
+
         /// <summary>
         /// Gets the by phone asynchronous.
         /// </summary>
@@ -224,6 +235,7 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
                 .FirstOrDefaultAsync(u => u.Phone != null && u.Phone == phone);
             return customer;
         }
+
         /// <summary>
         /// Gets the users by phone asynchronous.
         /// </summary>
@@ -240,6 +252,7 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
                 .ToListAsync();
             return customers;
         }
+
         /// <summary>
         /// Gets the users by email asynchronous.
         /// </summary>

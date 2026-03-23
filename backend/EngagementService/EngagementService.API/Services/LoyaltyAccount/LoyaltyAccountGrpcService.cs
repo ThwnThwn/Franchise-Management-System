@@ -16,6 +16,7 @@ namespace EngagementService.API.Services.LoyaltyAccount
     {
         private readonly IMediator _mediator;
         private readonly IReportService _reportService;
+
         public LoyaltyAccountGrpcService(IMediator mediator, IReportService reportService)
         {
             _mediator = mediator;
@@ -89,7 +90,6 @@ namespace EngagementService.API.Services.LoyaltyAccount
                     AmountPerPoint = account.CurrentTier.AmountPerPoint.ToString()
                 };
 
-
                 var responseItem = new LoyaltyAccountResponse
                 {
                     Id = account.Id.ToString(),
@@ -119,7 +119,7 @@ namespace EngagementService.API.Services.LoyaltyAccount
             return new Empty();
         }
 
-        public async override Task<Empty> UpdatePoint( UpdatePointRequest request, ServerCallContext context)
+        public async override Task<Empty> UpdatePoint(UpdatePointRequest request, ServerCallContext context)
         {
             var req = new Application.Dtos.LoyaltyAccount.UpdatePointRequest
             {
@@ -145,6 +145,17 @@ namespace EngagementService.API.Services.LoyaltyAccount
             // 2. Gửi Query vào Application Layer thông qua MediatR để lấy dữ liệu thống kê
             var result = await _mediator.Send(query);
 
+            if (result == null || result.Data == null)
+            {
+                // Xử lý trường hợp không có dữ liệu trả về, có thể trả về lỗi hoặc một response mặc định
+                return new Grpc.Protos.LoyaltyAccountGrpc.LoyaltyReportResponse
+                {
+                    TotalMembers = 0,
+                    TotalPointsEarned = 0,
+                    TotalPointsRedeemed = 0
+                };
+            }
+
             // 3. Khởi tạo Response khớp với định nghĩa proto
             var response = new Grpc.Protos.LoyaltyAccountGrpc.LoyaltyReportResponse
             {
@@ -167,13 +178,13 @@ namespace EngagementService.API.Services.LoyaltyAccount
 
             // 5. Logic xuất file vật lý (PDF/CSV) trả về qua gRPC
             // Kiểm tra định dạng yêu cầu từ request.Format
-            if (request.Format == Grpc.Protos.LoyaltyAccountGrpc.ExportFormat.Pdf)
+            if (request.Format == ExportFormat.Pdf)
             {
                 // Gọi ReportService để vẽ PDF và chuyển thành ByteString
                 var pdfBytes = _reportService.ExportToPdf(result.Data);
                 response.FileContent = Google.Protobuf.ByteString.CopyFrom(pdfBytes);
             }
-            else if (request.Format == Grpc.Protos.LoyaltyAccountGrpc.ExportFormat.Csv)
+            else if (request.Format == ExportFormat.Csv)
             {
                 // Gọi ReportService để xuất CSV và chuyển thành ByteString
                 var csvBytes = _reportService.ExportToCsv(result.Data);
@@ -226,7 +237,7 @@ namespace EngagementService.API.Services.LoyaltyAccount
         {
             var userId = (context.RequestHeaders.FirstOrDefault(h =>
             h.Key.Equals("x-user-id", StringComparison.OrdinalIgnoreCase)));
-            if(userId != null)
+            if (userId != null)
             {
                 var req = new Application.Dtos.LoyaltyAccount.RedeemVoucherRequest
                 {

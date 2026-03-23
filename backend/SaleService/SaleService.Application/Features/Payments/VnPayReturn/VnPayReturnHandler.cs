@@ -1,4 +1,3 @@
-
 using Ardalis.Result;
 using MediatR;
 using Microsoft.Extensions.Configuration;
@@ -58,14 +57,14 @@ public sealed class VnPayReturnHandler
         var query = request.QueryParams;
         if (!query.TryGetValue("vnp_SecureHash", out var vnpSecureHash))
         {
-            return Result.Invalid(new[]
-            {
+            return Result.Invalid(
+            [
                 new ValidationError
                 {
                     Identifier = "vnp_SecureHash",
                     ErrorMessage = "Missing vnp_SecureHash"
                 }
-            });
+            ]);
         }
 
         // lấy tất cả tham số bắt đầu với vnp_ để kiểm tra chữ ký
@@ -96,22 +95,23 @@ public sealed class VnPayReturnHandler
 
         if (!Guid.TryParse(txnRef, out var paymentId))
         {
-            return Result.Invalid(new[]
-            {
+            return Result.Invalid(
+            [
                 new ValidationError
                 {
                     Identifier = "vnp_TxnRef",
                     ErrorMessage = "Invalid vnp_TxnRef"
                 }
-            });
+            ]);
         }
 
         var payment = await _paymentRepository.GetByIdWithOrderAsync(paymentId, cancellationToken);
-        var order = payment.Order;
         if (payment == null)
         {
             return Result.NotFound("Payment not found");
         }
+
+        var order = payment.Order;
 
         // Chỉ kiểm tra logic để hiển thị cho UI (KHÔNG LƯU DB, KHÔNG BẮN KAFKA)
         // Mọi việc cập nhật dữ liệu để VnPayIpnHandler lo gánh
@@ -123,18 +123,18 @@ public sealed class VnPayReturnHandler
             // Kakfa Event Voucher
             //=================
             List<Guid> voucherList = order.OrderSaleItems
-                .Where(x => x.Type == OrderSaleItemType.Voucher)
-                .Select(x => x.ReferenceId.Value)
+                .Where(x => x.Type == OrderSaleItemType.Voucher && x.ReferenceId != null)
+                .Select(x => x.ReferenceId!.Value)
                 .ToList();
-            if (voucherList.Any())
+            if (voucherList.Count != 0)
             {
-                UseVouchersEvent userVoucherEvent = new UseVouchersEvent
+                UseVouchersEvent userVoucherEvent = new()
                 {
                     OrderId = order.Id,
-                    UserId = order.CustomerId.Value,
+                    UserId = order.CustomerId ?? Guid.Empty,
                     VoucherIds = voucherList
                 };
-                _kafkaProducer.PublishAsync(KafkaTopics.DeductUserVoucher, userVoucherEvent);
+                await _kafkaProducer.PublishAsync(KafkaTopics.DeductUserVoucher, userVoucherEvent);
             }
             //=================
             // Kakfa Event Point
@@ -142,31 +142,34 @@ public sealed class VnPayReturnHandler
             decimal point = order.OrderSaleItems
                 .Where(x => x.Type == OrderSaleItemType.LoyaltyPoint)
                 .Select(x => x.Amount)
-                .FirstOrDefault(); 
-            if(point != 0 || point != null)
+                .FirstOrDefault();
+            if (point != 0)
             {
                 UpdatePointEvent userPoint = new UpdatePointEvent
                 {
-                    Id = order.CustomerId.Value,
+                    Id = order.CustomerId ?? Guid.Empty,
                     OrderId = order.Id,
                     Point = point,
                     ActionType = UpdatePointType.Minus
                 };
-                _kafkaProducer.PublishAsync(KafkaTopics.UpdateUserPoint, userPoint);
+                await _kafkaProducer.PublishAsync(KafkaTopics.UpdateUserPoint, userPoint);
             }
             //=================
-            // Wallet Event 
+            // Wallet Event
             //=================
-            var userWallet = await _walletRepository.GetByUserIdAsync(order.CustomerId.Value);
-            decimal walletAmount = order.OrderSaleItems
-                .Where(x => x.Type == OrderSaleItemType.Wallet)
-                .Select(x => x.Amount)
-                .FirstOrDefault();
-            if(walletAmount != 0 || walletAmount != 0)
+            if (order.CustomerId != null)
             {
-                await _walletRepository.DeductBalanceAsync(userWallet.Id, walletAmount, userWallet.RowVersion);
-
+                var userWallet = await _walletRepository.GetByUserIdAsync(order.CustomerId.Value, cancellationToken);
+                decimal walletAmount = order.OrderSaleItems
+                    .Where(x => x.Type == OrderSaleItemType.Wallet)
+                    .Select(x => x.Amount)
+                    .FirstOrDefault();
+                if (walletAmount != 0 && userWallet != null && userWallet.RowVersion != null)
+                {
+                    await _walletRepository.DeductBalanceAsync(userWallet.Id, walletAmount, userWallet.RowVersion, cancellationToken);
+                }
             }
+
             //=================
             // log
             _logger.LogInformation("VNPay Return: Giao dịch thành công cho PaymentId {PaymentId}. Chờ IPN xử lý DB.", payment.Id);
@@ -180,10 +183,8 @@ public sealed class VnPayReturnHandler
         {
             Success = isSuccess,
             PaymentId = payment.Id,
-            OrderId = payment.OrderId.Value,
+            OrderId = payment.OrderId ?? Guid.Empty,
             ResponseCode = responseCode ?? string.Empty
         });
     }
-
 }
-

@@ -3,6 +3,7 @@ using EngagementService.Application.Constants;
 using EngagementService.Application.Dtos.LoyaltyAccount;
 using EngagementService.Application.Persistences.Repository;
 using MediatR;
+using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace EngagementService.Application.Features.LoyaltyAccount.Queries.GetById
 {
@@ -10,11 +11,13 @@ namespace EngagementService.Application.Features.LoyaltyAccount.Queries.GetById
     {
         private readonly ILoyaltyAccountRepository _loyaltyAccountRepository;
         private readonly IIdentityServiceClient _identityServiceClient;
+
         public GetByPhoneOrEmailHandler(ILoyaltyAccountRepository loyaltyAccountRepository, IIdentityServiceClient identityServiceClient)
         {
             _loyaltyAccountRepository = loyaltyAccountRepository;
             _identityServiceClient = identityServiceClient;
         }
+
         public async Task<List<LoyaltyAccountDto>> Handle(GetByPhoneOrEmailQuery command, CancellationToken cancellationToken)
         {
             var request = command.Request;
@@ -40,6 +43,8 @@ namespace EngagementService.Application.Features.LoyaltyAccount.Queries.GetById
 
             foreach (var account in loyaltyAccounts)
             {
+                if (account == null) continue;
+
                 var userInfo = usersSimpleRep.UserIDNameResp.FirstOrDefault(u => u.UserId == account.Id);
                 if (userInfo != null)
                 {

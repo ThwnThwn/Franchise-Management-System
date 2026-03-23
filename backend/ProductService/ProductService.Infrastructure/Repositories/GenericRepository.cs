@@ -17,6 +17,7 @@ namespace ProductService.Infrastructure.Repositories
             _dbContext = dbContext;
             _dbSet = _dbContext.Set<T>();
         }
+
         /// <summary>
         /// Adds the only asynchronous.
         /// </summary>
@@ -25,6 +26,7 @@ namespace ProductService.Infrastructure.Repositories
         {
             await _dbSet.AddAsync(entity);
         }
+
         /// <summary>
         /// Adds the asynchronous.
         /// </summary>
@@ -36,6 +38,7 @@ namespace ProductService.Infrastructure.Repositories
             await _dbContext.SaveChangesAsync();
             return (entity as IEntity)?.Id ?? Guid.Empty;
         }
+
         /// <summary>
         /// Adds the range asynchronous.
         /// </summary>
@@ -45,6 +48,7 @@ namespace ProductService.Infrastructure.Repositories
             await _dbSet.AddRangeAsync(entities);
             await _dbContext.SaveChangesAsync();
         }
+
         /// <summary>
         /// Deletes the only asynchronous.
         /// </summary>
@@ -63,6 +67,7 @@ namespace ProductService.Infrastructure.Repositories
                 _dbSet.Remove(entityFromDb);
             }
         }
+
         /// <summary>
         /// Deletes the asynchronous.
         /// </summary>
@@ -72,6 +77,7 @@ namespace ProductService.Infrastructure.Repositories
             await DeleteOnlyAsync(id);
             await _dbContext.SaveChangesAsync();
         }
+
         /// <summary>
         /// Deletes the range asynchronous.
         /// </summary>
@@ -92,6 +98,7 @@ namespace ProductService.Infrastructure.Repositories
             }
             await _dbContext.SaveChangesAsync();
         }
+
         /// <summary>
         /// Gets all asynchronous.
         /// </summary>
@@ -124,6 +131,7 @@ namespace ProductService.Infrastructure.Repositories
 
             return await query.OrderByDescending(x => x.CreatedAt).ToListAsync();
         }
+
         /// <summary>
         /// Gets the by identifier asynchronous.
         /// </summary>
@@ -142,6 +150,7 @@ namespace ProductService.Infrastructure.Repositories
             }
             return entity;
         }
+
         /// <summary>
         /// Gets the by ids asynchronous.
         /// </summary>
@@ -156,14 +165,16 @@ namespace ProductService.Infrastructure.Repositories
             }
             return await query.ToArrayAsync();
         }
+
         /// <summary>
         /// Removes the specified entity.
         /// </summary>
         /// <param name="entity">The entity.</param>
-        public virtual async void Remove(T entity)
+        public virtual void Remove(T entity)
         {
             _dbSet.Remove(entity);
         }
+
         /// <summary>
         /// Updates the asynchronous.
         /// </summary>

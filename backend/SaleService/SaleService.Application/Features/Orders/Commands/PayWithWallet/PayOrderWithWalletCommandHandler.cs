@@ -83,11 +83,13 @@ public sealed class PayOrderWithWalletCommandHandler
         // 5. Lock wallets for update
         var lockedCustomerWallet = await _walletRepository.GetForUpdateAsync(
             customerWallet.Id,
-            cancellationToken);
+            cancellationToken)
+            ?? throw new KeyNotFoundException();
 
         var lockedShopWallet = await _walletRepository.GetForUpdateAsync(
             shopWallet.Id,
-            cancellationToken);
+            cancellationToken)
+            ?? throw new KeyNotFoundException();
 
         // 6. Calculate balances
         var customerBalanceBefore = lockedCustomerWallet.Balance;

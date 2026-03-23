@@ -32,7 +32,7 @@ namespace EngagementService.Application.Dtos.Voucher
 
     public class CreateVoucherItemReq
     {
-        public string Sku { get; set; }
+        public string Sku { get; set; } = null!;
 
         public int Quantity { get; set; }
 
@@ -78,5 +78,4 @@ namespace EngagementService.Application.Dtos.Voucher
         public Guid OrderId { get; set; }
         public Guid UserId { get; set; }
     }
-
 }
