@@ -10,10 +10,6 @@ public partial class EngagementDbContext : DbContext, IEngagementDbContext
 {
     private readonly UpdateTimestampInterceptor _updateInterceptor;
 
-    public EngagementDbContext()
-    {
-    }
-
     public EngagementDbContext(DbContextOptions<EngagementDbContext> options, UpdateTimestampInterceptor updateInterceptor)
         : base(options)
     {
@@ -39,7 +35,7 @@ public partial class EngagementDbContext : DbContext, IEngagementDbContext
     public virtual DbSet<VoucherUsage> VoucherUsages { get; set; }
     public virtual DbSet<PointRule> PointRules { get; set; }
 
-    public DbSet<T> Set<T>() where T : class, IEntity => base.Set<T>();
+    public new DbSet<T> Set<T>() where T : class, IEntity => base.Set<T>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -267,7 +263,10 @@ public partial class EngagementDbContext : DbContext, IEngagementDbContext
                 .HasForeignKey(v => v.CampaignId)
                 .IsRequired(false);
             // Ràng buộc kiểm tra số lượng (CHECK Constraint)
-            entity.HasCheckConstraint("check_quantity_logic", "\"current_quantity\" <= \"init_quantity\"");
+            //entity.HasCheckConstraint("check_quantity_logic", "\"current_quantity\" <= \"init_quantity\"");
+            entity.ToTable(t => t.HasCheckConstraint(
+                "check_quantity_logic", "\"current_quantity\" <= \"init_quantity\""
+            ));
 
             entity.HasQueryFilter(e => !e.IsDeleted);
         });

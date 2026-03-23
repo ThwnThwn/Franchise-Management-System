@@ -43,7 +43,7 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
     public virtual DbSet<RefundTicket> RefundTickets { get; set; }
     public virtual DbSet<OrderTracking> OrderTrackings { get; set; }
 
-    public DbSet<T> Set<T>() where T : class, IEntity => base.Set<T>();
+    public new DbSet<T> Set<T>() where T : class, IEntity => base.Set<T>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

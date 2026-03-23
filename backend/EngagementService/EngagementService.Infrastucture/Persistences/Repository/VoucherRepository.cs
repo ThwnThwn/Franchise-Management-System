@@ -80,8 +80,8 @@ namespace EngagementService.Infrastucture.Persistences.Repository
                         voucherItem.Quantity = (int)item.Quantity;
                     if (item.Sku != null)
                         voucherItem.Sku = item.Sku;
-                    if (item.Type != null) ;
-                    voucherItem.Type = (VoucherItemType)item.Type!;
+                    if (item.Type != null)
+                        voucherItem.Type = (VoucherItemType)item.Type!;
                 }
                 else
                 {

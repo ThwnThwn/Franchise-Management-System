@@ -38,6 +38,10 @@ namespace EngagementService.Application.Features.Campaign.Commands.UpdateActiveS
             {
                 throw new ArgumentNullException($"campign with Id {request.Id} is null" + nameof(command));
             }
+
+            Domain.Entities.Campaign campaign = await _campaignRepository.GetCampaignById(request.Id)
+                ?? throw new ArgumentNullException($"campign with Id {request.Id} is null" + nameof(command));
+
             campaign.IsActive = request.IsActive;
             campaign.Vouchers.ToList().ForEach(v => v.IsActive = request.IsActive);
             await _campaignRepository.UpdateAsync(campaign);

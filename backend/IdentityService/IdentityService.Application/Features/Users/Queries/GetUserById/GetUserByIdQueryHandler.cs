@@ -20,6 +20,7 @@ public class GetUserByIdQueryHandler : IRequestHandler<GetUserByIdQuery, UserRep
         _mapper = mapper;
         _engagementServiceClient = engagementServiceClient;
     }
+
     /// <summary>
     /// Handles a request
     /// </summary>
@@ -30,17 +31,18 @@ public class GetUserByIdQueryHandler : IRequestHandler<GetUserByIdQuery, UserRep
     /// </returns>
     public async Task<UserRep?> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
     {
-        var user = await _userRepository.GetByIdAsync(request.Id);
+        var user = await _userRepository.GetByIdAsync(request.Id)
+            ?? throw new KeyNotFoundException();
+
         LoyaltyRes? loyalty = null;
-        if(user != null)
+        if (user != null)
         {
             loyalty = await _engagementServiceClient.GetLoyaltyByEmail(user.Email);
         }
 
-
         return new UserRep
         {
-            Id = user.Id,
+            Id = user!.Id,
             Email = user.Email,
             Username = user.Username,
             Address = user.Address,

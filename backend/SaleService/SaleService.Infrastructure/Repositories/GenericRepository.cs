@@ -120,7 +120,7 @@ namespace SalesService.Infrastructure.Repositories
             return await query.ToArrayAsync();
         }
 
-        public virtual async void Remove(T entity)
+        public virtual void Remove(T entity)
         {
             _dbSet.Remove(entity);
         }

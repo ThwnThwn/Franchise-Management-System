@@ -37,11 +37,11 @@ public class GetAllUsersQueryHandler : IRequestHandler<GetAllUsersQuery, PagedRe
     public async Task<PagedResult<UserRep>> Handle(GetAllUsersQuery query, CancellationToken cancellationToken)
     {
         List<Guid>? filteredUserIds = null;
-        IEnumerable<LoyaltyRes> loyaltyResponse = null;
+        IEnumerable<LoyaltyRes> loyaltyResponse = [];
 
-        var role = await _roleRepository.GetBySlugAsync(query.RoleSlug);
+        var role = await _roleRepository.GetBySlugAsync(query.RoleSlug ?? "");
         var roleResponse = _mapper.Map<RoleUserRep>(role);
-        // Lấy all User theo Field tier + range money 
+        // Lấy all User theo Field tier + range money
         if (query.TierId != null || query.StartAt != null || query.EndAt != null)
         {
             loyaltyResponse = await _engagementServiceClient.GetByFilter(query.TierId, query.StartAt, query.EndAt);
@@ -52,7 +52,7 @@ public class GetAllUsersQueryHandler : IRequestHandler<GetAllUsersQuery, PagedRe
         //{
         //    Console.WriteLine(id);
         //}
-        // Lấy all OrderCountUser 
+        // Lấy all OrderCountUser
         var orderCounts = await _saleServiceClient.GetCountOrderByUserIds(filteredUserIds ?? new List<Guid>());
         if (query.OrderCount.HasValue)
         {
@@ -66,12 +66,12 @@ public class GetAllUsersQueryHandler : IRequestHandler<GetAllUsersQuery, PagedRe
         }
         // Lưu map key Id - value loyaltyResponse
 
-        var loyaltyDict = loyaltyResponse?.ToDictionary(x => x.Id)?? new Dictionary<Guid, LoyaltyRes>();
+        var loyaltyDict = loyaltyResponse?.ToDictionary(x => x.Id) ?? new Dictionary<Guid, LoyaltyRes>();
 
         // Lưu Map key Id - value CountOrder
         var UserCountOrdersDict = orderCounts.ToDictionary(x => x.UserId, x => x.OrderCount);
 
-        // Paging theo Id đã tìm được 
+        // Paging theo Id đã tìm được
         var pagedUsers = await _userRepository.GetPagedUsersAsync(
             query.Keyword ?? "",
             filteredUserIds,

@@ -26,13 +26,12 @@ namespace EngagementService.Infrastucture.AppDbContext
         DbSet<PointRule> PointRules { get; set; }
         DbSet<Campaign> Campaigns { get; set; }
 
-        public DbSet<T> Set<T>() where T : class, IEntity;
+        DbSet<T> Set<T>() where T : class, IEntity;
 
-        public EntityEntry<T> Entry<T>(T entity) where T : class;
+        EntityEntry<T> Entry<T>(T entity) where T : class;
 
-        public int SaveChanges();
+        int SaveChanges();
 
-        public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
-
+        Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     }
 }
