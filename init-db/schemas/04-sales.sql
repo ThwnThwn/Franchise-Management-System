@@ -1,4 +1,4 @@
-﻿CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- 0. Cart Items
 CREATE TABLE IF NOT EXISTS cart_items (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -28,18 +28,25 @@ CREATE TABLE IF NOT EXISTS orders (
     notes VARCHAR(255),
     
     type INT, -- 0.Delivery, 1.Pickup
+    shipping_fee DECIMAL(12,3) NOT NULL DEFAULT 0,
+    address VARCHAR(500),
+    latitude DOUBLE PRECISION,
+    longitude DOUBLE PRECISION,
+    distance DECIMAL(12,3),
 
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     is_deleted BOOLEAN DEFAULT FALSE,
 
     customer_id UUID,
-    store_id UUID
+    store_id UUID,
+    delivery_id UUID,
+    scheduled_time TIME   
 );
 CREATE UNIQUE INDEX idx_orders_code ON orders(code);
 CREATE INDEX idx_orders_customer_created ON orders(customer_id, created_at DESC) WHERE customer_id IS NOT NULL;
 
--- 2. Order Items
+-- 2.1. Order Items
 CREATE TABLE IF NOT EXISTS order_items (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     
@@ -60,6 +67,41 @@ CREATE TABLE IF NOT EXISTS order_items (
     CONSTRAINT fk_order_items_order FOREIGN KEY (order_id) REFERENCES orders(id)
 );
 CREATE INDEX idx_order_items_order ON order_items(order_id);
+
+-- 2.2. Order Sale Items (Discounts / Reductions applied to order)
+CREATE TABLE IF NOT EXISTS order_sale_items (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+
+    amount DECIMAL(12,3) NOT NULL CHECK (amount >= 0),
+
+    type INT NOT NULL, 
+    name VARCHAR(255) NOT NULL,
+    reference_id UUID,
+
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    is_deleted BOOLEAN DEFAULT FALSE,
+
+    order_id UUID NOT NULL,
+    CONSTRAINT fk_order_sale_items_order FOREIGN KEY (order_id) REFERENCES orders(id)
+);
+CREATE INDEX IF NOT EXISTS idx_order_sale_items_order ON order_sale_items(order_id);
+CREATE INDEX IF NOT EXISTS idx_order_sale_items_ref ON order_sale_items(reference_id);
+
+-- 2.3 Order Trackings
+CREATE TABLE IF NOT EXISTS order_trackings (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    order_id UUID NOT NULL,
+    status INT,
+    action VARCHAR(255) NOT NULL,
+    note VARCHAR(500),
+    created_by UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_order_trackings_order
+        FOREIGN KEY (order_id) REFERENCES orders(id)
+);
+CREATE INDEX IF NOT EXISTS idx_order_trackings_order ON order_trackings(order_id);
 
 -- 3. Payments
 CREATE TABLE IF NOT EXISTS payments (
@@ -338,3 +380,94 @@ ON wallet_events(event_type);
 
 CREATE INDEX IF NOT EXISTS idx_wallet_events_transaction
 ON wallet_events(wallet_transaction_id);
+
+CREATE TABLE IF NOT EXISTS withdrawal_requests (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+
+    -- Mã giao dịch rút tiền (VD: WR-202310-XYZ)
+    request_code VARCHAR(50) NOT NULL,
+
+    -- Số tiền khách muốn rút
+    amount NUMERIC(18,2) NOT NULL,
+    -- (Tùy chọn) Nếu hệ thống thu phí rút tiền thì dùng cột này
+    fee_amount NUMERIC(18,2) NOT NULL DEFAULT 0, 
+
+    -- ==========================================
+    -- THÔNG TIN NGÂN HÀNG
+    -- ==========================================
+    bank_code VARCHAR(50),                     -- NULLABLE: Bị rỗng nếu API VietQR lỗi
+    bank_name VARCHAR(255) NOT NULL,           -- BẮT BUỘC: Do API trả về HOẶC do khách tự gõ
+    account_name VARCHAR(255) NOT NULL,        -- VD: 'NGUYEN VAN A' 
+    masked_account_number VARCHAR(50) NOT NULL,-- VD: '******6789' (Lưu plain-text)
+    encrypted_account_number TEXT NOT NULL,    -- Chuỗi AES-256 Base64
+
+    -- ==========================================
+    -- LIÊN KẾT HỆ THỐNG
+    -- ==========================================
+    wallet_id UUID NOT NULL,
+    user_id UUID NOT NULL,                     -- Chủ nhân của lệnh rút tiền này
+    transaction_id UUID,                       -- Trỏ tới mã giao dịch trừ tiền trong bảng wallet_transactions (nếu có)
+
+    -- ==========================================
+    -- TRẠNG THÁI & GHI CHÚ
+    -- ==========================================
+    status INT NOT NULL,                       -- 1: Pending, 2: Approved, 3: Rejected, 4: Cancelled, 5: Completed
+    
+    notes VARCHAR(500),                        -- Ghi chú của khách hàng khi rút tiền (nếu có)
+    internal_notes VARCHAR(500),               -- Ghi chú nội bộ cho Kế toán đọc (Khách không thấy)
+    
+    rejection_reason VARCHAR(500),             -- Lý do từ chối (Gửi cho khách xem)
+    approval_notes VARCHAR(500),               -- Ghi chú lúc duyệt
+    cancellation_reason VARCHAR(500),          -- Lý do hủy (Do khách hoặc admin tự hủy)
+
+    -- ==========================================
+    -- DẤU VẾT KIỂM TOÁN (AUDIT TRAIL)
+    -- ==========================================
+    approved_by UUID,
+    approved_at TIMESTAMP WITH TIME ZONE,
+
+    rejected_by UUID,
+    rejected_at TIMESTAMP WITH TIME ZONE,
+
+    cancelled_by UUID,
+    cancelled_at TIMESTAMP WITH TIME ZONE,
+
+    processed_by UUID,                         -- Kế toán viên trực tiếp chuyển khoản
+    completed_at TIMESTAMP WITH TIME ZONE,     -- Thời điểm tiền thực sự đi khỏi tài khoản công ty
+
+    -- ==========================================
+    -- BẰNG CHỨNG CHUYỂN KHOẢN (RẤT QUAN TRỌNG)
+    -- ==========================================
+    bank_transaction_id VARCHAR(100),          -- THÊM MỚI: Mã giao dịch/Trace Number từ ngân hàng
+    receipt_image_url VARCHAR(1000),           -- Link ảnh bill up
+    receipt_image_public_id VARCHAR(255),      -- ID ảnh để sau này có xóa thì gọi API xóa trên Cloudinary
+
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
+
+    -- ==========================================
+    -- CONSTRAINTS
+    -- ==========================================
+    CONSTRAINT fk_withdrawal_wallet
+        FOREIGN KEY (wallet_id) REFERENCES wallets(id),
+
+    CONSTRAINT fk_withdrawal_transaction
+        FOREIGN KEY (transaction_id) REFERENCES wallet_transactions(id)
+);
+
+-- Tạo Index để tối ưu tốc độ truy vấn
+CREATE UNIQUE INDEX IF NOT EXISTS idx_withdrawal_requests_code 
+ON withdrawal_requests(request_code);
+
+CREATE INDEX IF NOT EXISTS idx_withdrawal_requests_wallet 
+ON withdrawal_requests(wallet_id);
+
+CREATE INDEX IF NOT EXISTS idx_withdrawal_requests_user 
+ON withdrawal_requests(user_id);
+
+CREATE INDEX IF NOT EXISTS idx_withdrawal_requests_status 
+ON withdrawal_requests(status);
+
+CREATE INDEX IF NOT EXISTS idx_withdrawal_requests_created_at 
+ON withdrawal_requests(created_at DESC);

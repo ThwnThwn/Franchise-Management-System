@@ -19,7 +19,20 @@ namespace IdentityService.Application.Features.Users.Commands.DeleteAvatar
             _userRepository = userRepository;
             _cloudinaryService = cloudinaryService;
         }
-
+        /// <summary>
+        /// Handles a request
+        /// </summary>
+        /// <param name="request">The request</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>
+        /// Response from the request
+        /// </returns>
+        /// <exception cref="RpcException"></exception>
+        /// <exception cref="Status">
+        /// User not found
+        /// or
+        /// User does not have an avatar to delete
+        /// </exception>
         public async Task<string> Handle(DeleteAvatarCommand request, CancellationToken cancellationToken)
         {
             var user = await _userRepository.GetByIdAsync(request.UserId);

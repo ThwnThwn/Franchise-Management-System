@@ -37,8 +37,8 @@ func (s *shiftAvailabilityGrpcClient) GetAll(ctx context.Context, req *shift.Get
 		HasDayOfWeek: req.DayOfWeek != nil,
 		DayOfWeek:    numberutils.GetInt32(req.DayOfWeek),
 
-		StoreId: req.StoreID,
-		UserId:  req.UserID,
+		StoreId: req.StoreId,
+		UserId:  req.UserId,
 		Keyword: req.Keyword,
 
 		Page:     req.Page,
@@ -57,8 +57,8 @@ func (s *shiftAvailabilityGrpcClient) GetAll(ctx context.Context, req *shift.Get
 		}
 
 		items = append(items, &shift.ShiftAvailabilityResponse{
-			ID:     item.Id,
-			UserID: item.UserId,
+			Id:     item.Id,
+			UserId: item.UserId,
 
 			IsAvailable: item.IsAvailable,
 			IsRecurring: item.IsRecurring,

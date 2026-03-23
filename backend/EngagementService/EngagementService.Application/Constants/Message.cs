@@ -19,6 +19,7 @@ namespace EngagementService.Application.Constants
         public const string NotFound = "Không tìm thấy tài khoản thành viên";
         public const string InsufficientPoints = "Điểm không đủ để thực hiện hành động này";
         public const string AlreadyExists = "Tài khoản đã tồn tại";
+        public const string InvalidActionType = "Loại hành động không hợp lệ";
     }
 
     public static class VoucherMsg
@@ -29,7 +30,7 @@ namespace EngagementService.Application.Constants
         public const string InvalidDiscountValue = "Giá trị giảm giá không hợp lệ";
         public const string InvalidEndDate = "Ngày kết thúc không được trước hiện tại";
         public const string InvalidType = "Loại mã giảm giá không hợp lệ";
-        public const string EmptyVoucherItems = "Mã giảm giá loại quà tặng phải có ít nhất một voucher item yêu cầu và voucher item quà tặng";
+        public const string EmptyVoucherItems = "Mã giảm giá loại quà tặng phải có ít nhất một voucher item quà tặng";
         public const string InvalidVoucherItemQuantity = "Số lượng trong voucher item phải lớn hơn 0";
         public const string InvalidInitQuantity = "Số lượng ban đầu không hợp lệ";
         public const string InvalidMaxUsagePerUser = "Số lần sử dụng tối đa mỗi người dùng không hợp lệ";
@@ -40,8 +41,7 @@ namespace EngagementService.Application.Constants
         public const string ExpiredVoucher = "Mã giảm giá đã hết hạn";
         public const string UsageLimitReached = "Mã giảm giá đã đạt giới hạn sử dụng";
         public const string OutOfStock = "Mã giảm giá đã hết hàng";
-
-
+        public const string VoucherInUsed = "Mã giảm giá đã được sử dụng";
 
     }
     public static class CommonMsg

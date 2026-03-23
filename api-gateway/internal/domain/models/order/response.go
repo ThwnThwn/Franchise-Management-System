@@ -1,6 +1,7 @@
 package order
 
 import (
+	"api-gateway/internal/domain/constants/enum"
 	"api-gateway/internal/domain/models/store"
 	"time"
 )
@@ -25,6 +26,16 @@ type ShortageItem struct {
 	MaxFeasibleQuantity int32  `json:"maxFeasibleQuantity"`
 }
 
+type DeliveryMan struct {
+	Id        string  `json:"id"`
+	Username  string  `json:"username"`
+	Email     string  `json:"email"`
+	Phone     string  `json:"phone"`
+	FirstName string  `json:"firstName"`
+	LastName  *string `json:"lastName"`
+	AvatarUrl *string `json:"avatarUrl"`
+}
+
 type OrderHeader struct {
 	Id            string                     `json:"id"`
 	Code          string                     `json:"code"`
@@ -40,6 +51,15 @@ type OrderHeader struct {
 	UpdatedAt     time.Time                  `json:"updatedAt"`
 	CustomerId    string                     `json:"customerId"`
 	Store         *store.StoreDetailResponse `json:"store"`
+
+	Type          enum.OrderType `json:"type"`
+	DeliveryMan   *DeliveryMan   `json:"deliveryMan"`
+	ScheduledTime *string        `json:"scheduledTime"`
+	ShippingFee   float64        `json:"shippingFee"`
+	Latitude      *float64       `json:"latitude"`
+	Longitude     *float64       `json:"longitude"`
+	Distance      *float64       `json:"distance"`
+	Address       *string        `json:"address"`
 }
 
 func (h *OrderHeader) GetStoreId() string {
@@ -53,9 +73,22 @@ func (h *OrderHeader) SetStore(s *store.StoreDetailResponse) {
 	h.Store = s
 }
 
+func (h *OrderHeader) GetDeliveryManId() string {
+	if h.DeliveryMan != nil {
+		return h.DeliveryMan.Id
+	}
+	return ""
+}
+
+func (h *OrderHeader) SetDeliveryMan(d *DeliveryMan) {
+	h.DeliveryMan = d
+}
+
 type Order struct {
 	OrderHeader
-	Items []*OrderItem `json:"items"`
+	Items     []*OrderItem          `json:"items"`
+	Type      enum.OrderType        `json:"type"`
+	SaleItems []*OrderSaleItemReply `json:"saleItems"`
 }
 
 type OrderSummary struct {
@@ -71,6 +104,14 @@ type OrderItem struct {
 	ProductName string  `json:"productName"`
 	Sku         string  `json:"sku"`
 	ImageUrl    string  `json:"imageUrl"`
+}
+
+type OrderSaleItemReply struct {
+	Id          string                 `json:"id"`
+	Amount      float64                `json:"amount"`
+	Type        enum.OrderSaleItemType `json:"type"`
+	ReferenceId *string                `json:"referenceId"`
+	Name        string                 `json:"name"`
 }
 
 type GetRevenueReportReply struct {

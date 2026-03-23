@@ -1,16 +1,17 @@
-﻿using Ardalis.Result;
+using Ardalis.Result;
 using MediatR;
 using SalesService.Domain.Enums;
 
 namespace SalesService.Application.Features.Orders.Queries.GetById
 {
-    public sealed record GetOrderByIdQuery(Guid OrderId): IRequest<Result<GetOrderByIdResponse>>;
+    public sealed record GetOrderByIdQuery(Guid OrderId) : IRequest<Result<GetOrderByIdResponse>>;
 
     public sealed class GetOrderByIdResponse
     {
         public Guid OrderId { get; set; }
         public string OrderCode { get; set; } = default!;
         public decimal Subtotal { get; set; }
+        public decimal ShippingFee { get; set; }
         public decimal? Tax { get; set; }
         public decimal TotalAmount { get; set; }
         public decimal? PaidAmount { get; set; }
@@ -24,7 +25,15 @@ namespace SalesService.Application.Features.Orders.Queries.GetById
         public Guid? StoreId { get; set; }
         public OrderType? Type { get; set; }
 
+        public Guid? DelivererId { get; set; }
+        public TimeOnly? ScheduledTime { get; set; }
+        public string? Address { get; set; }
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
+        public decimal? Distance { get; set; }
+
         public List<OrderItemDto> Items { get; set; } = new();
+        public List<OrderSaleItemDto> SaleItems { get; set; } = new();
     }
 
     public sealed class OrderItemDto
@@ -37,5 +46,18 @@ namespace SalesService.Application.Features.Orders.Queries.GetById
         public string? ImageUrl { get; set; }
         public Guid ProductId { get; set; }
         public Guid VariantId { get; set; }
+    }
+
+    public sealed class OrderSaleItemDto
+    {
+        public Guid Id { get; set; }
+
+        public decimal Amount { get; set; }
+
+        public OrderSaleItemType Type { get; set; }
+
+        public Guid? ReferenceId { get; set; }
+
+        public string Name { get; set; } = default!;
     }
 }

@@ -3,7 +3,6 @@ package sales
 import (
 	"api-gateway/internal/application/gateways/sales"
 	"api-gateway/internal/domain/models/cart"
-	"api-gateway/pkg/utils/grpcutils"
 	"api-gateway/pkg/utils/validation"
 	"net/http"
 
@@ -27,11 +26,7 @@ func NewCartHandler(cartGW sales.ICartService) *CartHandler {
 // @Security     BearerAuth
 // @Router       /me/cart [get]
 func (h *CartHandler) GetMyCart(c *gin.Context) error {
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	res, err := h.cartGW.GetMyCart(ctx)
 	if err != nil {
 		return err
@@ -55,11 +50,7 @@ func (h *CartHandler) AddToMyCart(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	res, err := h.cartGW.AddToMyCart(ctx, req)
 	if err != nil {
 		return err
@@ -83,11 +74,7 @@ func (h *CartHandler) UpdateMyCartItems(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	res, err := h.cartGW.UpdateMyCartItems(ctx, req)
 	if err != nil {
 		return err
@@ -111,11 +98,7 @@ func (h *CartHandler) DeleteMyCartItems(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	isSuccess, err := h.cartGW.DeleteMyCartItems(ctx, req)
 	if err != nil {
 		return err
@@ -135,11 +118,7 @@ func (h *CartHandler) DeleteMyCartItems(c *gin.Context) error {
 // @Security     BearerAuth
 // @Router       /me/cart [delete]
 func (h *CartHandler) ClearMyCart(c *gin.Context) error {
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	isSuccess, err := h.cartGW.ClearMyCart(ctx)
 	if err != nil {
 		return err

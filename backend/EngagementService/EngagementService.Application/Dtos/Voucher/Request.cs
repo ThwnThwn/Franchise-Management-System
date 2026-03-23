@@ -32,7 +32,7 @@ namespace EngagementService.Application.Dtos.Voucher
 
     public class CreateVoucherItemReq
     {
-        public Guid VariantId { get; set; }
+        public string Sku { get; set; } = null!;
 
         public int Quantity { get; set; }
 
@@ -61,7 +61,7 @@ namespace EngagementService.Application.Dtos.Voucher
     public class UpdateVoucherItemReq
     {
         public Guid? Id { get; set; }
-        public Guid? VariantId { get; set; }
+        public string? Sku { get; set; }
         public int? Quantity { get; set; }
         public VoucherItemType? Type { get; set; }
     }
@@ -70,5 +70,12 @@ namespace EngagementService.Application.Dtos.Voucher
     {
         public Guid Id { get; set; }
         public bool IsActive { get; set; }
+    }
+
+    public class UseVouchersRequest
+    {
+        public List<Guid> VoucherIds { get; set; } = new List<Guid>();
+        public Guid OrderId { get; set; }
+        public Guid UserId { get; set; }
     }
 }

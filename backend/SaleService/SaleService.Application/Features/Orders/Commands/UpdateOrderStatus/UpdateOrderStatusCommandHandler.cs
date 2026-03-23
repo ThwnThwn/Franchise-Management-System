@@ -59,7 +59,7 @@ public sealed class UpdateOrderStatusCommandHandler
         }
         if (order.CustomerId == null)
         {
-            return ("CustomerId is null");  
+            return ("CustomerId is null");
         }
 
         if (!OrderStatusTransitionPolicy.CanTransition(order.Status, request.Status))
@@ -68,31 +68,59 @@ public sealed class UpdateOrderStatusCommandHandler
         }
 
         // Đơn hàng hủy thì xóa queue  || Bù vào wallet nếu đã thanh toán
-        if(request.Status == OrderStatus.Cancelled)
+        if (request.Status == OrderStatus.Cancelled)
         {
             await _inventoryServiceClient.ReleaseStockAsync(new ReleaseStockReq
             {
                 OrderId = order.Id,
                 StoreId = order.StoreId!.Value
             });
-            if(order.Status == OrderStatus.ConfirmationPending && order.PaymentMethod == PaymentMethod.VNPay)
+            if (order.Status == OrderStatus.ConfirmationPending && order.PaymentMethod == PaymentMethod.VNPay)
             {
+                //Hoàn về wallet
                 var wallet = await _walletRepository.GetByUserIdAsync(order.CustomerId.Value);
-                if(wallet == null || wallet.RowVersion == null)
+                if (wallet == null || wallet.RowVersion == null)
                 {
                     return "Cancel fail due to no wallet found";
                 }
-                if(order.PaidAmount == null)
+                if (order.PaidAmount == null)
                 {
                     return $"Cancel fail due to no PaidAmout found in order with ID {order.Id}";
                 }
-                await _walletRepository.AddBalanceAsync(wallet.Id,order.PaidAmount.Value,wallet.RowVersion);
+                await _walletRepository.AddBalanceAsync(wallet.Id, order.PaidAmount.Value, wallet.RowVersion);
+
+                if (request.RoleSlug == "staff")
+                {
+                    // Hoàn Point + Voucher
+                    decimal point = order.OrderSaleItems
+                        .Where(x => x.Type == OrderSaleItemType.LoyaltyPoint)
+                        .Select(x => x.Amount)
+                        .FirstOrDefault();
+                    if (point != 0)
+                    {
+                        UpdatePointEvent userPoint = new UpdatePointEvent
+                        {
+                            Id = order.CustomerId.Value,
+                            OrderId = order.Id,
+                            Point = point,
+                            ActionType = UpdatePointType.Add
+                        };
+                        await _kafkaProducer.PublishAsync(KafkaTopics.UpdateUserPoint, userPoint);
+                    }
+
+                    // Kakfa Event Voucher
+                    ReverseVoucherEvent userVoucher = new ReverseVoucherEvent
+                    {
+                        OrderId = order.Id
+                    };
+                    await _kafkaProducer.PublishAsync(KafkaTopics.ReverseUserVoucher, userVoucher);
+                }
             }
         }
+
         // Đơn hàng hoàn thành
         if (request.Status == OrderStatus.Completed)
         {
-
             if (order.PaymentMethod == PaymentMethod.VNPay)
             {
                 var payment = await _paymentRepository.GetNewestByOrderIdAndStatusAsync(request.OrderId, PaymentStatus.Paid, cancellationToken);
@@ -166,5 +194,4 @@ public sealed class UpdateOrderStatusCommandHandler
         await _orderRepository.UpdateAsync(order, cancellationToken);
         return $"Order status updated successfully to '{request.Status}'";
     }
-
 }

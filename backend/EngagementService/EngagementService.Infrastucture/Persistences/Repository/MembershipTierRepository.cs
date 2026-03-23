@@ -15,7 +15,10 @@ namespace EngagementService.Infrastucture.Persistences.Repository
         public MembershipTierRepository(IEngagementDbContext dbContext) : base(dbContext)
         {
         }
-
+        /// <summary>
+        /// Gets the default tier asynchronous.
+        /// </summary>
+        /// <returns></returns>
         public async Task<MembershipTier?> GetDefaultTierAsync()
         {
             return await _dbContext.MembershipTiers

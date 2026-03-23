@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   # ==========================================
   # 1. DATABASE: POSTGRESQL
@@ -95,23 +93,56 @@ services:
   # ==========================================
   # 5. SEARCH ENGINE: ELASTICSEARCH
   # ==========================================
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.2
-    container_name: chb_elasticsearch
+  # elasticsearch:
+  #   image: docker.elastic.co/elasticsearch/elasticsearch:8.12.2
+  #   container_name: chb_elasticsearch
+  #   restart: always
+  #   environment:
+  #     - discovery.type=single-node
+  #     - xpack.security.enabled=false # Tắt bảo mật để Dev local cho dễ
+  #     - "ES_JAVA_OPTS=-Xms512m -Xmx512m" # Giới hạn RAM
+  #   ports:
+  #     - "${ELASTIC_PORT:-9200}:9200"
+  #   volumes:
+  #     - elastic_data:/usr/share/elasticsearch/data
+  #   networks:
+  #     - chb-network
+
+    # ==========================================
+  # 7. ROUTING ENGINE: OSRM (Open Source Routing Machine)
+  # ==========================================
+  osrm:
+    image: osrm/osrm-backend
+    container_name: chb_osrm
     restart: always
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false # Tắt bảo mật để Dev local cho dễ
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m" # Giới hạn RAM
     ports:
-      - "${ELASTIC_PORT:-9200}:9200"
+      - "5000:5000"
     volumes:
-      - elastic_data:/usr/share/elasticsearch/data
+      - ./osrm_data:/data
+    # Tự động hóa quá trình xử lý dữ liệu nếu chưa tồn tại
+    entrypoint: >
+      /bin/sh -c "
+        if [ ! -f /data/Saigon.osrm ]; then
+          echo 'Data not found, starting preprocessing...' &&
+          osrm-extract -p /opt/car.lua /data/Saigon.osm.pbf &&
+          osrm-partition /data/Saigon.osrm &&
+          osrm-customize /data/Saigon.osrm;
+        fi;
+        echo 'Starting OSRM server...' &&
+        osrm-routed --algorithm mld /data/Saigon.osrm;
+      "
+    # Giới hạn tài nguyên để bảo vệ Server
+    deploy:
+      resources:
+        limits:
+          memory: 512M    # Giới hạn tối đa 512MB RAM (rất dư cho map Sài Gòn)
+        reservations:
+          memory: 256M    # Luôn giữ chỗ ít nhất 256MB RAM
     networks:
       - chb-network
 
   # ==========================================
-  # 6. NGROK TẠO TUNNEL CHO VNPAY (Sale + Supplier Service)
+  # 8. NGROK TẠO TUNNEL CHO VNPAY (Sale + Supplier Service)
   #    Dashboard: http://localhost:4040
   #    Sale:     http://localhost:4040 → Tunnels → sale_service
   #    Supplier: http://localhost:4040 → Tunnels → supplier_service
@@ -121,7 +152,7 @@ services:
     container_name: chb_ngrok
     restart: always
     environment:
-      - NGROK_AUTHTOKEN=3ASdhW1JxLBlplNk7cZsKoRhXmP_4MyUWrCApRxaPArhXSRJt
+      - NGROK_AUTHTOKEN=3Agz8FdHS61E0OaxLlUtGuMQbRz_3diR3mFGtpjhnoaWjr5YX
     volumes:
       - ./ngrok.yml:/etc/ngrok.yml
     command:

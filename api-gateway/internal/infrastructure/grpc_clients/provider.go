@@ -7,6 +7,7 @@ import (
 	"api-gateway/internal/infrastructure/grpc_clients/inventory"
 	"api-gateway/internal/infrastructure/grpc_clients/product"
 	"api-gateway/internal/infrastructure/grpc_clients/sales"
+	"api-gateway/internal/infrastructure/grpc_clients/supplier"
 
 	"github.com/google/wire"
 )
@@ -18,14 +19,17 @@ var ClientSet = wire.NewSet(
 	engagement.ProvideMembershipTierClient,
 	engagement.ProvidePointLogClient,
 	engagement.ProvideVoucherClient,
+	engagement.ProvideCampaignClient,
 
 	// Franchise Service
 	franchise.NewFranchiseClientFactory,
+	franchise.ProvideStoreClient,
 	franchise.ProvideShiftAvailabilityClient,
 	franchise.ProvideShiftClient,
 	franchise.ProvideShiftRuleClient,
 	franchise.ProvideShiftTemplateClient,
-	franchise.ProvideStoreClient,
+	franchise.ProvideShiftApplicationClient,
+	franchise.ProvideShiftSwapClient,
 
 	// Identity Service
 	identity.NewIdentityClientFactory,
@@ -47,6 +51,7 @@ var ClientSet = wire.NewSet(
 	sales.ProvideRefundTicketClient,
 	sales.ProvideWalletClient,
 	sales.ProvideWalletTransactionClient,
+	sales.ProvideWithdrawalClient,
 
 	// Inventory Service
 	inventory.NewInventoryClientFactory,
@@ -54,4 +59,10 @@ var ClientSet = wire.NewSet(
 	inventory.ProvideIngredientClient,
 	inventory.ProvideIngredientCategoryClient,
 	inventory.ProvideRecipeClient,
+
+	// Supplier
+	supplier.NewSupplierClientFactory,
+	supplier.NewSupplierClient,
+	supplier.NewPurchaseOrderClient,
+	supplier.NewSupplierPaymentClient,
 )

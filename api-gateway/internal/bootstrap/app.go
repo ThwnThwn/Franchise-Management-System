@@ -33,7 +33,10 @@ func (a *App) Run() error {
 		Handler: a.Server, // a.Server chính là *gin.Engine
 	}
 
-	fmt.Printf("Gateway is running on port %s\n", port)
+	fmt.Println("==========================================================")
+	fmt.Printf("API Gateway is running on port: %s\n", port)
+	fmt.Printf("Swagger UI: http://localhost:%s/swagger\n", port)
+	fmt.Println("==========================================================")
 
 	// Chạy server trong một Goroutine để nó không block luồng chính
 	go func() {

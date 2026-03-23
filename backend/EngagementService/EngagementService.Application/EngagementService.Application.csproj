@@ -30,8 +30,4 @@
 	  <ProjectReference Include="..\..\SharedKernel\SharedKernel.csproj" />
 	  <ProjectReference Include="..\EngagementService.Domain\EngagementService.Domain.csproj" />
 	</ItemGroup>
-	
-	<ItemGroup>
-	  <Folder Include="Features\Voucher\Queries\GetMyVoucher\" />
-	</ItemGroup>
 </Project>

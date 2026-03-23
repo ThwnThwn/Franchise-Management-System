@@ -32,7 +32,17 @@ public class ForgetPasswordCommandHandler
         _emailService = emailService;
         _kafkaProducer = kafkaProducer;
     }
-
+    /// <summary>
+    /// Handles the specified command.
+    /// </summary>
+    /// <param name="command">The command.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns></returns>
+    /// <exception cref="BusinessException">
+    /// Please wait {Math.Ceiling(waitTime.TotalMinutes)} minute(s) before requesting a new OTP.
+    /// or
+    /// Email '{request.Email}' does not exist
+    /// </exception>
     public async Task<Unit> Handle(ForgetPasswordCommand command, CancellationToken cancellationToken)
     {
         var forgetPassword = "forget-password";

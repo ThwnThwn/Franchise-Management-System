@@ -1,0 +1,774 @@
+basePath: /api
+definitions:
+  api-gateway_internal_domain_models_supplier.PurchaseOrderDetail:
+    properties:
+      code:
+        type: string
+      completedAt:
+        type: string
+      createdAt:
+        type: string
+      discountAmount:
+        type: number
+      id:
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/api-gateway_internal_domain_models_supplier.PurchaseOrderItemDetail'
+        type: array
+      netAmount:
+        type: number
+      notes:
+        type: string
+      orderDate:
+        type: string
+      paidAmount:
+        type: number
+      paymentStatus:
+        type: integer
+      status:
+        type: integer
+      storeId:
+        type: string
+      supplierId:
+        type: string
+      supplierName:
+        type: string
+      totalAmount:
+        type: number
+      updatedAt:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_supplier.PurchaseOrderItemDetail:
+    properties:
+      id:
+        type: string
+      ingredientId:
+        type: string
+      quantity:
+        type: number
+      totalPrice:
+        type: number
+      unitPrice:
+        type: number
+    type: object
+  api-gateway_internal_domain_models_supplier.PurchaseOrderSummary:
+    properties:
+      code:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: string
+      netAmount:
+        type: number
+      orderDate:
+        type: string
+      paymentStatus:
+        type: integer
+      status:
+        type: integer
+      supplierName:
+        type: string
+      totalAmount:
+        type: number
+    type: object
+  api-gateway_internal_domain_models_supplier.SupplierDetail:
+    properties:
+      address:
+        type: string
+      code:
+        type: string
+      contactPerson:
+        type: string
+      createdAt:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      isActive:
+        type: boolean
+      name:
+        type: string
+      phone:
+        type: string
+      taxCode:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_supplier.SupplierSummary:
+    properties:
+      code:
+        type: string
+      contactPerson:
+        type: string
+      id:
+        type: string
+      isActive:
+        type: boolean
+      name:
+        type: string
+      phone:
+        type: string
+    type: object
+  common.PaginationResult-api-gateway_internal_domain_models_supplier_PurchaseOrderSummary:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/api-gateway_internal_domain_models_supplier.PurchaseOrderSummary'
+        type: array
+      totalCount:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  common.PaginationResult-api-gateway_internal_domain_models_supplier_SupplierSummary:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/api-gateway_internal_domain_models_supplier.SupplierSummary'
+        type: array
+      totalCount:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  common.PaginationResult-supplier_SupplierPaymentSummary:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/supplier.SupplierPaymentSummary'
+        type: array
+      totalCount:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  enum.SupplierPaymentMethod:
+    enum:
+    - 0
+    - 1
+    format: int32
+    type: integer
+    x-enum-varnames:
+    - PaymentMethodCash
+    - PaymentMethodVNPay
+  supplier.CancelPurchaseOrderReq:
+    properties:
+      reason:
+        type: string
+    type: object
+  supplier.CreatePurchaseOrderItemReq:
+    properties:
+      ingredientId:
+        type: string
+      quantity:
+        type: number
+    required:
+    - ingredientId
+    - quantity
+    type: object
+  supplier.CreatePurchaseOrderReq:
+    properties:
+      discountAmount:
+        type: number
+      expectedDeliveryDate:
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/supplier.CreatePurchaseOrderItemReq'
+        type: array
+      notes:
+        type: string
+      referenceCode:
+        type: string
+      storeId:
+        type: string
+      supplierId:
+        type: string
+    required:
+    - items
+    - supplierId
+    type: object
+  supplier.CreateSupplierPaymentReq:
+    properties:
+      method:
+        $ref: '#/definitions/enum.SupplierPaymentMethod'
+      purchaseOrderId:
+        type: string
+      returnUrl:
+        type: string
+    required:
+    - purchaseOrderId
+    type: object
+  supplier.CreateSupplierPaymentRes:
+    properties:
+      code:
+        type: string
+      paymentId:
+        type: string
+      url:
+        type: string
+    type: object
+  supplier.CreateSupplierReq:
+    properties:
+      address:
+        type: string
+      code:
+        type: string
+      contactPerson:
+        type: string
+      email:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+      taxCode:
+        type: string
+    required:
+    - code
+    - name
+    type: object
+  supplier.GetLatestPricesReq:
+    properties:
+      ingredientIds:
+        items:
+          type: string
+        type: array
+    required:
+    - ingredientIds
+    type: object
+  supplier.PurchaseOrderBaseRes:
+    properties:
+      code:
+        type: string
+      id:
+        type: string
+      message:
+        type: string
+    type: object
+  supplier.SupplierBaseRes:
+    properties:
+      code:
+        type: string
+      id:
+        type: string
+      message:
+        type: string
+    type: object
+  supplier.SupplierPaymentDetail:
+    properties:
+      amount:
+        type: number
+      code:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: string
+      method:
+        type: integer
+      notes:
+        type: string
+      paidAt:
+        type: string
+      purchaseOrderId:
+        type: string
+      status:
+        type: integer
+    type: object
+  supplier.SupplierPaymentSummary:
+    properties:
+      amount:
+        type: number
+      code:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: string
+      method:
+        type: integer
+      paidAt:
+        type: string
+      purchaseOrderCode:
+        type: string
+      purchaseOrderId:
+        type: string
+      status:
+        type: integer
+    type: object
+  supplier.UpdatePurchaseOrderReq:
+    properties:
+      discountAmount:
+        type: number
+      expectedDeliveryDate:
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/supplier.CreatePurchaseOrderItemReq'
+        type: array
+      notes:
+        type: string
+      referenceCode:
+        type: string
+      storeId:
+        type: string
+      supplierId:
+        type: string
+    required:
+    - items
+    - supplierId
+    type: object
+  supplier.UpdateSupplierReq:
+    properties:
+      address:
+        type: string
+      code:
+        type: string
+      contactPerson:
+        type: string
+      email:
+        type: string
+      isActive:
+        type: boolean
+      name:
+        type: string
+      phone:
+        type: string
+      taxCode:
+        type: string
+    required:
+    - code
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+  description: API docs for CHD Gateway.
+  termsOfService: http://swagger.io/terms/
+  title: API Gateway Documentation
+  version: "1.0"
+paths:
+  /suppliers:
+    get:
+      parameters:
+      - description: GET dùng form tag cho Query String
+        in: query
+        name: code
+        type: string
+      - in: query
+        name: isActive
+        type: boolean
+      - in: query
+        name: name
+        type: string
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.PaginationResult-api-gateway_internal_domain_models_supplier_SupplierSummary'
+      security:
+      - BearerAuth: []
+      summary: Danh sách nhà cung cấp
+      tags:
+      - Suppliers
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Thông tin nhà cung cấp
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/supplier.CreateSupplierReq'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/supplier.SupplierBaseRes'
+      security:
+      - BearerAuth: []
+      summary: Tạo mới nhà cung cấp
+      tags:
+      - Suppliers
+  /suppliers/{id}:
+    delete:
+      parameters:
+      - description: UUID nhà cung cấp
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/supplier.SupplierBaseRes'
+      security:
+      - BearerAuth: []
+      summary: Xóa nhà cung cấp
+      tags:
+      - Suppliers
+    get:
+      parameters:
+      - description: UUID nhà cung cấp
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_supplier.SupplierDetail'
+      security:
+      - BearerAuth: []
+      summary: Chi tiết nhà cung cấp
+      tags:
+      - Suppliers
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: UUID nhà cung cấp
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Thông tin cập nhật
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/supplier.UpdateSupplierReq'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/supplier.SupplierBaseRes'
+      security:
+      - BearerAuth: []
+      summary: Cập nhật nhà cung cấp
+      tags:
+      - Suppliers
+  /suppliers/payments:
+    get:
+      description: Dành cho Admin/Kế toán theo dõi toàn bộ dòng tiền nhập hàng.
+      parameters:
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      - in: query
+        name: purchaseOrderId
+        type: string
+      - in: query
+        name: supplierId
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.PaginationResult-supplier_SupplierPaymentSummary'
+      security:
+      - BearerAuth: []
+      summary: Toàn bộ lịch sử thanh toán nhà cung cấp
+      tags:
+      - Suppliers / Payments
+    post:
+      consumes:
+      - application/json
+      description: Khởi tạo thanh toán bằng Tiền mặt (CASH) hoặc lấy URL VNPay để
+        thanh toán.
+      parameters:
+      - description: Thông tin thanh toán
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/supplier.CreateSupplierPaymentReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/supplier.CreateSupplierPaymentRes'
+      security:
+      - BearerAuth: []
+      summary: Tạo thanh toán cho đơn nhập hàng
+      tags:
+      - Suppliers / Payments
+  /suppliers/payments/vnpay/return:
+    get:
+      description: Endpoint nhận redirect từ VNPay. Verify chữ ký qua gRPC và bẻ lái
+        trình duyệt về giao diện Frontend.
+      parameters:
+      - description: Số tiền giao dịch
+        in: query
+        name: vnp_Amount
+        type: string
+      - description: Mã ngân hàng
+        in: query
+        name: vnp_BankCode
+        type: string
+      - description: Thông tin đơn hàng
+        in: query
+        name: vnp_OrderInfo
+        type: string
+      - description: Mã phản hồi VNPAY
+        in: query
+        name: vnp_ResponseCode
+        type: string
+      - description: Mã tham chiếu (Mã Payment)
+        in: query
+        name: vnp_TxnRef
+        type: string
+      - description: Chữ ký bảo mật
+        in: query
+        name: vnp_SecureHash
+        type: string
+      - description: 'Path của FE muốn quay về (VD: /suppliers/purchase-orders/123)'
+        in: query
+        name: redirectTo
+        type: string
+      produces:
+      - text/html
+      responses:
+        "302":
+          description: Redirect về Frontend App
+      summary: Xử lý VNPay Return cho đơn nhập hàng (Supplier)
+      tags:
+      - Suppliers / Payments
+  /suppliers/purchase-orders:
+    get:
+      description: Lấy danh sách đơn nhập hàng có phân trang và lọc theo Supplier,
+        Store hoặc Status.
+      parameters:
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      - in: query
+        name: status
+        type: integer
+      - in: query
+        name: storeId
+        type: string
+      - in: query
+        name: supplierId
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.PaginationResult-api-gateway_internal_domain_models_supplier_PurchaseOrderSummary'
+      security:
+      - BearerAuth: []
+      summary: Danh sách đơn nhập hàng
+      tags:
+      - Suppliers / PurchaseOrders
+    post:
+      consumes:
+      - application/json
+      description: Tạo một bản ghi đơn nhập hàng mới ở trạng thái PENDING.
+      parameters:
+      - description: Thông tin đơn nhập hàng
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/supplier.CreatePurchaseOrderReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/supplier.PurchaseOrderBaseRes'
+      security:
+      - BearerAuth: []
+      summary: Tạo đơn nhập hàng mới
+      tags:
+      - Suppliers / PurchaseOrders
+  /suppliers/purchase-orders/{id}:
+    get:
+      description: Lấy thông tin chi tiết của một đơn nhập hàng kèm danh sách nguyên
+        liệu bên trong.
+      parameters:
+      - description: UUID của đơn nhập hàng
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_supplier.PurchaseOrderDetail'
+      security:
+      - BearerAuth: []
+      summary: Chi tiết đơn nhập hàng
+      tags:
+      - Suppliers / PurchaseOrders
+    patch:
+      consumes:
+      - application/json
+      description: Chỉnh sửa thông tin đơn nhập hàng (chỉ thực hiện được khi đơn ở
+        trạng thái cho phép).
+      parameters:
+      - description: UUID của đơn nhập hàng
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Thông tin cập nhật
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/supplier.UpdatePurchaseOrderReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/supplier.PurchaseOrderBaseRes'
+      security:
+      - BearerAuth: []
+      summary: Cập nhật đơn nhập hàng
+      tags:
+      - Suppliers / PurchaseOrders
+  /suppliers/purchase-orders/{id}/cancel:
+    patch:
+      consumes:
+      - application/json
+      description: Hủy bỏ đơn nhập hàng và ghi rõ lý do hủy.
+      parameters:
+      - description: UUID của đơn nhập hàng
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Lý do hủy
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/supplier.CancelPurchaseOrderReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/supplier.PurchaseOrderBaseRes'
+      security:
+      - BearerAuth: []
+      summary: Hủy đơn nhập hàng
+      tags:
+      - Suppliers / PurchaseOrders
+  /suppliers/purchase-orders/{id}/complete:
+    patch:
+      description: Xác nhận đã nhận đủ hàng và chốt đơn nhập hàng (thường dùng để
+        tăng tồn kho).
+      parameters:
+      - description: UUID của đơn nhập hàng
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/supplier.PurchaseOrderBaseRes'
+      security:
+      - BearerAuth: []
+      summary: Hoàn tất nhập hàng
+      tags:
+      - Suppliers / PurchaseOrders
+  /suppliers/purchase-orders/{id}/payments:
+    get:
+      description: Lấy lịch sử các đợt trả tiền của một đơn nhập hàng cụ thể.
+      parameters:
+      - description: UUID của đơn nhập hàng (Purchase Order)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/supplier.SupplierPaymentDetail'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: Danh sách thanh toán của một PO
+      tags:
+      - Suppliers / Payments
+  /suppliers/purchase-orders/latest-prices:
+    post:
+      consumes:
+      - application/json
+      description: Tra cứu giá của danh sách ID nguyên liệu dựa trên các hóa đơn nhập
+        gần nhất.
+      parameters:
+      - description: Danh sách ID nguyên liệu
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/supplier.GetLatestPricesReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              format: float64
+              type: number
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Giá nhập mới nhất của nguyên liệu
+      tags:
+      - Suppliers / PurchaseOrders
+securityDefinitions:
+  BearerAuth:
+    description: 'Don''t forget to type "Bearer" before the token. For example: Bearer
+      eyJhbG...'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

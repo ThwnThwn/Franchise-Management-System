@@ -1,0 +1,58 @@
+stages:
+  - deploy
+
+deploy_backend:
+  stage: deploy
+  tags:
+    - backend-deploy
+  script:
+    - echo "Deploying Backend..."
+
+    # Copy environment variables from the runner's secure storage
+    - cp /home/gitlab-runner/chb_env_config .env
+
+    # Start OSRM early in the background to allow time for data loading
+    - echo "Starting OSRM (Routing Engine)..."
+    - docker compose -f docker-compose.prod.yml up -d osrm
+
+    # Start core infrastructure (DB, Cache, Message Broker)
+    - echo "Starting Database & Message Brokers..."
+    - docker compose -f docker-compose.prod.yml up -d postgres redis zookeeper kafka
+    - sleep 15
+
+    # Build and deploy each service sequentially (Crucial for 2GB RAM + Swap limit)
+    - echo "Building Identity Service..."
+    - docker compose -f docker-compose.prod.yml up -d --build identity-service
+
+    - echo "Building Product Service..."
+    - docker compose -f docker-compose.prod.yml up -d --build product-service
+
+    - echo "Building Sales Service..."
+    - docker compose -f docker-compose.prod.yml up -d --build sales-service
+
+    - echo "Building Notification Service..."
+    - docker compose -f docker-compose.prod.yml up -d --build notification-service
+
+    - echo "Building Inventory Service..."
+    - docker compose -f docker-compose.prod.yml up -d --build inventory-service
+
+    - echo "Building Franchise Service..."
+    - docker compose -f docker-compose.prod.yml up -d --build franchise-service
+
+    - echo "Building Engagement Service..."
+    - docker compose -f docker-compose.prod.yml up -d --build engagement-service
+
+    - echo "Building Supplier Service..."
+    - docker compose -f docker-compose.prod.yml up -d --build supplier-service
+
+    - echo "Building API Gateway..."
+    - docker compose -f docker-compose.prod.yml up -d --build api-gateway
+
+    # Clean up to free up disk space
+    - echo "Pruning unused Docker images..."
+    - docker image prune -f
+
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v\d+/
+      when: always
+    - when: never

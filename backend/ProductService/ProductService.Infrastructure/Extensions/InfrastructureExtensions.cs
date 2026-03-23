@@ -42,7 +42,7 @@ namespace ProductService.Infrastructure.Extensions
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IProductVariantRepository, ProductVariantRepository>();
             // Elastic search
-            services.AddElasticAndCapServices(configuration);
+            //services.AddElasticAndCapServices(configuration);
 
             // Register Cloudinary service
             services.AddScoped<ICloudinaryService, CloudinaryService>();

@@ -4,7 +4,6 @@ import (
 	"api-gateway/internal/application/constants/errorcode"
 	"api-gateway/internal/application/gateways/inventory"
 	"api-gateway/internal/domain/models/recipe"
-	"api-gateway/pkg/utils/grpcutils"
 	"api-gateway/pkg/utils/validation"
 	"net/http"
 
@@ -75,11 +74,7 @@ func (h *RecipeHandler) MutationVariantRecipe(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	err = h.recipeGW.MutationVariantRecipe(ctx, variantId, req)
 	if err != nil {
 		return err

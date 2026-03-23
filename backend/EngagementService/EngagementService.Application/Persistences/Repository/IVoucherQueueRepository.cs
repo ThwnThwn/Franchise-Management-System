@@ -1,9 +1,5 @@
-﻿using EngagementService.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using EngagementService.Application.Dtos.Voucher;
+using EngagementService.Domain.Entities;
 
 namespace EngagementService.Application.Persistences.Repository
 {
@@ -11,5 +7,7 @@ namespace EngagementService.Application.Persistences.Repository
     {
         Task<int> CountVoucherInQueue(Guid voucherId, CancellationToken cancellationToken);
         Task AddQueueAsync(VoucherQueue voucherQueue, CancellationToken cancellationToken);
+
+        Task<List<CountVoucherQueueRes>> GetVouchersAndAmountInQueueAsync(CancellationToken cancellationToken);
     }
 }

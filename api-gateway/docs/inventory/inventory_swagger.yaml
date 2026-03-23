@@ -1,0 +1,540 @@
+basePath: /api
+definitions:
+  ingredient.CreateIngreCateReq:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  ingredient.CreateIngredientReq:
+    properties:
+      baseUnit:
+        type: string
+      categoryId:
+        type: string
+      name:
+        type: string
+    required:
+    - baseUnit
+    - name
+    type: object
+  ingredient.IngredientStockItem:
+    properties:
+      ingredientId:
+        type: string
+      minThreshold:
+        type: number
+      quantity:
+        type: number
+    type: object
+  ingredient.UpdateIngreCateReq:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+    type: object
+  ingredient.UpdateIngredientReq:
+    properties:
+      baseUnit:
+        type: string
+      categoryId:
+        type: string
+      name:
+        type: string
+    type: object
+  recipe.RecipeIngredientRequest:
+    properties:
+      ingredientId:
+        type: string
+      quantity:
+        type: number
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+  description: API docs for CHD Gateway.
+  termsOfService: http://swagger.io/terms/
+  title: API Gateway Documentation
+  version: "1.0"
+paths:
+  /ingredients:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of ingredients with optional filtering and pagination.
+      parameters:
+      - in: query
+        name: categoryId
+        type: string
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of ingredients
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get All Ingredients
+      tags:
+      - Ingredients
+    post:
+      consumes:
+      - application/json
+      description: Add a new ingredient to the inventory.
+      parameters:
+      - description: Ingredient details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/ingredient.CreateIngredientReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create Ingredient
+      tags:
+      - Ingredients
+  /ingredients/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove an ingredient from the inventory.
+      parameters:
+      - description: Ingredient UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete Ingredient
+      tags:
+      - Ingredients
+    patch:
+      consumes:
+      - application/json
+      description: Update details of an existing ingredient by its ID.
+      parameters:
+      - description: Ingredient UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/ingredient.UpdateIngredientReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error or Invalid ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update Ingredient
+      tags:
+      - Ingredients
+  /ingredients/categories:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all ingredient categories.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of categories
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get All Ingredient Categories
+      tags:
+      - Ingredient Categories
+    post:
+      consumes:
+      - application/json
+      description: Create a new category for ingredients.
+      parameters:
+      - description: Category details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/ingredient.CreateIngreCateReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create Ingredient Category
+      tags:
+      - Ingredient Categories
+  /ingredients/categories/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Permanently remove an ingredient category.
+      parameters:
+      - description: Category UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete Ingredient Category
+      tags:
+      - Ingredient Categories
+    patch:
+      consumes:
+      - application/json
+      description: Update an existing ingredient category by its ID.
+      parameters:
+      - description: Category UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/ingredient.UpdateIngreCateReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error or Invalid ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update Ingredient Category
+      tags:
+      - Ingredient Categories
+  /recipes:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of recipes with optional filtering.
+      parameters:
+      - collectionFormat: csv
+        in: query
+        items:
+          type: string
+        name: variantIds
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of recipes
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get All Recipes
+      tags:
+      - Recipes
+  /stores/{id}/stock:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve the current inventory of ingredients for a specific store.
+      parameters:
+      - description: Store UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - collectionFormat: csv
+        description: StoreIds      []string `form:"storeIds"`
+        in: query
+        items:
+          type: string
+        name: categoryIds
+        type: array
+      - collectionFormat: csv
+        in: query
+        items:
+          type: string
+        name: ingredientIds
+        type: array
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      - in: query
+        name: stockStatus
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Store inventory list
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Store not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get Store Stock
+      tags:
+      - Store Stock
+    put:
+      consumes:
+      - application/json
+      description: Add quantity to specific ingredients in a store's inventory.
+      parameters:
+      - description: Store UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: List of ingredients to add
+        in: body
+        name: request
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/ingredient.IngredientStockItem'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error or Invalid ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Increase Ingredient Stock
+      tags:
+      - Store Stock
+  /stores/stock:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve inventory levels of ingredients across all stores (Management
+        view).
+      parameters:
+      - collectionFormat: csv
+        description: StoreIds      []string `form:"storeIds"`
+        in: query
+        items:
+          type: string
+        name: categoryIds
+        type: array
+      - collectionFormat: csv
+        in: query
+        items:
+          type: string
+        name: ingredientIds
+        type: array
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      - in: query
+        name: stockStatus
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Global inventory list
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get All Global Stock
+      tags:
+      - Store Stock
+  /variants/{id}/recipes:
+    put:
+      consumes:
+      - application/json
+      description: Define or update the list of ingredients (recipe) for a specific
+        product variant.
+      parameters:
+      - description: Variant UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: List of ingredients and quantities
+        in: body
+        name: request
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/recipe.RecipeIngredientRequest'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error or Invalid ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update Variant Recipe
+      tags:
+      - Recipes
+securityDefinitions:
+  BearerAuth:
+    description: 'Don''t forget to type "Bearer" before the token. For example: Bearer
+      eyJhbG...'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

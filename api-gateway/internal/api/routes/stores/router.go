@@ -22,5 +22,12 @@ func (s *StoreRouter) Init(r *gin.RouterGroup) {
 		storeApi.GET("/:id/availability", api.WrapHandler(s.storeHl.CheckStoreAvailability))
 	}
 
+	privateApi := r.Group("/stores")
+	privateApi.Use(s.authMW.ValidateToken([]byte(s.cfg.JwtSecret)))
+	{
+		privateApi.GET("/:id/staffs/active", s.authMW.PermissionCheck("store.staff.read"),
+			api.WrapHandler(s.storeHl.GetActiveStaffsAtStore))
+	}
+
 	s.stockR.Init(storeApi)
 }

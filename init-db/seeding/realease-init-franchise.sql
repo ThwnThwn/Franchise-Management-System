@@ -80,5 +80,10 @@ BEGIN
     -- (u_mana_q3, s_q3, tpl_morning, cur_date, (cur_date || ' 07:00:00')::timestamp AT TIME ZONE 'Asia/Ho_Chi_Minh', (cur_date || ' 15:00:00')::timestamp AT TIME ZONE 'Asia/Ho_Chi_Minh', 1, 50000),
     -- (u_mana_td, s_td, tpl_evening, cur_date, (cur_date || ' 14:00:00')::timestamp AT TIME ZONE 'Asia/Ho_Chi_Minh', (cur_date || ' 22:00:00')::timestamp AT TIME ZONE 'Asia/Ho_Chi_Minh', 1, 55000);
 
+    -- === 7. SEED GLOBAL SHIFTS RULES ===
+    DELETE FROM shift_rules WHERE store_id = null;
+    INSERT INTO shift_rules (id, store_id, allow_shift_swap)
+    VALUES (uuid_generate_v4(), null, true);
+
     RAISE NOTICE 'Franchise DB Seeded with Staff and Managers Successfully!';
 END $$;

@@ -18,11 +18,20 @@ namespace ProductService.Infrastructure.Repositories
             _dbSet = _dbContext.Set<T>();
         }
 
+        /// <summary>
+        /// Adds the only asynchronous.
+        /// </summary>
+        /// <param name="entity">The entity.</param>
         public virtual async Task AddOnlyAsync(T entity)
         {
             await _dbSet.AddAsync(entity);
         }
 
+        /// <summary>
+        /// Adds the asynchronous.
+        /// </summary>
+        /// <param name="entity">The entity.</param>
+        /// <returns></returns>
         public virtual async Task<Guid> AddAsync(T entity)
         {
             await AddOnlyAsync(entity);
@@ -30,12 +39,21 @@ namespace ProductService.Infrastructure.Repositories
             return (entity as IEntity)?.Id ?? Guid.Empty;
         }
 
+        /// <summary>
+        /// Adds the range asynchronous.
+        /// </summary>
+        /// <param name="entities">The entities.</param>
         public virtual async Task AddRangeAsync(IEnumerable<T> entities)
         {
             await _dbSet.AddRangeAsync(entities);
             await _dbContext.SaveChangesAsync();
         }
 
+        /// <summary>
+        /// Deletes the only asynchronous.
+        /// </summary>
+        /// <param name="id">The identifier.</param>
+        /// <exception cref="DirectoryNotFoundException"></exception>
         public virtual async Task DeleteOnlyAsync(Guid id)
         {
             var entityFromDb = await GetByIdAsync(id)
@@ -50,12 +68,20 @@ namespace ProductService.Infrastructure.Repositories
             }
         }
 
+        /// <summary>
+        /// Deletes the asynchronous.
+        /// </summary>
+        /// <param name="id">The identifier.</param>
         public virtual async Task DeleteAsync(Guid id)
         {
             await DeleteOnlyAsync(id);
             await _dbContext.SaveChangesAsync();
         }
 
+        /// <summary>
+        /// Deletes the range asynchronous.
+        /// </summary>
+        /// <param name="ids">The ids.</param>
         public virtual async Task DeleteRangeAsync(IEnumerable<Guid> ids)
         {
             var entities = await GetByIdsAsync(ids.ToArray());
@@ -73,6 +99,12 @@ namespace ProductService.Infrastructure.Repositories
             await _dbContext.SaveChangesAsync();
         }
 
+        /// <summary>
+        /// Gets all asynchronous.
+        /// </summary>
+        /// <param name="includes">The includes.</param>
+        /// <param name="predicate">The predicate.</param>
+        /// <returns></returns>
         public virtual async Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, object>>[]? includes = null, Expression<Func<T, bool>>? predicate = null)
         {
             var query = _dbSet.AsQueryable();
@@ -100,6 +132,11 @@ namespace ProductService.Infrastructure.Repositories
             return await query.OrderByDescending(x => x.CreatedAt).ToListAsync();
         }
 
+        /// <summary>
+        /// Gets the by identifier asynchronous.
+        /// </summary>
+        /// <param name="id">The identifier.</param>
+        /// <returns></returns>
         public virtual async Task<T?> GetByIdAsync(Guid id)
         {
             var entity = await _dbSet.FindAsync(id);
@@ -114,6 +151,11 @@ namespace ProductService.Infrastructure.Repositories
             return entity;
         }
 
+        /// <summary>
+        /// Gets the by ids asynchronous.
+        /// </summary>
+        /// <param name="ids">The ids.</param>
+        /// <returns></returns>
         public virtual async Task<T[]> GetByIdsAsync(Guid[] ids)
         {
             var query = _dbSet.AsQueryable().Where(e => ids.Contains(e.Id));
@@ -124,11 +166,21 @@ namespace ProductService.Infrastructure.Repositories
             return await query.ToArrayAsync();
         }
 
-        public virtual async void Remove(T entity)
+        /// <summary>
+        /// Removes the specified entity.
+        /// </summary>
+        /// <param name="entity">The entity.</param>
+        public virtual void Remove(T entity)
         {
             _dbSet.Remove(entity);
         }
 
+        /// <summary>
+        /// Updates the asynchronous.
+        /// </summary>
+        /// <param name="entity">The entity.</param>
+        /// <returns></returns>
+        /// <exception cref="KeyNotFoundException">Không tìm thấy {typeof(T).Name}</exception>
         public virtual async Task<int> UpdateAsync(T entity)
         {
             var entityFromDb = await GetByIdAsync(entity.Id)

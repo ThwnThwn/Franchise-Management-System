@@ -2,6 +2,7 @@ package routes
 
 import (
 	"api-gateway/internal/api/routes/auth"
+	"api-gateway/internal/api/routes/campaigns"
 	"api-gateway/internal/api/routes/carts"
 	"api-gateway/internal/api/routes/categories"
 	"api-gateway/internal/api/routes/ingredients"
@@ -19,20 +20,28 @@ import (
 	"api-gateway/internal/api/routes/shifts"
 	"api-gateway/internal/api/routes/stores"
 	"api-gateway/internal/api/routes/stores/stock"
+	"api-gateway/internal/api/routes/suppliers"
+	supPm "api-gateway/internal/api/routes/suppliers/payments"
+	"api-gateway/internal/api/routes/suppliers/purchaseorders"
 	"api-gateway/internal/api/routes/users"
 	"api-gateway/internal/api/routes/variants"
+	"api-gateway/internal/api/routes/vnpay"
 	"api-gateway/internal/api/routes/vouchers"
 	"api-gateway/internal/api/routes/wallets"
+	"api-gateway/internal/api/routes/withdrawals"
 
 	"github.com/google/wire"
 )
 
 type AppRouter struct {
+	*vnpay.VnPayRouter
+
 	// Engagement
 	*loyalty.LoyaltyRouter
 	*membershiptiers.MembershipTierRouter
 	*points.PointLogRouter
 	*vouchers.VoucherRouter
+	*campaigns.CampaignRouter
 
 	// Franchise
 	*stores.StoreRouter
@@ -59,14 +68,21 @@ type AppRouter struct {
 	*carts.CartRouter
 	*wallets.WalletRouter
 	*refunds.RefundRouter
+	*withdrawals.WithdrawalRouter
+
+	// Supplier
+	*suppliers.SupplierRouter
 }
 
 var RouterSet = wire.NewSet(
+	vnpay.NewRouter,
+
 	// Engagement
 	loyalty.NewRouter,
 	membershiptiers.NewRouter,
 	points.NewRouter,
 	vouchers.NewRouter,
+	campaigns.NewRouter,
 
 	// Franchise
 	stores.NewRouter,
@@ -95,4 +111,10 @@ var RouterSet = wire.NewSet(
 	carts.NewRouter,
 	wallets.NewRouter,
 	refunds.NewRouter,
+	withdrawals.NewRouter,
+
+	// Supplier
+	suppliers.NewRouter,
+	purchaseorders.NewRouter,
+	supPm.NewRouter,
 )

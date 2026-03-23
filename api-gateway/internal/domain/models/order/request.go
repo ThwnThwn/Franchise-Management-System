@@ -3,12 +3,18 @@ package order
 import (
 	"api-gateway/internal/domain/constants/enum"
 	"api-gateway/internal/domain/models/common"
+
+	"github.com/google/uuid"
 )
 
 type CreateOrderRequest struct {
 	Items   []*CartItem `json:"items" binding:"required"`
 	Notes   string      `json:"notes"`
 	StoreId string      `json:"storeId" binding:"required"`
+
+	Type          *enum.OrderType `json:"type"`
+	ScheduledTime *string         `json:"scheduledTime"` // "HH:mm"
+	Address       *string         `json:"address"`
 }
 
 type CartItem struct {
@@ -20,11 +26,6 @@ type GetMyOrdersRequest struct {
 	common.PaginationQuery
 }
 
-type CreatePaymentRequest struct {
-	ReturnUrl     *string            `json:"returnUrl"`
-	PaymentMethod enum.PaymentMethod `json:"paymentMethod"`
-}
-
 type UpdateOrderStatus struct {
 	Status enum.OrderStatus `json:"status" binding:"required"`
 }
@@ -32,6 +33,10 @@ type UpdateOrderStatus struct {
 type UpdateOrderItem struct {
 	Sku      string `json:"sku" binding:"required"`
 	Quantity int32  `json:"quantity" binding:"required,gt=0,max=100000"`
+}
+
+type AssignStaffToDeliveryRequest struct {
+	StaffId *uuid.UUID `json:"staffId"`
 }
 
 type GetOrdersRequest struct {

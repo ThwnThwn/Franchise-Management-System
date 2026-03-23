@@ -21,7 +21,35 @@ public class TokenRefreshCommandHandler : IRequestHandler<TokenRefreshCommand, R
         _userRepository = userRepository;
         _jwtHelper = jwtHelper;
     }
-
+    /// <summary>
+    /// Handles a request
+    /// </summary>
+    /// <param name="request">The request</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>
+    /// Response from the request
+    /// </returns>
+    /// <exception cref="UnauthorizedAccessException">
+    /// Invalid refresh token
+    /// or
+    /// Invalid token format
+    /// or
+    /// Token is not a refresh token
+    /// or
+    /// Refresh token not found
+    /// or
+    /// Refresh token has been revoked. All tokens have been invalidated for security.
+    /// or
+    /// Token does not belong to user
+    /// or
+    /// Refresh token has expired
+    /// or
+    /// User not found
+    /// or
+    /// Account is blocked
+    /// or
+    /// Account's role is null
+    /// </exception>
     public async Task<RefreshTokenRep> Handle(TokenRefreshCommand request, CancellationToken cancellationToken)
     {
         //Validate refresh token format + signature

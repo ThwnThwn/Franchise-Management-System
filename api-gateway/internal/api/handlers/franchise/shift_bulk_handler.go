@@ -4,7 +4,6 @@ import (
 	"api-gateway/internal/application/gateways/franchise"
 	"api-gateway/internal/domain/models/shift"
 	"api-gateway/pkg/utils/contextutils"
-	"api-gateway/pkg/utils/grpcutils"
 	"api-gateway/pkg/utils/validation"
 	"net/http"
 
@@ -32,11 +31,7 @@ func (h *ShiftBulkHandler) CreateManual(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	userId, err := contextutils.GetUserId(c)
 	if err != nil {
 		return err
@@ -63,11 +58,7 @@ func (h *ShiftBulkHandler) CreateFromTemplate(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	userId, err := contextutils.GetUserId(c)
 	if err != nil {
 		return err
@@ -94,12 +85,8 @@ func (h *ShiftBulkHandler) Publish(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
-	err = h.shiftGW.BulkPublish(ctx, ids)
+	ctx := c.Request.Context()
+	err := h.shiftGW.BulkPublish(ctx, ids)
 	if err != nil {
 		return err
 	}
@@ -121,16 +108,42 @@ func (h *ShiftBulkHandler) Delete(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
-	err = h.shiftGW.BulkDelete(ctx, ids)
+	ctx := c.Request.Context()
+	err := h.shiftGW.BulkDelete(ctx, ids)
 	if err != nil {
 		return err
 	}
 
 	c.JSON(http.StatusOK, gin.H{})
+	return nil
+}
+
+// BulkOpen
+// @Summary      Mở hàng loạt ca ra Chợ Ca (Shift Pool)
+// @Description  Chuyển trạng thái hàng loạt ca làm việc từ Draft sang Open để nhân viên có thể đăng ký nhận. StoreId được lấy tự động từ Token của Manager.
+// @Tags         Shifts: Bulk action
+// @Security     BearerAuth
+// @Param        body body []string true "Danh sách ID các ca làm cần mở"
+// @Router       /shifts/bulk-open [put]
+func (h *ShiftBulkHandler) Open(c *gin.Context) error {
+	var ids []string
+	if err := c.ShouldBindJSON(&ids); err != nil {
+		return validation.TranslateValidationError(err)
+	}
+
+	ctx := c.Request.Context()
+	storeId, err := contextutils.GetStoreId(c)
+	if err != nil {
+		return err
+	}
+
+	openedCount, err := h.shiftGW.BulkOpen(ctx, storeId, ids)
+	if err != nil {
+		return err
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"openedCount": openedCount,
+	})
 	return nil
 }

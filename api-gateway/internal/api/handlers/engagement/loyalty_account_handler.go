@@ -4,7 +4,6 @@ import (
 	"api-gateway/internal/application/constants/errorcode"
 	"api-gateway/internal/application/gateways/engagement"
 	"api-gateway/internal/domain/models/loyalty"
-	"api-gateway/pkg/utils/grpcutils"
 	"api-gateway/pkg/utils/validation"
 	"net/http"
 	"strconv"
@@ -40,10 +39,7 @@ func (h *LoyaltyHandler) GetLoyaltyAccounts(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
 	res, err := h.loyaltyGW.GetByUserPhoneOrEmail(ctx, &req)
 	if err != nil {
@@ -70,10 +66,7 @@ func (h *LoyaltyHandler) GetLoyaltyReport(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
 	// Ép cứng format là VIEW (0)
 	req.Format = 0
@@ -117,10 +110,7 @@ func (h *LoyaltyHandler) ExportLoyaltyReport(c *gin.Context) error {
 	}
 	req.Format = int32(format)
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
 	// 2. Gọi Service, nhận 3 tham số
 	_, export, err := h.loyaltyGW.GetLoyaltyReport(ctx, &req)

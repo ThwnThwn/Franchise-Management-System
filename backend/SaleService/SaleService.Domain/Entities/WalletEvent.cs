@@ -1,8 +1,9 @@
-﻿using SalesService.Domain.Enums;
+﻿using SalesService.Domain.Commons;
+using SalesService.Domain.Enums;
 
 namespace SalesService.Domain.Entities;
 
-public class WalletEvent
+public class WalletEvent  : SoftDeletedEntity
 {
     public Guid Id { get; set; }
     public Guid WalletId { get; set; }
@@ -15,5 +16,10 @@ public class WalletEvent
     public string? AdminNote { get; set; }         
     public DateTime? ProcessedAt { get; set; }
     public DateTime CreatedAt { get; set; }
-    public DateTime UpdatedAt { get; set; }       
+    public DateTime UpdatedAt { get; set; }    
+
+    public virtual Wallet Wallet { get; set; } = null!;
+
+    public virtual WalletTransaction? WalletTransaction { get; set; }
+   
 }

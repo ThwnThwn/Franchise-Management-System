@@ -6,7 +6,6 @@ import (
 	"api-gateway/internal/application/gateways/sales"
 	"api-gateway/internal/domain/models/wallet"
 	"api-gateway/pkg/utils/contextutils"
-	"api-gateway/pkg/utils/grpcutils"
 	"api-gateway/pkg/utils/validation"
 	"fmt"
 	"net/http"
@@ -44,10 +43,7 @@ func NewWalletHandler(walletGW sales.IWalletService, cfg *config.Config) *Wallet
 // @Failure      500  {object}  map[string]string     "Lỗi hệ thống nội bộ"
 // @Router       /me/wallet [get]
 func (h *WalletHandler) GetMyWallet(c *gin.Context) error {
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
 	userId, err := contextutils.GetUserId(c)
 	if err != nil {
@@ -82,10 +78,7 @@ func (h *WalletHandler) TopUpMyWallet(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
 	userId, err := contextutils.GetUserId(c)
 	if err != nil {
@@ -127,10 +120,7 @@ func (h *WalletHandler) GetWalletByUserId(c *gin.Context) error {
 		return errorcode.ErrInvalidId
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
 	res, err := h.walletGW.GetByUserId(ctx, targetUserId)
 	if err != nil {
@@ -167,10 +157,7 @@ func (h *WalletHandler) UpdateWalletStatus(c *gin.Context) error {
 		return errorcode.ErrInvalidId
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
 	adminId, err := contextutils.GetUserId(c)
 	if err != nil {

@@ -23,6 +23,17 @@ namespace IdentityService.Application.Features.Auth.Commands.ReSendOtp
             _emailService = emailService;
             _kafkaProducer = kafkaProducer;
         }
+        /// <summary>
+        /// Handles the specified command.
+        /// </summary>
+        /// <param name="command">The command.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
+        /// <exception cref="BusinessException">
+        /// Please wait 30 seconds before resending OTP.
+        /// or
+        /// Otp data not found or expired
+        /// </exception>
         public async Task<Unit> Handle(ReSendOtpCommand command, CancellationToken cancellationToken)
         {
             var request = command.Request;

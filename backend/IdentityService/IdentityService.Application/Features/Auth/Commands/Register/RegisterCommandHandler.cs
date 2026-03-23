@@ -31,7 +31,21 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, RegisterR
         _emailService = emailService;
         _kafkaProducer = kafkaProducer;
     }
-
+    /// <summary>
+    /// Handles the specified command.
+    /// </summary>
+    /// <param name="command">The command.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns></returns>
+    /// <exception cref="BusinessException">Please wait {Math.Ceiling(waitTime.TotalMinutes)} minute(s) before requesting a new OTP.</exception>
+    /// <exception cref="ConflictDuplicateException">
+    /// Email '{request.Email}' already exists
+    /// or
+    /// Username '{request.Username}' already exists
+    /// or
+    /// Username with phone'{request.Phone}' already exists
+    /// </exception>
+    /// <exception cref="ForbidenException"></exception>
     public async Task<RegisterRep> Handle(RegisterCommand command, CancellationToken cancellationToken)
     {
         var request = command.Request;

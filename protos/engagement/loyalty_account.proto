@@ -24,7 +24,7 @@ service LoyaltyAccountGrpc {
   rpc CreateLoyaltyAccount (CreateLoyaltyAccountRequest) returns (google.protobuf.Empty);
 
   //Hàm trừ điểm khi xử dụng
-  rpc DeductPoints (DeductPointRequest) returns (google.protobuf.Empty);
+  rpc UpdatePoint (UpdatePointRequest) returns (google.protobuf.Empty);
 
   // RPC lấy báo cáo (trả về dữ liệu thô)
   rpc GetLoyaltyReport (GetLoyaltyReportRequest) returns (LoyaltyReportResponse);
@@ -71,10 +71,16 @@ message CreateLoyaltyAccountRequest {
 }
 
 //Request trừ điểm
-message DeductPointRequest{
+message UpdatePointRequest{
   string id = 1;
   string point_to_deduct = 2;
   optional string order_id = 3;
+  UpdatePointType action_type = 4;
+}
+
+enum UpdatePointType {
+  Minus = 0;
+  Add = 1;
 }
 
 //Response của log 
@@ -122,6 +128,5 @@ message LoyaltyReportResponse {
 
 
 message RedeemVoucherRequest {
-  string account_id = 1;
   string voucher_id = 2;
 }

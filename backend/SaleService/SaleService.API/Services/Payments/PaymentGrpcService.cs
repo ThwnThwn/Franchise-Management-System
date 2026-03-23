@@ -4,8 +4,10 @@ using MediatR;
 using SalesService.Application.Features.Payments.CreatePayment;
 using SalesService.Application.Features.Payments.GetAll;
 using SalesService.Application.Features.Payments.GetMyPaymentHistory;
+using SalesService.Application.Features.Payments.VnPayIpn;
 using SalesService.Application.Features.Payments.VnPayReturn;
 using SalesService.Domain.Enums;
+
 
 namespace SalesService.API.Services.Payments;
 
@@ -38,6 +40,10 @@ public class PaymentGrpcService : PaymentGrpc.PaymentGrpcBase
                     OrderId = orderId,
                     ReturnUrl = returnUrl,
                     PaymentMethod = (PaymentMethod)request.PaymentMethod,
+                    Point = request.HasPoint ?  request.Point : null,
+                    VoucherDiscountCode = request.HasVoucherDiscountCode ? request.VoucherDiscountCode : null,
+                    VoucherShipCode = request.HasVoucherShipCode ? request.VoucherShipCode : null,
+                    Wallet = request.HasWallet ? request.Wallet : null
                 }
             );
         var result = await _mediator.Send(command, context.CancellationToken);
@@ -190,6 +196,30 @@ public class PaymentGrpcService : PaymentGrpc.PaymentGrpcBase
         return new VnPayReturnResponse
         {
             IsSuccess = false,
+            Message = string.Join(", ", result.Errors)
+        };
+    }
+
+    public override async Task<VnPayIpnResponse> ProcessVnPayIpn(
+        VnPayIpnRequest request,
+        ServerCallContext context)
+    {
+        var queryDict = request.QueryParams.ToDictionary(k => k.Key, v => v.Value);
+        var cmd = new VnPayIpnCommand(queryDict);
+        var result = await _mediator.Send(cmd, context.CancellationToken);
+
+        if (result.IsSuccess && result.Value != null)
+        {
+            return new VnPayIpnResponse
+            {
+                RspCode = result.Value.RspCode,
+                Message = result.Value.Message
+            };
+        }
+
+        return new VnPayIpnResponse
+        {
+            RspCode = "99",
             Message = string.Join(", ", result.Errors)
         };
     }

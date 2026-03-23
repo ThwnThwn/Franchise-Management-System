@@ -8,15 +8,11 @@ public partial class VoucherUsage : IEntity
 {
     public Guid Id { get; set; }
 
-    public Guid? UserVoucherId { get; set; }
+    public Guid UserVoucherId { get; set; }
 
     public Guid VoucherId { get; set; }
 
     public Guid OrderId { get; set; }
-
-    public Guid StoreId { get; set; }
-
-    public decimal? DiscountAmount { get; set; }
 
     public DateTimeOffset? AppliedAt { get; set; }
 

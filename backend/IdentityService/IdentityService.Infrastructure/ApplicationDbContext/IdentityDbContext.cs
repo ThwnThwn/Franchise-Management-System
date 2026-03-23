@@ -29,7 +29,7 @@ public partial class IdentityDbContext : DbContext, IIdentityDbContext
 
     public virtual DbSet<User> Users { get; set; }
 
-    public DbSet<T> Set<T>() where T : class, IEntity => base.Set<T>();
+    public new DbSet<T> Set<T>() where T : class, IEntity => base.Set<T>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -203,7 +203,7 @@ public partial class IdentityDbContext : DbContext, IIdentityDbContext
             entity.Property(e => e.Username)
                 .HasMaxLength(70)
                 .HasColumnName("username");
-            
+
             entity.Property(e => e.CurrentHourlyWage)
                 .HasPrecision(18, 2)
                 .HasColumnName("current_hourly_wage");

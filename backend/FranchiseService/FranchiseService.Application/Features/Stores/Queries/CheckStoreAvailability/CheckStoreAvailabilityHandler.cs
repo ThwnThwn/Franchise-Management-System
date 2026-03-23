@@ -1,4 +1,5 @@
-﻿using FranchiseService.Application.Features.Stores.Dtos;
+﻿using FranchiseService.Application.Constants;
+using FranchiseService.Application.Features.Stores.Dtos;
 using FranchiseService.Application.Repositories;
 using FranchiseService.Domain.Enums;
 using MediatR;
@@ -29,7 +30,9 @@ namespace FranchiseService.Application.Features.Stores.Queries.CheckStoreAvailab
                 return new AvailabilityResult { IsAvailable = false, Message = "Cửa hàng không mở" };
 
             // 3. Logic check giờ
-            var vnTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));
+            var vnTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById(
+                DateConstants.GetVietnamTimeZoneId()));
+                
             var dayOfWeek = (int)vnTime.DayOfWeek;
             var currentTime = TimeOnly.FromDateTime(vnTime);
 

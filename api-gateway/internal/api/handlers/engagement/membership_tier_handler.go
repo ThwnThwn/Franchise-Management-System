@@ -4,7 +4,6 @@ import (
 	"api-gateway/internal/application/constants/errorcode"
 	"api-gateway/internal/application/gateways/engagement"
 	"api-gateway/internal/domain/models/membershiptier"
-	"api-gateway/pkg/utils/grpcutils"
 	"api-gateway/pkg/utils/validation"
 	"net/http"
 
@@ -58,12 +57,9 @@ func (h *MembershipTierHandler) CreateTier(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
-	err = h.tierGW.Create(ctx, &req)
+	err := h.tierGW.Create(ctx, &req)
 	if err != nil {
 		return err
 	}
@@ -96,10 +92,7 @@ func (h *MembershipTierHandler) UpdateTier(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
 	err = h.tierGW.Update(ctx, tierId, &req)
 	if err != nil {
@@ -128,10 +121,7 @@ func (h *MembershipTierHandler) DeleteTier(c *gin.Context) error {
 		return errorcode.ErrInvalidId
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
 	err = h.tierGW.Delete(ctx, tierId)
 	if err != nil {

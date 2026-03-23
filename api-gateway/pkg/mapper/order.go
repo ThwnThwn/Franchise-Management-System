@@ -1,10 +1,13 @@
 package mapper
 
 import (
+	"api-gateway/internal/domain/constants/enum"
 	"api-gateway/internal/domain/models/order"
 	"api-gateway/internal/domain/models/store"
+	"api-gateway/internal/domain/models/user"
 	"api-gateway/pkg/pb/sales"
 	"api-gateway/pkg/utils/numberutils"
+	"api-gateway/pkg/utils/stringutils"
 	"api-gateway/pkg/utils/timeutils"
 )
 
@@ -39,6 +42,47 @@ func MapStoreToOrderHeaders[T IOrderWithStore](entities []T, stores []*store.Sto
 	return entities
 }
 
+type IOrderWithDeliveryMan interface {
+	GetDeliveryManId() string
+	SetDeliveryMan(d *order.DeliveryMan)
+}
+
+func MapDeliveryManToOrderHeaders[T IOrderWithDeliveryMan](entities []T, deliveryMenUsers []*user.UserResponse) []T {
+	if len(entities) == 0 {
+		return entities
+	}
+
+	deliveryManMap := make(map[string]*order.DeliveryMan, len(deliveryMenUsers))
+	for _, u := range deliveryMenUsers {
+		if u != nil && u.Id != "" {
+			deliveryManMap[u.Id] = &order.DeliveryMan{
+				Id:        u.Id,
+				Username:  u.Username,
+				Email:     u.Email,
+				Phone:     u.Phone,
+				FirstName: u.FirstName,
+				LastName:  &u.LastName,
+				AvatarUrl: u.AvatarUrl,
+			}
+		}
+	}
+
+	for _, item := range entities {
+		dId := item.GetDeliveryManId()
+
+		if dId == "" {
+			continue
+		}
+
+		// Nếu tìm thấy tài xế trong map, gán vào Order
+		if d, ok := deliveryManMap[dId]; ok {
+			item.SetDeliveryMan(d)
+		}
+	}
+
+	return entities
+}
+
 func MapCheckEnoughStockRes(s *sales.CheckEnoughStockResponse) *order.CheckEnoughStockResponse {
 	items := make([]*order.ShortageItem, 0, len(s.ShortageItems))
 	for _, item := range s.ShortageItems {
@@ -56,6 +100,17 @@ func MapCheckEnoughStockRes(s *sales.CheckEnoughStockResponse) *order.CheckEnoug
 }
 
 func MapOrderSummaryPbToModel(orderPb *sales.OrderSummary) *order.OrderSummary {
+	if orderPb == nil {
+		return nil
+	}
+
+	var deliveryMan *order.DeliveryMan = nil
+	if orderPb.DelivererId != nil {
+		deliveryMan = &order.DeliveryMan{
+			Id: stringutils.GetString(orderPb.DelivererId),
+		}
+	}
+
 	return &order.OrderSummary{
 		OrderHeader: order.OrderHeader{
 			Id:            orderPb.Id,
@@ -75,11 +130,32 @@ func MapOrderSummaryPbToModel(orderPb *sales.OrderSummary) *order.OrderSummary {
 			Store: &store.StoreDetailResponse{
 				Id: orderPb.StoreId,
 			},
+
+			Type: enum.OrderType(orderPb.Type),
+
+			DeliveryMan:   deliveryMan,
+			ScheduledTime: orderPb.ScheduledTime,
+			ShippingFee:   orderPb.ShippingFee,
+			Latitude:      orderPb.Latitude,
+			Longitude:     orderPb.Longitude,
+			Distance:      orderPb.Distance,
+			Address:       orderPb.Address,
 		},
 	}
 }
 
 func MapOrderPbToHeaderModel(orderPb *sales.Order) *order.OrderHeader {
+	if orderPb == nil {
+		return nil
+	}
+
+	var deliveryMan *order.DeliveryMan = nil
+	if orderPb.DelivererId != nil {
+		deliveryMan = &order.DeliveryMan{
+			Id: stringutils.GetString(orderPb.DelivererId),
+		}
+	}
+
 	return &order.OrderHeader{
 		Id:            orderPb.Id,
 		Code:          orderPb.Code,
@@ -98,6 +174,16 @@ func MapOrderPbToHeaderModel(orderPb *sales.Order) *order.OrderHeader {
 		Store: &store.StoreDetailResponse{
 			Id: orderPb.StoreId,
 		},
+
+		Type: enum.OrderType(orderPb.Type),
+
+		DeliveryMan:   deliveryMan,
+		ScheduledTime: orderPb.ScheduledTime,
+		ShippingFee:   orderPb.ShippingFee,
+		Latitude:      orderPb.Latitude,
+		Longitude:     orderPb.Longitude,
+		Distance:      orderPb.Distance,
+		Address:       orderPb.Address,
 	}
 }
 

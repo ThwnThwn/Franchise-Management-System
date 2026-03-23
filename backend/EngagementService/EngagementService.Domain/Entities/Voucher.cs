@@ -1,7 +1,5 @@
 ﻿using EngagementService.Domain.Commons;
 using EngagementService.Domain.Constants;
-using System;
-using System.Collections.Generic;
 
 namespace EngagementService.Domain.Entities;
 
@@ -25,9 +23,13 @@ public partial class Voucher : SoftDeletedEntity, IEntity
 
     public int? CurrentQuantity { get; set; }
 
+    public int? ReservedQuantity { get; set; }
+
     public int? MaxUsagePerUser { get; set; }
 
     public bool IsActive { get; set; }
+
+    public DateTimeOffset? StartDate { get; set; }
 
     public DateTimeOffset? EndDate { get; set; }
 
@@ -35,11 +37,14 @@ public partial class Voucher : SoftDeletedEntity, IEntity
 
     public DateTimeOffset UpdatedAt { get; set; }
 
-    public virtual ICollection<UserVoucher> UserVouchers { get; set; } = new List<UserVoucher>();
+    public virtual ICollection<UserVoucher> UserVouchers { get; set; } = [];
 
-    public virtual ICollection<VoucherItem> VoucherItems { get; set; } = new List<VoucherItem>();
+    public virtual ICollection<VoucherItem> VoucherItems { get; set; } = [];
 
-    public virtual ICollection<VoucherQueue> VoucherQueues { get; set; } = new List<VoucherQueue>();
+    public virtual ICollection<VoucherQueue> VoucherQueues { get; set; } = [];
 
-    public virtual ICollection<VoucherUsage> VoucherUsages { get; set; } = new List<VoucherUsage>();
+    public virtual ICollection<VoucherUsage> VoucherUsages { get; set; } = [];
+
+    public Guid? CampaignId { get; set; }   
+    public Campaign? Campaign { get; set; }
 }

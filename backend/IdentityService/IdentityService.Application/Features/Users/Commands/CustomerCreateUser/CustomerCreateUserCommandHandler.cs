@@ -24,7 +24,14 @@ public class CustomerCreateUserCommandHandler
         _roleRepository = roleRepository;
         _mapper = mapper;
     }
-
+    /// <summary>
+    /// Handles the specified command.
+    /// </summary>
+    /// <param name="command">The command.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns></returns>
+    /// <exception cref="ConflictDuplicateException"></exception>
+    /// <exception cref="Exception">Slug" + request.RoleSlug + " not found</exception>
     public async Task<UserRep> Handle(CustomerCreateUserCommand command, CancellationToken cancellationToken)
     {
         var request = command.Request;

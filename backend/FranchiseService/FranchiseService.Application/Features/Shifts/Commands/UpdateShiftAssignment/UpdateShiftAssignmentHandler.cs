@@ -26,6 +26,7 @@ namespace FranchiseService.Application.Features.Shifts.Commands.UpdateShiftAssig
         private readonly Application.Signals.IOutboxSignal _outboxSignal;
         private readonly IIdentityServiceClient _identityClient;
         private readonly IShiftValidationService _validationService;
+        private readonly IShiftApplicationAutoRejectService _autoRejectService;
 
         public UpdateShiftAssignmentHandler(
             IShiftRepository shiftRepository,
@@ -35,7 +36,8 @@ namespace FranchiseService.Application.Features.Shifts.Commands.UpdateShiftAssig
             IOutboxRepository outboxRepository,
             Application.Signals.IOutboxSignal outboxSignal,
             IIdentityServiceClient identityClient,
-            IShiftValidationService validationService)
+            IShiftValidationService validationService,
+            IShiftApplicationAutoRejectService autoRejectService)
         {
             _shiftRepository = shiftRepository;
             _shiftGenericRepo = shiftGenericRepo;
@@ -45,6 +47,7 @@ namespace FranchiseService.Application.Features.Shifts.Commands.UpdateShiftAssig
             _outboxSignal = outboxSignal;
             _identityClient = identityClient;
             _validationService = validationService;
+            _autoRejectService = autoRejectService;
         }
 
         public async Task<AssignStaffResult> Handle(UpdateShiftAssignmentCommand request, CancellationToken cancellationToken)
@@ -126,9 +129,10 @@ namespace FranchiseService.Application.Features.Shifts.Commands.UpdateShiftAssig
             }
 
             // Nếu có cảnh báo WARNING nhưng chưa xác nhận ghi đè, trả về cho FE
+            // Success = true vì request hợp lệ, nhưng FE cần kiểm tra Warnings để hiện popup xác nhận
             if (allWarnings.Any(w => w.Severity == "WARNING") && !request.ForceOverride)
             {
-                return new AssignStaffResult { Success = false, Warnings = allWarnings };
+                return new AssignStaffResult { Success = true, Warnings = allWarnings };
             }
 
             // Đánh dấu override nếu Manager đã xác nhận ghi đè cảnh báo
@@ -190,6 +194,16 @@ namespace FranchiseService.Application.Features.Shifts.Commands.UpdateShiftAssig
             if (outboxMessages.Any())
             {
                 _outboxSignal.Pulse();
+            }
+
+            // Khi ca vừa đủ người sau gán tay: chuyển Shift về Published và tự động từ chối các đơn Pending còn lại
+            if (finalCount >= shift.RequiredStaffCount && toAdd.Count > 0)
+            {
+                shift.Status = (int)ShiftStatus.Published;
+                shift.UpdatedAt = DateTimeOffset.UtcNow;
+                await _shiftGenericRepo.UpdateAsync(shift);
+                await _autoRejectService.RejectPendingApplicationsAsync(
+                    shift.Id, excludeApplicationId: null, request.OverriddenBy ?? Guid.Empty, cancellationToken);
             }
 
             return new AssignStaffResult { Success = true };

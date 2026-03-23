@@ -17,7 +17,16 @@ namespace EngagementService.Infrastucture.Persistences.Repository
         public PointLogRepository(IEngagementDbContext dbContext) : base(dbContext)
         {
         }
-
+        /// <summary>
+        /// Gets the paged point logs asynchronous.
+        /// </summary>
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="fromDate">From date.</param>
+        /// <param name="toDate">To date.</param>
+        /// <param name="pageIndex">Index of the page.</param>
+        /// <param name="pageSize">Size of the page.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
         public async Task<PagedResult<PointLog>> GetPagedPointLogsAsync(Guid userId, DateTimeOffset? fromDate, DateTimeOffset? toDate, int pageIndex, int pageSize, CancellationToken cancellationToken)
         {
             var query = _dbContext.PointLogs

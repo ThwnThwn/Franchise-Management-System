@@ -1,0 +1,335 @@
+services:
+  # ==========================================
+  # DATABASE: POSTGRESQL
+  # ==========================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: chb_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 200M
+    networks:
+      - chb-network
+
+  # ==========================================
+  # CACHE: REDIS
+  # ==========================================
+  redis:
+    image: redis:alpine
+    container_name: chb_redis
+    restart: always
+    ports:
+      - "${REDIS_PORT}:6379"
+    volumes:
+      - redis_data:/data
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+    networks:
+      - chb-network
+
+  # ==========================================
+  # MESSAGE BROKER: KAFKA & ZOOKEEPER
+  # ==========================================
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.1
+    container_name: chb_zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: ${ZOOKEEPER_PORT}
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "22181:${ZOOKEEPER_PORT}"
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+      - zookeeper_log:/var/lib/zookeeper/log
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+    networks:
+      - chb-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.1
+    container_name: chb_kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "${KAFKA_PORT}:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:${ZOOKEEPER_PORT}
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:${KAFKA_PORT},PLAINTEXT_INTERNAL://chb_kafka:29092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_HEAP_OPTS: "-Xms256M -Xmx256M"
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    deploy:
+      resources:
+        limits:
+          memory: 450M
+    networks:
+      - chb-network
+
+  # ==========================================
+  # ROUTING ENGINE: OSRM (Open Source Routing Machine)
+  # ==========================================
+  osrm:
+    image: osrm/osrm-backend
+    container_name: chb_osrm
+    restart: always
+    volumes:
+      - ./osrm_data:/data
+    entrypoint: >
+      /bin/sh -c "
+        if [ ! -f /data/Saigon.osrm ]; then
+          echo 'Data not found, starting preprocessing...' &&
+          osrm-extract -p /opt/car.lua /data/Saigon.osm.pbf &&
+          osrm-partition /data/Saigon.osrm &&
+          osrm-customize /data/Saigon.osrm;
+        fi;
+        echo 'Starting OSRM server...' &&
+        osrm-routed --algorithm mld /data/Saigon.osrm;
+      "
+    deploy:
+      resources:
+        limits:
+          memory: 512M # Giới hạn tối đa RAM để không ăn lẹm tài nguyên của service khác
+        reservations:
+          memory: 256M # Giữ chỗ 256MB RAM
+    networks:
+      - chb-network
+
+  # ==========================================
+  # API GATEWAY (GOLANG)
+  # ==========================================
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: chb_gateway
+    env_file:
+      - .env
+    restart: always
+    ports:
+      - "${GATEWAY_PORT}:8080"
+    depends_on:
+      - identity-service
+      - product-service
+      - sales-service
+      - notification-service
+      - inventory-service
+      - franchise-service
+      - engagement-service
+      - supplier-service
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+    networks:
+      - chb-network
+
+  # ==========================================
+  # BACKEND SERVICES (.NET)
+  # ==========================================
+  identity-service:
+    build:
+      context: .
+      dockerfile: backend/IdentityService/IdentityService.API/Dockerfile
+    container_name: chb_identity
+    env_file:
+      - .env
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - DOTNET_RUNNING_IN_CONTAINER=true
+      - KAFKA_BOOTSTRAP_SERVERS=chb_kafka:29092
+    depends_on:
+      postgres:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 150M
+    networks:
+      - chb-network
+
+  product-service:
+    build:
+      context: .
+      dockerfile: backend/ProductService/ProductService.API/Dockerfile
+    container_name: chb_product
+    env_file:
+      - .env
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - DOTNET_RUNNING_IN_CONTAINER=true
+      - KAFKA_BOOTSTRAP_SERVERS=chb_kafka:29092
+    depends_on:
+      postgres:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 150M
+    networks:
+      - chb-network
+
+  sales-service:
+    build:
+      context: .
+      dockerfile: backend/SaleService/SaleService.API/Dockerfile
+    container_name: chb_sales
+    env_file:
+      - .env
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - DOTNET_RUNNING_IN_CONTAINER=true
+      - KAFKA_BOOTSTRAP_SERVERS=chb_kafka:29092
+    depends_on:
+      postgres:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 150M
+    networks:
+      - chb-network
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: backend/NotificationService/NotificationService.API/Dockerfile
+    container_name: chb_notification
+    env_file:
+      - .env
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - DOTNET_RUNNING_IN_CONTAINER=true
+      - KAFKA_BOOTSTRAP_SERVERS=chb_kafka:29092
+    depends_on:
+      postgres:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 150M
+    networks:
+      - chb-network
+
+  inventory-service:
+    build:
+      context: .
+      dockerfile: backend/InventoryService/InventoryService.API/Dockerfile
+    container_name: chb_inventory
+    env_file:
+      - .env
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - DOTNET_RUNNING_IN_CONTAINER=true
+      - KAFKA_BOOTSTRAP_SERVERS=chb_kafka:29092
+    depends_on:
+      postgres:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 150M
+    networks:
+      - chb-network
+
+  franchise-service:
+    build:
+      context: .
+      dockerfile: backend/FranchiseService/FranchiseService.API/Dockerfile
+    container_name: chb_franchise
+    env_file:
+      - .env
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - DOTNET_RUNNING_IN_CONTAINER=true
+      - KAFKA_BOOTSTRAP_SERVERS=chb_kafka:29092
+    depends_on:
+      postgres:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 150M
+    networks:
+      - chb-network
+
+  engagement-service:
+    build:
+      context: .
+      dockerfile: backend/EngagementService/EngagementService.API/Dockerfile
+    container_name: chb_engagement
+    env_file:
+      - .env
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - DOTNET_RUNNING_IN_CONTAINER=true
+      - KAFKA_BOOTSTRAP_SERVERS=chb_kafka:29092
+    depends_on:
+      postgres:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 150M
+    networks:
+      - chb-network
+
+  supplier-service:
+    build:
+      context: .
+      dockerfile: backend/SupplierService/SupplierService.API/Dockerfile
+    container_name: chb_supplier
+    env_file:
+      - .env
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - DOTNET_RUNNING_IN_CONTAINER=true
+      - KAFKA_BOOTSTRAP_SERVERS=chb_kafka:29092
+    depends_on:
+      postgres:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 150M
+    networks:
+      - chb-network
+
+# ==========================================
+# VOLUMES & NETWORKS
+# ==========================================
+volumes:
+  postgres_data:
+  redis_data:
+  zookeeper_data:
+  zookeeper_log:
+  kafka_data:
+
+networks:
+  chb-network:
+    driver: bridge

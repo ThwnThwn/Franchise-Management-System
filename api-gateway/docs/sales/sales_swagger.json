@@ -1,0 +1,3761 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "API docs for CHD Gateway.",
+        "title": "API Gateway Documentation",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "API Support",
+            "email": "support@swagger.io"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/api",
+    "paths": {
+        "/me/cart": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve current user's shopping cart.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Get My Cart",
+                "responses": {}
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Clear My Cart",
+                "responses": {}
+            }
+        },
+        "/me/cart/items": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Update Item in My Cart",
+                "parameters": [
+                    {
+                        "description": "Update details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/cart.UpsertCartItemRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Add Item to My Cart",
+                "parameters": [
+                    {
+                        "description": "Item details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/cart.UpsertCartItemRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Remove Items from My Cart",
+                "parameters": [
+                    {
+                        "description": "List of Item IDs",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/cart.DeleteCartItemsRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/me/orders": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve a list of orders placed by the current logged-in user with optional filtering.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Get My Order History",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of orders",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/me/orders/payments": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Khách hàng tự xem lại lịch sử các đợt thanh toán đơn hàng của chính mình.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Lịch sử thanh toán của tôi (Customer)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "endDate",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "ISO-8601",
+                        "name": "startDate",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "0=Pending, 1=Paid, 2=Failed; omit for all",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/common.PaginationResult-order_PaymentHistoryItem"
+                        }
+                    }
+                }
+            }
+        },
+        "/me/refunds": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lấy danh sách các ticket hoàn tiền do chính user đang đăng nhập tạo (có phân trang).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Refunds"
+                ],
+                "summary": "Xem danh sách yêu cầu hoàn tiền của tôi",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6,
+                            7
+                        ],
+                        "type": "integer",
+                        "format": "int32",
+                        "x-enum-varnames": [
+                            "RefundTicketStatus_REFUND_STATUS_PENDING",
+                            "RefundTicketStatus_REFUND_STATUS_APPROVED",
+                            "RefundTicketStatus_REFUND_STATUS_PROCESSING",
+                            "RefundTicketStatus_REFUND_STATUS_COMPLETED",
+                            "RefundTicketStatus_REFUND_STATUS_FAILED",
+                            "RefundTicketStatus_REFUND_STATUS_REJECTED",
+                            "RefundTicketStatus_REFUND_STATUS_CANCELLED"
+                        ],
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Danh sách ticket",
+                        "schema": {
+                            "$ref": "#/definitions/common.PaginationResult-wallet_RefundTicketSummary"
+                        }
+                    },
+                    "400": {
+                        "description": "Tham số không hợp lệ",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Chưa đăng nhập",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Khách hàng chủ động tạo một yêu cầu hoàn tiền (ticket) cho một giao dịch/đơn hàng.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Refunds"
+                ],
+                "summary": "Tạo yêu cầu hoàn tiền mới",
+                "parameters": [
+                    {
+                        "description": "Thông tin yêu cầu hoàn tiền",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/wallet.CreateRefundByCustomerRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tạo thành công",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Dữ liệu đầu vào không hợp lệ",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/me/wallet": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lấy thông tin ví và số dư hiện tại của người dùng đang đăng nhập.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Wallets"
+                ],
+                "summary": "Xem ví cá nhân",
+                "responses": {
+                    "200": {
+                        "description": "Thông tin chi tiết của ví",
+                        "schema": {
+                            "$ref": "#/definitions/wallet.WalletResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Chưa đăng nhập hoặc token không hợp lệ",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Lỗi hệ thống nội bộ",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/me/wallet/top-up": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Tạo link thanh toán qua cổng VNPay để người dùng nạp tiền vào ví cá nhân.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Wallets"
+                ],
+                "summary": "Nạp tiền vào ví",
+                "parameters": [
+                    {
+                        "description": "Thông tin nạp tiền (VD: số tiền)",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/wallet.TopUpWalletRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Trả về URL để redirect sang VNPay { paymentUrl: '...' }",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Dữ liệu đầu vào không hợp lệ",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Chưa đăng nhập",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Lỗi hệ thống hoặc lỗi kết nối cổng thanh toán",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/me/wallet/transactions": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lấy danh sách các giao dịch ví (nạp tiền, trừ tiền, hoàn tiền...) của người dùng đang đăng nhập có phân trang.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Wallet Transactions"
+                ],
+                "summary": "Xem lịch sử giao dịch ví của tôi",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Danh sách giao dịch",
+                        "schema": {
+                            "$ref": "#/definitions/common.PaginationResult-wallet_WalletTransactionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Tham số không hợp lệ",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Chưa đăng nhập",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/me/withdrawals": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lấy lịch sử rút tiền của chính người dùng đang đăng nhập (có phân trang).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Xem danh sách yêu cầu rút tiền của tôi",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6,
+                            7
+                        ],
+                        "type": "integer",
+                        "format": "int32",
+                        "x-enum-comments": {
+                            "WithdrawalStatusApproved": "Đã duyệt",
+                            "WithdrawalStatusCancelled": "Đã hủy",
+                            "WithdrawalStatusCompleted": "Thành công",
+                            "WithdrawalStatusFailed": "Thất bại",
+                            "WithdrawalStatusPending": "Chờ duyệt",
+                            "WithdrawalStatusProcessing": "Đang xử lý",
+                            "WithdrawalStatusRejected": "Từ chối"
+                        },
+                        "x-enum-descriptions": [
+                            "Chờ duyệt",
+                            "Đã duyệt",
+                            "Đang xử lý",
+                            "Thành công",
+                            "Thất bại",
+                            "Từ chối",
+                            "Đã hủy"
+                        ],
+                        "x-enum-varnames": [
+                            "WithdrawalStatusPending",
+                            "WithdrawalStatusApproved",
+                            "WithdrawalStatusProcessing",
+                            "WithdrawalStatusCompleted",
+                            "WithdrawalStatusFailed",
+                            "WithdrawalStatusRejected",
+                            "WithdrawalStatusCancelled"
+                        ],
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Danh sách yêu cầu",
+                        "schema": {
+                            "$ref": "#/definitions/common.PaginationResult-withdrawal_WithdrawalSummary"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Khách hàng tạo yêu cầu rút tiền từ ví vào tài khoản ngân hàng. Tiền sẽ bị tạm trừ ngay lập tức.\nDùng api https://api.vietqr.io/v2/banks để lấy bank code và name cho khách chọn\nVẫn cho 1 ô nhập tên ngân hàng nếu api lỗi hoặc khách ko thấy trong danh sách\nTrường hợp khách nhập tên ngân hàng thủ công thì ko cần code",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Tạo yêu cầu rút tiền mới",
+                "parameters": [
+                    {
+                        "description": "Thông tin yêu cầu rút tiền",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/withdrawal.CreateWithdrawalReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tạo thành công",
+                        "schema": {
+                            "$ref": "#/definitions/withdrawal.WithdrawalBaseRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Dữ liệu không hợp lệ",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/me/withdrawals/{id}/cancel": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Người dùng tự hủy lệnh khi chưa được Admin xử lý (Trạng thái PENDING). Tiền hoàn về ví.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Khách hàng tự hủy yêu cầu rút tiền",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID của yêu cầu rút tiền",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Lý do hủy",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/withdrawal.CancelMyWithdrawalReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Hủy thành công",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/orders": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve a list of orders placed with optional filtering.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Get Orders History",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "code",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "fromDate",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "paymentMethod",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "storeId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "toDate",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of orders",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a new order based on the provided items and shipping information.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Place New Order",
+                "parameters": [
+                    {
+                        "description": "Order creation details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/order.CreateOrderRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Created Order Data",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/payments": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lấy danh sách lịch sử thanh toán của toàn hệ thống (Dành cho quản trị viên/kế toán).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Danh sách toàn bộ thanh toán (Admin)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/common.PaginationResult-order_PaymentSummary"
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/reports/revenue": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get detailed revenue breakdown by product and category for charts.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Get Revenue Report (JSON)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "categoryId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2024-01-01T00:00:00Z",
+                        "name": "fromDate",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "storeId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2024-01-31T23:59:59Z",
+                        "name": "toDate",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Revenue data",
+                        "schema": {
+                            "$ref": "#/definitions/order.GetRevenueReportReply"
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/reports/revenue/export": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Download revenue report as a CSV file for bookkeeping.",
+                "produces": [
+                    "text/csv"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Export Revenue Report (CSV)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "categoryId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2024-01-01T00:00:00Z",
+                        "name": "fromDate",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "storeId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2024-01-31T23:59:59Z",
+                        "name": "toDate",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "CSV File",
+                        "schema": {
+                            "type": "file"
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/reports/sales-trend": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lấy dữ liệu xu hướng doanh thu (doanh thu, lượng đơn hàng) trong một khoảng thời gian được gom nhóm (giờ/ngày/tuần).\nLƯU Ý VỀ PHÂN QUYỀN (StoreId):\n- Nếu là Admin: Có thể truyền tham số storeId để xem cụ thể một cửa hàng, hoặc không truyền (bỏ trống) để xem dữ liệu của toàn hệ thống.\n- Nếu là Manager/Staff: Truyền storeId hay không thì hệ thống cũng sẽ tự động ghi đè (override) bằng ID cửa hàng của tài khoản đang đăng nhập.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Lấy biểu đồ xu hướng doanh thu",
+                "parameters": [
+                    {
+                        "enum": [
+                            0,
+                            1,
+                            2
+                        ],
+                        "type": "integer",
+                        "default": 1,
+                        "example": 1,
+                        "description": "Mức độ gom nhóm dữ liệu. 0 = Hour, 1 = Day, 2 = Week.",
+                        "name": "aggregation",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "cat-001",
+                        "description": "ID Danh mục sản phẩm (Tùy chọn)",
+                        "name": "categoryId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2024-03-01T00:00:00Z",
+                        "description": "Thời gian bắt đầu. Bắt buộc nhập.",
+                        "name": "fromDate",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "123e4567-e89b-12d3-a456-426614174000",
+                        "description": "ID Cửa hàng (Tùy chọn)",
+                        "name": "storeId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2024-03-05T23:59:59Z",
+                        "description": "Thời gian kết thúc. Bắt buộc nhập.",
+                        "name": "toDate",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Dữ liệu xu hướng và nhãn thời gian cao điểm/thấp điểm",
+                        "schema": {
+                            "$ref": "#/definitions/order.GetSalesTrendReply"
+                        }
+                    },
+                    "400": {
+                        "description": "Lỗi dữ liệu đầu vào (Bad Request)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Lỗi xác thực (Unauthorized)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/reports/sales-trend/export": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Tải xuống dữ liệu xu hướng doanh thu (doanh thu, lượng đơn hàng) dưới dạng file CSV.\nHỗ trợ các tham số lọc và phân quyền storeId tương tự như API lấy JSON.",
+                "produces": [
+                    "text/csv"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Xuất file CSV xu hướng doanh thu",
+                "parameters": [
+                    {
+                        "enum": [
+                            0,
+                            1,
+                            2
+                        ],
+                        "type": "integer",
+                        "default": 1,
+                        "example": 1,
+                        "description": "Mức độ gom nhóm dữ liệu. 0 = Hour, 1 = Day, 2 = Week.",
+                        "name": "aggregation",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "cat-001",
+                        "description": "ID Danh mục sản phẩm (Tùy chọn)",
+                        "name": "categoryId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2024-03-01T00:00:00Z",
+                        "description": "Thời gian bắt đầu. Bắt buộc nhập.",
+                        "name": "fromDate",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "123e4567-e89b-12d3-a456-426614174000",
+                        "description": "ID Cửa hàng (Tùy chọn)",
+                        "name": "storeId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2024-03-05T23:59:59Z",
+                        "description": "Thời gian kết thúc. Bắt buộc nhập.",
+                        "name": "toDate",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tệp CSV chứa dữ liệu xu hướng doanh thu",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "Lỗi dữ liệu đầu vào",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/reports/volume": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get daily order counts and status breakdown for line charts.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Get Order Volume Statistics (JSON)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "2024-05-20",
+                        "name": "fromDate",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            0,
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6,
+                            7
+                        ],
+                        "type": "integer",
+                        "format": "int32",
+                        "x-enum-varnames": [
+                            "OrderStatus_PAYMENT_PENDING",
+                            "OrderStatus_CONFIRMATION_PENDING",
+                            "OrderStatus_CONFIRMED",
+                            "OrderStatus_PREPARING",
+                            "OrderStatus_READY_FOR_PICKUP",
+                            "OrderStatus_DELIVERING",
+                            "OrderStatus_COMPLETED",
+                            "OrderStatus_CANCEL"
+                        ],
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "storeId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2024-05-27",
+                        "name": "toDate",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Order volume data",
+                        "schema": {
+                            "$ref": "#/definitions/order.GetOrderVolumeReply"
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/reports/volume/export": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Download daily order statistics as a CSV file.",
+                "produces": [
+                    "text/csv"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Export Order Volume (CSV)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "2024-05-20",
+                        "name": "fromDate",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            0,
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6,
+                            7
+                        ],
+                        "type": "integer",
+                        "format": "int32",
+                        "x-enum-varnames": [
+                            "OrderStatus_PAYMENT_PENDING",
+                            "OrderStatus_CONFIRMATION_PENDING",
+                            "OrderStatus_CONFIRMED",
+                            "OrderStatus_PREPARING",
+                            "OrderStatus_READY_FOR_PICKUP",
+                            "OrderStatus_DELIVERING",
+                            "OrderStatus_COMPLETED",
+                            "OrderStatus_CANCEL"
+                        ],
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "storeId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2024-05-27",
+                        "name": "toDate",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "CSV File",
+                        "schema": {
+                            "type": "file"
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/vnpay/return": {
+            "get": {
+                "description": "Endpoint for VNPay to redirect the browser after payment. Verifies the signature via gRPC and redirects to the Frontend UI.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/html"
+                ],
+                "tags": [
+                    "Payments"
+                ],
+                "summary": "Handle VNPay Return URL",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Transaction Amount",
+                        "name": "vnp_Amount",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bank Code",
+                        "name": "vnp_BankCode",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Order Information",
+                        "name": "vnp_OrderInfo",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "VNPAY Response Code",
+                        "name": "vnp_ResponseCode",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Transaction Reference",
+                        "name": "vnp_TxnRef",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Security Hash",
+                        "name": "vnp_SecureHash",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "302": {
+                        "description": "Redirects to the Frontend React application"
+                    }
+                }
+            }
+        },
+        "/orders/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve full details of a specific order by its ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Get Order Details",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Order details",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID format",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Order not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update the list of items in an existing order (usually allowed only when order is in 'Pending' state).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Update Order Items",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "List of items to update",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/order.UpdateOrderItem"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated Order Data",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/{id}/delivery/assign": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Gán nhân viên vào ca làm để giao hàng",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Assign Staff To Delivery",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Chứa staff id",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/order.AssignStaffToDeliveryRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/{id}/delivery/me/assign": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Tự gán bản thân vào ca làm để giao hàng",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Self Assign Staff To Delivery",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Chứa staff id",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/order.AssignStaffToDeliveryRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/{id}/payment": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Generate a payment link (VNPay) for the specific order.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Generate Payment URL",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Payment details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/order.CreatePaymentRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Payment URL",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/{id}/status": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Change the status of an order (e.g., to 'Cancelled', 'Completed').",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Update Order Status",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "New Status",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/order.UpdateOrderStatus"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/refunds": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Dành cho Staff, Manager, Admin lấy danh sách các ticket hoàn tiền. Có thể truyền thêm `userId` vào query để lọc riêng của một người.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Refunds"
+                ],
+                "summary": "Xem toàn bộ danh sách hoàn tiền",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Lọc theo UUID của người dùng cụ thể (Tùy chọn)",
+                        "name": "userId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6,
+                            7
+                        ],
+                        "type": "integer",
+                        "format": "int32",
+                        "x-enum-varnames": [
+                            "RefundTicketStatus_REFUND_STATUS_PENDING",
+                            "RefundTicketStatus_REFUND_STATUS_APPROVED",
+                            "RefundTicketStatus_REFUND_STATUS_PROCESSING",
+                            "RefundTicketStatus_REFUND_STATUS_COMPLETED",
+                            "RefundTicketStatus_REFUND_STATUS_FAILED",
+                            "RefundTicketStatus_REFUND_STATUS_REJECTED",
+                            "RefundTicketStatus_REFUND_STATUS_CANCELLED"
+                        ],
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Danh sách ticket",
+                        "schema": {
+                            "$ref": "#/definitions/common.PaginationResult-wallet_RefundTicketSummary"
+                        }
+                    },
+                    "400": {
+                        "description": "Tham số không hợp lệ",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Chưa đăng nhập",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/refunds/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lấy thông tin chi tiết của ticket hoàn tiền. Tầng Service sẽ tự check quyền dựa trên ctxUserId.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Refunds"
+                ],
+                "summary": "Xem chi tiết một yêu cầu hoàn tiền",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID của ticket hoàn tiền",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/wallet.RefundTicketDetail"
+                        }
+                    },
+                    "404": {
+                        "description": "Không tìm thấy ticket",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/refunds/{id}/approve": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "(Admin) Chấp nhận và tiến hành hoàn tiền cho khách.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Refunds"
+                ],
+                "summary": "Duyệt yêu cầu hoàn tiền",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID của ticket hoàn tiền",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Lý do duyệt",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/wallet.ApproveRefundRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/refunds/{id}/cancel": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "(Customer/Admin) Hủy bỏ ticket hoàn tiền (thường do khách hàng đổi ý).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Refunds"
+                ],
+                "summary": "Hủy yêu cầu hoàn tiền",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID của ticket hoàn tiền",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Lý do hủy",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/wallet.CancelRefundRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/refunds/{id}/complete": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "(Staff/Manager/Admin) Xác nhận quá trình chuyển tiền đã xong, đóng ticket.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Refunds"
+                ],
+                "summary": "Đánh dấu hoàn tất hoàn tiền",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID của ticket hoàn tiền",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Ghi chú hoàn tất",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/wallet.SetCompleteRefundRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/refunds/{id}/reject": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "(Admin) Từ chối yêu cầu hoàn tiền kèm theo lý do cụ thể.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Refunds"
+                ],
+                "summary": "Từ chối yêu cầu hoàn tiền",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID của ticket hoàn tiền",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Lý do từ chối",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/wallet.RejectRefundRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/wallets/transactions": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Dành cho Staff, Manager, Admin lấy danh sách giao dịch. Có thể truyền thêm `userId` vào query để lọc riêng giao dịch của một người.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Wallet Transactions"
+                ],
+                "summary": "Xem toàn bộ giao dịch ví hệ thống",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Lọc theo UUID của người dùng cụ thể (Tùy chọn)",
+                        "name": "userId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Danh sách giao dịch",
+                        "schema": {
+                            "$ref": "#/definitions/common.PaginationResult-wallet_WalletTransactionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Tham số không hợp lệ",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Chưa đăng nhập",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Không có quyền thao tác",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/wallets/transactions/code/{code}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Xem chi tiết một giao dịch ví thông qua mã code (VD: WT-12345).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Wallet Transactions"
+                ],
+                "summary": "Lấy chi tiết giao dịch bằng Mã giao dịch",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Mã giao dịch (Code)",
+                        "name": "code",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/wallet.WalletTransactionResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Không tìm thấy giao dịch",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/wallets/transactions/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Xem chi tiết một giao dịch ví thông qua UUID của giao dịch. Tầng service sẽ tự kiểm tra xem `ctxUserId` có quyền xem ID này hay không.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Wallet Transactions"
+                ],
+                "summary": "Lấy chi tiết giao dịch bằng ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID của giao dịch",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/wallet.WalletTransactionResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Không tìm thấy giao dịch",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/wallets/users/{userId}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Dành cho Staff, Manager, Admin lấy thông tin ví của một user bất kỳ thông qua User ID.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Wallets"
+                ],
+                "summary": "Xem ví của người dùng",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID của người dùng cần xem",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thông tin chi tiết của ví",
+                        "schema": {
+                            "$ref": "#/definitions/wallet.WalletResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "ID người dùng không đúng định dạng UUID",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Chưa đăng nhập",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Không có quyền thao tác (Forbidden)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Không tìm thấy ví của người dùng này",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/wallets/vnpay/return": {
+            "get": {
+                "description": "Endpoint hứng callback từ VNPay sau khi khách thanh toán xong. Thực hiện xác thực chữ ký gRPC và bẻ lái (redirect) về Frontend kèm theo trạng thái giao dịch.",
+                "produces": [
+                    "text/html"
+                ],
+                "tags": [
+                    "Wallets"
+                ],
+                "summary": "Xử lý Callback VNPay Return (Nạp tiền ví)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Đường dẫn Frontend muốn bẻ lái về (VD: /my-wallet)",
+                        "name": "redirectTo",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Số tiền giao dịch (nhân 100)",
+                        "name": "vnp_Amount",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Mã phản hồi từ VNPay (00 là thành công)",
+                        "name": "vnp_ResponseCode",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Mã tham chiếu giao dịch nội bộ",
+                        "name": "vnp_TxnRef",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Mã băm bảo mật checksum",
+                        "name": "vnp_SecureHash",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "302": {
+                        "description": "Chuyển hướng (Redirect) về ứng dụng Frontend"
+                    }
+                }
+            }
+        },
+        "/wallets/{id}/status": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Dành cho Quản trị viên khóa (tạm dừng) hoặc mở khóa ví của người dùng.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Wallets"
+                ],
+                "summary": "Cập nhật trạng thái ví (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID của ví cần cập nhật",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Thông tin trạng thái mới",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/wallet.UpdateWalletStatusRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thông báo cập nhật thành công { message: '...' }",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Dữ liệu đầu vào hoặc UUID ví không hợp lệ",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Chưa đăng nhập",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Không có quyền thao tác (Forbidden)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/withdrawals": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Dành cho quản trị viên xem và lọc danh sách rút tiền của toàn bộ người dùng.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Xem toàn bộ danh sách yêu cầu rút tiền (Admin)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6,
+                            7
+                        ],
+                        "type": "integer",
+                        "format": "int32",
+                        "x-enum-comments": {
+                            "WithdrawalStatusApproved": "Đã duyệt",
+                            "WithdrawalStatusCancelled": "Đã hủy",
+                            "WithdrawalStatusCompleted": "Thành công",
+                            "WithdrawalStatusFailed": "Thất bại",
+                            "WithdrawalStatusPending": "Chờ duyệt",
+                            "WithdrawalStatusProcessing": "Đang xử lý",
+                            "WithdrawalStatusRejected": "Từ chối"
+                        },
+                        "x-enum-descriptions": [
+                            "Chờ duyệt",
+                            "Đã duyệt",
+                            "Đang xử lý",
+                            "Thành công",
+                            "Thất bại",
+                            "Từ chối",
+                            "Đã hủy"
+                        ],
+                        "x-enum-varnames": [
+                            "WithdrawalStatusPending",
+                            "WithdrawalStatusApproved",
+                            "WithdrawalStatusProcessing",
+                            "WithdrawalStatusCompleted",
+                            "WithdrawalStatusFailed",
+                            "WithdrawalStatusRejected",
+                            "WithdrawalStatusCancelled"
+                        ],
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "userId",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Danh sách yêu cầu",
+                        "schema": {
+                            "$ref": "#/definitions/common.PaginationResult-withdrawal_WithdrawalSummary"
+                        }
+                    }
+                }
+            }
+        },
+        "/withdrawals/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lấy đầy đủ thông tin một yêu cầu rút tiền bao gồm số tài khoản đầy đủ (Raw) và lịch sử xử lý.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Xem chi tiết yêu cầu rút tiền",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID của yêu cầu rút tiền",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/withdrawal.WithdrawalDetailRes"
+                        }
+                    },
+                    "404": {
+                        "description": "Không tìm thấy",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/withdrawals/{id}/approve": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "(Admin) Xác nhận yêu cầu hợp lệ và chuẩn bị chuyển tiền. Trạng thái chuyển sang APPROVED.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Duyệt yêu cầu rút tiền",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID của yêu cầu rút tiền",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Ghi chú duyệt",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/withdrawal.ApproveWithdrawalReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/withdrawals/{id}/cancel": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Dùng để hủy lệnh ở bất kỳ giai đoạn nào (Pending, Approved, Processing) TRỪ KHI đã thành công/hủy rồi. Hệ thống tự hoàn tiền vào ví.",
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Admin hủy yêu cầu (Dành cho hầu hết trạng thái)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID yêu cầu",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Lý do hủy từ Admin",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/withdrawal.CancelWithdrawalReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/withdrawals/{id}/complete": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "(Admin) Xác nhận đã chuyển khoản thành công. Phải upload ảnh bill (receiptFile) để minh chứng.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Hoàn tất yêu cầu rút tiền (Kèm hóa đơn)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID của yêu cầu rút tiền",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Ảnh chụp biên lai chuyển khoản (Bill)",
+                        "name": "receiptFile",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Mã giao dịch",
+                        "name": "bankTransactionId",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Hoàn tất",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/withdrawals/{id}/reject": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Dùng để từ chối lệnh khi đang PENDING. Hệ thống tự hoàn tiền vào ví.",
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Admin từ chối yêu cầu (Chỉ dành cho lệnh PENDING)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID yêu cầu",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Lý do từ chối",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/withdrawal.RejectWithdrawalReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "cart.DeleteCartItemsRequest": {
+            "type": "object",
+            "properties": {
+                "skus": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "cart.UpsertCartItemRequest": {
+            "type": "object",
+            "properties": {
+                "quantity": {
+                    "type": "integer"
+                },
+                "sku": {
+                    "type": "string"
+                }
+            }
+        },
+        "common.PaginationResult-order_PaymentHistoryItem": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/order.PaymentHistoryItem"
+                    }
+                },
+                "totalCount": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "common.PaginationResult-order_PaymentSummary": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/order.PaymentSummary"
+                    }
+                },
+                "totalCount": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "common.PaginationResult-wallet_RefundTicketSummary": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/wallet.RefundTicketSummary"
+                    }
+                },
+                "totalCount": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "common.PaginationResult-wallet_WalletTransactionResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/wallet.WalletTransactionResponse"
+                    }
+                },
+                "totalCount": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "common.PaginationResult-withdrawal_WithdrawalSummary": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/withdrawal.WithdrawalSummary"
+                    }
+                },
+                "totalCount": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "enum.OrderStatus": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "x-enum-varnames": [
+                "OrderStatus_PAYMENT_PENDING",
+                "OrderStatus_CONFIRMATION_PENDING",
+                "OrderStatus_CONFIRMED",
+                "OrderStatus_PREPARING",
+                "OrderStatus_READY_FOR_PICKUP",
+                "OrderStatus_DELIVERING",
+                "OrderStatus_COMPLETED",
+                "OrderStatus_CANCEL"
+            ]
+        },
+        "enum.OrderType": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+                0,
+                1
+            ],
+            "x-enum-varnames": [
+                "OrderType_Delivery",
+                "OrderType_Pickup"
+            ]
+        },
+        "enum.PaymentMethod": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+                0,
+                1
+            ],
+            "x-enum-varnames": [
+                "PaymentMethod_CASH",
+                "PaymentMethod_VNPAY"
+            ]
+        },
+        "enum.RefundReasonType": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+                1,
+                2,
+                3,
+                4,
+                5
+            ],
+            "x-enum-varnames": [
+                "RefundReasonType_REFUND_REASON_NORMAL_PROCESS",
+                "RefundReasonType_REFUND_REASON_SYSTEM_ERROR",
+                "RefundReasonType_REFUND_REASON_CUSTOMER_COMPLAINT",
+                "RefundReasonType_REFUND_REASON_GOODWILL_GESTURE",
+                "RefundReasonType_REFUND_REASON_COMPENSATION"
+            ]
+        },
+        "enum.RefundTicketMethod": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+                1,
+                2
+            ],
+            "x-enum-varnames": [
+                "RefundTicketMethod_REFUND_METHOD_TRANSFER",
+                "RefundTicketMethod_REFUND_METHOD_CASH"
+            ]
+        },
+        "enum.RefundTicketStatus": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "x-enum-varnames": [
+                "RefundTicketStatus_REFUND_STATUS_PENDING",
+                "RefundTicketStatus_REFUND_STATUS_APPROVED",
+                "RefundTicketStatus_REFUND_STATUS_PROCESSING",
+                "RefundTicketStatus_REFUND_STATUS_COMPLETED",
+                "RefundTicketStatus_REFUND_STATUS_FAILED",
+                "RefundTicketStatus_REFUND_STATUS_REJECTED",
+                "RefundTicketStatus_REFUND_STATUS_CANCELLED"
+            ]
+        },
+        "enum.TransactionStatus": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+                1,
+                2,
+                3,
+                4
+            ],
+            "x-enum-varnames": [
+                "TransactionStatus_TRANSACTION_STATUS_PENDING",
+                "TransactionStatus_TRANSACTION_STATUS_COMPLETED",
+                "TransactionStatus_TRANSACTION_STATUS_FAILED",
+                "TransactionStatus_TRANSACTION_STATUS_CANCELLED"
+            ]
+        },
+        "enum.TransactionType": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+            ],
+            "x-enum-varnames": [
+                "TransactionType_TRANSACTION_TYPE_DEPOSIT",
+                "TransactionType_TRANSACTION_TYPE_PAYMENT",
+                "TransactionType_TRANSACTION_TYPE_REFUND",
+                "TransactionType_TRANSACTION_TYPE_ADJUSTMENT",
+                "TransactionType_TRANSACTION_TYPE_WITHDRAWAL",
+                "TransactionType_TRANSACTION_TYPE_TRANSFER"
+            ]
+        },
+        "enum.WalletReferenceType": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+                1,
+                2,
+                3,
+                4
+            ],
+            "x-enum-varnames": [
+                "WalletReferenceType_REFERENCE_TYPE_ORDER",
+                "WalletReferenceType_REFERENCE_TYPE_REFUND_TICKET",
+                "WalletReferenceType_REFERENCE_TYPE_INTERNAL_USER",
+                "WalletReferenceType_REFERENCE_TYPE_SYSTEM"
+            ]
+        },
+        "enum.WalletStatus": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+                1,
+                2,
+                3,
+                4
+            ],
+            "x-enum-varnames": [
+                "WalletStatus_WALLET_STATUS_INACTIVE",
+                "WalletStatus_WALLET_STATUS_ACTIVE",
+                "WalletStatus_WALLET_STATUS_LOCKED",
+                "WalletStatus_WALLET_STATUS_SUSPENDED"
+            ]
+        },
+        "enum.WalletTransactionPaymentMethod": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+                1,
+                2,
+                3
+            ],
+            "x-enum-varnames": [
+                "WalletTransactionPaymentMethod_PAYMENT_METHOD_CASH",
+                "WalletTransactionPaymentMethod_PAYMENT_METHOD_VNPAY",
+                "WalletTransactionPaymentMethod_PAYMENT_METHOD_WALLET"
+            ]
+        },
+        "enum.WithdrawalStatus": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "x-enum-comments": {
+                "WithdrawalStatusApproved": "Đã duyệt",
+                "WithdrawalStatusCancelled": "Đã hủy",
+                "WithdrawalStatusCompleted": "Thành công",
+                "WithdrawalStatusFailed": "Thất bại",
+                "WithdrawalStatusPending": "Chờ duyệt",
+                "WithdrawalStatusProcessing": "Đang xử lý",
+                "WithdrawalStatusRejected": "Từ chối"
+            },
+            "x-enum-descriptions": [
+                "Chờ duyệt",
+                "Đã duyệt",
+                "Đang xử lý",
+                "Thành công",
+                "Thất bại",
+                "Từ chối",
+                "Đã hủy"
+            ],
+            "x-enum-varnames": [
+                "WithdrawalStatusPending",
+                "WithdrawalStatusApproved",
+                "WithdrawalStatusProcessing",
+                "WithdrawalStatusCompleted",
+                "WithdrawalStatusFailed",
+                "WithdrawalStatusRejected",
+                "WithdrawalStatusCancelled"
+            ]
+        },
+        "order.AssignStaffToDeliveryRequest": {
+            "type": "object",
+            "properties": {
+                "staffId": {
+                    "type": "string"
+                }
+            }
+        },
+        "order.CartItem": {
+            "type": "object",
+            "required": [
+                "quantity",
+                "sku"
+            ],
+            "properties": {
+                "quantity": {
+                    "type": "integer",
+                    "maximum": 100000
+                },
+                "sku": {
+                    "type": "string"
+                }
+            }
+        },
+        "order.CreateOrderRequest": {
+            "type": "object",
+            "required": [
+                "items",
+                "storeId"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/order.CartItem"
+                    }
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "scheduledTime": {
+                    "description": "\"HH:mm\"",
+                    "type": "string"
+                },
+                "storeId": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/enum.OrderType"
+                }
+            }
+        },
+        "order.CreatePaymentRequest": {
+            "type": "object",
+            "properties": {
+                "appliedWalletAmount": {
+                    "type": "integer"
+                },
+                "paymentMethod": {
+                    "$ref": "#/definitions/enum.PaymentMethod"
+                },
+                "point": {
+                    "type": "integer"
+                },
+                "returnUrl": {
+                    "type": "string"
+                },
+                "voucherDiscountCode": {
+                    "type": "string"
+                },
+                "voucherShipCode": {
+                    "type": "string"
+                }
+            }
+        },
+        "order.GetOrderVolumeReply": {
+            "type": "object",
+            "properties": {
+                "orders": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/order.OrderVolumeADay"
+                    }
+                }
+            }
+        },
+        "order.GetRevenueReportReply": {
+            "type": "object",
+            "properties": {
+                "categoryId": {
+                    "type": "string"
+                },
+                "fromDate": {
+                    "type": "string",
+                    "example": "2024-01-01T00:00:00Z"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/order.RevenueItem"
+                    }
+                },
+                "overallTotalRevenue": {
+                    "type": "number"
+                },
+                "toDate": {
+                    "type": "string",
+                    "example": "2024-01-31T23:59:59Z"
+                }
+            }
+        },
+        "order.GetSalesTrendReply": {
+            "type": "object",
+            "properties": {
+                "dataPoints": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/order.SalesTrendDataPoint"
+                    }
+                },
+                "peakPeriodLabel": {
+                    "type": "string"
+                },
+                "slowPeriodLabel": {
+                    "type": "string"
+                }
+            }
+        },
+        "order.OrderVolumeADay": {
+            "type": "object",
+            "properties": {
+                "canceledOrder": {
+                    "type": "integer"
+                },
+                "completedOrder": {
+                    "type": "integer"
+                },
+                "date": {
+                    "type": "string",
+                    "example": "2024-05-20"
+                },
+                "statusCounts": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer",
+                        "format": "int32"
+                    }
+                },
+                "storeId": {
+                    "type": "string"
+                },
+                "totalOrders": {
+                    "type": "integer"
+                }
+            }
+        },
+        "order.PaymentHistoryItem": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "orderCode": {
+                    "type": "string"
+                },
+                "orderId": {
+                    "type": "string"
+                },
+                "paymentDate": {
+                    "type": "string"
+                },
+                "paymentMethod": {
+                    "$ref": "#/definitions/enum.PaymentMethod"
+                },
+                "status": {
+                    "description": "0=Pending, 1=Paid, 2=Failed",
+                    "type": "integer"
+                }
+            }
+        },
+        "order.PaymentSummary": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "method": {
+                    "$ref": "#/definitions/enum.PaymentMethod"
+                },
+                "orderId": {
+                    "type": "string"
+                },
+                "paidAt": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                }
+            }
+        },
+        "order.RevenueItem": {
+            "type": "object",
+            "properties": {
+                "productName": {
+                    "type": "string"
+                },
+                "quantitySold": {
+                    "type": "integer"
+                },
+                "sku": {
+                    "type": "string"
+                },
+                "storeId": {
+                    "type": "string"
+                },
+                "totalRevenue": {
+                    "type": "number"
+                },
+                "unitPrice": {
+                    "type": "number"
+                }
+            }
+        },
+        "order.SalesTrendDataPoint": {
+            "type": "object",
+            "properties": {
+                "orderVolume": {
+                    "type": "integer"
+                },
+                "revenue": {
+                    "type": "number"
+                },
+                "timeLabel": {
+                    "type": "string"
+                }
+            }
+        },
+        "order.UpdateOrderItem": {
+            "type": "object",
+            "required": [
+                "quantity",
+                "sku"
+            ],
+            "properties": {
+                "quantity": {
+                    "type": "integer",
+                    "maximum": 100000
+                },
+                "sku": {
+                    "type": "string"
+                }
+            }
+        },
+        "order.UpdateOrderStatus": {
+            "type": "object",
+            "required": [
+                "status"
+            ],
+            "properties": {
+                "status": {
+                    "$ref": "#/definitions/enum.OrderStatus"
+                }
+            }
+        },
+        "wallet.ApproveRefundRequest": {
+            "type": "object",
+            "properties": {
+                "approvalNotes": {
+                    "type": "string"
+                }
+            }
+        },
+        "wallet.CancelRefundRequest": {
+            "type": "object",
+            "properties": {
+                "cancellationReason": {
+                    "type": "string"
+                }
+            }
+        },
+        "wallet.CreateRefundByCustomerRequest": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                }
+            }
+        },
+        "wallet.RefundTicketDetail": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "originalTransactionId": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "refundAmount": {
+                    "type": "string"
+                },
+                "refundMethod": {
+                    "$ref": "#/definitions/enum.RefundTicketMethod"
+                },
+                "refundReason": {
+                    "$ref": "#/definitions/enum.RefundReasonType"
+                },
+                "rejectionReason": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/enum.RefundTicketStatus"
+                },
+                "ticketCode": {
+                    "type": "string"
+                },
+                "transactionId": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                },
+                "walletId": {
+                    "type": "string"
+                }
+            }
+        },
+        "wallet.RefundTicketSummary": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "refundAmount": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/enum.RefundTicketStatus"
+                },
+                "ticketCode": {
+                    "type": "string"
+                },
+                "transactionId": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                }
+            }
+        },
+        "wallet.RejectRefundRequest": {
+            "type": "object",
+            "properties": {
+                "rejectNotes": {
+                    "type": "string"
+                }
+            }
+        },
+        "wallet.SetCompleteRefundRequest": {
+            "type": "object",
+            "properties": {
+                "completeNotes": {
+                    "type": "string"
+                }
+            }
+        },
+        "wallet.TopUpWalletRequest": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "returnUrl": {
+                    "type": "string"
+                }
+            }
+        },
+        "wallet.UpdateWalletStatusRequest": {
+            "type": "object",
+            "properties": {
+                "adminNotes": {
+                    "type": "string"
+                },
+                "newStatus": {
+                    "$ref": "#/definitions/enum.WalletStatus"
+                },
+                "reason": {
+                    "type": "string"
+                }
+            }
+        },
+        "wallet.WalletResponse": {
+            "type": "object",
+            "properties": {
+                "balance": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/enum.WalletStatus"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                }
+            }
+        },
+        "wallet.WalletTransactionResponse": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "string"
+                },
+                "balanceAfter": {
+                    "type": "string"
+                },
+                "balanceBefore": {
+                    "type": "string"
+                },
+                "completedAt": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "externalTransactionId": {
+                    "type": "string"
+                },
+                "failedAt": {
+                    "type": "string"
+                },
+                "failureReason": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "initiatedBy": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "orderId": {
+                    "type": "string"
+                },
+                "parentTransactionId": {
+                    "type": "string"
+                },
+                "paymentMethod": {
+                    "$ref": "#/definitions/enum.WalletTransactionPaymentMethod"
+                },
+                "processedAt": {
+                    "type": "string"
+                },
+                "processedBy": {
+                    "type": "string"
+                },
+                "referenceId": {
+                    "type": "string"
+                },
+                "referenceType": {
+                    "$ref": "#/definitions/enum.WalletReferenceType"
+                },
+                "status": {
+                    "$ref": "#/definitions/enum.TransactionStatus"
+                },
+                "transactionCode": {
+                    "type": "string"
+                },
+                "transactionType": {
+                    "$ref": "#/definitions/enum.TransactionType"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                },
+                "walletId": {
+                    "type": "string"
+                }
+            }
+        },
+        "withdrawal.ApproveWithdrawalReq": {
+            "type": "object",
+            "properties": {
+                "approvalNotes": {
+                    "type": "string"
+                }
+            }
+        },
+        "withdrawal.CancelMyWithdrawalReq": {
+            "type": "object",
+            "required": [
+                "cancellationReason"
+            ],
+            "properties": {
+                "cancellationReason": {
+                    "type": "string"
+                }
+            }
+        },
+        "withdrawal.CancelWithdrawalReq": {
+            "type": "object",
+            "required": [
+                "cancellationReason"
+            ],
+            "properties": {
+                "cancellationReason": {
+                    "type": "string"
+                }
+            }
+        },
+        "withdrawal.CreateWithdrawalReq": {
+            "type": "object",
+            "required": [
+                "accountName",
+                "accountNumber",
+                "amount",
+                "bankName"
+            ],
+            "properties": {
+                "accountName": {
+                    "type": "string"
+                },
+                "accountNumber": {
+                    "type": "string"
+                },
+                "amount": {
+                    "type": "string"
+                },
+                "bankCode": {
+                    "type": "string"
+                },
+                "bankName": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                }
+            }
+        },
+        "withdrawal.RejectWithdrawalReq": {
+            "type": "object",
+            "required": [
+                "rejectionReason"
+            ],
+            "properties": {
+                "rejectionReason": {
+                    "type": "string"
+                }
+            }
+        },
+        "withdrawal.WithdrawalBaseRes": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "withdrawal.WithdrawalDetailRes": {
+            "type": "object",
+            "properties": {
+                "accountName": {
+                    "type": "string"
+                },
+                "amount": {
+                    "type": "string"
+                },
+                "approvalNotes": {
+                    "type": "string"
+                },
+                "bankCode": {
+                    "type": "string"
+                },
+                "bankName": {
+                    "type": "string"
+                },
+                "bankTransactionId": {
+                    "type": "string"
+                },
+                "cancellationReason": {
+                    "type": "string"
+                },
+                "completedAt": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "feeAmount": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "internalNotes": {
+                    "type": "string"
+                },
+                "maskedAccountNumber": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "processedById": {
+                    "type": "string"
+                },
+                "processedByName": {
+                    "type": "string"
+                },
+                "rawAccountNumber": {
+                    "type": "string"
+                },
+                "receiptImageUrl": {
+                    "type": "string"
+                },
+                "rejectionReason": {
+                    "type": "string"
+                },
+                "requestCode": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/enum.WithdrawalStatus"
+                },
+                "transactionId": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                }
+            }
+        },
+        "withdrawal.WithdrawalSummary": {
+            "type": "object",
+            "properties": {
+                "accountName": {
+                    "type": "string"
+                },
+                "amount": {
+                    "type": "string"
+                },
+                "bankCode": {
+                    "type": "string"
+                },
+                "bankName": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "feeAmount": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "maskedAccountNumber": {
+                    "type": "string"
+                },
+                "requestCode": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/enum.WithdrawalStatus"
+                },
+                "userId": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "description": "Don't forget to type \"Bearer\" before the token. For example: Bearer eyJhbG...",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}

@@ -33,6 +33,7 @@ appsettings.Production.json
 
 # env file
 .env
+.env.prod
 .envrc
 
 

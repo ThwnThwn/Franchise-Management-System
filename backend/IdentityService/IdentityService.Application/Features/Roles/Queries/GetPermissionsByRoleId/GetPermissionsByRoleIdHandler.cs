@@ -12,7 +12,15 @@ namespace IdentityService.Application.Features.Roles.Queries.GetPermissionsByRol
         {
             _roleRepo = roleRepo;
         }
-
+        /// <summary>
+        /// Handles a request
+        /// </summary>
+        /// <param name="request">The request</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>
+        /// Response from the request
+        /// </returns>
+        /// <exception cref="KeyNotFoundException">Không tìm thấy role này</exception>
         public async Task<IEnumerable<RolePermissionGroupRes>> Handle(GetPermissionsByRoleIdQuery request, CancellationToken cancellationToken)
         {
             var role = await _roleRepo.GetByIdDetailsAsync(request.Id)

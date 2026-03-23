@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 GREEN='\033[0;32m'
 RED='\033[0;31m'
@@ -30,8 +31,18 @@ run_sql_script() {
     local file_path=$2
     
     echo "--- Executing $file_path into $db_name ---"
-    # Force psql connect to DB (-d) to run file (-f)
-    psql -U "$POSTGRES_USER" -d "$db_name" -f "$file_path"
+    
+    if [ ! -f "$file_path" ]; then
+        echo -e "${RED}ERROR:${NC} File $file_path NOT FOUND!"
+        exit 1
+    fi
+
+    if psql -U "$POSTGRES_USER" -d "$db_name" -f "$file_path"; then
+        echo -e "${GREEN}SUCCESS:${NC} Applied $file_path to $db_name"
+    else
+        echo -e "${RED}CRITICAL ERROR:${NC} Failed to apply $file_path to $db_name"
+        exit 1 
+    fi
 }
 
 # Core Services
@@ -53,7 +64,7 @@ run_sql_script "sales_db" "/docker-entrypoint-initdb.d/schemas/04-sales.sql"
 run_sql_script "notification_db" "/docker-entrypoint-initdb.d/schemas/05-notification.sql"
 run_sql_script "inventory_db" "/docker-entrypoint-initdb.d/schemas/05-inventory.sql"
 run_sql_script "franchise_db" "/docker-entrypoint-initdb.d/schemas/06-franchise.sql"
-run_sql_script "payment_db" "/docker-entrypoint-initdb.d/schemas/07-payment.sql"
+# run_sql_script "payment_db" "/docker-entrypoint-initdb.d/schemas/07-payment.sql"
 run_sql_script "engagement_db" "/docker-entrypoint-initdb.d/schemas/08-engagement.sql"
 run_sql_script "supplier_db" "/docker-entrypoint-initdb.d/schemas/09-supplier.sql"
 run_sql_script "warehouse_db" "/docker-entrypoint-initdb.d/schemas/10-warehouse.sql"
@@ -72,9 +83,16 @@ run_sql_script "inventory_db" "/docker-entrypoint-initdb.d/seeding/realease-init
 run_sql_script "product_db" "/docker-entrypoint-initdb.d/seeding/realease-init-product.sql"
 run_sql_script "identity_db" "/docker-entrypoint-initdb.d/seeding/realease-init-identity.sql"
 run_sql_script "franchise_db" "/docker-entrypoint-initdb.d/seeding/realease-init-franchise.sql"
-run_sql_script "franchise_db" "/docker-entrypoint-initdb.d/seeding/09-seeding-swap-test.sql"
+# run_sql_script "franchise_db" "/docker-entrypoint-initdb.d/seeding/09-seeding-swap-test.sql"
+# run_sql_script "franchise_db" "/docker-entrypoint-initdb.d/seeding/10-seeding-autofill-and-cho-ca.sql"
+# run_sql_script "identity_db" "/docker-entrypoint-initdb.d/seeding/11-seeding-greedy-test-identity.sql"
+# run_sql_script "franchise_db" "/docker-entrypoint-initdb.d/seeding/11-seeding-greedy-test.sql"
 run_sql_script "engagement_db" "/docker-entrypoint-initdb.d/seeding/realease-init-engagement.sql"
 run_sql_script "supplier_db" "/docker-entrypoint-initdb.d/seeding/08-seeding-supplier.sql"
+<<<<<<< HEAD
 run_sql_script "warehouse_db" "/docker-entrypoint-initdb.d/seeding/10-seeding-warehouse.sql"
+=======
+run_sql_script "sales_db" "/docker-entrypoint-initdb.d/seeding/realease-init-sales.sql"
+>>>>>>> f1c3b4b62345d3625411d719eaeb7880d7650aa4
 
 echo "Database initialization process finished!"

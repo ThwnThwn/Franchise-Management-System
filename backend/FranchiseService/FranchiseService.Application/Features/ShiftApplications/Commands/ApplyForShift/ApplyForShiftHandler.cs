@@ -1,8 +1,10 @@
+using FranchiseService.Application.Constants;
 using FranchiseService.Application.Persistences.Repositories;
 using FranchiseService.Application.Services;
 using FranchiseService.Domain.Entities;
 using FranchiseService.Domain.Enums;
 using MediatR;
+using SharedKernel.Constants;
 
 namespace FranchiseService.Application.Features.ShiftApplications.Commands.ApplyForShift;
 
@@ -47,8 +49,8 @@ public class ApplyForShiftHandler : IRequestHandler<ApplyForShiftCommand, Guid>
             throw new InvalidOperationException(
                 "Ca nay khong dang mo cho dang ky. Chi ca co trang thai Open moi cho phep.");
 
-        // 3. Ca phai chua dien ra (ngay >= hom nay)
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        // 3. Ca phai chua dien ra (ngay >= hom nay, tinh theo gio VN)
+        var today = GetTodayInVietnam();
         if (shift.ShiftDate < today)
             throw new InvalidOperationException("Khong the dang ky ca da qua ngay.");
 
@@ -92,5 +94,12 @@ public class ApplyForShiftHandler : IRequestHandler<ApplyForShiftCommand, Guid>
         await _applicationRepository.AddAsync(application);
 
         return application.Id;
+    }
+
+    private static DateOnly GetTodayInVietnam()
+    {
+        var vnTz = TimeZoneInfo.FindSystemTimeZoneById(DateConstants.GetVietnamTimeZoneId());
+        var nowVn = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vnTz);
+        return DateOnly.FromDateTime(nowVn);
     }
 }

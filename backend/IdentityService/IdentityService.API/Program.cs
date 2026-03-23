@@ -52,7 +52,7 @@ namespace IdentityService.API
             builder.Services.AddAuthorization();
 
             // --- DATABASE & REDIS ---
-            var dbConn = builder.Configuration["IDENTITY_DB_CONN"]
+            var dbConn = builder.Configuration["IDENTITY_DB_CONNECTION"]
                 ?? "Host=localhost;Port=5432;Database=identity_db;Username=admin;Password=12345";
             var redisConn = builder.Configuration["REDIS_CONFIGURATION"]
                 ?? "localhost:6379,abortConnect=false";
@@ -75,10 +75,14 @@ namespace IdentityService.API
             });
 
             // KAFKA - Override for local development
-            var kafkaBootstrap = Environment.GetEnvironmentVariable("KAFKA_BOOTSTRAP_SERVERS") ?? "localhost:9092";
-            if (kafkaBootstrap.Contains("kafka:"))
+            var kafkaBootstrap = Environment.GetEnvironmentVariable("KAFKA_BOOTSTRAP_SERVERS") 
+                     ?? builder.Configuration["KAFKA_BOOTSTRAP_SERVERS"] 
+                     ?? "localhost:9092";
+
+            bool isDocker = Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true";
+            if (!isDocker)
             {
-                kafkaBootstrap = "localhost:9092";  // Use localhost when running outside Docker
+                kafkaBootstrap = "localhost:9092";
             }
             builder.Configuration["KAFKA_BOOTSTRAP_SERVERS"] = kafkaBootstrap;
 

@@ -1,4 +1,4 @@
-﻿using Ardalis.Result;
+using Ardalis.Result;
 using MediatR;
 using SalesService.Application.Persisitences.Orders;
 using SalesService.Domain.Entities;
@@ -40,6 +40,7 @@ public sealed class GetOrderByIdQueryHandler
             OrderId = order.Id,
             OrderCode = order.Code,
             Subtotal = order.Subtotal,
+            ShippingFee = order.ShippingFee,
             Tax = order.Tax,
             TotalAmount = order.TotalAmount,
             PaidAmount = order.PaidAmount,
@@ -48,6 +49,14 @@ public sealed class GetOrderByIdQueryHandler
                 : null,
             Status = (int)order.Status,
             Type = order.Type,
+
+            DelivererId = order.DelivererId,
+            ScheduledTime = order.ScheduledTime,
+            Address = order.Address,
+            Latitude = order.Latitude,
+            Longitude = order.Longitude,
+            Distance = order.Distance,
+
             PaidAt = order.PaidAt,
             Notes = order.Notes,
             CreatedAt = order.CreatedAt,
@@ -64,6 +73,14 @@ public sealed class GetOrderByIdQueryHandler
                 ImageUrl = item.ImageUrl,
                 ProductId = item.ProductId,
                 VariantId = item.VariantId
+            }).ToList(),
+            SaleItems = order.OrderSaleItems.Select(saleItem => new OrderSaleItemDto
+            {
+                Id = saleItem.Id,
+                Amount = saleItem.Amount,
+                Type = saleItem.Type,
+                ReferenceId = saleItem.ReferenceId,
+                Name = saleItem.Name
             }).ToList()
         };
 

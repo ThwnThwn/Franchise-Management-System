@@ -13,7 +13,11 @@ public class ProductRepository : GenericRepository<Product>, IProductRepository
     public ProductRepository(IProductDbContext dbContext) : base(dbContext)
     {
     }
-
+    /// <summary>
+    /// Gets all products asynchronous.
+    /// </summary>
+    /// <param name="categoryId">The category identifier.</param>
+    /// <returns></returns>
     public async Task<List<Product>> GetAllProductsAsync(Guid? categoryId = null)
     {
         var query = _dbContext.Products
@@ -30,7 +34,15 @@ public class ProductRepository : GenericRepository<Product>, IProductRepository
             .OrderByDescending(p => p.CreatedAt)
             .ToListAsync();
     }
-
+    /// <summary>
+    /// Gets all product with paging by asynchronous.
+    /// </summary>
+    /// <param name="keyword">The keyword.</param>
+    /// <param name="categoryId">The category identifier.</param>
+    /// <param name="pageIndex">Index of the page.</param>
+    /// <param name="pageSize">Size of the page.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns></returns>
     public async Task<PagedResult<Product>> GetAllProductWithPagingByAsync(
      string? keyword,
      Guid? categoryId,
@@ -71,7 +83,11 @@ public class ProductRepository : GenericRepository<Product>, IProductRepository
         query = query.OrderByDescending(p => p.CreatedAt);
         return await query.ToPagedListAsync(pageIndex, pageSize, cancellationToken);
     }
-
+    /// <summary>
+    /// Gets the product by identifier asynchronous.
+    /// </summary>
+    /// <param name="id">The identifier.</param>
+    /// <returns></returns>
     public async Task<Product?> GetProductByIdAsync(Guid id)
     {
         return await _dbContext.Products
@@ -83,7 +99,12 @@ public class ProductRepository : GenericRepository<Product>, IProductRepository
                 // p.IsActive == true &&
                 p.IsDeleted == false);
     }
-
+    /// <summary>
+    /// Gets the product by name asynchronous.
+    /// </summary>
+    /// <param name="name">The name.</param>
+    /// <param name="excludeId">The exclude identifier.</param>
+    /// <returns></returns>
     public async Task<Product?> GetProductByNameAsync(string name, Guid? excludeId)
     {
         var normalizedSearchName = VietnameseHelper.RemoveVietnameseSigns(name.Trim()).ToLower();
@@ -105,7 +126,11 @@ public class ProductRepository : GenericRepository<Product>, IProductRepository
             VietnameseHelper.RemoveVietnameseSigns(p.Name.Trim()).ToLower() == normalizedSearchName
         );
     }
-
+    /// <summary>
+    /// Gets the product by name containing asynchronous.
+    /// </summary>
+    /// <param name="name">The name.</param>
+    /// <returns></returns>
     public async Task<List<Product>> GetProductByNameContainingAsync(string name)
     {
         var normalizedSearchName = VietnameseHelper.RemoveVietnameseSigns(name.Trim()).ToLower();
@@ -125,7 +150,11 @@ public class ProductRepository : GenericRepository<Product>, IProductRepository
             .OrderByDescending(p => p.CreatedAt)
             .ToList();
     }
-
+    /// <summary>
+    /// Get product by variant SKU, including Category and active Variants.
+    /// </summary>
+    /// <param name="sku"></param>
+    /// <returns></returns>
     public async Task<Product?> GetProductBySkuAsync(string sku)
     {
         return await _dbContext.Products
@@ -141,7 +170,11 @@ public class ProductRepository : GenericRepository<Product>, IProductRepository
                     pv.IsActive == true &&
                     pv.IsDeleted == false));
     }
-
+    /// <summary>
+    /// Get multiple products by variant SKUs, including Category and active Variants.
+    /// </summary>
+    /// <param name="skus"></param>
+    /// <returns></returns>
     public async Task<List<Product>> GetProductsBySkusAsync(List<string> skus)
     {
         var skuSet = new HashSet<string>(skus, StringComparer.OrdinalIgnoreCase);
@@ -161,7 +194,12 @@ public class ProductRepository : GenericRepository<Product>, IProductRepository
                     pv.IsDeleted == false))
             .ToListAsync();
     }
-
+    /// <summary>
+    /// Updates the with variants only asynchronous.
+    /// </summary>
+    /// <param name="updatedProduct">The updated product.</param>
+    /// <returns></returns>
+    /// <exception cref="KeyNotFoundException">Không tìm thấy sản phẩm Id: {updatedProduct.Id}</exception>
     public async Task<Product> UpdateWithVariantsOnlyAsync(Product updatedProduct)
     {
         // 1. Fetch: Lấy dữ liệu kèm theo Variants hiện tại

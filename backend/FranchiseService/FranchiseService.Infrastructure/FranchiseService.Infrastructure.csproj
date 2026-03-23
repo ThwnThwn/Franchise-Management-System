@@ -30,6 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
+	<PackageReference Include="CloudinaryDotNet" Version="1.28.0" />
     <PackageReference Include="Grpc.Net.Client" Version="2.60.0" />
     <PackageReference Include="Grpc.Tools" Version="2.60.0">
       <PrivateAssets>all</PrivateAssets>

@@ -9,5 +9,6 @@ namespace SalesService.Application.Features.Orders.Commands.UpdateOrderStatus
     {
         public Guid OrderId { get; set; }
         public OrderStatus Status { get; set; }
+        public string RoleSlug { get; set; } = string.Empty;
     }
 }

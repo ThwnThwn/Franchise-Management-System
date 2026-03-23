@@ -1,0 +1,936 @@
+basePath: /api
+definitions:
+  campaign.CampaignResponse:
+    properties:
+      createdAt:
+        type: string
+      description:
+        type: string
+      endDate:
+        type: string
+      id:
+        type: string
+      isActive:
+        type: boolean
+      name:
+        type: string
+      startDate:
+        type: string
+      updatedAt:
+        type: string
+      vouchers:
+        items:
+          $ref: '#/definitions/voucher.VoucherResponse'
+        type: array
+    type: object
+  campaign.CreateCampaignRequest:
+    properties:
+      description:
+        type: string
+      endDate:
+        type: string
+      name:
+        type: string
+      startDate:
+        type: string
+      voucherIds:
+        items:
+          type: string
+        type: array
+    type: object
+  campaign.UpdateActiveStatusRequest:
+    properties:
+      isActive:
+        type: boolean
+    type: object
+  common.PaginationResult-point_LogResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/point.LogResponse'
+        type: array
+      totalCount:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  enum.VoucherItemType:
+    enum:
+    - 0
+    - 1
+    format: int32
+    type: integer
+    x-enum-varnames:
+    - VoucherItemType_ITEM_GIFT
+    - VoucherItemType_ITEM_REQUIRED
+  enum.VoucherType:
+    enum:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    format: int32
+    type: integer
+    x-enum-varnames:
+    - VoucherType_DISCOUNT_PERCENTAGE
+    - VoucherType_DISCOUNT_FIXED_AMOUNT
+    - VoucherType_SHIPPING_PERCENTAGE
+    - VoucherType_SHIPPING_FIXED_AMOUNT
+    - VoucherType_GIFT
+  loyalty.LoyaltyAccountResponse:
+    properties:
+      availablePoints:
+        type: string
+      currentTier:
+        $ref: '#/definitions/loyalty.MembershipTier'
+      id:
+        type: string
+      totalSpent:
+        type: string
+      userName:
+        type: string
+    type: object
+  loyalty.LoyaltyReportResponse:
+    properties:
+      tierDistribution:
+        items:
+          $ref: '#/definitions/loyalty.TierDistribution'
+        type: array
+      totalMembers:
+        type: integer
+      totalPointsEarned:
+        type: number
+      totalPointsRedeemed:
+        type: number
+    type: object
+  loyalty.MembershipTier:
+    properties:
+      amountPerPoint:
+        type: string
+      discountRate:
+        type: number
+      id:
+        type: string
+      minSpendRequired:
+        type: string
+      name:
+        type: string
+      valuePerPoint:
+        type: string
+    type: object
+  loyalty.TierDistribution:
+    properties:
+      memberCount:
+        type: integer
+      tierName:
+        type: string
+    type: object
+  membershiptier.CreateMembershipTierRequest:
+    properties:
+      amountPerPoint:
+        type: string
+      discountRate:
+        type: number
+      minSpendRequired:
+        type: string
+      name:
+        type: string
+      valuePerPoint:
+        type: string
+    type: object
+  membershiptier.MembershipTierResponse:
+    properties:
+      amountPerPoint:
+        type: string
+      discountRate:
+        type: number
+      id:
+        type: string
+      minSpendRequired:
+        description: Dùng string để mapping với decimal
+        type: string
+      name:
+        type: string
+      valuePerPoint:
+        type: string
+    type: object
+  membershiptier.UpdateMembershipTierRequest:
+    properties:
+      amountPerPoint:
+        type: string
+      discountRate:
+        type: number
+      minSpendRequired:
+        type: string
+      name:
+        type: string
+      valuePerPoint:
+        type: string
+    type: object
+  point.LogResponse:
+    properties:
+      actionType:
+        type: string
+      amount:
+        type: string
+      balanceAfter:
+        type: string
+      balanceBefore:
+        type: string
+      createdAt:
+        type: string
+      description:
+        type: string
+      expiredAt:
+        type: string
+      id:
+        type: string
+      reasonCode:
+        type: string
+      referenceId:
+        type: string
+      userId:
+        type: string
+    type: object
+  voucher.CreateVoucherItemReq:
+    properties:
+      quantity:
+        type: integer
+      sku:
+        type: string
+      type:
+        $ref: '#/definitions/enum.VoucherItemType'
+    type: object
+  voucher.CreateVoucherRequest:
+    properties:
+      code:
+        type: string
+      discountValue:
+        type: string
+      endDate:
+        type: string
+      initQuantity:
+        type: integer
+      maxDiscountValue:
+        type: string
+      maxUsagePerUser:
+        type: integer
+      minOrderValue:
+        type: string
+      pointCost:
+        type: string
+      type:
+        $ref: '#/definitions/enum.VoucherType'
+      voucherItems:
+        items:
+          $ref: '#/definitions/voucher.CreateVoucherItemReq'
+        type: array
+    type: object
+  voucher.UpdateVoucherItemReq:
+    properties:
+      id:
+        type: string
+      quantity:
+        type: integer
+      sku:
+        type: string
+      type:
+        $ref: '#/definitions/enum.VoucherItemType'
+    type: object
+  voucher.UpdateVoucherRequest:
+    properties:
+      discountValue:
+        type: string
+      endDate:
+        type: string
+      maxDiscountValue:
+        type: string
+      maxUsagePerUser:
+        type: integer
+      minOrderValue:
+        type: string
+      pointCost:
+        type: string
+      voucherItems:
+        items:
+          $ref: '#/definitions/voucher.UpdateVoucherItemReq'
+        type: array
+    type: object
+  voucher.UpdateVoucherStatusRequest:
+    properties:
+      isActive:
+        type: boolean
+    type: object
+  voucher.VoucherItemResponse:
+    properties:
+      id:
+        type: string
+      quantity:
+        type: integer
+      sku:
+        type: string
+      type:
+        type: integer
+    type: object
+  voucher.VoucherResponse:
+    properties:
+      code:
+        type: string
+      createdAt:
+        type: string
+      currentQuantity:
+        type: integer
+      discountValue:
+        type: string
+      endDate:
+        type: string
+      id:
+        type: string
+      initQuantity:
+        type: integer
+      isActive:
+        type: boolean
+      maxDiscountValue:
+        type: string
+      maxUsagePerUser:
+        type: integer
+      minOrderValue:
+        type: string
+      pointCost:
+        type: string
+      type:
+        type: integer
+      updatedAt:
+        type: string
+      voucherItems:
+        items:
+          $ref: '#/definitions/voucher.VoucherItemResponse'
+        type: array
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+  description: API docs for CHD Gateway.
+  termsOfService: http://swagger.io/terms/
+  title: API Gateway Documentation
+  version: "1.0"
+paths:
+  /campaigns:
+    get:
+      description: Lấy toàn bộ danh sách các chiến dịch / chương trình khuyến mãi
+        hiện có trên hệ thống.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Danh sách chiến dịch thành công
+          schema:
+            items:
+              $ref: '#/definitions/campaign.CampaignResponse'
+            type: array
+        "500":
+          description: Lỗi hệ thống (Internal Server Error)
+          schema:
+            type: object
+      summary: Lấy danh sách chiến dịch
+      tags:
+      - Campaigns
+    post:
+      consumes:
+      - application/json
+      description: Tạo một chiến dịch / đợt săn voucher mới.
+      parameters:
+      - description: Dữ liệu khởi tạo chiến dịch
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/campaign.CreateCampaignRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: '{"message": "Tạo chiến dịch thành công"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Lỗi dữ liệu đầu vào (Validation Error)
+          schema:
+            type: object
+        "401":
+          description: Chưa xác thực (Unauthorized)
+          schema:
+            type: object
+        "500":
+          description: Lỗi hệ thống (Internal Server Error)
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Tạo chiến dịch mới
+      tags:
+      - Campaigns
+  /campaigns/{id}:
+    get:
+      description: Lấy thông tin chi tiết của một chiến dịch dựa vào ID.
+      parameters:
+      - description: Campaign ID (Mã chiến dịch)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Chi tiết chiến dịch
+          schema:
+            $ref: '#/definitions/campaign.CampaignResponse'
+        "400":
+          description: ID không hợp lệ (Bad Request)
+          schema:
+            type: object
+        "404":
+          description: Không tìm thấy chiến dịch (Not Found)
+          schema:
+            type: object
+        "500":
+          description: Lỗi hệ thống (Internal Server Error)
+          schema:
+            type: object
+      summary: Lấy chi tiết chiến dịch
+      tags:
+      - Campaigns
+  /campaigns/{id}/active:
+    patch:
+      consumes:
+      - application/json
+      description: Bật hoặc tắt trạng thái hoạt động (Active/Inactive) của một chiến
+        dịch cụ thể.
+      parameters:
+      - description: Campaign ID (Mã chiến dịch)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Dữ liệu cập nhật trạng thái
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/campaign.UpdateActiveStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"message": "Cập nhật trạng thái chiến dịch thành công"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Lỗi dữ liệu đầu vào hoặc ID không hợp lệ
+          schema:
+            type: object
+        "401":
+          description: Chưa xác thực (Unauthorized)
+          schema:
+            type: object
+        "404":
+          description: Không tìm thấy chiến dịch (Not Found)
+          schema:
+            type: object
+        "500":
+          description: Lỗi hệ thống (Internal Server Error)
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Cập nhật trạng thái hoạt động của chiến dịch
+      tags:
+      - Campaigns
+  /campaigns/active:
+    get:
+      description: Lấy các chiến dịch / chương trình khuyến mãi hiện công khai trên
+        hệ thống.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Danh sách chiến dịch
+          schema:
+            items:
+              $ref: '#/definitions/campaign.CampaignResponse'
+            type: array
+        "500":
+          description: Lỗi hệ thống (Internal Server Error)
+          schema:
+            type: object
+      summary: Lấy danh sách chiến dịch đang công khai
+      tags:
+      - Campaigns
+  /loyalty/accounts:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve loyalty accounts by user phone or email.
+      parameters:
+      - in: query
+        name: email
+        type: string
+      - in: query
+        name: phoneNumber
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of loyalty accounts
+          schema:
+            items:
+              $ref: '#/definitions/loyalty.LoyaltyAccountResponse'
+            type: array
+        "400":
+          description: Validation error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Search Loyalty Accounts
+      tags:
+      - Loyalty
+  /loyalty/reports:
+    get:
+      consumes:
+      - application/json
+      description: Get statistics like total members, points, and tier distribution
+        for dashboard.
+      parameters:
+      - in: query
+        name: format
+        type: integer
+      - in: query
+        name: fromDate
+        type: string
+      - in: query
+        name: tierId
+        type: string
+      - in: query
+        name: toDate
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Loyalty summary data
+          schema:
+            $ref: '#/definitions/loyalty.LoyaltyReportResponse'
+      security:
+      - BearerAuth: []
+      summary: Get Loyalty Report Summary (JSON)
+      tags:
+      - Loyalty
+  /loyalty/reports/export:
+    get:
+      description: Download loyalty statistics as a PDF or CSV file.
+      parameters:
+      - in: query
+        name: format
+        type: integer
+      - in: query
+        name: fromDate
+        type: string
+      - in: query
+        name: tierId
+        type: string
+      - in: query
+        name: toDate
+        type: string
+      - description: 1 for PDF, 2 for CSV
+        in: query
+        name: format
+        required: true
+        type: integer
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: Report file
+          schema:
+            type: file
+      security:
+      - BearerAuth: []
+      summary: Export Loyalty Report (PDF/CSV)
+      tags:
+      - Loyalty
+  /me/points/logs:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve pagination list of point transaction logs for the current
+        authenticated user.
+      parameters:
+      - in: query
+        name: fromDate
+        type: string
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      - in: query
+        name: toDate
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of point logs
+          schema:
+            $ref: '#/definitions/common.PaginationResult-point_LogResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get My Point History
+      tags:
+      - Points
+  /me/vouchers:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all vouchers available in my account.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of vouchers
+          schema:
+            items:
+              $ref: '#/definitions/voucher.VoucherResponse'
+            type: array
+      summary: Get My Vouchers
+      tags:
+      - Vouchers
+  /me/vouchers/{id}/redeem:
+    post:
+      consumes:
+      - application/json
+      description: Allows the authenticated user to redeem their accumulated points
+        to claim a specific voucher.
+      parameters:
+      - description: Voucher UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Redemption successful
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid Voucher ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized - Valid token required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Redeem Points for Voucher
+      tags:
+      - Vouchers
+  /membership-tiers:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all available membership tiers
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of tiers
+          schema:
+            items:
+              $ref: '#/definitions/membershiptier.MembershipTierResponse'
+            type: array
+      summary: Get All Membership Tiers
+      tags:
+      - Membership Tiers
+    post:
+      consumes:
+      - application/json
+      description: Define a new membership tier with spending requirements and benefits.
+      parameters:
+      - description: Tier details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/membershiptier.CreateMembershipTierRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create Membership Tier
+      tags:
+      - Membership Tiers
+  /membership-tiers/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove a membership tier from the system.
+      parameters:
+      - description: Tier UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete Membership Tier
+      tags:
+      - Membership Tiers
+    patch:
+      consumes:
+      - application/json
+      description: Update benefits or requirements for an existing tier.
+      parameters:
+      - description: Tier UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/membershiptier.UpdateMembershipTierRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID or validation error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update Membership Tier
+      tags:
+      - Membership Tiers
+  /vouchers:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all vouchers available in the system.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of vouchers
+          schema:
+            items:
+              $ref: '#/definitions/voucher.VoucherResponse'
+            type: array
+      summary: Get All Vouchers
+      tags:
+      - Vouchers
+    post:
+      consumes:
+      - application/json
+      description: Create a new discount voucher with items and rules.
+      parameters:
+      - description: Voucher details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/voucher.CreateVoucherRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Voucher details
+          schema:
+            $ref: '#/definitions/voucher.VoucherResponse'
+      security:
+      - BearerAuth: []
+      summary: Create New Voucher
+      tags:
+      - Vouchers
+  /vouchers/{id}:
+    delete:
+      description: Permanently remove a voucher from the system.
+      parameters:
+      - description: Voucher UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete Voucher
+      tags:
+      - Vouchers
+    patch:
+      consumes:
+      - application/json
+      description: Update details of an existing voucher. Fields are optional (patch-like
+        behavior).
+      parameters:
+      - description: Voucher UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated fields
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/voucher.UpdateVoucherRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update Voucher
+      tags:
+      - Vouchers
+  /vouchers/{id}/status:
+    patch:
+      consumes:
+      - application/json
+      description: Activate or deactivate a voucher.
+      parameters:
+      - description: Voucher UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: New status
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/voucher.UpdateVoucherStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update Voucher Status
+      tags:
+      - Vouchers
+  /vouchers/code/{code}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve voucher details using its unique string code (e.g., 'SALE50').
+      parameters:
+      - description: Voucher Code
+        in: path
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Voucher details
+          schema:
+            $ref: '#/definitions/voucher.VoucherResponse'
+        "404":
+          description: Voucher not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get Voucher by Code
+      tags:
+      - Vouchers
+securityDefinitions:
+  BearerAuth:
+    description: 'Don''t forget to type "Bearer" before the token. For example: Bearer
+      eyJhbG...'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

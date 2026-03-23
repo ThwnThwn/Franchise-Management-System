@@ -7,6 +7,7 @@ import (
 	"api-gateway/internal/domain/models/order"
 	"api-gateway/pkg/mapper"
 	salesPb "api-gateway/pkg/pb/sales"
+	"api-gateway/pkg/utils/stringutils"
 	"context"
 
 	"github.com/google/uuid"
@@ -38,6 +39,10 @@ func (o *OrderGrpcClient) CreateOrder(ctx context.Context, req *order.CreateOrde
 		Items:   pbItems,
 		Notes:   req.Notes,
 		StoreId: req.StoreId,
+
+		Type:          (*salesPb.OrderType)(req.Type),
+		ScheduledTime: req.ScheduledTime,
+		Address:       req.Address,
 	})
 	if err != nil {
 		return nil, err
@@ -129,9 +134,23 @@ func (o *OrderGrpcClient) GetOrderById(ctx context.Context, id uuid.UUID) (*orde
 		})
 	}
 
+	salesPb := res.Order.SaleItems
+	saleItem := make([]*order.OrderSaleItemReply, 0, len(salesPb))
+	for _, item := range salesPb {
+		saleItem = append(saleItem, &order.OrderSaleItemReply{
+			Id:          item.Id,
+			Amount:      item.Amount,
+			Type:        enum.OrderSaleItemType(item.Type),
+			ReferenceId: item.ReferenceId,
+			Name:        item.Name,
+		})
+	}
+
 	order := &order.Order{
 		OrderHeader: *mapper.MapOrderPbToHeaderModel(res.Order),
 		Items:       items,
+		Type:        enum.OrderType(res.Order.Type),
+		SaleItems:   saleItem,
 	}
 
 	return order, nil
@@ -241,16 +260,19 @@ func (o *OrderGrpcClient) GetRevenueReport(ctx context.Context, req *order.GetRe
 }
 
 // GetSalesTrend implements sales.IOrderService.
-func (o *OrderGrpcClient) GetSalesTrend(ctx context.Context, req *order.GetSalesTrendRequest) (*order.GetSalesTrendReply, error) {
+func (o *OrderGrpcClient) GetSalesTrend(ctx context.Context, req *order.GetSalesTrendRequest, includeCsv bool) (
+	*order.GetSalesTrendReply, *order.CsvFile, error,
+) {
 	res, err := o.client.GetSalesTrend(ctx, &salesPb.GetSalesTrendRequest{
 		FromDate:    req.FromDate,
 		ToDate:      req.ToDate,
 		Aggregation: req.Aggregation,
 		StoreId:     req.StoreId,
 		CategoryId:  req.CategoryId,
+		IncludeCsv:  includeCsv,
 	})
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	points := make([]*order.SalesTrendDataPoint, 0, len(res.DataPoints))
@@ -262,9 +284,22 @@ func (o *OrderGrpcClient) GetSalesTrend(ctx context.Context, req *order.GetSales
 		})
 	}
 
+	if includeCsv {
+		return nil, mapper.MapOrderCsvFilePbToModel(res.CsvFile), nil
+	}
+
 	return &order.GetSalesTrendReply{
 		DataPoints:      points,
 		PeakPeriodLabel: res.PeakPeriodLabel,
 		SlowPeriodLabel: res.SlowPeriodLabel,
-	}, nil
+	}, nil, nil
+}
+
+// AssignStaffToDelivery implements sales.IOrderService.
+func (o *OrderGrpcClient) AssignStaffToDelivery(ctx context.Context, orderId uuid.UUID, req *order.AssignStaffToDeliveryRequest) error {
+	_, err := o.client.AssignStaffToDelivery(ctx, &salesPb.AssignStaffToDeliveryRequest{
+		OrderId: orderId.String(),
+		StaffId: stringutils.UuidPtrToStringPtr(req.StaffId),
+	})
+	return err
 }

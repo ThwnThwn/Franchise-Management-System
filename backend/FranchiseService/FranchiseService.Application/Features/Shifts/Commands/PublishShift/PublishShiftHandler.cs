@@ -10,19 +10,23 @@ namespace FranchiseService.Application.Features.Shifts.Commands.PublishShift
 {
     /// <summary>
     /// Handler chuyển trạng thái ca từ Draft → Published.
+    /// Chỉ cho phép chốt khi ca đã đủ số nhân viên (assignments >= RequiredStaffCount).
     /// </summary>
     public class PublishShiftHandler : IRequestHandler<PublishShiftCommand, Unit>
     {
         private readonly IGenericRepository<Shift> _shiftRepository;
+        private readonly IGenericRepository<ShiftAssignment> _assignmentRepository;
         private readonly IOutboxRepository _outboxRepository;
         private readonly Application.Signals.IOutboxSignal _outboxSignal;
 
         public PublishShiftHandler(
             IGenericRepository<Shift> shiftRepository,
+            IGenericRepository<ShiftAssignment> assignmentRepository,
             IOutboxRepository outboxRepository,
             Application.Signals.IOutboxSignal outboxSignal)
         {
             _shiftRepository = shiftRepository;
+            _assignmentRepository = assignmentRepository;
             _outboxRepository = outboxRepository;
             _outboxSignal = outboxSignal;
         }
@@ -40,6 +44,14 @@ namespace FranchiseService.Application.Features.Shifts.Commands.PublishShift
                 throw new InvalidOperationException("Không thể publish ca đã hoàn thành.");
             if (shift.Status == (int)ShiftStatus.Cancelled)
                 throw new InvalidOperationException("Không thể publish ca đã hủy.");
+
+            // 2.5. Chỉ cho chốt ca khi đã đủ nhân viên
+            var assignments = await _assignmentRepository.GetAllAsync(
+                predicate: a => a.ShiftId == shift.Id);
+            var assignedCount = assignments.Count();
+            if (assignedCount < shift.RequiredStaffCount)
+                throw new InvalidOperationException(
+                    $"Khong the chot ca: can du {shift.RequiredStaffCount} nhan vien, hien co {assignedCount}.");
 
             // 3. Chuyển trạng thái
             shift.Status = (int)ShiftStatus.Published;

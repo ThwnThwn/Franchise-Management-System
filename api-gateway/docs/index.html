@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>API Gateway - Swagger UI</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css"
+    />
+    <style>
+      .swagger-ui .topbar .download-url-wrapper {
+        display: flex;
+        gap: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="swagger-ui"></div>
+
+    <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+    <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-standalone-preset.js"></script>
+    <script>
+      window.onload = function () {
+        SwaggerUIBundle({
+          urls: [
+            {
+              name: "Engagement Service",
+              url: "/api-docs/engagement/engagement_swagger.json",
+            },
+            {
+              name: "Franchise Service",
+              url: "/api-docs/franchise/franchise_swagger.json",
+            },
+            {
+              name: "Identity Service",
+              url: "/api-docs/identity/identity_swagger.json",
+            },
+            {
+              name: "Inventory Service",
+              url: "/api-docs/inventory/inventory_swagger.json",
+            },
+            {
+              name: "Product Service",
+              url: "/api-docs/product/product_swagger.json",
+            },
+            {
+              name: "Sales Service",
+              url: "/api-docs/sales/sales_swagger.json",
+            },
+            {
+              name: "Supplier Service",
+              url: "/api-docs/supplier/supplier_swagger.json",
+            },
+            {
+              name: "VNPay Service",
+              url: "/api-docs/vnpay/vnpay_swagger.json",
+            },
+          ],
+          dom_id: "#swagger-ui",
+          deepLinking: true,
+          presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
+          layout: "StandaloneLayout",
+          docExpansion: "none",
+        })
+      }
+    </script>
+  </body>
+</html>

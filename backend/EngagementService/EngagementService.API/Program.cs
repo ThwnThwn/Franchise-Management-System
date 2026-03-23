@@ -2,6 +2,7 @@
 
 using DotNetEnv;
 using EngagementService.API.BackgroundJob;
+using EngagementService.API.Services.Campagin;
 using EngagementService.API.Services.Identity;
 using EngagementService.API.Services.LoyaltyAccount;
 using EngagementService.API.Services.MemberShipTier;
@@ -10,6 +11,7 @@ using EngagementService.API.Services.Voucher;
 using EngagementService.Application.Abstraction;
 using EngagementService.Application.ClientInterface;
 using EngagementService.Application.DependencyInjection;
+using EngagementService.Application.Mapper.Campaign;
 using EngagementService.Domain.Constants;
 using EngagementService.Infrastucture.AppDbContext;
 using EngagementService.Infrastucture.DependencyInjection;
@@ -29,7 +31,7 @@ public class Program
         Env.Load("../../../.env");
 
         var builder = WebApplication.CreateBuilder(args);
-
+        builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
         // Add environment variables to configuration
         builder.Configuration.AddEnvironmentVariables();
 
@@ -89,9 +91,11 @@ public class Program
         var redisConn = builder.Configuration["REDIS_CONFIGURATION"]
                 ?? "localhost:6379,abortConnect=false";
         var tierDb = builder.Configuration["REDIS_TIER_DB"] ?? "2";
+        var campaignDb = builder.Configuration["REDIS_CAMP_DB"] ?? "3";
         builder.Services.AddInfrastructure(
             redisConn,
-            tierDb
+            tierDb,
+            campaignDb
         );
 
         // Register gRPC Exception Interceptor
@@ -113,10 +117,14 @@ public class Program
         //Client service
         builder.Services.AddScoped<IIdentityServiceClient, IdentityServiceClient>();
         // KAFKA - Override for local development
-        var kafkaBootstrap = Environment.GetEnvironmentVariable("KAFKA_BOOTSTRAP_SERVERS") ?? "localhost:9092";
-        if (kafkaBootstrap.Contains("kafka:"))
+        var kafkaBootstrap = Environment.GetEnvironmentVariable("KAFKA_BOOTSTRAP_SERVERS") 
+                     ?? builder.Configuration["KAFKA_BOOTSTRAP_SERVERS"] 
+                     ?? "localhost:9092";
+
+        bool isDocker = Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true";
+        if (!isDocker)
         {
-            kafkaBootstrap = "localhost:9092";  // Use localhost when running outside Docker
+            kafkaBootstrap = "localhost:9092";
         }
         builder.Configuration["KAFKA_BOOTSTRAP_SERVERS"] = kafkaBootstrap;
 
@@ -125,6 +133,12 @@ public class Program
         {
             config.Register<SharedKernel.Events.UserRegisteredEvent>(SharedKernel.Constants.KafkaTopics.LoyaltyTierAccount, typeof(EngagementService.Application.EventHandler.CreateLoyaltyAccountHandler));
             config.Register<SharedKernel.Events.ProcessOrderRewardEvent>(SharedKernel.Constants.KafkaTopics.ProcessOrderReward, typeof(EngagementService.Application.EventHandler.ProcessOrderRewardHandler));
+            config.Register<SharedKernel.Events.UpdatePointEvent>(SharedKernel.Constants.KafkaTopics.UpdateUserPoint, typeof(EngagementService.Application.EventHandler.UpdatePointEventHandler));
+            config.Register<SharedKernel.Events.UseVouchersEvent>(SharedKernel.Constants.KafkaTopics.DeductUserVoucher, typeof(EngagementService.Application.EventHandler.UseVoucherEventHandler));
+            config.Register<SharedKernel.Events.ReverseVoucherEvent>
+                (SharedKernel.Constants.KafkaTopics.ReverseUserVoucher, typeof(EngagementService.Application.EventHandler.ReverseVoucherEventHandler));
+            config.Register<SharedKernel.Events.RedeemCampaignVoucherEvent>
+                (SharedKernel.Constants.KafkaTopics.RedeemCampaignVoucher, typeof(EngagementService.Application.EventHandler.RedeemCampaignVoucherEventHanlder));
         });
 
         // 1. Cấu hình bản quyền QuestPDF (Bắt buộc để không bị lỗi khi chạy)
@@ -143,6 +157,7 @@ public class Program
         app.MapGrpcService<MembershipTierGrpcService>();
         app.MapGrpcService<PointLogGrpcService>();
         app.MapGrpcService<VoucherGrpcService>();
+        app.MapGrpcService<CampaignGrpcClient>();
         using (var scope = app.Services.CreateScope())
         {
             var services = scope.ServiceProvider;

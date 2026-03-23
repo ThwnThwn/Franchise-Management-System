@@ -16,9 +16,9 @@ namespace EngagementService.Application.Features.LoyaltyAccount.Commands.RedeemV
         private readonly ILoyaltyAccountRepository _loyaltyAccountRepository;
         private readonly IVoucherQueueRepository _voucherQueueRepository;
         private readonly IVoucherRepository _voucherRepository;
-        private readonly ILoyaltyAccountUow _uow;
+        private readonly ILoyaltyUow _uow;
         private readonly IPointRuleCache _pointRuleCache;
-        public RedeemVoucherHandler(ILoyaltyAccountRepository loyaltyAccountRepository, IVoucherQueueRepository voucherQueueRepository, IVoucherRepository voucherRepository, ILoyaltyAccountUow uow, IPointRuleCache pointRuleCache)
+        public RedeemVoucherHandler(ILoyaltyAccountRepository loyaltyAccountRepository, IVoucherQueueRepository voucherQueueRepository, IVoucherRepository voucherRepository, ILoyaltyUow uow, IPointRuleCache pointRuleCache)
         {
             _loyaltyAccountRepository = loyaltyAccountRepository;
             _voucherQueueRepository = voucherQueueRepository;

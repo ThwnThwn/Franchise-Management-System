@@ -6,39 +6,8 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-// Chuyển chuỗi FE gửi thành gRPC Timestamp (Chuẩn UTC)
-func ParseStringToTimestamp(s *string) *timestamppb.Timestamp {
-	if s == nil {
-		return nil
-	}
-
-	// Mặc định location là Việt Nam (+07:00)
-	loc, err := time.LoadLocation("Asia/Ho_Chi_Minh")
-	if err != nil {
-		loc = time.FixedZone("ICT", 7*3600) // Fallback cứng +7 nếu server thiếu data múi giờ
-	}
-
-	formats := []string{
-		time.RFC3339, // Có sẵn Z hoặc múi giờ -> Tôn trọng múi giờ gốc
-		time.RFC3339Nano,
-		"2006-01-02T15:04:05", // Thiếu múi giờ -> Gán giờ VN
-		time.DateTime,         // Thiếu múi giờ -> Gán giờ VN
-		time.DateOnly,         // Thiếu múi giờ -> Gán giờ VN
-	}
-
-	for _, format := range formats {
-		if t, err := time.ParseInLocation(format, *s, loc); err == nil {
-			// Bất chấp là giờ VN hay giờ gì, ép tất cả về UTC (Z) rồi gói vào Protobuf
-			return timestamppb.New(t.UTC())
-		}
-	}
-
-	return nil
-}
-
 // ParseStringPtrToTimestamp nhận con trỏ chuỗi FE gửi thành gRPC Timestamp (Chuẩn UTC)
 func ParseStringPtrToTimestamp(s *string) *timestamppb.Timestamp {
-	// 1. Chặn luôn 2 bãi mìn: Không gửi gì (nil) HOẶC gửi chuỗi rỗng ("")
 	if s == nil || *s == "" {
 		return nil
 	}
@@ -58,9 +27,7 @@ func ParseStringPtrToTimestamp(s *string) *timestamppb.Timestamp {
 	}
 
 	for _, format := range formats {
-		// 2. Dereference (giải nén) con trỏ bằng *s an toàn vì đã check nil ở trên
 		if t, err := time.ParseInLocation(format, *s, loc); err == nil {
-			// Bất chấp là giờ VN hay giờ gì, ép tất cả về UTC (Z) rồi gói vào Protobuf
 			return timestamppb.New(t.UTC())
 		}
 	}

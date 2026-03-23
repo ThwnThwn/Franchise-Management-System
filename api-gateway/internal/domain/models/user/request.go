@@ -4,6 +4,7 @@ import "api-gateway/internal/domain/models/common"
 
 type GetAllUsersRequest struct {
 	common.PaginationQuery
+	Ids           []string `form:"ids"`
 	RoleSlug      string   `form:"roleSlug"`
 	Keyword       string   `form:"keyword"`
 	HasHourlyWage *bool    `form:"hasHourlyWage"`

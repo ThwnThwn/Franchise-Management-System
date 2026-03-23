@@ -3,11 +3,11 @@ package sales
 import (
 	"api-gateway/internal/application/constants/errorcode"
 	"api-gateway/internal/application/gateways/franchise"
+	"api-gateway/internal/application/gateways/identity"
 	"api-gateway/internal/application/gateways/sales"
 	"api-gateway/internal/domain/models/order"
 	"api-gateway/pkg/mapper"
 	"api-gateway/pkg/utils/contextutils"
-	"api-gateway/pkg/utils/grpcutils"
 	"api-gateway/pkg/utils/sliceutils"
 	"api-gateway/pkg/utils/validation"
 	"net/http"
@@ -19,15 +19,18 @@ import (
 type OrderHandler struct {
 	orderGW sales.IOrderService
 	storeGW franchise.IStoreService
+	userGW  identity.IUserService
 }
 
 func NewOrderHandler(
 	orderGW sales.IOrderService,
 	storeGW franchise.IStoreService,
+	userGW identity.IUserService,
 ) *OrderHandler {
 	return &OrderHandler{
 		orderGW: orderGW,
 		storeGW: storeGW,
+		userGW:  userGW,
 	}
 }
 
@@ -48,11 +51,7 @@ func (h *OrderHandler) GetOrders(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	contextutils.ApplyStoreBoundaries(c, &req.StoreId)
 
 	res, err := h.orderGW.GetOrders(ctx, &req)
@@ -75,6 +74,18 @@ func (h *OrderHandler) GetOrders(c *gin.Context) error {
 	if err == nil {
 		// Chỉ map nếu lấy được store, không thì trả về data gốc
 		res.Items = mapper.MapStoreToOrderHeaders(res.Items, stores)
+	}
+
+	deliveryManIds := sliceutils.CollectUniqueIDs(res.Items, func(o *order.OrderSummary) string {
+		if o.DeliveryMan != nil {
+			return o.DeliveryMan.Id
+		}
+		return ""
+	})
+
+	deliveryMans, err := h.userGW.GetByIds(ctx, deliveryManIds)
+	if err == nil {
+		res.Items = mapper.MapDeliveryManToOrderHeaders(res.Items, deliveryMans)
 	}
 
 	c.JSON(http.StatusOK, res)
@@ -100,11 +111,7 @@ func (h *OrderHandler) GetOrderById(c *gin.Context) error {
 		return errorcode.ErrInvalidId
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	res, err := h.orderGW.GetOrderById(ctx, orderId)
 	if err != nil {
 		return err
@@ -114,6 +121,21 @@ func (h *OrderHandler) GetOrderById(c *gin.Context) error {
 		store, err := h.storeGW.GetStoreDetail(ctx, storeId)
 		if err == nil {
 			res.Store = store
+		}
+	}
+
+	if deliveryManId, err := uuid.Parse(res.DeliveryMan.Id); err == nil {
+		deliveryMan, err := h.userGW.GetById(ctx, deliveryManId)
+		if err == nil {
+			res.DeliveryMan = &order.DeliveryMan{
+				Id:        deliveryMan.Id,
+				Username:  deliveryMan.Username,
+				Email:     deliveryMan.Email,
+				Phone:     deliveryMan.Phone,
+				FirstName: deliveryMan.FirstName,
+				LastName:  &deliveryMan.LastName,
+				AvatarUrl: deliveryMan.AvatarUrl,
+			}
 		}
 	}
 
@@ -138,11 +160,7 @@ func (h *OrderHandler) GetMyOrders(c *gin.Context) error {
 		return err
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	res, err := h.orderGW.GetMyOrders(ctx, &req)
 	if err != nil {
 		return err
@@ -163,6 +181,18 @@ func (h *OrderHandler) GetMyOrders(c *gin.Context) error {
 	if err == nil {
 		// Chỉ map nếu lấy được store, không thì trả về data gốc
 		res = mapper.MapStoreToOrderHeaders(res, stores)
+	}
+
+	deliveryManIds := sliceutils.CollectUniqueIDs(res, func(o *order.OrderSummary) string {
+		if o.DeliveryMan != nil {
+			return o.DeliveryMan.Id
+		}
+		return ""
+	})
+
+	deliveryMans, err := h.userGW.GetByIds(ctx, deliveryManIds)
+	if err == nil {
+		res = mapper.MapDeliveryManToOrderHeaders(res, deliveryMans)
 	}
 
 	c.JSON(http.StatusOK, res)
@@ -186,11 +216,7 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	res, err := h.orderGW.CreateOrder(ctx, &req)
 	if err != nil {
 		return err
@@ -224,11 +250,7 @@ func (h *OrderHandler) UpdateOrder(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	res, err := h.orderGW.UpdateOrder(ctx, orderId, req)
 	if err != nil {
 		return err
@@ -262,12 +284,85 @@ func (h *OrderHandler) UpdateOrderStatus(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
+	ctx := c.Request.Context()
+	err = h.orderGW.UpdateStatus(ctx, orderId, req.Status)
 	if err != nil {
 		return err
 	}
 
-	err = h.orderGW.UpdateStatus(ctx, orderId, req.Status)
+	c.JSON(http.StatusOK, gin.H{})
+	return nil
+}
+
+// AssignStaffToDelivery
+// @Summary      Assign Staff To Delivery
+// @Description  Gán nhân viên vào ca làm để giao hàng
+// @Tags         Orders
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id       path     string                              true  "Order UUID"
+// @Param        request  body     order.AssignStaffToDeliveryRequest  true  "Chứa staff id"
+// @Success      200      {object} map[string]interface{}              "Success"
+// @Failure      400      {object} map[string]string        		   "Validation error"
+// @Router       /orders/{id}/delivery/assign [post]
+func (h *OrderHandler) AssignStaffToDelivery(c *gin.Context) error {
+	id := c.Param("id")
+	orderId, err := uuid.Parse(id)
+	if err != nil {
+		return errorcode.ErrInvalidId
+	}
+
+	var req order.AssignStaffToDeliveryRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		return validation.TranslateValidationError(err)
+	}
+
+	ctx := c.Request.Context()
+	err = h.orderGW.AssignStaffToDelivery(ctx, orderId, &req)
+	if err != nil {
+		return err
+	}
+
+	c.JSON(http.StatusOK, gin.H{})
+	return nil
+}
+
+// SelfAssignStaffToDelivery
+// @Summary      Self Assign Staff To Delivery
+// @Description  Tự gán bản thân vào ca làm để giao hàng
+// @Tags         Orders
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id       path     string                              	   true  "Order UUID"
+// @Param        request  body     order.AssignStaffToDeliveryRequest      true  "Chứa staff id"
+// @Success      200      {object} map[string]interface{}              	   "Success"
+// @Failure      400      {object} map[string]string        		       "Validation error"
+// @Router       /orders/{id}/delivery/me/assign [post]
+func (h *OrderHandler) SelfAssignStaffToDelivery(c *gin.Context) error {
+	id := c.Param("id")
+	orderId, err := uuid.Parse(id)
+	if err != nil {
+		return errorcode.ErrInvalidId
+	}
+
+	var req order.AssignStaffToDeliveryRequest
+	if c.Request.Body != nil && c.Request.Body != http.NoBody {
+		if err := c.ShouldBindJSON(&req); err != nil {
+			return validation.TranslateValidationError(err)
+		}
+	}
+
+	userId, err := contextutils.GetUserId(c)
+	if err != nil {
+		return err
+	}
+
+	req.StaffId = &userId
+
+	ctx := c.Request.Context()
+	err = h.orderGW.AssignStaffToDelivery(ctx, orderId, &req)
 	if err != nil {
 		return err
 	}
@@ -283,63 +378,6 @@ func (h *OrderHandler) UpdateOrderStatus(c *gin.Context) error {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-<<<<<<< HEAD
-<<<<<<< HEAD
-// @Param        id       path     string                    true  "Order UUID"
-// @Param        request  body     order.CreatePaymentRequest true "Payment details"
-// @Success      200      {object} map[string]interface{}    "Payment URL"
-// @Failure      400      {object} map[string]string         "Validation error"
-// @Router       /orders/{id}/payment [post]
-func (h *OrderHandler) CreatePaymentUrl(c *gin.Context) error {
-	var req order.CreatePaymentRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		return validation.TranslateValidationError(err)
-	}
-
-	id := c.Param("id")
-	orderId, err := uuid.Parse(id)
-	if err != nil {
-		return errorcode.ErrInvalidId
-=======
-// @Param        query  query    order.GetRevenueReportRequest  false  "Filter params (fromDate, toDate, storeId, categoryId)"
-// @Success      200    {object} order.GetRevenueReportReply    "Revenue data"
-// @Router       /orders/reports/revenue [get]
-func (h *OrderHandler) GetRevenueReport(c *gin.Context) error {
-	var req order.GetRevenueReportRequest
-	if err := c.ShouldBindQuery(&req); err != nil {
-		return validation.TranslateValidationError(err)
->>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
-	}
-
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
-	// Phân quyền: Manager/Staff chỉ được xem store của mình
-	contextutils.ApplyStoreBoundaries(c, &req.StoreId)
-
-	res, _, err := h.orderGW.GetRevenueReport(ctx, &req, false)
-	if err != nil {
-		return err
-	}
-
-<<<<<<< HEAD
-	c.JSON(http.StatusOK, gin.H{
-		"paymentUrl": res,
-	})
-	return nil
-}
-
-// GetRevenueReport
-// @Summary      Get Revenue Report (JSON)
-// @Description  Get detailed revenue breakdown by product and category for charts.
-// @Tags         Orders
-// @Accept       json
-// @Produce      json
-// @Security     BearerAuth
-=======
->>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 // @Param        query  query    order.GetRevenueReportRequest  false  "Filter params (fromDate, toDate, storeId, categoryId)"
 // @Success      200    {object} order.GetRevenueReportReply    "Revenue data"
 // @Router       /orders/reports/revenue [get]
@@ -349,11 +387,7 @@ func (h *OrderHandler) GetRevenueReport(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	// Phân quyền: Manager/Staff chỉ được xem store của mình
 	contextutils.ApplyStoreBoundaries(c, &req.StoreId)
 
@@ -362,11 +396,6 @@ func (h *OrderHandler) GetRevenueReport(c *gin.Context) error {
 		return err
 	}
 
-<<<<<<< HEAD
-=======
->>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
-=======
->>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 	c.JSON(http.StatusOK, res)
 	return nil
 }
@@ -386,11 +415,7 @@ func (h *OrderHandler) ExportRevenueReport(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	contextutils.ApplyStoreBoundaries(c, &req.StoreId)
 
 	_, csv, err := h.orderGW.GetRevenueReport(ctx, &req, true)
@@ -424,11 +449,7 @@ func (h *OrderHandler) GetOrderVolume(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	contextutils.ApplyStoreBoundaries(c, &req.StoreId)
 
 	res, _, err := h.orderGW.GetOrderVolume(ctx, &req, false)
@@ -455,11 +476,7 @@ func (h *OrderHandler) ExportOrderVolume(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	contextutils.ApplyStoreBoundaries(c, &req.StoreId)
 
 	_, csv, err := h.orderGW.GetOrderVolume(ctx, &req, true)
@@ -497,18 +514,48 @@ func (h *OrderHandler) GetSalesTrend(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	contextutils.ApplyStoreBoundaries(c, &req.StoreId)
 
-	res, err := h.orderGW.GetSalesTrend(ctx, &req)
+	res, _, err := h.orderGW.GetSalesTrend(ctx, &req, false)
 	if err != nil {
 		return err
 	}
 
 	c.JSON(http.StatusOK, res)
+	return nil
+}
+
+// ExportSalesTrend
+// @Summary      Xuất file CSV xu hướng doanh thu
+// @Description  Tải xuống dữ liệu xu hướng doanh thu (doanh thu, lượng đơn hàng) dưới dạng file CSV.
+// @Description  Hỗ trợ các tham số lọc và phân quyền storeId tương tự như API lấy JSON.
+// @Tags         Orders
+// @Produce      text/csv
+// @Security     BearerAuth
+// @Param        query  query    order.GetSalesTrendRequest  true  "Các tham số lọc (fromDate, toDate, aggregation, storeId...)"
+// @Success      200    {file}   binary                       "Tệp CSV chứa dữ liệu xu hướng doanh thu"
+// @Failure      400    {object} map[string]string            "Lỗi dữ liệu đầu vào"
+// @Router       /orders/reports/sales-trend/export [get]
+func (h *OrderHandler) ExportSalesTrend(c *gin.Context) error {
+	var req order.GetSalesTrendRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		return validation.TranslateValidationError(err)
+	}
+
+	ctx := c.Request.Context()
+	contextutils.ApplyStoreBoundaries(c, &req.StoreId)
+
+	_, csv, err := h.orderGW.GetSalesTrend(ctx, &req, true)
+	if err != nil {
+		return err
+	}
+
+	if csv == nil {
+		return errorcode.ErrExportFailed
+	}
+
+	c.Header("Content-Disposition", "attachment; filename="+csv.CsvFileName)
+	c.Data(http.StatusOK, "text/csv", csv.CsvRaw)
 	return nil
 }

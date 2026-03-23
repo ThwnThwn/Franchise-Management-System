@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using SalesService.Application.Persisitences;
 using SalesService.Domain.Commons;
 using SalesService.Infrastructure.ApplicationDbContext;
+
 namespace SalesService.Infrastructure.Repositories
 {
     public class GenericRepository<T> : IGenericRepository<T> where T : class, IEntity
@@ -16,17 +17,22 @@ namespace SalesService.Infrastructure.Repositories
             _dbSet = _dbContext.Set<T>();
         }
 
+        public virtual void Add(T entity)
+        {
+            _dbSet.Add(entity);
+        }
+
         public virtual async Task<Guid> AddAsync(T entity, CancellationToken cancellationToken)
         {
-            await _dbSet.AddAsync(entity);
-            await _dbContext.SaveChangesAsync();
+            await _dbSet.AddAsync(entity, cancellationToken);
+            await _dbContext.SaveChangesAsync(cancellationToken);
             return entity.Id;
         }
 
         public virtual async Task AddRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken)
         {
-            await _dbSet.AddRangeAsync(entities);
-            await _dbContext.SaveChangesAsync();
+            await _dbSet.AddRangeAsync(entities, cancellationToken);
+            await _dbContext.SaveChangesAsync(cancellationToken);
         }
 
         public virtual async Task DeleteAsync(Guid id, CancellationToken cancellationToken)
@@ -41,7 +47,7 @@ namespace SalesService.Infrastructure.Repositories
             {
                 _dbSet.Remove(entityFromDb);
             }
-            await _dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync(cancellationToken);
         }
 
         public virtual async Task DeleteRangeAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken)
@@ -58,7 +64,7 @@ namespace SalesService.Infrastructure.Repositories
                     _dbSet.Remove(entity);
                 }
             }
-            await _dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync(cancellationToken);
         }
 
         public virtual async Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, object>>[]? includes = null, Expression<Func<T, bool>>? predicate = null)
@@ -114,7 +120,7 @@ namespace SalesService.Infrastructure.Repositories
             return await query.ToArrayAsync();
         }
 
-        public virtual async void Remove(T entity)
+        public virtual void Remove(T entity)
         {
             _dbSet.Remove(entity);
         }
@@ -132,7 +138,7 @@ namespace SalesService.Infrastructure.Repositories
                 _dbContext.Entry(entityFromDb).Property("CreatedAt").IsModified = false;
             }
 
-            return await _dbContext.SaveChangesAsync();
+            return await _dbContext.SaveChangesAsync(cancellationToken);
         }
     }
 }

@@ -22,7 +22,15 @@ namespace IdentityService.Application.Features.Users.Commands.UploadAvatar
             _cloudinaryService = cloudinaryService;
             _mapper = mapper;
         }
-
+        /// <summary>
+        /// Handles a request
+        /// </summary>
+        /// <param name="request">The request</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>
+        /// Response from the request
+        /// </returns>
+        /// <exception cref="KeyNotFoundException">User not found</exception>
         public async Task<UserRep> Handle(UploadAvatarCommand request, CancellationToken cancellationToken)
         {
             var user = await _userRepository.GetByIdAsync(request.UserId);

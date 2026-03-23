@@ -1,17 +1,14 @@
-﻿using Ardalis.Result;
-using DocumentFormat.OpenXml.VariantTypes;
+using Ardalis.Result;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using SalesService.Application.AppExceptions;
 using SalesService.Application.ClientInterface.Inventory;
 using SalesService.Application.ClientInterface.Products;
 using SalesService.Application.Dtos.Inventory;
-using SalesService.Application.Features.Orders.Commands.Create;
 using SalesService.Application.Persisitences.Orders;
 using SalesService.Application.Persisitences.Outbox;
 using SalesService.Application.Signals;
 using SalesService.Domain.Enums;
-using System.Diagnostics.CodeAnalysis;
 
 namespace SalesService.Application.Features.Orders.Commands.Update
 {
@@ -113,7 +110,7 @@ namespace SalesService.Application.Features.Orders.Commands.Update
                     CheckEnoughStockRes = reserveRes
                 });
 
-            // Remove orderItem - save change order
+            // Update-Add orderItem - save change order
             decimal subtotal = 0;
             foreach (var item in request.Items)
             {
@@ -152,7 +149,7 @@ namespace SalesService.Application.Features.Orders.Commands.Update
             // Tax = 10%
             const decimal taxRate = 0.1m;
             var tax = subtotal * taxRate;
-            var totalAmount = subtotal + tax;
+            var totalAmount = subtotal + tax + order.ShippingFee;
 
             order.Subtotal = subtotal;
             order.Tax = tax;
@@ -174,6 +171,7 @@ namespace SalesService.Application.Features.Orders.Commands.Update
                     UnitPrice = x.UnitPrice
                 }).ToList(),
                 TotalAmount = order.TotalAmount,
+                ShippingFee = order.ShippingFee,
                 CheckEnoughStockRes = new CheckEnoughStockRes
                 {
                     IsEnough = true

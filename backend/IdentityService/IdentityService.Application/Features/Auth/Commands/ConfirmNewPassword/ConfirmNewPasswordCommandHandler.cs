@@ -25,7 +25,21 @@ public class ConfirmNewPasswordCommandHandler
         _userRepository = userRepository;
         _jwtHelper = jwtHelper;
     }
-
+    /// <summary>
+    /// Handles the specified command.
+    /// </summary>
+    /// <param name="command">The command.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns></returns>
+    /// <exception cref="BusinessException">
+    /// Too many failed attempts. Please request a new OTP.
+    /// or
+    /// Invalid or expired OTP. {remainingAttempts} attempt(s) remaining.
+    /// or
+    /// Forget password session expired. Please request OTP again.
+    /// or
+    /// Invalid forget password
+    /// </exception>
     public async Task<ConfirmOtpForgetPasswordOtpRep> Handle(ConfirmNewPasswordCommand command, CancellationToken cancellationToken)
     {
         var request = command.Request;

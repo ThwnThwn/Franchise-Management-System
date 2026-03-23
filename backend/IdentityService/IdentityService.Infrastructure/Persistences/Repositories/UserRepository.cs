@@ -14,6 +14,11 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
         {
         }
 
+        /// <summary>
+        /// Adds the with role asynchronous.
+        /// </summary>
+        /// <param name="user">The user.</param>
+        /// <returns></returns>
         public async Task<User?> AddWithRoleAsync(User? user)
         {
             await _dbSet.AddAsync(user);
@@ -26,6 +31,10 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
             return createdUser;
         }
 
+        /// <summary>
+        /// Gets all with role asynchronous.
+        /// </summary>
+        /// <returns></returns>
         public async Task<IEnumerable<User?>> GetAllWithRoleAsync()
         {
             return await _dbContext.Users
@@ -36,6 +45,11 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
                 .ToListAsync();
         }
 
+        /// <summary>
+        /// Gets the by email asynchronous.
+        /// </summary>
+        /// <param name="email">The email.</param>
+        /// <returns></returns>
         public async Task<User?> GetByEmailAsync(string? email)
         {
             if (string.IsNullOrEmpty(email))
@@ -48,6 +62,11 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
             //.FirstOrDefaultAsync(u => u.Email == email);
         }
 
+        /// <summary>
+        /// Gets the by username asynchronous.
+        /// </summary>
+        /// <param name="username">The username.</param>
+        /// <returns></returns>
         public async Task<User?> GetByUsernameAsync(string? username)
         {
             if (string.IsNullOrEmpty(username))
@@ -60,6 +79,11 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
             return user;
         }
 
+        /// <summary>
+        /// Gets the by email or user name asynchronous.
+        /// </summary>
+        /// <param name="emailOrUserName">Name of the email or user.</param>
+        /// <returns></returns>
         public async Task<User?> GetByEmailOrUserNameAsync(string? emailOrUserName)
         {
             if (string.IsNullOrWhiteSpace(emailOrUserName))
@@ -74,6 +98,11 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
                 );
         }
 
+        /// <summary>
+        /// Gets the by identifier asynchronous.
+        /// </summary>
+        /// <param name="id">The identifier.</param>
+        /// <returns></returns>
         public override async Task<User?> GetByIdAsync(Guid id)
         {
             var user = await _dbContext.Users
@@ -82,18 +111,28 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
             return user;
         }
 
+        /// <summary>
+        /// Gets the manager by store identifier asynchronous.
+        /// </summary>
+        /// <param name="storeId">The store identifier.</param>
+        /// <returns></returns>
         public async Task<User?> GetManagerByStoreIdAsync(Guid? storeId)
         {
             return await _dbContext.Users
                 .Include(u => u.Role)
                 .Where(u =>
                     u.HomeStoreId == storeId &&
-                    u.Role.Slug == "manager" &&
+                    u.Role != null && u.Role.Slug == "manager" &&
                     !u.IsDeleted
                 )
                 .FirstOrDefaultAsync();
         }
 
+        /// <summary>
+        /// Gets the users by role slug asynchronous.
+        /// </summary>
+        /// <param name="roleSlug">The role slug.</param>
+        /// <returns></returns>
         public async Task<IEnumerable<User>> GetUsersByRoleSlugAsync(string? roleSlug)
         {
             var query = _dbContext.Users
@@ -103,7 +142,7 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
 
             if (!string.IsNullOrWhiteSpace(roleSlug))
             {
-                query = query.Where(u => u.Role.Slug == roleSlug);
+                query = query.Where(u => u.Role != null && u.Role.Slug == roleSlug);
             }
 
             return await query
@@ -111,6 +150,11 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
                 .ToListAsync();
         }
 
+        /// <summary>
+        /// Gets the by ids.
+        /// </summary>
+        /// <param name="ids">The ids.</param>
+        /// <returns></returns>
         public async Task<IEnumerable<User?>> GetByIds(IReadOnlyList<Guid> ids)
         {
             return await _dbContext.Users
@@ -118,6 +162,19 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
                 .Cast<User?>()
                 .ToListAsync();
         }
+
+        /// <summary>
+        /// Gets the paged users asynchronous.
+        /// </summary>
+        /// <param name="keyword">The keyword.</param>
+        /// <param name="ids">The ids.</param>
+        /// <param name="StoredId">The stored identifier.</param>
+        /// <param name="HasHourlyWage">The has hourly wage.</param>
+        /// <param name="roleSlug">The role slug.</param>
+        /// <param name="pageIndex">Index of the page.</param>
+        /// <param name="pageSize">Size of the page.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
         public async Task<PagedResult<User>> GetPagedUsersAsync(string? keyword, List<Guid>? ids, Guid? StoredId, bool? HasHourlyWage, string? roleSlug, int pageIndex, int pageSize, CancellationToken cancellationToken)
         {
             var query = _dbContext.Users
@@ -125,7 +182,7 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
                 .AsNoTracking()
                 .Where(u => !u.IsDeleted);
 
-            // Nếu mà không null thì tức đang có filter loyalty 
+            // Nếu mà không null thì tức đang có filter loyalty
             if (ids != null && ids.Any())
             {
                 query = query.Where(u => ids.Contains(u.Id));
@@ -145,7 +202,7 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
             // Filter by role
             if (!string.IsNullOrEmpty(roleSlug))
             {
-                query = query.Where(u => u.Role.Slug == roleSlug);
+                query = query.Where(u => u.Role != null && u.Role.Slug == roleSlug);
             }
             // Filter by StoreId
             if (!string.IsNullOrEmpty(StoredId.ToString()))
@@ -161,6 +218,11 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
             return await query.ToPagedListAsync(pageIndex, pageSize, cancellationToken);
         }
 
+        /// <summary>
+        /// Gets the by phone asynchronous.
+        /// </summary>
+        /// <param name="phone">The phone.</param>
+        /// <returns></returns>
         public async Task<User?> GetByPhoneAsync(string? phone)
         {
             // 1. Kiểm tra đầu vào sớm để tránh truy vấn vô ích
@@ -174,6 +236,11 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
             return customer;
         }
 
+        /// <summary>
+        /// Gets the users by phone asynchronous.
+        /// </summary>
+        /// <param name="phone">The phone.</param>
+        /// <returns></returns>
         public async Task<List<User>> GetUsersByPhoneAsync(string? phone)
         {
             if (string.IsNullOrWhiteSpace(phone))
@@ -186,6 +253,11 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
             return customers;
         }
 
+        /// <summary>
+        /// Gets the users by email asynchronous.
+        /// </summary>
+        /// <param name="email">The email.</param>
+        /// <returns></returns>
         public async Task<List<User>> GetUsersByEmailAsync(string? email)
         {
             // 2. Thực hiện truy vấn an toàn

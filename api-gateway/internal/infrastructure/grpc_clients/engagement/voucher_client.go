@@ -49,10 +49,25 @@ func (v *voucherGrpcClient) GetByCode(ctx context.Context, code string) (*vouche
 	return mapper.MapVoucherResponsePbToModel(res), nil
 }
 
+// GetMe implements engagement.IVoucherService.
+func (v *voucherGrpcClient) GetMyVouchers(ctx context.Context) ([]*voucher.VoucherResponse, error) {
+	res, err := v.client.GetMyVouchers(ctx, &emptypb.Empty{})
+	if err != nil {
+		return []*voucher.VoucherResponse{}, err
+	}
+
+	items := make([]*voucher.VoucherResponse, 0, len(res.Vouchers))
+	for _, v := range res.Vouchers {
+		items = append(items, mapper.MapVoucherResponsePbToModel(v))
+	}
+
+	return items, nil
+}
+
 // Create implements engagement.IVoucherService.
-func (v *voucherGrpcClient) Create(ctx context.Context, req *voucher.CreateVoucherRequest) error {
+func (v *voucherGrpcClient) Create(ctx context.Context, req *voucher.CreateVoucherRequest) (*voucher.VoucherResponse, error) {
 	if req == nil {
-		return errorcode.NewBadRequest("Request data is missing")
+		return nil, errorcode.NewBadRequest("Request data is missing")
 	}
 
 	items := make([]*engagementPb.CreateVoucherItemReq, 0, len(req.VoucherItems))
@@ -62,13 +77,13 @@ func (v *voucherGrpcClient) Create(ctx context.Context, req *voucher.CreateVouch
 		}
 
 		items = append(items, &engagementPb.CreateVoucherItemReq{
-			VariantId: item.VariantId,
-			Quantity:  item.Quantity,
-			Type:      engagementPb.VoucherItemType(item.Type),
+			Sku:      item.Sku,
+			Quantity: item.Quantity,
+			Type:     engagementPb.VoucherItemType(item.Type),
 		})
 	}
 
-	_, err := v.client.CreateVoucher(ctx, &engagementPb.CreateVoucherRequest{
+	res, err := v.client.CreateVoucher(ctx, &engagementPb.CreateVoucherRequest{
 		Code:             req.Code,
 		Type:             engagementPb.VoucherType(req.Type),
 		DiscountValue:    req.DiscountValue,
@@ -81,7 +96,7 @@ func (v *voucherGrpcClient) Create(ctx context.Context, req *voucher.CreateVouch
 		VoucherItems:     items,
 	})
 
-	return err
+	return mapper.MapVoucherResponsePbToModel(res), err
 }
 
 func (v *voucherGrpcClient) Update(ctx context.Context, id uuid.UUID, req *voucher.UpdateVoucherRequest) error {
@@ -96,10 +111,10 @@ func (v *voucherGrpcClient) Update(ctx context.Context, id uuid.UUID, req *vouch
 		}
 
 		items = append(items, &engagementPb.UpdateVoucherItemReq{
-			Id:        item.Id,
-			VariantId: item.VariantId,
-			Quantity:  item.Quantity,
-			Type:      (*engagementPb.VoucherItemType)(item.Type),
+			Id:       item.Id,
+			Sku:      item.Sku,
+			Quantity: item.Quantity,
+			Type:     (*engagementPb.VoucherItemType)(item.Type),
 		})
 	}
 

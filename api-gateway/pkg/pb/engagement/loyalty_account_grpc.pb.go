@@ -26,35 +26,17 @@ type LoyaltyAccountGrpcClient interface {
 	// Hàm xử lý phần thưởng sau đơn hàng, không trả về dữ liệu (google.protobuf.Empty)
 	ProcessOrderReward(ctx context.Context, in *ProcessOrderRewardRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// Hàm lấy thông tin tài khoản qua số điện thoại
-<<<<<<< HEAD
-<<<<<<< HEAD
-	GetByUserPhoneOrEmail(ctx context.Context, in *GetByUserPhoneOrEmailRequest, opts ...grpc.CallOption) (*LoyaltyAccountResponse, error)
-=======
 	GetByUserPhoneOrEmail(ctx context.Context, in *GetByUserPhoneOrEmailRequest, opts ...grpc.CallOption) (*LoyaltyAccountsResponse, error)
 	// Hàm lấy thông tin tài khoản theo bộ lọc
 	GetByFilter(ctx context.Context, in *GetByFilterRequest, opts ...grpc.CallOption) (*LoyaltyAccountsResponse, error)
->>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
-=======
-	GetByUserPhoneOrEmail(ctx context.Context, in *GetByUserPhoneOrEmailRequest, opts ...grpc.CallOption) (*LoyaltyAccountsResponse, error)
-	// Hàm lấy thông tin tài khoản theo bộ lọc
-	GetByFilter(ctx context.Context, in *GetByFilterRequest, opts ...grpc.CallOption) (*LoyaltyAccountsResponse, error)
->>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 	// Hàm Upsert nhận vào UpSertRequest và không trả ra gì
 	CreateLoyaltyAccount(ctx context.Context, in *CreateLoyaltyAccountRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// Hàm trừ điểm khi xử dụng
-	DeductPoints(ctx context.Context, in *DeductPointRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-	// RPC lấy báo cáo (trả về dữ liệu thô)
-	GetLoyaltyReport(ctx context.Context, in *GetLoyaltyReportRequest, opts ...grpc.CallOption) (*LoyaltyReportResponse, error)
->>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
-=======
+	UpdatePoint(ctx context.Context, in *UpdatePointRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// RPC lấy báo cáo (trả về dữ liệu thô)
 	GetLoyaltyReport(ctx context.Context, in *GetLoyaltyReportRequest, opts ...grpc.CallOption) (*LoyaltyReportResponse, error)
 	// Rpc Redeem voucher
 	RedeemVoucher(ctx context.Context, in *RedeemVoucherRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
->>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 }
 
 type loyaltyAccountGrpcClient struct {
@@ -83,11 +65,6 @@ func (c *loyaltyAccountGrpcClient) GetByUserPhoneOrEmail(ctx context.Context, in
 	return out, nil
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
->>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 func (c *loyaltyAccountGrpcClient) GetByFilter(ctx context.Context, in *GetByFilterRequest, opts ...grpc.CallOption) (*LoyaltyAccountsResponse, error) {
 	out := new(LoyaltyAccountsResponse)
 	err := c.cc.Invoke(ctx, "/engagement.LoyaltyAccountGrpc/GetByFilter", in, out, opts...)
@@ -97,10 +74,6 @@ func (c *loyaltyAccountGrpcClient) GetByFilter(ctx context.Context, in *GetByFil
 	return out, nil
 }
 
-<<<<<<< HEAD
->>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
-=======
->>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 func (c *loyaltyAccountGrpcClient) CreateLoyaltyAccount(ctx context.Context, in *CreateLoyaltyAccountRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, "/engagement.LoyaltyAccountGrpc/CreateLoyaltyAccount", in, out, opts...)
@@ -110,20 +83,15 @@ func (c *loyaltyAccountGrpcClient) CreateLoyaltyAccount(ctx context.Context, in 
 	return out, nil
 }
 
-func (c *loyaltyAccountGrpcClient) DeductPoints(ctx context.Context, in *DeductPointRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *loyaltyAccountGrpcClient) UpdatePoint(ctx context.Context, in *UpdatePointRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/engagement.LoyaltyAccountGrpc/DeductPoints", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engagement.LoyaltyAccountGrpc/UpdatePoint", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
->>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 func (c *loyaltyAccountGrpcClient) GetLoyaltyReport(ctx context.Context, in *GetLoyaltyReportRequest, opts ...grpc.CallOption) (*LoyaltyReportResponse, error) {
 	out := new(LoyaltyReportResponse)
 	err := c.cc.Invoke(ctx, "/engagement.LoyaltyAccountGrpc/GetLoyaltyReport", in, out, opts...)
@@ -133,9 +101,6 @@ func (c *loyaltyAccountGrpcClient) GetLoyaltyReport(ctx context.Context, in *Get
 	return out, nil
 }
 
-<<<<<<< HEAD
->>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
-=======
 func (c *loyaltyAccountGrpcClient) RedeemVoucher(ctx context.Context, in *RedeemVoucherRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, "/engagement.LoyaltyAccountGrpc/RedeemVoucher", in, out, opts...)
@@ -145,7 +110,6 @@ func (c *loyaltyAccountGrpcClient) RedeemVoucher(ctx context.Context, in *Redeem
 	return out, nil
 }
 
->>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 // LoyaltyAccountGrpcServer is the server API for LoyaltyAccountGrpc service.
 // All implementations must embed UnimplementedLoyaltyAccountGrpcServer
 // for forward compatibility
@@ -153,35 +117,17 @@ type LoyaltyAccountGrpcServer interface {
 	// Hàm xử lý phần thưởng sau đơn hàng, không trả về dữ liệu (google.protobuf.Empty)
 	ProcessOrderReward(context.Context, *ProcessOrderRewardRequest) (*emptypb.Empty, error)
 	// Hàm lấy thông tin tài khoản qua số điện thoại
-<<<<<<< HEAD
-<<<<<<< HEAD
-	GetByUserPhoneOrEmail(context.Context, *GetByUserPhoneOrEmailRequest) (*LoyaltyAccountResponse, error)
-=======
 	GetByUserPhoneOrEmail(context.Context, *GetByUserPhoneOrEmailRequest) (*LoyaltyAccountsResponse, error)
 	// Hàm lấy thông tin tài khoản theo bộ lọc
 	GetByFilter(context.Context, *GetByFilterRequest) (*LoyaltyAccountsResponse, error)
->>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
-=======
-	GetByUserPhoneOrEmail(context.Context, *GetByUserPhoneOrEmailRequest) (*LoyaltyAccountsResponse, error)
-	// Hàm lấy thông tin tài khoản theo bộ lọc
-	GetByFilter(context.Context, *GetByFilterRequest) (*LoyaltyAccountsResponse, error)
->>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 	// Hàm Upsert nhận vào UpSertRequest và không trả ra gì
 	CreateLoyaltyAccount(context.Context, *CreateLoyaltyAccountRequest) (*emptypb.Empty, error)
 	// Hàm trừ điểm khi xử dụng
-	DeductPoints(context.Context, *DeductPointRequest) (*emptypb.Empty, error)
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-	// RPC lấy báo cáo (trả về dữ liệu thô)
-	GetLoyaltyReport(context.Context, *GetLoyaltyReportRequest) (*LoyaltyReportResponse, error)
->>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
-=======
+	UpdatePoint(context.Context, *UpdatePointRequest) (*emptypb.Empty, error)
 	// RPC lấy báo cáo (trả về dữ liệu thô)
 	GetLoyaltyReport(context.Context, *GetLoyaltyReportRequest) (*LoyaltyReportResponse, error)
 	// Rpc Redeem voucher
 	RedeemVoucher(context.Context, *RedeemVoucherRequest) (*emptypb.Empty, error)
->>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 	mustEmbedUnimplementedLoyaltyAccountGrpcServer()
 }
 
@@ -195,39 +141,21 @@ func (UnimplementedLoyaltyAccountGrpcServer) ProcessOrderReward(context.Context,
 func (UnimplementedLoyaltyAccountGrpcServer) GetByUserPhoneOrEmail(context.Context, *GetByUserPhoneOrEmailRequest) (*LoyaltyAccountsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetByUserPhoneOrEmail not implemented")
 }
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
 func (UnimplementedLoyaltyAccountGrpcServer) GetByFilter(context.Context, *GetByFilterRequest) (*LoyaltyAccountsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetByFilter not implemented")
 }
->>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
-=======
-func (UnimplementedLoyaltyAccountGrpcServer) GetByFilter(context.Context, *GetByFilterRequest) (*LoyaltyAccountsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetByFilter not implemented")
-}
->>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 func (UnimplementedLoyaltyAccountGrpcServer) CreateLoyaltyAccount(context.Context, *CreateLoyaltyAccountRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateLoyaltyAccount not implemented")
 }
-func (UnimplementedLoyaltyAccountGrpcServer) DeductPoints(context.Context, *DeductPointRequest) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeductPoints not implemented")
+func (UnimplementedLoyaltyAccountGrpcServer) UpdatePoint(context.Context, *UpdatePointRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdatePoint not implemented")
 }
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-func (UnimplementedLoyaltyAccountGrpcServer) GetLoyaltyReport(context.Context, *GetLoyaltyReportRequest) (*LoyaltyReportResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetLoyaltyReport not implemented")
-}
->>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
-=======
 func (UnimplementedLoyaltyAccountGrpcServer) GetLoyaltyReport(context.Context, *GetLoyaltyReportRequest) (*LoyaltyReportResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetLoyaltyReport not implemented")
 }
 func (UnimplementedLoyaltyAccountGrpcServer) RedeemVoucher(context.Context, *RedeemVoucherRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RedeemVoucher not implemented")
 }
->>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 func (UnimplementedLoyaltyAccountGrpcServer) mustEmbedUnimplementedLoyaltyAccountGrpcServer() {}
 
 // UnsafeLoyaltyAccountGrpcServer may be embedded to opt out of forward compatibility for this service.
@@ -277,11 +205,6 @@ func _LoyaltyAccountGrpc_GetByUserPhoneOrEmail_Handler(srv interface{}, ctx cont
 	return interceptor(ctx, in, info, handler)
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
->>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 func _LoyaltyAccountGrpc_GetByFilter_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetByFilterRequest)
 	if err := dec(in); err != nil {
@@ -300,10 +223,6 @@ func _LoyaltyAccountGrpc_GetByFilter_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
-<<<<<<< HEAD
->>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
-=======
->>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 func _LoyaltyAccountGrpc_CreateLoyaltyAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateLoyaltyAccountRequest)
 	if err := dec(in); err != nil {
@@ -322,29 +241,24 @@ func _LoyaltyAccountGrpc_CreateLoyaltyAccount_Handler(srv interface{}, ctx conte
 	return interceptor(ctx, in, info, handler)
 }
 
-func _LoyaltyAccountGrpc_DeductPoints_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeductPointRequest)
+func _LoyaltyAccountGrpc_UpdatePoint_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdatePointRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(LoyaltyAccountGrpcServer).DeductPoints(ctx, in)
+		return srv.(LoyaltyAccountGrpcServer).UpdatePoint(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engagement.LoyaltyAccountGrpc/DeductPoints",
+		FullMethod: "/engagement.LoyaltyAccountGrpc/UpdatePoint",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(LoyaltyAccountGrpcServer).DeductPoints(ctx, req.(*DeductPointRequest))
+		return srv.(LoyaltyAccountGrpcServer).UpdatePoint(ctx, req.(*UpdatePointRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
->>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 func _LoyaltyAccountGrpc_GetLoyaltyReport_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetLoyaltyReportRequest)
 	if err := dec(in); err != nil {
@@ -363,9 +277,6 @@ func _LoyaltyAccountGrpc_GetLoyaltyReport_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
-<<<<<<< HEAD
->>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
-=======
 func _LoyaltyAccountGrpc_RedeemVoucher_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(RedeemVoucherRequest)
 	if err := dec(in); err != nil {
@@ -384,7 +295,6 @@ func _LoyaltyAccountGrpc_RedeemVoucher_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
->>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 // LoyaltyAccountGrpc_ServiceDesc is the grpc.ServiceDesc for LoyaltyAccountGrpc service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -401,43 +311,25 @@ var LoyaltyAccountGrpc_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _LoyaltyAccountGrpc_GetByUserPhoneOrEmail_Handler,
 		},
 		{
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
->>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 			MethodName: "GetByFilter",
 			Handler:    _LoyaltyAccountGrpc_GetByFilter_Handler,
 		},
 		{
-<<<<<<< HEAD
->>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
-=======
->>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 			MethodName: "CreateLoyaltyAccount",
 			Handler:    _LoyaltyAccountGrpc_CreateLoyaltyAccount_Handler,
 		},
 		{
-			MethodName: "DeductPoints",
-			Handler:    _LoyaltyAccountGrpc_DeductPoints_Handler,
+			MethodName: "UpdatePoint",
+			Handler:    _LoyaltyAccountGrpc_UpdatePoint_Handler,
 		},
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
->>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 		{
 			MethodName: "GetLoyaltyReport",
 			Handler:    _LoyaltyAccountGrpc_GetLoyaltyReport_Handler,
 		},
-<<<<<<< HEAD
->>>>>>> 67995ea2d691e474b75c2df4113ec3b4637af960
-=======
 		{
 			MethodName: "RedeemVoucher",
 			Handler:    _LoyaltyAccountGrpc_RedeemVoucher_Handler,
 		},
->>>>>>> 67a394a75859432ebb4e70c583813a2d5a7dff05
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "engagement/loyalty_account.proto",

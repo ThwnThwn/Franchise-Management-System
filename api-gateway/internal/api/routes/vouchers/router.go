@@ -37,11 +37,14 @@ func (v *VoucherRouter) Init(r *gin.RouterGroup) {
 			api.WrapHandler(v.voucherHl.DeleteVoucher))
 	}
 
-	meApi := r.Group("/me")
-	meApi.Use(v.authMW.ValidateToken([]byte(v.cfg.JwtSecret)))
+	myVoucherApi := r.Group("/me/vouchers")
+	myVoucherApi.Use(v.authMW.ValidateToken([]byte(v.cfg.JwtSecret)))
 	{
-		// POST /me/vouchers/redeem/:id
-		meApi.POST("/vouchers/redeem/:id", v.authMW.PermissionCheck("voucher.redeem"),
+		myVoucherApi.GET("", v.authMW.PermissionCheck("voucher.me.read"),
+			api.WrapHandler(v.voucherHl.GetMyVouchers))
+
+		// POST /me/vouchers/:id/redeem
+		myVoucherApi.POST("/:id/redeem", v.authMW.PermissionCheck("voucher.redeem"),
 			api.WrapHandler(v.voucherHl.RedeemVoucher))
 	}
 }

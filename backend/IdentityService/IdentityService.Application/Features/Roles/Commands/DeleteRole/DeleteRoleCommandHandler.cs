@@ -11,7 +11,14 @@ public class DeleteRoleCommandHandler : IRequestHandler<DeleteRoleCommand, bool>
     {
         _roleRepository = roleRepository;
     }
-
+    /// <summary>
+    /// Handles a request
+    /// </summary>
+    /// <param name="request">The request</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>
+    /// Response from the request
+    /// </returns>
     public async Task<bool> Handle(DeleteRoleCommand request, CancellationToken cancellationToken)
     {
         var role = await _roleRepository.GetByIdAsync(request.Id);

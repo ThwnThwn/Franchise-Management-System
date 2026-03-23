@@ -3,9 +3,9 @@ package identity
 import (
 	"api-gateway/internal/application/constants/errorcode"
 	"api-gateway/internal/application/gateways/identity"
+	"api-gateway/internal/domain/models/common"
 	"api-gateway/internal/domain/models/user"
 	"api-gateway/pkg/utils/contextutils"
-	"api-gateway/pkg/utils/grpcutils"
 	"api-gateway/pkg/utils/validation"
 	"io"
 	"net/http"
@@ -40,11 +40,7 @@ func (h *UserHandler) GetMe(c *gin.Context) error {
 		return errorcode.ErrMissingTokenInfo
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	res, err := h.userUC.GetById(ctx, userId)
 	if err != nil {
 		return err
@@ -77,11 +73,7 @@ func (h *UserHandler) UpdateMe(c *gin.Context) error {
 		return errorcode.ErrMissingTokenInfo
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
+	ctx := c.Request.Context()
 	res, err := h.userUC.Update(ctx, userId, &user.UpdateUserRequest{
 		// Email:       req.Email,
 		Phone:       req.Phone,
@@ -137,12 +129,7 @@ func (h *UserHandler) UploadMyAvatar(c *gin.Context) error {
 		return errorcode.ErrInvalidImageFormat
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
-	// Gọi xuống Client (Gateway)
+	ctx := c.Request.Context()
 	if err := h.userUC.UploadMyAvatar(ctx, fileBytes); err != nil {
 		return err
 	}
@@ -164,12 +151,7 @@ func (h *UserHandler) UploadMyAvatar(c *gin.Context) error {
 // @Failure      500        {object}  map[string]string "Internal server error"
 // @Router       /users/me/avatar [delete]
 func (h *UserHandler) DeleteMyAvatar(c *gin.Context) error {
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
-
-	// Gọi xuống Client (Gateway)
+	ctx := c.Request.Context()
 	if err := h.userUC.DeleteMyAvatar(ctx); err != nil {
 		return err
 	}
@@ -198,14 +180,25 @@ func (h *UserHandler) GetAll(c *gin.Context) error {
 		return err
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
+	var res common.PaginationResult[*user.UserResponse]
+	var err error
 
-	res, err := h.userUC.GetAll(ctx, &req)
-	if err != nil {
-		return err
+	if len(req.Ids) > 0 {
+		items, err := h.userUC.GetByIds(ctx, req.Ids)
+		if err != nil {
+			return err
+		}
+		res = common.PaginationResult[*user.UserResponse]{
+			Items:      items,
+			TotalCount: int32(len(items)),
+			TotalPages: 1,
+		}
+	} else {
+		res, err = h.userUC.GetAll(ctx, &req)
+		if err != nil {
+			return err
+		}
 	}
 
 	c.JSON(http.StatusOK, res)

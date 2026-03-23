@@ -363,7 +363,7 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
         userRep.UserRes.AddRange(users.Select(u => new UserIdNameResponse
         {
             Id = u.Id.ToString(),
-            Name = string.IsNullOrWhiteSpace(u.LastName) ? u.FirstName : u.LastName + " " + u.FirstName
+            Name = string.IsNullOrWhiteSpace(u.LastName) ? u.FirstName : u.LastName + " " + u.FirstName,
         }));
         return userRep;
     }

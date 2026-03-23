@@ -6,7 +6,6 @@ import (
 	"api-gateway/internal/domain/models/common"
 	"api-gateway/internal/domain/models/wallet"
 	"api-gateway/pkg/utils/contextutils"
-	"api-gateway/pkg/utils/grpcutils"
 	"api-gateway/pkg/utils/validation"
 	"net/http"
 
@@ -45,10 +44,7 @@ func (h *WalletTransactionHandler) GetMyWalletTransactions(c *gin.Context) error
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
 	userId, err := contextutils.GetUserId(c)
 	if err != nil {
@@ -91,10 +87,7 @@ func (h *WalletTransactionHandler) GetAllTransactions(c *gin.Context) error {
 		return validation.TranslateValidationError(err)
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
 	ctxUserId, err := contextutils.GetUserId(c)
 	if err != nil {
@@ -144,10 +137,7 @@ func (h *WalletTransactionHandler) GetTransactionById(c *gin.Context) error {
 		return errorcode.ErrInvalidId
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
 	ctxUserId, err := contextutils.GetUserId(c)
 	if err != nil {
@@ -179,10 +169,7 @@ func (h *WalletTransactionHandler) GetTransactionByCode(c *gin.Context) error {
 		return errorcode.NewBadRequest("Mã giao dịch không được để trống")
 	}
 
-	ctx, err := grpcutils.BuildAuthContext(c)
-	if err != nil {
-		return err
-	}
+	ctx := c.Request.Context()
 
 	ctxUserId, err := contextutils.GetUserId(c)
 	if err != nil {

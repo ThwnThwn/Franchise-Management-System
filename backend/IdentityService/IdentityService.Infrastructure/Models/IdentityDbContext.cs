@@ -1,20 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using IdentityService.Infrastructure.Interceptor;
 using Microsoft.EntityFrameworkCore;
 
 namespace IdentityService.Infrastructure.Models;
 
-public partial class IdentityDbContext : DbContext
+public partial class IdentityDbContext(
+    DbContextOptions<IdentityDbContext> options,
+    UpdateTimestampInterceptor updateTimestampInterceptor
+) : DbContext(options)
 {
-    public IdentityDbContext()
-    {
-    }
-
-    public IdentityDbContext(DbContextOptions<IdentityDbContext> options)
-        : base(options)
-    {
-    }
-
     public virtual DbSet<Permission> Permissions { get; set; }
 
     public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
@@ -24,8 +17,9 @@ public partial class IdentityDbContext : DbContext
     public virtual DbSet<User> Users { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseNpgsql("Host=localhost;Port=5432;Database=identity_db;Username=admin;Password=12345");
+    {
+        optionsBuilder.AddInterceptors(updateTimestampInterceptor);
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

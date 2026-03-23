@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using SalesService.Application.Persisitences.Orders;
 
 namespace SalesService.Application.Features.Orders.Queries.GetMyOrders
@@ -31,6 +31,7 @@ namespace SalesService.Application.Features.Orders.Queries.GetMyOrders
                 o.Id,
                 o.Code,
                 o.Subtotal,
+                o.ShippingFee,
                 o.Tax,
                 o.TotalAmount,
                 o.PaidAmount,
@@ -42,7 +43,13 @@ namespace SalesService.Application.Features.Orders.Queries.GetMyOrders
                 o.CreatedAt,
                 o.UpdatedAt,
                 o.CustomerId,
-                o.StoreId
+                o.StoreId,
+                DelivererId: o.DelivererId,
+                o.ScheduledTime,
+                o.Address,
+                o.Latitude,
+                o.Longitude,
+                o.Distance
             )).ToList();
             return new GetMyOrdersResponse(orderDtos, totalCount);
         }

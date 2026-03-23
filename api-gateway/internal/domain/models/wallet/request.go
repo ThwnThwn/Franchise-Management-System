@@ -16,9 +16,9 @@ type GetAllWalletTransactionsRequest struct {
 }
 
 type UpdateWalletStatusRequest struct {
-	NewStatus  enum.WalletStatus `protobuf:"varint,3,opt,name=new_status,json=newStatus,proto3,enum=wallet.WalletStatus" json:"new_status,omitempty"`
-	Reason     string            `protobuf:"bytes,4,opt,name=reason,proto3" json:"reason,omitempty"`
-	AdminNotes string            `protobuf:"bytes,5,opt,name=admin_notes,json=adminNotes,proto3" json:"admin_notes,omitempty"`
+	NewStatus  enum.WalletStatus `json:"newStatus"`
+	Reason     string            `json:"reason"`
+	AdminNotes string            `json:"adminNotes"`
 }
 
 // Refund

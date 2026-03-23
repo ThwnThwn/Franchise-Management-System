@@ -1,4 +1,4 @@
-﻿namespace SalesService.Application.Features.Orders.Queries.GetMyOrders
+namespace SalesService.Application.Features.Orders.Queries.GetMyOrders
 {
     public record GetMyOrdersResponse(List<OrderSummaryDto> Orders, int TotalCount);
 
@@ -6,6 +6,7 @@
         Guid Id,
         string Code,
         decimal Subtotal,
+        decimal ShippingFee,
         decimal? Tax,
         decimal TotalAmount,
         decimal? PaidAmount,
@@ -17,6 +18,12 @@
         DateTimeOffset CreatedAt,
         DateTimeOffset UpdatedAt,
         Guid? CustomerId,
-        Guid? StoreId
+        Guid? StoreId,
+        Guid? DelivererId,
+        TimeOnly? ScheduledTime,
+        string? Address,
+        double? Latitude,
+        double? Longitude,
+        decimal? Distance
     );
 }

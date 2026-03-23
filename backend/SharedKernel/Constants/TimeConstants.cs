@@ -6,11 +6,6 @@ namespace SharedKernel.Constants
     public static class TimeConstants
     {
         /// <summary>
-        /// Ma timezone mac dinh cua he thong (Viet Nam, UTC+7).
-        /// </summary>
-        public const string DefaultTimeZoneId = "SE Asia Standard Time";
-
-        /// <summary>
         /// So phut toi da cho phep check-in truoc gio bat dau ca.
         /// </summary>
         public const int MaxEarlyCheckInMinutes = 30;

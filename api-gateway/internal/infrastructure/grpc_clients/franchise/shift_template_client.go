@@ -22,7 +22,7 @@ func ProvideShiftTemplateClient(f *clientFactory) franchiseGW.IShiftTemplateServ
 // GetAll implements franchise.IShiftTemplateService.
 func (s *shiftTemplateGrpcClient) GetAll(ctx context.Context, req *shift.GetShiftTemplatesParams) ([]*shift.ShiftTemplateResponse, error) {
 	res, err := s.client.GetShiftTemplates(ctx, &franchisePb.GetShiftTemplatesRequest{
-		StoreId:  stringutils.GetString(req.StoreID),
+		StoreId:  stringutils.GetString(req.StoreId),
 		Keyword:  stringutils.GetString(req.Keyword),
 		IsActive: req.IsActive,
 	})
@@ -51,7 +51,7 @@ func (s *shiftTemplateGrpcClient) GetById(ctx context.Context, id uuid.UUID) (*s
 // Create implements franchise.IShiftTemplateService.
 func (s *shiftTemplateGrpcClient) Create(ctx context.Context, req *shift.CreateShiftTemplateRequest) error {
 	_, err := s.client.CreateShiftTemplate(ctx, &franchisePb.CreateShiftTemplateRequest{
-		StoreId:              stringutils.GetString(req.StoreID),
+		StoreId:              stringutils.GetString(req.StoreId),
 		Code:                 req.Code,
 		Name:                 req.Name,
 		StartTime:            req.StartTime,

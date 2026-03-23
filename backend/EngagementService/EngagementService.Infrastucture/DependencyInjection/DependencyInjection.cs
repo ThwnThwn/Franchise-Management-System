@@ -1,9 +1,11 @@
 ﻿using EngagementService.Application.Persistences.Cache;
 using EngagementService.Application.Persistences.Repository;
+using EngagementService.Domain.Entities;
 using EngagementService.Infrastucture.Interceptor;
 using EngagementService.Infrastucture.Persistences.BackgroundJob;
 using EngagementService.Infrastucture.Persistences.Cache;
 using EngagementService.Infrastucture.Persistences.Repository;
+using IdentityService.Application.Abstrations;
 using Microsoft.Extensions.DependencyInjection;
 using SharedKernel.Infrastructure.Kafka;
 using StackExchange.Redis;
@@ -15,7 +17,8 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services,
         string redisConnectionString,
-        string tierDb)
+        string tierDb,
+        string campaignDb)
     {
         services.AddScoped<UpdateTimestampInterceptor>();
 
@@ -25,11 +28,15 @@ public static class DependencyInjection
             configuration.AbortOnConnectFail = false;
             return ConnectionMultiplexer.Connect(configuration);
         });
+        if (!int.TryParse(campaignDb, out var campaignDbInt)) campaignDbInt = 3;
+
         services.AddStackExchangeRedisCache(opt =>
         {
             opt.Configuration = redisConnectionString + ",defaultDatabase=" + tierDb;
             opt.InstanceName = "chb_redis";
         });
+        services.AddSingleton<ICampaignCache>(sp =>
+            new CampaignCache(sp.GetRequiredService<IConnectionMultiplexer>(), campaignDbInt));
 
         //Repository
         services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
@@ -42,8 +49,10 @@ public static class DependencyInjection
         services.AddScoped<IPointRuleCache, PointRuleCache>();
         services.AddScoped<IVoucherItemRepository, VoucherItemRepository>();
         services.AddScoped<IVoucherQueueRepository, VoucherQueueRepository>();
-
-        services.AddScoped<ILoyaltyAccountUow, LoyaltyAccountUow>();
+        services.AddScoped<IUserVoucherRepository, UserVoucherRepository>();
+        services.AddScoped<IVoucherUsageRepository, VoucherUsageRepository>();
+        services.AddScoped<ICampaignRepository, CampaginRepository>();
+        services.AddScoped<ILoyaltyUow, LoyaltyUow>();
 
 
         services.AddHostedService<CleanupPointLogJob>();

@@ -1,4 +1,5 @@
-﻿using FranchiseService.Application.Features.Stores.Dtos;
+﻿using FranchiseService.Application.Constants;
+using FranchiseService.Application.Features.Stores.Dtos;
 using FranchiseService.Application.Repositories;
 using FranchiseService.Domain.Enums;
 using MediatR;
@@ -23,7 +24,9 @@ namespace FranchiseService.Application.Features.Stores.Queries.GetStoreDetail
             if (store == null) return null;
 
             // 2. Logic tính toán IsOpenNow (Chính xác từng phút)
-            var vnTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));
+            var vnTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById(
+                DateConstants.GetVietnamTimeZoneId()
+            ));
             var currentDay = (int)vnTime.DayOfWeek;
             var currentTime = TimeOnly.FromDateTime(vnTime);
 
