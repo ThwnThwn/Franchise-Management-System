@@ -136,7 +136,9 @@ public class Program
             config.Register<SharedKernel.Events.UpdatePointEvent>(SharedKernel.Constants.KafkaTopics.UpdateUserPoint, typeof(EngagementService.Application.EventHandler.UpdatePointEventHandler));
             config.Register<SharedKernel.Events.UseVouchersEvent>(SharedKernel.Constants.KafkaTopics.DeductUserVoucher, typeof(EngagementService.Application.EventHandler.UseVoucherEventHandler));
             config.Register<SharedKernel.Events.ReverseVoucherEvent>
-              (SharedKernel.Constants.KafkaTopics.ReverseUserVoucher, typeof(EngagementService.Application.EventHandler.ReverseVoucherEventHandler));
+                (SharedKernel.Constants.KafkaTopics.ReverseUserVoucher, typeof(EngagementService.Application.EventHandler.ReverseVoucherEventHandler));
+            config.Register<SharedKernel.Events.RedeemCampaignVoucherEvent>
+                (SharedKernel.Constants.KafkaTopics.RedeemCampaignVoucher, typeof(EngagementService.Application.EventHandler.RedeemCampaignVoucherEventHanlder));
         });
 
         // 1. Cấu hình bản quyền QuestPDF (Bắt buộc để không bị lỗi khi chạy)

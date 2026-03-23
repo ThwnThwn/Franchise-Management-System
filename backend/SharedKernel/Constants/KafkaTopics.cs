@@ -43,4 +43,7 @@ public static class KafkaTopics
 
     /// <summary>Hoàn lại voucher</summary>
     public const string ReverseUserVoucher = "reverse-user-voucher";
+
+    /// <summary> Đăng kí voucher qua campaign</summary>
+    public const string RedeemCampaignVoucher = "redeem-campaign-voucher";
 }

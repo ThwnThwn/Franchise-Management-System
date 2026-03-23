@@ -17,6 +17,7 @@ namespace EngagementService.Application.Features.Campaign.Commands.UpdateActiveS
         private readonly ICampaignRepository _campaignRepository;
         private readonly IMapper _mapper;
         private readonly ICampaignCache _campaignCache;
+        
 
         public UpdateActiveStatusHandler(ICampaignRepository campaignRepository, IMapper mapper, ICampaignCache campaignCache)
         {
@@ -28,11 +29,11 @@ namespace EngagementService.Application.Features.Campaign.Commands.UpdateActiveS
         public async Task<CampaignRes> Handle(UpdateActiveStatusCommand command, CancellationToken cancellationToken)
         {
             var request = command.Request;
-            if(request.Id == null)
+            if(request.Id == Guid.Empty)
             {
                 throw new ArgumentNullException("Id is null" +nameof(command));
             }
-            Domain.Entities.Campaign campaign = await _campaignRepository.GetCampaignById(request.Id);
+            Domain.Entities.Campaign? campaign = await _campaignRepository.GetCampaignById(request.Id);
             if(campaign == null)
             {
                 throw new ArgumentNullException($"campign with Id {request.Id} is null" + nameof(command));

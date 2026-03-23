@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EngagementService.Infrastucture.Persistences.Repository
+namespace EngagementService.Infrastucture.Persistences.Cache
 {
     internal class CampaignCache : ICampaignCache
     {
@@ -14,13 +14,19 @@ namespace EngagementService.Infrastucture.Persistences.Repository
         private readonly int _dbIndex;
 
         // Create script ONCE for maximum performance (EVALSHA)
-        private static readonly LuaScript _redeemScript = LuaScript.Prepare
-        (
-            @"local stock = tonumber(redis.call('GET', KEYS[1]))
+        // -1 co voucher roi
+        // 0 - khong du quantity
+        // 1 - oke
+        private static readonly LuaScript _redeemScript = LuaScript.Prepare(
+            @"local stock = tonumber(redis.call('GET', @stockKey))
             if not stock or stock <= 0 then return 0 end
-            if redis.call('SISMEMBER', KEYS[2], ARGV[1]) == 1 then return -1 end
-            redis.call('DECR', KEYS[1])
-            redis.call('SADD', KEYS[2], ARGV[1])
+    
+            -- Check if user already has it
+            if redis.call('SISMEMBER', @usersKey, @userId) == 1 then return -1 end
+    
+            -- Decrement and Add user
+            redis.call('DECR', @stockKey)
+            redis.call('SADD', @usersKey, @userId)
             return 1"
         );
 
@@ -29,13 +35,12 @@ namespace EngagementService.Infrastucture.Persistences.Repository
             _redis = redis;
             _dbIndex = dbIndex;
         }
-
         // Up Campaign len redis
         public async Task WarmUpVoucherAsync(Guid voucherId, int quanity, DateTimeOffset endDate)
         {
             var db = _redis.GetDatabase(_dbIndex);
-            var stockKey = $"v_stock:{voucherId}";
-            var usersKey = $"v_users:{voucherId}";
+            var stockKey = (RedisKey)$"v_stock:{voucherId}";
+            var usersKey = (RedisKey)$"v_users:{voucherId}";
 
             // set the stock
             await db.StringSetAsync(stockKey, quanity);
@@ -55,14 +60,16 @@ namespace EngagementService.Infrastucture.Persistences.Repository
         public async Task<int> RedeemVoucherAsync(Guid voucherId, Guid userId)
         {
             var db = _redis.GetDatabase(_dbIndex);
-            var stockKey = $"v_stock:{voucherId}";
-            var usersKey = $"v_users:{voucherId}"; // mốt sẽ gắn userID vô
 
-            return (int)await db.ScriptEvaluateAsync(_redeemScript, new
+            // This method automatically maps @stockKey, @usersKey, and @userId
+            var result = await _redeemScript.EvaluateAsync(db, new
             {
-                KEYS = new RedisKey[] { stockKey, usersKey },
-                ARGV = new RedisValue[] { userId.ToString() }
+                stockKey = (RedisKey)$"v_stock:{voucherId}",
+                usersKey = (RedisKey)$"v_users:{voucherId}",
+                userId = (RedisValue)userId.ToString()
             });
+
+            return (int)result;
         }
 
         public async Task DeleteVoucherCacheAsync(Guid voucherId)

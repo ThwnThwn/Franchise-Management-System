@@ -7,7 +7,10 @@ namespace EngagementService.Application.Persistences.Repository
     {
         Task<Campaign?> GetCampaignByName(string name);
 
-        Task<Campaign?> GetCampaignById(Guid id);
+        Task<Campaign?> 
+            
+            
+            GetCampaignById(Guid id);
 
         Task<IEnumerable<Campaign>> GetAllCampaign(Expression<Func<Campaign, bool>>? predicate = null);
     }

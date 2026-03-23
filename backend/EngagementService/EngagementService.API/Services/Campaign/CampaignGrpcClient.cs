@@ -2,6 +2,7 @@
 using EngagementService.Application.Dtos.Campaign.Request;
 using EngagementService.Application.Dtos.Campaign.Response;
 using EngagementService.Application.Features.Campaign.Commands.Create;
+using EngagementService.Application.Features.Campaign.Commands.RedeemCampaignVoucher;
 using EngagementService.Application.Features.Campaign.Commands.UpdateActiveStatus;
 using EngagementService.Application.Features.Campaign.Queries.GetActive;
 using EngagementService.Application.Features.Campaign.Queries.GetAll;
@@ -49,6 +50,20 @@ namespace EngagementService.API.Services.Campagin
             {
                 Id = Guid.Parse(request.Id),
                 IsActive = request.IsActive,
+            });
+            var result = await _mediator.Send(command);
+
+            //Result - gRPC Response
+            var response = MapCampaignToGrpc(result);
+            return response;
+        }
+
+        public override async Task<CampaignResponse> RedeemCampainVocuher(RedeemCampainVoucherRequest request, ServerCallContext context)
+        {
+            var command = new RedeemCampaignVoucherCommand(new RedeemCampaignVoucherReq
+            {
+                UserId = Guid.Parse(request.UserId),
+                VoucherId = Guid.Parse(request.VoucherId)
             });
             var result = await _mediator.Send(command);
 
