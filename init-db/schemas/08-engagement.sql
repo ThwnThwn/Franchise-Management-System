@@ -159,6 +159,8 @@ CREATE TABLE "user_vouchers" (
     "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     "is_deleted" BOOLEAN DEFAULT FALSE
 );
+ALTER TABLE "user_vouchers" 
+ADD COLUMN "campaign_id" UUID NOT NULL REFERENCES "campaigns"("id");
 
 -- Đã đổi tên bảng thành voucher_items để đồng bộ với index bên dưới
 CREATE TABLE "voucher_items" (
@@ -192,10 +194,12 @@ CREATE TABLE "voucher_queue" (
 
 -- NHÓM 3: TỐI ƯU HÓA TRUY VẤN (INDEXES)
 -- ---------------------------------------------------------
+
 CREATE INDEX "idx_point_logs_user_id" ON "point_logs"("user_id");
 CREATE INDEX "idx_loyalty_accounts_tier" ON "loyalty_accounts"("current_tier_id");
 CREATE INDEX "idx_user_vouchers_user_status" ON "user_vouchers"("user_id", "status");
 CREATE INDEX "idx_voucher_usages_order_id" ON "voucher_usages"("order_id");
 CREATE INDEX "idx_voucher_items_lookup" ON "voucher_items" ("voucher_id") WHERE "is_deleted" IS FALSE;
 CREATE INDEX IX_point_logs_expired_at ON "point_logs" ("expired_at") 
+CREATE INDEX idx_user_vouchers_user_campaign ON "user_vouchers" ("user_id", "campaign_id");
 WHERE "expired_at" IS NOT NULL;
