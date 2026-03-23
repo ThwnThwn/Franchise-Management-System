@@ -10,6 +10,7 @@ service IngredientGrpc {
   rpc UpdateIngredient(UpdateIngredientReq) returns (NoneReply);
   rpc DeleteIngredient(DeleteIngredientReq) returns (NoneReply);
   rpc GetAllIngredient(GetAllIngredientReq) returns (GetAllIngredientRep);
+  rpc GetIngredientById(GetIngredientByIdRequest) returns (GetIngredientByIdResponse);
 }
 
 message CreateIngredientReq {
@@ -53,4 +54,10 @@ message GetAllIngredientReq{
     int32 page_size = 3;
 }
 
+message GetIngredientByIdRequest{
+    string id=1;
+}
 
+message GetIngredientByIdResponse{
+    IngredientViewRes Ingredient_res = 1;
+}

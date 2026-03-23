@@ -120,7 +120,7 @@ public sealed class CustomerCreateRefundTicketCommandHandler
             TransactionType.Payment => "PAY",
             TransactionType.Refund => "REF",
             TransactionType.Transfer => "TRF",
-            _ => "TXN"
+            _ => "TXN" //Transaction
         };
 
         var shortGuid = Guid.NewGuid().ToString("N")[..8].ToUpper();

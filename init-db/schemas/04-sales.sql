@@ -166,7 +166,7 @@ CREATE TABLE IF NOT EXISTS wallets (
     status INT NOT NULL,
     notes VARCHAR(500),
 
-    row_version BYTEA NOT NULL,
+    row_version BYTEA NOT NULL DEFAULT '\x0000000000000001',
 
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -182,7 +182,33 @@ WHERE is_deleted = FALSE;
 CREATE INDEX IF NOT EXISTS idx_wallets_status
 ON wallets(status);
 
-ALTER TABLE wallets ALTER COLUMN row_version SET DEFAULT '\\x0000000000000001'::bytea;
+--  Function tăng row_version mỗi khi UPDATE
+CREATE OR REPLACE FUNCTION fn_increment_row_version()
+RETURNS TRIGGER AS $$
+DECLARE
+    current_val bigint;
+BEGIN
+    current_val := (
+        get_byte(OLD.row_version, 0)::bigint << 56 |
+        get_byte(OLD.row_version, 1)::bigint << 48 |
+        get_byte(OLD.row_version, 2)::bigint << 40 |
+        get_byte(OLD.row_version, 3)::bigint << 32 |
+        get_byte(OLD.row_version, 4)::bigint << 24 |
+        get_byte(OLD.row_version, 5)::bigint << 16 |
+        get_byte(OLD.row_version, 6)::bigint << 8  |
+        get_byte(OLD.row_version, 7)::bigint
+    );
+
+    NEW.row_version = int8send(current_val + 1);
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+--  Trigger gắn vào wallets
+CREATE OR REPLACE TRIGGER trg_wallets_row_version
+BEFORE UPDATE ON wallets
+FOR EACH ROW
+EXECUTE FUNCTION fn_increment_row_version();
 
 CREATE TABLE IF NOT EXISTS wallet_transactions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
