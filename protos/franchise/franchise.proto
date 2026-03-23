@@ -7,67 +7,215 @@ package franchise;
 
 import "google/protobuf/timestamp.proto";
 
-// Service quản lý quy trình nhượng quyền của "cà hong bạn"
+// ─────────────────────────────────────────────────────────────────────────────
+// Service quản lý toàn bộ quy trình nhượng quyền
+// Luồng: Submit → Review (Approve/Reject) → [DocuSeal ký] → ConfirmPayment → Active
+// ─────────────────────────────────────────────────────────────────────────────
 service FranchiseGrpcService {
-    // 1. Khách hàng gửi đơn đăng ký nhượng quyền (truyền bytes ảnh)
-    rpc SubmitFranchiseApplication (SubmitApplicationRequest) returns (FranchiseApplicationResponse);
-    
-    // 2. Admin lấy chi tiết một đơn đăng ký
-    rpc GetApplicationDetails (GetApplicationRequest) returns (FranchiseApplicationResponse);
+    // ── FRANCHISE APPLICATIONS ───────────────────────────────────────────────
 
-    // 3. Admin lấy danh sách toàn bộ đơn đăng ký (có phân trang và lọc)
+    // 1. Đối tác gửi hồ sơ đăng ký (hỗ trợ nhiều file chứng nhận đất đai)
+    rpc SubmitFranchiseApplication (SubmitApplicationRequest) returns (FranchiseApplicationResponse);
+
+    // 2. Admin lấy chi tiết một hồ sơ (kèm danh sách hợp đồng liên quan)
+    rpc GetApplicationDetails (GetApplicationRequest) returns (FranchiseApplicationDetailResponse);
+
+    // 3. Admin lấy danh sách hồ sơ (phân trang + lọc)
     rpc GetAllApplications (GetAllApplicationsRequest) returns (GetAllApplicationsResponse);
 
-    // 4. Admin xử lý đơn (Duyệt hoặc Từ chối)
-    rpc ReviewApplication (ReviewFranchiseApplicationRequest) returns (FranchiseApplicationResponse);
+    // 4. Admin duyệt hoặc từ chối hồ sơ
+    //    Nếu Approve: tự động tạo Contract + gửi DocuSeal email link ký
+    rpc ReviewApplication (ReviewFranchiseApplicationRequest) returns (ReviewFranchiseApplicationResponse);
+
+    // ── FRANCHISE CONTRACTS ──────────────────────────────────────────────────
+
+    // 5. Lấy danh sách hợp đồng (phân trang + lọc theo status)
+    rpc GetAllContracts (GetAllContractsRequest) returns (GetAllContractsResponse);
+
+    // 6. Lấy chi tiết một hợp đồng
+    rpc GetContractDetail (GetContractDetailRequest) returns (FranchiseContractResponse);
+
+    // 7. Kế toán xác nhận đã nhận tiền cọc → Contract chuyển sang Active
+    rpc ConfirmDepositPayment (ConfirmDepositPaymentRequest) returns (ConfirmDepositPaymentResponse);
+
+    // 8. Admin cập nhật tiến độ thi công (Design → Construction → Inspection → Ready)
+    rpc UpdateSetupStatus (UpdateSetupStatusRequest) returns (FranchiseContractResponse);
+
+    // 9. Admin cập nhật trạng thái hợp đồng (Suspend, Terminate)
+    rpc UpdateContractStatus (UpdateContractStatusRequest) returns (FranchiseContractResponse);
+
+    // 10. Admin gia hạn hợp đồng (Renew) thêm số năm
+    rpc RenewContract (RenewContractRequest) returns (FranchiseContractResponse);
+
+    // ── DOCUSEAL WEBHOOK ─────────────────────────────────────────────────────
+
+    // 9. Internal RPC — API Gateway forward Webhook từ DocuSeal vào service
+    //    (Không expose ra ngoài — chỉ gọi nội bộ từ một REST endpoint hoặc Gateway)
+    rpc HandleDocuSealWebhook (DocuSealWebhookRequest) returns (DocuSealWebhookResponse);
+
+    // 10. Upload ảnh độc lập (sử dụng base64/bytes) không đính kèm ID
+    rpc UploadImage (UploadImageRequest) returns (UploadImageResponse);
+
+    // 11. Upload ảnh trực tiếp vào một Application đang tồn tại
+    rpc UploadApplicationImage (UploadApplicationImageRequest) returns (UploadApplicationImageResponse);
 }
 
-// --- Messages cho chức năng Submit ---
-
+// ─────────────────────────────────────────────────────────────────────────────
+// SUBMIT APPLICATION
+// ─────────────────────────────────────────────────────────────────────────────
 message SubmitApplicationRequest {
-    // Hai trường quan trọng Duy vừa bổ sung vào DB
     string store_id = 1;
     string manager_id = 2;
 
+    // Thông tin cá nhân
     string full_name = 3;
     string email = 4;
     string phone = 5;
-    string identity_number = 6; 
-    string store_address = 7;
-    double store_latitude = 8;
-    double store_longitude = 9;
-    double store_size_sqm = 10;
+    string identity_number = 6;
 
-    bytes land_certificate_data = 11; 
-    string land_certificate_filename = 12; 
-    
-    bytes store_front_data = 13;
-    string store_front_filename = 14;
+    // Địa chỉ phân cấp 3 cấp (Tỉnh/TP → Quận/Huyện → Phường/Xã)
+    string province_id = 7;
+    string district_id = 8;
+    string ward_id = 9;
+    string store_address = 10;
+    double store_latitude = 11;
+    double store_longitude = 12;
+    double store_size_sqm = 13;
+
+    // Danh sách file chứng nhận đất đai (bytes[] cho nhiều file)
+    repeated LandCertificateFile land_certificate_files = 14;
+
+    // Ảnh mặt bằng
+    bytes store_front_data = 15;
+    string store_front_filename = 16;
 }
 
-// --- Messages cho chức năng Query ---
+// Một file chứng nhận đất đai (gRPC lặp repeated để gửi nhiều file)
+message LandCertificateFile {
+    bytes data = 1;
+    string filename = 2;
+    string content_type = 3;
+}
 
+// ─────────────────────────────────────────────────────────────────────────────
+// REVIEW APPLICATION
+// ─────────────────────────────────────────────────────────────────────────────
+message ReviewFranchiseApplicationRequest {
+    string id = 1;
+    string reviewed_by = 2;
+
+    // 1 = Approved, 2 = Rejected
+    int32 action = 3;
+
+    string note = 4;
+
+    // [Deprecated] DocuSeal Template ID giờ lấy cấu hình qua file Env thay vì bắt client cấp
+    int32 docuseal_template_id = 5 [deprecated = true];
+    double deposit_amount = 6;
+    double franchise_fee = 7;
+    double revenue_share_percentage = 8;
+    google.protobuf.Timestamp valid_from = 9;
+    google.protobuf.Timestamp valid_until = 10;
+}
+
+message ReviewFranchiseApplicationResponse {
+    bool success = 1;
+    string message = 2;
+    string contract_id = 3;
+    int32 docuseal_submission_id = 4;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CONTRACTS
+// ─────────────────────────────────────────────────────────────────────────────
+message GetAllContractsRequest {
+    int32 page = 1;
+    int32 page_size = 2;
+    optional int32 status = 3; // ContractStatus enum value
+}
+
+message GetAllContractsResponse {
+    repeated FranchiseContractResponse contracts = 1;
+    int32 total_count = 2;
+    int32 total_pages = 3;
+    int32 current_page = 4;
+}
+
+message GetContractDetailRequest {
+    string contract_id = 1;
+}
+
+message ConfirmDepositPaymentRequest {
+    string contract_id = 1;
+    string confirmed_by = 2;
+    string note = 3;
+}
+
+message ConfirmDepositPaymentResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+message UpdateSetupStatusRequest {
+    string contract_id = 1;
+    // 0: Design, 1: Construction, 2: Inspection, 3: Ready
+    int32 setup_status = 2;
+    string updated_by = 3;
+}
+
+message UpdateContractStatusRequest {
+    string contract_id = 1;
+    int32 status = 2; // 5: Suspended, 6: Terminated, v.v.
+    string reason = 3;
+}
+
+message RenewContractRequest {
+    string contract_id = 1;
+    int32 extension_years = 2; // số năm gia hạn
+    string note = 3;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DOCUSEAL WEBHOOK (Internal)
+// ─────────────────────────────────────────────────────────────────────────────
+message DocuSealWebhookRequest {
+    string event_type = 1;        // "form.viewed" | "form.started" | "form.completed"
+    int32 submission_id = 2;
+    string document_url = 3;      // PDF URL (chỉ có khi form.completed)
+    google.protobuf.Timestamp completed_at = 4;
+    string raw_body = 5;          // Raw body để verify HMAC
+    string signature_header = 6;  // Giá trị Header X-DocuSeal-Signature
+}
+
+message DocuSealWebhookResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RESPONSE MESSAGES
+// ─────────────────────────────────────────────────────────────────────────────
 message GetApplicationRequest {
     string id = 1;
 }
 
 message GetAllApplicationsRequest {
     int32 page = 1;
-    int32 page_size = 2;   
-    optional int32 status = 3; 
+    int32 page_size = 2;
+    optional int32 status = 3;
     optional string search_key = 4;
 }
 
 message GetAllApplicationsResponse {
     repeated FranchiseApplicationResponse applications = 1;
-    int32 total_count = 2;   
+    int32 total_count = 2;
     int32 total_pages = 3;
-    int32 current_page = 4; // Thêm trường này để Frontend dễ quản lý state
+    int32 current_page = 4;
 }
 
 // --- Messages gộp Duyệt & Từ chối ---
 
-message ReviewFranchiseApplicationRequest {
+message ReviewApplicationRequest {
     string id = 1;
     
     // Action: 1 là Approve (Duyệt), 2 là Reject (Từ chối)
@@ -87,20 +235,72 @@ message FranchiseApplicationResponse {
     string email = 5;
     string phone = 6;
     string identity_number = 7;
-    string store_address = 8;
-    double store_latitude = 9;
-    double store_longitude = 10;
-    double store_size_sqm = 11;
+    string province_id = 8;
+    string district_id = 9;
+    string ward_id = 10;
+    string store_address = 11;
+    double store_latitude = 12;
+    double store_longitude = 13;
+    double store_size_sqm = 14;
+    repeated string land_certificate_urls = 15;
+    string store_front_url = 16;
+    int32 status = 17;
+    string admin_note = 18;
+    google.protobuf.Timestamp created_at = 19;
+    google.protobuf.Timestamp updated_at = 20;
+    optional string reviewed_by = 21;
+    optional google.protobuf.Timestamp reviewed_at = 22;
+    repeated FranchiseContractResponse contracts = 23;
+}
 
-    string land_certificate_url = 12;
-    string store_front_url = 13;
+// Response chi tiết (kèm contract list)
+message FranchiseApplicationDetailResponse {
+    FranchiseApplicationResponse application = 1;
+    repeated FranchiseContractResponse contracts = 2;
+}
 
-    int32 status = 14;
-    string admin_note = 15;
-    
-    optional string docuseal_submission_id = 16;
-    optional string contract_pdf_url = 17;
+// Contract response
+message FranchiseContractResponse {
+    string id = 1;
+    string application_id = 2;
+    int32 docuseal_submission_id = 3;
+    string contract_pdf_url = 4;
+    double deposit_amount = 5;
+    int32 deposit_status = 6;     // 0: AwaitingPayment, 1: Paid
+    double franchise_fee = 7;
+    double revenue_share_percentage = 8;
+    int32 status = 9;             // ContractStatus enum
+    int32 setup_status = 10;      // ContractSetupStatus enum
+    optional google.protobuf.Timestamp valid_from = 11;
+    optional google.protobuf.Timestamp valid_until = 12;
+    google.protobuf.Timestamp created_at = 13;
+    google.protobuf.Timestamp updated_at = 14;
+}
 
-    google.protobuf.Timestamp created_at = 18;
-    google.protobuf.Timestamp updated_at = 19;
+// ─────────────────────────────────────────────────────────────────────────────
+// UPLOAD IMAGE
+// ─────────────────────────────────────────────────────────────────────────────
+message UploadImageRequest {
+    bytes image_data = 1;
+    string file_name = 2;
+    string content_type = 3;
+}
+
+message UploadImageResponse {
+    string url = 1;
+    string public_id = 2;
+}
+
+message UploadApplicationImageRequest {
+    string application_id = 1;
+    bytes image_data = 2;
+    string file_name = 3;
+    string content_type = 4;
+    string image_type = 5; // "STORE_FRONT" hoặc "LAND_CERTIFICATE"
+}
+
+message UploadApplicationImageResponse {
+    string application_id = 1;
+    string image_url = 2;
+    string image_public_id = 3;
 }

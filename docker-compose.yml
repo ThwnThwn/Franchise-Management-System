@@ -152,7 +152,11 @@ services:
     container_name: chb_ngrok
     restart: always
     environment:
-      - NGROK_AUTHTOKEN=3Agz8FdHS61E0OaxLlUtGuMQbRz_3diR3mFGtpjhnoaWjr5YX
+      - NGROK_AUTHTOKEN=3BKJy37D0WIsrbZVw1FNKO7r83f_7ybnijwu8i2miaPScahL8
+      # Cấu hình Cloudinary tại đây
+      - CLOUDINARY_CLOUD_NAME=dq9xxhsmf
+      - CLOUDINARY_API_KEY=339971318777718
+      - CLOUDINARY_API_SECRET=Itf_jo70xY8_z143Yyc123IDbgE
     volumes:
       - ./ngrok.yml:/etc/ngrok.yml
     command:
@@ -164,7 +168,7 @@ services:
       - "4040:4040"
     networks:
       - chb-network
-
+      
 # ==========================================
 # VOLUMES & NETWORKS
 # ==========================================

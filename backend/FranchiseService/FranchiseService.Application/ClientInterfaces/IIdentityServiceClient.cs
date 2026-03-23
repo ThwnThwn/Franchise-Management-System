@@ -33,5 +33,7 @@ namespace FranchiseService.Application.ClientInterfaces
 
         // ID cua hang "nha" cua nhan vien (homeStoreId trong Identity)
         public Guid? HomeStoreId { get; set; }
+
+        public string? RoleSlug { get; set; }
     }
 }

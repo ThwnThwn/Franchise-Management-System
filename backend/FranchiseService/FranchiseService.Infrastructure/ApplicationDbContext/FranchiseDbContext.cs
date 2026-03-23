@@ -1,5 +1,6 @@
-﻿using FranchiseService.Domain.Commons;
+using FranchiseService.Domain.Commons;
 using FranchiseService.Domain.Entities;
+using FranchiseService.Domain.Enums;
 using FranchiseService.Domain.Models;
 using FranchiseService.Infrastructure.Interceptor;
 using Microsoft.EntityFrameworkCore;
@@ -53,6 +54,8 @@ public partial class FranchiseDbContext : DbContext, IFranchiseDbContext
     public virtual DbSet<ShiftSwapRequest> ShiftSwapRequests { get; set; }
 
     public virtual DbSet<FranchiseApplication> FranchiseApplications { get; set; }
+
+    public virtual DbSet<FranchiseContract> FranchiseContracts { get; set; }
 
     public new DbSet<T> Set<T>() where T : class, IEntity => base.Set<T>();
 
@@ -156,7 +159,7 @@ public partial class FranchiseDbContext : DbContext, IFranchiseDbContext
             entity.Property(e => e.ShiftTemplateId).HasColumnName("shift_template_id");
             entity.Property(e => e.StartTime).HasColumnName("start_time");
             entity.Property(e => e.Status)
-                .HasDefaultValue(0)
+                .HasDefaultValue((int)ShiftStatus.Draft)
                 .HasColumnName("status");
             entity.Property(e => e.StoreId).HasColumnName("store_id");
             entity.Property(e => e.UpdatedAt)
@@ -193,7 +196,7 @@ public partial class FranchiseDbContext : DbContext, IFranchiseDbContext
                 .HasColumnName("is_deleted");
             entity.Property(e => e.ShiftId).HasColumnName("shift_id");
             entity.Property(e => e.Status)
-                .HasDefaultValue(0)
+                .HasDefaultValue((int)ShiftAssignmentStatus.Assigned)
                 .HasColumnName("status");
             entity.Property(e => e.UpdatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
@@ -372,10 +375,10 @@ public partial class FranchiseDbContext : DbContext, IFranchiseDbContext
                 .HasMaxLength(20)
                 .HasColumnName("phone");
             entity.Property(e => e.Status)
-                .HasDefaultValue(1)
+                .HasDefaultValue((int)StoreStatus.Open)
                 .HasColumnName("status");
             entity.Property(e => e.Type)
-                .HasDefaultValue(0)
+                .HasDefaultValue((int)StoreType.CompanyOwned)
                 .HasColumnName("type");
             entity.Property(e => e.UpdatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
@@ -459,7 +462,7 @@ public partial class FranchiseDbContext : DbContext, IFranchiseDbContext
             entity.Property(e => e.ManagerNote).HasColumnName("manager_note");
             entity.Property(e => e.ShiftAssignmentId).HasColumnName("shift_assignment_id");
             entity.Property(e => e.Status)
-                .HasDefaultValue(0)
+                .HasDefaultValue((int)TimeLogStatus.Processing)
                 .HasColumnName("status");
             entity.Property(e => e.RegularMinutes)
                 .HasColumnName("regular_minutes")
@@ -496,7 +499,7 @@ public partial class FranchiseDbContext : DbContext, IFranchiseDbContext
             entity.Property(e => e.Id).HasDefaultValueSql("uuid_generate_v4()").HasColumnName("id");
             entity.Property(e => e.ShiftId).HasColumnName("shift_id");
             entity.Property(e => e.UserId).HasColumnName("user_id");
-            entity.Property(e => e.Status).HasDefaultValue(0).HasColumnName("status");
+            entity.Property(e => e.Status).HasDefaultValue((int)ShiftApplicationStatus.Pending).HasColumnName("status");
             entity.Property(e => e.Note).HasColumnName("note");
             entity.Property(e => e.AppliedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").HasColumnName("applied_at");
             entity.Property(e => e.ReviewedAt).HasColumnName("reviewed_at");
@@ -524,7 +527,7 @@ public partial class FranchiseDbContext : DbContext, IFranchiseDbContext
             entity.Property(e => e.SourceAssignmentId).HasColumnName("source_assignment_id");
             entity.Property(e => e.SourceUserId).HasColumnName("source_user_id");
             entity.Property(e => e.TargetUserId).HasColumnName("target_user_id");
-            entity.Property(e => e.Status).HasDefaultValue(0).HasColumnName("status");
+            entity.Property(e => e.Status).HasDefaultValue((int)SwapRequestStatus.PendingTarget).HasColumnName("status");
             entity.Property(e => e.Reason).HasMaxLength(500).HasColumnName("reason");
             entity.Property(e => e.RejectReason).HasMaxLength(500).HasColumnName("reject_reason");
             entity.Property(e => e.ExpiresAt).HasColumnName("expires_at");
@@ -584,62 +587,40 @@ public partial class FranchiseDbContext : DbContext, IFranchiseDbContext
 
             entity.ToTable("franchise_applications");
 
-            entity.HasIndex(e => e.DocusealSubmissionId, "idx_franchise_app_docuseal_id");
-
             entity.HasIndex(e => e.Email, "idx_franchise_app_email");
-
             entity.HasIndex(e => e.IdentityNumber, "idx_franchise_app_identity");
-
             entity.HasIndex(e => e.ReviewedBy, "idx_franchise_app_reviewed_by");
-
             entity.HasIndex(e => e.Status, "idx_franchise_app_status");
 
             entity.Property(e => e.Id)
                 .HasDefaultValueSql("uuid_generate_v4()")
                 .HasColumnName("id");
-            entity.Property(e => e.AdminNote).HasColumnName("admin_note");
-            entity.Property(e => e.ContractPdfUrl)
-                .HasMaxLength(500)
-                .HasColumnName("contract_pdf_url");
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnName("created_at");
-            entity.Property(e => e.DocusealSubmissionId).HasColumnName("docuseal_submission_id");
-            entity.Property(e => e.Email)
-                .HasMaxLength(255)
-                .HasColumnName("email");
+            entity.Property(e => e.StoreId).HasColumnName("store_id");
+            entity.Property(e => e.ManagerId).HasColumnName("manager_id");
+
             entity.Property(e => e.FullName)
                 .HasMaxLength(255)
                 .HasColumnName("full_name");
-            entity.Property(e => e.IdentityNumber)
-                .HasMaxLength(20)
-                .HasColumnName("identity_number");
-            entity.Property(e => e.IsDeleted)
-                .HasDefaultValue(false)
-                .HasColumnName("is_deleted");
-            entity.Property(e => e.LandCertificatePublicId)
-                .HasMaxLength(100)
-                .HasColumnName("land_certificate_public_id");
-            entity.Property(e => e.LandCertificateUrl)
-                .HasMaxLength(500)
-                .HasColumnName("land_certificate_url");
-            entity.Property(e => e.ManagerId).HasColumnName("manager_id");
+            entity.Property(e => e.Email)
+                .HasMaxLength(255)
+                .HasColumnName("email");
             entity.Property(e => e.Phone)
                 .HasMaxLength(20)
                 .HasColumnName("phone");
-            entity.Property(e => e.ReviewedAt).HasColumnName("reviewed_at");
-            entity.Property(e => e.ReviewedBy).HasColumnName("reviewed_by");
-            entity.Property(e => e.Status)
-                .HasDefaultValue(0)
-                .HasColumnName("status");
+            entity.Property(e => e.IdentityNumber)
+                .HasMaxLength(20)
+                .HasColumnName("identity_number");
+
+            entity.Property(e => e.ProvinceId)
+                .HasMaxLength(50)
+                .HasColumnName("province_id");
+            entity.Property(e => e.DistrictId)
+                .HasMaxLength(50)
+                .HasColumnName("district_id");
+            entity.Property(e => e.WardId)
+                .HasMaxLength(50)
+                .HasColumnName("ward_id");
             entity.Property(e => e.StoreAddress).HasColumnName("store_address");
-            entity.Property(e => e.StoreFrontPublicId)
-                .HasMaxLength(100)
-                .HasColumnName("store_front_public_id");
-            entity.Property(e => e.StoreFrontUrl)
-                .HasMaxLength(500)
-                .HasColumnName("store_front_url");
-            entity.Property(e => e.StoreId).HasColumnName("store_id");
             entity.Property(e => e.StoreLatitude)
                 .HasPrecision(10, 8)
                 .HasColumnName("store_latitude");
@@ -649,9 +630,94 @@ public partial class FranchiseDbContext : DbContext, IFranchiseDbContext
             entity.Property(e => e.StoreSizeSqm)
                 .HasPrecision(10, 2)
                 .HasColumnName("store_size_sqm");
+
+            // LandCertificates → PostgreSQL TEXT[]
+            entity.Property(e => e.LandCertificates)
+                .HasColumnName("land_certificates");
+
+            entity.Property(e => e.StoreFrontUrl)
+                .HasMaxLength(500)
+                .HasColumnName("store_front_url");
+            entity.Property(e => e.StoreFrontPublicId)
+                .HasMaxLength(100)
+                .HasColumnName("store_front_public_id");
+
+            entity.Property(e => e.Status)
+                .HasDefaultValue(FranchiseApplicationStatus.Pending)
+                .HasColumnName("status");
+            entity.Property(e => e.AdminNote).HasColumnName("admin_note");
+
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_at");
             entity.Property(e => e.UpdatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("updated_at");
+            entity.Property(e => e.IsDeleted)
+                .HasDefaultValue(false)
+                .HasColumnName("is_deleted");
+            entity.Property(e => e.ReviewedAt).HasColumnName("reviewed_at");
+            entity.Property(e => e.ReviewedBy).HasColumnName("reviewed_by");
+
+            // Navigation: 1 Application → N Contracts
+            entity.HasMany(e => e.Contracts)
+                .WithOne(c => c.Application)
+                .HasForeignKey(c => c.ApplicationId)
+                .HasConstraintName("fk_contract_application");
+        });
+
+        modelBuilder.Entity<FranchiseContract>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("franchise_contracts_pkey");
+
+            entity.ToTable("franchise_contracts");
+
+            entity.HasIndex(e => e.ApplicationId, "idx_franchise_contract_app");
+            entity.HasIndex(e => e.DocusealSubmissionId, "idx_franchise_contract_docuseal");
+            entity.HasIndex(e => e.Status, "idx_franchise_contract_status");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasColumnName("id");
+            entity.Property(e => e.ApplicationId).HasColumnName("application_id");
+
+            entity.Property(e => e.DocusealSubmissionId).HasColumnName("docuseal_submission_id");
+            entity.Property(e => e.ContractPdfUrl)
+                .HasMaxLength(500)
+                .HasColumnName("contract_pdf_url");
+
+            entity.Property(e => e.DepositAmount)
+                .HasPrecision(15, 2)
+                .HasColumnName("deposit_amount");
+            entity.Property(e => e.DepositStatus)
+                .HasDefaultValue(DepositStatus.AwaitingPayment)
+                .HasColumnName("deposit_status");
+            entity.Property(e => e.FranchiseFee)
+                .HasPrecision(15, 2)
+                .HasColumnName("franchise_fee");
+            entity.Property(e => e.RevenueSharePercentage)
+                .HasPrecision(5, 2)
+                .HasColumnName("revenue_share_percentage");
+
+            entity.Property(e => e.Status)
+                .HasDefaultValue(ContractStatus.Draft)
+                .HasColumnName("status");
+            entity.Property(e => e.ValidFrom).HasColumnName("valid_from");
+            entity.Property(e => e.ValidUntil).HasColumnName("valid_until");
+
+            entity.Property(e => e.SetupStatus)
+                .HasDefaultValue(ContractSetupStatus.Design)
+                .HasColumnName("setup_status");
+
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("updated_at");
+            entity.Property(e => e.IsDeleted)
+                .HasDefaultValue(false)
+                .HasColumnName("is_deleted");
         });
     }
 
