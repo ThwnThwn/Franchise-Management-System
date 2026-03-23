@@ -52,6 +52,11 @@ internal class Program
         builder.AddProject<Projects.SupplierService_API>("supplier-service")
             .WithHttpEndpoint(name: "grpc", port: supplierPort, isProxied: false);
 
+        // Warehouse Service
+        var warehousePort = int.Parse(builder.Configuration["WAREHOUSE_PORT"] ?? "5009");
+        builder.AddProject<Projects.WarehouseService_API>("warehouse-service")
+            .WithHttpEndpoint(name: "grpc", port: warehousePort, isProxied: false);
+
         // --- 2. KHAI BÁO GO (API Gateway) ---
         //var goWorkingDir = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "../../api-gateway"));
         //var goExecutablePath = Path.Combine(goWorkingDir, "bin", "main.exe");

@@ -1,0 +1,184 @@
+syntax = "proto3";
+
+import "google/protobuf/wrappers.proto";
+
+option csharp_namespace = "WarehouseService.Grpc.Protos.WarehouseTransfer";
+option go_package = "api-gateway/pkg/pb/warehouse_transfer";
+
+package warehouse_transfer;
+
+service WarehouseTransferGrpc {
+  rpc CreateWarehouseTransfer   (CreateWarehouseTransferRequest)   returns (CreateWarehouseTransferReply);
+  rpc ApproveWarehouseTransfer  (ApproveWarehouseTransferRequest)  returns (ApproveWarehouseTransferReply);
+  rpc RejectWarehouseTransfer   (RejectWarehouseTransferRequest)   returns (RejectWarehouseTransferReply);
+  rpc CompleteWarehouseTransfer (CompleteWarehouseTransferRequest) returns (CompleteWarehouseTransferReply);
+  rpc CancelWarehouseTransfer   (CancelWarehouseTransferRequest)   returns (CancelWarehouseTransferReply);
+  rpc GetWarehouseTransferById  (GetWarehouseTransferByIdRequest)  returns (WarehouseTransferDetail);
+  rpc GetWarehouseTransfers     (GetWarehouseTransfersRequest)     returns (GetWarehouseTransfersReply);
+}
+
+enum TransferStatus {
+  TRANSFER_STATUS_UNSPECIFIED = 0;
+  TRANSFER_STATUS_DRAFT       = 1;
+  TRANSFER_STATUS_PENDING     = 2;
+  TRANSFER_STATUS_APPROVED    = 3;
+  TRANSFER_STATUS_IN_TRANSIT  = 4;
+  TRANSFER_STATUS_COMPLETED   = 5;
+  TRANSFER_STATUS_CANCELLED   = 6;
+  TRANSFER_STATUS_REJECTED    = 7;
+}
+
+
+message CreateWarehouseTransferRequest {
+  string from_warehouse_id           = 1;
+  string to_warehouse_id             = 2;
+  repeated TransferItemRequest items = 3;
+  optional string reason             = 4;
+  optional string note               = 5;
+}
+
+message TransferItemRequest {
+  string warehouse_item_id = 1;
+  double quantity          = 2;
+}
+
+message ApproveWarehouseTransferRequest {
+  string id = 1;
+}
+
+message RejectWarehouseTransferRequest {
+  string id              = 1;
+  optional string reason = 2;
+}
+
+message CompleteWarehouseTransferRequest {
+  string id = 1;
+}
+
+message CancelWarehouseTransferRequest {
+  string id              = 1;
+  optional string reason = 2;
+}
+
+message GetWarehouseTransferByIdRequest {
+  string id = 1;
+}
+
+message GetWarehouseTransfersRequest {
+  optional string        from_warehouse_id = 1;
+  optional string        to_warehouse_id   = 2;
+  optional TransferStatus status           = 3;
+  optional string        from_date         = 4;
+  optional string        to_date           = 5;
+  int32 page      = 6;
+  int32 page_size = 7;
+}
+
+// ── Replies ───────────────────────────────────────────────────
+
+message CreateWarehouseTransferReply {
+  string         id                = 1;
+  string         transfer_code     = 2;
+  string         from_warehouse_id = 3;
+  string         to_warehouse_id   = 4;
+  TransferStatus status            = 5;
+  string         reason            = 6;
+  string         note              = 7;
+  string         created_by        = 8;
+  string         created_at        = 9;
+  repeated TransferItemInfo items  = 10;
+  string         message           = 11;
+}
+
+message ApproveWarehouseTransferReply {
+  string         id            = 1;
+  string         transfer_code = 2;
+  TransferStatus status        = 3;
+  string         approved_by   = 4;
+  string         approved_at   = 5;
+  string         updated_at    = 6;
+  string         message       = 7;
+}
+
+message RejectWarehouseTransferReply {
+  string         id            = 1;
+  string         transfer_code = 2;
+  TransferStatus status        = 3;
+  string         reason        = 4;
+  string         updated_at    = 5;
+  string         message       = 6;
+}
+
+message CompleteWarehouseTransferReply {
+  string         id                = 1;
+  string         transfer_code     = 2;
+  TransferStatus status            = 3;
+  string         from_warehouse_id = 4;
+  string         to_warehouse_id   = 5;
+  repeated TransferredItemInfo transferred_items = 6;
+  string         updated_at        = 7;
+  string         message           = 8;
+}
+
+message CancelWarehouseTransferReply {
+  string         id            = 1;
+  string         transfer_code = 2;
+  TransferStatus status        = 3;
+  string         reason        = 4;
+  string         updated_at    = 5;
+  string         message       = 6;
+}
+
+message GetWarehouseTransfersReply {
+  repeated WarehouseTransferSummary items = 1;
+  int32 total_count = 2;
+  int32 page        = 3;
+  int32 page_size   = 4;
+  int32 total_pages = 5;
+}
+
+
+message TransferItemInfo {
+  string warehouse_item_id = 1;
+  string ingredient_id     = 2;
+  string unit              = 3;
+  double quantity          = 4;
+  double unit_price        = 5;
+}
+
+message TransferredItemInfo {
+  string ingredient_id          = 1;
+  string unit                   = 2;
+  double quantity               = 3;
+  string from_warehouse_item_id = 4;
+  string to_warehouse_item_id   = 5;
+}
+
+message WarehouseTransferSummary {
+  string         id                = 1;
+  string         transfer_code     = 2;
+  string         from_warehouse_id = 3;
+  string         to_warehouse_id   = 4;
+  TransferStatus status            = 5;
+  string         reason            = 6;
+  string         created_by        = 7;
+  string         approved_by       = 8;
+  string         approved_at       = 9;
+  string         created_at        = 10;
+}
+
+message WarehouseTransferDetail {
+  string         id                = 1;
+  string         transfer_code     = 2;
+  string         from_warehouse_id = 3;
+  string         to_warehouse_id   = 4;
+  TransferStatus status            = 5;
+  string         reason            = 6;
+  string         note              = 7;
+  string         created_by        = 8;
+  string         approved_by       = 9;
+  string         approved_at       = 10;
+  string         created_at        = 11;
+  string         updated_at        = 12;
+  repeated TransferItemInfo items  = 13;
+}
