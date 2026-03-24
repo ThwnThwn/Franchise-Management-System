@@ -1,3 +1,4 @@
+using FranchiseService.Application.ClientInterfaces;
 using FranchiseService.Application.Repositories;
 using FranchiseService.Domain.Enums;
 using MediatR;
@@ -16,41 +17,72 @@ public class ConfirmDepositPaymentCommand : IRequest<bool>
     public string? Note { get; set; }
 }
 
-public class ConfirmDepositPaymentHandler : IRequestHandler<ConfirmDepositPaymentCommand, bool>
+public class ConfirmDepositPaymentHandler(
+    IFranchiseUow uow,
+    IFranchiseContractRepository contractRepo,
+    IStoreRepository storeRepo,
+    IIdentityServiceClient identityServiceClient,
+    ILogger<ConfirmDepositPaymentHandler> logger
+) : IRequestHandler<ConfirmDepositPaymentCommand, bool>
 {
-    private readonly IFranchiseContractRepository _contractRepo;
-    private readonly ILogger<ConfirmDepositPaymentHandler> _logger;
-
-    public ConfirmDepositPaymentHandler(
-        IFranchiseContractRepository contractRepo,
-        ILogger<ConfirmDepositPaymentHandler> logger)
-    {
-        _contractRepo = contractRepo;
-        _logger = logger;
-    }
-
     public async Task<bool> Handle(ConfirmDepositPaymentCommand request, CancellationToken cancellationToken)
     {
-        var contract = await _contractRepo.GetByIdAsync(request.ContractId)
+        // Kiểm tra Contract
+        var contract = await contractRepo.GetByIdAsync(request.ContractId)
             ?? throw new KeyNotFoundException($"Không tìm thấy hợp đồng với ID: {request.ContractId}");
 
         if (contract.Status != ContractStatus.AwaitingPayment)
             throw new InvalidOperationException(
                 $"Hợp đồng đang ở trạng thái '{contract.Status}', chỉ có thể xác nhận thanh toán khi ở trạng thái AwaitingPayment.");
 
-        // Xác nhận đã thanh toán → hợp đồng có hiệu lực
-        contract.DepositStatus = DepositStatus.Paid;
-        contract.Status = ContractStatus.Active;
-        contract.UpdatedAt = DateTimeOffset.UtcNow;
+        await uow.BeginTransactionAsync(cancellationToken);
 
-        await _contractRepo.UpdateAsync(contract);
+        try
+        {
+            var application = contract.Application;
+            var newStore = new Domain.Entities.Store
+            {
+                Id = Guid.NewGuid(),
+                Code = $"STR-{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}",
+                Name = application.StoreName,
+                Address = application.StoreAddress,
+                Phone = application.Phone,
+                Email = application.Email,
+                Type = (int)StoreType.Franchise,
+                Status = (int)StoreStatus.ComingSoon, // Đợi thi công xong mới Open
+                ImageUrl = application.StoreFrontUrl,
+                Latitude = application.StoreLatitude,
+                Longitude = application.StoreLongitude,
+            };
 
-        _logger.LogInformation(
-            "Contract {ContractId} is now ACTIVE after deposit confirmed by {UserId}",
-            contract.Id, request.ConfirmedBy);
+            contract.DepositStatus = DepositStatus.Paid;
+            contract.Status = ContractStatus.Active;
+            contract.Application.StoreId = newStore.Id;
+            contract.UpdatedAt = DateTimeOffset.UtcNow;
 
-        // TODO Phase 3: Publish event ContractActivated → Kafka → Tạo Store Record
+            await storeRepo.AddOnlyAsync(newStore);
 
-        return true;
+            await identityServiceClient.UpdateUserAsync(new UserInfo
+            {
+                Id = application.ManagerId,
+                RoleSlug = "manager",
+                HomeStoreId = newStore.Id
+            }, cancellationToken);
+
+            await uow.SaveChangesAsync(cancellationToken);
+
+            logger.LogInformation(
+                "Contract {ContractId} is now ACTIVE. Store {StoreId} created and User {UserId} promoted to Manager.",
+                contract.Id, newStore.Id, application.ManagerId);
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            await uow.RollbackAsync(cancellationToken);
+
+            logger.LogError(ex, "Lỗi khi xác nhận thanh toán cho hợp đồng {ContractId}.", request.ContractId);
+            throw;
+        }
     }
 }

@@ -8,19 +8,22 @@ namespace FranchiseService.Application.Features.FranchiseApplications.Commands.C
 /// </summary>
 public class CreateFranchiseApplicationCommand : IRequest<Guid>
 {
-    public Guid StoreId { get; set; }
+    //public Guid StoreId { get; set; }
     public Guid ManagerId { get; set; }
 
     // Thông tin cá nhân
     public string FullName { get; set; } = null!;
+
     public string Email { get; set; } = null!;
     public string Phone { get; set; } = null!;
     public string IdentityNumber { get; set; } = null!;
 
     // Địa chỉ phân cấp
     public string? ProvinceId { get; set; }
+
     public string? DistrictId { get; set; }
     public string? WardId { get; set; }
+    public string StoreName { get; set; } = null!;
     public string StoreAddress { get; set; } = null!;
     public decimal? StoreLatitude { get; set; }
     public decimal? StoreLongitude { get; set; }

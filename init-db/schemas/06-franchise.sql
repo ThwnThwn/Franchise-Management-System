@@ -414,6 +414,7 @@ CREATE TABLE IF NOT EXISTS franchise_applications (
     province_id VARCHAR(50),
     district_id VARCHAR(50),
     ward_id VARCHAR(50),
+    store_name VARCHAR(50),
     store_address TEXT NOT NULL,
     store_latitude DECIMAL(10, 8),
     store_longitude DECIMAL(11, 8),

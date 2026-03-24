@@ -6,38 +6,27 @@ using FranchiseService.Application.Settings;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using FranchiseService.Application.ClientInterfaces;
+using FranchiseService.Domain.Entities;
 
 namespace FranchiseService.Application.Features.FranchiseApplications.Commands.ReviewFranchiseApplication;
 
-public class ReviewFranchiseApplicationHandler
-    : IRequestHandler<ReviewFranchiseApplicationCommand, ReviewFranchiseApplicationResult>
+public class ReviewFranchiseApplicationHandler(
+    IFranchiseApplicationRepository appRepo,
+    IFranchiseContractRepository contractRepo,
+    IDocuSealService docuSeal,
+    ILogger<ReviewFranchiseApplicationHandler> logger,
+    IOptions<FranchiseSettings> franchiseSettings
+) : IRequestHandler<ReviewFranchiseApplicationCommand, ReviewFranchiseApplicationResult>
 {
-    private readonly IFranchiseApplicationRepository _appRepo;
-    private readonly IFranchiseContractRepository _contractRepo;
-    private readonly IDocuSealService _docuSeal;
-    private readonly ILogger<ReviewFranchiseApplicationHandler> _logger;
-    private readonly FranchiseSettings _franchiseSettings;
-
-    public ReviewFranchiseApplicationHandler(
-        IFranchiseApplicationRepository appRepo,
-        IFranchiseContractRepository contractRepo,
-        IDocuSealService docuSeal,
-        ILogger<ReviewFranchiseApplicationHandler> logger,
-        IOptions<FranchiseSettings> franchiseSettings)
-    {
-        _appRepo = appRepo;
-        _contractRepo = contractRepo;
-        _docuSeal = docuSeal;
-        _logger = logger;
-        _franchiseSettings = franchiseSettings.Value;
-    }
+    private readonly FranchiseSettings _franchiseSettings = franchiseSettings.Value;
 
     public async Task<ReviewFranchiseApplicationResult> Handle(
         ReviewFranchiseApplicationCommand request,
         CancellationToken cancellationToken)
     {
         // 1. Lấy hồ sơ
-        var application = await _appRepo.GetByIdAsync(request.ApplicationId)
+        var application = await appRepo.GetByIdAsync(request.ApplicationId)
             ?? throw new KeyNotFoundException($"Không tìm thấy hồ sơ với ID: {request.ApplicationId}");
 
         if (application.Status != FranchiseApplicationStatus.Pending)
@@ -51,7 +40,7 @@ public class ReviewFranchiseApplicationHandler
             application.ReviewedAt = DateTimeOffset.UtcNow;
             application.ReviewedBy = request.ReviewedBy;
             application.UpdatedAt = DateTimeOffset.UtcNow;
-            await _appRepo.UpdateAsync(application);
+            await appRepo.UpdateAsync(application);
 
             return new ReviewFranchiseApplicationResult
             {
@@ -73,7 +62,7 @@ public class ReviewFranchiseApplicationHandler
         application.ReviewedAt = DateTimeOffset.UtcNow;
         application.ReviewedBy = request.ReviewedBy;
         application.UpdatedAt = DateTimeOffset.UtcNow;
-        await _appRepo.UpdateAsync(application);
+        await appRepo.UpdateAsync(application);
 
         // 3. Tự động điền giá trị mặc định nếu Admin không cung cấp
         var validFrom = request.ValidFrom ?? DateTimeOffset.UtcNow;
@@ -82,7 +71,7 @@ public class ReviewFranchiseApplicationHandler
         var depositAmount = request.DepositAmount ?? _franchiseSettings.DefaultDepositAmount;
         var franchiseFee = request.FranchiseFee ?? _franchiseSettings.DefaultFranchiseFee;
 
-        _logger.LogInformation(
+        logger.LogInformation(
             "Contract defaults applied — RevenueShare: {RS}%, Deposit: {Deposit}, Fee: {Fee}, Duration: {From} → {Until}",
             revenueShare, depositAmount, franchiseFee, validFrom, validUntil);
 
@@ -103,7 +92,7 @@ public class ReviewFranchiseApplicationHandler
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow
         };
-        await _contractRepo.AddAsync(contract);
+        await contractRepo.AddAsync(contract);
 
         // 4. Gọi DocuSeal API để tạo Submission và gửi email link ký
         int? submissionId = null;
@@ -111,7 +100,7 @@ public class ReviewFranchiseApplicationHandler
         {
             var metadata = BuildDocuSealMetadata(application, contract);
 
-            var docuSealResult = await _docuSeal.CreateSubmissionAsync(
+            var docuSealResult = await docuSeal.CreateSubmissionAsync(
                 templateId: request.DocuSealTemplateId,
                 signerEmail: application.Email,
                 signerName: application.FullName,
@@ -123,11 +112,11 @@ public class ReviewFranchiseApplicationHandler
             // 5. Lưu DocuSeal Submission ID và chuyển trạng thái Contract
             contract.DocusealSubmissionId = submissionId;
             contract.Status = ContractStatus.AwaitingSignature;
-            await _appRepo.UpdateAsync(application);
+            await appRepo.UpdateAsync(application);
             contract.UpdatedAt = DateTimeOffset.UtcNow;
-            await _contractRepo.UpdateAsync(contract);
+            await contractRepo.UpdateAsync(contract);
 
-            _logger.LogInformation(
+            logger.LogInformation(
                 "DocuSeal submission {SubmissionId} created for contract {ContractId}",
                 submissionId, contract.Id);
         }
@@ -136,8 +125,8 @@ public class ReviewFranchiseApplicationHandler
             // Trả về Success = false kèm lỗi chi tiết để dễ debug
             application.Status = FranchiseApplicationStatus.Pending;
             contract.Status = ContractStatus.Draft;
-            await _contractRepo.UpdateAsync(contract);
-            _logger.LogError(ex,
+            await contractRepo.UpdateAsync(contract);
+            logger.LogError(ex,
                 "Failed to create DocuSeal submission for contract {ContractId}.",
                 contract.Id);
 
@@ -161,7 +150,6 @@ public class ReviewFranchiseApplicationHandler
         FranchiseApplication app,
         FranchiseContract contract)
     {
-
         return new Dictionary<string, string>
         {
             ["contract_number"] = contract.Code.ToString(),

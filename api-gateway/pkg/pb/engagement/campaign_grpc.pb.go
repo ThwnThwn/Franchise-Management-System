@@ -25,6 +25,7 @@ const _ = grpc.SupportPackageIsVersion7
 type CampaignGrpcClient interface {
 	CreateCampaign(ctx context.Context, in *CreateCampaignRequest, opts ...grpc.CallOption) (*CampaignResponse, error)
 	UpdateActiveStatus(ctx context.Context, in *UpdateActiveStatusRequest, opts ...grpc.CallOption) (*CampaignResponse, error)
+	RedeemCampainVocuher(ctx context.Context, in *RedeemCampainVoucherRequest, opts ...grpc.CallOption) (*CampaignResponse, error)
 	GetById(ctx context.Context, in *GetByIdRequest, opts ...grpc.CallOption) (*CampaignResponse, error)
 	GetAll(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListCampaignResponse, error)
 	GetActive(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListCampaignResponse, error)
@@ -50,6 +51,15 @@ func (c *campaignGrpcClient) CreateCampaign(ctx context.Context, in *CreateCampa
 func (c *campaignGrpcClient) UpdateActiveStatus(ctx context.Context, in *UpdateActiveStatusRequest, opts ...grpc.CallOption) (*CampaignResponse, error) {
 	out := new(CampaignResponse)
 	err := c.cc.Invoke(ctx, "/engagement.CampaignGrpc/UpdateActiveStatus", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *campaignGrpcClient) RedeemCampainVocuher(ctx context.Context, in *RedeemCampainVoucherRequest, opts ...grpc.CallOption) (*CampaignResponse, error) {
+	out := new(CampaignResponse)
+	err := c.cc.Invoke(ctx, "/engagement.CampaignGrpc/RedeemCampainVocuher", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -89,6 +99,7 @@ func (c *campaignGrpcClient) GetActive(ctx context.Context, in *emptypb.Empty, o
 type CampaignGrpcServer interface {
 	CreateCampaign(context.Context, *CreateCampaignRequest) (*CampaignResponse, error)
 	UpdateActiveStatus(context.Context, *UpdateActiveStatusRequest) (*CampaignResponse, error)
+	RedeemCampainVocuher(context.Context, *RedeemCampainVoucherRequest) (*CampaignResponse, error)
 	GetById(context.Context, *GetByIdRequest) (*CampaignResponse, error)
 	GetAll(context.Context, *emptypb.Empty) (*ListCampaignResponse, error)
 	GetActive(context.Context, *emptypb.Empty) (*ListCampaignResponse, error)
@@ -104,6 +115,9 @@ func (UnimplementedCampaignGrpcServer) CreateCampaign(context.Context, *CreateCa
 }
 func (UnimplementedCampaignGrpcServer) UpdateActiveStatus(context.Context, *UpdateActiveStatusRequest) (*CampaignResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateActiveStatus not implemented")
+}
+func (UnimplementedCampaignGrpcServer) RedeemCampainVocuher(context.Context, *RedeemCampainVoucherRequest) (*CampaignResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RedeemCampainVocuher not implemented")
 }
 func (UnimplementedCampaignGrpcServer) GetById(context.Context, *GetByIdRequest) (*CampaignResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetById not implemented")
@@ -159,6 +173,24 @@ func _CampaignGrpc_UpdateActiveStatus_Handler(srv interface{}, ctx context.Conte
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CampaignGrpcServer).UpdateActiveStatus(ctx, req.(*UpdateActiveStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CampaignGrpc_RedeemCampainVocuher_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RedeemCampainVoucherRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CampaignGrpcServer).RedeemCampainVocuher(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/engagement.CampaignGrpc/RedeemCampainVocuher",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CampaignGrpcServer).RedeemCampainVocuher(ctx, req.(*RedeemCampainVoucherRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -231,6 +263,10 @@ var CampaignGrpc_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateActiveStatus",
 			Handler:    _CampaignGrpc_UpdateActiveStatus_Handler,
+		},
+		{
+			MethodName: "RedeemCampainVocuher",
+			Handler:    _CampaignGrpc_RedeemCampainVocuher_Handler,
 		},
 		{
 			MethodName: "GetById",

@@ -29,6 +29,8 @@ public partial class FranchiseApplication : SoftDeletedEntity, IEntity
 
     public string? WardId { get; set; }
 
+    public string StoreName { get; set; } = null!;
+
     public string StoreAddress { get; set; } = null!;
 
     public decimal? StoreLatitude { get; set; }

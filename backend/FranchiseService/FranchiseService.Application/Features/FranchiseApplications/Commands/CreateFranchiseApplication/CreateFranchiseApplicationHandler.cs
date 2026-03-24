@@ -64,7 +64,7 @@ public class CreateFranchiseApplicationHandler : IRequestHandler<CreateFranchise
         var application = new FranchiseApplication
         {
             Id = Guid.NewGuid(),
-            StoreId = request.StoreId,
+            StoreId = Guid.Empty,
             ManagerId = request.ManagerId,
             FullName = request.FullName,
             Email = request.Email,
@@ -73,6 +73,7 @@ public class CreateFranchiseApplicationHandler : IRequestHandler<CreateFranchise
             ProvinceId = request.ProvinceId,
             DistrictId = request.DistrictId,
             WardId = request.WardId,
+            StoreName = request.StoreName,
             StoreAddress = request.StoreAddress,
             StoreLatitude = request.StoreLatitude,
             StoreLongitude = request.StoreLongitude,
