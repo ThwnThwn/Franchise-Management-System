@@ -555,6 +555,7 @@ public partial class FranchiseDbContext : DbContext, IFranchiseDbContext
             entity.Property(e => e.WardId)
                 .HasMaxLength(50)
                 .HasColumnName("ward_id");
+            entity.Property(e => e.StoreName).HasColumnName("store_name");
             entity.Property(e => e.StoreAddress).HasColumnName("store_address");
             entity.Property(e => e.StoreLatitude)
                 .HasPrecision(10, 8)

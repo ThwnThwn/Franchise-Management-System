@@ -474,6 +474,52 @@ paths:
       summary: Lấy danh sách chiến dịch đang công khai
       tags:
       - Campaigns
+  /campaigns/vouchers/{voucherId}/redeem:
+    post:
+      consumes:
+      - application/json
+      description: Người dùng đổi điểm lấy voucher hoặc nhận voucher miễn phí từ một
+        chiến dịch cụ thể.
+      parameters:
+      - description: Voucher ID (Mã quà tặng)
+        in: path
+        name: voucherId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"message": "Đổi thành công!"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: ID không hợp lệ hoặc dữ liệu sai
+          schema:
+            type: object
+        "401":
+          description: Chưa đăng nhập (Unauthorized)
+          schema:
+            type: object
+        "403":
+          description: Không đủ điểm hoặc không có quyền (Forbidden)
+          schema:
+            type: object
+        "404":
+          description: Không tìm thấy chiến dịch hoặc voucher
+          schema:
+            type: object
+        "500":
+          description: Lỗi hệ thống (Internal Server Error)
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Đổi voucher từ chiến dịch
+      tags:
+      - Campaigns
   /loyalty/accounts:
     get:
       consumes:

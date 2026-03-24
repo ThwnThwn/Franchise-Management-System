@@ -90,6 +90,26 @@ namespace FranchiseService.Infrastructure.Clients.Identity
             }
         }
 
+        public async Task UpdateUserAsync(UserInfo user, CancellationToken ct)
+        {
+            var request = new UpdateUserRequest
+            {
+                Id = user.Id.ToString(),
+                Username = user.Username,
+                Email = user.Email,
+                Phone = user.Phone ?? "",
+                FirstName = user.FirstName,
+                LastName = user.LastName ?? "",
+                CurrentHourlyWage = user.CurrentHourlyWage.HasValue ? (double)user.CurrentHourlyWage.Value : 0,
+                HomeStoreId = user.HomeStoreId.HasValue ? user.HomeStoreId.Value.ToString() : "",
+                RoleSlug = user.RoleSlug ?? ""
+            };
+            await _client.UpdateAsync(
+                request,
+                cancellationToken: ct
+            );
+        }
+
         // PRIVATE METHODS
 
         // Tao gRPC Metadata chua x-user-id tu HTTP request hien tai

@@ -14,4 +14,5 @@ type ICampaignService interface {
 
 	Create(ctx context.Context, req *campaign.CreateCampaignRequest) error
 	UpdateActive(ctx context.Context, id uuid.UUID, req *campaign.UpdateActiveStatusRequest) error
+	RedeemVoucher(ctx context.Context, userId, voucherId uuid.UUID) error
 }

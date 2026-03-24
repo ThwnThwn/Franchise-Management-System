@@ -4,7 +4,6 @@ using FranchiseService.Application.Repositories;
 using FranchiseService.Domain.Entities;
 using FranchiseService.Domain.Enums;
 using FranchiseService.Infrastructure.ApplicationDbContext;
-using FranchiseService.Infrastructure.Persistences.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace FranchiseService.Infrastructure.Repositories

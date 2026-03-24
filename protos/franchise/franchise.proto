@@ -77,17 +77,18 @@ message SubmitApplicationRequest {
     string province_id = 7;
     string district_id = 8;
     string ward_id = 9;
-    string store_address = 10;
-    double store_latitude = 11;
-    double store_longitude = 12;
-    double store_size_sqm = 13;
+    string store_name = 10;
+    string store_address = 11;
+    double store_latitude = 12;
+    double store_longitude = 13;
+    double store_size_sqm = 14;
 
     // Danh sách file chứng nhận đất đai (bytes[] cho nhiều file)
-    repeated LandCertificateFile land_certificate_files = 14;
+    repeated LandCertificateFile land_certificate_files = 15;
 
     // Ảnh mặt bằng
-    bytes store_front_data = 15;
-    string store_front_filename = 16;
+    bytes store_front_data = 16;
+    string store_front_filename = 17;
 }
 
 // Một file chứng nhận đất đai (gRPC lặp repeated để gửi nhiều file)
@@ -226,19 +227,20 @@ message FranchiseApplicationResponse {
     string province_id = 8;
     string district_id = 9;
     string ward_id = 10;
-    string store_address = 11;
-    double store_latitude = 12;
-    double store_longitude = 13;
-    double store_size_sqm = 14;
-    repeated string land_certificate_urls = 15;
-    string store_front_url = 16;
-    int32 status = 17;
-    string admin_note = 18;
-    google.protobuf.Timestamp created_at = 19;
-    google.protobuf.Timestamp updated_at = 20;
-    optional string reviewed_by = 21;
-    optional google.protobuf.Timestamp reviewed_at = 22;
-    repeated FranchiseContractResponse contracts = 23;
+    string store_name = 11;
+    string store_address = 12;
+    double store_latitude = 13;
+    double store_longitude = 14;
+    double store_size_sqm = 15;
+    repeated string land_certificate_urls = 16;
+    string store_front_url = 17;
+    int32 status = 18;
+    string admin_note = 19;
+    google.protobuf.Timestamp created_at = 20;
+    google.protobuf.Timestamp updated_at = 21;
+    optional string reviewed_by = 22;
+    optional google.protobuf.Timestamp reviewed_at = 23;
+    repeated FranchiseContractResponse contracts = 24;
 }
 
 // Response chi tiết (kèm contract list)

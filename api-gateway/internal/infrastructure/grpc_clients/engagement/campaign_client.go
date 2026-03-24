@@ -83,3 +83,12 @@ func (c *campaignGrpcClient) UpdateActive(ctx context.Context, id uuid.UUID, req
 	})
 	return err
 }
+
+// RedeemVoucher implements engagement.ICampaignService.
+func (c *campaignGrpcClient) RedeemVoucher(ctx context.Context, userId uuid.UUID, voucherId uuid.UUID) error {
+	_, err := c.client.RedeemCampainVocuher(ctx, &engagementPb.RedeemCampainVoucherRequest{
+		UserId:    userId.String(),
+		VoucherId: voucherId.String(),
+	})
+	return err
+}

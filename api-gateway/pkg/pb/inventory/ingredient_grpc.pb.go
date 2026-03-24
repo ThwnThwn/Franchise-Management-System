@@ -26,6 +26,7 @@ type IngredientGrpcClient interface {
 	UpdateIngredient(ctx context.Context, in *UpdateIngredientReq, opts ...grpc.CallOption) (*NoneReply, error)
 	DeleteIngredient(ctx context.Context, in *DeleteIngredientReq, opts ...grpc.CallOption) (*NoneReply, error)
 	GetAllIngredient(ctx context.Context, in *GetAllIngredientReq, opts ...grpc.CallOption) (*GetAllIngredientRep, error)
+	GetIngredientById(ctx context.Context, in *GetIngredientByIdRequest, opts ...grpc.CallOption) (*GetIngredientByIdResponse, error)
 }
 
 type ingredientGrpcClient struct {
@@ -72,6 +73,15 @@ func (c *ingredientGrpcClient) GetAllIngredient(ctx context.Context, in *GetAllI
 	return out, nil
 }
 
+func (c *ingredientGrpcClient) GetIngredientById(ctx context.Context, in *GetIngredientByIdRequest, opts ...grpc.CallOption) (*GetIngredientByIdResponse, error) {
+	out := new(GetIngredientByIdResponse)
+	err := c.cc.Invoke(ctx, "/inventory.IngredientGrpc/GetIngredientById", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // IngredientGrpcServer is the server API for IngredientGrpc service.
 // All implementations must embed UnimplementedIngredientGrpcServer
 // for forward compatibility
@@ -80,6 +90,7 @@ type IngredientGrpcServer interface {
 	UpdateIngredient(context.Context, *UpdateIngredientReq) (*NoneReply, error)
 	DeleteIngredient(context.Context, *DeleteIngredientReq) (*NoneReply, error)
 	GetAllIngredient(context.Context, *GetAllIngredientReq) (*GetAllIngredientRep, error)
+	GetIngredientById(context.Context, *GetIngredientByIdRequest) (*GetIngredientByIdResponse, error)
 	mustEmbedUnimplementedIngredientGrpcServer()
 }
 
@@ -98,6 +109,9 @@ func (UnimplementedIngredientGrpcServer) DeleteIngredient(context.Context, *Dele
 }
 func (UnimplementedIngredientGrpcServer) GetAllIngredient(context.Context, *GetAllIngredientReq) (*GetAllIngredientRep, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAllIngredient not implemented")
+}
+func (UnimplementedIngredientGrpcServer) GetIngredientById(context.Context, *GetIngredientByIdRequest) (*GetIngredientByIdResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetIngredientById not implemented")
 }
 func (UnimplementedIngredientGrpcServer) mustEmbedUnimplementedIngredientGrpcServer() {}
 
@@ -184,6 +198,24 @@ func _IngredientGrpc_GetAllIngredient_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _IngredientGrpc_GetIngredientById_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetIngredientByIdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IngredientGrpcServer).GetIngredientById(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/inventory.IngredientGrpc/GetIngredientById",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IngredientGrpcServer).GetIngredientById(ctx, req.(*GetIngredientByIdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // IngredientGrpc_ServiceDesc is the grpc.ServiceDesc for IngredientGrpc service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -206,6 +238,10 @@ var IngredientGrpc_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAllIngredient",
 			Handler:    _IngredientGrpc_GetAllIngredient_Handler,
+		},
+		{
+			MethodName: "GetIngredientById",
+			Handler:    _IngredientGrpc_GetIngredientById_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

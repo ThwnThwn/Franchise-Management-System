@@ -4,6 +4,7 @@ import (
 	"api-gateway/internal/application/constants/errorcode"
 	"api-gateway/internal/application/gateways/engagement"
 	"api-gateway/internal/domain/models/campaign"
+	"api-gateway/pkg/utils/contextutils"
 	"api-gateway/pkg/utils/validation"
 	"net/http"
 
@@ -153,5 +154,43 @@ func (h *CampaignHandler) UpdateActive(c *gin.Context) error {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Cập nhật trạng thái chiến dịch thành công"})
+	return nil
+}
+
+// RedeemVoucher
+// @Summary      Đổi voucher từ chiến dịch
+// @Description  Người dùng đổi điểm lấy voucher hoặc nhận voucher miễn phí từ một chiến dịch cụ thể.
+// @Tags         Campaigns
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        voucherId   path      string  true  "Voucher ID (Mã quà tặng)"
+// @Success      200         {object}  map[string]string "{"message": "Đổi thành công!"}"
+// @Failure      400         {object}  object "ID không hợp lệ hoặc dữ liệu sai"
+// @Failure      401         {object}  object "Chưa đăng nhập (Unauthorized)"
+// @Failure      403         {object}  object "Không đủ điểm hoặc không có quyền (Forbidden)"
+// @Failure      404         {object}  object "Không tìm thấy chiến dịch hoặc voucher"
+// @Failure      500         {object}  object "Lỗi hệ thống (Internal Server Error)"
+// @Router       /campaigns/vouchers/{voucherId}/redeem [post]
+func (h *CampaignHandler) RedeemVoucher(c *gin.Context) error {
+	voucherId, err := uuid.Parse(c.Param("voucherId"))
+	if err != nil {
+		return errorcode.ErrInvalidId
+	}
+
+	userId, err := contextutils.GetUserId(c)
+	if err != nil {
+		return err
+	}
+
+	ctx := c.Request.Context()
+
+	if err := h.campaignGW.RedeemVoucher(ctx, userId, voucherId); err != nil {
+		return err
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Đổi thành công!",
+	})
 	return nil
 }

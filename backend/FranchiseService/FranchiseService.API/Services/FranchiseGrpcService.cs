@@ -37,10 +37,10 @@ public class FranchiseGrpcService : Franchise.Grpc.FranchiseGrpcService.Franchis
     private readonly IIdentityServiceClient _identityClient;
 
     public FranchiseGrpcService(
-        IMediator mediator, 
-        IDocuSealService docuSeal, 
-        IImageService imageService, 
-        ILogger<FranchiseGrpcService> logger, 
+        IMediator mediator,
+        IDocuSealService docuSeal,
+        IImageService imageService,
+        ILogger<FranchiseGrpcService> logger,
         IOptions<DocuSealSettings> docuSealSettings,
         IIdentityServiceClient identityClient)
     {
@@ -64,7 +64,7 @@ public class FranchiseGrpcService : Franchise.Grpc.FranchiseGrpcService.Franchis
             throw new RpcException(new Status(StatusCode.Unauthenticated, "Không xác định được user. Vui lòng đăng nhập."));
 
         // StoreId được tự generate (đối tác chưa có store khi nộp hồ sơ)
-        var storeId = Guid.NewGuid();
+        //var storeId = Guid.NewGuid();
 
         // Map repeated LandCertificateFile → List<FileUploadItem>
         var landCertFiles = request.LandCertificateFiles
@@ -89,7 +89,7 @@ public class FranchiseGrpcService : Franchise.Grpc.FranchiseGrpcService.Franchis
 
         var command = new CreateFranchiseApplicationCommand
         {
-            StoreId = storeId,
+            //StoreId = storeId,
             ManagerId = managerId,
             FullName = request.FullName,
             Email = request.Email,
@@ -98,6 +98,7 @@ public class FranchiseGrpcService : Franchise.Grpc.FranchiseGrpcService.Franchis
             ProvinceId = request.ProvinceId,
             DistrictId = request.DistrictId,
             WardId = request.WardId,
+            StoreName = request.StoreName,
             StoreAddress = request.StoreAddress,
             StoreLatitude = (decimal)request.StoreLatitude,
             StoreLongitude = (decimal)request.StoreLongitude,
@@ -465,6 +466,7 @@ public class FranchiseGrpcService : Franchise.Grpc.FranchiseGrpcService.Franchis
             ProvinceId = app.ProvinceId ?? string.Empty,
             DistrictId = app.DistrictId ?? string.Empty,
             WardId = app.WardId ?? string.Empty,
+            StoreName = app.StoreName,
             StoreAddress = app.StoreAddress,
             StoreLatitude = (double)(app.StoreLatitude ?? 0),
             StoreLongitude = (double)(app.StoreLongitude ?? 0),

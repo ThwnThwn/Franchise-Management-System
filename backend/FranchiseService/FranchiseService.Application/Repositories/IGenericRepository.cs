@@ -26,5 +26,6 @@ namespace FranchiseService.Application.Persistences.Repositories
         void Remove(T entity);
 
         Task<T[]> GetByIdsAsync(Guid[] ids);
+        Task AddOnlyAsync(T entity);
     }
 }

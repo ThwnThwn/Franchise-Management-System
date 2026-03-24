@@ -1,3 +1,4 @@
+
 namespace FranchiseService.Application.ClientInterfaces
 {
     // Interface giao tiep voi IdentityService qua gRPC
@@ -14,6 +15,7 @@ namespace FranchiseService.Application.ClientInterfaces
 
         // Lay nhieu user bang 1 request (tranh N cong 1)
         Task<List<UserInfo>> GetUsersByIdsAsync(IEnumerable<Guid> userIds);
+        Task UpdateUserAsync(UserInfo user, CancellationToken ct);
     }
 
     // DTO chua thong tin user tu IdentityService

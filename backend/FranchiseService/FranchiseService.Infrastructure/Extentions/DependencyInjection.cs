@@ -8,7 +8,6 @@ using FranchiseService.Application.Persistences.Repositories;
 using FranchiseService.Application.Repositories;
 using FranchiseService.Application.Settings;
 using FranchiseService.Application.Signals;
-using FranchiseService.Infrastructure.Persistences.Repositories;
 using FranchiseService.Infrastructure.Repositories;
 using FranchiseService.Infrastructure.Services;
 using FranchiseService.Infrastructure.Settings;
@@ -30,15 +29,16 @@ public static class DependencyInjection
         services.AddScoped<IStoreRepository, StoreRepository>();
         services.AddScoped<IFranchiseApplicationRepository, FranchiseApplicationRepository>();
         services.AddScoped<IFranchiseContractRepository, FranchiseContractRepository>();
-        
+        services.AddScoped<IFranchiseUow, FranchiseUow>();
+
         // Generic Repository
         services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-        
+
         // Cloudinary (file / image upload) — bind thủ công từ env vars (đồng nhất với các service khác)
         services.Configure<CloudinarySettings>(options =>
         {
             options.CloudName = config["CLOUDINARY_CLOUD_NAME"] ?? string.Empty;
-            options.ApiKey    = config["CLOUDINARY_API_KEY"]    ?? string.Empty;
+            options.ApiKey = config["CLOUDINARY_API_KEY"] ?? string.Empty;
             options.ApiSecret = config["CLOUDINARY_API_SECRET"] ?? string.Empty;
         });
         services.AddScoped<IImageService, CloudinaryService>();
@@ -46,8 +46,8 @@ public static class DependencyInjection
         // DocuSeal (e-signature) - Load from Env like other services
         services.Configure<DocuSealSettings>(options =>
         {
-            options.BaseUrl       = config["DOCUSEAL_BASE_URL"]       ?? "https://api.docuseal.com";
-            options.ApiToken      = config["DOCUSEAL_API_TOKEN"]      ?? string.Empty;
+            options.BaseUrl = config["DOCUSEAL_BASE_URL"] ?? "https://api.docuseal.com";
+            options.ApiToken = config["DOCUSEAL_API_TOKEN"] ?? string.Empty;
             options.WebhookSecret = config["DOCUSEAL_WEBHOOK_SECRET"] ?? string.Empty;
             if (int.TryParse(config["DOCUSEAL_TEMPLATE_ID"], out var templateId))
                 options.TemplateId = templateId;
@@ -73,7 +73,7 @@ public static class DependencyInjection
 
         // Outbox Pattern
         services.AddScoped<IOutboxRepository, OutboxRepository>();
-        
+
         // Signal (Singleton để Shared toàn bộ App)
         services.AddSingleton<IOutboxSignal, OutboxSignal>();
 
