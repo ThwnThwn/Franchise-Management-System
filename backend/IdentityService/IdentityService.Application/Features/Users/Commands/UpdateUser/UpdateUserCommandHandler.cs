@@ -26,6 +26,7 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, UserR
         _currentUser = currentUser;
         _roleRepository = roleRepository;
     }
+
     /// <summary>
     /// Handles the specified command.
     /// </summary>
@@ -58,15 +59,21 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, UserR
         if (existingUser != null && existingUser.Id != command.Id)
             throw new ConflictDuplicateException($"Số điện thoại '{request.Phone}' đã tồn tại");
 
+        Role? role = null;
         if (!string.IsNullOrEmpty(request.RoleSlug))
         {
-            _ = await _roleRepository.GetBySlugAsync(request.RoleSlug)
+            role = await _roleRepository.GetBySlugAsync(request.RoleSlug)
                 ?? throw new Exception($"Không tìm thấy vai trò '{request.RoleSlug}'");
         }
 
         var user = await _userRepository.GetByIdAsync(command.Id)
             ?? throw new BusinessException(Message.UserMessage.NotFound);
         _mapper.Map(request, user);
+
+        if (role != null)
+        {
+            user.RoleId = role.Id;
+        }
 
         await _userRepository.UpdateAsync(user);
 

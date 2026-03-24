@@ -28,7 +28,7 @@ public class ConfirmDepositPaymentHandler(
     public async Task<bool> Handle(ConfirmDepositPaymentCommand request, CancellationToken cancellationToken)
     {
         // Kiểm tra Contract
-        var contract = await contractRepo.GetByIdAsync(request.ContractId)
+        var contract = await contractRepo.GetByIdAsync(request.ContractId, cancellationToken)
             ?? throw new KeyNotFoundException($"Không tìm thấy hợp đồng với ID: {request.ContractId}");
 
         if (contract.Status != ContractStatus.AwaitingPayment)

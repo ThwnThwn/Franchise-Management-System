@@ -11,6 +11,7 @@ public interface IFranchiseContractRepository : IGenericRepository<FranchiseCont
     /// Tìm contract theo DocuSeal Submission ID — dùng cho Webhook xử lý callback ký xong.
     /// </summary>
     Task<FranchiseContract?> GetByDocusealSubmissionAsync(int submissionId, CancellationToken cancellationToken);
+    Task<FranchiseContract?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
 
     /// <summary>
     /// Lấy danh sách hợp đồng phân trang, có thể lọc theo status.

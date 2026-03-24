@@ -20,6 +20,13 @@ public class FranchiseContractRepository : GenericRepository<FranchiseContract>,
             .FirstOrDefaultAsync(c => c.DocusealSubmissionId == submissionId, cancellationToken);
     }
 
+    public async Task<FranchiseContract?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    {
+        return await _dbContext.FranchiseContracts
+            .Include(c => c.Application)
+            .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
+    }
+
     public async Task<PagedResult<FranchiseContract>> GetPagedAsync(
         int pageIndex,
         int pageSize,
