@@ -9,6 +9,7 @@ using SupplierService.API.Clients.Inventory;
 using SupplierService.Infrastructure.Interceptor;
 using SupplierService.Infrastructure.Repositories;
 using SupplierService.API.Clients.Franchise;
+using FranchiseService.Grpc;
 
 namespace SupplierService.API;
 
@@ -87,6 +88,28 @@ public class Program
 
         //Inventory Service Client
         builder.Services.AddScoped<IFranchiseServiceClient, FranchiseServiceClient>();
+
+        //GRPC CLIENT
+        builder.Services.AddGrpcClient<InventoryGrpc.InventoryGrpcClient>(o =>
+        {
+            var Url = builder.Configuration["INVENTORY_SERVICE_URL"];
+            if (string.IsNullOrEmpty(Url))
+            {
+                // Nếu không tìm thấy trong ENV/Appsettings, báo lỗi ngay khi khởi động
+                throw new InvalidOperationException("Missing configuration: INVENTORY_SERVICE_URL");
+            }
+            o.Address = new Uri(Url);
+        });
+        builder.Services.AddGrpcClient<StoreGrpcService.StoreGrpcServiceClient>(o =>
+        {
+            var franchiseUrl = builder.Configuration["FRANCHISE_SERVICE_URL"];
+            if (string.IsNullOrEmpty(franchiseUrl))
+            {
+                throw new InvalidOperationException("Missing configuration: FRANCHISE_SERVICE_URL");
+            }
+            o.Address = new Uri(franchiseUrl);
+        });
+
 
         // ── CORS ──────────────────────────────────────────────────────────────
         var frontEndOrigin = builder.Configuration["FRONTEND_ORIGIN"] ?? "http://localhost:3000";

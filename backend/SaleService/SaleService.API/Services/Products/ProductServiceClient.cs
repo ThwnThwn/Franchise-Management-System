@@ -4,40 +4,15 @@ using SalesService.Application.ClientInterface.Products;
 
 namespace SalesService.API.Services.Products;
 
-public class ProductServiceClient : IProductServiceClient
+public class ProductServiceClient(ProductGrpc.ProductGrpcClient client) : IProductServiceClient
 {
-    private readonly ProductGrpc.ProductGrpcClient _client;
-    private readonly string _productServiceUrl;
-
-    public ProductServiceClient(IConfiguration configuration)
-    {
-        var rawUrl = configuration["PRODUCT_SERVICE_URL"] ?? "http://localhost:5002";
-        // Cho phép env var values like "localhost:5002" bằng cách chuẩn hóa thành URI tuyệt đối.
-        _productServiceUrl = rawUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
-                             rawUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
-            ? rawUrl
-            : $"http://{rawUrl}";
-
-        var httpHandler = new HttpClientHandler
-        {
-            ServerCertificateCustomValidationCallback =
-                HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-        };
-
-        var channel = GrpcChannel.ForAddress(_productServiceUrl, new GrpcChannelOptions
-        {
-            HttpHandler = httpHandler
-        });
-
-        _client = new ProductGrpc.ProductGrpcClient(channel);
-    }
 
     public async Task<ProductVariantInfo?> GetProductVariantBySkuAsync(string sku)
     {
         try
         {
             var request = new GetProductBySkuRequest { Sku = sku };
-            var response = await _client.GetProductBySkuAsync(request);
+            var response = await client.GetProductBySkuAsync(request);
 
             if (!response.Found)
             {
@@ -57,7 +32,7 @@ public class ProductServiceClient : IProductServiceClient
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error calling ProductService ({_productServiceUrl}): {ex.Message}");
+            Console.WriteLine($"Error calling ProductService: {ex.Message}");
             throw;
         }
     }
@@ -81,7 +56,7 @@ public class ProductServiceClient : IProductServiceClient
             var request = new GetProductsBySkusRequest();
             request.Skus.AddRange(uniqueSkus);
 
-            var response = await _client.GetProductsBySkusAsync(request);
+            var response = await client.GetProductsBySkusAsync(request);
 
             return response.Variants.Select(v => new ProductVariantInfo
             {
@@ -96,7 +71,7 @@ public class ProductServiceClient : IProductServiceClient
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error calling ProductService ({_productServiceUrl}): {ex.Message}");
+            Console.WriteLine($"Error calling ProductService: {ex.Message}");
             throw;
         }
     }
@@ -106,13 +81,13 @@ public class ProductServiceClient : IProductServiceClient
         try
         {
             var request = new GetSkusByCategoryRequest { CategoryId = categoryId.ToString() };
-            var response = await _client.GetSkusByCategoryAsync(request);
+            var response = await client.GetSkusByCategoryAsync(request);
 
             return response.Skus.ToList();
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error calling ProductService for category skus ({_productServiceUrl}): {ex.Message}");
+            Console.WriteLine($"Error calling ProductService for category skus: {ex.Message}");
             throw;
         }
     }
@@ -122,7 +97,7 @@ public class ProductServiceClient : IProductServiceClient
         try
         {
             var request = new GetProductsRequest { CategoryId = categoryId.ToString() };
-            var response = await _client.GetProductsAsync(request);
+            var response = await client.GetProductsAsync(request);
 
             return response.Products.Select(p => new ProductInfo
             {
@@ -137,7 +112,7 @@ public class ProductServiceClient : IProductServiceClient
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error calling ProductService GetProductsByCategory ({_productServiceUrl}): {ex.Message}");
+            Console.WriteLine($"Error calling ProductService GetProductsByCategory: {ex.Message}");
             Console.WriteLine(ex.ToString());
             throw;
         }
@@ -153,7 +128,7 @@ public class ProductServiceClient : IProductServiceClient
             var request = new GetProductsByIdsRequest();
             request.ProductIds.AddRange(productIds.Select(id => id.ToString()));
 
-            var response = await _client.GetProductsByIdsAsync(request);
+            var response = await client.GetProductsByIdsAsync(request);
 
             return response.Products.Select(p => new ProductInfo
             {
@@ -168,7 +143,7 @@ public class ProductServiceClient : IProductServiceClient
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error calling ProductService GetProductsByIds ({_productServiceUrl}): {ex.Message}");
+            Console.WriteLine($"Error calling ProductService GetProductsByIds: {ex.Message}");
             throw;
         }
     }

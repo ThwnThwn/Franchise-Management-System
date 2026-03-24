@@ -32,6 +32,11 @@ using SharedKernel.Events;
 using SharedKernel.Infrastructure.Kafka;
 using Yarp.ReverseProxy.Configuration;
 using SalesService.API.Services.Distance;
+using FranchiseService.Grpc;
+using InventoryService.Grpc.Protos.Inventory.Internal;
+using SalesService.Application.Constants;
+using ProductService.API;
+using IdentityService.Grpc.Protos.User;
 
 namespace SalesService.API;
 
@@ -321,6 +326,60 @@ public class Program
                         "Forbidden: You do not have required role.");
                 }
             };
+        });
+
+
+        //GRPC CLIENT
+        // Lấy URL từ Configuration (File .env hoặc appsettings.json)
+        var franchiseUrl = builder.Configuration["FRANCHISE_SERVICE_URL"];
+
+        if (string.IsNullOrEmpty(franchiseUrl))
+        {
+            throw new InvalidOperationException("Missing configuration: FRANCHISE_SERVICE_URL");
+        }
+
+        // Đăng ký Shift Client
+        builder.Services.AddGrpcClient<ShiftGrpcService.ShiftGrpcServiceClient>(o =>
+        {
+            o.Address = new Uri(franchiseUrl);
+        });
+
+        // Đăng ký Store Client
+        builder.Services.AddGrpcClient<StoreGrpcService.StoreGrpcServiceClient>(o =>
+        {
+            o.Address = new Uri(franchiseUrl);
+        });
+
+
+        builder.Services.AddGrpcClient<InventoryInternalGrpc.InventoryInternalGrpcClient>(o =>
+        {
+            var url = builder.Configuration[Common.INVENTORY_SERVICE_URL];
+            if (string.IsNullOrEmpty(url))
+            {
+                throw new InvalidOperationException("Missing configuration: INVENTORY_SERVICE_URL");
+            }
+            o.Address = new Uri(url);
+        });
+
+        builder.Services.AddGrpcClient<ProductGrpc.ProductGrpcClient>(o =>
+        {
+            var url = builder.Configuration["PRODUCT_SERVICE_URL"];
+            if (string.IsNullOrEmpty(url))
+            {
+                throw new InvalidOperationException("Missing configuration: PRODUCT_SERVICE_URL");
+            }
+            o.Address = new Uri(url);
+        });
+
+        builder.Services.AddGrpcClient<UserGrpc.UserGrpcClient>(o =>
+        {
+            var url = builder.Configuration["IDENTITY_SERVICE_URL"];
+            if (string.IsNullOrEmpty(url))
+            {
+                // Nếu không tìm thấy trong ENV/Appsettings, báo lỗi ngay khi khởi động
+                throw new InvalidOperationException("Missing configuration: IDENTITY_SERVICE_URL");
+            }
+            o.Address = new Uri(url);
         });
 
         var app = builder.Build();
