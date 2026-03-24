@@ -1,18 +1,17 @@
 "use client"
 
-import React, { useState, useMemo, useEffect } from "react"
-import { useGetStores, useUserLocation } from "@/features/stores/hooks"
-import StoreList from "@/features/stores/components/StoreList"
-import StoreDetailModal from "@/features/stores/components/StoreDetailModal"
-import { StoreDetailDto } from "@/features/stores/models/schema/response"
-import { calculateDistance } from "@/utils/helpers/locationHelper"
 import { InputStyled, PaginationStyled } from "@/components"
+import { STRINGS } from "@/constants/strings"
+import StoreDetailModal from "@/features/stores/components/StoreDetailModal"
+import StoreList from "@/features/stores/components/StoreList"
+import { useGetStores, useUserLocation } from "@/features/stores/hooks"
+import { StoreDetailDto } from "@/features/stores/models/schema/response"
 import { PaginationParams } from "@/models/common/request"
 import { BackendError } from "@/models/common/respone"
 import { addToast } from "@heroui/react"
-import { STRINGS } from "@/constants/strings"
-import { GetStoresParams } from "../models/schema/request"
 import { Search } from "lucide-react"
+import { useEffect, useState } from "react"
+import { GetStoresParams } from "../models/schema/request"
 
 export default function StoresPageView() {
     const [searchInput, setSearchInput] = useState("")
@@ -50,36 +49,6 @@ export default function StoresPageView() {
     }
 
     const { latitude, longitude, loading: locationLoading } = useUserLocation()
-    // Sort stores by distance if GPS is available, otherwise keep original order (backend sorted by newest)
-    const sortedStores = useMemo(() => {
-        // 1. Nếu không có data, trả về mảng rỗng
-        if (!data) return []
-
-        // 2. Nếu không có GPS của user, trả về danh sách mặc định (Backend đã sort)
-        if (!latitude || !longitude) {
-            return data.items
-        }
-
-        // 3. Có GPS -> Tính toán và Sort
-        return data.items
-            .map((store) => {
-                // Nếu store thiếu tọa độ, đẩy xuống cuối cùng (Infinity)
-                if (!store.latitude || !store.longitude) {
-                    return { store, distance: Infinity }
-                }
-
-                const distance = calculateDistance(
-                    latitude,
-                    longitude,
-                    store.latitude,
-                    store.longitude
-                )
-
-                return { store, distance }
-            })
-            .sort((a, b) => a.distance - b.distance) // Sort tăng dần theo khoảng cách
-            .map((item) => item.store) // Trả về lại object store nguyên bản
-    }, [data, latitude, longitude])
 
     useEffect(() => {
         if (error) {
@@ -134,7 +103,7 @@ export default function StoresPageView() {
 
             <div className="max-w-7xl mx-auto py-8">
                 <StoreList
-                    stores={sortedStores}
+                    stores={data?.items ?? []}
                     loading={isLoading}
                     onStoreClick={handleStoreClick}
                     userLocation={latitude && longitude ? { latitude, longitude } : null}

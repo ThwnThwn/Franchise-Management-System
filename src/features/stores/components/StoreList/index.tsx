@@ -1,7 +1,7 @@
-import React from "react"
-import { StoreDetailDto } from "../../models/schema/response"
-import { calculateDistance } from "@/utils/helpers/locationHelper"
 import { SpinnerStyled } from "@/components"
+import { calculateDistance } from "@/utils/helpers/locationHelper"
+import { useMemo } from "react"
+import { StoreDetailDto } from "../../models/schema/response"
 import StoreCard from "../StoreCard"
 
 type StoreListProps = {
@@ -19,6 +19,31 @@ export default function StoreList({
     userLocation,
     emptyMessage = "Không tìm thấy cửa hàng nào"
 }: StoreListProps) {
+    const sortedStores = useMemo(() => {
+        // Nếu không có userLocation, trả về list gốc hoặc list mặc định
+        if (!userLocation)
+            return [...stores].map((store) => {
+                const distance = 0
+                return { ...store, calculatedDistance: distance }
+            })
+
+        return [...stores]
+            .map((store) => {
+                const distance =
+                    store.latitude && store.longitude
+                        ? calculateDistance(
+                              userLocation.latitude,
+                              userLocation.longitude,
+                              store.latitude,
+                              store.longitude
+                          )
+                        : Infinity // Nếu không có tọa độ thì cho ra "vô cực" để bay xuống cuối list
+
+                return { ...store, calculatedDistance: distance }
+            })
+            .sort((a, b) => a.calculatedDistance - b.calculatedDistance)
+    }, [stores, userLocation])
+
     if (loading) {
         return <SpinnerStyled />
     }
@@ -48,26 +73,17 @@ export default function StoreList({
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {stores.map((store) => {
-                const distance =
-                    userLocation && store.latitude && store.longitude
-                        ? calculateDistance(
-                              userLocation.latitude,
-                              userLocation.longitude,
-                              store.latitude,
-                              store.longitude
-                          )
-                        : null
-
-                return (
-                    <StoreCard
-                        key={store.id}
-                        store={store}
-                        distance={distance}
-                        onClick={() => onStoreClick(store)}
-                    />
-                )
-            })}
+            {sortedStores.map((store) => (
+                <StoreCard
+                    key={store.id}
+                    store={store}
+                    // calculatedDistance đã có sẵn trong object sau khi map ở trên
+                    distance={
+                        store.calculatedDistance === Infinity ? null : store.calculatedDistance
+                    }
+                    onClick={() => onStoreClick(store)}
+                />
+            ))}
         </div>
     )
 }

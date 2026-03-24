@@ -2,6 +2,8 @@ import FeaturedSection from "@/components/home/FeaturedSection"
 import HeroSection from "@/components/home/HeroSection"
 import StoreHighlight from "@/components/home/StoreHighlight"
 import CampaignSection from "@/features/campaigns/components/CampaignSection"
+import FranchiseSection from "@/features/franchise/components/FranchiseSection"
+
 import { QUERY_KEYS } from "@/constants/queryKeys"
 import { campaignApi } from "@/features/campaigns/services"
 import { getQueryClient } from "@/utils/helpers/getQueryClient"
@@ -22,6 +24,7 @@ export default async function Home() {
                 <CampaignSection className="py-8" />
                 <FeaturedSection />
                 <StoreHighlight />
+                <FranchiseSection />
             </div>
         </HydrationBoundary>
     )

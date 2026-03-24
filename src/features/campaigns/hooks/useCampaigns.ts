@@ -113,8 +113,8 @@ export const useRedeemCampaignVoucher = () => {
     const queryClient = useQueryClient()
 
     return useMutation({
-        mutationFn: ({ campaignId, voucherId }: { campaignId: string; voucherId: string }) =>
-            campaignApi.redeemVoucher(campaignId, voucherId),
+        mutationFn: ({ voucherId }: { campaignId: string; voucherId: string }) =>
+            campaignApi.redeemVoucher(voucherId),
 
         onSuccess: (_, variables) => {
             addToast({
@@ -124,7 +124,8 @@ export const useRedeemCampaignVoucher = () => {
             })
 
             queryClient.invalidateQueries({
-                queryKey: [QUERY_KEYS.CAMPAIGNS, variables.campaignId]
+                queryKey: [QUERY_KEYS.CAMPAIGNS, variables.campaignId],
+                exact: false
             })
         },
         onError: (error: BackendError) => {

@@ -31,5 +31,7 @@ export const QUERY_KEYS = {
     VOUCHERS: "vouchers",
     MY_VOUCHERS: "my-vouchers",
     CAMPAIGNS: "campaigns",
-    SUPPLIERS: "suppliers"
+    SUPPLIERS: "suppliers",
+    FRANCHISE_APPLICATIONS: "franchise-application",
+    FRANCHISE_CONTRACTS: "franchise-contract"
 } as const

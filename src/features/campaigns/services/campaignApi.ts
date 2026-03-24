@@ -34,7 +34,7 @@ export const campaignApi = {
         return res.data
     },
 
-    redeemVoucher: async (campaignId: string, voucherId: string): Promise<void> => {
-        await axiosInstance.post(`/campaigns/${campaignId}/redeem/${voucherId}`)
+    redeemVoucher: async (voucherId: string): Promise<void> => {
+        await axiosInstance.post(`/campaigns/vouchers/${voucherId}/redeem`)
     }
 }

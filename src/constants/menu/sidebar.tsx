@@ -9,7 +9,8 @@ import {
     FlaskConical,
     Ticket,
     Wallet,
-    Megaphone
+    Megaphone,
+    Handshake
 } from "lucide-react"
 import { MenuItem } from "./types"
 
@@ -102,6 +103,23 @@ export const DASHBOARD_SIDEBAR_MENU: MenuItem[] = [
         label: "Chiến dịch",
         href: "/dashboard/campaigns",
         allowedRoles: [RoleSlug.Admin]
+    },
+    {
+        icon: <Handshake className="w-5 h-5" />,
+        label: "Nhượng quyền",
+        allowedRoles: [RoleSlug.Admin],
+        subItems: [
+            {
+                label: "Hồ sơ đăng ký",
+                href: "/dashboard/franchise/applications",
+                allowedRoles: [RoleSlug.Admin]
+            },
+            {
+                label: "Hợp đồng & Setup",
+                href: "/dashboard/franchise/contracts",
+                allowedRoles: [RoleSlug.Admin]
+            }
+        ]
     },
     {
         icon: <FlaskConical className="w-5 h-5" />,

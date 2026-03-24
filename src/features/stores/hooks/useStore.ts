@@ -48,7 +48,7 @@ export const useGetStores = ({
     params: GetStoresParams
     enabled?: boolean
 }) => {
-    const key = [QUERY_KEYS.STORES, params, pagination]
+    const key = [QUERY_KEYS.STORES, params, pagination, "all"]
     const queryClient = useQueryClient()
     return useQuery({
         queryKey: key,
@@ -78,7 +78,7 @@ export const useGetNearbyStores = ({
     params: FindNearbyStoresParams
     enabled: boolean
 }) => {
-    const key = [QUERY_KEYS.STORES, params]
+    const key = [QUERY_KEYS.STORES, params, "nearby"]
     return useQuery({
         queryKey: key,
         queryFn: async () => {

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useCallback } from "react"
+import { useCallback } from "react"
 import { useDropzone } from "react-dropzone"
 import { cn } from "@heroui/react"
 import { CloudUpload } from "lucide-react"
