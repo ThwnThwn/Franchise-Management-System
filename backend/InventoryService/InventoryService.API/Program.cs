@@ -1,4 +1,5 @@
-using DotNetEnv;
+﻿using DotNetEnv;
+using IdentityService.Grpc.Protos.User;
 using InventoryService.API.Services.Identity;
 using InventoryService.API.Services.IngredientCategory;
 using InventoryService.API.Services.Inventory;
@@ -18,7 +19,9 @@ using InventoryService.Infrastructure.Interceptor;
 using InventoryService.Infrastructure.Persistences.Repositories;
 using InventoryService.Infrastructure.Signals;
 using Microsoft.EntityFrameworkCore;
+using ProductService.Grpc;
 using SharedKernel.Infrastructure.Kafka;
+using SupplierService.Grpc.Protos.Supplier;
 
 namespace InventoryService.API
 {
@@ -153,6 +156,40 @@ namespace InventoryService.API
             // builder.Services.AddHostedService<InventoryService.API.Consumers.OrderEventConsumer>();
 
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+
+            //GRPC CLIENT
+            builder.Services.AddGrpcClient<ProductVariantGrpc.ProductVariantGrpcClient>(o =>
+            {
+                var url = builder.Configuration[Common.PRODUCT_SERVICE_URL];
+                if (string.IsNullOrEmpty(url))
+                {
+                    // Nếu không tìm thấy trong ENV/Appsettings, báo lỗi ngay khi khởi động
+                    throw new InvalidOperationException("Missing configuration: PRODUCT_SERVICE_URL");
+                }
+                o.Address = new Uri(url);
+            });
+            builder.Services.AddGrpcClient<PurchaseOrderGrpc.PurchaseOrderGrpcClient>(o =>
+            {
+                var url = builder.Configuration["SUPPLIER_SERVICE_URL"];
+                if (string.IsNullOrEmpty(url))
+                {
+                    // Nếu không tìm thấy trong ENV/Appsettings, báo lỗi ngay khi khởi động
+                    throw new InvalidOperationException("Missing configuration: SUPPLIER_SERVICE_URL");
+                }
+                o.Address = new Uri(url);
+            });
+            builder.Services.AddGrpcClient<UserGrpc.UserGrpcClient>(o =>
+            {
+                var url = builder.Configuration["IDENTITY_SERVICE_URL"];
+                if (string.IsNullOrEmpty(url))
+                {
+                    // Nếu không tìm thấy trong ENV/Appsettings, báo lỗi ngay khi khởi động
+                    throw new InvalidOperationException("Missing configuration: IDENTITY_SERVICE_URL");
+                }
+                o.Address = new Uri(url);
+            });
+            
 
             var app = builder.Build();
 
