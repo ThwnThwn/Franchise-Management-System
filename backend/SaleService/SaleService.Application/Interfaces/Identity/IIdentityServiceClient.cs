@@ -33,7 +33,7 @@ public class LoyaltyRes
 
     public decimal TotalSpent { get; set; }
 
-    public virtual MembershipTier CurrentTier { get; set; } = null!;
+    public virtual MembershipTier? CurrentTier { get; set; } = null!;
 }
 
 public class MembershipTier

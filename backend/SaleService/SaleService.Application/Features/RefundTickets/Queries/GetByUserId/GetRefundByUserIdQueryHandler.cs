@@ -24,10 +24,6 @@ public sealed class GetRefundByUserIdHandler
         CancellationToken cancellationToken)
     {
         var tickets = await _refundTicketRepository.GetByUserIdAsync(request.UserIdToSearch, request.PageIndex,request.PageSize,cancellationToken);
-
-        if (tickets == null)
-            return Result.NotFound($"Refund ticket not found with '{request.UserIdToSearch}'");
-
         var userRole = await _identityServiceClient.GetUserByIdAsync(request.LoggedUserId);
         
         var isOwner = tickets != null && tickets.Items.First().UserId == request.LoggedUserId;
@@ -35,19 +31,20 @@ public sealed class GetRefundByUserIdHandler
         if (!isAdmin && !isOwner)
         {
             return Result.Forbidden("You do not have permission!!!");
-        }   
-
-       var response = tickets.Items.Select(ticket => new GetRefundByUserIdResponse
+        }
+        if (tickets == null)
+            throw new Exception($"Refund ticket not found with '{request.UserIdToSearch}'");
+        var response = tickets.Items.Select(ticket => new GetRefundByUserIdResponse
         {
-            Id = ticket.Id,
+            Id = ticket!.Id,
             UserId = ticket.UserId,
             TicketCode = ticket.TicketCode,
             Amount = ticket.Amount,
             RefundAmount= ticket.RefundAmount,
-            Reason = ticket.Reason,
-            WalletId = ticket.WalletId.Value,
+            Reason = ticket.Reason ?? string.Empty,
+            WalletId = ticket.WalletId ?? Guid.Empty,
             TransactionId = ticket.TransactionId,
-            OriginalTransactionId = ticket.OriginalTransactionId.Value,
+            OriginalTransactionId = ticket.OriginalTransactionId ?? Guid.Empty,
             Status = ticket.Status,
             CreatedAt = ticket.CreatedAt,
             UpdatedAt = ticket.UpdatedAt

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -23,6 +23,7 @@
     <ProjectReference Include="..\ProductService\ProductService.API\ProductService.API.csproj" />
     <ProjectReference Include="..\SaleService\SaleService.API\SalesService.API.csproj" />
     <ProjectReference Include="..\SupplierService\SupplierService.API\SupplierService.API.csproj" />
+    <ProjectReference Include="..\WarehouseService\WarehouseService.API\WarehouseService.API.csproj" />
   </ItemGroup>
 
 </Project>

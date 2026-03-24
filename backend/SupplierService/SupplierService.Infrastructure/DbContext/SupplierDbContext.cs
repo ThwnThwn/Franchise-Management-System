@@ -11,10 +11,6 @@ public partial class SupplierDbContext : Microsoft.EntityFrameworkCore.DbContext
 {
     private readonly UpdateTimestampInterceptor _updateInterceptor;
 
-    public SupplierDbContext()
-    {
-    }
-
     public SupplierDbContext(DbContextOptions<SupplierDbContext> options, UpdateTimestampInterceptor updateTimestampInterceptor)
         : base(options)
     {

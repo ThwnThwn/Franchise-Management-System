@@ -15,10 +15,6 @@ public partial class SalesDbContext : DbContext, ISalesDbContext
 {
     private readonly UpdateTimestampInterceptor _updateInterceptor;
 
-    public SalesDbContext()
-    {
-    }
-
     public SalesDbContext(DbContextOptions<SalesDbContext> options, UpdateTimestampInterceptor updateTimestampInterceptor)
         : base(options)
     {

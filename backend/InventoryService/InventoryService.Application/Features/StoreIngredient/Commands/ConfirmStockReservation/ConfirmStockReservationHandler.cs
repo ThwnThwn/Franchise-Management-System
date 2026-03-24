@@ -55,7 +55,10 @@ namespace InventoryService.Application.Features.StoreIngredient.Commands.Confirm
                 // 2. Tính toán nguyên liệu thực tế cần trừ (Gom nhóm lại để tối ưu transaction)
                 var variantIds = request.Items.Select(x => x.VariantId).Distinct().ToList();
                 var allRecipes = await _recipeRepo.GetRecipesByVariantIdsAsync(variantIds, cancellationToken);
-
+                if(allRecipes == null)
+                {
+                    throw new Exception("all recipes is null |ConfirmstockHanlder");
+                }
                 // Sử dụng Domain Service để tính toán tổng nguyên liệu
                 var totalRequiredIngredients = _domainService.CalculateRequiredIngredients(
                     request.Items.Select(x => (x.VariantId, x.Quantity)),

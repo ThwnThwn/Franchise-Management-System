@@ -47,9 +47,12 @@ namespace InventoryService.API.Services.Identity
             };
             var response = await _client.GetManagerAsync(request);
 
-            if (response == null) throw new RpcException(new Status(StatusCode.NotFound, Message.User.NotFound));
-
-            return response.ToEntity();
+            if (response == null) 
+                throw new RpcException(new Status(StatusCode.NotFound, Message.User.NotFound));
+            var entity = response.ToEntity();
+            if(entity == null)
+                throw new RpcException(new Status(StatusCode.NotFound, Message.User.NotFound));
+            return entity;
 
         }
     }

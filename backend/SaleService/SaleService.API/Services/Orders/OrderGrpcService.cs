@@ -97,9 +97,9 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             OrderId = result.Value.OrderId.ToString(),
             StoreId = result.Value.StoreId.ToString(),
             OrderCode = result.Value.OrderCode ?? string.Empty, // Tránh lỗi null cũ
-            TotalAmount = (double)result.Value.TotalAmount,
+            TotalAmount = (double)(result.Value.TotalAmount ?? 0),
             CustomerId = customerId.ToString(),
-            Type = (OrderType)result.Value.Type,
+            Type = (OrderType)result.Value.Type!,
             CheckStockRespone = new CheckEnoughStockResponse
             {
                 IsEnough = result.Value.CheckEnoughStockRes.IsEnough
@@ -167,13 +167,13 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
         if (result.Status == Ardalis.Result.ResultStatus.NotFound)
         {
             throw new RpcException(
-                new Status(StatusCode.NotFound, result.Errors.FirstOrDefault()));
+                new Status(StatusCode.NotFound, result.Errors.FirstOrDefault()!));
         }
 
         if (!result.IsSuccess)
         {
             throw new RpcException(
-                new Status(StatusCode.Internal, result.Errors.FirstOrDefault()));
+                new Status(StatusCode.Internal, result.Errors.FirstOrDefault()!));
         }
 
         var dto = result.Value;

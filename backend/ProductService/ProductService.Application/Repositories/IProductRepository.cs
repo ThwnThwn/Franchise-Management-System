@@ -11,7 +11,7 @@ public interface IProductRepository : IGenericRepository<Product>
 
     Task<Product?> GetProductByNameAsync(string name, Guid? excludeId);
 
-    Task<List<Product?>> GetProductByNameContainingAsync(string name);
+    Task<List<Product>> GetProductByNameContainingAsync(string name);
 
     Task<PagedResult<Product>> GetAllProductWithPagingByAsync(string? keyword, Guid? categoryId, int pageIndex, int pageSize, CancellationToken cancellationToken);
 

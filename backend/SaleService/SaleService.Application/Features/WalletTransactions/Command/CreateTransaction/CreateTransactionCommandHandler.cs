@@ -152,7 +152,14 @@ public sealed class CreateTransactionCommandHandler
         {
             transaction.CompletedAt = DateTimeOffset.UtcNow;
         }
-
+        if (wallet == null)
+        {
+            throw new Exception("wallet is null");
+        }
+        else if (wallet.RowVersion == null)
+        {
+            throw new Exception("RowVersion is null");
+        }
         // ===== UPDATE WALLET BALANCE (if completed immediately) =====
         if (initialStatus == TransactionStatus.Completed)
         {
@@ -383,7 +390,10 @@ public sealed class CreateTransactionCommandHandler
             UpdatedAt = DateTimeOffset.UtcNow,
             CompletedAt = DateTimeOffset.UtcNow
         };
-
+        if(destWallet.RowVersion == null)
+        {
+            throw new Exception("destWallet.RowVersion is null |CreateTransaction");
+        }
         // Update destination wallet balance
         var updated = await _walletRepository.UpdateBalanceAsync(
             destWallet.Id,
@@ -405,7 +415,7 @@ public sealed class CreateTransactionCommandHandler
         {
             Id = transaction.Id,
             TransactionCode = transaction.TransactionCode,
-            WalletId = transaction.WalletId.Value,
+            WalletId = transaction.WalletId ?? Guid.Empty,
             Amount = transaction.Amount,
             TransactionType = transaction.TransactionType,
             Status = transaction.Status,

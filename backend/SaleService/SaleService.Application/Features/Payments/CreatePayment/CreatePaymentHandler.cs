@@ -303,7 +303,7 @@ public sealed class CreatePaymentHandler(
             if (pointBalance < request.Point)
                 throw new BusinessException("Điểm còn lại trong tài khoản không đủ.");
 
-            decimal pointValue = request.Point.Value * user.LoyaltyTier.CurrentTier.ValuePerPoint;
+            decimal pointValue = request.Point.Value * user.LoyaltyTier.CurrentTier!.ValuePerPoint;
             loyaltyDiscount += pointValue;
             AddOrderSaleItem(order, $"Dùng {request.Point} điểm", pointValue, user.LoyaltyTier.CurrentTier.Id, OrderSaleItemType.LoyaltyPoint);
         }

@@ -83,7 +83,7 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
             Address = string.IsNullOrWhiteSpace(request.Address) ? null : request.Address,
             RoleSlug = request.RoleSlug,
             CurrentHourlyWage = request.HasCurrentHourlyWage ? (decimal?)request.CurrentHourlyWage : null,
-            HomeStoreId = Guid.Parse(string.IsNullOrWhiteSpace(request.HomeStoreId) ? null : request.HomeStoreId)
+            HomeStoreId = Guid.Parse(string.IsNullOrWhiteSpace(request.HomeStoreId) ? String.Empty : request.HomeStoreId)
         }));
 
         return MapUser(rep);
@@ -117,8 +117,7 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
 
         var userIds = request.Ids
             .Select(id => Guid.TryParse(id, out var guid) ? guid : (Guid?)null)
-            .Where(g => g.HasValue)
-            .Select(g => g.Value)
+            .OfType<Guid>()
             .ToList();
 
         if (userIds.Count == 0)
@@ -290,8 +289,9 @@ public class UserGrpcService : UserGrpc.UserGrpcBase
         return new DeleteAvatarResponse { Message = message };
     }
 
-    private static UserResponse MapUser(UserRep user)
+    private static UserResponse MapUser(UserRep? user)
     {
+        if (user == null) return new UserResponse();
         return new UserResponse
         {
             Id = user.Id.ToString(),

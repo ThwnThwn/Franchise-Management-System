@@ -55,6 +55,7 @@ create_db_safe "inventory_db"
 create_db_safe "franchise_db"
 create_db_safe "engagement_db"
 create_db_safe "supplier_db"
+create_db_safe "warehouse_db"
 
 
 run_sql_script "identity_db" "/docker-entrypoint-initdb.d/schemas/02-identity.sql"
@@ -66,6 +67,7 @@ run_sql_script "franchise_db" "/docker-entrypoint-initdb.d/schemas/06-franchise.
 # run_sql_script "payment_db" "/docker-entrypoint-initdb.d/schemas/07-payment.sql"
 run_sql_script "engagement_db" "/docker-entrypoint-initdb.d/schemas/08-engagement.sql"
 run_sql_script "supplier_db" "/docker-entrypoint-initdb.d/schemas/09-supplier.sql"
+run_sql_script "warehouse_db" "/docker-entrypoint-initdb.d/schemas/10-warehouse.sql"
 
 
 # Seed data
@@ -87,6 +89,7 @@ run_sql_script "franchise_db" "/docker-entrypoint-initdb.d/seeding/realease-init
 # run_sql_script "franchise_db" "/docker-entrypoint-initdb.d/seeding/11-seeding-greedy-test.sql"
 run_sql_script "engagement_db" "/docker-entrypoint-initdb.d/seeding/realease-init-engagement.sql"
 run_sql_script "supplier_db" "/docker-entrypoint-initdb.d/seeding/08-seeding-supplier.sql"
+run_sql_script "warehouse_db" "/docker-entrypoint-initdb.d/seeding/10-seeding-warehouse.sql"
 run_sql_script "sales_db" "/docker-entrypoint-initdb.d/seeding/realease-init-sales.sql"
 
 echo "Database initialization process finished!"

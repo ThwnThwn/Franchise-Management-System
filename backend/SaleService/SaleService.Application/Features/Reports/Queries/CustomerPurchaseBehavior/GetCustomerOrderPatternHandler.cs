@@ -23,7 +23,6 @@ public sealed class GetCustomerOrderPatternHandler
         GetCustomerOrderPatternQuery request,
         CancellationToken cancellationToken)
     {
-        //  Lấy stats từ DB
         var stats = await _orderRepository.GetCustomerOrderStatisticAsync(
             request.StoreId,
             request.FromDate,
@@ -37,19 +36,17 @@ public sealed class GetCustomerOrderPatternHandler
                 new List<CustomerOrderPatternResponse>(), 0,
                 request.PageIndex, request.PageSize));
 
-        //  Enrich từ IdentityService
         var customerIds = stats.Select(s => s.CustomerId).ToList();
         var customerInfos = await _identityServiceClient.GetUsersByIdsAsync(customerIds);
         var customerMap = customerInfos.ToDictionary(c => c.Id);
 
-        // Map
         var items = stats.Select(s =>
         {
             customerMap.TryGetValue(s.CustomerId, out var info);
             return new CustomerOrderPatternResponse
             {
                 CustomerId = s.CustomerId,
-                FullName = info?.Username,
+                FullName = info?.Username ?? string.Empty,
                 Email = info?.Email,
                 Phone = info?.Phone,
                 TotalOrders = s.TotalOrders,

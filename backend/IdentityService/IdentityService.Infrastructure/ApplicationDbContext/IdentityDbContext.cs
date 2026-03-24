@@ -10,10 +10,6 @@ public partial class IdentityDbContext : DbContext, IIdentityDbContext
 {
     private readonly UpdateTimestampInterceptor _updateInterceptor;
 
-    public IdentityDbContext()
-    {
-    }
-
     public IdentityDbContext(DbContextOptions<IdentityDbContext> options,
         UpdateTimestampInterceptor updateTimestampInterceptor)
         : base(options)

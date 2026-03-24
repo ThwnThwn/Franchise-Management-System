@@ -66,6 +66,14 @@ namespace EngagementService.Application.Features.Campaign.Commands.RedeemCampaig
             }
 
             var voucher = await _voucherRepository.GetByIdAsync(request.VoucherId);
+            if(voucher == null)
+            {
+                throw new BusinessException($"voucher does not exit {request.VoucherId}.");
+            }
+            if(voucher.CampaignId == null)
+            {
+                throw new BusinessException($"voucher does not has this campaign {voucher.CampaignId}.");
+            }
             var campaign = await _campaignRepository.GetCampaignById(voucher.CampaignId.Value);
             return _mapper.Map<CampaignRes>(campaign);
         }

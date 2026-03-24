@@ -1,17 +1,16 @@
-using System.Security.Cryptography;
-using System.Text.Json;
 using IdentityService.Application.AppExceptions;
 using IdentityService.Application.Constants;
 using IdentityService.Application.Dtos.Auth.Response;
 using IdentityService.Application.ExternalServices;
-using SharedKernel.Infrastructure.Kafka;
-using SharedKernel.Constants;
 using IdentityService.Application.Persistences.Caches;
 using IdentityService.Application.Persistences.Repositories;
 using IdentityService.Domain.Entities;
 using MediatR;
-using SharedKernel.Events;
 using SharedKernel.Constants;
+using SharedKernel.Events;
+using SharedKernel.Infrastructure.Kafka;
+using System.Security.Cryptography;
+using System.Text.Json;
 
 namespace IdentityService.Application.Features.Auth.Commands.Register;
 

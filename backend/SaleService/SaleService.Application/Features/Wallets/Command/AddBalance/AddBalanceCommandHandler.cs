@@ -83,7 +83,14 @@ public sealed class AddBalanceCommandHandler
                         nameof(request.ExternalTransactionId),
                         $"ExternalTransactionId '{request.ExternalTransactionId}' already exists for a different wallet."));
                 }
-
+                if (wallet == null)
+                {
+                    throw new Exception("wallet is null");
+                }
+                else if (wallet.RowVersion == null)
+                {
+                    throw new Exception("RowVersion is null");
+                }
                 // Idempotent return
                 return Result.Success(new AddBalanceCommandResponse
                 {
@@ -139,7 +146,14 @@ public sealed class AddBalanceCommandHandler
             var updatedWallet = await _walletRepository.GetByIdAsync(
                 wallet.Id,
                 cancellationToken);
-
+            if (updatedWallet == null)
+            {
+                throw new Exception("updatedWallet is null");
+            }
+            else if (updatedWallet.RowVersion == null)
+            {
+                throw new Exception("RowVersion is null");
+            }
             var response = new AddBalanceCommandResponse
             {
                 WalletId = updatedWallet!.Id,

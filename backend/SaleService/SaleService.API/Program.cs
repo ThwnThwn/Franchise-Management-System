@@ -284,7 +284,7 @@ public class Program
                 ValidAudience = "CFSM-be",
 
                 IssuerSigningKey = new SymmetricSecurityKey(
-                    Encoding.UTF8.GetBytes(secret)
+                    Encoding.UTF8.GetBytes(secret ?? string.Empty)
                 ),
 
                 RoleClaimType = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"

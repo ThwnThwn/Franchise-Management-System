@@ -1,0 +1,189 @@
+syntax = "proto3";
+
+option csharp_namespace = "WarehouseService.Grpc.Protos.StockTransaction";
+option go_package = "api-gateway/pkg/pb/stock_transaction";
+
+package stock_transaction;
+
+service StockTransactionGrpc {
+  rpc CreateStockIn             (CreateStockInRequest)             returns (StockInReply);
+  rpc CreateStockOut            (CreateStockOutRequest)            returns (StockOutReply);
+  rpc CompleteStockTransaction  (CompleteStockTransactionRequest)  returns (CompleteStockTransactionReply);
+  rpc CancelStockTransaction    (CancelStockTransactionRequest)    returns (CancelStockTransactionReply);
+  rpc GetStockTransactionById   (GetStockTransactionByIdRequest)   returns (StockTransactionDetail);
+  rpc GetStockTransactions      (GetStockTransactionsRequest)      returns (GetStockTransactionsReply);
+}
+
+enum TransactionType {
+  STOCK_IN     = 0;
+  STOCK_OUT    = 1;
+  TRANSFER_IN  = 2;
+  TRANSFER_OUT = 3;
+  ADJUSTMENT   = 4;
+  RETURN       = 5;
+}
+
+enum TransactionStatus {
+  PENDING   = 0;
+  COMPLETED = 1;
+  CANCELLED = 2;
+}
+
+message CreateStockInRequest {
+  string warehouse_id            = 1;
+  repeated StockInItem items     = 2;
+  optional string supplier_id    = 3;
+  optional string reference_code = 4;
+  optional string note           = 5;
+}
+
+message StockInItem {
+  string ingredient_id = 1;  
+  double quantity      = 2;
+  double unit_price    = 3;
+}
+
+
+message CreateStockOutRequest {
+  string warehouse_id         = 1;
+  repeated StockOutItem items = 2;
+  optional string note        = 3;
+}
+
+message StockOutItem {
+  string ingredient_id  = 1;
+  double quantity          = 2;
+  double unit_price        = 3;
+}
+
+message CompleteStockTransactionRequest {
+  repeated string transaction_ids = 1;
+}
+
+message CancelStockTransactionRequest {
+  string id = 1;
+}
+
+message GetStockTransactionByIdRequest {
+  string id = 1;
+}
+
+message GetStockTransactionsRequest {
+  optional string            warehouse_id      = 1;
+  optional string            warehouse_item_id = 2;
+  optional TransactionType   type              = 3;
+  optional TransactionStatus status            = 4;
+  optional string            supplier_id       = 5;
+  optional string            reference_code    = 6;
+  optional string            from_date         = 7;
+  optional string            to_date           = 8;
+  int32                      page              = 9;
+  int32                      page_size         = 10;
+}
+
+message StockInReply {
+  string warehouse_id                        = 1;
+  string supplier_id                         = 2;
+  string reference_code                      = 3;
+  repeated StockTransactionItem transactions = 4;
+  int32  total_items                         = 5;
+  double total_amount                        = 6;
+  string created_at                          = 7;
+  string message                             = 8;
+}
+
+message StockOutReply {
+  string warehouse_id                        = 1;
+  repeated StockTransactionItem transactions = 2;
+  int32  total_items                         = 3;
+  double total_amount                        = 4;
+  string created_at                          = 5;
+  string message                             = 6;
+}
+
+message CompleteStockTransactionReply {
+  repeated CompletedTransactionItem transactions = 1;
+  int32  total_completed = 2;
+  double total_amount    = 3;
+  string completed_at    = 4;
+  string message         = 5;
+}
+
+message StockTransactionItem {
+  string            id                = 1;
+  string            transaction_code  = 2;
+  string            warehouse_item_id = 3;
+  string            ingredient_id     = 4;  
+  TransactionType   type              = 5;
+  double            quantity          = 6;
+  double            unit_price        = 7;
+  double            total_price       = 8;
+  TransactionStatus status            = 9;
+}
+
+message CompletedTransactionItem {
+  string            id                = 1;
+  string            transaction_code  = 2;
+  string            warehouse_item_id = 3;
+  TransactionType   type              = 4;
+  double            quantity          = 5;
+  double            total_price       = 6;
+  TransactionStatus status            = 7;
+}
+
+message CancelStockTransactionReply {
+  string            id                = 1;
+  string            transaction_code  = 2;
+  string            warehouse_id      = 3;
+  string            warehouse_item_id = 4;
+  TransactionType   type              = 5;
+  TransactionStatus status            = 6;
+  string            updated_at        = 7;
+  string            message           = 8;
+}
+
+message GetStockTransactionsReply {
+  repeated StockTransactionSummary items = 1;
+  int32 total_count = 2;
+  int32 page        = 3;
+  int32 page_size   = 4;
+  int32 total_pages = 5;
+}
+
+message StockTransactionSummary {
+  string            id                = 1;
+  string            transaction_code  = 2;
+  string            warehouse_id      = 3;
+  string            warehouse_item_id = 4;
+  string            ingredient_id     = 5;
+  TransactionType   type              = 6;
+  double            quantity          = 7;
+  double            unit_price        = 8;
+  double            total_price       = 9;
+  string            supplier_id       = 10;
+  string            reference_code    = 11;
+  string            transfer_id       = 12;
+  TransactionStatus status            = 13;
+  string            created_by        = 14;
+  string            created_at        = 15;
+}
+
+message StockTransactionDetail {
+  string            id                    = 1;
+  string            transaction_code      = 2;
+  string            warehouse_id          = 3;
+  string            warehouse_item_id     = 4;
+  string            ingredient_id         = 5;
+  TransactionType   type                  = 6;
+  double            quantity              = 7;
+  double            unit_price            = 8;
+  double            total_price           = 9;
+  string            supplier_id           = 10;
+  string            reference_code        = 11;
+  string            warehouse_transfer_id = 12;
+  string            note                  = 13;
+  TransactionStatus status                = 14;
+  string            created_by            = 15;
+  string            created_at            = 16;
+  string            updated_at            = 17;
+}
