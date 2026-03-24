@@ -233,9 +233,14 @@ export default function ContractDetailAdminView({ id }: Props) {
                                         Toàn màn hình
                                     </Button>
                                     <Button
-                                        as="a" // Dùng thẻ a để trigger download chuẩn hơn
-                                        href={contract.contractPdfUrl}
-                                        download={`Hop_Dong_${contract.id.slice(-6)}.pdf`}
+                                        as="a"
+                                        // Chèn fl_attachment vào sau /upload/
+                                        href={contract.contractPdfUrl.replace(
+                                            "/upload/",
+                                            "/upload/fl_attachment/"
+                                        )}
+                                        // Thuộc tính download vẫn nên giữ để làm fallback
+                                        download={`Hop_Dong_${contract.id}.pdf`}
                                         size="sm"
                                         color="primary"
                                         startContent={<Download size={14} />}
