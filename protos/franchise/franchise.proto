@@ -102,20 +102,19 @@ message LandCertificateFile {
 // ─────────────────────────────────────────────────────────────────────────────
 message ReviewFranchiseApplicationRequest {
     string id = 1;
-    string reviewed_by = 2;
 
     // 1 = Approved, 2 = Rejected
-    int32 action = 3;
+    int32 action = 2;
 
-    string note = 4;
+    string note = 3;
 
     // [Deprecated] DocuSeal Template ID giờ lấy cấu hình qua file Env thay vì bắt client cấp
-    int32 docuseal_template_id = 5 [deprecated = true];
-    double deposit_amount = 6;
-    double franchise_fee = 7;
-    double revenue_share_percentage = 8;
-    google.protobuf.Timestamp valid_from = 9;
-    google.protobuf.Timestamp valid_until = 10;
+    int32 docuseal_template_id = 4 [deprecated = true];
+    double deposit_amount = 5;
+    double franchise_fee = 6;
+    double revenue_share_percentage = 7;
+    google.protobuf.Timestamp valid_from = 8;
+    google.protobuf.Timestamp valid_until = 9;
 }
 
 message ReviewFranchiseApplicationResponse {
@@ -213,17 +212,6 @@ message GetAllApplicationsResponse {
     int32 current_page = 4;
 }
 
-// --- Messages gộp Duyệt & Từ chối ---
-
-message ReviewApplicationRequest {
-    string id = 1;
-    
-    // Action: 1 là Approve (Duyệt), 2 là Reject (Từ chối)
-    // Đồng bộ với status (0: Pending, 1: Approved, 2: Rejected)
-    int32 action = 2; 
-    
-    string note = 3;
-}
 
 // --- Message Phản hồi chung ---
 

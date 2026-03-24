@@ -456,6 +456,7 @@ CREATE INDEX idx_franchise_app_reviewed_by ON franchise_applications(reviewed_by
 -- ========================================================
 CREATE TABLE IF NOT EXISTS franchise_contracts (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    code VARCHAR(100) NOT NULL,
     application_id UUID NOT NULL,
     
     -- Liên kết DocuSeal

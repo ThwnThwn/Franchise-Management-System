@@ -9,6 +9,9 @@ public partial class FranchiseContract : SoftDeletedEntity, IEntity
 
     public Guid ApplicationId { get; set; }
 
+    // --------------- Basic Info ---------------
+    public string Code { get; set; } = null!;
+
     // --------------- Tích hợp DocuSeal ---------------
 
     /// <summary>

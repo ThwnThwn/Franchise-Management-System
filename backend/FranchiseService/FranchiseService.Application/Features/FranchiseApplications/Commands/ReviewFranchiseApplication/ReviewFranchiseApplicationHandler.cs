@@ -90,6 +90,7 @@ public class ReviewFranchiseApplicationHandler
         var contract = new FranchiseContract
         {
             Id = Guid.NewGuid(),
+            Code = $"FR-{DateTimeOffset.UtcNow:yyyyMMdd}-{new Random().Next(1000, 9999)}",
             ApplicationId = request.ApplicationId,
             DepositAmount = depositAmount,
             FranchiseFee = franchiseFee,
@@ -163,7 +164,7 @@ public class ReviewFranchiseApplicationHandler
 
         return new Dictionary<string, string>
         {
-            ["contract_number"] = contract.Id.ToString(),
+            ["contract_number"] = contract.Code.ToString(),
             ["franchise_name"] = app.FullName,
             ["franchise_email"] = app.Email,
             ["franchise_phone"] = app.Phone,
