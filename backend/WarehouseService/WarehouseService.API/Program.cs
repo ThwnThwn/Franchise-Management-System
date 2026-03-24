@@ -1,6 +1,9 @@
 using DotNetEnv;
+using FranchiseService.Grpc;
+using InventoryService.Grpc.Protos.Ingredient;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
+using SupplierService.Grpc.Protos.Supplier;
 using WarehouseService.API.Clients;
 using WarehouseService.API.Interceptors;
 using WarehouseService.API.Middleware;
@@ -71,6 +74,39 @@ public class Program
         builder.Services.AddSingleton<IInventoryServiceClient, InventoryServiceClient>();
         builder.Services.AddSingleton<ISupplierServiceClient, SupplierServiceClient>();
         builder.Services.AddSingleton<IFranchiseServiceClient, FranchiseServiceClient>();
+        builder.Services.AddGrpcClient<SupplierGrpc.SupplierGrpcClient>(o =>
+        {
+            var url = builder.Configuration["SUPPLIER_SERVICE_URL"];
+
+            if (string.IsNullOrEmpty(url))
+            {
+                throw new InvalidOperationException("Missing configuration: SUPPLIER_SERVICE_URL");
+            }
+
+            o.Address = new Uri(url);
+        });
+        // 1. Cấu hình cho Ingredient Service
+        builder.Services.AddGrpcClient<IngredientGrpc.IngredientGrpcClient>(o =>
+        {
+            var ingredientUrl = builder.Configuration["INVENTORY_SERVICE_URL"];
+            if (string.IsNullOrEmpty(ingredientUrl))
+            {
+                // Nếu không tìm thấy trong ENV/Appsettings, báo lỗi ngay khi khởi động
+                throw new InvalidOperationException("Missing configuration: INVENTORY_SERVICE_URL");
+            }
+            o.Address = new Uri(ingredientUrl);
+        });
+
+        // 2. Cấu hình cho Franchise (Store) Service
+        builder.Services.AddGrpcClient<StoreGrpcService.StoreGrpcServiceClient>(o =>
+        {
+            var franchiseUrl = builder.Configuration["FRANCHISE_SERVICE_URL"];
+            if (string.IsNullOrEmpty(franchiseUrl))
+            {
+                throw new InvalidOperationException("Missing configuration: FRANCHISE_SERVICE_URL");
+            }
+            o.Address = new Uri(franchiseUrl);
+        });
 
         // ── Middleware ────────────────────────────────────────────────────────
         builder.Services.AddSingleton<GlobalExceptionHandlerMiddleware>();

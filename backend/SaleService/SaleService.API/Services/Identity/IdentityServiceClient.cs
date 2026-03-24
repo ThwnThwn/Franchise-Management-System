@@ -4,40 +4,14 @@ using SalesService.Application.Interfaces.Identity;
 
 namespace SalesService.API.Services.Identity;
 
-public class IdentityServiceClient : IIdentityServiceClient
+public class IdentityServiceClient(UserGrpc.UserGrpcClient client) : IIdentityServiceClient
 {
-    private readonly UserGrpc.UserGrpcClient _UserClient;
-    private readonly string _identityServiceUrl;
-    public IdentityServiceClient(IConfiguration configuration)
-    {
-        var rawUrl = configuration["IDENTITY_SERVICE_URL"] ?? "http://localhost:5001";
-
-        // Normalize to absolute URI
-        _identityServiceUrl = rawUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
-                              rawUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
-            ? rawUrl
-            : $"http://{rawUrl}";
-
-        var httpHandler = new HttpClientHandler
-        {
-            ServerCertificateCustomValidationCallback =
-                HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-        };
-
-        var channel = GrpcChannel.ForAddress(_identityServiceUrl, new GrpcChannelOptions
-        {
-            HttpHandler = httpHandler
-        });
-
-        _UserClient = new UserGrpc.UserGrpcClient(channel);
-    }
-
     public async Task<UserInfo?> GetUserByIdAsync(Guid userId)
     {
         try
         {
             var request = new GetUserByIdRequest { Id = userId.ToString() };
-            var response = await _UserClient.GetByIdAsync(request);
+            var response = await client.GetByIdAsync(request);
 
             if (response == null)
                 return null;
@@ -72,7 +46,7 @@ public class IdentityServiceClient : IIdentityServiceClient
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error calling IdentityService ({_identityServiceUrl}): {ex.Message}");
+            Console.WriteLine($"Error calling IdentityService: {ex.Message}");
             return null; // Return null instead of throwing - order can continue without email
         }
     }
@@ -87,7 +61,7 @@ public class IdentityServiceClient : IIdentityServiceClient
             var request = new GetUserByIdsRequest();
             request.Ids.AddRange(userIds.Select(id => id.ToString()));
 
-            var response = await _UserClient.GetByIdsAsync(request);
+            var response = await client.GetByIdsAsync(request);
 
             return response.Users.Select(u => new UserInfo
             {
@@ -105,7 +79,7 @@ public class IdentityServiceClient : IIdentityServiceClient
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error calling IdentityService GetUsersByIds ({_identityServiceUrl}): {ex.Message}");
+            Console.WriteLine($"Error calling IdentityService GetUsersByIds: {ex.Message}");
             return new List<UserInfo>();
         }
     }

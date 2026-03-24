@@ -9,22 +9,9 @@ namespace InventoryService.API.Services.Supplier
     {
         private readonly PurchaseOrderGrpc.PurchaseOrderGrpcClient _client;
 
-        public SupplierServiceClient(IConfiguration configuration)
+        public SupplierServiceClient(PurchaseOrderGrpc.PurchaseOrderGrpcClient client)
         {
-            var rawUrl = configuration["GrpcSettings:SupplierServiceUrl"] ?? configuration["ServiceUrls:SupplierService"] ?? "http://localhost:5008";
-
-            var url = rawUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
-                      rawUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
-                ? rawUrl
-                : $"http://{rawUrl}";
-
-            var httpHandler = new HttpClientHandler
-            {
-                ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-            };
-
-            var channel = GrpcChannel.ForAddress(url, new GrpcChannelOptions { HttpHandler = httpHandler });
-            _client = new PurchaseOrderGrpc.PurchaseOrderGrpcClient(channel);
+           _client = client;
         }
 
         public async Task<Dictionary<Guid, decimal>> GetLatestPriceForIngredientsAsync(IEnumerable<Guid> ingredientIds, CancellationToken cancellationToken = default)

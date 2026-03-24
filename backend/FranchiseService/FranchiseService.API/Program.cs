@@ -8,6 +8,7 @@ using MediatR;
 
 using FranchiseService.API.BackgroundJobs;
 using FranchiseService.Application.Services;
+using IdentityService.Grpc.Protos.User;
 
 namespace FranchiseService.API
 {
@@ -109,6 +110,19 @@ namespace FranchiseService.API
                           .WithOrigins(frontEndOrigin)
                           .WithExposedHeaders("Grpc-Status", "Grpc-Message", "Grpc-Encoding", "Grpc-Accept-Encoding");
                 });
+            });
+
+
+            //GRPC CLIENT
+            builder.Services.AddGrpcClient<UserGrpc.UserGrpcClient>(o =>
+            {
+                var url = builder.Configuration["IDENTITY_SERVICE_URL"];
+                if (string.IsNullOrEmpty(url))
+                {
+                    // Nếu không tìm thấy trong ENV/Appsettings, báo lỗi ngay khi khởi động
+                    throw new InvalidOperationException("Missing configuration: IDENTITY_SERVICE_URL");
+                }
+                o.Address = new Uri(url);
             });
 
             // ========================================================

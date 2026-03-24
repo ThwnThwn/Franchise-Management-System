@@ -7,42 +7,15 @@ using ProductService.Grpc;
 
 namespace InventoryService.API.Services.Product
 {
-    public class ProductServiceClient : IProductServiceClient
+    public class ProductServiceClient(ProductVariantGrpc.ProductVariantGrpcClient client) : IProductServiceClient
     {
-        private readonly IConfiguration _configuration;
-        private readonly string _productServiceClient;
-        private readonly ProductVariantGrpc.ProductVariantGrpcClient _client;
-        public ProductServiceClient(IMediator mediator, IConfiguration configuration)
-        {
-            _configuration = configuration;
-
-            var rawUrl = configuration[Common.PRODUCT_SERVICE_URL] ?? "http://localhost:5002";
-            // Allow env var values like "localhost:5002" by normalizing to an absolute URI.
-            _productServiceClient = rawUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
-                                 rawUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
-                ? rawUrl
-                : $"http://{rawUrl}";
-
-            var httpHandler = new HttpClientHandler
-            {
-                ServerCertificateCustomValidationCallback =
-                    HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-            };
-
-            var channel = GrpcChannel.ForAddress(_productServiceClient, new GrpcChannelOptions
-            {
-                HttpHandler = httpHandler
-            });
-
-            _client = new ProductVariantGrpc.ProductVariantGrpcClient(channel);
-        }
         public async Task<ProductVariantRespone> GetVariantById(Guid request)
         {
             var req = new GetProductVariantByIdRequest
             {
                 ProductVariantId = request.ToString()
             };
-            var respone = await _client.GetByIdAsync(req);
+            var respone = await client.GetByIdAsync(req);
             return new ProductVariantRespone()
             {
                 Id = Guid.Parse(respone.Id),
@@ -67,7 +40,7 @@ namespace InventoryService.API.Services.Product
                     NewCost = (double)newCost
                 });
             }
-            await _client.UpdateVariantCostsAsync(request, cancellationToken: cancellationToken);
+            await client.UpdateVariantCostsAsync(request, cancellationToken: cancellationToken);
         }
     }
 }

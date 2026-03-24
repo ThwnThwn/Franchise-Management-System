@@ -4,42 +4,17 @@ using SalesService.Application.Interfaces.Franchise;
 
 namespace SalesService.API.Services.Franchise;
 
-public class FranchiseServiceClient : IFranchiseServiceClient
+public class FranchiseServiceClient(
+     ShiftGrpcService.ShiftGrpcServiceClient shiftClient,
+     StoreGrpcService.StoreGrpcServiceClient storeClient) : IFranchiseServiceClient
 {
-    private readonly ShiftGrpcService.ShiftGrpcServiceClient _shiftClient;
-    private readonly StoreGrpcService.StoreGrpcServiceClient _storeClient;
-    private readonly string _franchiseServiceUrl;
-
-    public FranchiseServiceClient(IConfiguration configuration)
-    {
-        var rawUrl = configuration["FRANCHISE_SERVICE_URL"] ?? "http://localhost:5006";
-
-        _franchiseServiceUrl = rawUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
-                              rawUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
-            ? rawUrl
-            : $"http://{rawUrl}";
-
-        var httpHandler = new HttpClientHandler
-        {
-            ServerCertificateCustomValidationCallback =
-                HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-        };
-
-        var channel = GrpcChannel.ForAddress(_franchiseServiceUrl, new GrpcChannelOptions
-        {
-            HttpHandler = httpHandler
-        });
-
-        _shiftClient = new ShiftGrpcService.ShiftGrpcServiceClient(channel);
-        _storeClient = new StoreGrpcService.StoreGrpcServiceClient(channel);
-    }
 
     public async Task<UserShiftInfo?> GetUserCurrentShiftAsync(Guid userId)
     {
         try
         {
             var request = new GetUserCurrentShiftRequest { UserId = userId.ToString() };
-            var response = await _shiftClient.GetUserCurrentShiftAsync(request);
+            var response = await shiftClient.GetUserCurrentShiftAsync(request);
 
             if (response == null) return null;
 
@@ -58,7 +33,7 @@ public class FranchiseServiceClient : IFranchiseServiceClient
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error calling FranchiseService ({_franchiseServiceUrl}): {ex.Message}");
+            Console.WriteLine($"Error calling FranchiseService: {ex.Message}");
             return null;
         }
     }
@@ -68,7 +43,7 @@ public class FranchiseServiceClient : IFranchiseServiceClient
         try
         {
             var request = new GetActiveStaffsAtStoreRequest { StoreId = storeId.ToString() };
-            var response = await _shiftClient.GetActiveStaffsAtStoreAsync(request);
+            var response = await shiftClient.GetActiveStaffsAtStoreAsync(request);
 
             if (response?.Staffs == null) return new List<Guid>();
 
@@ -89,7 +64,7 @@ public class FranchiseServiceClient : IFranchiseServiceClient
         try
         {
             var request = new GetStoreDetailRequest { Id = storeId.ToString() };
-            var response = await _storeClient.GetStoreDetailAsync(request);
+            var response = await storeClient.GetStoreDetailAsync(request);
 
             if (response == null) return null;
 
