@@ -104,7 +104,7 @@ namespace FranchiseService.Infrastructure.Clients.Identity
                 HomeStoreId = user.HomeStoreId.HasValue ? user.HomeStoreId.Value.ToString() : "",
                 RoleSlug = user.RoleSlug ?? ""
             };
-            await _client.UpdateAsync(
+            await client.UpdateAsync(
                 request,
                 cancellationToken: ct
             );
