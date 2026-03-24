@@ -30,6 +30,7 @@ var ClientSet = wire.NewSet(
 	franchise.ProvideShiftTemplateClient,
 	franchise.ProvideShiftApplicationClient,
 	franchise.ProvideShiftSwapClient,
+	franchise.ProvideFranchiseClient,
 
 	// Identity Service
 	identity.NewIdentityClientFactory,

@@ -12,8 +12,13 @@ type clientFactory struct {
 	conn *grpc.ClientConn
 }
 
-func NewFranchiseClientFactory(url config.FranchiseServiceUrl, l logger.Interface) (*clientFactory, func(), error) {
-	conn, cleanup, err := grpcutils.NewClientConn(string(url), "Franchise Service", l)
+func NewFranchiseClientFactory(url config.FranchiseServiceUrl, cfg *config.Config, l logger.Interface) (*clientFactory, func(), error) {
+	maxSize := cfg.MaxUploadSizeMb * 1024 * 1024
+
+	conn, cleanup, err := grpcutils.NewClientConn(string(url), "Franchise Service", l, grpc.WithDefaultCallOptions(
+		grpc.MaxCallSendMsgSize(maxSize),
+		grpc.MaxCallRecvMsgSize(maxSize),
+	))
 	if err != nil {
 		return nil, nil, err
 	}

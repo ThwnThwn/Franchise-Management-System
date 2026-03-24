@@ -13,6 +13,549 @@
     "host": "localhost:8080",
     "basePath": "/api",
     "paths": {
+        "/franchise/applications": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lấy toàn bộ hồ sơ đăng ký nhượng quyền (hỗ trợ phân trang, lọc theo trạng thái).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Franchise: Applications"
+                ],
+                "summary": "Lấy danh sách hồ sơ nhượng quyền (Admin)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "searchKey",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/franchise.ApplicationPaginationResult"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Đối tác gửi hồ sơ (thông tin cá nhân, địa chỉ mặt bằng) kèm theo ảnh mặt bằng và các ảnh chứng nhận đất đai.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Franchise: Applications"
+                ],
+                "summary": "Nộp hồ sơ đăng ký nhượng quyền",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Họ và tên",
+                        "name": "fullName",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Email liên hệ",
+                        "name": "email",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Số điện thoại",
+                        "name": "phone",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "CMND/CCCD",
+                        "name": "identityNumber",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Mã Tỉnh/Thành phố",
+                        "name": "provinceId",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Mã Quận/Huyện",
+                        "name": "districtId",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Mã Phường/Xã",
+                        "name": "wardId",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Tên quán dự kiến",
+                        "name": "storeName",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Địa chỉ chi tiết mặt bằng",
+                        "name": "storeAddress",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "description": "Vĩ độ (Latitude)",
+                        "name": "storeLatitude",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "number",
+                        "description": "Kinh độ (Longitude)",
+                        "name": "storeLongitude",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "number",
+                        "description": "Diện tích mặt bằng (m2)",
+                        "name": "storeSizeSqm",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "file",
+                        "description": "Ảnh mặt tiền (1 file)",
+                        "name": "storeFront",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "file",
+                        "description": "Ảnh chứng nhận đất đai/Sổ đỏ (Nhiều file)",
+                        "name": "landCerts",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Hồ sơ vừa tạo",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_franchise.FranchiseApplicationResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Lỗi dữ liệu đầu vào",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/franchise/applications/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Xem chi tiết hồ sơ bao gồm cả danh sách các hợp đồng (Contracts) được sinh ra từ hồ sơ này.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Franchise: Applications"
+                ],
+                "summary": "Xem chi tiết một hồ sơ (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID Hồ sơ (Application ID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_franchise.FranchiseApplicationDetailResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/franchise/applications/{id}/review": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Admin duyệt (Approve) hoặc từ chối (Reject) hồ sơ. Nếu Approve, hệ thống tự động sinh Hợp đồng và bắn link DocuSeal.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Franchise: Applications"
+                ],
+                "summary": "Thẩm định hồ sơ nhượng quyền (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID Hồ sơ (Application ID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Quyết định thẩm định \u0026 Thông số hợp đồng",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_franchise.ReviewFranchiseApplicationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_franchise.ReviewApplicationResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/franchise/contracts": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lấy toàn bộ hợp đồng nhượng quyền (hỗ trợ phân trang, lọc theo trạng thái).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Franchise: Contracts"
+                ],
+                "summary": "Lấy danh sách hợp đồng (Admin/Kế toán)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/franchise.ContractPaginationResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/franchise/contracts/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lấy thông tin chi tiết của một hợp đồng nhượng quyền.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Franchise: Contracts"
+                ],
+                "summary": "Xem chi tiết một hợp đồng",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID Hợp đồng",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_franchise.FranchiseContractResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/franchise/contracts/{id}/payment": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Chuyển trạng thái hợp đồng sang Active, tạo Cửa hàng mới và cấp quyền Manager cho đối tác.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Franchise: Contracts"
+                ],
+                "summary": "Xác nhận đã đóng tiền cọc (Kế toán)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID Hợp đồng",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Ghi chú giao dịch",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_franchise.ConfirmDepositPaymentRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"message\": \"Xác nhận thanh toán thành công\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/franchise/contracts/{id}/renew": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Cộng thêm số năm hiệu lực vào hợp đồng hiện tại.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Franchise: Contracts"
+                ],
+                "summary": "Gia hạn hợp đồng nhượng quyền",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID Hợp đồng",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Số năm gia hạn",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_franchise.RenewContractRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_franchise.FranchiseContractResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/franchise/contracts/{id}/setup": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Admin cập nhật trạng thái thi công (Design -\u003e Construction -\u003e Inspection -\u003e Ready).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Franchise: Contracts"
+                ],
+                "summary": "Cập nhật tiến độ thi công cửa hàng",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID Hợp đồng",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Trạng thái Setup",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_franchise.UpdateSetupStatusRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_franchise.FranchiseContractResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/franchise/contracts/{id}/status": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Admin thay đổi trạng thái hợp đồng (Suspended, Terminated) kèm lý do.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Franchise: Contracts"
+                ],
+                "summary": "Tạm ngưng / Chấm dứt hợp đồng",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID Hợp đồng",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Trạng thái và lý do",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_franchise.UpdateContractStatusRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_franchise.FranchiseContractResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/franchise/webhook/docuseal": {
+            "post": {
+                "description": "Cập nhật trạng thái hợp đồng (Đã ký) dựa trên webhook từ hệ thống DocuSeal gửi về. Không dùng xác thực Token mà dùng Header HMAC.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Franchise: Webhooks"
+                ],
+                "summary": "Nhận Webhook từ DocuSeal (Internal)",
+                "responses": {
+                    "200": {
+                        "description": "{\"message\": \"Webhook processed\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/me/shift-availabilities": {
             "get": {
                 "security": [
@@ -1726,6 +2269,241 @@
         }
     },
     "definitions": {
+        "api-gateway_internal_domain_models_franchise.ConfirmDepositPaymentRequest": {
+            "type": "object",
+            "properties": {
+                "note": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_franchise.FranchiseApplicationDetailResponse": {
+            "type": "object",
+            "properties": {
+                "application": {
+                    "$ref": "#/definitions/api-gateway_internal_domain_models_franchise.FranchiseApplicationResponse"
+                },
+                "contracts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api-gateway_internal_domain_models_franchise.FranchiseContractResponse"
+                    }
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_franchise.FranchiseApplicationResponse": {
+            "type": "object",
+            "properties": {
+                "adminNote": {
+                    "type": "string"
+                },
+                "contracts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api-gateway_internal_domain_models_franchise.FranchiseContractResponse"
+                    }
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "districtId": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "fullName": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "identityNumber": {
+                    "type": "string"
+                },
+                "landCertificateUrls": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "managerId": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "provinceId": {
+                    "type": "string"
+                },
+                "reviewedAt": {
+                    "type": "string"
+                },
+                "reviewedBy": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "storeAddress": {
+                    "type": "string"
+                },
+                "storeFrontUrl": {
+                    "type": "string"
+                },
+                "storeId": {
+                    "type": "string"
+                },
+                "storeLatitude": {
+                    "type": "number"
+                },
+                "storeLongitude": {
+                    "type": "number"
+                },
+                "storeName": {
+                    "type": "string"
+                },
+                "storeSizeSqm": {
+                    "type": "number"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "wardId": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_franchise.FranchiseContractResponse": {
+            "type": "object",
+            "properties": {
+                "applicationId": {
+                    "type": "string"
+                },
+                "contractPdfUrl": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "depositAmount": {
+                    "type": "number"
+                },
+                "depositStatus": {
+                    "description": "0: Awaiting, 1: Paid",
+                    "type": "integer"
+                },
+                "docuSealSubmissionId": {
+                    "type": "integer"
+                },
+                "franchiseFee": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "revenueSharePercentage": {
+                    "type": "number"
+                },
+                "setupStatus": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "validFrom": {
+                    "type": "string"
+                },
+                "validUntil": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_franchise.RenewContractRequest": {
+            "type": "object",
+            "required": [
+                "extensionYears"
+            ],
+            "properties": {
+                "extensionYears": {
+                    "type": "integer"
+                },
+                "note": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_franchise.ReviewApplicationResponse": {
+            "type": "object",
+            "properties": {
+                "contractId": {
+                    "type": "string"
+                },
+                "docuSealSubmissionId": {
+                    "type": "integer"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_franchise.ReviewFranchiseApplicationRequest": {
+            "type": "object",
+            "required": [
+                "action"
+            ],
+            "properties": {
+                "action": {
+                    "description": "1: Approve, 2: Reject",
+                    "type": "integer"
+                },
+                "depositAmount": {
+                    "type": "number"
+                },
+                "franchiseFee": {
+                    "type": "number"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "revenueSharePercentage": {
+                    "type": "number"
+                },
+                "validFrom": {
+                    "type": "string"
+                },
+                "validUntil": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_franchise.UpdateContractStatusRequest": {
+            "type": "object",
+            "required": [
+                "reason",
+                "status"
+            ],
+            "properties": {
+                "reason": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_franchise.UpdateSetupStatusRequest": {
+            "type": "object",
+            "properties": {
+                "setupStatus": {
+                    "description": "0: Design, 1: Construction, 2: Inspection, 3: Ready",
+                    "type": "integer"
+                }
+            }
+        },
         "enum.TimeLogStatus": {
             "type": "integer",
             "enum": [
@@ -1748,6 +2526,40 @@
                 "TimeLogStatus_VALID",
                 "TimeLogStatus_INVALID"
             ]
+        },
+        "franchise.ApplicationPaginationResult": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api-gateway_internal_domain_models_franchise.FranchiseApplicationResponse"
+                    }
+                },
+                "totalCount": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "franchise.ContractPaginationResult": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api-gateway_internal_domain_models_franchise.FranchiseContractResponse"
+                    }
+                },
+                "totalCount": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
+                }
+            }
         },
         "gin.H": {
             "type": "object",
