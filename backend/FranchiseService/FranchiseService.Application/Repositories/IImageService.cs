@@ -8,6 +8,8 @@ namespace FranchiseService.Application.Interfaces
         Task<ImageUploadResult> UploadImageAsync(IFormFile file);
 
         Task<ImageUploadResult> UploadImageFromBytesAsync(byte[] imageData, string fileName, string contentType);
+        
+        Task<ImageUploadResult> UploadFileFromUrlAsync(string url, string fileName, string folder = "Franchise_Contracts");
 
         Task DeleteImageAsync(string publicId);
     }

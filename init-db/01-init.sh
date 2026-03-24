@@ -49,7 +49,7 @@ run_sql_script() {
 create_db_safe "identity_db"
 create_db_safe "product_db"
 create_db_safe "sales_db"
-create_db_safe "payment_db"
+# create_db_safe "payment_db"
 create_db_safe "notification_db"
 create_db_safe "inventory_db"
 create_db_safe "franchise_db"

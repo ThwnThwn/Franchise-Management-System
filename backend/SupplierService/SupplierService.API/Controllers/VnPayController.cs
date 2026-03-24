@@ -39,7 +39,7 @@ public class VnPayController : ControllerBase
         try
         {
             var queryDict = HttpContext.Request.Query
-                .ToDictionary(k => k.Key, v => v.Value.ToString());
+                .ToDictionary(k => k.Key, v => v.Value.ToString(), StringComparer.OrdinalIgnoreCase);
 
             var result = await _mediator.Send(new VnPayReturnCommand(queryDict), ct);
 
@@ -69,7 +69,7 @@ public class VnPayController : ControllerBase
         try
         {
             var queryDict = HttpContext.Request.Query
-                .ToDictionary(k => k.Key, v => v.Value.ToString());
+                .ToDictionary(k => k.Key, v => v.Value.ToString(), StringComparer.OrdinalIgnoreCase);
 
             _logger.LogInformation("[VNPay IPN] Received IPN call with params: {Params}",
                 string.Join(", ", queryDict.Select(kv => $"{kv.Key}={kv.Value}")));

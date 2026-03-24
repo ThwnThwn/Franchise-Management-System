@@ -83,7 +83,9 @@ public class Program
         // ===== YARP REVERSE PROXY (Dev: Forward SupplierService VNPay callbacks) =====
         // Ngrok chỉ có 1 domain trỏ vào SaleService:5013
         // Các request có path /api/supplier/vnpay/* sẽ được forward sang SupplierService
-        var supplierServiceUrl = builder.Configuration["SUPPLIER_SERVICE_URL"] ?? "http://localhost:5008";
+        var supplierServiceUrl = builder.Configuration["SUPPLIER_REST_URL"] ?? "http://localhost:5023";
+        var franchiseServiceUrl = "http://localhost:5016"; // REST port, không dùng 5006 vì đó là gRPC
+
         builder.Services.AddReverseProxy()
             .LoadFromMemory(
                 routes: new[]
@@ -99,6 +101,13 @@ public class Program
                             // PathRemovePrefix bị thiếu /api nên dùng PathPattern thay thế
                             new Dictionary<string, string> { ["PathPattern"] = "/api/vnpay/{**catch-all}" }
                         }
+                    },
+                    new RouteConfig
+                    {
+                        RouteId    = "franchise_webhook_route",
+                        ClusterId  = "franchise_cluster",
+                        Match      = new RouteMatch { Path = "/api/franchise/webhook/{**catch-all}" },
+                        // Giữ nguyên path, chỉ đổi port sang FranchiseService
                     }
                 },
                 clusters: new[]
@@ -109,6 +118,14 @@ public class Program
                         Destinations = new Dictionary<string, DestinationConfig>(StringComparer.OrdinalIgnoreCase)
                         {
                             ["supplier_dest"] = new DestinationConfig { Address = supplierServiceUrl }
+                        }
+                    },
+                    new ClusterConfig
+                    {
+                        ClusterId    = "franchise_cluster",
+                        Destinations = new Dictionary<string, DestinationConfig>(StringComparer.OrdinalIgnoreCase)
+                        {
+                            ["franchise_dest"] = new DestinationConfig { Address = franchiseServiceUrl }
                         }
                     }
                 }

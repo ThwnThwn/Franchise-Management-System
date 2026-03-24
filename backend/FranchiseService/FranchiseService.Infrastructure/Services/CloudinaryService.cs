@@ -1,4 +1,4 @@
-﻿using CloudinaryDotNet;
+using CloudinaryDotNet;
 using FranchiseService.Application.Dtos.Image;
 using FranchiseService.Application.Interfaces;
 using FranchiseService.Infrastructure.Settings;
@@ -68,7 +68,7 @@ namespace FranchiseService.Infrastructure.Services
             var uploadParams = new CloudinaryDotNet.Actions.ImageUploadParams
             {
                 File = new FileDescription(finalFileName, stream),
-                Folder = "sales",
+                Folder = "Franchise_Applications",
                 // có thể thêm option tự động tối ưu ảnh của Cloudinary ở đây
                 Transformation = new CloudinaryDotNet.Transformation().Quality("auto").FetchFormat("auto")
             };
@@ -129,7 +129,7 @@ namespace FranchiseService.Infrastructure.Services
             var uploadParams = new CloudinaryDotNet.Actions.ImageUploadParams
             {
                 File = new FileDescription(fileName, memoryStream),
-                Folder = "sales"
+                Folder = "Franchise_Applications"
             };
 
             var uploadResult = await _cloudinary.UploadAsync(uploadParams);
@@ -140,6 +140,46 @@ namespace FranchiseService.Infrastructure.Services
                 var errorMsg = uploadResult?.Error?.Message ?? "Unknown error";
                 var status = uploadResult?.StatusCode.ToString() ?? "Unknown";
                 throw new Exception($"Cloudinary upload failed: {errorMsg} (Status: {status})");
+            }
+
+            return new ImageUploadResult
+            {
+                Url = uploadResult.SecureUrl.ToString(),
+                PublicId = uploadResult.PublicId
+            };
+        }
+
+        public async Task<ImageUploadResult> UploadFileFromUrlAsync(string url, string fileName, string folder = "Franchise_Contracts")
+        {
+            if (string.IsNullOrWhiteSpace(url))
+                throw new ArgumentException("Url is required");
+
+            // 1. Tự mình tải file về trước (để tránh Cloudinary bị chặn link hoặc link nhạy cảm)
+            using var httpClient = new HttpClient();
+            var fileBytes = await httpClient.GetByteArrayAsync(url);
+            
+            if (fileBytes == null || fileBytes.Length < 100) // PDF thật không bao giờ nhỏ hơn vài trăm byte
+                throw new Exception("Downloaded file is too small or invalid.");
+
+            using var memoryStream = new MemoryStream(fileBytes);
+            memoryStream.Position = 0;
+
+            // 2. SỬA: Quay lại dùng ImageUploadParams nhưng ép Format là PDF
+            // Sau khi Enable "PDF & ZIP delivery" trong Settings, dùng Image type sẽ cho phép xem trực tiếp tốt nhất
+            var uploadParams = new CloudinaryDotNet.Actions.ImageUploadParams
+            {
+                File = new FileDescription(fileName + ".pdf", memoryStream),
+                PublicId = $"{fileName}_{Guid.NewGuid()}",
+                Folder = folder,
+                Format = "pdf" // Ép định dạng là PDF
+            };
+
+            var uploadResult = await _cloudinary.UploadAsync(uploadParams);
+
+            if (uploadResult == null || uploadResult.StatusCode != System.Net.HttpStatusCode.OK)
+            {
+                var errorMsg = uploadResult?.Error?.Message ?? "Unknown error";
+                throw new Exception($"Cloudinary upload failed: {errorMsg}");
             }
 
             return new ImageUploadResult

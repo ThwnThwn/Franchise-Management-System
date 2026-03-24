@@ -1,4 +1,4 @@
-﻿using FranchiseService.Domain.Commons;
+using FranchiseService.Domain.Commons;
 using FranchiseService.Domain.Entities;
 using FranchiseService.Domain.Models;
 using Microsoft.EntityFrameworkCore;
@@ -30,6 +30,8 @@ namespace FranchiseService.Infrastructure.ApplicationDbContext
 
         DbSet<FranchiseApplication> FranchiseApplications { get; set; }
 
+        DbSet<FranchiseContract> FranchiseContracts { get; set; }
+
         public DbSet<T> Set<T>() where T : class, IEntity;
 
         public EntityEntry<T> Entry<T>(T entity) where T : class;
@@ -37,5 +39,7 @@ namespace FranchiseService.Infrastructure.ApplicationDbContext
         public int SaveChanges();
 
         public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+
+        public Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade Database { get; }
     }
 }
