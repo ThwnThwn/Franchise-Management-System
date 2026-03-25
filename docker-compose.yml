@@ -190,7 +190,7 @@ services:
     depends_on:
       - sonarqube_db
     ports:
-      - "9005:9000" # Dùng cổng 9005 vì 9000 Duy đang dùng cho Kafdrop
+      - "9005:9000"
     environment:
       SONAR_JDBC_URL: ${SONAR_JDBC_URL}
       SONAR_JDBC_USERNAME: ${SONAR_JDBC_USERNAME}
