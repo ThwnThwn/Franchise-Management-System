@@ -108,7 +108,7 @@ cd /d "%BASE_DIR%"
 
 :FINISH
 echo ======================================================
-echo HOAN TAT! Duy kiem tra Dashboard nhe.
+echo DONE! Check dashboard.
 echo ======================================================
 start !SONAR_URL!/dashboard?id=!PROJECT_KEY!
 pause
