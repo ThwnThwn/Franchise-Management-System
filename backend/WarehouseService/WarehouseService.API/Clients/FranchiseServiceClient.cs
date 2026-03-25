@@ -4,37 +4,14 @@ using FranchiseService.Grpc;
 
 namespace WarehouseService.API.Clients
 {
-    public class FranchiseServiceClient : IFranchiseServiceClient
+    public class FranchiseServiceClient(StoreGrpcService.StoreGrpcServiceClient client) : IFranchiseServiceClient
     {
-        private readonly StoreGrpcService.StoreGrpcServiceClient _grpcClient;
-        public FranchiseServiceClient(IConfiguration configuration)
-        {
-            var rawUrl = configuration["FRANCHISE_SERVICE_URL"] ?? "http://localhost:5006";
-            var storeServiceUrl = rawUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
-                                      rawUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
-                ? rawUrl
-                : $"http://{rawUrl}";
-
-            var httpHandler = new HttpClientHandler
-            {
-                ServerCertificateCustomValidationCallback =
-                    HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-            };
-
-            var channel = GrpcChannel.ForAddress(storeServiceUrl, new GrpcChannelOptions
-            {
-                HttpHandler = httpHandler
-            });
-
-            _grpcClient = new StoreGrpcService.StoreGrpcServiceClient(channel);
-        }
-
         public async Task<bool> StoreExistsAsync(Guid storeId)
         {
             try
             {
                 var request = new GetStoreDetailRequest { Id = storeId.ToString() };
-                var response = await _grpcClient.GetStoreDetailAsync(request);
+                var response = await client.GetStoreDetailAsync(request);
 
                 return response != null && response.Id == storeId.ToString();
             }

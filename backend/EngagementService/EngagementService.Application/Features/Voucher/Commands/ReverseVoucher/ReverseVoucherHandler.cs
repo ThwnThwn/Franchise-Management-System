@@ -14,9 +14,9 @@ namespace EngagementService.Application.Features.Voucher.Commands.ReverseVoucher
     {
         private readonly IVoucherUsageRepository _voucherUsageRepository;
         private readonly IUserVoucherRepository _userVoucherRepository;
-        private readonly ILoyaltyUow _uow;
+        private readonly IEngagementUow _uow;
 
-        public ReverseVoucherHandler(IVoucherUsageRepository voucherUsageRepository, IUserVoucherRepository userVoucherRepository, ILoyaltyUow uow)
+        public ReverseVoucherHandler(IVoucherUsageRepository voucherUsageRepository, IUserVoucherRepository userVoucherRepository, IEngagementUow uow)
         {
             _voucherUsageRepository = voucherUsageRepository;
             _userVoucherRepository = userVoucherRepository;

@@ -132,18 +132,18 @@ CREATE TABLE "vouchers" (
     "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     "is_deleted" BOOLEAN DEFAULT FALSE,
 
-    CONSTRAINT "check_quantity_logic" CHECK ("current_quantity" <= "init_quantity"),
-    CONSTRAINT "check_voucher_logic" CHECK (
-        (
-            "campaign_id" IS NOT NULL 
-            AND "start_date" IS NULL 
-            AND "end_date" IS NULL
-        )
-        OR
-        (
-            "campaign_id" IS NULL
-        )
-    )
+    CONSTRAINT "check_quantity_logic" CHECK ("current_quantity" <= "init_quantity")
+    -- CONSTRAINT "check_voucher_logic" CHECK (
+    --     (
+    --         "campaign_id" IS NOT NULL 
+    --         AND "start_date" IS NULL 
+    --         AND "end_date" IS NULL
+    --     )
+    --     OR
+    --     (
+    --         "campaign_id" IS NULL
+    --     )
+    -- )
 );
 
 CREATE UNIQUE INDEX "uq_voucher_code_active" ON "vouchers" ("code") WHERE ("is_deleted" IS FALSE);
@@ -159,8 +159,6 @@ CREATE TABLE "user_vouchers" (
     "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     "is_deleted" BOOLEAN DEFAULT FALSE
 );
-ALTER TABLE "user_vouchers" 
-ADD COLUMN "campaign_id" UUID NOT NULL REFERENCES "campaigns"("id");
 
 -- Đã đổi tên bảng thành voucher_items để đồng bộ với index bên dưới
 CREATE TABLE "voucher_items" (
@@ -200,6 +198,4 @@ CREATE INDEX "idx_loyalty_accounts_tier" ON "loyalty_accounts"("current_tier_id"
 CREATE INDEX "idx_user_vouchers_user_status" ON "user_vouchers"("user_id", "status");
 CREATE INDEX "idx_voucher_usages_order_id" ON "voucher_usages"("order_id");
 CREATE INDEX "idx_voucher_items_lookup" ON "voucher_items" ("voucher_id") WHERE "is_deleted" IS FALSE;
-CREATE INDEX IX_point_logs_expired_at ON "point_logs" ("expired_at") 
-CREATE INDEX idx_user_vouchers_user_campaign ON "user_vouchers" ("user_id", "campaign_id");
-WHERE "expired_at" IS NOT NULL;
+CREATE INDEX IX_point_logs_expired_at ON "point_logs" ("expired_at") WHERE "expired_at" IS NOT NULL;

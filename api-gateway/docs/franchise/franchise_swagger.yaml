@@ -1,5 +1,160 @@
 basePath: /api
 definitions:
+  api-gateway_internal_domain_models_franchise.ConfirmDepositPaymentRequest:
+    properties:
+      note:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_franchise.FranchiseApplicationDetailResponse:
+    properties:
+      application:
+        $ref: '#/definitions/api-gateway_internal_domain_models_franchise.FranchiseApplicationResponse'
+      contracts:
+        items:
+          $ref: '#/definitions/api-gateway_internal_domain_models_franchise.FranchiseContractResponse'
+        type: array
+    type: object
+  api-gateway_internal_domain_models_franchise.FranchiseApplicationResponse:
+    properties:
+      adminNote:
+        type: string
+      contracts:
+        items:
+          $ref: '#/definitions/api-gateway_internal_domain_models_franchise.FranchiseContractResponse'
+        type: array
+      createdAt:
+        type: string
+      districtId:
+        type: string
+      email:
+        type: string
+      fullName:
+        type: string
+      id:
+        type: string
+      identityNumber:
+        type: string
+      landCertificateUrls:
+        items:
+          type: string
+        type: array
+      managerId:
+        type: string
+      phone:
+        type: string
+      provinceId:
+        type: string
+      reviewedAt:
+        type: string
+      reviewedBy:
+        type: string
+      status:
+        type: integer
+      storeAddress:
+        type: string
+      storeFrontUrl:
+        type: string
+      storeId:
+        type: string
+      storeLatitude:
+        type: number
+      storeLongitude:
+        type: number
+      storeName:
+        type: string
+      storeSizeSqm:
+        type: number
+      updatedAt:
+        type: string
+      wardId:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_franchise.FranchiseContractResponse:
+    properties:
+      applicationId:
+        type: string
+      contractPdfUrl:
+        type: string
+      createdAt:
+        type: string
+      depositAmount:
+        type: number
+      depositStatus:
+        description: '0: Awaiting, 1: Paid'
+        type: integer
+      docuSealSubmissionId:
+        type: integer
+      franchiseFee:
+        type: number
+      id:
+        type: string
+      revenueSharePercentage:
+        type: number
+      setupStatus:
+        type: integer
+      status:
+        type: integer
+      updatedAt:
+        type: string
+      validFrom:
+        type: string
+      validUntil:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_franchise.RenewContractRequest:
+    properties:
+      extensionYears:
+        type: integer
+      note:
+        type: string
+    required:
+    - extensionYears
+    type: object
+  api-gateway_internal_domain_models_franchise.ReviewApplicationResponse:
+    properties:
+      contractId:
+        type: string
+      docuSealSubmissionId:
+        type: integer
+      message:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_franchise.ReviewFranchiseApplicationRequest:
+    properties:
+      action:
+        description: '1: Approve, 2: Reject'
+        type: integer
+      depositAmount:
+        type: number
+      franchiseFee:
+        type: number
+      note:
+        type: string
+      revenueSharePercentage:
+        type: number
+      validFrom:
+        type: string
+      validUntil:
+        type: string
+    required:
+    - action
+    type: object
+  api-gateway_internal_domain_models_franchise.UpdateContractStatusRequest:
+    properties:
+      reason:
+        type: string
+      status:
+        type: integer
+    required:
+    - reason
+    - status
+    type: object
+  api-gateway_internal_domain_models_franchise.UpdateSetupStatusRequest:
+    properties:
+      setupStatus:
+        description: '0: Design, 1: Construction, 2: Inspection, 3: Ready'
+        type: integer
+    type: object
   enum.TimeLogStatus:
     enum:
     - 0
@@ -18,6 +173,28 @@ definitions:
     - TimeLogStatus_PROCESSING
     - TimeLogStatus_VALID
     - TimeLogStatus_INVALID
+  franchise.ApplicationPaginationResult:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/api-gateway_internal_domain_models_franchise.FranchiseApplicationResponse'
+        type: array
+      totalCount:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  franchise.ContractPaginationResult:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/api-gateway_internal_domain_models_franchise.FranchiseContractResponse'
+        type: array
+      totalCount:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
   gin.H:
     additionalProperties: {}
     type: object
@@ -447,6 +624,394 @@ info:
   title: API Gateway Documentation
   version: "1.0"
 paths:
+  /franchise/applications:
+    get:
+      description: Lấy toàn bộ hồ sơ đăng ký nhượng quyền (hỗ trợ phân trang, lọc
+        theo trạng thái).
+      parameters:
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      - in: query
+        name: searchKey
+        type: string
+      - in: query
+        name: status
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/franchise.ApplicationPaginationResult'
+      security:
+      - BearerAuth: []
+      summary: Lấy danh sách hồ sơ nhượng quyền (Admin)
+      tags:
+      - 'Franchise: Applications'
+    post:
+      consumes:
+      - multipart/form-data
+      description: Đối tác gửi hồ sơ (thông tin cá nhân, địa chỉ mặt bằng) kèm theo
+        ảnh mặt bằng và các ảnh chứng nhận đất đai.
+      parameters:
+      - description: Họ và tên
+        in: formData
+        name: fullName
+        required: true
+        type: string
+      - description: Email liên hệ
+        in: formData
+        name: email
+        required: true
+        type: string
+      - description: Số điện thoại
+        in: formData
+        name: phone
+        required: true
+        type: string
+      - description: CMND/CCCD
+        in: formData
+        name: identityNumber
+        required: true
+        type: string
+      - description: Mã Tỉnh/Thành phố
+        in: formData
+        name: provinceId
+        required: true
+        type: string
+      - description: Mã Quận/Huyện
+        in: formData
+        name: districtId
+        required: true
+        type: string
+      - description: Mã Phường/Xã
+        in: formData
+        name: wardId
+        required: true
+        type: string
+      - description: Tên quán dự kiến
+        in: formData
+        name: storeName
+        required: true
+        type: string
+      - description: Địa chỉ chi tiết mặt bằng
+        in: formData
+        name: storeAddress
+        required: true
+        type: string
+      - description: Vĩ độ (Latitude)
+        in: formData
+        name: storeLatitude
+        type: number
+      - description: Kinh độ (Longitude)
+        in: formData
+        name: storeLongitude
+        type: number
+      - description: Diện tích mặt bằng (m2)
+        in: formData
+        name: storeSizeSqm
+        type: number
+      - description: Ảnh mặt tiền (1 file)
+        in: formData
+        name: storeFront
+        type: file
+      - description: Ảnh chứng nhận đất đai/Sổ đỏ (Nhiều file)
+        in: formData
+        name: landCerts
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Hồ sơ vừa tạo
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_franchise.FranchiseApplicationResponse'
+        "400":
+          description: Lỗi dữ liệu đầu vào
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Nộp hồ sơ đăng ký nhượng quyền
+      tags:
+      - 'Franchise: Applications'
+  /franchise/applications/{id}:
+    get:
+      description: Xem chi tiết hồ sơ bao gồm cả danh sách các hợp đồng (Contracts)
+        được sinh ra từ hồ sơ này.
+      parameters:
+      - description: ID Hồ sơ (Application ID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_franchise.FranchiseApplicationDetailResponse'
+      security:
+      - BearerAuth: []
+      summary: Xem chi tiết một hồ sơ (Admin)
+      tags:
+      - 'Franchise: Applications'
+  /franchise/applications/{id}/review:
+    patch:
+      consumes:
+      - application/json
+      description: Admin duyệt (Approve) hoặc từ chối (Reject) hồ sơ. Nếu Approve,
+        hệ thống tự động sinh Hợp đồng và bắn link DocuSeal.
+      parameters:
+      - description: ID Hồ sơ (Application ID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Quyết định thẩm định & Thông số hợp đồng
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_franchise.ReviewFranchiseApplicationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_franchise.ReviewApplicationResponse'
+      security:
+      - BearerAuth: []
+      summary: Thẩm định hồ sơ nhượng quyền (Admin)
+      tags:
+      - 'Franchise: Applications'
+  /franchise/contracts:
+    get:
+      description: Lấy toàn bộ hợp đồng nhượng quyền (hỗ trợ phân trang, lọc theo
+        trạng thái).
+      parameters:
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      - in: query
+        name: status
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/franchise.ContractPaginationResult'
+      security:
+      - BearerAuth: []
+      summary: Lấy danh sách hợp đồng (Admin/Kế toán)
+      tags:
+      - 'Franchise: Contracts'
+  /franchise/contracts/{id}:
+    get:
+      description: Lấy thông tin chi tiết của một hợp đồng nhượng quyền.
+      parameters:
+      - description: ID Hợp đồng
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_franchise.FranchiseContractResponse'
+      security:
+      - BearerAuth: []
+      summary: Xem chi tiết một hợp đồng
+      tags:
+      - 'Franchise: Contracts'
+  /franchise/contracts/{id}/payment:
+    post:
+      consumes:
+      - application/json
+      description: Chuyển trạng thái hợp đồng sang Active, tạo Cửa hàng mới và cấp
+        quyền Manager cho đối tác.
+      parameters:
+      - description: ID Hợp đồng
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Ghi chú giao dịch
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_franchise.ConfirmDepositPaymentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"message": "Xác nhận thanh toán thành công"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Xác nhận đã đóng tiền cọc (Kế toán)
+      tags:
+      - 'Franchise: Contracts'
+  /franchise/contracts/{id}/renew:
+    post:
+      consumes:
+      - application/json
+      description: Cộng thêm số năm hiệu lực vào hợp đồng hiện tại.
+      parameters:
+      - description: ID Hợp đồng
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Số năm gia hạn
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_franchise.RenewContractRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_franchise.FranchiseContractResponse'
+      security:
+      - BearerAuth: []
+      summary: Gia hạn hợp đồng nhượng quyền
+      tags:
+      - 'Franchise: Contracts'
+  /franchise/contracts/{id}/setup:
+    patch:
+      consumes:
+      - application/json
+      description: Admin cập nhật trạng thái thi công (Design -> Construction -> Inspection
+        -> Ready).
+      parameters:
+      - description: ID Hợp đồng
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Trạng thái Setup
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_franchise.UpdateSetupStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_franchise.FranchiseContractResponse'
+      security:
+      - BearerAuth: []
+      summary: Cập nhật tiến độ thi công cửa hàng
+      tags:
+      - 'Franchise: Contracts'
+  /franchise/contracts/{id}/status:
+    patch:
+      consumes:
+      - application/json
+      description: Admin thay đổi trạng thái hợp đồng (Suspended, Terminated) kèm
+        lý do.
+      parameters:
+      - description: ID Hợp đồng
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Trạng thái và lý do
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_franchise.UpdateContractStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_franchise.FranchiseContractResponse'
+      security:
+      - BearerAuth: []
+      summary: Tạm ngưng / Chấm dứt hợp đồng
+      tags:
+      - 'Franchise: Contracts'
+  /franchise/me/applications:
+    get:
+      description: Lấy toàn bộ hồ sơ đăng ký nhượng quyền của bản thân
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/api-gateway_internal_domain_models_franchise.FranchiseApplicationResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: Lấy danh sách hồ sơ nhượng quyền của bản thân
+      tags:
+      - 'Franchise: Applications'
+  /franchise/me/contracts:
+    get:
+      description: Lấy toàn bộ hợp đồng nhượng quyền của bản thân
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/api-gateway_internal_domain_models_franchise.FranchiseContractResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: Lấy danh sách hợp đồng của bản thân
+      tags:
+      - 'Franchise: Contracts'
+  /franchise/webhook/docuseal:
+    post:
+      consumes:
+      - application/json
+      description: Cập nhật trạng thái hợp đồng (Đã ký) dựa trên webhook từ hệ thống
+        DocuSeal gửi về. Không dùng xác thực Token mà dùng Header HMAC.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"message": "Webhook processed"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Nhận Webhook từ DocuSeal (Internal)
+      tags:
+      - 'Franchise: Webhooks'
   /me/shift-availabilities:
     get:
       description: Truy xuất danh sách lịch rảnh/bận đã đăng ký của nhân viên hiện

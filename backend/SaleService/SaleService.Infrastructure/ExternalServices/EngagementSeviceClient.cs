@@ -31,7 +31,6 @@ namespace SalesService.Infrastructure.ExternalServices
 
         public async Task<decimal> GetMyPointByEmailAsync(string email)
         {
-            decimal point = 0;
             try
             {
                 var request = new GetByUserPhoneOrEmailRequest
@@ -40,14 +39,20 @@ namespace SalesService.Infrastructure.ExternalServices
                 };
 
                 var loyalty = await _accountClient.GetByUserPhoneOrEmailAsync(request);
-                point = decimal.Parse(loyalty.AccountsRes.FirstOrDefault().AvailablePoints);
+                string pointsStr = loyalty?.AccountsRes?.FirstOrDefault()?.AvailablePoints ?? "0";
+
+                // Use TryParse to avoid crashes if the string is malformed
+                if (!decimal.TryParse(pointsStr, out decimal point))
+                {
+                    point = 0;
+                }
                 return point;
 
             }
             catch (Exception ex)
             {
                 _accountLogger.LogError(ex, "Failed to get user point {email} from engagement", email);
-                return point;
+                return 0;
             }
         }
 

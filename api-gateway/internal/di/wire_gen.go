@@ -22,6 +22,7 @@ import (
 	"api-gateway/internal/api/routes/campaigns"
 	"api-gateway/internal/api/routes/carts"
 	categories2 "api-gateway/internal/api/routes/categories"
+	franchise3 "api-gateway/internal/api/routes/franchise"
 	"api-gateway/internal/api/routes/ingredients"
 	"api-gateway/internal/api/routes/ingredients/categories"
 	"api-gateway/internal/api/routes/loyalty"
@@ -115,7 +116,7 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, func
 	campaignHandler := engagement2.NewCampaignHandler(iCampaignService)
 	campaignRouter := campaigns.NewRouter(cfg, authMiddleware, campaignHandler)
 	franchiseServiceUrl := cfg.FranchiseServiceUrl
-	franchiseClientFactory, cleanup5, err := franchise.NewFranchiseClientFactory(franchiseServiceUrl, l)
+	franchiseClientFactory, cleanup5, err := franchise.NewFranchiseClientFactory(franchiseServiceUrl, cfg, l)
 	if err != nil {
 		cleanup4()
 		cleanup3()
@@ -156,6 +157,9 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, func
 	iShiftTemplateService := franchise.ProvideShiftTemplateClient(franchiseClientFactory)
 	shiftTemplateHandler := franchise2.NewShiftTemplateHandler(iShiftTemplateService)
 	shiftsRouter := shifts.NewRouter(cfg, authMiddleware, shiftHandler, shiftApplicationHandler, shiftSwapHandler, shiftAvailabilityHandler, shiftBulkHandler, shiftRuleHandler, shiftTemplateHandler)
+	iFranchiseService := franchise.ProvideFranchiseClient(franchiseClientFactory)
+	franchiseHandler := franchise2.NewFranchiseHandler(iFranchiseService)
+	franchiseRouter := franchise3.NewRouter(cfg, authMiddleware, franchiseHandler)
 	iAuthService := identity.ProvideAuthClient(identityClientFactory)
 	authHandler := identity2.NewAuthHandler(iAuthService, iUserService)
 	authRouter := auth.NewRouter(cfg, authMiddleware, authHandler)
@@ -229,6 +233,7 @@ func InitializeApp(cfg *config.Config, l logger.Interface) (*bootstrap.App, func
 		StoreRouter:          storeRouter,
 		MyShiftsRouter:       myShiftsRouter,
 		ShiftsRouter:         shiftsRouter,
+		FranchiseRouter:      franchiseRouter,
 		AuthRouter:           authRouter,
 		UserRouter:           userRouter,
 		RoleRouter:           roleRouter,

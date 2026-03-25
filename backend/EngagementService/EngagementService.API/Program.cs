@@ -16,6 +16,7 @@ using EngagementService.Domain.Constants;
 using EngagementService.Infrastucture.AppDbContext;
 using EngagementService.Infrastucture.DependencyInjection;
 using EngagementService.Infrastucture.Interceptor;
+using IdentityService.Grpc.Protos.User;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Npgsql.NameTranslation; // Thêm namespace này
@@ -145,6 +146,18 @@ public class Program
         QuestPDF.Settings.License = LicenseType.Community;
 
         builder.Services.AddHostedService<VoucherQueueWorker>();
+
+        //GRPC CLIENT
+        builder.Services.AddGrpcClient<UserGrpc.UserGrpcClient>(o =>
+        {
+            var url = builder.Configuration["IDENTITY_SERVICE_URL"];
+            if (string.IsNullOrEmpty(url))
+            {
+                // Nếu không tìm thấy trong ENV/Appsettings, báo lỗi ngay khi khởi động
+                throw new InvalidOperationException("Missing configuration: IDENTITY_SERVICE_URL");
+            }
+            o.Address = new Uri(url);
+        });
 
         var app = builder.Build();
 

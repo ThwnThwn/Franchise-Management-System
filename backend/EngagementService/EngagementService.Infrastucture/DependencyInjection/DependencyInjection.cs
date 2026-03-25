@@ -52,7 +52,7 @@ public static class DependencyInjection
         services.AddScoped<IUserVoucherRepository, UserVoucherRepository>();
         services.AddScoped<IVoucherUsageRepository, VoucherUsageRepository>();
         services.AddScoped<ICampaignRepository, CampaginRepository>();
-        services.AddScoped<ILoyaltyUow, LoyaltyUow>();
+        services.AddScoped<IEngagementUow, EngagementUow>();
 
 
         services.AddHostedService<CleanupPointLogJob>();

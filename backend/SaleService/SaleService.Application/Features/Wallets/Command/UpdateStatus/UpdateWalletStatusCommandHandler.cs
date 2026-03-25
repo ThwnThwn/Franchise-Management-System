@@ -42,7 +42,7 @@ public sealed class UpdateWalletStatusCommandHandler
 
         var userRole = await _identityServiceClient.GetUserByIdAsync(command.AdminId);
         var authResult = _authService.ValidateStatusUpdatePermission(
-            userRole?.Role?.RoleName,
+            userRole?.Role?.RoleName ?? string.Empty,
             request.NewStatus);
 
         if (!authResult.IsSuccess)

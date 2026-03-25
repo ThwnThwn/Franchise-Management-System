@@ -722,3 +722,6 @@ fabric.properties
 .history
 .ionide
 backend/global.json
+
+# SonarQube
+.sonarqube/

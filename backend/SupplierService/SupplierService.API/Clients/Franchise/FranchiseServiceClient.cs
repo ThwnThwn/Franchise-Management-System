@@ -7,26 +7,9 @@ namespace SupplierService.API.Clients.Franchise
     public class FranchiseServiceClient : IFranchiseServiceClient
     {
         private readonly StoreGrpcService.StoreGrpcServiceClient _grpcClient;
-        public FranchiseServiceClient(IConfiguration configuration)
+        public FranchiseServiceClient(StoreGrpcService.StoreGrpcServiceClient client)
         {
-            var rawUrl = configuration["FRANCHISE_SERVICE_URL"] ?? "http://localhost:5006";
-            var storeServiceUrl = rawUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
-                                      rawUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
-                ? rawUrl
-                : $"http://{rawUrl}";
-
-            var httpHandler = new HttpClientHandler
-            {
-                ServerCertificateCustomValidationCallback =
-                    HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-            };
-
-            var channel = GrpcChannel.ForAddress(storeServiceUrl, new GrpcChannelOptions
-            {
-                HttpHandler = httpHandler
-            });
-
-            _grpcClient = new StoreGrpcService.StoreGrpcServiceClient(channel);
+            _grpcClient = client;
         }
 
         public async Task<bool> GetFranchiseByIdAsync(Guid franchiseId)

@@ -60,6 +60,13 @@ public sealed class CreatePaymentHandler(
         if (order.Status == OrderStatus.Completed)
             return Result.Error("Order này đã hoàn thành.");
 
+        // Ràng buộc: Không cho tạo thêm Payment nếu đã có Payment thành công (Paid)
+        var existingPaidPayment = await paymentRepository.GetNewestByOrderIdAndStatusAsync(request.OrderId, PaymentStatus.Paid, cancellationToken);
+        if (existingPaidPayment != null)
+        {
+            return Result.Error("Đơn hàng này đã được thanh toán thành công trước đó, không thể thanh toán lại.");
+        }
+
         bool isGuest = order.CustomerId == null || order.CustomerId == Guid.Empty;
 
         decimal totalProductDiscount = 0m;
@@ -296,7 +303,7 @@ public sealed class CreatePaymentHandler(
             if (pointBalance < request.Point)
                 throw new BusinessException("Điểm còn lại trong tài khoản không đủ.");
 
-            decimal pointValue = request.Point.Value * user.LoyaltyTier.CurrentTier.ValuePerPoint;
+            decimal pointValue = request.Point.Value * user.LoyaltyTier.CurrentTier!.ValuePerPoint;
             loyaltyDiscount += pointValue;
             AddOrderSaleItem(order, $"Dùng {request.Point} điểm", pointValue, user.LoyaltyTier.CurrentTier.Id, OrderSaleItemType.LoyaltyPoint);
         }

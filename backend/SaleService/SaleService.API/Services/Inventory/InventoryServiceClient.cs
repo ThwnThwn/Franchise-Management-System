@@ -7,37 +7,8 @@ using SalesService.Application.Dtos.Inventory;
 
 namespace SalesService.API.Services.Inventory
 {
-    public class InventoryServiceClient : IInventoryServiceClient
+    public class InventoryServiceClient(InventoryInternalGrpc.InventoryInternalGrpcClient client) : IInventoryServiceClient
     {
-        private readonly IConfiguration _configuration;
-        private readonly string _inventoryServiceUrl;
-        private readonly InventoryInternalGrpc.InventoryInternalGrpcClient _client;
-
-        public InventoryServiceClient(IMediator mediator, IConfiguration configuration)
-        {
-            _configuration = configuration;
-
-            var rawUrl = configuration[Common.INVENTORY_SERVICE_URL] ?? "http://localhost:5005";
-            // Allow env var values like "localhost:5002" by normalizing to an absolute URI.
-            _inventoryServiceUrl = rawUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
-                                 rawUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
-                ? rawUrl
-                : $"http://{rawUrl}";
-
-            var httpHandler = new HttpClientHandler
-            {
-                ServerCertificateCustomValidationCallback =
-                    HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-            };
-
-            var channel = GrpcChannel.ForAddress(_inventoryServiceUrl, new GrpcChannelOptions
-            {
-                HttpHandler = httpHandler
-            });
-
-            _client = new InventoryInternalGrpc.InventoryInternalGrpcClient(channel);
-        }
-
         public async Task<CheckEnoughStockRes> CheckEnoughStockAsync(CheckEnoughStockReq command)
         {
             var request = new CheckEnoughStockRequest
@@ -51,7 +22,7 @@ namespace SalesService.API.Services.Inventory
             });
 
             request.CheckItems.AddRange(checkItems);
-            var respone = await _client.CheckEnoughStockAsync(request);
+            var respone = await client.CheckEnoughStockAsync(request);
             return new CheckEnoughStockRes
             {
                 IsEnough = respone.IsEnough,
@@ -79,7 +50,7 @@ namespace SalesService.API.Services.Inventory
             });
 
             request.DecreaseItems.AddRange(decreaseItems);
-            await _client.DecreaseStockByOrderAsync(request);
+            await client.DecreaseStockByOrderAsync(request);
         }
 
         public async Task<CheckEnoughStockRes> ReserveStockAsync(ReserveStockReq command)
@@ -99,7 +70,7 @@ namespace SalesService.API.Services.Inventory
 
             request.Items.AddRange(items);
 
-            var response = await _client.ReserveStockAsync(request);
+            var response = await client.ReserveStockAsync(request);
 
             return new CheckEnoughStockRes
             {
@@ -120,7 +91,7 @@ namespace SalesService.API.Services.Inventory
                 OrderId = command.OrderId.ToString()
             };
 
-            var response = await _client.ReleaseStockAsync(request);
+            var response = await client.ReleaseStockAsync(request);
 
             return new ReleaseStockRes
             {

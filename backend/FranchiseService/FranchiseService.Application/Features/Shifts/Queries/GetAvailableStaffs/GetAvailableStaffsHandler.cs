@@ -70,7 +70,7 @@ namespace FranchiseService.Application.Features.Shifts.Queries.GetAvailableStaff
 
             var availabilityMap = (await _availabilityRepo.GetAllAsync(
                     predicate: a => (a.IsRecurring == false && a.SpecificDate == shift.ShiftDate) ||
-                                    (a.IsRecurring == true && (short)a.DayOfWeek == (short)shift.ShiftDate.DayOfWeek))
+                                    (a.IsRecurring == true && (short)a.DayOfWeek! == (short)shift.ShiftDate.DayOfWeek))
                 ).GroupBy(a => a.UserId).ToDictionary(g => g.Key, g => g.ToList());
 
             var assignedUserIds = (await _assignmentRepo.GetAllAsync(predicate: a => a.ShiftId == request.ShiftId))

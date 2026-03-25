@@ -36,7 +36,10 @@ public class RefundTicketsController : ControllerBase
         CancellationToken cancellationToken)
     {
         var customerId = GetUserIdFromClaims();
-
+        if(request.Reason == null)
+        {
+            throw new ArgumentNullException(nameof(request.Reason));
+        }
         var commandRequest = new CustomerCreateRefundTicketCommand.CustomerCreateRefundTicketRequest
         {
             Amount = request.Amount,

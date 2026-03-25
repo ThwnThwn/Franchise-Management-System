@@ -8,6 +8,7 @@ using MediatR;
 
 using FranchiseService.API.BackgroundJobs;
 using FranchiseService.Application.Services;
+using IdentityService.Grpc.Protos.User;
 
 namespace FranchiseService.API
 {
@@ -22,13 +23,27 @@ namespace FranchiseService.API
             builder.Configuration.AddEnvironmentVariables();
 
             // 2. Configure Kestrel (HTTP/2 for gRPC)
+            //var servicePort = int.Parse(builder.Configuration["FRANCHISE_PORT"] ?? "5006");
+
+            //builder.WebHost.ConfigureKestrel(options =>
+            //{
+            //    options.ConfigureEndpointDefaults(listenOptions =>
+            //    {
+            //        listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2;
+            //    });
+            //});
+
             var servicePort = int.Parse(builder.Configuration["FRANCHISE_PORT"] ?? "5006");
-            
             builder.WebHost.ConfigureKestrel(options =>
             {
-                options.ConfigureEndpointDefaults(listenOptions =>
+                options.ListenAnyIP(servicePort, listenOptions =>
                 {
                     listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2;
+                });
+
+                options.ListenAnyIP(5016, listenOptions =>
+                {
+                    listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1;
                 });
             });
 
@@ -39,7 +54,7 @@ namespace FranchiseService.API
             // Database & Infrastructure
             var connectionString = builder.Configuration["FRANCHISE_DB_CONNECTION"]
                 ?? "Host=localhost;Port=5432;Database=franchise_db;Username=admin;Password=12345";
-            builder.Services.AddInfrastructure(connectionString);
+            builder.Services.AddInfrastructure(connectionString, builder.Configuration);
 
             // MediatR (v11)
             builder.Services.AddMediatR(typeof(CheckStoreAvailabilityQuery));
@@ -97,6 +112,19 @@ namespace FranchiseService.API
                 });
             });
 
+
+            //GRPC CLIENT
+            builder.Services.AddGrpcClient<UserGrpc.UserGrpcClient>(o =>
+            {
+                var url = builder.Configuration["IDENTITY_SERVICE_URL"];
+                if (string.IsNullOrEmpty(url))
+                {
+                    // Nếu không tìm thấy trong ENV/Appsettings, báo lỗi ngay khi khởi động
+                    throw new InvalidOperationException("Missing configuration: IDENTITY_SERVICE_URL");
+                }
+                o.Address = new Uri(url);
+            });
+
             // ========================================================
             // 4. BUILD & CONFIGURE PIPELINE
             // ========================================================
@@ -118,6 +146,7 @@ namespace FranchiseService.API
             app.MapGrpcService<Services.ShiftTemplateGrpcService>();
             app.MapGrpcService<Services.ShiftApplicationGrpcService>();
             app.MapGrpcService<Services.ShiftSwapGrpcService>();
+            app.MapGrpcService<Services.FranchiseGrpcService>();
             app.MapGrpcReflectionService();
 
 

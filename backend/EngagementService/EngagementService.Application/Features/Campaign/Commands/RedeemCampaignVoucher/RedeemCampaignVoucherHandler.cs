@@ -2,72 +2,76 @@
 using EngagementService.Application.AppExceptions;
 using EngagementService.Application.Dtos.Campaign.Response;
 using EngagementService.Application.Persistences.Repository;
-using EngagementService.Domain.Entities;
 using IdentityService.Application.Abstrations;
 using MediatR;
 using SharedKernel.Constants;
 using SharedKernel.Events;
 using SharedKernel.Infrastructure.Kafka;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Security.Principal;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace EngagementService.Application.Features.Campaign.Commands.RedeemCampaignVoucher
+namespace EngagementService.Application.Features.Campaign.Commands.RedeemCampaignVoucher;
+
+public class RedeemCampaignVoucherHandler(
+    ICampaignRepository campaignRepository,
+    IMapper mapper,
+    ICampaignCache campaignCache,
+    ILoyaltyAccountRepository loyaltyAccountRepository,
+    IVoucherRepository voucherRepository,
+    IKafkaProducer kafkaProducer
+) : IRequestHandler<RedeemCampaignVoucherCommand, CampaignRes>
 {
-    public class RedeemCampaignVoucherHandler : IRequestHandler<RedeemCampaignVoucherCommand, CampaignRes>
+    public async Task<CampaignRes> Handle(RedeemCampaignVoucherCommand command, CancellationToken cancellationToken)
     {
-        private readonly ICampaignRepository _campaignRepository;
-        private readonly IMapper _mapper;
-        private readonly ICampaignCache _campaignCache;
-        private readonly ILoyaltyAccountRepository _loyaltyAccountRepository;
-        private readonly IVoucherRepository _voucherRepository;
-        private readonly IKafkaProducer _kafkaProducer;
+        var request = command.Request;
 
-        public RedeemCampaignVoucherHandler(
-            ICampaignRepository campaignRepository, 
-            IMapper mapper, 
-            ICampaignCache campaignCache, 
-            ILoyaltyAccountRepository loyaltyAccountRepository, 
-            IVoucherRepository voucherRepository,
-            IKafkaProducer kafkaProducer)
+        var voucher = await voucherRepository.GetByIdAsync(request.VoucherId)
+            ?? throw new BusinessException($"voucher does not exit {request.VoucherId}.");
+
+        if (voucher.CampaignId == null)
         {
-            _campaignRepository = campaignRepository;
-            _mapper = mapper;
-            _campaignCache = campaignCache;
-            _loyaltyAccountRepository = loyaltyAccountRepository;
-            _voucherRepository = voucherRepository;
-            _kafkaProducer = kafkaProducer;
+            throw new BusinessException($"voucher does not has this campaign {voucher.CampaignId}.");
         }
 
-        public async Task<CampaignRes> Handle(RedeemCampaignVoucherCommand command, CancellationToken cancellationToken)
+        var loyaltyAccount = await loyaltyAccountRepository.GetByUserIdAsync(request.UserId)
+            ?? throw new BusinessException($"loyalty account does not exit for user {request.UserId}.");
+
+        if (voucher.PointCost != null
+            && voucher.PointCost > 0
+            && loyaltyAccount.AvailablePoints < (voucher.PointCost ?? 0)
+        )
         {
-            var request = command.Request;
+            throw new BusinessException($"not enough point to redeem this voucher, required: {voucher.PointCost}, available: {loyaltyAccount.AvailablePoints}.");
+        }
 
-            //Atomic Check & Decrement in Redis
-            var result = await _campaignCache.RedeemVoucherAsync(request.VoucherId, request.UserId);
+        //Atomic Check & Decrement in Redis
+        var result = await campaignCache.RedeemVoucherAsync(request.VoucherId, request.UserId);
 
-            //Handle Redis Errors
-            if (result == -1) throw new BusinessException("User already has this voucher.");
-            if (result == 0) throw new BusinessException("Voucher out of stock.");
+        //Handle Redis Errors
+        if (result == -1) throw new BusinessException("User already has this voucher.");
+        if (result == 0) throw new BusinessException("Voucher out of stock.");
 
-            //If result == 1 (Success in Cache)
-            if (result == 1)
+        //If result == 1 (Success in Cache)
+        if (result == 1)
+        {
+            // PUSH TO KAFKA: Let the background worker update SQL
+            await kafkaProducer.PublishAsync(KafkaTopics.RedeemCampaignVoucher, new RedeemCampaignVoucherEvent
             {
-                // PUSH TO KAFKA: Let the background worker update SQL
-                await _kafkaProducer.PublishAsync(KafkaTopics.RedeemCampaignVoucher, new RedeemCampaignVoucherEvent
+                UserId = request.UserId,
+                VoucherId = request.VoucherId
+            });
+
+            if (voucher.PointCost != null && voucher.PointCost > 0)
+            {
+                await kafkaProducer.PublishAsync(KafkaTopics.UpdateUserPoint, new UpdatePointEvent
                 {
-                    UserId = request.UserId,
-                    VoucherId = request.VoucherId
+                    Id = request.UserId,
+                    ActionType = UpdatePointType.Minus,
+                    OrderId = request.VoucherId,
+                    Point = voucher.PointCost ?? 0
                 });
             }
-
-            var voucher = await _voucherRepository.GetByIdAsync(request.VoucherId);
-            var campaign = await _campaignRepository.GetCampaignById(voucher.CampaignId.Value);
-            return _mapper.Map<CampaignRes>(campaign);
         }
+
+        var campaign = await campaignRepository.GetCampaignById(voucher.CampaignId.Value);
+        return mapper.Map<CampaignRes>(campaign);
     }
 }

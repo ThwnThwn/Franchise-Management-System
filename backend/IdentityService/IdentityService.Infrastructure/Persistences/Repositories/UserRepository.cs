@@ -21,6 +21,11 @@ namespace IdentityService.Infrastructure.Persistences.Repositories
         /// <returns></returns>
         public async Task<User?> AddWithRoleAsync(User? user)
         {
+            if(user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
             await _dbSet.AddAsync(user);
             await _dbContext.SaveChangesAsync();
 

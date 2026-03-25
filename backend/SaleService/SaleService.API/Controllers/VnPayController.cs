@@ -59,7 +59,7 @@ public class VnPayController : ControllerBase
     public async Task<IActionResult> Return(CancellationToken ct)
     {
         var queryDict = HttpContext.Request.Query
-            .ToDictionary(k => k.Key, v => v.Value.ToString());
+            .ToDictionary(k => k.Key, v => v.Value.ToString(), StringComparer.OrdinalIgnoreCase);
 
         var cmd = new VnPayReturnCommand(queryDict);
         var result = await _mediator.Send(cmd, ct);
@@ -123,7 +123,7 @@ public class VnPayController : ControllerBase
         }
 
         var queryDict = HttpContext.Request.Query
-            .ToDictionary(k => k.Key, v => v.Value.ToString());
+            .ToDictionary(k => k.Key, v => v.Value.ToString(), StringComparer.OrdinalIgnoreCase);
 
         var cmd = new VnPayIpnCommand(queryDict);
         var result = await _mediator.Send(cmd, ct);
@@ -134,6 +134,14 @@ public class VnPayController : ControllerBase
         }
         // Đoạn này dự phòng:
         return Ok(new { RspCode = "99", Message = "Unknown error" });
+    }
+
+    [HttpGet("check-payment/{id:guid}")]
+    public async Task<IActionResult> CheckPayment(Guid id, [FromServices] SalesService.Application.Interfaces.Payments.IPaymentRepository paymentRepo)
+    {
+        var payment = await paymentRepo.GetByIdAsync(id, default);
+        if (payment == null) return NotFound($"Payment {id} not found in DB via EF Core");
+        return Ok(new { payment.Id, payment.OrderId, payment.Amount });
     }
 }
 

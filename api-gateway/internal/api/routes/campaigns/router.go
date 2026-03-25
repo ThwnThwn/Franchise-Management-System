@@ -25,5 +25,8 @@ func (c *CampaignRouter) Init(r *gin.RouterGroup) {
 		// PATCH /campaigns/:id/active -> Bật/tắt trạng thái chiến dịch
 		privateApi.PATCH("/:id/active", c.authMW.PermissionCheck("campaign.update"),
 			api.WrapHandler(c.campaignHl.UpdateActive))
+
+		privateApi.POST("/vouchers/:voucherId/redeem", c.authMW.PermissionCheck("campaign.voucher.redeem"),
+			api.WrapHandler(c.campaignHl.RedeemVoucher))
 	}
 }

@@ -9,36 +9,8 @@ namespace FranchiseService.Infrastructure.Clients.Identity
 {
     // gRPC Client giao tiep voi IdentityService
     // Dung de validate user va lay thong tin nhan vien (username, email)
-    public class IdentityServiceClient : IIdentityServiceClient
+    public class IdentityServiceClient(UserGrpc.UserGrpcClient client, IHttpContextAccessor httpContextAccessor) : IIdentityServiceClient
     {
-        private readonly UserGrpc.UserGrpcClient _client;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-
-        public IdentityServiceClient(IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
-        {
-            _httpContextAccessor = httpContextAccessor;
-
-            var rawUrl = configuration["GrpcSettings:IdentityServiceUrl"] ?? "http://localhost:5001";
-
-            var identityServiceUrl = rawUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
-                                     rawUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
-                ? rawUrl
-                : $"http://{rawUrl}";
-
-            // Cho phep self-signed certificate trong moi truong dev
-            var httpHandler = new HttpClientHandler
-            {
-                ServerCertificateCustomValidationCallback =
-                    HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-            };
-
-            var channel = GrpcChannel.ForAddress(identityServiceUrl, new GrpcChannelOptions
-            {
-                HttpHandler = httpHandler
-            });
-
-            _client = new UserGrpc.UserGrpcClient(channel);
-        }
 
         // Lay thong tin user theo ID tu IdentityService
         // Tra ve null neu khong tim thay (thay vi throw)
@@ -47,7 +19,7 @@ namespace FranchiseService.Infrastructure.Clients.Identity
             try
             {
                 var request = new GetUserByIdRequest { Id = userId.ToString() };
-                var response = await _client.GetByIdAsync(request);
+                var response = await client.GetByIdAsync(request);
 
                 if (response == null) return null;
 
@@ -81,7 +53,7 @@ namespace FranchiseService.Infrastructure.Clients.Identity
                 // IdentityService.GetAll BAT BUOC phai co x-user-id
                 var metadata = CreateAuthMetadata();
 
-                var response = await _client.GetAllAsync(request, metadata);
+                var response = await client.GetAllAsync(request, metadata);
 
                 if (response == null || response.Users == null)
                     return new List<UserInfo>();
@@ -105,7 +77,7 @@ namespace FranchiseService.Infrastructure.Clients.Identity
                 var request = new GetUserByIdsRequest();
                 request.Ids.AddRange(idsList.Select(id => id.ToString()));
 
-                var response = await _client.GetByIdsAsync(request);
+                var response = await client.GetByIdsAsync(request);
 
                 if (response == null || response.Users == null)
                     return new List<UserInfo>();
@@ -118,6 +90,26 @@ namespace FranchiseService.Infrastructure.Clients.Identity
             }
         }
 
+        public async Task UpdateUserAsync(UserInfo user, CancellationToken ct)
+        {
+            var request = new UpdateUserRequest
+            {
+                Id = user.Id.ToString(),
+                Username = user.Username,
+                Email = user.Email,
+                Phone = user.Phone ?? "",
+                FirstName = user.FirstName,
+                LastName = user.LastName ?? "",
+                CurrentHourlyWage = user.CurrentHourlyWage.HasValue ? (double)user.CurrentHourlyWage.Value : 0,
+                HomeStoreId = user.HomeStoreId.HasValue ? user.HomeStoreId.Value.ToString() : "",
+                RoleSlug = user.RoleSlug ?? ""
+            };
+            await client.UpdateAsync(
+                request,
+                cancellationToken: ct
+            );
+        }
+
         // PRIVATE METHODS
 
         // Tao gRPC Metadata chua x-user-id tu HTTP request hien tai
@@ -127,7 +119,7 @@ namespace FranchiseService.Infrastructure.Clients.Identity
             var metadata = new Metadata();
 
             // Lay x-user-id tu HTTP request hien tai (forwarded tu API Gateway / FE)
-            var httpContext = _httpContextAccessor.HttpContext;
+            var httpContext = httpContextAccessor.HttpContext;
             string? userId = null;
 
             if (httpContext != null)
@@ -167,7 +159,8 @@ namespace FranchiseService.Infrastructure.Clients.Identity
                 LastName = response.LastName,
                 AvatarUrl = response.AvatarUrl,
                 CurrentHourlyWage = response.HasCurrentHourlyWage ? (decimal)response.CurrentHourlyWage : null,
-                HomeStoreId = !string.IsNullOrEmpty(response.HomeStoreId) ? Guid.Parse(response.HomeStoreId) : null
+                HomeStoreId = !string.IsNullOrEmpty(response.HomeStoreId) ? Guid.Parse(response.HomeStoreId) : null,
+                RoleSlug = response.Role?.Slug
             };
         }
     }

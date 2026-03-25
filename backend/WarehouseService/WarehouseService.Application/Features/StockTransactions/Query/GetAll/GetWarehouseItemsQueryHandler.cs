@@ -73,7 +73,7 @@ public class GetStockTransactionsQueryHandler : IRequestHandler<GetStockTransact
                     t.WarehouseTransferId,
                     t.Note,
                     t.Status,
-                    t.CreatedBy.Value,
+                    t.CreatedBy.GetValueOrDefault(),
                     t.CreatedAt
                 )
             )

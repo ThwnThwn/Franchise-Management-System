@@ -11,11 +11,10 @@ namespace EngagementService.Infrastucture.Persistences.Repository
 {
     public class LoyaltyAccountRepository : GenericRepository<LoyaltyAccount>, ILoyaltyAccountRepository
     {
-
         public LoyaltyAccountRepository(IEngagementDbContext dbContext) : base(dbContext)
         {
-
         }
+
         /// <summary>
         /// Gets the by user identifier asynchronous.
         /// </summary>
@@ -25,10 +24,12 @@ namespace EngagementService.Infrastucture.Persistences.Repository
         {
             return await _dbContext.LoyaltyAccounts
                 .Include(x => x.CurrentTier)
+                .Include(x => x.UserVouchers)
                 //.Include(x => x.PointLogs)
-                .AsNoTracking()
+                //.AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Id == userId);
         }
+
         /// <summary>
         /// Gets the loyalty report data asynchronous.
         /// </summary>
@@ -92,6 +93,7 @@ namespace EngagementService.Infrastucture.Persistences.Repository
                 TierDistribution = tierDistribution
             };
         }
+
         /// <summary>
         /// Gets the user by ids asynchronous.
         /// </summary>
@@ -106,6 +108,7 @@ namespace EngagementService.Infrastucture.Persistences.Repository
                 .Where(x => userIds.Contains(x.Id))
                 .ToListAsync();
         }
+
         /// <summary>
         /// Gets the by filter handler.
         /// </summary>
@@ -140,6 +143,7 @@ namespace EngagementService.Infrastucture.Persistences.Repository
 
             return await query.ToListAsync();
         }
+
         /// <summary>
         /// Redeems the voucher asynchronous.
         /// </summary>
@@ -202,7 +206,7 @@ namespace EngagementService.Infrastucture.Persistences.Repository
 
         //    if (voucher.CurrentQuantity <= 0)
         //        throw new InvalidOperationException(VoucherMsg.OutOfStock);
-        //}        
+        //}
         /// <summary>
         /// Gets for update asynchronous.
         /// </summary>
@@ -227,7 +231,4 @@ namespace EngagementService.Infrastucture.Persistences.Repository
             return account;
         }
     }
-
 }
-
-

@@ -129,7 +129,7 @@ namespace FranchiseService.API.Services
 
         // --- HELPERS ---
 
-        private AppDTOs.GetAvailabilityParams MapToParams(GetAvailabilityParams request)
+        private static AppDTOs.GetAvailabilityParams MapToParams(GetAvailabilityParams request)
         {
             return new AppDTOs.GetAvailabilityParams
             {
@@ -147,7 +147,7 @@ namespace FranchiseService.API.Services
             };
         }
 
-        private StaffAvailabilityListResponse MapToResponse(PagedResult<AppDTOs.StaffAvailabilityResponse> list)
+        private static StaffAvailabilityListResponse MapToResponse(PagedResult<AppDTOs.StaffAvailabilityResponse> list)
         {
             var response = new StaffAvailabilityListResponse();
             response.Data.AddRange(list.Items.Select(x => new FranchiseService.Grpc.StaffAvailabilityResponse

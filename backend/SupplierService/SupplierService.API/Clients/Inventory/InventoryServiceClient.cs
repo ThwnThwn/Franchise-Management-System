@@ -7,32 +7,8 @@ namespace SupplierService.API.Clients.Inventory;
 /// <summary>
 /// Gọi gRPC IncreaseStock sang InventoryService để cộng kho khi PO hoàn thành.
 /// </summary>
-public class InventoryServiceClient : IInventoryServiceClient
+public class InventoryServiceClient(InventoryGrpc.InventoryGrpcClient grpcClient) : IInventoryServiceClient
 {
-    private readonly InventoryGrpc.InventoryGrpcClient _grpcClient;
-
-    public InventoryServiceClient(IConfiguration configuration)
-    {
-        var rawUrl = configuration["INVENTORY_SERVICE_URL"] ?? "http://localhost:5005";
-        var inventoryServiceUrl = rawUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
-                                  rawUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
-            ? rawUrl
-            : $"http://{rawUrl}";
-
-        var httpHandler = new HttpClientHandler
-        {
-            ServerCertificateCustomValidationCallback =
-                HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-        };
-
-        var channel = GrpcChannel.ForAddress(inventoryServiceUrl, new GrpcChannelOptions
-        {
-            HttpHandler = httpHandler
-        });
-
-        _grpcClient = new InventoryGrpc.InventoryGrpcClient(channel);
-    }
-
     public async Task IncreaseStockAsync(Guid storeId, IEnumerable<IngredientStockEntry> items, CancellationToken cancellationToken = default)
     {
         var request = new IncreaseStockRequest
@@ -50,6 +26,6 @@ public class InventoryServiceClient : IInventoryServiceClient
             });
         }
 
-        await _grpcClient.IncreaseStockAsync(request, cancellationToken: cancellationToken);
+        await grpcClient.IncreaseStockAsync(request, cancellationToken: cancellationToken);
     }
 }

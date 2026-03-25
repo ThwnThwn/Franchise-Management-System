@@ -46,7 +46,7 @@ public sealed class GetCustomerOrderPatternHandler
             return new CustomerOrderPatternResponse
             {
                 CustomerId = s.CustomerId,
-                FullName = info?.Username,
+                FullName = info?.Username ?? string.Empty,
                 Email = info?.Email,
                 Phone = info?.Phone,
                 TotalOrders = s.TotalOrders,

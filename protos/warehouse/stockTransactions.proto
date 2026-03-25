@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 option csharp_namespace = "WarehouseService.Grpc.Protos.StockTransaction";
-option go_package = "api-gateway/pkg/pb/stock_transaction";
+option go_package = "api-gateway/pkg/pb/warehouse";
 
 package stock_transaction;
 
