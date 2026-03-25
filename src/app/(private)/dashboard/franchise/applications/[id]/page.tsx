@@ -1,4 +1,4 @@
-import ApplicationDetailAdminView from "@/features/franchise/pages/ApplicationDetailAdminView"
+import ApplicationDetailView from "@/features/franchise/pages/ApplicationDetailView"
 
 export default async function ApplicationDetailAdminPage({
     params
@@ -6,5 +6,5 @@ export default async function ApplicationDetailAdminPage({
     params: Promise<{ id: string }>
 }) {
     const { id } = await params
-    return <ApplicationDetailAdminView id={id} />
+    return <ApplicationDetailView id={id} />
 }

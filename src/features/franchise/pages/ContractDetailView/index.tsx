@@ -35,18 +35,21 @@ import {
 import {
     useConfirmPayment,
     useGetApplicationDetail,
-    useGetContractDetail, // <--- Thêm hook này
+    useGetContractDetail,
     useUpdateSetupStatus
 } from "@/features/franchise/hooks/useFranchise"
 import { formatCurrencyWithSymbol } from "@/utils/helpers/currency"
 import dayjs from "dayjs"
+import { RoleSlug } from "@/constants/enums"
+import { useTokenStore } from "@/hooks"
 
 interface Props {
     id: string
 }
 
-export default function ContractDetailAdminView({ id }: Props) {
+export default function ContractDetailView({ id }: Props) {
     const router = useRouter()
+    const isAdmin = useTokenStore((s) => s.roleSlug === RoleSlug.Admin)
 
     // 1. Lấy data Contract
     const { data: contract, isLoading: isLoadingContract } = useGetContractDetail(id)
@@ -71,6 +74,14 @@ export default function ContractDetailAdminView({ id }: Props) {
     const handleSetupStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const newStatus = Number(e.target.value) as ContractSetupStatus
         updateSetup({ id, req: { setupStatus: newStatus } })
+    }
+
+    const handleGoToApplication = () => {
+        const url = isAdmin
+            ? `/dashboard/franchise/applications/${contract.applicationId}`
+            : `/profile/franchise/applications/${contract.applicationId}`
+
+        router.push(url)
     }
 
     return (
@@ -182,19 +193,20 @@ export default function ContractDetailAdminView({ id }: Props) {
                                                 ? "Đã thanh toán"
                                                 : "Chờ thanh toán"}
                                         </Chip>
-                                        {contract.depositStatus ===
-                                            DepositStatus.AwaitingPayment && (
-                                            <Button
-                                                size="sm"
-                                                color="warning"
-                                                variant="flat"
-                                                className="h-7 px-2"
-                                                onPress={() => confirmWithDialog(contract.id)}
-                                                isLoading={isConfirmingPayment}
-                                            >
-                                                Xác nhận nhận tiền
-                                            </Button>
-                                        )}
+                                        {isAdmin &&
+                                            contract.depositStatus ===
+                                                DepositStatus.AwaitingPayment && (
+                                                <Button
+                                                    size="sm"
+                                                    color="warning"
+                                                    variant="flat"
+                                                    className="h-7 px-2"
+                                                    onPress={() => confirmWithDialog(contract.id)}
+                                                    isLoading={isConfirmingPayment}
+                                                >
+                                                    Xác nhận nhận tiền
+                                                </Button>
+                                            )}
                                     </div>
                                 </div>
                             </div>
@@ -311,11 +323,7 @@ export default function ContractDetailAdminView({ id }: Props) {
                                 variant="flat"
                                 fullWidth
                                 className="justify-between"
-                                onPress={() =>
-                                    router.push(
-                                        `/dashboard/franchise/applications/${contract.applicationId}`
-                                    )
-                                }
+                                onPress={handleGoToApplication}
                             >
                                 <span className="flex items-center gap-2">
                                     <Store size={16} /> Xem lại Hồ sơ gốc

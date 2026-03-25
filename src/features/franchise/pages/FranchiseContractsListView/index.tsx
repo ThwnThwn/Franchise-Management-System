@@ -20,21 +20,38 @@ import {
     ContractStatus,
     DepositStatus
 } from "@/features/franchise/constants"
-import { useConfirmPayment, useGetAllContracts } from "@/features/franchise/hooks/useFranchise"
+import {
+    useConfirmPayment,
+    useGetAllContracts,
+    useGetMyContracts
+} from "@/features/franchise/hooks/useFranchise"
 import { FranchiseContractResponse } from "@/features/franchise/models/response"
 import { formatCurrencyWithSymbol } from "@/utils/helpers/currency"
 import { PaginationStyled } from "@/components"
 import { PaginationParams } from "@/models/common/request"
 import { useRouter } from "next/navigation"
+import { useTokenStore } from "@/hooks"
+import { RoleSlug } from "@/constants/enums"
 
 export default function FranchiseContractsListView() {
     const router = useRouter()
+    const isAdmin = useTokenStore((s) => s.roleSlug === RoleSlug.Admin)
+
     const [pagination, setPagination] = useState<PaginationParams>({ page: 1, pageSize: 10 })
 
-    const { data, isLoading } = useGetAllContracts({
-        page: pagination.page,
-        pageSize: pagination.pageSize
-    })
+    const { data, isLoading: isAllLoading } = useGetAllContracts(
+        {
+            page: pagination.page,
+            pageSize: pagination.pageSize
+        },
+        isAdmin
+    )
+
+    const { data: myCons, isLoading: isConsLoading } = useGetMyContracts({ enabled: !isAdmin })
+
+    const cons = (isAdmin ? data?.items : myCons) || []
+    const isLoading = isAllLoading || isConsLoading
+
     const { confirmWithDialog, isPending: isConfirming } = useConfirmPayment()
 
     const renderCell = (item: FranchiseContractResponse, columnKey: React.Key) => {
@@ -81,7 +98,7 @@ export default function FranchiseContractsListView() {
                         </Button>
 
                         {/* Hiện nút xác nhận cọc nếu đang ở trạng thái chờ tiền */}
-                        {item.status === ContractStatus.AwaitingPayment && (
+                        {isAdmin && item.status === ContractStatus.AwaitingPayment && (
                             <Button
                                 isIconOnly
                                 size="sm"
@@ -119,7 +136,7 @@ export default function FranchiseContractsListView() {
                             THAO TÁC
                         </TableColumn>
                     </TableHeader>
-                    <TableBody items={data?.items || []} isLoading={isLoading}>
+                    <TableBody items={cons} isLoading={isLoading}>
                         {(item) => (
                             <TableRow key={item.id}>
                                 {(columnKey) => (

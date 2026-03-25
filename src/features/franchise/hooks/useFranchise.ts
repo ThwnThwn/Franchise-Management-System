@@ -196,3 +196,20 @@ export const useUpdateSetupStatus = ({ onSuccess }: { onSuccess?: () => void } =
         }
     })
 }
+
+// ME
+export const useGetMyApplications = ({ enabled = true }: { enabled?: boolean }) => {
+    return useQuery({
+        queryKey: [QUERY_KEYS.FRANCHISE_APPLICATIONS, QUERY_KEYS.ME],
+        queryFn: () => franchiseApi.getMyApplications(),
+        enabled: enabled
+    })
+}
+
+export const useGetMyContracts = ({ enabled = true }: { enabled?: boolean }) => {
+    return useQuery({
+        queryKey: [QUERY_KEYS.FRANCHISE_CONTRACTS, QUERY_KEYS.ME],
+        queryFn: () => franchiseApi.getMyContracts(),
+        enabled: enabled
+    })
+}

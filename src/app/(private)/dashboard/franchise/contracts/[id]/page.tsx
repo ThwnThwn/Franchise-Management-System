@@ -1,4 +1,4 @@
-import ContractDetailAdminView from "@/features/franchise/pages/ContractDetailAdminView"
+import ContractDetailView from "@/features/franchise/pages/ContractDetailView"
 
 export default async function ContractDetailAdminPage({
     params
@@ -6,5 +6,5 @@ export default async function ContractDetailAdminPage({
     params: Promise<{ id: string }>
 }) {
     const { id } = await params
-    return <ContractDetailAdminView id={id} />
+    return <ContractDetailView id={id} />
 }

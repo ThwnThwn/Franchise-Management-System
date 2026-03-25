@@ -3,19 +3,19 @@
 import { Card, CardBody, Chip, Image, Spinner } from "@heroui/react"
 import { FileText, ImageIcon, MapPin, User } from "lucide-react"
 
+import { DashboardHeader } from "@/features/dashboard"
 import { ApplicationReviewActions } from "@/features/franchise/components"
 import {
     FRANCHISE_APPLICATION_STATUS_COLORS,
     FRANCHISE_APPLICATION_STATUS_LABELS
 } from "@/features/franchise/constants"
 import { useGetApplicationDetail } from "@/features/franchise/hooks/useFranchise"
-import { DashboardHeader } from "@/features/dashboard"
 
 interface Props {
     id: string
 }
 
-export default function ApplicationDetailAdminView({ id }: Props) {
+export default function ApplicationDetailView({ id }: Props) {
     const { data, isLoading } = useGetApplicationDetail(id)
 
     if (isLoading) {

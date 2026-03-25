@@ -24,21 +24,36 @@ import {
 } from "@/features/franchise/constants"
 import {
     useGetAllApplications,
+    useGetMyApplications,
     useReviewApplication
 } from "@/features/franchise/hooks/useFranchise"
 import { FranchiseApplicationResponse } from "@/features/franchise/models/response"
 import { PaginationParams } from "@/models/common/request"
+import { RoleSlug } from "@/constants/enums"
+import { useTokenStore } from "@/hooks"
 
 export default function FranchiseApplicationsListView() {
     const router = useRouter()
+    const isAdmin = useTokenStore((s) => s.roleSlug === RoleSlug.Admin)
+
     const [pagination, setPagination] = useState<PaginationParams>({ page: 1, pageSize: 10 })
     const [searchKey, setSearchKey] = useState("")
 
-    const { data, isLoading } = useGetAllApplications({
-        page: pagination.page,
-        pageSize: pagination.pageSize,
-        searchKey
+    const { data, isLoading: isAllLoading } = useGetAllApplications(
+        {
+            page: pagination.page,
+            pageSize: pagination.pageSize,
+            searchKey
+        },
+        isAdmin
+    )
+
+    const { data: myApps, isLoading: isMyAppsLoading } = useGetMyApplications({
+        enabled: !isAdmin
     })
+
+    const apps = (isAdmin ? data?.items : myApps) || []
+    const isLoading = isAllLoading || isMyAppsLoading
 
     const { reviewWithConfirm } = useReviewApplication()
 
@@ -87,7 +102,7 @@ export default function FranchiseApplicationsListView() {
                             </Button>
                         </Tooltip>
 
-                        {item.status === FranchiseApplicationStatus.Pending && (
+                        {isAdmin && item.status === FranchiseApplicationStatus.Pending && (
                             <>
                                 <Tooltip content="Duyệt hồ sơ" color="success">
                                     <Button
@@ -153,7 +168,7 @@ export default function FranchiseApplicationsListView() {
                         </TableColumn>
                     </TableHeader>
                     <TableBody
-                        items={data?.items || []}
+                        items={apps}
                         isLoading={isLoading}
                         emptyContent="Không có hồ sơ nào."
                     >

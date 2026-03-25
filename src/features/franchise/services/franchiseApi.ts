@@ -121,5 +121,16 @@ export const franchiseApi = {
     }): Promise<FranchiseContractResponse> => {
         const res = await axiosInstance.post(`/franchise/contracts/${id}/renew`, req)
         return res.data
+    },
+
+    // ME
+    getMyApplications: async (): Promise<FranchiseApplicationResponse[]> => {
+        const res = await axiosInstance.get("/franchise/me/applications")
+        return res.data
+    },
+
+    getMyContracts: async (): Promise<FranchiseContractResponse[]> => {
+        const res = await axiosInstance.get("/franchise/me/contracts")
+        return res.data
     }
 }

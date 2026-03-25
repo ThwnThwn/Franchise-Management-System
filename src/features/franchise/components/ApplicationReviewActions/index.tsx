@@ -9,21 +9,26 @@ import { useState } from "react"
 import { FRANCHISE_POLICY, FranchiseApplicationStatus } from "@/features/franchise/constants"
 import { useReviewApplication } from "@/features/franchise/hooks"
 import { DEFAULT_DATE_FORMAT } from "@/constants/constants"
-import { useDay } from "@/hooks"
+import { useDay, useTokenStore } from "@/hooks"
 import { FranchiseApplicationResponse } from "../../models/response"
+import { RoleSlug } from "@/constants/enums"
 
 export const ApplicationReviewActions = ({
     application
 }: {
     application: FranchiseApplicationResponse
 }) => {
+    const isAdmin = useTokenStore((s) => s.roleSlug === RoleSlug.Admin)
+    const { toDate, formatDate } = useDay({ defaultFormat: DEFAULT_DATE_FORMAT })
+
     const [note, setNote] = useState("")
     const [validFrom, setValidFrom] = useState<string>(dayjs().format())
-    const { toDate, formatDate } = useDay({ defaultFormat: DEFAULT_DATE_FORMAT })
 
     const { mutate: review, isPending } = useReviewApplication()
 
     const handleAction = (isApprove: boolean) => {
+        if (!isAdmin) return
+
         review({
             id: application.id,
             req: {
@@ -56,15 +61,17 @@ export const ApplicationReviewActions = ({
                         labelPlacement="outside"
                         value={toDate(validFrom)}
                         onChange={(val) => setValidFrom(formatDate(val))}
+                        isReadOnly={!isAdmin}
                     />
 
                     <TextareaStyled
                         label="Ghi chú thẩm định"
-                        placeholder="Nhập lý do duyệt hoặc từ chối..."
+                        placeholder="Lý do duyệt hoặc từ chối..."
                         labelPlacement="outside"
                         variant="bordered"
                         value={note}
                         onValueChange={setNote}
+                        isReadOnly={!isAdmin}
                     />
                 </div>
 
@@ -92,7 +99,7 @@ export const ApplicationReviewActions = ({
                     </div>
                 </div>
 
-                {application.status === FranchiseApplicationStatus.Pending && (
+                {isAdmin && application.status === FranchiseApplicationStatus.Pending && (
                     <div className="grid grid-cols-2 gap-3">
                         <Button
                             variant="flat"
