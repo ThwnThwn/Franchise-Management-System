@@ -192,6 +192,7 @@ export function Register({ email, setEmail, onSuccess }: RegisterInfoProps) {
                         onBlur={() => {
                             formik.setFieldTouched("address")
                         }}
+                        isRequired
                     />
                 </div>
                 <InputStyled

@@ -155,7 +155,7 @@ export default function FranchiseApplicationsListView() {
                     title="Hồ sơ Nhượng quyền"
                     description="Thẩm định các mặt bằng và thông tin đối tác đăng ký."
                 />
-                {(myApps?.length ?? 0) <= 0 && (
+                {!isAdmin && (myApps?.length ?? 0) <= 0 && (
                     <Button
                         color="primary"
                         size="md"

@@ -144,7 +144,11 @@ export default function FranchiseContractsListView() {
                             THAO TÁC
                         </TableColumn>
                     </TableHeader>
-                    <TableBody items={cons} isLoading={isLoading}>
+                    <TableBody
+                        items={cons}
+                        isLoading={isLoading}
+                        emptyContent="Không có hợp đồng nào."
+                    >
                         {(item) => (
                             <TableRow key={item.id}>
                                 {(columnKey) => (

@@ -30,6 +30,7 @@ import {
     CONTRACT_STATUS_COLORS,
     CONTRACT_STATUS_LABELS,
     ContractSetupStatus,
+    ContractStatus,
     DepositStatus
 } from "@/features/franchise/constants"
 import {
@@ -42,6 +43,7 @@ import { formatCurrencyWithSymbol } from "@/utils/helpers/currency"
 import dayjs from "dayjs"
 import { RoleSlug } from "@/constants/enums"
 import { useTokenStore } from "@/hooks"
+import { DATE_TIME_VIEW_FORMAT } from "@/constants/constants"
 
 interface Props {
     id: string
@@ -112,10 +114,10 @@ export default function ContractDetailView({ id }: Props) {
                             </div>
                             <div className="text-right">
                                 <p className="text-tiny uppercase font-black text-default-400">
-                                    Ngày tạo
+                                    Tạo lúc
                                 </p>
                                 <p className="font-bold">
-                                    {dayjs(contract.createdAt).format("DD/MM/YYYY")}
+                                    {dayjs(contract.createdAt).format(DATE_TIME_VIEW_FORMAT)}
                                 </p>
                             </div>
                         </CardBody>
@@ -178,9 +180,9 @@ export default function ContractDetailView({ id }: Props) {
                                         {formatCurrencyWithSymbol(contract.depositAmount)}
                                     </p>
                                 </div>
-                                <div>
+                                <div className="text-center">
                                     <p className="text-xs text-default-500">Trạng thái cọc</p>
-                                    <div className="flex items-center gap-2 mt-1">
+                                    <div className="flex flex-col justify-center items-center gap-2 mt-1">
                                         <Chip
                                             size="sm"
                                             color={
@@ -194,13 +196,11 @@ export default function ContractDetailView({ id }: Props) {
                                                 : "Chờ thanh toán"}
                                         </Chip>
                                         {isAdmin &&
-                                            contract.depositStatus ===
-                                                DepositStatus.AwaitingPayment && (
+                                            contract.status === ContractStatus.AwaitingPayment && (
                                                 <Button
-                                                    size="sm"
                                                     color="warning"
                                                     variant="flat"
-                                                    className="h-7 px-2"
+                                                    className="h-7 px-2 min-w-fit"
                                                     onPress={() => confirmWithDialog(contract.id)}
                                                     isLoading={isConfirmingPayment}
                                                 >
@@ -233,33 +233,35 @@ export default function ContractDetailView({ id }: Props) {
                                         </p>
                                     </div>
                                 </div>
-                                <div className="flex gap-2">
-                                    <Button
-                                        as={Link}
-                                        href={contract.contractPdfUrl}
-                                        target="_blank"
-                                        size="sm"
-                                        variant="flat"
-                                        startContent={<Maximize2 size={14} />}
-                                    >
-                                        Toàn màn hình
-                                    </Button>
-                                    <Button
-                                        as="a"
-                                        // Chèn fl_attachment vào sau /upload/
-                                        href={contract.contractPdfUrl.replace(
-                                            "/upload/",
-                                            "/upload/fl_attachment/"
-                                        )}
-                                        // Thuộc tính download vẫn nên giữ để làm fallback
-                                        download={`Hop_Dong_${contract.id}.pdf`}
-                                        size="sm"
-                                        color="primary"
-                                        startContent={<Download size={14} />}
-                                    >
-                                        Tải xuống
-                                    </Button>
-                                </div>
+                                {!!contract.contractPdfUrl && (
+                                    <div className="flex gap-2">
+                                        <Button
+                                            as={Link}
+                                            href={contract.contractPdfUrl}
+                                            target="_blank"
+                                            size="sm"
+                                            variant="flat"
+                                            startContent={<Maximize2 size={14} />}
+                                        >
+                                            Toàn màn hình
+                                        </Button>
+                                        <Button
+                                            as="a"
+                                            // Chèn fl_attachment vào sau /upload/
+                                            href={contract.contractPdfUrl.replace(
+                                                "/upload/",
+                                                "/upload/fl_attachment/"
+                                            )}
+                                            // Thuộc tính download vẫn nên giữ để làm fallback
+                                            download={`Hop_Dong_${contract.id}.pdf`}
+                                            size="sm"
+                                            color="primary"
+                                            startContent={<Download size={14} />}
+                                        >
+                                            Tải xuống
+                                        </Button>
+                                    </div>
+                                )}
                             </div>
                         </CardBody>
                     </Card>
@@ -269,7 +271,7 @@ export default function ContractDetailView({ id }: Props) {
                 <div className="lg:col-span-4 space-y-6">
                     <Card className="border-none shadow-lg">
                         <CardBody className="p-6 space-y-6">
-                            <div className="flex items-center gap-2 font-bold uppercase text-xs tracking-widest text-primary-200">
+                            <div className="flex items-center gap-2 font-bold uppercase text-xs tracking-widest text-primary-400">
                                 <Construction size={18} /> Cập nhật tiến độ quán
                             </div>
                             <div className="space-y-4">
@@ -292,7 +294,7 @@ export default function ContractDetailView({ id }: Props) {
 
                                 <div className="p-4 rounded-xl bg-white/10 border border-white/20 space-y-4">
                                     <div className="flex justify-between text-sm">
-                                        <span className="text-primary-200">
+                                        <span className="text-primary-400">
                                             Khai trương dự kiến:
                                         </span>
                                         <span className="font-bold">
@@ -302,7 +304,7 @@ export default function ContractDetailView({ id }: Props) {
                                         </span>
                                     </div>
                                     <div className="flex justify-between text-sm">
-                                        <span className="text-primary-200">Hết hạn HĐ:</span>
+                                        <span className="text-primary-400">Hết hạn HĐ:</span>
                                         <span className="font-bold">
                                             {contract.validUntil
                                                 ? dayjs(contract.validUntil).format("DD/MM/YYYY")
