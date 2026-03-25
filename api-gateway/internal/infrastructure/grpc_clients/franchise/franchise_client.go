@@ -6,6 +6,7 @@ import (
 	"api-gateway/pkg/mapper"
 	franchisePb "api-gateway/pkg/pb/franchise"
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -270,10 +271,38 @@ func (c *franchiseGrpcClient) RenewContract(ctx context.Context, contractId uuid
 }
 
 // HandleDocuSealWebhook implements IFranchiseService.
-func (c *franchiseGrpcClient) HandleDocuSealWebhook(ctx context.Context, signature string, rawBody string) error {
+func (c *franchiseGrpcClient) HandleDocuSealWebhook(ctx context.Context, signature string, rawBody string, payload *franchiseModel.DocuSealPayload) error {
+	eventType := payload.EventType
+	if eventType == "" {
+		eventType = payload.Event
+	}
+
+	submissionId := payload.Data.SubmissionID
+	if submissionId == 0 {
+		submissionId = payload.Data.ID
+	}
+
+	var documentUrl string
+	if len(payload.Data.Documents) > 0 {
+		documentUrl = payload.Data.Documents[0].URL
+	}
+
+	var completedAtPb *timestamppb.Timestamp
+	if payload.Data.CompletedAt != "" {
+		parsedTime, err := time.Parse(time.RFC3339, payload.Data.CompletedAt)
+		if err == nil {
+			completedAtPb = timestamppb.New(parsedTime)
+		}
+	}
+
 	_, err := c.client.HandleDocuSealWebhook(ctx, &franchisePb.DocuSealWebhookRequest{
 		SignatureHeader: signature,
 		RawBody:         rawBody,
+		EventType:       eventType,
+		SubmissionId:    submissionId,
+		DocumentUrl:     documentUrl,
+		CompletedAt:     completedAtPb,
 	})
+
 	return err
 }

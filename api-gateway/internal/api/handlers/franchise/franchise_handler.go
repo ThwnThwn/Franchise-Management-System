@@ -6,6 +6,7 @@ import (
 	franchiseModel "api-gateway/internal/domain/models/franchise"
 	"api-gateway/pkg/utils/contextutils"
 	"api-gateway/pkg/utils/validation"
+	"encoding/json"
 	"io"
 	"net/http"
 
@@ -421,17 +422,26 @@ func (h *FranchiseHandler) RenewContract(c *gin.Context) error {
 // @Success      200 {object} map[string]string "{"message": "Webhook processed"}"
 // @Router       /franchise/webhook/docuseal [post]
 func (h *FranchiseHandler) HandleDocuSealWebhook(c *gin.Context) error {
-	// Lấy chữ ký từ header
+	// 1. Lấy chữ ký từ header
 	signature := c.GetHeader("X-Docuseal-Signature")
 
-	// Đọc nguyên bản body (Không bind JSON để giữ nguyên cấu trúc tính HMAC)
+	// 2. Đọc nguyên bản body (RAW) để giữ nguyên cấu trúc tính HMAC cho C#
 	bodyBytes, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		return errorcode.NewBadRequest("Không thể đọc dữ liệu webhook")
 	}
+	rawBody := string(bodyBytes)
 
+	// 3. Parse JSON vào struct để trích xuất các field cần thiết
+	var payload franchiseModel.DocuSealPayload
+	if err := json.Unmarshal(bodyBytes, &payload); err != nil {
+		// Trả về lỗi nếu DocuSeal gửi JSON tào lao
+		return errorcode.NewBadRequest("Dữ liệu webhook không hợp lệ")
+	}
+
+	// 4. Đẩy toàn bộ thông tin xuống Client
 	ctx := c.Request.Context()
-	if err := h.franchiseGW.HandleDocuSealWebhook(ctx, signature, string(bodyBytes)); err != nil {
+	if err := h.franchiseGW.HandleDocuSealWebhook(ctx, signature, rawBody, &payload); err != nil {
 		return err // Trả về lỗi để DocuSeal thử lại (Retry)
 	}
 

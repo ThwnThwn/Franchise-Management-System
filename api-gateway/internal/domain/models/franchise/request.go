@@ -73,3 +73,16 @@ type RenewContractRequest struct {
 	ExtensionYears int32  `json:"extensionYears" binding:"required"`
 	Note           string `json:"note"`
 }
+
+type DocuSealPayload struct {
+	Event     string `json:"event"`
+	EventType string `json:"event_type"`
+	Data      struct {
+		ID           int32  `json:"id"`
+		SubmissionID int32  `json:"submission_id"`
+		CompletedAt  string `json:"completed_at"`
+		Documents    []struct {
+			URL string `json:"url"`
+		} `json:"documents"`
+	} `json:"data"`
+}

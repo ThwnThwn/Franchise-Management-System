@@ -61,5 +61,5 @@ type IFranchiseService interface {
 	// ── DOCUSEAL WEBHOOK ─────────────────────────────────────────────────────
 
 	// HandleDocuSealWebhook: Nhận dữ liệu từ DocuSeal để cập nhật trạng thái ký kết.
-	HandleDocuSealWebhook(ctx context.Context, signature string, rawBody string) error
+	HandleDocuSealWebhook(ctx context.Context, signature string, rawBody string, req *franchiseModel.DocuSealPayload) error
 }
