@@ -11,7 +11,7 @@ import {
     TableRow,
     Tooltip
 } from "@heroui/react"
-import { CheckCircle2, FileText, Eye, Search, XCircle } from "lucide-react"
+import { CheckCircle2, FileText, Eye, Search, XCircle, ArrowRight } from "lucide-react"
 import { useRouter } from "next/navigation"
 import React, { useState } from "react"
 
@@ -55,6 +55,18 @@ export default function FranchiseApplicationsListView() {
     const apps = (isAdmin ? data?.items : myApps) || []
     const isLoading = isAllLoading || isMyAppsLoading
 
+    const handleRegisterClick = () => {
+        router.push("/franchise/register")
+    }
+
+    const handleViewDetail = (id: string) => {
+        const url = isAdmin
+            ? `/dashboard/franchise/applications/${id}`
+            : `/profile/franchise/applications/${id}`
+
+        router.push(url)
+    }
+
     const { reviewWithConfirm } = useReviewApplication()
 
     const renderCell = (item: FranchiseApplicationResponse, columnKey: React.Key) => {
@@ -94,9 +106,7 @@ export default function FranchiseApplicationsListView() {
                                 isIconOnly
                                 size="sm"
                                 variant="light"
-                                onPress={() =>
-                                    router.push(`/dashboard/franchise/applications/${item.id}`)
-                                }
+                                onPress={() => handleViewDetail(item.id)}
                             >
                                 <Eye size={18} className="text-default-500" />
                             </Button>
@@ -139,11 +149,22 @@ export default function FranchiseApplicationsListView() {
 
     return (
         <div className="p-6">
-            <DashboardHeader
-                icon={<FileText className="w-6 h-6 text-white" />}
-                title="Hồ sơ Nhượng quyền"
-                description="Thẩm định các mặt bằng và thông tin đối tác đăng ký."
-            />
+            <div className="flex justify-between">
+                <DashboardHeader
+                    icon={<FileText className="w-6 h-6 text-white" />}
+                    title="Hồ sơ Nhượng quyền"
+                    description="Thẩm định các mặt bằng và thông tin đối tác đăng ký."
+                />
+                <Button
+                    color="primary"
+                    size="md"
+                    className="font-bold px-8 shadow-lg shadow-primary/30"
+                    endContent={<ArrowRight size={18} />}
+                    onPress={handleRegisterClick}
+                >
+                    ĐĂNG KÝ NGAY
+                </Button>
+            </div>
 
             <div className="flex flex-col gap-4">
                 <div className="flex justify-between items-end gap-3">

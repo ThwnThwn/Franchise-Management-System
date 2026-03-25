@@ -23,7 +23,7 @@ export default function FranchiseRegisterView() {
     const { data: user, isLoading: isUserLoading } = useGetMe()
     const { mutate: submitForm, isPending: isSubmitting } = useSubmitApplication({
         onSuccess: () => {
-            router.push("")
+            router.push("/profile/franchise/applications")
         }
     })
 
@@ -110,9 +110,9 @@ export default function FranchiseRegisterView() {
                     </div>
                     <div className="lg:col-span-5 space-y-6">
                         <FranchisePolicyCard />
-                        <AttachmentCard />
                     </div>
                 </div>
+                <AttachmentCard />
             </div>
         </FormikProvider>
     )

@@ -54,6 +54,14 @@ export default function FranchiseContractsListView() {
 
     const { confirmWithDialog, isPending: isConfirming } = useConfirmPayment()
 
+    const handleViewDetail = (id: string) => {
+        const url = isAdmin
+            ? `/dashboard/franchise/contracts/${id}`
+            : `/profile/franchise/contracts/${id}`
+
+        router.push(url)
+    }
+
     const renderCell = (item: FranchiseContractResponse, columnKey: React.Key) => {
         switch (columnKey) {
             case "id":
@@ -92,7 +100,7 @@ export default function FranchiseContractsListView() {
                             isIconOnly
                             size="sm"
                             variant="light"
-                            onPress={() => router.push(`/dashboard/franchise/contracts/${item.id}`)}
+                            onPress={() => handleViewDetail(item.id)}
                         >
                             <Eye size={18} />
                         </Button>
