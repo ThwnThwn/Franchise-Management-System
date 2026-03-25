@@ -724,5 +724,4 @@ fabric.properties
 backend/global.json
 
 # SonarQube
-scan.bat
 .sonarqube/
