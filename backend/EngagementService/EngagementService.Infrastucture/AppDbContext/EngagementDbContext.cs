@@ -84,32 +84,32 @@ public partial class EngagementDbContext : DbContext, IEngagementDbContext
                 .HasColumnName("updated_at");
         });
 
-            modelBuilder.Entity<LoyaltyAccount>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("loyalty_accounts_pkey");
-                entity.ToTable("loyalty_accounts");
-                entity.HasIndex(e => e.CurrentTierId, "idx_loyalty_accounts_tier");
+        modelBuilder.Entity<LoyaltyAccount>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("loyalty_accounts_pkey");
+            entity.ToTable("loyalty_accounts");
+            entity.HasIndex(e => e.CurrentTierId, "idx_loyalty_accounts_tier");
 
-                entity.Property(e => e.Id).ValueGeneratedNever().HasColumnName("id");
-                entity.Property(e => e.AvailablePoints).HasPrecision(15, 3).HasDefaultValueSql("0").HasColumnName("available_points");
-                entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").HasColumnName("created_at");
-                entity.Property(e => e.CurrentTierId).HasColumnName("current_tier_id");
-                entity.Property(e => e.IsDeleted).HasDefaultValue(false).HasColumnName("is_deleted");
-                entity.Property(e => e.TotalSpent).HasPrecision(15, 3).HasDefaultValueSql("0").HasColumnName("total_spent");
-                entity.Property(e => e.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").HasColumnName("updated_at");
+            entity.Property(e => e.Id).ValueGeneratedNever().HasColumnName("id");
+            entity.Property(e => e.AvailablePoints).HasPrecision(15, 3).HasDefaultValueSql("0").HasColumnName("available_points");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").HasColumnName("created_at");
+            entity.Property(e => e.CurrentTierId).HasColumnName("current_tier_id");
+            entity.Property(e => e.IsDeleted).HasDefaultValue(false).HasColumnName("is_deleted");
+            entity.Property(e => e.TotalSpent).HasPrecision(15, 3).HasDefaultValueSql("0").HasColumnName("total_spent");
+            entity.Property(e => e.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").HasColumnName("updated_at");
 
-                entity.HasOne(d => d.CurrentTier).WithMany(p => p.LoyaltyAccounts)
-                    .HasForeignKey(d => d.CurrentTierId)
-                    .OnDelete(DeleteBehavior.SetNull)
-                    .HasConstraintName("fk_loyalty_tier");
-                entity.HasMany(d => d.UserVouchers)
-                    .WithOne(p => p.User)
-                    .HasForeignKey(p => p.UserId)
-                    .OnDelete(DeleteBehavior.ClientSetNull) // Prevents accidental cascading deletes
-                    .HasConstraintName("user_vouchers_user_id_fkey");
-                // Global Filter cho Soft Delete
-                entity.HasQueryFilter(e => !e.IsDeleted);
-            });
+            entity.HasOne(d => d.CurrentTier).WithMany(p => p.LoyaltyAccounts)
+                .HasForeignKey(d => d.CurrentTierId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("fk_loyalty_tier");
+            entity.HasMany(d => d.UserVouchers)
+                .WithOne(p => p.User)
+                .HasForeignKey(p => p.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull) // Prevents accidental cascading deletes
+                .HasConstraintName("user_vouchers_user_id_fkey");
+            // Global Filter cho Soft Delete
+            entity.HasQueryFilter(e => !e.IsDeleted);
+        });
 
         modelBuilder.Entity<MembershipTier>(entity =>
         {
@@ -160,6 +160,7 @@ public partial class EngagementDbContext : DbContext, IEngagementDbContext
                 .HasForeignKey(d => d.UserId)
                 .HasConstraintName("point_logs_user_id_fkey");
         });
+
         modelBuilder.Entity<PointRule>(entity =>
         {
             entity.HasKey(e => e.Id);
