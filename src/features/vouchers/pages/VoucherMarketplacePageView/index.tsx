@@ -1,21 +1,23 @@
 "use client"
 
-import { useState } from "react"
-import { useGetMe, useGetMyLoyalty } from "@/features/profile/hooks/useProfile"
-import { useGetAllVouchers, useRedeemVoucher } from "@/features/vouchers/hooks/useVoucher"
-import { Voucher } from "@/features/vouchers/models/response"
-import { VoucherCard, VoucherViewModal } from "@/features/vouchers/components"
-import { Button } from "@heroui/react"
-import { formatCurrency, normalizeCurrency } from "@/utils/helpers/currency"
-import { useLoginDiscloresureSingleton, useTokenStore } from "@/hooks"
 import { RoleSlug } from "@/constants/enums"
 import CampaignSection from "@/features/campaigns/components/CampaignSection"
+import { useGetMe, useGetMyLoyalty } from "@/features/profile/hooks/useProfile"
+import { VoucherCard, VoucherViewModal } from "@/features/vouchers/components"
+import { useGetAllVouchers, useRedeemVoucher } from "@/features/vouchers/hooks/useVoucher"
+import { Voucher } from "@/features/vouchers/models/response"
+import { useLoginDiscloresureSingleton, useTokenStore } from "@/hooks"
+import { formatCurrency, normalizeCurrency } from "@/utils/helpers/currency"
+import { Button } from "@heroui/react"
+import dayjs from "dayjs"
+import { useState } from "react"
 
 export default function VoucherMarketplacePageView({
     initialVouchers
 }: {
     initialVouchers: Voucher[]
 }) {
+    const now = dayjs()
     const isLogined = useTokenStore((s) => !!s.accessToken)
     const { onOpen: onLoginOpen } = useLoginDiscloresureSingleton()
 
@@ -24,7 +26,7 @@ export default function VoucherMarketplacePageView({
     const { data: loyalty } = useGetMyLoyalty(user?.email)
 
     const { data: vouchersData } = useGetAllVouchers(initialVouchers)
-    const vouchers = vouchersData || []
+    const vouchers = (vouchersData || []).filter((v) => v.isActive && now.isBefore(v.endDate))
 
     // An toàn chuyển đổi điểm
     const myPoints = normalizeCurrency(loyalty?.availablePoints || 0)
@@ -74,19 +76,17 @@ export default function VoucherMarketplacePageView({
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {vouchers
-                        .filter((v: Voucher) => v.isActive)
-                        .map((voucher: Voucher) => (
-                            <VoucherCard
-                                key={voucher.id}
-                                isCustomer={isCustomer}
-                                voucher={voucher}
-                                myPoints={myPoints}
-                                isRedeeming={isRedeeming}
-                                onView={() => setViewingVoucher(voucher)}
-                                onRedeem={() => handleRedeem(voucher)}
-                            />
-                        ))}
+                    {vouchers.map((voucher: Voucher) => (
+                        <VoucherCard
+                            key={voucher.id}
+                            isCustomer={isCustomer}
+                            voucher={voucher}
+                            myPoints={myPoints}
+                            isRedeeming={isRedeeming}
+                            onView={() => setViewingVoucher(voucher)}
+                            onRedeem={() => handleRedeem(voucher)}
+                        />
+                    ))}
                 </div>
             )}
 

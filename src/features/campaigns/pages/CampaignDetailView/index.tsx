@@ -17,6 +17,7 @@ import { useDay, useFormikHelpers } from "@/hooks"
 import dayjs from "dayjs"
 import { CampaignSchema } from "./schema"
 import { Voucher } from "@/features/vouchers/models/response"
+import { DEFAULT_DATE_FORMAT } from "@/constants/constants"
 
 // Nếu có prop campaign (Edit Mode), thì truyền vào. Ở đây tui focus làm Create Mode.
 interface Props {
@@ -27,16 +28,17 @@ interface Props {
 export const CampaignDetailView = ({ campaignId, initialData }: Props) => {
     const router = useRouter()
     const isViewMode = !!campaignId && campaignId !== "new"
-    const { toZonedDateTime, dateNow } = useDay()
-    const minDateStr = dateNow(0)
+    const { toZonedDateTime } = useDay()
+    const now = dayjs()
+    const minDateStr = now.format(DEFAULT_DATE_FORMAT)
 
     const [viewingVoucher, setViewingVoucher] = useState<Voucher | undefined>(undefined)
 
     // Fetch data kho voucher có sẵn để Admin chọn
-    const { data: availableVouchers = [], isLoading: isLoadingVouchers } = useGetAllVouchers(
-        undefined,
-        { enabled: !isViewMode }
-    )
+    const { data: vouchers = [], isLoading: isLoadingVouchers } = useGetAllVouchers(undefined, {
+        enabled: !isViewMode
+    })
+    const availableVouchers = (vouchers || []).filter((v) => !v.isActive && now.isBefore(v.endDate))
 
     // API Mutation
     const { mutate: createCampaign, isPending: isSaving } = useCreateCampaign({
@@ -221,9 +223,8 @@ export const CampaignDetailView = ({ campaignId, initialData }: Props) => {
                                         onSelectionChange={(keys) => {
                                             setFieldValue("voucherIds", Array.from(keys))
                                         }}
-                                        classNames={{
-                                            trigger: "bg-white border-1 border-default-200"
-                                        }}
+                                        isInvalid={isInvalid("voucherIds")}
+                                        errorMessage={getErrorMessage("voucherIds")}
                                     >
                                         {availableVouchers.map((v) => (
                                             <SelectItem key={v.id} textValue={v.code}>

@@ -11,5 +11,5 @@ export const CampaignSchema = Yup.object().shape({
             if (!startDate || !value) return true
             return new Date(value) > new Date(startDate)
         }),
-    voucherIds: Yup.array().of(Yup.string()).default([])
+    voucherIds: Yup.array().min(1, "Phải có ít nhất 1 voucher").of(Yup.string()).default([])
 })

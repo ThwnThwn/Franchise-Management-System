@@ -1,10 +1,9 @@
 import { CardStyled, ImageStyled } from "@/components"
-import React from "react"
-import { StoreDetailDto } from "../../models/schema/response"
-import { motion } from "framer-motion"
 import { formatPhoneNumber } from "@/utils/helpers/stringHelper"
 import { CardBody, CardFooter } from "@heroui/react"
+import { motion } from "framer-motion"
 import { MapPin, Phone } from "lucide-react"
+import { StoreDetailDto } from "../../models/schema/response"
 
 type StoreCardProps = {
     store: StoreDetailDto

@@ -4,12 +4,15 @@ import { useRouter } from "next/navigation"
 import { Button, Card, CardBody } from "@heroui/react"
 import { ArrowRight, Coffee, TrendingUp, ShieldCheck, Headset } from "lucide-react"
 import { useLoginDiscloresureSingleton, useTokenStore } from "@/hooks"
+import { RoleSlug } from "@/constants/enums"
 
 export default function FranchiseSection({ className }: { className?: string }) {
     const router = useRouter()
 
     // 1. Lấy state đăng nhập và hàm mở Modal Login
     const isLogined = useTokenStore((s) => !!s.accessToken)
+    const roleSlug = useTokenStore((s) => s.roleSlug) || undefined
+
     const { onOpen: onOpenLogin } = useLoginDiscloresureSingleton()
 
     // 2. Xử lý logic khi bấm nút "Đăng ký ngay"
@@ -39,6 +42,10 @@ export default function FranchiseSection({ className }: { className?: string }) 
             desc: "Setup quán, đào tạo nhân sự, cung cấp nguyên liệu và marketing."
         }
     ]
+
+    if (isLogined && roleSlug !== RoleSlug.Customer) {
+        return null
+    }
 
     return (
         <section

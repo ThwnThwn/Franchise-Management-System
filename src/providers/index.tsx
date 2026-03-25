@@ -29,6 +29,7 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
                             timeout: 2000,
                             classNames: {
                                 base: "pr-12 py-4 relative",
+                                content: "text-sm max-h-[150px] overflow-hidden",
                                 closeButton: "opacity-100 absolute right-4 top-1/2 -translate-y-1/2"
                             },
                             closeIcon: (

@@ -182,7 +182,7 @@ export default function StoreDetailModal({ store, isOpen, onClose }: StoreDetail
                                     </div>
                                 </div>
 
-                                {store.latitude && store.longitude && (
+                                {!!store.latitude && !!store.longitude && (
                                     <div className="flex items-start group">
                                         <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center mr-4 shrink-0 group-hover:bg-amber-100 transition-colors">
                                             <svg
