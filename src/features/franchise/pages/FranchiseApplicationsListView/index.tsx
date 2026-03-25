@@ -155,15 +155,17 @@ export default function FranchiseApplicationsListView() {
                     title="Hồ sơ Nhượng quyền"
                     description="Thẩm định các mặt bằng và thông tin đối tác đăng ký."
                 />
-                <Button
-                    color="primary"
-                    size="md"
-                    className="font-bold px-8 shadow-lg shadow-primary/30"
-                    endContent={<ArrowRight size={18} />}
-                    onPress={handleRegisterClick}
-                >
-                    ĐĂNG KÝ NGAY
-                </Button>
+                {(myApps?.length ?? 0) <= 0 && (
+                    <Button
+                        color="primary"
+                        size="md"
+                        className="font-bold px-8 shadow-lg shadow-primary/30"
+                        endContent={<ArrowRight size={18} />}
+                        onPress={handleRegisterClick}
+                    >
+                        ĐĂNG KÝ NGAY
+                    </Button>
+                )}
             </div>
 
             <div className="flex flex-col gap-4">
