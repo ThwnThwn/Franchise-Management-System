@@ -24,6 +24,7 @@ help:
 	@echo "  make build  : Build the Go API Gateway executable"
 	@echo "  make run    : Build Go Gateway then Start .NET Aspire AppHost"
 	@echo "  make dev    : Generate Proto -> Build Go -> Run AppHost (Full flow)"
+	@echo "  make scan   : Start SonarQube Scanning process (Interactive)"
 	@echo "  make clean  : Clean generated PB files and Go binaries"
 
 # ------------------------------------------------------------------------------
@@ -60,6 +61,13 @@ run: build
 # 4. DEVELOPMENT (FULL FLOW)
 # ------------------------------------------------------------------------------
 dev: gen run
+
+# ------------------------------------------------------------------------------
+# 5. SONARQUBE SCANNING
+# ------------------------------------------------------------------------------
+scan:
+	@echo "Starting SonarQube Scanner for CHB Project..."
+	@cmd /c scan.bat
 
 # ------------------------------------------------------------------------------
 # CLEANUP
