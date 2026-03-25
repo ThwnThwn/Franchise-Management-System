@@ -960,6 +960,40 @@ paths:
       summary: Tạm ngưng / Chấm dứt hợp đồng
       tags:
       - 'Franchise: Contracts'
+  /franchise/me/applications:
+    get:
+      description: Lấy toàn bộ hồ sơ đăng ký nhượng quyền của bản thân
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/api-gateway_internal_domain_models_franchise.FranchiseApplicationResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: Lấy danh sách hồ sơ nhượng quyền của bản thân
+      tags:
+      - 'Franchise: Applications'
+  /franchise/me/contracts:
+    get:
+      description: Lấy toàn bộ hợp đồng nhượng quyền của bản thân
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/api-gateway_internal_domain_models_franchise.FranchiseContractResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: Lấy danh sách hợp đồng của bản thân
+      tags:
+      - 'Franchise: Contracts'
   /franchise/webhook/docuseal:
     post:
       consumes:

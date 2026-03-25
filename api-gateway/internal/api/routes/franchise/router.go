@@ -70,4 +70,11 @@ func (s *FranchiseRouter) Init(r *gin.RouterGroup) {
 		contractApi.POST("/:id/renew", s.authMW.PermissionCheck("franchise.contract.write"),
 			api.WrapHandler(s.franchiseHl.RenewContract))
 	}
+
+	franchiseMe := r.Group("/franchise/me")
+	franchiseMe.Use(auth)
+	{
+		franchiseMe.GET("/applications", api.WrapHandler(s.franchiseHl.GetMyApplications))
+		franchiseMe.GET("/contracts", api.WrapHandler(s.franchiseHl.GetMyContracts))
+	}
 }

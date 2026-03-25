@@ -11,6 +11,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -28,11 +29,13 @@ type FranchiseGrpcServiceClient interface {
 	GetApplicationDetails(ctx context.Context, in *GetApplicationRequest, opts ...grpc.CallOption) (*FranchiseApplicationDetailResponse, error)
 	// 3. Admin lấy danh sách hồ sơ (phân trang + lọc)
 	GetAllApplications(ctx context.Context, in *GetAllApplicationsRequest, opts ...grpc.CallOption) (*GetAllApplicationsResponse, error)
+	GetMyApplications(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetApplicationsResponse, error)
 	//  4. Admin duyệt hoặc từ chối hồ sơ
 	//     Nếu Approve: tự động tạo Contract + gửi DocuSeal email link ký
 	ReviewApplication(ctx context.Context, in *ReviewFranchiseApplicationRequest, opts ...grpc.CallOption) (*ReviewFranchiseApplicationResponse, error)
 	// 5. Lấy danh sách hợp đồng (phân trang + lọc theo status)
 	GetAllContracts(ctx context.Context, in *GetAllContractsRequest, opts ...grpc.CallOption) (*GetAllContractsResponse, error)
+	GetMyContracts(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetContractsResponse, error)
 	// 6. Lấy chi tiết một hợp đồng
 	GetContractDetail(ctx context.Context, in *GetContractDetailRequest, opts ...grpc.CallOption) (*FranchiseContractResponse, error)
 	// 7. Kế toán xác nhận đã nhận tiền cọc → Contract chuyển sang Active
@@ -87,6 +90,15 @@ func (c *franchiseGrpcServiceClient) GetAllApplications(ctx context.Context, in 
 	return out, nil
 }
 
+func (c *franchiseGrpcServiceClient) GetMyApplications(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetApplicationsResponse, error) {
+	out := new(GetApplicationsResponse)
+	err := c.cc.Invoke(ctx, "/franchise.FranchiseGrpcService/GetMyApplications", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *franchiseGrpcServiceClient) ReviewApplication(ctx context.Context, in *ReviewFranchiseApplicationRequest, opts ...grpc.CallOption) (*ReviewFranchiseApplicationResponse, error) {
 	out := new(ReviewFranchiseApplicationResponse)
 	err := c.cc.Invoke(ctx, "/franchise.FranchiseGrpcService/ReviewApplication", in, out, opts...)
@@ -99,6 +111,15 @@ func (c *franchiseGrpcServiceClient) ReviewApplication(ctx context.Context, in *
 func (c *franchiseGrpcServiceClient) GetAllContracts(ctx context.Context, in *GetAllContractsRequest, opts ...grpc.CallOption) (*GetAllContractsResponse, error) {
 	out := new(GetAllContractsResponse)
 	err := c.cc.Invoke(ctx, "/franchise.FranchiseGrpcService/GetAllContracts", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *franchiseGrpcServiceClient) GetMyContracts(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetContractsResponse, error) {
+	out := new(GetContractsResponse)
+	err := c.cc.Invoke(ctx, "/franchise.FranchiseGrpcService/GetMyContracts", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -187,11 +208,13 @@ type FranchiseGrpcServiceServer interface {
 	GetApplicationDetails(context.Context, *GetApplicationRequest) (*FranchiseApplicationDetailResponse, error)
 	// 3. Admin lấy danh sách hồ sơ (phân trang + lọc)
 	GetAllApplications(context.Context, *GetAllApplicationsRequest) (*GetAllApplicationsResponse, error)
+	GetMyApplications(context.Context, *emptypb.Empty) (*GetApplicationsResponse, error)
 	//  4. Admin duyệt hoặc từ chối hồ sơ
 	//     Nếu Approve: tự động tạo Contract + gửi DocuSeal email link ký
 	ReviewApplication(context.Context, *ReviewFranchiseApplicationRequest) (*ReviewFranchiseApplicationResponse, error)
 	// 5. Lấy danh sách hợp đồng (phân trang + lọc theo status)
 	GetAllContracts(context.Context, *GetAllContractsRequest) (*GetAllContractsResponse, error)
+	GetMyContracts(context.Context, *emptypb.Empty) (*GetContractsResponse, error)
 	// 6. Lấy chi tiết một hợp đồng
 	GetContractDetail(context.Context, *GetContractDetailRequest) (*FranchiseContractResponse, error)
 	// 7. Kế toán xác nhận đã nhận tiền cọc → Contract chuyển sang Active
@@ -225,11 +248,17 @@ func (UnimplementedFranchiseGrpcServiceServer) GetApplicationDetails(context.Con
 func (UnimplementedFranchiseGrpcServiceServer) GetAllApplications(context.Context, *GetAllApplicationsRequest) (*GetAllApplicationsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAllApplications not implemented")
 }
+func (UnimplementedFranchiseGrpcServiceServer) GetMyApplications(context.Context, *emptypb.Empty) (*GetApplicationsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMyApplications not implemented")
+}
 func (UnimplementedFranchiseGrpcServiceServer) ReviewApplication(context.Context, *ReviewFranchiseApplicationRequest) (*ReviewFranchiseApplicationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReviewApplication not implemented")
 }
 func (UnimplementedFranchiseGrpcServiceServer) GetAllContracts(context.Context, *GetAllContractsRequest) (*GetAllContractsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAllContracts not implemented")
+}
+func (UnimplementedFranchiseGrpcServiceServer) GetMyContracts(context.Context, *emptypb.Empty) (*GetContractsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMyContracts not implemented")
 }
 func (UnimplementedFranchiseGrpcServiceServer) GetContractDetail(context.Context, *GetContractDetailRequest) (*FranchiseContractResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetContractDetail not implemented")
@@ -322,6 +351,24 @@ func _FranchiseGrpcService_GetAllApplications_Handler(srv interface{}, ctx conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FranchiseGrpcService_GetMyApplications_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FranchiseGrpcServiceServer).GetMyApplications(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/franchise.FranchiseGrpcService/GetMyApplications",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FranchiseGrpcServiceServer).GetMyApplications(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _FranchiseGrpcService_ReviewApplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ReviewFranchiseApplicationRequest)
 	if err := dec(in); err != nil {
@@ -354,6 +401,24 @@ func _FranchiseGrpcService_GetAllContracts_Handler(srv interface{}, ctx context.
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(FranchiseGrpcServiceServer).GetAllContracts(ctx, req.(*GetAllContractsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FranchiseGrpcService_GetMyContracts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FranchiseGrpcServiceServer).GetMyContracts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/franchise.FranchiseGrpcService/GetMyContracts",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FranchiseGrpcServiceServer).GetMyContracts(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -522,12 +587,20 @@ var FranchiseGrpcService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _FranchiseGrpcService_GetAllApplications_Handler,
 		},
 		{
+			MethodName: "GetMyApplications",
+			Handler:    _FranchiseGrpcService_GetMyApplications_Handler,
+		},
+		{
 			MethodName: "ReviewApplication",
 			Handler:    _FranchiseGrpcService_ReviewApplication_Handler,
 		},
 		{
 			MethodName: "GetAllContracts",
 			Handler:    _FranchiseGrpcService_GetAllContracts_Handler,
+		},
+		{
+			MethodName: "GetMyContracts",
+			Handler:    _FranchiseGrpcService_GetMyContracts_Handler,
 		},
 		{
 			MethodName: "GetContractDetail",

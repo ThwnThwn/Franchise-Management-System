@@ -536,6 +536,62 @@ const docTemplatefranchise = `{
                 }
             }
         },
+        "/franchise/me/applications": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lấy toàn bộ hồ sơ đăng ký nhượng quyền của bản thân",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Franchise: Applications"
+                ],
+                "summary": "Lấy danh sách hồ sơ nhượng quyền của bản thân",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/api-gateway_internal_domain_models_franchise.FranchiseApplicationResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/franchise/me/contracts": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lấy toàn bộ hợp đồng nhượng quyền của bản thân",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Franchise: Contracts"
+                ],
+                "summary": "Lấy danh sách hợp đồng của bản thân",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/api-gateway_internal_domain_models_franchise.FranchiseContractResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/franchise/webhook/docuseal": {
             "post": {
                 "description": "Cập nhật trạng thái hợp đồng (Đã ký) dựa trên webhook từ hệ thống DocuSeal gửi về. Không dùng xác thực Token mà dùng Header HMAC.",

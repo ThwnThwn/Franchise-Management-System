@@ -7,36 +7,36 @@ import (
 
 // Response cho Application
 type FranchiseApplicationResponse struct {
-	Id                  string                      `json:"id"`
-	StoreId             string                      `json:"storeId"`
-	ManagerId           string                      `json:"managerId"`
-	FullName            string                      `json:"fullName"`
-	Email               string                      `json:"email"`
-	Phone               string                      `json:"phone"`
-	IdentityNumber      string                      `json:"identityNumber"`
-	ProvinceId          string                      `json:"provinceId"`
-	DistrictId          string                      `json:"districtId"`
-	WardId              string                      `json:"wardId"`
-	StoreName           string                      `json:"storeName"`
-	StoreAddress        string                      `json:"storeAddress"`
-	StoreLatitude       float64                     `json:"storeLatitude"`
-	StoreLongitude      float64                     `json:"storeLongitude"`
-	StoreSizeSqm        float64                     `json:"storeSizeSqm"`
-	LandCertificateUrls []string                    `json:"landCertificateUrls"`
-	StoreFrontUrl       string                      `json:"storeFrontUrl"`
-	Status              int32                       `json:"status"`
-	AdminNote           string                      `json:"adminNote"`
-	CreatedAt           time.Time                   `json:"createdAt"`
-	UpdatedAt           time.Time                   `json:"updatedAt"`
-	ReviewedBy          *string                     `json:"reviewedBy,omitempty"`
-	ReviewedAt          *time.Time                  `json:"reviewedAt,omitempty"`
-	Contracts           []FranchiseContractResponse `json:"contracts,omitempty"`
+	Id                  string                       `json:"id"`
+	StoreId             string                       `json:"storeId"`
+	ManagerId           string                       `json:"managerId"`
+	FullName            string                       `json:"fullName"`
+	Email               string                       `json:"email"`
+	Phone               string                       `json:"phone"`
+	IdentityNumber      string                       `json:"identityNumber"`
+	ProvinceId          string                       `json:"provinceId"`
+	DistrictId          string                       `json:"districtId"`
+	WardId              string                       `json:"wardId"`
+	StoreName           string                       `json:"storeName"`
+	StoreAddress        string                       `json:"storeAddress"`
+	StoreLatitude       float64                      `json:"storeLatitude"`
+	StoreLongitude      float64                      `json:"storeLongitude"`
+	StoreSizeSqm        float64                      `json:"storeSizeSqm"`
+	LandCertificateUrls []string                     `json:"landCertificateUrls"`
+	StoreFrontUrl       string                       `json:"storeFrontUrl"`
+	Status              int32                        `json:"status"`
+	AdminNote           string                       `json:"adminNote"`
+	CreatedAt           time.Time                    `json:"createdAt"`
+	UpdatedAt           time.Time                    `json:"updatedAt"`
+	ReviewedBy          *string                      `json:"reviewedBy,omitempty"`
+	ReviewedAt          *time.Time                   `json:"reviewedAt,omitempty"`
+	Contracts           []*FranchiseContractResponse `json:"contracts,omitempty"`
 }
 
 // Response chi tiết hồ sơ (Thường bao gồm cả list contracts nếu có)
 type FranchiseApplicationDetailResponse struct {
-	Application FranchiseApplicationResponse `json:"application"`
-	Contracts   []FranchiseContractResponse  `json:"contracts"`
+	Application *FranchiseApplicationResponse `json:"application"`
+	Contracts   []*FranchiseContractResponse  `json:"contracts"`
 }
 
 // Response cho Contract
@@ -66,5 +66,5 @@ type ReviewApplicationResponse struct {
 
 // --- Dữ liệu phân trang trả về cho danh sách ---
 
-type ApplicationPaginationResult common.PaginationResult[FranchiseApplicationResponse]
-type ContractPaginationResult common.PaginationResult[FranchiseContractResponse]
+type ApplicationPaginationResult common.PaginationResult[*FranchiseApplicationResponse]
+type ContractPaginationResult common.PaginationResult[*FranchiseContractResponse]

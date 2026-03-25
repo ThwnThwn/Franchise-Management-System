@@ -8,6 +8,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -58,7 +59,7 @@ func (c *franchiseGrpcClient) SubmitApplication(ctx context.Context, managerId u
 	}
 
 	mapped := mapper.MapFranchiseApplicationResponse(res)
-	return &mapped, nil
+	return mapped, nil
 }
 
 // GetApplicationDetail implements IFranchiseService.
@@ -72,7 +73,7 @@ func (c *franchiseGrpcClient) GetApplicationDetail(ctx context.Context, id uuid.
 
 	mappedApp := mapper.MapFranchiseApplicationResponse(res.Application)
 
-	contracts := make([]franchiseModel.FranchiseContractResponse, 0, len(res.Contracts))
+	contracts := make([]*franchiseModel.FranchiseContractResponse, 0, len(res.Contracts))
 	for _, ct := range res.Contracts {
 		contracts = append(contracts, mapper.MapFranchiseContractResponse(ct))
 	}
@@ -102,7 +103,7 @@ func (c *franchiseGrpcClient) GetAllApplications(ctx context.Context, req *franc
 		return nil, err
 	}
 
-	items := make([]franchiseModel.FranchiseApplicationResponse, 0, len(res.Applications))
+	items := make([]*franchiseModel.FranchiseApplicationResponse, 0, len(res.Applications))
 	for _, item := range res.Applications {
 		items = append(items, mapper.MapFranchiseApplicationResponse(item))
 	}
@@ -112,6 +113,21 @@ func (c *franchiseGrpcClient) GetAllApplications(ctx context.Context, req *franc
 		TotalCount: res.TotalCount,
 		TotalPages: res.TotalPages,
 	}, nil
+}
+
+// GetMyApplications implements franchise.IFranchiseService.
+func (c *franchiseGrpcClient) GetMyApplications(ctx context.Context) ([]*franchiseModel.FranchiseApplicationResponse, error) {
+	res, err := c.client.GetMyApplications(ctx, &emptypb.Empty{})
+	if err != nil {
+		return []*franchiseModel.FranchiseApplicationResponse{}, err
+	}
+
+	items := make([]*franchiseModel.FranchiseApplicationResponse, 0, len(res.Applications))
+	for _, item := range res.Applications {
+		items = append(items, mapper.MapFranchiseApplicationResponse(item))
+	}
+
+	return items, nil
 }
 
 // ReviewApplication implements IFranchiseService.
@@ -159,7 +175,7 @@ func (c *franchiseGrpcClient) GetAllContracts(ctx context.Context, req *franchis
 		return nil, err
 	}
 
-	items := make([]franchiseModel.FranchiseContractResponse, 0, len(res.Contracts))
+	items := make([]*franchiseModel.FranchiseContractResponse, 0, len(res.Contracts))
 	for _, item := range res.Contracts {
 		items = append(items, mapper.MapFranchiseContractResponse(item))
 	}
@@ -169,6 +185,20 @@ func (c *franchiseGrpcClient) GetAllContracts(ctx context.Context, req *franchis
 		TotalCount: res.TotalCount,
 		TotalPages: res.TotalPages,
 	}, nil
+}
+
+// GetMyContracts implements franchise.IFranchiseService.
+func (c *franchiseGrpcClient) GetMyContracts(ctx context.Context) ([]*franchiseModel.FranchiseContractResponse, error) {
+	res, err := c.client.GetMyContracts(ctx, &emptypb.Empty{})
+	if err != nil {
+		return []*franchiseModel.FranchiseContractResponse{}, err
+	}
+
+	items := make([]*franchiseModel.FranchiseContractResponse, 0, len(res.Contracts))
+	for _, item := range res.Contracts {
+		items = append(items, mapper.MapFranchiseContractResponse(item))
+	}
+	return items, nil
 }
 
 // GetContractDetail implements IFranchiseService.
@@ -181,7 +211,7 @@ func (c *franchiseGrpcClient) GetContractDetail(ctx context.Context, contractId 
 	}
 
 	mapped := mapper.MapFranchiseContractResponse(res)
-	return &mapped, nil
+	return mapped, nil
 }
 
 // ConfirmDepositPayment implements IFranchiseService.
@@ -206,7 +236,7 @@ func (c *franchiseGrpcClient) UpdateSetupStatus(ctx context.Context, contractId 
 	}
 
 	mapped := mapper.MapFranchiseContractResponse(res)
-	return &mapped, nil
+	return mapped, nil
 }
 
 // UpdateContractStatus implements IFranchiseService.
@@ -221,7 +251,7 @@ func (c *franchiseGrpcClient) UpdateContractStatus(ctx context.Context, contract
 	}
 
 	mapped := mapper.MapFranchiseContractResponse(res)
-	return &mapped, nil
+	return mapped, nil
 }
 
 // RenewContract implements IFranchiseService.
@@ -236,7 +266,7 @@ func (c *franchiseGrpcClient) RenewContract(ctx context.Context, contractId uuid
 	}
 
 	mapped := mapper.MapFranchiseContractResponse(res)
-	return &mapped, nil
+	return mapped, nil
 }
 
 // HandleDocuSealWebhook implements IFranchiseService.

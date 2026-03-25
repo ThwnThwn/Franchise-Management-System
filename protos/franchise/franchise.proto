@@ -6,6 +6,7 @@ option go_package = "api-gateway/pkg/pb/franchise";
 package franchise;
 
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Service quản lý toàn bộ quy trình nhượng quyền
@@ -23,6 +24,8 @@ service FranchiseGrpcService {
     // 3. Admin lấy danh sách hồ sơ (phân trang + lọc)
     rpc GetAllApplications (GetAllApplicationsRequest) returns (GetAllApplicationsResponse);
 
+    rpc GetMyApplications (google.protobuf.Empty) returns (GetApplicationsResponse);
+
     // 4. Admin duyệt hoặc từ chối hồ sơ
     //    Nếu Approve: tự động tạo Contract + gửi DocuSeal email link ký
     rpc ReviewApplication (ReviewFranchiseApplicationRequest) returns (ReviewFranchiseApplicationResponse);
@@ -31,6 +34,8 @@ service FranchiseGrpcService {
 
     // 5. Lấy danh sách hợp đồng (phân trang + lọc theo status)
     rpc GetAllContracts (GetAllContractsRequest) returns (GetAllContractsResponse);
+
+    rpc GetMyContracts (google.protobuf.Empty) returns (GetContractsResponse);
 
     // 6. Lấy chi tiết một hợp đồng
     rpc GetContractDetail (GetContractDetailRequest) returns (FranchiseContractResponse);
@@ -141,6 +146,10 @@ message GetAllContractsResponse {
     int32 current_page = 4;
 }
 
+message GetContractsResponse {
+    repeated FranchiseContractResponse contracts = 1;
+}
+
 message GetContractDetailRequest {
     string contract_id = 1;
 }
@@ -213,6 +222,9 @@ message GetAllApplicationsResponse {
     int32 current_page = 4;
 }
 
+message GetApplicationsResponse {
+    repeated FranchiseApplicationResponse applications = 1;
+}
 
 // --- Message Phản hồi chung ---
 

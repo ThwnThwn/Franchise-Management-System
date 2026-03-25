@@ -1,3 +1,4 @@
+using FranchiseService.API.Extentions;
 using FranchiseService.Application.ClientInterfaces;
 using FranchiseService.Application.Features.FranchiseApplications.Commands.CreateFranchiseApplication;
 using FranchiseService.Application.Features.FranchiseApplications.Commands.ReviewFranchiseApplication;
@@ -15,7 +16,6 @@ using FranchiseService.Infrastructure.Settings;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using MediatR;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace FranchiseService.API.Services;
@@ -27,31 +27,13 @@ namespace FranchiseService.API.Services;
 /// Luồng chính:
 ///   SubmitFranchiseApplication → ReviewApplication (Approve) → [DocuSeal ký] → ConfirmDepositPayment → Active
 /// </summary>
-public class FranchiseGrpcService : Franchise.Grpc.FranchiseGrpcService.FranchiseGrpcServiceBase
+public class FranchiseGrpcService(
+    IMediator mediator,
+    IDocuSealService docuSeal,
+    IImageService imageService,
+    IOptions<DocuSealSettings> docuSealSettings
+) : Franchise.Grpc.FranchiseGrpcService.FranchiseGrpcServiceBase
 {
-    private readonly IMediator _mediator;
-    private readonly IDocuSealService _docuSeal;
-    private readonly IImageService _imageService;
-    private readonly ILogger<FranchiseGrpcService> _logger;
-    private readonly IOptions<DocuSealSettings> _docuSealSettings;
-    private readonly IIdentityServiceClient _identityClient;
-
-    public FranchiseGrpcService(
-        IMediator mediator,
-        IDocuSealService docuSeal,
-        IImageService imageService,
-        ILogger<FranchiseGrpcService> logger,
-        IOptions<DocuSealSettings> docuSealSettings,
-        IIdentityServiceClient identityClient)
-    {
-        _mediator = mediator;
-        _docuSeal = docuSeal;
-        _imageService = imageService;
-        _logger = logger;
-        _docuSealSettings = docuSealSettings;
-        _identityClient = identityClient;
-    }
-
     // ──────────────────────────────────────────────────────────────────────────
     // 1. SubmitFranchiseApplication
     // ──────────────────────────────────────────────────────────────────────────
@@ -107,10 +89,10 @@ public class FranchiseGrpcService : Franchise.Grpc.FranchiseGrpcService.Franchis
             StoreFrontFile = storeFront
         };
 
-        var id = await _mediator.Send(command, context.CancellationToken);
+        var id = await mediator.Send(command, context.CancellationToken);
 
         // Lấy lại application vừa tạo để trả về response đầy đủ
-        var app = await _mediator.Send(new GetApplicationDetailQuery { Id = id }, context.CancellationToken)
+        var app = await mediator.Send(new GetApplicationDetailQuery { Id = id }, context.CancellationToken)
             ?? throw new RpcException(new Status(StatusCode.Internal, "Không thể lấy thông tin hồ sơ vừa tạo"));
 
         return MapToApplicationResponse(app);
@@ -125,7 +107,7 @@ public class FranchiseGrpcService : Franchise.Grpc.FranchiseGrpcService.Franchis
         if (!Guid.TryParse(request.Id, out var id))
             throw new RpcException(new Status(StatusCode.InvalidArgument, "ID không hợp lệ"));
 
-        var app = await _mediator.Send(new GetApplicationDetailQuery { Id = id }, context.CancellationToken);
+        var app = await mediator.Send(new GetApplicationDetailQuery { Id = id }, context.CancellationToken);
         if (app == null)
             throw new RpcException(new Status(StatusCode.NotFound, $"Không tìm thấy hồ sơ với ID: {request.Id}"));
 
@@ -147,7 +129,7 @@ public class FranchiseGrpcService : Franchise.Grpc.FranchiseGrpcService.Franchis
             ? (FranchiseApplicationStatus)request.Status
             : null;
 
-        var result = await _mediator.Send(new GetAllApplicationsQuery
+        var result = await mediator.Send(new GetAllApplicationsQuery
         {
             Page = request.Page > 0 ? request.Page : 1,
             PageSize = request.PageSize > 0 ? request.PageSize : 10,
@@ -165,6 +147,19 @@ public class FranchiseGrpcService : Franchise.Grpc.FranchiseGrpcService.Franchis
         return response;
     }
 
+    public override async Task<GetApplicationsResponse> GetMyApplications(
+        Empty empty, ServerCallContext context)
+    {
+        var userId = context.GetUserId()
+            ?? throw new RpcException(new Status(StatusCode.Unauthenticated, "Thiếu thông tin User ID trong Header"));
+
+        var apps = await mediator.Send(new GetMyApplicationsQuery { UserId = userId }, context.CancellationToken);
+
+        var response = new GetApplicationsResponse();
+        response.Applications.AddRange(apps.Select(MapToApplicationResponse));
+        return response;
+    }
+
     // ──────────────────────────────────────────────────────────────────────────
     // 4. ReviewApplication
     // ──────────────────────────────────────────────────────────────────────────
@@ -178,18 +173,13 @@ public class FranchiseGrpcService : Franchise.Grpc.FranchiseGrpcService.Franchis
         if (string.IsNullOrWhiteSpace(userIdHeader) || !Guid.TryParse(userIdHeader, out var reviewedBy))
             throw new RpcException(new Status(StatusCode.Unauthenticated, "Không xác định được người duyệt. Vui lòng đăng nhập."));
 
-        // Xác thực Role trực tiếp từ IdentityService dựa trên x-user-id
-        var userInfo = await _identityClient.GetUserByIdAsync(reviewedBy);
-        if (userInfo == null || !string.Equals(userInfo.RoleSlug, "admin", StringComparison.OrdinalIgnoreCase))
-            throw new RpcException(new Status(StatusCode.PermissionDenied, "Chỉ Admin mới có quyền duyệt hồ sơ nhượng quyền."));
-
         var command = new ReviewFranchiseApplicationCommand
         {
             ApplicationId = appId,
             ReviewedBy = reviewedBy,
             Decision = (FranchiseApplicationStatus)request.Action,
             AdminNote = request.Note,
-            DocuSealTemplateId = _docuSealSettings.Value.TemplateId,
+            DocuSealTemplateId = docuSealSettings.Value.TemplateId,
             DepositAmount = request.DepositAmount > 0 ? (decimal)request.DepositAmount : null,
             FranchiseFee = request.FranchiseFee > 0 ? (decimal)request.FranchiseFee : null,
             RevenueSharePercentage = request.RevenueSharePercentage > 0 ? (decimal)request.RevenueSharePercentage : null,
@@ -197,7 +187,7 @@ public class FranchiseGrpcService : Franchise.Grpc.FranchiseGrpcService.Franchis
             ValidUntil = request.ValidUntil != null ? request.ValidUntil.ToDateTimeOffset() : null
         };
 
-        var result = await _mediator.Send(command, context.CancellationToken);
+        var result = await mediator.Send(command, context.CancellationToken);
 
         return new ReviewFranchiseApplicationResponse
         {
@@ -218,7 +208,7 @@ public class FranchiseGrpcService : Franchise.Grpc.FranchiseGrpcService.Franchis
             ? (ContractStatus)request.Status
             : null;
 
-        var result = await _mediator.Send(new GetAllContractsQuery
+        var result = await mediator.Send(new GetAllContractsQuery
         {
             Page = request.Page > 0 ? request.Page : 1,
             PageSize = request.PageSize > 0 ? request.PageSize : 10,
@@ -235,6 +225,18 @@ public class FranchiseGrpcService : Franchise.Grpc.FranchiseGrpcService.Franchis
         return response;
     }
 
+    public override async Task<GetContractsResponse> GetMyContracts(Empty request, ServerCallContext context)
+    {
+        var userId = context.GetUserId()
+           ?? throw new RpcException(new Status(StatusCode.Unauthenticated, "Thiếu thông tin User ID trong Header"));
+
+        var contracts = await mediator.Send(new GetMyContractsQuery { UserId = userId }, context.CancellationToken);
+
+        var response = new GetContractsResponse();
+        response.Contracts.AddRange(contracts.Select(MapToContractResponse));
+        return response;
+    }
+
     // ──────────────────────────────────────────────────────────────────────────
     // 6. GetContractDetail
     // ──────────────────────────────────────────────────────────────────────────
@@ -244,7 +246,7 @@ public class FranchiseGrpcService : Franchise.Grpc.FranchiseGrpcService.Franchis
         if (!Guid.TryParse(request.ContractId, out var contractId))
             throw new RpcException(new Status(StatusCode.InvalidArgument, "contract_id không hợp lệ"));
 
-        var contract = await _mediator.Send(
+        var contract = await mediator.Send(
             new GetContractDetailQuery { ContractId = contractId }, context.CancellationToken);
 
         if (contract == null)
@@ -264,7 +266,7 @@ public class FranchiseGrpcService : Franchise.Grpc.FranchiseGrpcService.Franchis
         if (!Guid.TryParse(request.ConfirmedBy, out var confirmedBy))
             throw new RpcException(new Status(StatusCode.InvalidArgument, "confirmed_by không hợp lệ"));
 
-        await _mediator.Send(new ConfirmDepositPaymentCommand
+        await mediator.Send(new ConfirmDepositPaymentCommand
         {
             ContractId = contractId,
             ConfirmedBy = confirmedBy,
@@ -289,14 +291,14 @@ public class FranchiseGrpcService : Franchise.Grpc.FranchiseGrpcService.Franchis
         if (!Guid.TryParse(request.UpdatedBy, out var updatedBy))
             throw new RpcException(new Status(StatusCode.InvalidArgument, "updated_by không hợp lệ"));
 
-        await _mediator.Send(new UpdateSetupStatusCommand
+        await mediator.Send(new UpdateSetupStatusCommand
         {
             ContractId = contractId,
             SetupStatus = (ContractSetupStatus)request.SetupStatus,
             UpdatedBy = updatedBy
         }, context.CancellationToken);
 
-        var contract = await _mediator.Send(
+        var contract = await mediator.Send(
             new GetContractDetailQuery { ContractId = contractId }, context.CancellationToken);
 
         return MapToContractResponse(contract!);
@@ -315,19 +317,14 @@ public class FranchiseGrpcService : Franchise.Grpc.FranchiseGrpcService.Franchis
         if (string.IsNullOrWhiteSpace(userIdHeader) || !Guid.TryParse(userIdHeader, out var userId))
             throw new RpcException(new Status(StatusCode.Unauthenticated, "Không xác định được người thao tác. Vui lòng đăng nhập."));
 
-        // Xác thực Role trực tiếp từ IdentityService
-        var userInfo = await _identityClient.GetUserByIdAsync(userId);
-        if (userInfo == null || !string.Equals(userInfo.RoleSlug, "admin", StringComparison.OrdinalIgnoreCase))
-            throw new RpcException(new Status(StatusCode.PermissionDenied, "Chỉ Admin mới có quyền thao tác hợp đồng."));
-
-        await _mediator.Send(new Application.Features.FranchiseContracts.Commands.UpdateContractStatus.UpdateContractStatusCommand
+        await mediator.Send(new Application.Features.FranchiseContracts.Commands.UpdateContractStatus.UpdateContractStatusCommand
         {
             ContractId = contractId,
             Status = (ContractStatus)request.Status,
             Reason = request.Reason
         }, context.CancellationToken);
 
-        var contract = await _mediator.Send(
+        var contract = await mediator.Send(
             new GetContractDetailQuery { ContractId = contractId }, context.CancellationToken);
 
         return MapToContractResponse(contract!);
@@ -346,19 +343,14 @@ public class FranchiseGrpcService : Franchise.Grpc.FranchiseGrpcService.Franchis
         if (string.IsNullOrWhiteSpace(userIdHeader) || !Guid.TryParse(userIdHeader, out var userId))
             throw new RpcException(new Status(StatusCode.Unauthenticated, "Không xác định được người thao tác. Vui lòng đăng nhập."));
 
-        // Xác thực Role trực tiếp từ IdentityService
-        var userInfo = await _identityClient.GetUserByIdAsync(userId);
-        if (userInfo == null || !string.Equals(userInfo.RoleSlug, "admin", StringComparison.OrdinalIgnoreCase))
-            throw new RpcException(new Status(StatusCode.PermissionDenied, "Chỉ Admin mới có quyền gia hạn hợp đồng."));
-
-        await _mediator.Send(new Application.Features.FranchiseContracts.Commands.RenewContract.RenewContractCommand
+        await mediator.Send(new Application.Features.FranchiseContracts.Commands.RenewContract.RenewContractCommand
         {
             ContractId = contractId,
             ExtensionYears = request.ExtensionYears,
             Note = request.Note
         }, context.CancellationToken);
 
-        var contract = await _mediator.Send(
+        var contract = await mediator.Send(
             new GetContractDetailQuery { ContractId = contractId }, context.CancellationToken);
 
         return MapToContractResponse(contract!);
@@ -373,11 +365,11 @@ public class FranchiseGrpcService : Franchise.Grpc.FranchiseGrpcService.Franchis
         // Verify HMAC signature
         if (!string.IsNullOrWhiteSpace(request.SignatureHeader))
         {
-            if (!_docuSeal.VerifyWebhookSignature(request.RawBody, request.SignatureHeader))
+            if (!docuSeal.VerifyWebhookSignature(request.RawBody, request.SignatureHeader))
                 throw new RpcException(new Status(StatusCode.Unauthenticated, "Chữ ký Webhook không hợp lệ"));
         }
 
-        var result = await _mediator.Send(new HandleDocuSealWebhookCommand
+        var result = await mediator.Send(new HandleDocuSealWebhookCommand
         {
             EventType = request.EventType,
             SubmissionId = request.SubmissionId,
@@ -404,7 +396,7 @@ public class FranchiseGrpcService : Franchise.Grpc.FranchiseGrpcService.Franchis
         if (string.IsNullOrWhiteSpace(request.FileName))
             throw new RpcException(new Status(StatusCode.InvalidArgument, "File name is required."));
 
-        var result = await _imageService.UploadImageFromBytesAsync(
+        var result = await imageService.UploadImageFromBytesAsync(
             request.ImageData.ToByteArray(),
             request.FileName,
             request.ContentType ?? "image/jpeg");
@@ -439,7 +431,7 @@ public class FranchiseGrpcService : Franchise.Grpc.FranchiseGrpcService.Franchis
             ImageType: request.ImageType
         );
 
-        var result = await _mediator.Send(command, context.CancellationToken);
+        var result = await mediator.Send(command, context.CancellationToken);
 
         return new UploadApplicationImageResponse
         {

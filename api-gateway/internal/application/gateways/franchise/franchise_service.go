@@ -24,6 +24,8 @@ type IFranchiseService interface {
 		*franchiseModel.ApplicationPaginationResult, error,
 	)
 
+	GetMyApplications(ctx context.Context) ([]*franchiseModel.FranchiseApplicationResponse, error)
+
 	// ReviewApplication: Admin duyệt/từ chối hồ sơ.
 	ReviewApplication(ctx context.Context, id uuid.UUID, req *franchiseModel.ReviewFranchiseApplicationRequest) (
 		*franchiseModel.ReviewApplicationResponse, error,
@@ -37,6 +39,8 @@ type IFranchiseService interface {
 
 	// GetContractDetail: Lấy chi tiết một hợp đồng.
 	GetContractDetail(ctx context.Context, contractId uuid.UUID) (*franchiseModel.FranchiseContractResponse, error)
+
+	GetMyContracts(ctx context.Context) ([]*franchiseModel.FranchiseContractResponse, error)
 
 	// ConfirmDepositPayment: Kế toán xác nhận đã nhận tiền cọc.
 	ConfirmDepositPayment(ctx context.Context, contractId uuid.UUID, accountantId uuid.UUID,

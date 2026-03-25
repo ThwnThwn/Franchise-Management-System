@@ -7,9 +7,9 @@ import (
 )
 
 // MapFranchiseApplicationResponse chuyển từ gRPC response sang DTO
-func MapFranchiseApplicationResponse(pb *franchisePb.FranchiseApplicationResponse) franchiseModel.FranchiseApplicationResponse {
+func MapFranchiseApplicationResponse(pb *franchisePb.FranchiseApplicationResponse) *franchiseModel.FranchiseApplicationResponse {
 	if pb == nil {
-		return franchiseModel.FranchiseApplicationResponse{}
+		return nil
 	}
 
 	app := franchiseModel.FranchiseApplicationResponse{
@@ -50,19 +50,19 @@ func MapFranchiseApplicationResponse(pb *franchisePb.FranchiseApplicationRespons
 
 	// Map nested contracts
 	if len(pb.Contracts) > 0 {
-		app.Contracts = make([]franchiseModel.FranchiseContractResponse, 0, len(pb.Contracts))
+		app.Contracts = make([]*franchiseModel.FranchiseContractResponse, 0, len(pb.Contracts))
 		for _, c := range pb.Contracts {
 			app.Contracts = append(app.Contracts, MapFranchiseContractResponse(c))
 		}
 	}
 
-	return app
+	return &app
 }
 
 // MapFranchiseContractResponse chuyển từ gRPC contract sang DTO
-func MapFranchiseContractResponse(pb *franchisePb.FranchiseContractResponse) franchiseModel.FranchiseContractResponse {
+func MapFranchiseContractResponse(pb *franchisePb.FranchiseContractResponse) *franchiseModel.FranchiseContractResponse {
 	if pb == nil {
-		return franchiseModel.FranchiseContractResponse{}
+		return nil
 	}
 
 	contract := franchiseModel.FranchiseContractResponse{
@@ -93,5 +93,5 @@ func MapFranchiseContractResponse(pb *franchisePb.FranchiseContractResponse) fra
 		contract.UpdatedAt = pb.UpdatedAt.AsTime()
 	}
 
-	return contract
+	return &contract
 }

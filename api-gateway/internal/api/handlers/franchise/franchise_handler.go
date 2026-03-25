@@ -126,6 +126,25 @@ func (h *FranchiseHandler) GetAllApplications(c *gin.Context) error {
 	return nil
 }
 
+// GetMyApplications
+// @Summary      Lấy danh sách hồ sơ nhượng quyền của bản thân
+// @Description  Lấy toàn bộ hồ sơ đăng ký nhượng quyền của bản thân
+// @Tags         Franchise: Applications
+// @Security     BearerAuth
+// @Produce      json
+// @Success      200    {array} franchiseModel.FranchiseApplicationResponse
+// @Router       /franchise/me/applications [get]
+func (h *FranchiseHandler) GetMyApplications(c *gin.Context) error {
+	ctx := c.Request.Context()
+	res, err := h.franchiseGW.GetMyApplications(ctx)
+	if err != nil {
+		return err
+	}
+
+	c.JSON(http.StatusOK, res)
+	return nil
+}
+
 // GetApplicationDetail
 // @Summary      Xem chi tiết một hồ sơ (Admin)
 // @Description  Xem chi tiết hồ sơ bao gồm cả danh sách các hợp đồng (Contracts) được sinh ra từ hồ sơ này.
@@ -202,6 +221,25 @@ func (h *FranchiseHandler) GetAllContracts(c *gin.Context) error {
 
 	ctx := c.Request.Context()
 	res, err := h.franchiseGW.GetAllContracts(ctx, &req)
+	if err != nil {
+		return err
+	}
+
+	c.JSON(http.StatusOK, res)
+	return nil
+}
+
+// GetMyContracts
+// @Summary      Lấy danh sách hợp đồng của bản thân
+// @Description  Lấy toàn bộ hợp đồng nhượng quyền của bản thân
+// @Tags         Franchise: Contracts
+// @Security     BearerAuth
+// @Produce      json
+// @Success      200    {array} franchiseModel.FranchiseContractResponse
+// @Router       /franchise/me/contracts [get]
+func (h *FranchiseHandler) GetMyContracts(c *gin.Context) error {
+	ctx := c.Request.Context()
+	res, err := h.franchiseGW.GetMyContracts(ctx)
 	if err != nil {
 		return err
 	}
