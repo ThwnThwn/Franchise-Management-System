@@ -3,7 +3,7 @@ using EngagementService.Domain.Entities;
 using StackExchange.Redis;
 using System.Text.Json;
 
-namespace EngagementService.Infrastucture.Persistences.Cache
+namespace EngagementService.Infrastructure.Persistences.Cache
 {
     public class MembershipTierCache : IMembershipTierCache
     {

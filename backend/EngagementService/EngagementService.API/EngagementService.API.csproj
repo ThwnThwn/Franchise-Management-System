@@ -42,7 +42,7 @@
 		</None>
 	</ItemGroup>
 	<ItemGroup>
-	  <ProjectReference Include="..\EngagementService.Infrastucture\EngagementService.Infrastucture.csproj" />
+	  <ProjectReference Include="..\EngagementService.Infrastructure\EngagementService.Infrastructure.csproj" />
 	</ItemGroup>
 
 </Project>

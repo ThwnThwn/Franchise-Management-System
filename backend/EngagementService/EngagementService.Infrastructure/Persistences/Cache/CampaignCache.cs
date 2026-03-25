@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EngagementService.Infrastucture.Persistences.Cache
+namespace EngagementService.Infrastructure.Persistences.Cache
 {
     internal class CampaignCache : ICampaignCache
     {

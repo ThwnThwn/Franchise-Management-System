@@ -1,10 +1,10 @@
 ﻿using EngagementService.Domain.Commons;
 using EngagementService.Domain.Constants;
 using EngagementService.Domain.Entities;
-using EngagementService.Infrastucture.Interceptor;
+using EngagementService.Infrastructure.Interceptor;
 using Microsoft.EntityFrameworkCore;
 
-namespace EngagementService.Infrastucture.AppDbContext;
+namespace EngagementService.Infrastructure.AppDbContext;
 
 public partial class EngagementDbContext : DbContext, IEngagementDbContext
 {

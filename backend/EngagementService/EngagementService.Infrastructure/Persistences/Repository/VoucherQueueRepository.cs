@@ -1,7 +1,7 @@
 ﻿using EngagementService.Application.Dtos.Voucher;
 using EngagementService.Application.Persistences.Repository;
 using EngagementService.Domain.Entities;
-using EngagementService.Infrastucture.AppDbContext;
+using EngagementService.Infrastructure.AppDbContext;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EngagementService.Infrastucture.Persistences.Repository
+namespace EngagementService.Infrastructure.Persistences.Repository
 {
     public class VoucherQueueRepository : GenericRepository<VoucherQueue>, IVoucherQueueRepository
     {

@@ -3,7 +3,7 @@ using EngagementService.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
-namespace EngagementService.Infrastucture.AppDbContext
+namespace EngagementService.Infrastructure.AppDbContext
 {
     public interface IEngagementDbContext : IDisposable
     {

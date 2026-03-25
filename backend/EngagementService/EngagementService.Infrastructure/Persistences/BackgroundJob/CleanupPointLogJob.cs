@@ -1,10 +1,10 @@
-﻿using EngagementService.Infrastucture.AppDbContext;
+﻿using EngagementService.Infrastructure.AppDbContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace EngagementService.Infrastucture.Persistences.BackgroundJob
+namespace EngagementService.Infrastructure.Persistences.BackgroundJob
 {
     public class CleanupPointLogJob : BackgroundService
     {

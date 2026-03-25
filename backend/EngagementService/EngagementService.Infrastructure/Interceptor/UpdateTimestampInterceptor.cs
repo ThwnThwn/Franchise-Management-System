@@ -9,7 +9,7 @@ using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EngagementService.Infrastucture.Interceptor
+namespace EngagementService.Infrastructure.Interceptor
 {
     public class UpdateTimestampInterceptor : SaveChangesInterceptor
     {

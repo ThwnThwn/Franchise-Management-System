@@ -1,10 +1,10 @@
 ﻿using EngagementService.Application.Persistences.Repository;
 using EngagementService.Domain.Commons;
-using EngagementService.Infrastucture.AppDbContext;
+using EngagementService.Infrastructure.AppDbContext;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
-namespace EngagementService.Infrastucture.Persistences.Repository;
+namespace EngagementService.Infrastructure.Persistences.Repository;
 
 public class GenericRepository<T> : IGenericRepository<T> where T : class, IEntity
 {

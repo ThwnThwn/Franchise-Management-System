@@ -1,10 +1,10 @@
 ﻿using System.Linq.Expressions;
 using EngagementService.Application.Persistences.Repository;
 using EngagementService.Domain.Entities;
-using EngagementService.Infrastucture.AppDbContext;
+using EngagementService.Infrastructure.AppDbContext;
 using Microsoft.EntityFrameworkCore;
 
-namespace EngagementService.Infrastucture.Persistences.Repository
+namespace EngagementService.Infrastructure.Persistences.Repository
 {
     public class CampaginRepository : GenericRepository<Campaign>, ICampaignRepository
     {

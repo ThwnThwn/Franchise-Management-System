@@ -4,10 +4,10 @@ using EngagementService.Application.Persistences.Cache;
 using EngagementService.Application.Persistences.Repository;
 using EngagementService.Domain.Constants;
 using EngagementService.Domain.Entities;
-using EngagementService.Infrastucture.AppDbContext;
+using EngagementService.Infrastructure.AppDbContext;
 using Microsoft.EntityFrameworkCore;
 
-namespace EngagementService.Infrastucture.Persistences.Repository
+namespace EngagementService.Infrastructure.Persistences.Repository
 {
     public class LoyaltyAccountRepository : GenericRepository<LoyaltyAccount>, ILoyaltyAccountRepository
     {

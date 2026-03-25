@@ -1,9 +1,9 @@
 ﻿using EngagementService.Application.Persistences.Repository;
-using EngagementService.Infrastucture.AppDbContext;
+using EngagementService.Infrastructure.AppDbContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
-namespace EngagementService.Infrastucture.Persistences.Repository;
+namespace EngagementService.Infrastructure.Persistences.Repository;
 
 public class EngagementUow(EngagementDbContext dbContext
     ) : IEngagementUow

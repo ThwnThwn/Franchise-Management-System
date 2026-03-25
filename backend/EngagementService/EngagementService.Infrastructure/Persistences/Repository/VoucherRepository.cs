@@ -3,11 +3,11 @@ using EngagementService.Application.Dtos.Voucher;
 using EngagementService.Application.Persistences.Repository;
 using EngagementService.Domain.Constants;
 using EngagementService.Domain.Entities;
-using EngagementService.Infrastucture.AppDbContext;
+using EngagementService.Infrastructure.AppDbContext;
 using Microsoft.EntityFrameworkCore;
 using Org.BouncyCastle.Asn1.Ocsp;
 
-namespace EngagementService.Infrastucture.Persistences.Repository
+namespace EngagementService.Infrastructure.Persistences.Repository
 {
     public class VoucherRepository : GenericRepository<Voucher>, IVoucherRepository
     {

@@ -8,7 +8,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace EngagementService.Infrastucture.Persistences.Cache
+namespace EngagementService.Infrastructure.Persistences.Cache
 {
     public class PointRuleCache : IPointRuleCache
     {

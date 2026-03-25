@@ -1,16 +1,16 @@
 ﻿using EngagementService.Application.Persistences.Cache;
 using EngagementService.Application.Persistences.Repository;
 using EngagementService.Domain.Entities;
-using EngagementService.Infrastucture.Interceptor;
-using EngagementService.Infrastucture.Persistences.BackgroundJob;
-using EngagementService.Infrastucture.Persistences.Cache;
-using EngagementService.Infrastucture.Persistences.Repository;
+using EngagementService.Infrastructure.Interceptor;
+using EngagementService.Infrastructure.Persistences.BackgroundJob;
+using EngagementService.Infrastructure.Persistences.Cache;
+using EngagementService.Infrastructure.Persistences.Repository;
 using IdentityService.Application.Abstrations;
 using Microsoft.Extensions.DependencyInjection;
 using SharedKernel.Infrastructure.Kafka;
 using StackExchange.Redis;
 
-namespace EngagementService.Infrastucture.DependencyInjection;
+namespace EngagementService.Infrastructure.DependencyInjection;
 
 public static class DependencyInjection
 {
