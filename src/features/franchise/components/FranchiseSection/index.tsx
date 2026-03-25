@@ -5,6 +5,7 @@ import { Button, Card, CardBody } from "@heroui/react"
 import { ArrowRight, Coffee, TrendingUp, ShieldCheck, Headset } from "lucide-react"
 import { useLoginDiscloresureSingleton, useTokenStore } from "@/hooks"
 import { RoleSlug } from "@/constants/enums"
+import { useGetMyApplications } from "../../hooks"
 
 export default function FranchiseSection({ className }: { className?: string }) {
     const router = useRouter()
@@ -15,8 +16,16 @@ export default function FranchiseSection({ className }: { className?: string }) 
 
     const { onOpen: onOpenLogin } = useLoginDiscloresureSingleton()
 
+    const { data: myApps = [], isLoading: isMyAppsLoading } = useGetMyApplications({
+        enabled: roleSlug === RoleSlug.Customer
+    })
+
+    const canRegister = roleSlug === RoleSlug.Customer && myApps.length <= 0
+
     // 2. Xử lý logic khi bấm nút "Đăng ký ngay"
     const handleRegisterClick = () => {
+        if (!canRegister) return
+
         if (!isLogined) {
             onOpenLogin() // Ép đăng nhập cái đã, Modal Login sẽ bay ra
             return
@@ -43,7 +52,7 @@ export default function FranchiseSection({ className }: { className?: string }) 
         }
     ]
 
-    if (isLogined && roleSlug !== RoleSlug.Customer) {
+    if (isMyAppsLoading || (isLogined && roleSlug !== RoleSlug.Customer)) {
         return null
     }
 
@@ -72,15 +81,17 @@ export default function FranchiseSection({ className }: { className?: string }) 
                         </div>
 
                         <div className="flex flex-col sm:flex-row gap-4">
-                            <Button
-                                color="primary"
-                                size="lg"
-                                className="font-bold px-8 shadow-lg shadow-primary/30"
-                                endContent={<ArrowRight size={18} />}
-                                onPress={handleRegisterClick}
-                            >
-                                ĐĂNG KÝ NGAY
-                            </Button>
+                            {canRegister && (
+                                <Button
+                                    color="primary"
+                                    size="lg"
+                                    className="font-bold px-8 shadow-lg shadow-primary/30"
+                                    endContent={<ArrowRight size={18} />}
+                                    onPress={handleRegisterClick}
+                                >
+                                    ĐĂNG KÝ NGAY
+                                </Button>
+                            )}
                             {/* <Button
                                 variant="flat"
                                 color="default"
