@@ -7,6 +7,10 @@ public class AdminCreateUserCommandValidator : AbstractValidator<AdminCreateUser
 {
     public AdminCreateUserCommandValidator()
     {
+        RuleFor(x => x.Request)
+        .Cascade(CascadeMode.Stop) 
+        .NotNull().WithMessage("Request is required");
+
         RuleFor(x => x.Request).NotNull();
 
         RuleFor(x => x.Request.Email)
