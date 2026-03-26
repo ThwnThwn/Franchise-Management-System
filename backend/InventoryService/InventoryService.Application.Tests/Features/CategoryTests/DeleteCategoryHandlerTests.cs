@@ -1,9 +1,8 @@
-﻿using Moq;
-using Xunit;
-using FluentAssertions;
+﻿using FluentAssertions;
 using InventoryService.Application.Features.Category.Commands.DeleteCategory;
 using InventoryService.Application.Persistences.Repositories;
 using MediatR;
+using Moq;
 
 namespace InventoryService.Application.Tests.Features.Category;
 

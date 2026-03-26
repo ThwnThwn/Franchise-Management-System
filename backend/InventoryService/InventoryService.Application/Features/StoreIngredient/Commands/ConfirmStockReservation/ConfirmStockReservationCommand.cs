@@ -1,7 +1,5 @@
 using MediatR;
 using SharedKernel.Events;
-using System;
-using System.Collections.Generic;
 
 namespace InventoryService.Application.Features.StoreIngredient.Commands.ConfirmStockReservation
 {
