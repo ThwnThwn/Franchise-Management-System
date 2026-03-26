@@ -1,10 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using InventoryService.Application.Abstractions;
+﻿using InventoryService.Application.Abstractions;
 using InventoryService.Domain.Commons;
 using InventoryService.Domain.Entities;
 using InventoryService.Infrastructure.Interceptor;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+using System;
+using System.Collections.Generic;
 
 namespace InventoryService.Infrastructure.ApplicationDbContext;
 
@@ -34,7 +35,10 @@ public partial class InventoryDbContext : DbContext, IInventoryDbContext
     public virtual DbSet<IngredientCategory> IngredientCategories { get; set; }
 
     public new DbSet<T> Set<T>() where T : class, IEntity => base.Set<T>();
-
+    public async Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)
+    {
+        return await Database.BeginTransactionAsync(cancellationToken);
+    }
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         if (_updateTimestampInterceptor != null)

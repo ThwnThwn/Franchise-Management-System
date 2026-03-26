@@ -77,7 +77,7 @@ namespace InventoryService.Application.Features.StoreIngredient.Commands.Decreas
             }
 
             // 3. TRANSACTION CẬP NHẬT NGUYÊN TỬ (ATOMIC)
-            using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+            using var transaction = await _dbContext.BeginTransactionAsync(cancellationToken);
             try
             {
                 foreach (var required in totalRequiredIngredients)

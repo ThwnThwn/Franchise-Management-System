@@ -44,7 +44,7 @@ namespace InventoryService.Application.Features.StoreIngredient.Commands.Confirm
         {
 
             _logger.LogInformation("Bắt đầu Confirm Stock Reservation cho Order {OrderId}", request.OrderId);
-            using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+            using var transaction = await _dbContext.BeginTransactionAsync(cancellationToken);
 
             //Bọc toàn bộ logic trong Transaction
             try
