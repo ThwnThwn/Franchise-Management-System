@@ -1,12 +1,10 @@
-﻿using Xunit;
-using Moq;
-using FluentAssertions;
-using System.Linq;
-using MockQueryable.Moq;
+﻿using FluentAssertions;
 using InventoryService.Application.Abstractions;
 using InventoryService.Application.Features.StoreIngredient.Commands.CaculateCostIngredientInStock;
-using InventoryService.Domain.Entities;
 using Microsoft.Extensions.Logging;
+using MockQueryable.Moq;
+using Moq;
+using InventoryService.Domain.Entities;
 
 namespace InventoryService.Application.Tests.Features.StoreIngredient;
 

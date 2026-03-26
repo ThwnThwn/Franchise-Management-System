@@ -1,13 +1,10 @@
-﻿using Xunit;
-using Moq;
-using FluentAssertions;
+﻿using FluentAssertions;
+using InventoryService.Application.AppExceptions;
+using InventoryService.Application.Dtos.StoreIngredient;
 using InventoryService.Application.Features.StoreIngredient.Commands.CheckEnoughStock;
 using InventoryService.Application.Persistences.Repositories;
-using InventoryService.Application.Dtos.StoreIngredient;
-using InventoryService.Application.AppExceptions;
 using InventoryService.Domain.Entities;
-using System.Collections.Generic;
-using System.Linq;
+using Moq;
 
 namespace InventoryService.Application.Tests.Features.StoreIngredient;
 
@@ -32,7 +29,7 @@ public class CheckEnoughStockHandlerTests
             CheckItem = new List<AmountVariant> { new() { VariantId = Guid.NewGuid() } }
         };
         _recipeRepoMock.Setup(x => x.GetRecipesByVariantIdsAsync(It.IsAny<List<Guid>>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<Recipe>());
+            .ReturnsAsync(new List<Domain.Entities.Recipe>());
 
         var command = new CheckEnoughStockCommand(request);
 
@@ -53,7 +50,7 @@ public class CheckEnoughStockHandlerTests
             CheckItem = new List<AmountVariant> { new() { VariantId = variantId, Amount = 2, Sku = "TEST-01" } }
         };
 
-        var recipes = new List<Recipe> { new() { VariantId = variantId, IngredientId = ingredientId, Quantity = 10 } };
+        var recipes = new List<Domain.Entities.Recipe> { new() { VariantId = variantId, IngredientId = ingredientId, Quantity = 10 } };
 
         // FIX: Sử dụng StoreIngredient (Entity) thay vì StoreIngredientStock
         var stock = new List<Domain.Entities.StoreIngredient> { new() { IngredientId = ingredientId, Quantity = 100 } };
@@ -83,7 +80,7 @@ public class CheckEnoughStockHandlerTests
             CheckItem = new List<AmountVariant> { new() { VariantId = variantId, Amount = 5, Sku = "SHORT-01" } }
         };
 
-        var recipes = new List<Recipe> { new() { VariantId = variantId, IngredientId = ingredientId, Quantity = 10 } };
+        var recipes = new List<Domain.Entities.Recipe> { new() { VariantId = variantId, IngredientId = ingredientId, Quantity = 10 } };
         var stock = new List<Domain.Entities.StoreIngredient> { new() { IngredientId = ingredientId, Quantity = 30 } };
 
         _recipeRepoMock.Setup(x => x.GetRecipesByVariantIdsAsync(It.IsAny<List<Guid>>(), It.IsAny<CancellationToken>())).ReturnsAsync(recipes);
@@ -118,7 +115,7 @@ public class CheckEnoughStockHandlerTests
             }
         };
 
-        var recipes = new List<Recipe>
+        var recipes = new List<Domain.Entities.Recipe>
         {
             new() { VariantId = variantA, IngredientId = ingredientId, Quantity = 10 },
             new() { VariantId = variantB, IngredientId = ingredientId, Quantity = 10 }

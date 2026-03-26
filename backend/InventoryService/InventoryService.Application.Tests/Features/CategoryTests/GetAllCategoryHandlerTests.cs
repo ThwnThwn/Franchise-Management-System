@@ -1,10 +1,8 @@
-﻿using Moq;
-using Xunit;
-using FluentAssertions;
+﻿using FluentAssertions;
 using InventoryService.Application.Features.Category.Queries.GetAllCategory;
 using InventoryService.Application.Persistences.Repositories;
-using InventoryService.Application.Dtos.Category;
 using InventoryService.Domain.Entities;
+using Moq;
 
 namespace InventoryService.Application.Tests.Features.Category;
 

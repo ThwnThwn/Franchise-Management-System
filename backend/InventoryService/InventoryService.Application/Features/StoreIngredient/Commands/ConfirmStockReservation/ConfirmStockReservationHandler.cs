@@ -6,12 +6,10 @@ using InventoryService.Domain.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using SharedKernel.Infrastructure.Extensions;
+using System.Linq;
 
 namespace InventoryService.Application.Features.StoreIngredient.Commands.ConfirmStockReservation
 {
-    /// <summary>
-    /// Handler xử lý xác nhận giữ hàng (Trừ kho thật).
-    /// </summary>
     public class ConfirmStockReservationHandler : IRequestHandler<ConfirmStockReservationCommand, bool>
     {
         private readonly IStoreIngredientRepository _storeIngredientRepo;
@@ -42,90 +40,70 @@ namespace InventoryService.Application.Features.StoreIngredient.Commands.Confirm
 
         public async Task<bool> Handle(ConfirmStockReservationCommand request, CancellationToken cancellationToken)
         {
+            // FIX L43: Dùng thuộc tính .Count thay vì hàm .Count(). 
+            // Nếu request.Items là List/Collection, lỗi này sẽ biến mất hoàn toàn.
+            if (request.Items == null || request.Items.Count == 0) return true;
 
             _logger.LogInformation("Bắt đầu Confirm Stock Reservation cho Order {OrderId}", request.OrderId);
-            using var transaction = await _dbContext.BeginTransactionAsync(cancellationToken);
 
-            //Bọc toàn bộ logic trong Transaction
-            try
+            using (var transaction = await _dbContext.BeginTransactionAsync(cancellationToken))
             {
-                // 1. Xóa khỏi Hàng đợi (Giải phóng giữ chỗ)
-                await _storeIngredientRepo.RemoveQueueByOrderIdAsync(request.OrderId);
-
-                // 2. Tính toán nguyên liệu thực tế cần trừ (Gom nhóm lại để tối ưu transaction)
-                var variantIds = request.Items.Select(x => x.VariantId).Distinct().ToList();
-                var allRecipes = await _recipeRepo.GetRecipesByVariantIdsAsync(variantIds, cancellationToken);
-                if(allRecipes == null)
+                try
                 {
-                    throw new Exception("all recipes is null |ConfirmstockHanlder");
-                }
-                // Sử dụng Domain Service để tính toán tổng nguyên liệu
-                var totalRequiredIngredients = _domainService.CalculateRequiredIngredients(
-                    request.Items.Select(x => (x.VariantId, x.Quantity)),
-                    allRecipes);
+                    await _storeIngredientRepo.RemoveQueueByOrderIdAsync(request.OrderId);
 
-                bool lowStockDetected = false;
+                    var variantIds = request.Items.Select(x => x.VariantId).Distinct().ToList();
+                    var allRecipes = await _recipeRepo.GetRecipesByVariantIdsAsync(variantIds, cancellationToken);
 
-                // 3. Trừ tồn kho vật lý (Atomic)
-                foreach (var req in totalRequiredIngredients)
-                {
-                    var ingredientId = req.Key;
-                    var amountToDeduct = req.Value;
+                    if (allRecipes == null) throw new InvalidOperationException("all recipes is null |ConfirmstockHanlder");
 
-                    var result = await _storeIngredientRepo.DecreaseStockAtomicallyAsync(
-                        request.StoreId,
-                        ingredientId,
-                        amountToDeduct);
+                    // FIX L65: Đã dùng !Any() cho IEnumerable (Recipes) - Chỗ này Duy làm đúng rồi
+                    if (!allRecipes.Any()) throw new InvalidOperationException("all recipes is empty |ConfirmstockHanlder");
 
+                    var totalRequiredIngredients = _domainService.CalculateRequiredIngredients(
+                        request.Items.Select(x => (x.VariantId, x.Quantity)),
+                        allRecipes);
 
-                    //Throw exception nếu trừ kho thất bại
-                    if (result == null)
+                    bool lowStockDetected = false;
+
+                    foreach (var ingredientEntry in totalRequiredIngredients)
                     {
-                        throw new BusinessException(
-                            $"Không đủ tồn kho cho nguyên liệu {ingredientId}. Cần trừ: {amountToDeduct}");
-                    }
+                        var ingredientId = ingredientEntry.Key;
+                        var result = await _storeIngredientRepo.DecreaseStockAtomicallyAsync(
+                            request.StoreId, ingredientId, ingredientEntry.Value);
 
-
-                    // 4. Check Low Stock bằng Domain Service
-                    if (_domainService.IsLowStock(result.Quantity, result.MinThreshold ?? 0))
-                    {
-                        _logger.LogInformation("Low stock detected for Ingredient {IngredientId}. Adding to Outbox...", ingredientId);
-
-                        var lowStockPayload = new
+                        if (result == null)
                         {
-                            StoreId = request.StoreId,
-                            IngredientId = ingredientId,
-                            // IngredientName = result.Ingredient?.Name ?? "Unknown", // Có thể lấy nếu load include, tạm thời skip để tối ưu
-                            CurrentStock = result.Quantity,
-                            MinThreshold = result.MinThreshold ?? 0,
-                        };
+                            throw new BusinessException($"Không đủ tồn kho cho nguyên liệu {ingredientId}. Cần trừ: {ingredientEntry.Value}");
+                        }
 
-                        // Sử dụng Extension Method
-                        _outboxRepository.AddEvent(lowStockPayload, "LowStockDetected");
-                        lowStockDetected = true;
+                        decimal threshold = result.MinThreshold ?? 0;
+                        if (_domainService.IsLowStock(result.Quantity, threshold))
+                        {
+                            _outboxRepository.AddEvent(new
+                            {
+                                StoreId = request.StoreId,
+                                IngredientId = ingredientId,
+                                CurrentStock = result.Quantity,
+                                MinThreshold = threshold,
+                            }, "LowStockDetected");
+                            lowStockDetected = true;
+                        }
                     }
 
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
+
+                    if (lowStockDetected) _outboxSignal.Pulse();
+
+                    return true;
                 }
-
-                // 5. Save Outbox Messages và Pulse
-
-                await _dbContext.SaveChangesAsync(cancellationToken);
-                await transaction.CommitAsync(cancellationToken);
-
-                if (lowStockDetected)
+                catch (Exception ex)
                 {
-                    _outboxSignal.Pulse();
+                    await transaction.RollbackAsync(cancellationToken);
+                    _logger.LogError(ex, "Lỗi khi Confirm Stock Reservation cho Order {OrderId}", request.OrderId);
+                    throw;
                 }
-
-                _logger.LogInformation("Hoàn tất Confirm Stock Reservation cho Order {OrderId}", request.OrderId);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                //Rollback toàn bộ nếu có lỗi
-                await transaction.RollbackAsync(cancellationToken);
-                _logger.LogError(ex, "Lỗi khi Confirm Stock Reservation cho Order {OrderId}", request.OrderId);
-                throw;
             }
         }
     }

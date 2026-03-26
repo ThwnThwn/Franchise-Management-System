@@ -33,5 +33,20 @@ namespace InventoryService.Infrastructure.Persistences.Repositories
 
             return await query.ToPagedListAsync(pageIndex, pageSize, cancellationToken);
         }
+
+        public async Task<List<Ingredient>> GetZeroCostIngredientsAsync(CancellationToken ct)
+        {
+            // Sử dụng AsNoTracking để tăng tốc độ truy vấn vì ta chỉ cần data để xử lý logic
+            // Tuy nhiên, vì sau đó ta cập nhật cost, ta có thể bỏ AsNoTracking 
+            // hoặc dùng Attach lại. Ở đây mình để bình thường để EF tự track và Update cho tiện.
+            return await _dbContext.Ingredients
+                .Where(i => i.Cost == 0 && !i.IsDeleted)
+                .ToListAsync(ct);
+        }
+
+        public async Task SaveChangesAsync(CancellationToken ct)
+        {
+            await _dbContext.SaveChangesAsync(ct);
+        }
     }
 }
