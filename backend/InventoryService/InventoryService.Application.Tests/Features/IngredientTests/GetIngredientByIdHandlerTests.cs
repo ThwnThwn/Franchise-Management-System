@@ -33,7 +33,7 @@ public class GetIngredientByIdHandlerTests
         var ingredientId = Guid.NewGuid();
         var query = new GetIngredientByIdQuery(ingredientId);
 
-        var ingredient = new Ingredient
+        var ingredient = new Domain.Entities.Ingredient
         {
             Id = ingredientId,
             Name = "Hạt cà phê",
@@ -75,7 +75,7 @@ public class GetIngredientByIdHandlerTests
 
         // Giả lập Repository trả về null (Branch: ingredient is null)
         _ingredientRepoMock.Setup(x => x.GetByIdAsync(ingredientId))
-            .ReturnsAsync((Ingredient?)null);
+            .ReturnsAsync((Domain.Entities.Ingredient?)null);
 
         // Act
         var result = await _handler.Handle(query, CancellationToken.None);
@@ -85,6 +85,6 @@ public class GetIngredientByIdHandlerTests
 
         _ingredientRepoMock.Verify(x => x.GetByIdAsync(ingredientId), Times.Once);
         // Đảm bảo không gọi Mapping nếu dữ liệu null (Phủ nhánh return null)
-        _mapperMock.Verify(m => m.Map<IngredientViewRes>(It.IsAny<Ingredient>()), Times.Never);
+        _mapperMock.Verify(m => m.Map<IngredientViewRes>(It.IsAny<Domain.Entities.Ingredient>()), Times.Never);
     }
 }

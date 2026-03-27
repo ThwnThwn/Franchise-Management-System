@@ -58,7 +58,7 @@ public class RecalculateVariantCostsByIngredientHandlerTests
                 new() {
                     VariantId = variantId,
                     Quantity = 2,
-                    Ingredient = new Ingredient { Cost = 10 }
+                    Ingredient = new Domain.Entities.Ingredient { Cost = 10 }
                 }
             });
 
@@ -86,7 +86,7 @@ public class RecalculateVariantCostsByIngredientHandlerTests
 
         _recipeRepoMock.Setup(x => x.GetRecipesByVariantIdWithIngredientAsync(variantId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<Domain.Entities.Recipe> {
-                new() { VariantId = variantId, Quantity = 1, Ingredient = new Ingredient { Cost = 50 } }
+                new() { VariantId = variantId, Quantity = 1, Ingredient = new Domain.Entities.Ingredient { Cost = 50 } }
             });
 
         // Ép lỗi gRPC

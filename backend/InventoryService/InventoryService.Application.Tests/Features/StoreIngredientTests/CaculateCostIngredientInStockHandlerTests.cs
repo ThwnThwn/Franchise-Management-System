@@ -28,7 +28,7 @@ public class CaculateCostIngredientInStockHandlerTests
         // Arrange
         var ingredientId = Guid.NewGuid();
         // Sửa lỗi CS1503: Dùng BuildMockDbSet và Returns(.Object)
-        var ingredientsMock = new List<Ingredient>().BuildMockDbSet();
+        var ingredientsMock = new List<Domain.Entities.Ingredient>().BuildMockDbSet();
         _dbContextMock.Setup(x => x.Ingredients).Returns(ingredientsMock.Object);
 
         var command = new CaculateCostIngredientInStockCommand { IngredientId = ingredientId };
@@ -44,8 +44,8 @@ public class CaculateCostIngredientInStockHandlerTests
     {
         // Arrange
         var ingredientId = Guid.NewGuid();
-        var ingredient = new Ingredient { Id = ingredientId, Name = "Cafe", Cost = 100, IsDeleted = false };
-        var ingredientsMock = new List<Ingredient> { ingredient }.BuildMockDbSet();
+        var ingredient = new Domain.Entities.Ingredient { Id = ingredientId, Name = "Cafe", Cost = 100, IsDeleted = false };
+        var ingredientsMock = new List<Domain.Entities.Ingredient> { ingredient }.BuildMockDbSet();
 
         // Giả lập: Stock After (5) - Added (10) = -5 => Phải đưa về 0
         var storeIngredientsMock = new List<Domain.Entities.StoreIngredient>
@@ -79,8 +79,8 @@ public class CaculateCostIngredientInStockHandlerTests
     {
         // Arrange
         var ingredientId = Guid.NewGuid();
-        var ingredient = new Ingredient { Id = ingredientId, Cost = 50, IsDeleted = false };
-        var ingredientsMock = new List<Ingredient> { ingredient }.BuildMockDbSet();
+        var ingredient = new Domain.Entities.Ingredient { Id = ingredientId, Cost = 50, IsDeleted = false };
+        var ingredientsMock = new List<Domain.Entities.Ingredient> { ingredient }.BuildMockDbSet();
         var storeIngredientsMock = new List<Domain.Entities.StoreIngredient>().BuildMockDbSet();
 
         _dbContextMock.Setup(x => x.Ingredients).Returns(ingredientsMock.Object);
@@ -103,8 +103,8 @@ public class CaculateCostIngredientInStockHandlerTests
     {
         // Arrange
         var ingredientId = Guid.NewGuid();
-        var ingredient = new Ingredient { Id = ingredientId, Cost = 0, IsDeleted = false };
-        var ingredientsMock = new List<Ingredient> { ingredient }.BuildMockDbSet();
+        var ingredient = new Domain.Entities.Ingredient { Id = ingredientId, Cost = 0, IsDeleted = false };
+        var ingredientsMock = new List<Domain.Entities.Ingredient> { ingredient }.BuildMockDbSet();
         var storeIngredientsMock = new List<Domain.Entities.StoreIngredient>
         {
             new() { IngredientId = ingredientId, Quantity = 10, IsDeleted = false }
@@ -128,8 +128,8 @@ public class CaculateCostIngredientInStockHandlerTests
     {
         // Arrange
         var ingredientId = Guid.NewGuid();
-        var ingredient = new Ingredient { Id = ingredientId, Cost = 0, IsDeleted = false };
-        var ingredientsMock = new List<Ingredient> { ingredient }.BuildMockDbSet();
+        var ingredient = new Domain.Entities.Ingredient { Id = ingredientId, Cost = 0, IsDeleted = false };
+        var ingredientsMock = new List<Domain.Entities.Ingredient> { ingredient }.BuildMockDbSet();
         var storeIngredientsMock = new List<Domain.Entities.StoreIngredient>
         {
             new() { IngredientId = ingredientId, Quantity = 10, IsDeleted = false }
@@ -153,8 +153,8 @@ public class CaculateCostIngredientInStockHandlerTests
     {
         // Arrange: (10 * 100 + 5 * 120) / 15 = 106.666... -> 106.67
         var ingredientId = Guid.NewGuid();
-        var ingredient = new Ingredient { Id = ingredientId, Name = "Sữa", Cost = 100, IsDeleted = false };
-        var ingredientsMock = new List<Ingredient> { ingredient }.BuildMockDbSet();
+        var ingredient = new Domain.Entities.Ingredient { Id = ingredientId, Name = "Sữa", Cost = 100, IsDeleted = false };
+        var ingredientsMock = new List<Domain.Entities.Ingredient> { ingredient }.BuildMockDbSet();
         var storeIngredientsMock = new List<Domain.Entities.StoreIngredient>
         {
             new() { IngredientId = ingredientId, Quantity = 15, IsDeleted = false }
