@@ -40,7 +40,7 @@ public class ReserveStockHandler : IRequestHandler<ReserveStockCommand, CheckEno
     /// <returns>Kết quả giữ hàng (Thành công/Thất bại).</returns>
     public async Task<CheckEnoughStockRes> Handle(ReserveStockCommand request, CancellationToken cancellationToken)
     {
-        if (request.Items == null || !request.Items.Any()) //Nếu không có item nào cần check, trả về đủ hàng luôn (Không cần ghi Queue)
+        if (request.Items == null || request.Items.Count == 0) //Nếu không có item nào cần check, trả về đủ hàng luôn (Không cần ghi Queue)
         {
             return new CheckEnoughStockRes { IsEnough = true, ShortageItems = new List<AmountVariant>() };
         }

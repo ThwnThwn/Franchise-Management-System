@@ -1,11 +1,10 @@
-﻿using Moq;
-using Xunit;
-using FluentAssertions;
+﻿using FluentAssertions;
+using InventoryService.Application.Dtos.Category;
 using InventoryService.Application.Features.Category.Commands.CreateCategory;
 using InventoryService.Application.Persistences.Repositories;
-using InventoryService.Application.Dtos.Category;
 using InventoryService.Domain.Entities;
 using MediatR;
+using Moq;
 
 namespace InventoryService.Application.Tests.Features.Category;
 

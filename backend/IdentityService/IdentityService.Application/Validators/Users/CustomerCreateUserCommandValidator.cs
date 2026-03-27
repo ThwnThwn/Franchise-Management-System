@@ -7,7 +7,10 @@ public class CustomerCreateUserCommandValidator : AbstractValidator<CustomerCrea
 {
     public CustomerCreateUserCommandValidator()
     {
-        RuleFor(x => x.Request).NotNull();
+
+        RuleFor(x => x.Request)
+        .Cascade(CascadeMode.Stop)
+        .NotNull().WithMessage("Request is required");
 
         RuleFor(x => x.Request.Email)
             .NotEmpty().WithMessage("Email is required")
