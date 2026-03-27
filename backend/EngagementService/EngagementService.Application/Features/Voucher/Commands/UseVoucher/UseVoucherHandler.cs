@@ -3,11 +3,6 @@ using EngagementService.Application.Persistences.Repository;
 using EngagementService.Domain.Constants;
 using EngagementService.Domain.Entities;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EngagementService.Application.Features.Voucher.Commands.UpdateUserVoucherStatus
 {
@@ -45,10 +40,10 @@ namespace EngagementService.Application.Features.Voucher.Commands.UpdateUserVouc
                         AppliedAt = DateTimeOffset.UtcNow,
                         OrderId = request.OrderId,
                     };
-                                
+
                     voucherUsages.Add(voucherUsage);
                     userVoucher.Status = UserVoucherStatus.USED;
-                   
+
                 }
                 _userVoucherRepository.UpdateRangeAsync(userVouchers, cancellationToken);
                 await _voucherUsageRepository.AddRangeAsync(voucherUsages, cancellationToken);

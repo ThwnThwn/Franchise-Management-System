@@ -4,14 +4,7 @@ using FluentAssertions;
 using InventoryService.Application.Dtos.Ingredient;
 using InventoryService.Application.Features.Ingrdient.Queries.GetAllIngredient;
 using InventoryService.Application.Persistences.Repositories;
-using InventoryService.Domain.Entities;
 using Moq;
-using Xunit;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace InventoryService.Application.Tests.Features.IngredientTests;
 
@@ -40,14 +33,14 @@ public class GetAllIngredientHandlerTests
             PageSize = 10
         };
 
-        var ingredients = new List<Ingredient>
+        var ingredients = new List<Domain.Entities.Ingredient>
         {
             new() { Id = Guid.NewGuid(), Name = "Sữa tươi", BaseUnit = "Litre", CategoryId = categoryId },
             new() { Id = Guid.NewGuid(), Name = "Đường", BaseUnit = "Gram", CategoryId = categoryId }
         };
 
         // Mock kết quả phân trang trả về từ Repository
-        var pagedResultFromRepo = new PagedResult<Ingredient>(ingredients, 2, 1, 10);
+        var pagedResultFromRepo = new PagedResult<Domain.Entities.Ingredient>(ingredients, 2, 1, 10);
 
         _ingredientRepoMock.Setup(x => x.GetPagedIngredientsAsync(
                 query.CategoryId,
@@ -57,8 +50,8 @@ public class GetAllIngredientHandlerTests
             .ReturnsAsync(pagedResultFromRepo);
 
         // Mock Mapper trả về DTO cụ thể để tránh null trong Select
-        _mapperMock.Setup(m => m.Map<IngredientViewRes>(It.IsAny<Ingredient>()))
-            .Returns((Ingredient src) => new IngredientViewRes
+        _mapperMock.Setup(m => m.Map<IngredientViewRes>(It.IsAny<Domain.Entities.Ingredient>()))
+            .Returns((Domain.Entities.Ingredient src) => new IngredientViewRes
             {
                 Id = src.Id,
                 Name = src.Name,
@@ -77,7 +70,7 @@ public class GetAllIngredientHandlerTests
         result.TotalPages.Should().Be(1);
 
         _ingredientRepoMock.Verify(x => x.GetPagedIngredientsAsync(categoryId, 1, 10, It.IsAny<CancellationToken>()), Times.Once);
-        _mapperMock.Verify(m => m.Map<IngredientViewRes>(It.IsAny<Ingredient>()), Times.Exactly(2));
+        _mapperMock.Verify(m => m.Map<IngredientViewRes>(It.IsAny<Domain.Entities.Ingredient>()), Times.Exactly(2));
     }
 
     [Fact]
@@ -87,7 +80,7 @@ public class GetAllIngredientHandlerTests
         var query = new GetAllIngredientQuery { Page = 1, PageSize = 10 };
 
         // Trả về PagedResult với danh sách rỗng
-        var emptyPagedResult = new PagedResult<Ingredient>(new List<Ingredient>(), 0, 1, 10);
+        var emptyPagedResult = new PagedResult<Domain.Entities.Ingredient>(new List<Domain.Entities.Ingredient>(), 0, 1, 10);
 
         _ingredientRepoMock.Setup(x => x.GetPagedIngredientsAsync(
                 It.IsAny<Guid?>(),
@@ -104,6 +97,6 @@ public class GetAllIngredientHandlerTests
         result.Items.Should().BeEmpty();
         result.TotalCount.Should().Be(0);
 
-        _mapperMock.Verify(m => m.Map<IngredientViewRes>(It.IsAny<Ingredient>()), Times.Never);
+        _mapperMock.Verify(m => m.Map<IngredientViewRes>(It.IsAny<Domain.Entities.Ingredient>()), Times.Never);
     }
 }

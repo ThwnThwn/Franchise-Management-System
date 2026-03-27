@@ -91,7 +91,7 @@ public class DecreaseStockByOrderCommandHandlerTests
         _domainServiceMock.Setup(x => x.CalculateRequiredIngredients(It.IsAny<IEnumerable<(Guid, int)>>(), It.IsAny< List<Domain.Entities.Recipe >>())).Returns(new Dictionary<Guid, decimal> { { id, 10 } });
 
         var stock = new InventoryService.Domain.Entities.StoreIngredient { IngredientId = id };
-        if (hasIngredient) stock.Ingredient = new Ingredient { Name = "Arabica" };
+        if (hasIngredient) stock.Ingredient = new Domain.Entities.Ingredient { Name = "Arabica" };
         _storeRepoMock.Setup(x => x.GetStockByStoreIdAndIngredientIdsAsync(It.IsAny<Guid>(), It.IsAny<List<Guid>>(), It.IsAny<CancellationToken>())).ReturnsAsync(new List<InventoryService.Domain.Entities.StoreIngredient> { stock });
 
         if (!hasIngredient && threshold == 10) // Case Result NULL
