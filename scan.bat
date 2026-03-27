@@ -21,8 +21,8 @@ if exist .env (
         )
     )
 )
-set SONAR_TOKEN=%SONAR_TOKEN%
-set SONAR_URL=%SONAR_URL%
+set SONAR_TOKEN=squ_b93c8b22e96b3ec419bc7839c0151668f15c5e6a
+set SONAR_URL=http://localhost:9005
 
 :: TỰ ĐỘNG KHÔI PHỤC TOOL
 echo --- Dang kiem tra va khoi phuc SonarScanner trong thu muc backend... ---

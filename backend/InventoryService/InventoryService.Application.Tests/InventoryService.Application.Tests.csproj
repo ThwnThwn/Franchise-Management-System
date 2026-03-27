@@ -21,9 +21,9 @@
 		<PackageReference Include="xunit.runner.visualstudio" Version="2.5.3" />
 	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\InventoryService.Application\InventoryService.Application.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\..\AppHost\AppHost.csproj" />
+	</ItemGroup>
 
   <ItemGroup>
     <Using Include="Xunit" />
