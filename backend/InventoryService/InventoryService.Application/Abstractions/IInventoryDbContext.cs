@@ -3,6 +3,7 @@ using InventoryService.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Infrastructure; // Added for DatabaseFacade
+using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,7 +29,7 @@ namespace InventoryService.Application.Abstractions
         public EntityEntry<T> Entry<T>(T entity) where T : class;
 
         public int SaveChanges();
-
+        Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);
         public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     }
 }

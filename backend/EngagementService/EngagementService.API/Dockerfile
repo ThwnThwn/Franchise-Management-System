@@ -13,7 +13,7 @@ COPY ["backend/SharedKernel/SharedKernel.csproj", "backend/SharedKernel/"]
 COPY ["backend/EngagementService/EngagementService.API/EngagementService.API.csproj", "backend/EngagementService/EngagementService.API/"]
 COPY ["backend/EngagementService/EngagementService.Application/EngagementService.Application.csproj", "backend/EngagementService/EngagementService.Application/"]
 COPY ["backend/EngagementService/EngagementService.Domain/EngagementService.Domain.csproj", "backend/EngagementService/EngagementService.Domain/"]
-COPY ["backend/EngagementService/EngagementService.Infrastucture/EngagementService.Infrastucture.csproj", "backend/EngagementService/EngagementService.Infrastucture/"]
+COPY ["backend/EngagementService/EngagementService.Infrastructure/EngagementService.Infrastructure.csproj", "backend/EngagementService/EngagementService.Infrastructure/"]
 
 # --- BƯỚC 3: RESTORE KÉO THƯ VIỆN ---
 RUN dotnet restore "backend/EngagementService/EngagementService.API/EngagementService.API.csproj"

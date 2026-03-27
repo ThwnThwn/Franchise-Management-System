@@ -14,12 +14,10 @@ namespace InventoryService.Application.Features.Ingrdient.Commands.UpdateIngredi
     public class UpdateIngredientHandler : IRequestHandler<UpdateIngredientCommand, Unit>
     {
         private readonly IIngredientRepository _ingredientRepository;
-        private readonly IMapper _mapper;
         private readonly IIngredientCategoryRepository _ingredientCategoryRepository;
-        public UpdateIngredientHandler(IIngredientRepository ingredientRepository, IMapper mapper, IIngredientCategoryRepository ingredientCategoryRepository)
+        public UpdateIngredientHandler(IIngredientRepository ingredientRepository, IIngredientCategoryRepository ingredientCategoryRepository)
         {
             _ingredientRepository = ingredientRepository;
-            _mapper = mapper;
             _ingredientCategoryRepository = ingredientCategoryRepository;
         }
         public async Task<Unit> Handle(UpdateIngredientCommand command, CancellationToken cancellationToken)

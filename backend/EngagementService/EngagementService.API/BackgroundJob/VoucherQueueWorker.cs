@@ -1,7 +1,4 @@
-﻿using EngagementService.Application.Abstraction;
-using EngagementService.Domain.Constants;
-using EngagementService.Domain.Entities;
-using EngagementService.Infrastucture.AppDbContext;
+﻿using EngagementService.Infrastructure.AppDbContext;
 using Microsoft.EntityFrameworkCore;
 
 namespace EngagementService.API.BackgroundJob

@@ -36,5 +36,24 @@ namespace InventoryService.Infrastructure.Persistences.Repositories
         //    _dbContext.Recipes.Remove(entity);
         //    await _dbContext.SaveChangesAsync();
         //}
+
+        public async Task<List<Guid>> GetVariantIdsByIngredientIdAsync(Guid ingredientId, CancellationToken ct)
+        {
+            return await _dbContext.Recipes
+                .AsNoTracking()
+                .Where(r => r.IngredientId == ingredientId)
+                .Select(r => r.VariantId)
+                .Distinct()
+                .ToListAsync(ct);
+        }
+
+        public async Task<List<Recipe>> GetRecipesByVariantIdWithIngredientAsync(Guid variantId, CancellationToken ct)
+        {
+            return await _dbContext.Recipes
+                .Include(r => r.Ingredient) // Load kèm thông tin Ingredient để lấy Cost
+                .AsNoTracking()
+                .Where(r => r.VariantId == variantId)
+                .ToListAsync(ct);
+        }
     }
 }

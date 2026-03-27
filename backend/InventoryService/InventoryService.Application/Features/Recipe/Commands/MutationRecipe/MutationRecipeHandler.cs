@@ -28,18 +28,10 @@ namespace InventoryService.Application.Features.Recipe.Commands.MutationRecipe
         public async Task<Unit> Handle(MutationRecipeCommand command, CancellationToken cancellationToken)
         {
             var request = command.Request;
-            //ktra variant có tồn tại hay k
             var variant = await _productServiceClient.GetVariantById(request.VariantId)
-                ?? throw new DirectoryNotFoundException(Message.ProductVariant.NotFound);
+                ?? throw new DirectoryNotFoundException("Variant not found");
 
-            //lấy recipe ra từ db
             var recipe = await _recipeRepository.GetRecipesByVariantIdAsync(request.VariantId, cancellationToken);
-
-            //if(recipe == null || !recipe.Any())
-            //{
-            //    //không có recipe nào thì ko thể update đc
-            //    throw new DirectoryNotFoundException(Message.Recipe.NotFound);
-            //}
 
             var ingredientUpdate = request.Ingredients.Select(i => i.IngredientId).ToList();
             var ingredientInRecipe = recipe.Select(r => r.IngredientId).ToList();
@@ -48,7 +40,7 @@ namespace InventoryService.Application.Features.Recipe.Commands.MutationRecipe
             var changeItem = ingredientUpdate.Where(i => ingredientInRecipe.Contains(i)).ToList();
             var removeItem = ingredientInRecipe.Where(i => !ingredientUpdate.Contains(i)).ToList();
 
-            //xử lý thêm
+            // 1. Xử lý thêm
             foreach (var ingredientId in addItem)
             {
                 var newRecipe = new Domain.Entities.Recipe
@@ -60,7 +52,7 @@ namespace InventoryService.Application.Features.Recipe.Commands.MutationRecipe
                 await _recipeRepository.AddAsync(newRecipe);
             }
 
-            //xử lý sửa
+            // 2. Xử lý sửa
             foreach (var ingredientId in changeItem)
             {
                 var recipeToUpdate = recipe.First(r => r.IngredientId == ingredientId);
@@ -68,8 +60,8 @@ namespace InventoryService.Application.Features.Recipe.Commands.MutationRecipe
                 await _recipeRepository.UpdateAsync(recipeToUpdate);
             }
 
-            //xử lý xóa
-            using var transaction = await _dbContext.Database.BeginTransactionAsync();
+            // 3. Xử lý xóa (DÙNG TRANSACTION QUA INTERFACE ĐỂ TEST ĐƯỢC)
+            using var transaction = await _dbContext.BeginTransactionAsync(cancellationToken);
 
             try
             {
@@ -78,12 +70,11 @@ namespace InventoryService.Application.Features.Recipe.Commands.MutationRecipe
                     var recipeToDelete = recipe.First(r => r.IngredientId == ingredientId);
                     await _recipeRepository.DeleteAsync(recipeToDelete.Id);
                 }
-
-                await transaction.CommitAsync(); // Chỉ commit khi toàn bộ vòng lặp chạy xong
+                await transaction.CommitAsync(cancellationToken);
             }
             catch (Exception)
             {
-                await transaction.RollbackAsync(); // Nếu bất kỳ thằng nào lỗi, quay xe hết
+                await transaction.RollbackAsync(cancellationToken);
                 throw;
             }
 

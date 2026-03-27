@@ -11,7 +11,7 @@ public class ReserveStockCommand : IRequest<CheckEnoughStockRes>
     public List<AmountVariant> Items { get; set; } = new();
 }
 
-public class ReserveStockResponseDto
+public class ReserveStockResponseDto 
 {
     public bool Success { get; set; }
     public string Message { get; set; } = string.Empty;
