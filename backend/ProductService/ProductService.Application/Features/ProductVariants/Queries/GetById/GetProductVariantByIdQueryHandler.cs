@@ -2,49 +2,43 @@
 using MediatR;
 using ProductService.Application.Repositories;
 
-namespace ProductService.Application.Features.ProductVariants.Queries.GetById
+namespace ProductService.Application.Features.ProductVariants.Queries.GetById;
+
+public sealed class GetProductVariantByIdQueryHandler(
+    IProductVariantRepository repository
+) : IRequestHandler<
+        GetProductVariantByIdQuery,
+        Result<GetProductVariantByIdQuery.GetProductVariantByIdQueryResponse>
+>
 {
-    public sealed class GetProductVariantByIdQueryHandler :
-        IRequestHandler<
-            GetProductVariantByIdQuery,
-            Result<GetProductVariantByIdQuery.GetProductVariantByIdQueryResponse>>
+    public async Task<Result<GetProductVariantByIdQuery.GetProductVariantByIdQueryResponse>> Handle(
+        GetProductVariantByIdQuery query,
+        CancellationToken cancellationToken)
     {
-        private readonly IProductVariantRepository _repository;
+        var productVariant =
+            await repository.GetProductVariantByIdAsync(query.ProductVariantId);
 
-        public GetProductVariantByIdQueryHandler(IProductVariantRepository repository)
+        if (productVariant == null)
         {
-            _repository = repository;
+            return Result.NotFound(
+                $"Product Variant with id '{query.ProductVariantId}' not found");
         }
 
-        public async Task<Result<GetProductVariantByIdQuery.GetProductVariantByIdQueryResponse>> Handle(
-            GetProductVariantByIdQuery query,
-            CancellationToken cancellationToken)
-        {
-            var productVariant =
-                await _repository.GetProductVariantByIdAsync(query.ProductVariantId);
-
-            if (productVariant == null)
+        var response =
+            new GetProductVariantByIdQuery.GetProductVariantByIdQueryResponse
             {
-                return Result.NotFound(
-                    $"Product Variant with id '{query.ProductVariantId}' not found");
-            }
+                Id = productVariant.Id,
+                Sku = productVariant.Sku,
+                Name = productVariant.Name,
+                Attributes = productVariant.Attributes,
+                BasePrice = productVariant.BasePrice,
+                Cost = productVariant.Cost,
+                IsActive = productVariant.IsActive,
+                CreatedAt = productVariant.CreatedAt,
+                UpdatedAt = productVariant.UpdatedAt,
+                ProductId = productVariant.ProductId
+            };
 
-            var response =
-                new GetProductVariantByIdQuery.GetProductVariantByIdQueryResponse
-                {
-                    Id = productVariant.Id,
-                    Sku = productVariant.Sku,
-                    Name = productVariant.Name,
-                    Attributes = productVariant.Attributes,
-                    BasePrice = productVariant.BasePrice,
-                    Cost = productVariant.Cost,
-                    IsActive = productVariant.IsActive,
-                    CreatedAt = productVariant.CreatedAt,
-                    UpdatedAt = productVariant.UpdatedAt,
-                    ProductId = productVariant.ProductId
-                };
-
-            return Result.Success(response);
-        }
+        return Result.Success(response);
     }
 }
