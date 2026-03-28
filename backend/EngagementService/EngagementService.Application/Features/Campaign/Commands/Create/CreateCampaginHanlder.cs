@@ -1,14 +1,7 @@
 ﻿using AutoMapper;
 using EngagementService.Application.Dtos.Campaign.Response;
 using EngagementService.Application.Persistences.Repository;
-using EngagementService.Domain.Entities;
 using MediatR;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EngagementService.Application.Features.Campaign.Commands.Create
 {
@@ -18,7 +11,7 @@ namespace EngagementService.Application.Features.Campaign.Commands.Create
         private readonly ICampaignRepository _campaignRepository;
         private readonly IMapper _mapper;
 
-        public CreateCampaginHanlder(IVoucherRepository voucherRepository, ICampaignRepository campaignRepository,IMapper mapper)
+        public CreateCampaginHanlder(IVoucherRepository voucherRepository, ICampaignRepository campaignRepository, IMapper mapper)
         {
             _voucherRepository = voucherRepository;
             _campaignRepository = campaignRepository;
@@ -29,7 +22,7 @@ namespace EngagementService.Application.Features.Campaign.Commands.Create
         {
             var request = command.Request;
             IEnumerable<Domain.Entities.Voucher> vouchers = await _voucherRepository.GetVoucherByIdsAsync(request.VoucherIds.ToArray());
-            if(!vouchers.Any() && vouchers.Count() != request.VoucherIds.Count())
+            if (!vouchers.Any() && vouchers.Count() != request.VoucherIds.Count())
             {
                 throw new ArgumentException("Vouchers failed to be added into campaign - CreateHandler");
             }

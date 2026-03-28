@@ -36,7 +36,7 @@ public class SyncZeroCostIngredientsHandlerTests
     public async Task Handle_ShouldReturnZero_WhenNoIngredientsFound()
     {
         _ingredientRepoMock.Setup(x => x.GetZeroCostIngredientsAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<Ingredient>());
+            .ReturnsAsync(new List<Domain.Entities.Ingredient>());
         var result = await _handler.Handle(new SyncZeroCostIngredientsCommand(), CancellationToken.None);
         result.UpdatedCount.Should().Be(0);
     }
@@ -45,7 +45,7 @@ public class SyncZeroCostIngredientsHandlerTests
     public async Task Handle_ShouldLogError_WhenSupplierServiceFails()
     {
         _ingredientRepoMock.Setup(x => x.GetZeroCostIngredientsAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<Ingredient> { new() { Id = Guid.NewGuid() } });
+            .ReturnsAsync(new List<Domain.Entities.Ingredient> { new() { Id = Guid.NewGuid() } });
         _supplierClientMock.Setup(x => x.GetLatestPriceForIngredientsAsync(It.IsAny<List<Guid>>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("gRPC Error"));
 
@@ -58,7 +58,7 @@ public class SyncZeroCostIngredientsHandlerTests
     public async Task Handle_ShouldUpdate_WhenPricesFound()
     {
         var id = Guid.NewGuid();
-        var ingredients = new List<Ingredient> { new() { Id = id, Cost = 0 } };
+        var ingredients = new List<Domain.Entities.Ingredient> { new() { Id = id, Cost = 0 } };
         var prices = new Dictionary<Guid, decimal> { { id, 10000m } };
 
         _ingredientRepoMock.Setup(x => x.GetZeroCostIngredientsAsync(It.IsAny<CancellationToken>())).ReturnsAsync(ingredients);
@@ -75,7 +75,7 @@ public class SyncZeroCostIngredientsHandlerTests
     public async Task Handle_ShouldLogError_WhenMediatorFails()
     {
         var id = Guid.NewGuid();
-        _ingredientRepoMock.Setup(x => x.GetZeroCostIngredientsAsync(It.IsAny<CancellationToken>())).ReturnsAsync(new List<Ingredient> { new() { Id = id } });
+        _ingredientRepoMock.Setup(x => x.GetZeroCostIngredientsAsync(It.IsAny<CancellationToken>())).ReturnsAsync(new List<Domain.Entities.Ingredient> { new() { Id = id } });
         _supplierClientMock.Setup(x => x.GetLatestPriceForIngredientsAsync(It.IsAny<List<Guid>>(), It.IsAny<CancellationToken>())).ReturnsAsync(new Dictionary<Guid, decimal> { { id, 5000m } });
         _mediatorMock.Setup(m => m.Send(It.IsAny<RecalculateVariantCostsByIngredientCommand>(), It.IsAny<CancellationToken>())).ThrowsAsync(new Exception("Mediator Error"));
 
@@ -88,7 +88,7 @@ public class SyncZeroCostIngredientsHandlerTests
     public async Task Handle_ShouldSkip_WhenPriceIsZero()
     {
         var id = Guid.NewGuid();
-        _ingredientRepoMock.Setup(x => x.GetZeroCostIngredientsAsync(It.IsAny<CancellationToken>())).ReturnsAsync(new List<Ingredient> { new() { Id = id } });
+        _ingredientRepoMock.Setup(x => x.GetZeroCostIngredientsAsync(It.IsAny<CancellationToken>())).ReturnsAsync(new List<Domain.Entities.Ingredient> { new() { Id = id } });
         _supplierClientMock.Setup(x => x.GetLatestPriceForIngredientsAsync(It.IsAny<List<Guid>>(), It.IsAny<CancellationToken>())).ReturnsAsync(new Dictionary<Guid, decimal> { { id, 0m } });
 
         var result = await _handler.Handle(new SyncZeroCostIngredientsCommand(), CancellationToken.None);

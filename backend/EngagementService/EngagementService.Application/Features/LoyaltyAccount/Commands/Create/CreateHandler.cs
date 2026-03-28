@@ -1,5 +1,4 @@
-﻿using Confluent.Kafka;
-using EngagementService.Application.Constants;
+﻿using EngagementService.Application.Constants;
 using EngagementService.Application.Helper;
 using EngagementService.Application.Persistences.Cache;
 using EngagementService.Application.Persistences.Repository;
@@ -29,16 +28,16 @@ namespace EngagementService.Application.Features.LoyaltyAccount.Commands.Create
         public async Task<Unit> Handle(CreateCommand command, CancellationToken cancellationToken)
         {
             var request = command.Request;
-            
-            if((await _loyaltyAccountRepository.GetByIdAsync(request.Id)) != null)
-                throw new InvalidOperationException(LoyaltyAccountMsg.AlreadyExists);   
+
+            if ((await _loyaltyAccountRepository.GetByIdAsync(request.Id)) != null)
+                throw new InvalidOperationException(LoyaltyAccountMsg.AlreadyExists);
 
             var defaultTier = await _membershipTierRepository.GetDefaultTierAsync();
-            if(defaultTier == null)
+            if (defaultTier == null)
                 throw new DirectoryNotFoundException(MembershipTierMsg.NotFound);
-            
+
             var point = await CalculatePointHelper.CalculatePoint(_membershipTierRepository, _membershipTierCache, null, request.OrderAmount);
-            
+
             var loyaltyAccount = new Domain.Entities.LoyaltyAccount
             {
                 Id = request.Id,
@@ -59,7 +58,7 @@ namespace EngagementService.Application.Features.LoyaltyAccount.Commands.Create
                 });
 
                 var pointLog = HandlePointLog.CreatePointLog(loyaltyAccount, 0, loyaltyAccount.AvailablePoints, point, request.OrderId, PointReasonCode.ORDER_COMPLETED, PointActionType.EARN, "Initial points", allRules);
-            
+
                 loyaltyAccount.PointLogs.Add(pointLog);
             }
 
@@ -67,7 +66,7 @@ namespace EngagementService.Application.Features.LoyaltyAccount.Commands.Create
             await _loyaltyAccountRepository.AddAsync(loyaltyAccount);
 
             //có điểm ms ghi log
-            
+
             return Unit.Value;
         }
     }

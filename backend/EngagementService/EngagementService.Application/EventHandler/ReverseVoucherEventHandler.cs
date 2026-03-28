@@ -2,11 +2,6 @@
 using MediatR;
 using SharedKernel.Events;
 using SharedKernel.Infrastructure.Kafka;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EngagementService.Application.EventHandler
 {

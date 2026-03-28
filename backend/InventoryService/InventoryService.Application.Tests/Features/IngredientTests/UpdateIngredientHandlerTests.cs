@@ -48,7 +48,7 @@ public class UpdateIngredientHandlerTests
         var request = new UpdateIngredientReq { Id = Guid.NewGuid(), CategoryId = null };
         var cmd = new UpdateIngredientCommand(request);
 
-        _ingredientRepoMock.Setup(x => x.GetByIdAsync(request.Id)).ReturnsAsync((Ingredient)null!);
+        _ingredientRepoMock.Setup(x => x.GetByIdAsync(request.Id)).ReturnsAsync((Domain.Entities.Ingredient)null!);
 
         await _handler.Invoking(x => x.Handle(cmd, CancellationToken.None))
             .Should().ThrowAsync<DirectoryNotFoundException>();
@@ -72,7 +72,7 @@ public class UpdateIngredientHandlerTests
         };
         var cmd = new UpdateIngredientCommand(request);
 
-        var itemInDb = new Ingredient { Id = ingredientId, Name = "Old Name", BaseUnit = "OldUnit" };
+        var itemInDb = new Domain.Entities.Ingredient { Id = ingredientId, Name = "Old Name", BaseUnit = "OldUnit" };
 
         _categoryRepoMock.Setup(x => x.GetByIdAsync(categoryId)).ReturnsAsync(new IngredientCategory());
         _ingredientRepoMock.Setup(x => x.GetByIdAsync(ingredientId)).ReturnsAsync(itemInDb);
@@ -85,7 +85,7 @@ public class UpdateIngredientHandlerTests
         itemInDb.CategoryId.Should().Be(categoryId);
         itemInDb.BaseUnit.Should().Be(BaseUnitConstants.Gram);
 
-        _ingredientRepoMock.Verify(x => x.UpdateAsync(It.IsAny<Ingredient>()), Times.Once);
+        _ingredientRepoMock.Verify(x => x.UpdateAsync(It.IsAny<Domain.Entities.Ingredient>()), Times.Once);
     }
 
     // 4. Phủ BRANCH 100%: Khi các trường trong Request bị NULL hoặc TRỐNG
@@ -103,7 +103,7 @@ public class UpdateIngredientHandlerTests
         };
         var cmd = new UpdateIngredientCommand(request);
 
-        var itemInDb = new Ingredient { Id = ingredientId, Name = "Original", BaseUnit = "Piece", CategoryId = Guid.NewGuid() };
+        var itemInDb = new Domain.Entities.Ingredient { Id = ingredientId, Name = "Original", BaseUnit = "Piece", CategoryId = Guid.NewGuid() };
 
         _ingredientRepoMock.Setup(x => x.GetByIdAsync(ingredientId)).ReturnsAsync(itemInDb);
 

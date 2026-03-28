@@ -2,16 +2,10 @@
 using EngagementService.Application.Persistences.Cache;
 using EngagementService.Application.Persistences.Repository;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.WebSockets;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EngagementService.Application.Features.MembershipTier.Commands.Update
 {
-    internal class UpdateMembershiptierHandler : IRequestHandler<UpdateMembershipTierCommand, Unit>
+    public class UpdateMembershiptierHandler : IRequestHandler<UpdateMembershipTierCommand, Unit>
     {
         private readonly IMembershipTierRepository _membershipTierRepository;
         private readonly IMembershipTierCache _membershipTierCache;
