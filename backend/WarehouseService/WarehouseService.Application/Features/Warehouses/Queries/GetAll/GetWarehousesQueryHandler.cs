@@ -25,16 +25,15 @@ public class GetWarehousesQueryHandler : IRequestHandler<GetWarehousesQuery, Get
 
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
-            var term = request.SearchTerm.Trim().ToLower();
+            var term = request.SearchTerm.Trim();
             query = query.Where(w =>
-                w.Code.ToLower().Contains(term) ||
-                w.Name.ToLower().Contains(term) ||
-                w.Address.ToLower().Contains(term));
+                EF.Functions.ILike(w.Code, $"%{term}%") ||
+                EF.Functions.ILike(w.Name, $"%{term}%") ||
+                EF.Functions.ILike(w.Address, $"%{term}%"));
         }
 
         var totalCount = await query.CountAsync(cancellationToken);
 
-        //  Apply pagination + ordering
         var items = await query
             .OrderBy(w => w.Code)
             .Skip((request.Page - 1) * request.PageSize)

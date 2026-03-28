@@ -5,10 +5,6 @@ using WarehouseService.Infrastructure.DbContext;
 
 namespace WarehouseService.Infrastructure.Repositories;
 
-/// <summary>
-/// Repository implementation cho StockTransaction CRUD.
-/// Sử dụng WarehouseDbContext để truy cập DB.
-/// </summary>
 public class StockTransactionRepository : IStockTransactionRepository
 {
     private readonly WarehouseDbContext _dbContext;
@@ -18,18 +14,18 @@ public class StockTransactionRepository : IStockTransactionRepository
         _dbContext = dbContext;
     }
 
-    /// <summary>Lấy 1 stock transaction chưa bị xóa theo ID.</summary>
+    // S1125 fix: remove == false
     public async Task<StockTransaction?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await _dbContext.StockTransactions
-            .FirstOrDefaultAsync(st => st.Id == id && st.IsDeleted == false, cancellationToken);
+            .FirstOrDefaultAsync(st => st.Id == id && !st.IsDeleted, cancellationToken);
     }
 
-    /// <summary>Kiểm tra TransactionCode đã tồn tại chưa (loại trừ 1 ID nếu cần).</summary>
+    // S1125 fix: remove == false
     public async Task<bool> CodeExistsAsync(string transactionCode, Guid? excludeId = null, CancellationToken cancellationToken = default)
     {
         var query = _dbContext.StockTransactions
-            .Where(st => st.TransactionCode == transactionCode && st.IsDeleted == false);
+            .Where(st => st.TransactionCode == transactionCode && !st.IsDeleted);
 
         if (excludeId.HasValue)
             query = query.Where(st => st.Id != excludeId.Value);
@@ -37,28 +33,26 @@ public class StockTransactionRepository : IStockTransactionRepository
         return await query.AnyAsync(cancellationToken);
     }
 
-    /// <summary>Thêm stock transaction mới vào DB.</summary>
     public async Task AddAsync(StockTransaction stockTransaction, CancellationToken cancellationToken = default)
     {
         await _dbContext.StockTransactions.AddAsync(stockTransaction, cancellationToken);
     }
 
-    /// <summary>Trả về IQueryable để query linh hoạt.</summary>
     public IQueryable<StockTransaction> GetQueryable()
     {
         return _dbContext.StockTransactions.AsQueryable();
     }
 
-    /// <summary>Lưu thay đổi vào DB.</summary>
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         return await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
+    // S1125 fix: remove == false
     public Task<List<StockTransaction>> GetByTransferIdAsync(Guid transferId, CancellationToken cancellationToken)
     {
         return _dbContext.StockTransactions
-            .Where(st => st.Id == transferId && st.IsDeleted == false)
+            .Where(st => st.Id == transferId && !st.IsDeleted)
             .ToListAsync(cancellationToken);
     }
 }

@@ -1,57 +1,64 @@
+
 @echo off
-set "BASE_DIR=%~dp0"
-cd /d "%BASE_DIR%"
 setlocal enabledelayedexpansion
 
 :: ======================================================
-:: 1. NẠP CẤU HÌNH TỪ FILE .ENV
+:: CẤU HÌNH THÔNG TIN (thay Token của Duy vào đây)
 :: ======================================================
-if exist ".env" (
-    echo [INFO] Dang nap cau hinh tu file .env...
-    for /f "usebackq tokens=*" %%i in (".env") do (
-        set "line=%%i"
-        if not "!line!"=="" (
-            set "firstChar=!line:~0,1!"
-            if not "!firstChar!"=="#" (set "%%i")
-        )
-    )
-)
-<<<<<<< HEAD
-set SONAR_TOKEN=squ_b93c8b22e96b3ec419bc7839c0151668f15c5e6a
+set SONAR_TOKEN=squ_e606a79c62a30bdcf3c46d93f22057bd6e3315cb
 set SONAR_URL=http://localhost:9005
-=======
->>>>>>> 2919b16f9861dff17590d0570f57e14e584503b0
 
-:: KHÔI PHỤC TOOL
-cd /d "%BASE_DIR%backend"
-dotnet tool restore >nul 2>&1
-cd /d "%BASE_DIR%"
+:: TỰ ĐỘNG RESTORE LOCAL TOOL
+echo --- Dang kiem tra va khoi phuc SonarScanner trong thu muc backend... ---
+cd backend
+dotnet tool restore
+cd ..
 
 :MENU
 cls
 echo ======================================================
-echo           CHB FULLSTACK SERVICE SCANNER (v3.9)
+echo           CHB BACKEND SERVICE SCANNER (LOCAL TOOL)
 echo ======================================================
-echo  ID  ^| Service Name (.NET)      ID  ^| Service Name (Go)
+echo  ID  ^| Service Name
 echo ------------------------------------------------------
-echo  1   ^| AppHost                 13  ^| API-Gateway
-echo  2   ^| BuildingBlocks
-echo  3   ^| EngagementService
-echo  4   ^| FranchiseService
-echo  5   ^| IdentityService
-echo  6   ^| InventoryService
-echo  7   ^| NotificationService
-echo  8   ^| ProductService
-echo  9   ^| SaleService
-echo  10  ^| SharedKernel
-echo  11  ^| SupplierService
-echo  12  ^| WarehouseService         0   ^| Thoat
+echo  1   ^| AppHost             7   ^| NotificationService
+echo  2   ^| BuildingBlocks      8   ^| ProductService
+echo  3   ^| EngagementService   9   ^| SaleService
+echo  4   ^| FranchiseService    10  ^| SharedKernel
+echo  5   ^| IdentityService     11  ^| SupplierService
+echo  6   ^| InventoryService    12  ^| WarehouseService
+echo  0   ^| Thoat               13  ^| API-Gateway
 echo ------------------------------------------------------
 
 set /p CHOICE="Chon ID Service can quet (0-13): "
+
 if "%CHOICE%"=="0" exit
 
-:: LOGIC XỬ LÝ TÊN SERVICE
+:: ======================================================
+:: LOGIC QUÉT API-GATEWAY (GOLANG)
+:: ======================================================
+if "%CHOICE%"=="13" (
+    set SNAME=api-gateway
+    set PROJECT_KEY=chb-api-gateway
+    echo.
+    echo --- Dang chuan bi quet cho GO: !SNAME! ---
+    
+    :: Chạy Scanner CLI qua Docker (Sạch sẽ, không cần cài Java/Go Scanner vào máy)
+    :: Lưu ý: Dùng host.docker.internal để Container kết nối được SonarQube trên Host
+    docker run --rm ^
+      -v "%CD%\api-gateway:/usr/src" ^
+      sonarsource/sonar-scanner-cli ^
+      -Dsonar.projectKey=!PROJECT_KEY! ^
+      -Dsonar.sources=. ^
+      -Dsonar.host.url=http://host.docker.internal:9005 ^
+      -Dsonar.login=%SONAR_TOKEN%
+    
+    goto FINISH
+)
+
+:: ======================================================
+:: LOGIC QUÉT BACKEND (.NET)
+:: ======================================================
 if "%CHOICE%"=="1" set SNAME=AppHost
 if "%CHOICE%"=="2" set SNAME=BuildingBlocks
 if "%CHOICE%"=="3" set SNAME=EngagementService
@@ -60,61 +67,48 @@ if "%CHOICE%"=="5" set SNAME=IdentityService
 if "%CHOICE%"=="6" set SNAME=InventoryService
 if "%CHOICE%"=="7" set SNAME=NotificationService
 if "%CHOICE%"=="8" set SNAME=ProductService
-if "%CHOICE%"=="9" set SNAME=SaleService
+if "%CHOICE%"=="9" set SNAME=SalesService
 if "%CHOICE%"=="10" set SNAME=SharedKernel
 if "%CHOICE%"=="11" set SNAME=SupplierService
 if "%CHOICE%"=="12" set SNAME=WarehouseService
 
 if not defined SNAME (
-    echo Lua chon khong hop le!
-    pause
+    echo Lua chon khong hop le! Nhan phim bat ky de thu lai.
+    pause >nul
     goto MENU
 )
 
-set PROJECT_KEY=chb-!SNAME!
+set PROJECT_KEY=chb-%SNAME%
+
 echo.
-echo --- [START] Dang phan tich Service: !SNAME! ---
+echo --- Dang chuan bi quet cho .NET: %SNAME% ---
 
-cd /d "%BASE_DIR%backend\!SNAME!"
-
-:: DỌN DẸP CACHE
+cd backend\%SNAME%
 if exist ".sonarqube" rd /s /q ".sonarqube"
-if exist "TestResults" rd /s /q "TestResults"
 
-:: BƯỚC 3.1: BẮT ĐẦU QUÉT (CHIẾN THUẬT LOẠI TRỪ COVERAGE)
-:: - sonar.sources=".": Quét TOÀN BỘ để tìm Code Smell (Bao gồm cả SharedKernel nếu có reference)
-:: - sonar.coverage.exclusions: LOẠI BỎ các tầng không phải logic khỏi bảng tính % Coverage
-dotnet sonarscanner begin /k:"!PROJECT_KEY!" ^
-  /d:sonar.host.url="!SONAR_URL!" ^
-  /d:sonar.token="!SONAR_TOKEN!" ^
-  /d:sonar.cs.opencover.reportsPaths="**/*.xml" ^
-  /d:sonar.coverage.exclusions="**/*.API/**,**/*.Infrastructure/**,**/*.Domain/**,**/SharedKernel/**,**/*Command.cs,**/*Query.cs,**/*Response.cs,**/*Request.cs,**/Migrations/**" ^
-  /d:sonar.exclusions="**/obj/**,**/bin/**,**/Migrations/**,**/Protos/**"
+:: BAT DAU QUET .NET
+dotnet sonarscanner begin /k:"%PROJECT_KEY%" /d:sonar.host.url="%SONAR_URL%" /d:sonar.login="%SONAR_TOKEN%" /d:sonar.exclusions="**/obj/**,**/bin/**,**/Protos/**"
 
-:: BƯỚC 3.2: BUILD
-for /r %%i in (*.csproj) do (dotnet build "%%i" -c Debug -v quiet)
-
-:: BƯỚC 3.3: CHẠY UNIT TEST
-echo --- Dang chay Unit Test cho !SNAME!... ---
-for /d /r %%d in (*) do (
-    set "foldername=%%~nxd"
-    echo !foldername! | findstr /i "Test" >nul
-    if !errorlevel! == 0 (
-        if exist "%%d\*.csproj" (
-            dotnet test "%%d" --no-build --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
-        )
-    )
+:: BUILD
+echo --- Dang build cac project trong %SNAME%... ---
+for /r %%i in (*.csproj) do (
+    dotnet build "%%i" -c Debug
 )
 
-:: BƯỚC 3.4: KẾT THÚC
-dotnet sonarscanner end /d:sonar.token="!SONAR_TOKEN!"
-
-cd /d "%BASE_DIR%"
+:: KET THUC QUET .NET
+dotnet sonarscanner end /d:sonar.login="%SONAR_TOKEN%"
+cd ..\..
 
 :FINISH
+echo.
 echo ======================================================
-echo DONE! Check dashboard.
+echo HOAN TAT QUET %SNAME%!
 echo ======================================================
-start !SONAR_URL!/dashboard?id=!PROJECT_KEY!
-pause
+echo.
+
+:: Mo trinh duyet xem dashboard
+start %SONAR_URL%/dashboard?id=%PROJECT_KEY%
+
+echo Nhan phim bat ky de quay lai Menu...
+pause >nul
 goto MENU

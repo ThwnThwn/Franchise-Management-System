@@ -26,7 +26,7 @@ public class WarehouseItemRepository : IWarehouseItemRepository
     }
 
     /// <summary>Kiểm tra ProductId đã tồn tại trong kho chưa (loại trừ 1 ID nếu cần).</summary>
-    public async Task<bool>IngredientExistsInWarehouseAsync(Guid warehouseId, Guid IngredientId, Guid? excludeId = null, CancellationToken cancellationToken = default)
+    public async Task<bool> IngredientExistsInWarehouseAsync(Guid warehouseId, Guid IngredientId, Guid? excludeId = null, CancellationToken cancellationToken = default)
     {
         var query = _dbContext.WarehouseItems
             .Where(wi => wi.WarehouseId == warehouseId && wi.IngredientId == IngredientId && wi.IsDeleted == false);
