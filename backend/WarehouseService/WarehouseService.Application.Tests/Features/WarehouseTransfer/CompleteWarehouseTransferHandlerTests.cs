@@ -5,34 +5,34 @@ using MockQueryable;
 using WarehouseService.Application.Features.WarehouseTransfers.Command.CompleteWarehouseTransfer;
 using WarehouseService.Application.Repositories;
 using WarehouseService.Domain.Enums;
-using WarehouseTransferEntity = WarehouseService.Domain.Entities.WarehouseTransfer;
+using WarehouseTransferEntity     = WarehouseService.Domain.Entities.WarehouseTransfer;
 using WarehouseTransferItemEntity = WarehouseService.Domain.Entities.WarehouseTransferItem;
-using WarehouseItemEntity = WarehouseService.Domain.Entities.WarehouseItem;
-using StockTransactionEntity = WarehouseService.Domain.Entities.StockTransaction;
+using WarehouseItemEntity         = WarehouseService.Domain.Entities.WarehouseItem;
+using StockTransactionEntity      = WarehouseService.Domain.Entities.StockTransaction;
 
 namespace WarehouseService.Application.Tests.Features.WarehouseTransfers;
 
 public class CompleteWarehouseTransferHandlerTests
 {
-    private readonly Mock<IWarehouseTransferRepository> _transferRepositoryMock;
+    private readonly Mock<IWarehouseTransferRepository>     _transferRepositoryMock;
     private readonly Mock<IWarehouseTransferItemRepository> _transferItemRepositoryMock;
-    private readonly Mock<IWarehouseItemRepository> _warehouseItemRepositoryMock;
-    private readonly Mock<IStockTransactionRepository> _stockTransactionRepositoryMock;
+    private readonly Mock<IWarehouseItemRepository>         _warehouseItemRepositoryMock;
+    private readonly Mock<IStockTransactionRepository>      _stockTransactionRepositoryMock;
     private readonly CompleteWarehouseTransferCommandHandler _handler;
 
     // Fixed IDs reused across tests
-    private readonly Guid _transferId = Guid.NewGuid();
+    private readonly Guid _transferId     = Guid.NewGuid();
     private readonly Guid _fromWarehouseId = Guid.NewGuid();
-    private readonly Guid _toWarehouseId = Guid.NewGuid();
+    private readonly Guid _toWarehouseId   = Guid.NewGuid();
 
     // Reusable approved transfer
     private readonly WarehouseTransferEntity _approvedTransfer;
 
     public CompleteWarehouseTransferHandlerTests()
     {
-        _transferRepositoryMock = new Mock<IWarehouseTransferRepository>();
-        _transferItemRepositoryMock = new Mock<IWarehouseTransferItemRepository>();
-        _warehouseItemRepositoryMock = new Mock<IWarehouseItemRepository>();
+        _transferRepositoryMock         = new Mock<IWarehouseTransferRepository>();
+        _transferItemRepositoryMock     = new Mock<IWarehouseTransferItemRepository>();
+        _warehouseItemRepositoryMock    = new Mock<IWarehouseItemRepository>();
         _stockTransactionRepositoryMock = new Mock<IStockTransactionRepository>();
 
         _handler = new CompleteWarehouseTransferCommandHandler(
@@ -44,14 +44,14 @@ public class CompleteWarehouseTransferHandlerTests
 
         _approvedTransfer = new WarehouseTransferEntity
         {
-            Id = _transferId,
-            TransferCode = "TRF-20260101-ABCDEF",
-            Status = TransferStatus.Approved,
+            Id              = _transferId,
+            TransferCode    = "TRF-20260101-ABCDEF",
+            Status          = TransferStatus.Approved,
             FromWarehouseId = _fromWarehouseId,
-            ToWarehouseId = _toWarehouseId,
-            IsDeleted = false,
-            CreatedAt = DateTimeOffset.UtcNow.AddDays(-1),
-            UpdatedAt = DateTimeOffset.UtcNow.AddDays(-1)
+            ToWarehouseId   = _toWarehouseId,
+            IsDeleted       = false,
+            CreatedAt       = DateTimeOffset.UtcNow.AddDays(-1),
+            UpdatedAt       = DateTimeOffset.UtcNow.AddDays(-1)
         };
 
         // Default: transfer found
@@ -176,8 +176,8 @@ public class CompleteWarehouseTransferHandlerTests
     public async Task Handle_ShouldThrowKeyNotFoundException_WhenSourceItemDoesNotExist()
     {
         // Arrange
-        var ingredientId = Guid.NewGuid();
-        var transferItemId = Guid.NewGuid();
+        var ingredientId    = Guid.NewGuid();
+        var transferItemId  = Guid.NewGuid();
 
         SetupTransferItems(new List<WarehouseTransferItemEntity>
         {
@@ -201,7 +201,7 @@ public class CompleteWarehouseTransferHandlerTests
     public async Task Handle_ShouldThrowInvalidOperationException_WhenSourceItemHasInsufficientStock()
     {
         // Arrange — source has 3, transfer wants 10
-        var ingredientId = Guid.NewGuid();
+        var ingredientId   = Guid.NewGuid();
         var transferItemId = Guid.NewGuid();
 
         SetupTransferItems(new List<WarehouseTransferItemEntity>
@@ -228,7 +228,7 @@ public class CompleteWarehouseTransferHandlerTests
     public async Task Handle_ShouldNotThrow_WhenSourceItemQuantityEqualsRequestedQuantity()
     {
         // Arrange — exact boundary: available == requested
-        var ingredientId = Guid.NewGuid();
+        var ingredientId   = Guid.NewGuid();
         var transferItemId = Guid.NewGuid();
 
         SetupTransferItems(new List<WarehouseTransferItemEntity>
@@ -237,7 +237,7 @@ public class CompleteWarehouseTransferHandlerTests
         });
 
         var fromItem = BuildWarehouseItem(transferItemId, _fromWarehouseId, ingredientId, quantity: 10m);
-        var toItem = BuildWarehouseItem(Guid.NewGuid(), _toWarehouseId, ingredientId, quantity: 5m);
+        var toItem   = BuildWarehouseItem(Guid.NewGuid(), _toWarehouseId,   ingredientId, quantity: 5m);
 
         _warehouseItemRepositoryMock
             .Setup(x => x.GetByIdAsync(transferItemId, It.IsAny<CancellationToken>()))
@@ -256,7 +256,7 @@ public class CompleteWarehouseTransferHandlerTests
     public async Task Handle_ShouldThrowKeyNotFoundException_WhenDestinationItemDoesNotExist()
     {
         // Arrange — source exists and has stock, but destination has no matching ingredient
-        var ingredientId = Guid.NewGuid();
+        var ingredientId   = Guid.NewGuid();
         var transferItemId = Guid.NewGuid();
 
         SetupTransferItems(new List<WarehouseTransferItemEntity>
@@ -284,7 +284,7 @@ public class CompleteWarehouseTransferHandlerTests
     public async Task Handle_ShouldNotCallSaveChangesAsync_WhenSourceItemHasInsufficientStock()
     {
         // Arrange
-        var ingredientId = Guid.NewGuid();
+        var ingredientId   = Guid.NewGuid();
         var transferItemId = Guid.NewGuid();
 
         SetupTransferItems(new List<WarehouseTransferItemEntity>
@@ -372,7 +372,7 @@ public class CompleteWarehouseTransferHandlerTests
     public async Task Handle_ShouldReturnCorrectTransferredItemInfo()
     {
         // Arrange
-        var ingredientId = Guid.NewGuid();
+        var ingredientId   = Guid.NewGuid();
         var transferItemId = Guid.NewGuid();
 
         SetupTransferItems(new List<WarehouseTransferItemEntity>
@@ -381,7 +381,7 @@ public class CompleteWarehouseTransferHandlerTests
         });
 
         var fromItem = BuildWarehouseItem(transferItemId, _fromWarehouseId, ingredientId, quantity: 20m, unit: "litre");
-        var toItem = BuildWarehouseItem(Guid.NewGuid(), _toWarehouseId, ingredientId, quantity: 5m);
+        var toItem   = BuildWarehouseItem(Guid.NewGuid(), _toWarehouseId,   ingredientId, quantity: 5m);
 
         _warehouseItemRepositoryMock
             .Setup(x => x.GetByIdAsync(transferItemId, It.IsAny<CancellationToken>()))
@@ -408,8 +408,8 @@ public class CompleteWarehouseTransferHandlerTests
     public async Task Handle_ShouldReturnMultipleTransferredItems_WhenTransferHasMultipleItems()
     {
         // Arrange
-        var ingredientId1 = Guid.NewGuid();
-        var ingredientId2 = Guid.NewGuid();
+        var ingredientId1   = Guid.NewGuid();
+        var ingredientId2   = Guid.NewGuid();
         var transferItemId1 = Guid.NewGuid();
         var transferItemId2 = Guid.NewGuid();
 
@@ -421,8 +421,8 @@ public class CompleteWarehouseTransferHandlerTests
 
         var fromItem1 = BuildWarehouseItem(transferItemId1, _fromWarehouseId, ingredientId1, quantity: 20m);
         var fromItem2 = BuildWarehouseItem(transferItemId2, _fromWarehouseId, ingredientId2, quantity: 15m);
-        var toItem1 = BuildWarehouseItem(Guid.NewGuid(), _toWarehouseId, ingredientId1, quantity: 2m);
-        var toItem2 = BuildWarehouseItem(Guid.NewGuid(), _toWarehouseId, ingredientId2, quantity: 4m);
+        var toItem1   = BuildWarehouseItem(Guid.NewGuid(), _toWarehouseId, ingredientId1, quantity: 2m);
+        var toItem2   = BuildWarehouseItem(Guid.NewGuid(), _toWarehouseId, ingredientId2, quantity: 4m);
 
         _warehouseItemRepositoryMock
             .Setup(x => x.GetByIdAsync(transferItemId1, It.IsAny<CancellationToken>()))
@@ -514,11 +514,11 @@ public class CompleteWarehouseTransferHandlerTests
     /// </summary>
     private (WarehouseItemEntity fromItem, WarehouseItemEntity toItem, List<WarehouseTransferItemEntity> transferItems)
         SetupValidSingleItemTransfer(
-            decimal fromQty = 20m,
-            decimal toQty = 5m,
+            decimal fromQty     = 20m,
+            decimal toQty       = 5m,
             decimal transferQty = 5m)
     {
-        var ingredientId = Guid.NewGuid();
+        var ingredientId   = Guid.NewGuid();
         var transferItemId = Guid.NewGuid();
 
         var transferItems = new List<WarehouseTransferItemEntity>
@@ -529,7 +529,7 @@ public class CompleteWarehouseTransferHandlerTests
         SetupTransferItems(transferItems);
 
         var fromItem = BuildWarehouseItem(transferItemId, _fromWarehouseId, ingredientId, quantity: fromQty);
-        var toItem = BuildWarehouseItem(Guid.NewGuid(), _toWarehouseId, ingredientId, quantity: toQty);
+        var toItem   = BuildWarehouseItem(Guid.NewGuid(), _toWarehouseId,   ingredientId, quantity: toQty);
 
         _warehouseItemRepositoryMock
             .Setup(x => x.GetByIdAsync(transferItemId, It.IsAny<CancellationToken>()))
@@ -556,39 +556,40 @@ public class CompleteWarehouseTransferHandlerTests
             .Returns(mock);
     }
 
-    private static WarehouseTransferItemEntity BuildTransferItem(
-        Guid warehouseItemId,
-        Guid ingredientId,
-        decimal quantity = 5m,
+    private WarehouseTransferItemEntity BuildTransferItem(
+        Guid    warehouseItemId,
+        Guid    ingredientId,
+        decimal quantity  = 5m,
         decimal unitPrice = 10m
     ) => new()
     {
-        Id = Guid.NewGuid(),
-        WarehouseItemId = warehouseItemId,
-        IngredientId = ingredientId,
-        Quantity = quantity,
-        UnitPrice = unitPrice,
-        CreatedAt = DateTimeOffset.UtcNow,
-        UpdatedAt = DateTimeOffset.UtcNow
+        Id                  = Guid.NewGuid(),
+        WarehouseTransferId = _transferId,   // must match request.Id for the Where filter
+        WarehouseItemId     = warehouseItemId,
+        IngredientId        = ingredientId,
+        Quantity            = quantity,
+        UnitPrice           = unitPrice,
+        CreatedAt           = DateTimeOffset.UtcNow,
+        UpdatedAt           = DateTimeOffset.UtcNow
     };
 
     private static WarehouseItemEntity BuildWarehouseItem(
-        Guid id,
-        Guid warehouseId,
-        Guid ingredientId,
-        decimal quantity = 20m,
+        Guid    id,
+        Guid    warehouseId,
+        Guid    ingredientId,
+        decimal quantity  = 20m,
         decimal basePrice = 10m,
-        string unit = "kg"
+        string  unit      = "kg"
     ) => new()
     {
-        Id = id,
-        WarehouseId = warehouseId,
+        Id           = id,
+        WarehouseId  = warehouseId,
         IngredientId = ingredientId,
-        Unit = unit,
-        Quantity = quantity,
-        BasePrice = basePrice,
-        IsDeleted = false,
-        CreatedAt = DateTimeOffset.UtcNow,
-        UpdatedAt = DateTimeOffset.UtcNow
+        Unit         = unit,
+        Quantity     = quantity,
+        BasePrice    = basePrice,
+        IsDeleted    = false,
+        CreatedAt    = DateTimeOffset.UtcNow,
+        UpdatedAt    = DateTimeOffset.UtcNow
     };
 }

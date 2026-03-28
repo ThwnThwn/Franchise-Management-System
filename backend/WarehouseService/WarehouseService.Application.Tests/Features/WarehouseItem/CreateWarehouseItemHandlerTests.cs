@@ -9,16 +9,16 @@ namespace WarehouseService.Application.Tests.Features.WarehouseItems;
 
 public class CreateWarehouseItemHandlerTests
 {
-    private readonly Mock<IWarehouseRepository> _warehouseRepositoryMock;
-    private readonly Mock<IWarehouseItemRepository> _itemRepositoryMock;
-    private readonly Mock<IInventoryServiceClient> _inventoryClientMock;
+    private readonly Mock<IWarehouseRepository>      _warehouseRepositoryMock;
+    private readonly Mock<IWarehouseItemRepository>  _itemRepositoryMock;
+    private readonly Mock<IInventoryServiceClient>   _inventoryClientMock;
     private readonly CreateWarehouseItemCommandHandler _handler;
 
     public CreateWarehouseItemHandlerTests()
     {
         _warehouseRepositoryMock = new Mock<IWarehouseRepository>();
-        _itemRepositoryMock = new Mock<IWarehouseItemRepository>();
-        _inventoryClientMock = new Mock<IInventoryServiceClient>();
+        _itemRepositoryMock      = new Mock<IWarehouseItemRepository>();
+        _inventoryClientMock     = new Mock<IInventoryServiceClient>();
 
         _handler = new CreateWarehouseItemCommandHandler(
             _warehouseRepositoryMock.Object,
@@ -37,7 +37,7 @@ public class CreateWarehouseItemHandlerTests
 
         _itemRepositoryMock
             .Setup(x => x.IngredientExistsInWarehouseAsync(
-                It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+                It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<Guid?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
 
         _itemRepositoryMock
@@ -101,7 +101,7 @@ public class CreateWarehouseItemHandlerTests
 
         _itemRepositoryMock
             .Setup(x => x.IngredientExistsInWarehouseAsync(
-                It.IsAny<Guid>(), ingredientId, It.IsAny<Guid>(),It.IsAny<CancellationToken>()))
+                It.IsAny<Guid>(), ingredientId, It.IsAny<Guid?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
         var command = BuildCommand(ingredientId: ingredientId);
@@ -120,17 +120,17 @@ public class CreateWarehouseItemHandlerTests
     public async Task Handle_ShouldReturnResult_WithAllFieldsMapped_WhenRequestIsValid()
     {
         // Arrange
-        var warehouseId = Guid.NewGuid();
+        var warehouseId  = Guid.NewGuid();
         var ingredientId = Guid.NewGuid();
-        var expiry = new DateTime(2026, 12, 31, 0, 0, 0, DateTimeKind.Utc);
+        var expiry       = new DateTime(2026, 12, 31, 0, 0, 0, DateTimeKind.Utc);
 
         var command = BuildCommand(
-            warehouseId: warehouseId,
+            warehouseId:  warehouseId,
             ingredientId: ingredientId,
-            unit: "kg",
-            quantity: 10.5m,
-            basePrice: 99.99m,
-            expiryDate: expiry
+            unit:         "kg",
+            quantity:     10.5m,
+            basePrice:    99.99m,
+            expiryDate:   expiry
         );
 
         // Act
@@ -227,7 +227,7 @@ public class CreateWarehouseItemHandlerTests
 
         _itemRepositoryMock
             .Setup(x => x.IngredientExistsInWarehouseAsync(
-                It.IsAny<Guid>(), ingredientId, It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+                It.IsAny<Guid>(), ingredientId, It.IsAny<Guid?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
         var command = BuildCommand(ingredientId: ingredientId);
@@ -301,7 +301,7 @@ public class CreateWarehouseItemHandlerTests
         // Arrange
         _itemRepositoryMock
             .Setup(x => x.IngredientExistsInWarehouseAsync(
-                It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+                It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<Guid?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
         var command = BuildCommand();
@@ -322,18 +322,18 @@ public class CreateWarehouseItemHandlerTests
     // -----------------------------------------------------------------------
 
     private static CreateWarehouseItemCommand BuildCommand(
-        Guid? warehouseId = null,
-        Guid? ingredientId = null,
-        string? unit = null,
-        decimal quantity = 1m,
-        decimal basePrice = 10m,
-        DateTime? expiryDate = null
+        Guid?     warehouseId  = null,
+        Guid?     ingredientId = null,
+        string?   unit         = null,
+        decimal   quantity     = 1m,
+        decimal   basePrice    = 10m,
+        DateTime? expiryDate   = null
     ) => new CreateWarehouseItemCommand(
-        WarehouseId: warehouseId ?? Guid.NewGuid(),
+        WarehouseId:  warehouseId  ?? Guid.NewGuid(),
         IngredientId: ingredientId ?? Guid.NewGuid(),
-        Unit: unit ?? "kg",
-        Quantity: quantity,
-        BasePrice: basePrice,
-        ExpiryDate: expiryDate
+        Unit:         unit         ?? "kg",
+        Quantity:     quantity,
+        BasePrice:    basePrice,
+        ExpiryDate:   expiryDate
     );
 }

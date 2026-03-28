@@ -1,5 +1,4 @@
-﻿
-using BuildingBlocks.Core.Pagination;
+﻿using BuildingBlocks.Core.Pagination;
 
 namespace BuildingBlocks.Core.Extensions
 {

@@ -1,34 +1,25 @@
 ﻿using Ardalis.Result;
 using AutoMapper;
 using MediatR;
-using ProductService.Application.Features.Categories.Queries.GetById;
 using ProductService.Application.Repositories;
 using static ProductService.Application.Features.Categories.Queries.GetById.GetCategoryByIdQuery;
 
-namespace ProductService.Application.Features.Categories.Queries.GetById
+namespace ProductService.Application.Features.Categories.Queries.GetById;
+
+public sealed class GetCategoryByIdQueryHandler(
+    ICategoryRepository categoryRepository, IMapper mapper
+) : IRequestHandler<GetCategoryByIdQuery, Result<GetCategoryByIdResponse>>
 {
-    public sealed class GetCategoryByIdQueryHandler :
-        IRequestHandler<GetCategoryByIdQuery, Result<GetCategoryByIdResponse>>
+    public async Task<Result<GetCategoryByIdResponse>> Handle(
+        GetCategoryByIdQuery request,
+        CancellationToken cancellationToken)
     {
-        private readonly ICategoryRepository _categoryRepository;
-        private readonly IMapper _mapper;
-        public GetCategoryByIdQueryHandler(ICategoryRepository categoryRepository, IMapper mapper)
+        var category = await categoryRepository.GetByIdAsync(request.CategoryId);
+        if (category is null)
         {
-            _categoryRepository = categoryRepository;
-            _mapper = mapper;
+            return Result.NotFound($"Category with id '{request.CategoryId}' not found.");
         }
 
-        public async Task<Result<GetCategoryByIdResponse>> Handle(
-            GetCategoryByIdQuery request,
-            CancellationToken cancellationToken)
-        {
-            var category = await _categoryRepository.GetByIdAsync(request.categoryId);
-            if (category is null)
-            {
-                return Result.NotFound($"Category with id '{request.categoryId}' not found.");
-            }
-            
-            return Result.Success(_mapper.Map<GetCategoryByIdResponse>(category));
-        }
+        return Result.Success(mapper.Map<GetCategoryByIdResponse>(category));
     }
 }

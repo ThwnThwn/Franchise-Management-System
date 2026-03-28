@@ -1,16 +1,6 @@
-﻿using Confluent.Kafka;
-using EngagementService.Application.Constants;
-using EngagementService.Application.Dtos.Voucher;
+﻿using EngagementService.Application.Constants;
 using EngagementService.Application.Persistences.Repository;
-using EngagementService.Domain.Entities;
 using MediatR;
-using Microsoft.AspNetCore.Mvc.Filters;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.WebSockets;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EngagementService.Application.Features.Voucher.Commands.Update
 {

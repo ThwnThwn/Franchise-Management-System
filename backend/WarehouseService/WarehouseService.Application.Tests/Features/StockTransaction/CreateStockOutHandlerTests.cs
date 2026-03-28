@@ -1,26 +1,27 @@
 ﻿using Moq;
+using Xunit;
 using FluentAssertions;
 using MockQueryable;
 using WarehouseService.Application.Features.StockTransactions.Command.CreateStockOut;
 using WarehouseService.Application.Repositories;
 using WarehouseService.Domain.Enums;
-using WarehouseItemEntity = WarehouseService.Domain.Entities.WarehouseItem;
-using WarehouseEntity = WarehouseService.Domain.Entities.Warehouse;
-using StockTransactionEntity = WarehouseService.Domain.Entities.StockTransaction;
+using WarehouseItemEntity     = WarehouseService.Domain.Entities.WarehouseItem;
+using WarehouseEntity         = WarehouseService.Domain.Entities.Warehouse;
+using StockTransactionEntity  = WarehouseService.Domain.Entities.StockTransaction;
 
 namespace WarehouseService.Application.Tests.Features.StockTransactions;
 
 public class CreateStockOutHandlerTests
 {
-    private readonly Mock<IWarehouseRepository> _warehouseRepositoryMock;
-    private readonly Mock<IWarehouseItemRepository> _itemRepositoryMock;
+    private readonly Mock<IWarehouseRepository>        _warehouseRepositoryMock;
+    private readonly Mock<IWarehouseItemRepository>    _itemRepositoryMock;
     private readonly Mock<IStockTransactionRepository> _transactionRepositoryMock;
-    private readonly CreateStockOutCommandHandler _handler;
+    private readonly CreateStockOutCommandHandler      _handler;
 
     public CreateStockOutHandlerTests()
     {
-        _warehouseRepositoryMock = new Mock<IWarehouseRepository>();
-        _itemRepositoryMock = new Mock<IWarehouseItemRepository>();
+        _warehouseRepositoryMock   = new Mock<IWarehouseRepository>();
+        _itemRepositoryMock        = new Mock<IWarehouseItemRepository>();
         _transactionRepositoryMock = new Mock<IStockTransactionRepository>();
 
         _handler = new CreateStockOutCommandHandler(
@@ -93,11 +94,13 @@ public class CreateStockOutHandlerTests
     [Fact]
     public async Task Handle_ShouldThrowInvalidOperationException_WhenRequestContainsDuplicateIngredientId()
     {
-        // Arrange
-        var warehouseId = Guid.NewGuid();
+        // Arrange — original StockOut handler uses foreach + ContainsKey:
+        // first item is looked up successfully, second item triggers ContainsKey → InvalidOperationException
+        var warehouseId  = Guid.NewGuid();
         var ingredientId = Guid.NewGuid();
 
-        SetupItemQueryable(new List<WarehouseItemEntity>());
+        var existingItem = BuildWarehouseItem(warehouseId, ingredientId, quantity: 50m);
+        SetupItemQueryable(new List<WarehouseItemEntity> { existingItem });
 
         var command = BuildCommand(
             warehouseId: warehouseId,
@@ -117,14 +120,19 @@ public class CreateStockOutHandlerTests
     public async Task Handle_ShouldNotCallSaveChangesAsync_WhenDuplicateIngredientDetected()
     {
         // Arrange
+        var warehouseId  = Guid.NewGuid();
         var ingredientId = Guid.NewGuid();
-        SetupItemQueryable(new List<WarehouseItemEntity>());
 
-        var command = BuildCommand(items: new[]
-        {
-            new StockOutItemDto(ingredientId, 5, 10m),
-            new StockOutItemDto(ingredientId, 3, 10m)
-        });
+        var existingItem = BuildWarehouseItem(warehouseId, ingredientId, quantity: 50m);
+        SetupItemQueryable(new List<WarehouseItemEntity> { existingItem });
+
+        var command = BuildCommand(
+            warehouseId: warehouseId,
+            items: new[]
+            {
+                new StockOutItemDto(ingredientId, 5, 10m),
+                new StockOutItemDto(ingredientId, 3, 10m)
+            });
 
         // Act
         await _handler.Invoking(x => x.Handle(command, default))
@@ -145,7 +153,7 @@ public class CreateStockOutHandlerTests
     public async Task Handle_ShouldThrowKeyNotFoundException_WhenIngredientNotInWarehouse()
     {
         // Arrange
-        var warehouseId = Guid.NewGuid();
+        var warehouseId  = Guid.NewGuid();
         var ingredientId = Guid.NewGuid();
 
         SetupItemQueryable(new List<WarehouseItemEntity>());  // no matching item
@@ -164,7 +172,7 @@ public class CreateStockOutHandlerTests
     public async Task Handle_ShouldThrowKeyNotFoundException_ContainingWarehouseId_WhenIngredientNotInWarehouse()
     {
         // Arrange
-        var warehouseId = Guid.NewGuid();
+        var warehouseId  = Guid.NewGuid();
         var ingredientId = Guid.NewGuid();
 
         SetupItemQueryable(new List<WarehouseItemEntity>());
@@ -187,7 +195,7 @@ public class CreateStockOutHandlerTests
     public async Task Handle_ShouldThrowInvalidOperationException_WhenRequestedQuantityExceedsStock()
     {
         // Arrange
-        var warehouseId = Guid.NewGuid();
+        var warehouseId  = Guid.NewGuid();
         var ingredientId = Guid.NewGuid();
 
         // item has 5 in stock, request wants 10
@@ -196,7 +204,7 @@ public class CreateStockOutHandlerTests
 
         var command = BuildCommand(
             warehouseId: warehouseId,
-            items: new[] { new StockOutItemDto(ingredientId, Quantity: 10m, UnitPrice: 5m) });
+            items: new[] { new StockOutItemDto(ingredientId, quantity: 10m, unitPrice: 5m) });
 
         // Act & Assert
         await _handler.Invoking(x => x.Handle(command, default))
@@ -208,7 +216,7 @@ public class CreateStockOutHandlerTests
     public async Task Handle_ShouldNotThrow_WhenRequestedQuantityEqualsStock()
     {
         // Arrange — exact boundary: requested == available
-        var warehouseId = Guid.NewGuid();
+        var warehouseId  = Guid.NewGuid();
         var ingredientId = Guid.NewGuid();
 
         var item = BuildWarehouseItem(warehouseId, ingredientId, quantity: 10m);
@@ -216,7 +224,7 @@ public class CreateStockOutHandlerTests
 
         var command = BuildCommand(
             warehouseId: warehouseId,
-            items: new[] { new StockOutItemDto(ingredientId, Quantity: 10m, UnitPrice: 5m) });
+            items: new[] { new StockOutItemDto(ingredientId, quantity: 10m, unitPrice: 5m) });
 
         // Act & Assert
         await _handler.Invoking(x => x.Handle(command, default))
@@ -227,7 +235,7 @@ public class CreateStockOutHandlerTests
     public async Task Handle_ShouldNotThrow_WhenRequestedQuantityIsLessThanStock()
     {
         // Arrange — normal case: requested < available
-        var warehouseId = Guid.NewGuid();
+        var warehouseId  = Guid.NewGuid();
         var ingredientId = Guid.NewGuid();
 
         var item = BuildWarehouseItem(warehouseId, ingredientId, quantity: 20m);
@@ -235,7 +243,7 @@ public class CreateStockOutHandlerTests
 
         var command = BuildCommand(
             warehouseId: warehouseId,
-            items: new[] { new StockOutItemDto(ingredientId, Quantity: 10m, UnitPrice: 5m) });
+            items: new[] { new StockOutItemDto(ingredientId, quantity: 10m, unitPrice: 5m) });
 
         // Act & Assert
         await _handler.Invoking(x => x.Handle(command, default))
@@ -246,7 +254,7 @@ public class CreateStockOutHandlerTests
     public async Task Handle_ShouldNotCallSaveChangesAsync_WhenStockIsInsufficient()
     {
         // Arrange
-        var warehouseId = Guid.NewGuid();
+        var warehouseId  = Guid.NewGuid();
         var ingredientId = Guid.NewGuid();
 
         var item = BuildWarehouseItem(warehouseId, ingredientId, quantity: 3m);
@@ -254,7 +262,7 @@ public class CreateStockOutHandlerTests
 
         var command = BuildCommand(
             warehouseId: warehouseId,
-            items: new[] { new StockOutItemDto(ingredientId, Quantity: 10m, UnitPrice: 5m) });
+            items: new[] { new StockOutItemDto(ingredientId, quantity: 10m, unitPrice: 5m) });
 
         // Act
         await _handler.Invoking(x => x.Handle(command, default))
@@ -275,7 +283,7 @@ public class CreateStockOutHandlerTests
     public async Task Handle_ShouldReturnResult_WithCorrectSummaryFields_WhenRequestIsValid()
     {
         // Arrange
-        var warehouseId = Guid.NewGuid();
+        var warehouseId  = Guid.NewGuid();
         var ingredientId = Guid.NewGuid();
 
         var item = BuildWarehouseItem(warehouseId, ingredientId, quantity: 50m);
@@ -283,7 +291,7 @@ public class CreateStockOutHandlerTests
 
         var command = BuildCommand(
             warehouseId: warehouseId,
-            items: new[] { new StockOutItemDto(ingredientId, Quantity: 10m, UnitPrice: 20m) });
+            items: new[] { new StockOutItemDto(ingredientId, quantity: 10m, unitPrice: 20m) });
 
         // Act
         var result = await _handler.Handle(command, default);
@@ -300,7 +308,7 @@ public class CreateStockOutHandlerTests
     public async Task Handle_ShouldCreateTransactions_WithPendingStatus()
     {
         // Arrange — quantity NOT deducted yet at creation time
-        var warehouseId = Guid.NewGuid();
+        var warehouseId  = Guid.NewGuid();
         var ingredientId = Guid.NewGuid();
 
         var item = BuildWarehouseItem(warehouseId, ingredientId, quantity: 50m);
@@ -322,7 +330,7 @@ public class CreateStockOutHandlerTests
     public async Task Handle_ShouldCreateTransactions_WithStockOutType()
     {
         // Arrange
-        var warehouseId = Guid.NewGuid();
+        var warehouseId  = Guid.NewGuid();
         var ingredientId = Guid.NewGuid();
 
         var item = BuildWarehouseItem(warehouseId, ingredientId, quantity: 50m);
@@ -344,7 +352,7 @@ public class CreateStockOutHandlerTests
     public async Task Handle_ShouldCalculateTotalPrice_PerTransaction()
     {
         // Arrange
-        var warehouseId = Guid.NewGuid();
+        var warehouseId  = Guid.NewGuid();
         var ingredientId = Guid.NewGuid();
 
         var item = BuildWarehouseItem(warehouseId, ingredientId, quantity: 50m);
@@ -352,7 +360,7 @@ public class CreateStockOutHandlerTests
 
         var command = BuildCommand(
             warehouseId: warehouseId,
-            items: new[] { new StockOutItemDto(ingredientId, Quantity: 4m, UnitPrice: 25m) });
+            items: new[] { new StockOutItemDto(ingredientId, quantity: 4m, unitPrice: 25m) });
 
         // Act
         var result = await _handler.Handle(command, default);
@@ -366,7 +374,7 @@ public class CreateStockOutHandlerTests
     public async Task Handle_ShouldGenerateTransactionCode_WithSOPrefix()
     {
         // Arrange
-        var warehouseId = Guid.NewGuid();
+        var warehouseId  = Guid.NewGuid();
         var ingredientId = Guid.NewGuid();
 
         var item = BuildWarehouseItem(warehouseId, ingredientId, quantity: 50m);
@@ -387,7 +395,7 @@ public class CreateStockOutHandlerTests
     public async Task Handle_ShouldMapIngredientId_ToEachTransactionDto()
     {
         // Arrange — two items, verify each DTO gets the right IngredientId
-        var warehouseId = Guid.NewGuid();
+        var warehouseId   = Guid.NewGuid();
         var ingredientId1 = Guid.NewGuid();
         var ingredientId2 = Guid.NewGuid();
 
@@ -470,7 +478,7 @@ public class CreateStockOutHandlerTests
     public async Task Handle_ShouldCallAddAsync_OncePerItem_WhenRequestIsValid()
     {
         // Arrange
-        var warehouseId = Guid.NewGuid();
+        var warehouseId   = Guid.NewGuid();
         var ingredientId1 = Guid.NewGuid();
         var ingredientId2 = Guid.NewGuid();
 
@@ -500,7 +508,7 @@ public class CreateStockOutHandlerTests
     public async Task Handle_ShouldCallSaveChangesAsync_ExactlyOnce_WhenRequestIsValid()
     {
         // Arrange
-        var warehouseId = Guid.NewGuid();
+        var warehouseId  = Guid.NewGuid();
         var ingredientId = Guid.NewGuid();
 
         var item = BuildWarehouseItem(warehouseId, ingredientId, quantity: 50m);
@@ -533,31 +541,31 @@ public class CreateStockOutHandlerTests
     }
 
     private static WarehouseItemEntity BuildWarehouseItem(
-        Guid warehouseId,
-        Guid ingredientId,
+        Guid    warehouseId,
+        Guid    ingredientId,
         decimal quantity = 20m
     ) => new()
     {
-        Id = Guid.NewGuid(),
-        WarehouseId = warehouseId,
+        Id           = Guid.NewGuid(),
+        WarehouseId  = warehouseId,
         IngredientId = ingredientId,
-        Unit = "kg",
-        Quantity = quantity,
-        BasePrice = 5m,
-        IsDeleted = false,
-        CreatedAt = DateTimeOffset.UtcNow.AddDays(-3),
-        UpdatedAt = DateTimeOffset.UtcNow.AddDays(-1)
+        Unit         = "kg",
+        Quantity     = quantity,
+        BasePrice    = 5m,
+        IsDeleted    = false,
+        CreatedAt    = DateTimeOffset.UtcNow.AddDays(-3),
+        UpdatedAt    = DateTimeOffset.UtcNow.AddDays(-1)
     };
 
     private static CreateStockOutCommand BuildCommand(
-        Guid? warehouseId = null,
-        IEnumerable<StockOutItemDto>? items = null,
-        string? note = null,
-        Guid? createdBy = null
+        Guid?                       warehouseId = null,
+        IEnumerable<StockOutItemDto>? items     = null,
+        string?                     note        = null,
+        Guid?                       createdBy   = null
     ) => new CreateStockOutCommand(
         WarehouseId: warehouseId ?? Guid.NewGuid(),
-        Items: (items ?? new[] { new StockOutItemDto(Guid.NewGuid(), 1m, 10m) }).ToList(),
-        Note: note,
-        CreatedBy: createdBy ?? Guid.NewGuid()
+        Items:       (items ?? new[] { new StockOutItemDto(Guid.NewGuid(), 1m, 10m) }).ToList(),
+        Note:        note,
+        CreatedBy:   createdBy ?? Guid.NewGuid()
     );
 }

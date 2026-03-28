@@ -25,11 +25,13 @@ public class GetWarehousesQueryHandler : IRequestHandler<GetWarehousesQuery, Get
 
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
-            var term = request.SearchTerm.Trim();
+            var term = request.SearchTerm.Trim().ToLower();
+#pragma warning disable CA2249 // EF Core LINQ-to-SQL cannot translate StringComparison overload
             query = query.Where(w =>
-                EF.Functions.ILike(w.Code, $"%{term}%") ||
-                EF.Functions.ILike(w.Name, $"%{term}%") ||
-                EF.Functions.ILike(w.Address, $"%{term}%"));
+                w.Code.ToLower().Contains(term) ||
+                w.Name.ToLower().Contains(term) ||
+                w.Address.ToLower().Contains(term));
+#pragma warning restore CA2249
         }
 
         var totalCount = await query.CountAsync(cancellationToken);

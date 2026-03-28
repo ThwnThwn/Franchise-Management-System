@@ -1,30 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace ProductService.Application.Helpers;
 
-namespace ProductService.Application.Helpers
-{ 
-    public static class VietnameseHelper
+public static class VietnameseHelper
 {
     private static readonly string[] VietnameseSigns = new string[]
     {
-        "aAeEoOuUiIdDyY",
-        "áàạảãâấầậẩẫăắằặẳẵ",
-        "ÁÀẠẢÃÂẤẦẬẨẪĂẮẰẶẲẴ",
-        "éèẹẻẽêếềệểễ",
-        "ÉÈẸẺẼÊẾỀỆỂỄ",
-        "óòọỏõôốồộổỗơớờợởỡ",
-        "ÓÒỌỎÕÔỐỒỘỔỖƠỚỜỢỞỠ",
-        "úùụủũưứừựửữ",
-        "ÚÙỤỦŨƯỨỪỰỬỮ",
-        "íìịỉĩ",
-        "ÍÌỊỈĨ",
-        "đ",
-        "Đ",
-        "ýỳỵỷỹ",
-        "ÝỲỴỶỸ"
+    "aAeEoOuUiIdDyY",
+    "áàạảãâấầậẩẫăắằặẳẵ",
+    "ÁÀẠẢÃÂẤẦẬẨẪĂẮẰẶẲẴ",
+    "éèẹẻẽêếềệểễ",
+    "ÉÈẸẺẼÊẾỀỆỂỄ",
+    "óòọỏõôốồộổỗơớờợởỡ",
+    "ÓÒỌỎÕÔỐỒỘỔỖƠỚỜỢỞỠ",
+    "úùụủũưứừựửữ",
+    "ÚÙỤỦŨƯỨỪỰỬỮ",
+    "íìịỉĩ",
+    "ÍÌỊỈĨ",
+    "đ",
+    "Đ",
+    "ýỳỵỷỹ",
+    "ÝỲỴỶỸ"
     };
 
     public static string RemoveVietnameseSigns(string str)
@@ -40,5 +34,4 @@ namespace ProductService.Application.Helpers
         }
         return str;
     }
-}
 }

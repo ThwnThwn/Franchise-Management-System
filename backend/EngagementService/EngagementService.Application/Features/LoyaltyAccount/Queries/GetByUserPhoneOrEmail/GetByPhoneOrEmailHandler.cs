@@ -3,7 +3,6 @@ using EngagementService.Application.Constants;
 using EngagementService.Application.Dtos.LoyaltyAccount;
 using EngagementService.Application.Persistences.Repository;
 using MediatR;
-using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace EngagementService.Application.Features.LoyaltyAccount.Queries.GetById
 {

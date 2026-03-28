@@ -5,7 +5,7 @@ setlocal enabledelayedexpansion
 :: ======================================================
 :: CẤU HÌNH THÔNG TIN (thay Token của Duy vào đây)
 :: ======================================================
-set SONAR_TOKEN=squ_e606a79c62a30bdcf3c46d93f22057bd6e3315cb
+set SONAR_TOKEN=squ_ff1fc2526bf6b75680247b1477c91f6c6c426e01
 set SONAR_URL=http://localhost:9005
 
 :: TỰ ĐỘNG RESTORE LOCAL TOOL
@@ -86,18 +86,73 @@ echo --- Dang chuan bi quet cho .NET: %SNAME% ---
 cd backend\%SNAME%
 if exist ".sonarqube" rd /s /q ".sonarqube"
 
-:: BAT DAU QUET .NET
-dotnet sonarscanner begin /k:"%PROJECT_KEY%" /d:sonar.host.url="%SONAR_URL%" /d:sonar.login="%SONAR_TOKEN%" /d:sonar.exclusions="**/obj/**,**/bin/**,**/Protos/**"
+:: ======================================================================
+:: BƯỚC 3.1: BẮT ĐẦU QUÉT (CHIẾN THUẬT LOẠI TRỪ COVERAGE ĐỘNG)
+:: ======================================================================
+set "DYNAMIC_EXCLUSIONS=**/*.API/**,**/*.Infrastructure/**,**/*.Domain/**,**/SharedKernel/**,**/*Command.cs,**/*Query.cs,**/*Response.cs,**/*Request.cs,**/Migrations/**"
 
-:: BUILD
-echo --- Dang build cac project trong %SNAME%... ---
-for /r %%i in (*.csproj) do (
-    dotnet build "%%i" -c Debug
+:: --- BỘ LỌC THÔNG MINH CHO BUILDING BLOCKS ---
+:: Mặc định: CẤM các service khác quét BuildingBlocks (để giữ coverage độc lập)
+set "EXCLUDE_BB=true"
+
+:: ĐẶC CÁCH: NẾU LÀ APPHOST HOẶC BUILDING BLOCKS -> CHO PHÉP QUÉT
+if "!SNAME!"=="AppHost" set "EXCLUDE_BB=false"
+if "!SNAME!"=="BuildingBlocks" set "EXCLUDE_BB=false"
+
+:: Áp dụng lệnh cấm nếu cờ = true
+if "!EXCLUDE_BB!"=="true" (
+    set "DYNAMIC_EXCLUSIONS=!DYNAMIC_EXCLUSIONS!,**/BuildingBlocks/**"
 )
 
-:: KET THUC QUET .NET
-dotnet sonarscanner end /d:sonar.login="%SONAR_TOKEN%"
-cd ..\..
+dotnet sonarscanner begin /k:"!PROJECT_KEY!" ^
+  /d:sonar.host.url="!SONAR_URL!" ^
+  /d:sonar.token="!SONAR_TOKEN!" ^
+  /d:sonar.cs.opencover.reportsPaths="**/*.xml" ^
+  /d:sonar.coverage.exclusions="!DYNAMIC_EXCLUSIONS!" ^
+  /d:sonar.exclusions="**/obj/**,**/bin/**,**/Migrations/**,**/Protos/**"
+
+:: BƯỚC 3.2: BUILD
+for /r %%i in (*.csproj) do (dotnet build "%%i" -c Debug -v quiet)
+
+:: ======================================================================
+:: BƯỚC 3.3: CHẠY UNIT TEST
+:: ======================================================================
+echo --- Running Unit Test for !SNAME!... ---
+
+:: 1. Chạy test của Service hiện tại đang chọn
+for /d /r %%d in (*) do (
+    set "foldername=%%~nxd"
+    echo !foldername! | findstr /i "Test" >nul
+    if !errorlevel! == 0 (
+        if exist "%%d\*.csproj" (
+            echo [RUNNING] %%d
+            dotnet test "%%d" --no-build --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+        )
+    )
+)
+
+:: 2. NẾU LÀ APPHOST -> Chạy thêm Unit Test của BuildingBlocks
+if "!SNAME!"=="AppHost" (
+    echo --- [AppHost Mode] Dang chay test cua BuildingBlocks... ---
+    :: Build BB trước cho chắc ăn
+    dotnet build "%BASE_DIR%backend\BuildingBlocks" -c Debug -v quiet
+    
+    for /d /r "%BASE_DIR%backend\BuildingBlocks" %%d in (*) do (
+        set "foldername=%%~nxd"
+        echo !foldername! | findstr /i "Test" >nul
+        if !errorlevel! == 0 (
+            if exist "%%d\*.csproj" (
+                echo [RUNNING KÉ] %%d
+                dotnet test "%%d" --no-build --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+            )
+        )
+    )
+)
+
+:: BƯỚC 3.4: KẾT THÚC
+dotnet sonarscanner end /d:sonar.token="!SONAR_TOKEN!"
+
+cd /d "%BASE_DIR%"
 
 :FINISH
 echo.

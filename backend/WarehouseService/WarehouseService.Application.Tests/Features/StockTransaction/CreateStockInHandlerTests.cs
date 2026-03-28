@@ -6,25 +6,25 @@ using WarehouseService.Application.Features.StockTransactions.Command.CreateStoc
 using WarehouseService.Application.Repositories;
 using WarehouseService.Domain.Enums;
 using WarehouseItemEntity = WarehouseService.Domain.Entities.WarehouseItem;
-using WarehouseEntity = WarehouseService.Domain.Entities.Warehouse;
+using WarehouseEntity     = WarehouseService.Domain.Entities.Warehouse;
 using StockTransactionEntity = WarehouseService.Domain.Entities.StockTransaction;
 
 namespace WarehouseService.Application.Tests.Features.StockTransactions;
 
 public class CreateStockInHandlerTests
 {
-    private readonly Mock<IWarehouseRepository> _warehouseRepositoryMock;
-    private readonly Mock<IWarehouseItemRepository> _itemRepositoryMock;
-    private readonly Mock<IStockTransactionRepository> _transactionRepositoryMock;
-    private readonly CreateStockInCommandHandler _handler;
+    private readonly Mock<IWarehouseRepository>          _warehouseRepositoryMock;
+    private readonly Mock<IWarehouseItemRepository>      _itemRepositoryMock;
+    private readonly Mock<IStockTransactionRepository>   _transactionRepositoryMock;
+    private readonly CreateStockInCommandHandler         _handler;
 
     // A default warehouse item used across tests.
     private readonly WarehouseItemEntity _defaultItem;
 
     public CreateStockInHandlerTests()
     {
-        _warehouseRepositoryMock = new Mock<IWarehouseRepository>();
-        _itemRepositoryMock = new Mock<IWarehouseItemRepository>();
+        _warehouseRepositoryMock   = new Mock<IWarehouseRepository>();
+        _itemRepositoryMock        = new Mock<IWarehouseItemRepository>();
         _transactionRepositoryMock = new Mock<IStockTransactionRepository>();
 
         _handler = new CreateStockInCommandHandler(
@@ -35,15 +35,15 @@ public class CreateStockInHandlerTests
 
         _defaultItem = new WarehouseItemEntity
         {
-            Id = Guid.NewGuid(),
-            WarehouseId = Guid.NewGuid(),   // overridden per-test when needed
+            Id           = Guid.NewGuid(),
+            WarehouseId  = Guid.NewGuid(),   // overridden per-test when needed
             IngredientId = Guid.NewGuid(),
-            Unit = "kg",
-            Quantity = 10m,
-            BasePrice = 5m,
-            IsDeleted = false,
-            CreatedAt = DateTimeOffset.UtcNow.AddDays(-5),
-            UpdatedAt = DateTimeOffset.UtcNow.AddDays(-1)
+            Unit         = "kg",
+            Quantity     = 10m,
+            BasePrice    = 5m,
+            IsDeleted    = false,
+            CreatedAt    = DateTimeOffset.UtcNow.AddDays(-5),
+            UpdatedAt    = DateTimeOffset.UtcNow.AddDays(-1)
         };
 
         // Default: warehouse exists
@@ -111,11 +111,10 @@ public class CreateStockInHandlerTests
     [Fact]
     public async Task Handle_ShouldThrowInvalidOperationException_WhenRequestContainsDuplicateIngredientId()
     {
-        // Arrange
-        var warehouseId = Guid.NewGuid();
+        // Arrange — GroupBy duplicate check fires BEFORE any DB query,
+        // so no queryable setup is needed
+        var warehouseId  = Guid.NewGuid();
         var ingredientId = Guid.NewGuid();
-
-        SetupItemQueryable(warehouseId, new List<WarehouseItemEntity>());
 
         var command = BuildCommand(
             warehouseId: warehouseId,
@@ -135,13 +134,9 @@ public class CreateStockInHandlerTests
     public async Task Handle_ShouldNotCallSaveChangesAsync_WhenDuplicateIngredientDetected()
     {
         // Arrange
-        var warehouseId = Guid.NewGuid();
         var ingredientId = Guid.NewGuid();
 
-        SetupItemQueryable(warehouseId, new List<WarehouseItemEntity>());
-
         var command = BuildCommand(
-            warehouseId: warehouseId,
             items: new[]
             {
                 new StockInItemDto(ingredientId, 5, 2),
@@ -167,7 +162,7 @@ public class CreateStockInHandlerTests
     public async Task Handle_ShouldThrowKeyNotFoundException_WhenIngredientNotInWarehouse()
     {
         // Arrange
-        var warehouseId = Guid.NewGuid();
+        var warehouseId  = Guid.NewGuid();
         var ingredientId = Guid.NewGuid();
 
         // Queryable returns no matching item
@@ -187,7 +182,7 @@ public class CreateStockInHandlerTests
     public async Task Handle_ShouldThrowKeyNotFoundException_ContainingWarehouseId_WhenIngredientNotInWarehouse()
     {
         // Arrange
-        var warehouseId = Guid.NewGuid();
+        var warehouseId  = Guid.NewGuid();
         var ingredientId = Guid.NewGuid();
 
         SetupItemQueryable(warehouseId, new List<WarehouseItemEntity>());
@@ -210,16 +205,16 @@ public class CreateStockInHandlerTests
     public async Task Handle_ShouldReturnResult_WithCorrectSummaryFields_WhenRequestIsValid()
     {
         // Arrange
-        var warehouseId = Guid.NewGuid();
-        var supplierId = Guid.NewGuid();
+        var warehouseId  = Guid.NewGuid();
+        var supplierId   = Guid.NewGuid();
         var ingredientId = Guid.NewGuid();
 
         var item = BuildWarehouseItem(warehouseId, ingredientId);
         SetupItemQueryable(warehouseId, new List<WarehouseItemEntity> { item });
 
         var command = BuildCommand(
-            warehouseId: warehouseId,
-            supplierId: supplierId,
+            warehouseId:   warehouseId,
+            supplierId:    supplierId,
             referenceCode: "PO-2026-001",
             items: new[] { new StockInItemDto(ingredientId, 10, 25m) });
 
@@ -240,7 +235,7 @@ public class CreateStockInHandlerTests
     public async Task Handle_ShouldCreateTransactions_WithPendingStatus()
     {
         // Arrange
-        var warehouseId = Guid.NewGuid();
+        var warehouseId  = Guid.NewGuid();
         var ingredientId = Guid.NewGuid();
 
         var item = BuildWarehouseItem(warehouseId, ingredientId);
@@ -262,7 +257,7 @@ public class CreateStockInHandlerTests
     public async Task Handle_ShouldCreateTransactions_WithStockInType()
     {
         // Arrange
-        var warehouseId = Guid.NewGuid();
+        var warehouseId  = Guid.NewGuid();
         var ingredientId = Guid.NewGuid();
 
         var item = BuildWarehouseItem(warehouseId, ingredientId);
@@ -284,7 +279,7 @@ public class CreateStockInHandlerTests
     public async Task Handle_ShouldCalculateTotalPrice_PerTransaction()
     {
         // Arrange
-        var warehouseId = Guid.NewGuid();
+        var warehouseId  = Guid.NewGuid();
         var ingredientId = Guid.NewGuid();
 
         var item = BuildWarehouseItem(warehouseId, ingredientId);
@@ -292,7 +287,7 @@ public class CreateStockInHandlerTests
 
         var command = BuildCommand(
             warehouseId: warehouseId,
-            items: new[] { new StockInItemDto(ingredientId, Quantity: 7, UnitPrice: 15m) });
+            items: new[] { new StockInItemDto(ingredientId, quantity: 7, unitPrice: 15m) });
 
         // Act
         var result = await _handler.Handle(command, default);
@@ -306,7 +301,7 @@ public class CreateStockInHandlerTests
     public async Task Handle_ShouldGenerateTransactionCode_WithSIPrefix()
     {
         // Arrange
-        var warehouseId = Guid.NewGuid();
+        var warehouseId  = Guid.NewGuid();
         var ingredientId = Guid.NewGuid();
 
         var item = BuildWarehouseItem(warehouseId, ingredientId);
@@ -327,7 +322,7 @@ public class CreateStockInHandlerTests
     public async Task Handle_ShouldMapIngredientId_ToEachTransactionDto()
     {
         // Arrange
-        var warehouseId = Guid.NewGuid();
+        var warehouseId   = Guid.NewGuid();
         var ingredientId1 = Guid.NewGuid();
         var ingredientId2 = Guid.NewGuid();
 
@@ -358,7 +353,7 @@ public class CreateStockInHandlerTests
     public async Task Handle_ShouldSetSupplierId_ToNull_WhenNotProvided()
     {
         // Arrange
-        var warehouseId = Guid.NewGuid();
+        var warehouseId  = Guid.NewGuid();
         var ingredientId = Guid.NewGuid();
 
         var item = BuildWarehouseItem(warehouseId, ingredientId);
@@ -366,7 +361,7 @@ public class CreateStockInHandlerTests
 
         var command = BuildCommand(
             warehouseId: warehouseId,
-            supplierId: null,
+            supplierId:  null,
             items: new[] { new StockInItemDto(ingredientId, 1, 1m) });
 
         // Act
@@ -384,7 +379,7 @@ public class CreateStockInHandlerTests
     public async Task Handle_ShouldCallAddAsync_OncePerItem_WhenRequestIsValid()
     {
         // Arrange
-        var warehouseId = Guid.NewGuid();
+        var warehouseId   = Guid.NewGuid();
         var ingredientId1 = Guid.NewGuid();
         var ingredientId2 = Guid.NewGuid();
 
@@ -414,7 +409,7 @@ public class CreateStockInHandlerTests
     public async Task Handle_ShouldCallSaveChangesAsync_ExactlyOnce_WhenRequestIsValid()
     {
         // Arrange
-        var warehouseId = Guid.NewGuid();
+        var warehouseId   = Guid.NewGuid();
         var ingredientId1 = Guid.NewGuid();
         var ingredientId2 = Guid.NewGuid();
 
@@ -509,30 +504,30 @@ public class CreateStockInHandlerTests
 
     private static WarehouseItemEntity BuildWarehouseItem(Guid warehouseId, Guid ingredientId) => new()
     {
-        Id = Guid.NewGuid(),
-        WarehouseId = warehouseId,
+        Id           = Guid.NewGuid(),
+        WarehouseId  = warehouseId,
         IngredientId = ingredientId,
-        Unit = "kg",
-        Quantity = 10m,
-        BasePrice = 5m,
-        IsDeleted = false,
-        CreatedAt = DateTimeOffset.UtcNow.AddDays(-3),
-        UpdatedAt = DateTimeOffset.UtcNow.AddDays(-1)
+        Unit         = "kg",
+        Quantity     = 10m,
+        BasePrice    = 5m,
+        IsDeleted    = false,
+        CreatedAt    = DateTimeOffset.UtcNow.AddDays(-3),
+        UpdatedAt    = DateTimeOffset.UtcNow.AddDays(-1)
     };
 
     private static CreateStockInCommand BuildCommand(
-        Guid? warehouseId = null,
-        IEnumerable<StockInItemDto>? items = null,
-        Guid? supplierId = null,
-        string? referenceCode = null,
-        string? note = null,
-        Guid? createdBy = null
+        Guid?                    warehouseId   = null,
+        IEnumerable<StockInItemDto>? items     = null,
+        Guid?                    supplierId    = null,
+        string?                  referenceCode = null,
+        string?                  note          = null,
+        Guid?                    createdBy     = null
     ) => new CreateStockInCommand(
-        WarehouseId: warehouseId ?? Guid.NewGuid(),
-        Items: (items ?? new[] { new StockInItemDto(Guid.NewGuid(), 1m, 10m) }).ToList(),
-        SupplierId: supplierId,
+        WarehouseId:   warehouseId   ?? Guid.NewGuid(),
+        Items:         (items        ?? new[] { new StockInItemDto(Guid.NewGuid(), 1m, 10m) }).ToList(),
+        SupplierId:    supplierId,
         ReferenceCode: referenceCode,
-        Note: note,
-        CreatedBy: createdBy ?? Guid.NewGuid()
+        Note:          note,
+        CreatedBy:     createdBy     ?? Guid.NewGuid()
     );
 }

@@ -1,11 +1,4 @@
-﻿using EngagementService.Application.Constants;
-using EngagementService.Domain.Constants;
-using SharedKernel.Events;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using SharedKernel.Events;
 
 namespace EngagementService.Application.Dtos.LoyaltyAccount
 {

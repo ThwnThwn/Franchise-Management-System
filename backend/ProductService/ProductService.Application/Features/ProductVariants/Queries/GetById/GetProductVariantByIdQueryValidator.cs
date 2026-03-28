@@ -2,11 +2,12 @@
 
 namespace ProductService.Application.Features.ProductVariants.Queries.GetById;
 
-public sealed class GetProductVariantByIdQueryValidator:
+public sealed class GetProductVariantByIdQueryValidator :
     AbstractValidator<GetProductVariantByIdQuery>
 {
-    public GetProductVariantByIdQueryValidator() {
-        RuleFor(x=>x.ProductVariantId).NotEmpty()
+    public GetProductVariantByIdQueryValidator()
+    {
+        RuleFor(x => x.ProductVariantId).NotEmpty()
             .WithMessage("Product Variant Id is required");
-}
+    }
 }

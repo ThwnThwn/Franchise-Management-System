@@ -1,19 +1,13 @@
 ﻿using FluentValidation;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace ProductService.Application.Features.Categories.Command.DeleteCategory
+namespace ProductService.Application.Features.Categories.Command.DeleteCategory;
+
+public sealed class DeleteCategoryCommandValidator : AbstractValidator<DeleteCategoryCommand>
 {
-    public sealed class DeleteCategoryCommandValidator :AbstractValidator<DeleteCategoryCommand>
+    public DeleteCategoryCommandValidator()
     {
-        public DeleteCategoryCommandValidator()
-        {
-            RuleFor(x=>x.categoryId)
-                .NotEmpty()
-                .WithMessage("Category ID is required");
-        }
+        RuleFor(x => x.CategoryId)
+            .NotEmpty()
+            .WithMessage("Category ID is required");
     }
 }

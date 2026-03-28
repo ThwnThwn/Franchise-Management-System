@@ -1,6 +1,8 @@
-﻿using DotNetEnv;
+﻿using System.Diagnostics.CodeAnalysis;
+using DotNetEnv;
 using Microsoft.Extensions.Configuration;
 
+[ExcludeFromCodeCoverage]
 internal class Program
 {
     private static void Main(string[] args)

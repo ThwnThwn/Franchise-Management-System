@@ -19,7 +19,7 @@ public class UpdateWarehouseHandlerTests
 
     public UpdateWarehouseHandlerTests()
     {
-        _repositoryMock = new Mock<IWarehouseRepository>();
+        _repositoryMock      = new Mock<IWarehouseRepository>();
         _franchiseClientMock = new Mock<IFranchiseServiceClient>();
 
         _handler = new UpdateWarehouseCommandHandler(
@@ -29,12 +29,12 @@ public class UpdateWarehouseHandlerTests
 
         _existingWarehouse = new Domain.Entities.Warehouse
         {
-            Id = Guid.NewGuid(),
-            Code = "WH-EXISTING",
-            Name = "Existing Warehouse",
-            Address = "1 Existing Street",
-            StoreId = Guid.NewGuid(),
-            Status = WarehouseStatus.Active,
+            Id        = Guid.NewGuid(),
+            Code      = "WH-EXISTING",
+            Name      = "Existing Warehouse",
+            Address   = "1 Existing Street",
+            StoreId   = Guid.NewGuid(),
+            Status    = WarehouseStatus.Active,
             IsDeleted = false,
             CreatedAt = DateTimeOffset.UtcNow.AddDays(-10),
             UpdatedAt = DateTimeOffset.UtcNow.AddDays(-1)
@@ -290,10 +290,10 @@ public class UpdateWarehouseHandlerTests
         // Arrange
         var newStoreId = Guid.NewGuid();
         var command = BuildCommand(
-            code: "wh-new",
-            name: "  Updated Warehouse  ",
+            code:    "wh-new",
+            name:    "  Updated Warehouse  ",
             address: "  10 New Street  ",
-            status: WarehouseStatus.Inactive,
+            status:  WarehouseStatus.Inactive,
             storeId: newStoreId
         );
 
@@ -329,8 +329,8 @@ public class UpdateWarehouseHandlerTests
     {
         // Arrange
         var command = BuildCommand(
-            code: "  WH-TRIM  ",
-            name: "  Trimmed Name  ",
+            code:    "  WH-TRIM  ",
+            name:    "  Trimmed Name  ",
             address: "  Trimmed Address  "
         );
 
@@ -348,10 +348,10 @@ public class UpdateWarehouseHandlerTests
     {
         // Arrange — only update Name; Code, Address, Status, StoreId are all null
         var command = BuildCommand(
-            code: null,
-            name: "Only Name Changed",
+            code:    null,
+            name:    "Only Name Changed",
             address: null,
-            status: null,
+            status:  null,
             storeId: null
         );
 
@@ -432,19 +432,19 @@ public class UpdateWarehouseHandlerTests
     // HELPERS
     // -----------------------------------------------------------------------
 
-    private static UpdateWarehouseCommand BuildCommand(
-        Guid? id = null,
-        string? code = "WH-UPDATED",
-        string? name = "Updated Warehouse",
-        string? address = "2 Updated Street",
-        WarehouseStatus? status = WarehouseStatus.Active,
-        Guid? storeId = null   // null triggers no-store-change path by default
+    private UpdateWarehouseCommand BuildCommand(
+        Guid?            id      = null,
+        string?          code    = "WH-UPDATED",
+        string?          name    = "Updated Warehouse",
+        string?          address = "2 Updated Street",
+        WarehouseStatus? status  = WarehouseStatus.Active,
+        Guid?            storeId = null
     ) => new UpdateWarehouseCommand(
-        Id: id ?? Guid.NewGuid(),
-        Code: code,
-        Name: name,
+        Id:      id ?? _existingWarehouse.Id,   // default to existing entity's Id so excludeId verify works
+        Code:    code,
+        Name:    name,
         Address: address,
-        Status: status,
+        Status:  status,
         StoreId: storeId
     );
 }
