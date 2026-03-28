@@ -8,25 +8,15 @@ using SupplierService.Domain.Enums;
 
 namespace SupplierService.Application.Features.SupplierPayments.Commands.CreatePoPayment;
 
-public sealed class CreatePoPaymentHandler : IRequestHandler<CreatePoPaymentCommand, Result<CreatePoPaymentResult>>
+public sealed class CreatePoPaymentHandler(
+    IPurchaseOrderRepository poRepository,
+    ISupplierPaymentRepository paymentRepository,
+    IConfiguration config
+) : IRequestHandler<CreatePoPaymentCommand, Result<CreatePoPaymentResult>>
 {
-    private readonly IPurchaseOrderRepository _poRepository;
-    private readonly ISupplierPaymentRepository _paymentRepository;
-    private readonly IConfiguration _config;
-
-    public CreatePoPaymentHandler(
-        IPurchaseOrderRepository poRepository,
-        ISupplierPaymentRepository paymentRepository,
-        IConfiguration config)
-    {
-        _poRepository = poRepository;
-        _paymentRepository = paymentRepository;
-        _config = config;
-    }
-
     public async Task<Result<CreatePoPaymentResult>> Handle(CreatePoPaymentCommand command, CancellationToken cancellationToken)
     {
-        var po = await _poRepository.GetByIdWithItemsAsync(command.PurchaseOrderId, cancellationToken);
+        var po = await poRepository.GetByIdWithItemsAsync(command.PurchaseOrderId, cancellationToken);
         if (po == null || po.IsDeleted)
             return Result.NotFound($"Purchase order '{command.PurchaseOrderId}' not found.");
 
@@ -60,12 +50,12 @@ public sealed class CreatePoPaymentHandler : IRequestHandler<CreatePoPaymentComm
             payment.Status = (int)PaymentStatus.Paid;
             payment.PaidAt = DateTimeOffset.UtcNow;
 
-            await _paymentRepository.CreateAsync(payment, cancellationToken);
+            await paymentRepository.CreateAsync(payment, cancellationToken);
 
             // Update PO payment status
             po.PaidAmount += paymentAmount;
             po.PaymentStatus = po.PaidAmount >= po.NetAmount ? PaymentStatus.Paid : PaymentStatus.Partial;
-            await _poRepository.SaveChangesAsync(cancellationToken);
+            await poRepository.SaveChangesAsync(cancellationToken);
 
             return Result.Success(new CreatePoPaymentResult { PaymentId = payment.Id, Code = payment.Code, Url = string.Empty });
         }
@@ -74,7 +64,7 @@ public sealed class CreatePoPaymentHandler : IRequestHandler<CreatePoPaymentComm
 
         payment.Status = (int)PaymentStatus.Pending;
 
-        var vnpSection = _config.GetSection("VNPay");
+        var vnpSection = config.GetSection("VNPay");
         var tmnCode = vnpSection["TmnCode"] ?? throw new InvalidOperationException("VNPay:TmnCode not configured");
         var hashSecret = vnpSection["HashSecret"] ?? throw new InvalidOperationException("VNPay:HashSecret not configured");
         var paymentUrl = vnpSection["PaymentUrl"] ?? throw new InvalidOperationException("VNPay:PaymentUrl not configured");
@@ -101,9 +91,8 @@ public sealed class CreatePoPaymentHandler : IRequestHandler<CreatePoPaymentComm
 
         var url = VNPayHelper.BuildPaymentUrl(paymentUrl, hashSecret, parameters);
 
-        await _paymentRepository.CreateAsync(payment, cancellationToken);
+        await paymentRepository.CreateAsync(payment, cancellationToken);
 
-        return Result.Success(new CreatePoPaymentResult { Url = url , Code = code, PaymentId = payment.Id});
+        return Result.Success(new CreatePoPaymentResult { Url = url, Code = code, PaymentId = payment.Id });
     }
 }
-

@@ -8,18 +8,13 @@ namespace SupplierService.Application.Features.Suppliers.Queries.GetSuppliers;
 /// Handler lấy danh sách nhà cung cấp có phân trang.
 /// Hỗ trợ tìm theo tên/code (search) và lọc theo trạng thái (is_active).
 /// </summary>
-public class GetSuppliersHandler : IRequestHandler<GetSuppliersQuery, GetSuppliersResult>
+public class GetSuppliersHandler(
+    ISupplierRepository repo
+) : IRequestHandler<GetSuppliersQuery, GetSuppliersResult>
 {
-    private readonly ISupplierRepository _repo;
-
-    public GetSuppliersHandler(ISupplierRepository repo)
-    {
-        _repo = repo;
-    }
-
     public async Task<GetSuppliersResult> Handle(GetSuppliersQuery request, CancellationToken cancellationToken)
     {
-        var query = _repo.GetQueryable()
+        var query = repo.GetQueryable()
             .Where(s => s.IsDeleted == false);
 
         // Tìm kiếm theo code

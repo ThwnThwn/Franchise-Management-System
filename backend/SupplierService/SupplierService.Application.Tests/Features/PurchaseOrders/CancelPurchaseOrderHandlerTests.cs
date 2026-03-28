@@ -7,12 +7,12 @@ using SupplierService.Domain.Enums;
 
 namespace SupplierService.Application.Tests.Features.PurchaseOrders;
 
-public class CancelPurchaseOrderCommandHandlerTests
+public class CancelPurchaseOrderHandlerTests
 {
     private readonly Mock<IPurchaseOrderRepository> _purchaseOrderRepoMock;
     private readonly CancelPurchaseOrderCommandHandler _handler;
 
-    public CancelPurchaseOrderCommandHandlerTests()
+    public CancelPurchaseOrderHandlerTests()
     {
         _purchaseOrderRepoMock = new Mock<IPurchaseOrderRepository>();
         _handler = new CancelPurchaseOrderCommandHandler(_purchaseOrderRepoMock.Object);

@@ -3,21 +3,15 @@ using SupplierService.Application.Repositories;
 
 namespace SupplierService.Application.Features.SupplierPayments.Queries.GetPaymentsByPurchaseOrder;
 
-public sealed class GetPaymentsByPurchaseOrderHandler
-    : IRequestHandler<GetPaymentsByPurchaseOrderQuery, GetPaymentsByPurchaseOrderResult>
+public sealed class GetPaymentsByPurchaseOrderHandler(
+    ISupplierPaymentRepository paymentRepository
+) : IRequestHandler<GetPaymentsByPurchaseOrderQuery, GetPaymentsByPurchaseOrderResult>
 {
-    private readonly ISupplierPaymentRepository _paymentRepository;
-
-    public GetPaymentsByPurchaseOrderHandler(ISupplierPaymentRepository paymentRepository)
-    {
-        _paymentRepository = paymentRepository;
-    }
-
     public async Task<GetPaymentsByPurchaseOrderResult> Handle(
         GetPaymentsByPurchaseOrderQuery request,
         CancellationToken cancellationToken)
     {
-        var payments = await _paymentRepository.GetByPurchaseOrderIdAsync(request.PurchaseOrderId, cancellationToken);
+        var payments = await paymentRepository.GetByPurchaseOrderIdAsync(request.PurchaseOrderId, cancellationToken);
 
         return new GetPaymentsByPurchaseOrderResult
         {

@@ -4,18 +4,12 @@ using SupplierService.Application.Repositories;
 
 namespace SupplierService.Application.Features.PurchaseOrders.Queries.GetPurchaseOrders;
 
-public class GetPurchaseOrdersQueryHandler : IRequestHandler<GetPurchaseOrdersQuery, GetPurchaseOrdersResult>
+public class GetPurchaseOrdersQueryHandler(IPurchaseOrderRepository repository
+) : IRequestHandler<GetPurchaseOrdersQuery, GetPurchaseOrdersResult>
 {
-    private readonly IPurchaseOrderRepository _repository;
-
-    public GetPurchaseOrdersQueryHandler(IPurchaseOrderRepository repository)
-    {
-        _repository = repository;
-    }
-
     public async Task<GetPurchaseOrdersResult> Handle(GetPurchaseOrdersQuery request, CancellationToken cancellationToken)
     {
-        var query = _repository.GetQueryable()
+        var query = repository.GetQueryable()
             .Include(po => po.Supplier)
             .AsQueryable();
 

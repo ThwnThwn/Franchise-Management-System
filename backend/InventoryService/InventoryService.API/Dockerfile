@@ -38,7 +38,9 @@ ENV ASPNETCORE_URLS=http://+:8080
 ENV ASPNETCORE_ENVIRONMENT=Production
 
 # Copy kết quả compile từ Stage 1 sang
-COPY --from=build /app/publish .
+COPY --chown=app:app --from=build /app/publish .
+
+USER app
 
 # File chạy cuối cùng
 ENTRYPOINT ["dotnet", "InventoryService.API.dll"]

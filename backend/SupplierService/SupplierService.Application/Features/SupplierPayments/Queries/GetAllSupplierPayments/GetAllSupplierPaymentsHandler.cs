@@ -3,16 +3,10 @@ using SupplierService.Application.Repositories;
 
 namespace SupplierService.Application.Features.SupplierPayments.Queries.GetAllSupplierPayments;
 
-public sealed class GetAllSupplierPaymentsHandler
-    : IRequestHandler<GetAllSupplierPaymentsQuery, GetAllSupplierPaymentsResult>
+public sealed class GetAllSupplierPaymentsHandler(
+    ISupplierPaymentRepository paymentRepository
+) : IRequestHandler<GetAllSupplierPaymentsQuery, GetAllSupplierPaymentsResult>
 {
-    private readonly ISupplierPaymentRepository _paymentRepository;
-
-    public GetAllSupplierPaymentsHandler(ISupplierPaymentRepository paymentRepository)
-    {
-        _paymentRepository = paymentRepository;
-    }
-
     public async Task<GetAllSupplierPaymentsResult> Handle(
         GetAllSupplierPaymentsQuery request,
         CancellationToken cancellationToken)
@@ -23,7 +17,7 @@ public sealed class GetAllSupplierPaymentsHandler
         Guid? supplierId = Guid.TryParse(request.SupplierId, out var sid) ? sid : null;
         Guid? purchaseOrderId = Guid.TryParse(request.PurchaseOrderId, out var pid) ? pid : null;
 
-        var (items, totalCount) = await _paymentRepository.GetAllAsync(
+        var (items, totalCount) = await paymentRepository.GetAllAsync(
             page, pageSize, supplierId, purchaseOrderId, cancellationToken);
 
         return new GetAllSupplierPaymentsResult

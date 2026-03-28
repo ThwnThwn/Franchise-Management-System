@@ -13,23 +13,15 @@ namespace SupplierService.Application.Features.PurchaseOrders.Commands.CompleteP
 /// 4. SaveChanges
 /// 5. Gọi gRPC IncreaseStock sang InventoryService để cộng kho
 /// </summary>
-public class CompletePurchaseOrderCommandHandler : IRequestHandler<CompletePurchaseOrderCommand>
+public class CompletePurchaseOrderCommandHandler(
+    IPurchaseOrderRepository purchaseOrderRepo,
+    IInventoryServiceClient inventoryClient
+) : IRequestHandler<CompletePurchaseOrderCommand>
 {
-    private readonly IPurchaseOrderRepository _purchaseOrderRepo;
-    private readonly IInventoryServiceClient _inventoryClient;
-
-    public CompletePurchaseOrderCommandHandler(
-        IPurchaseOrderRepository purchaseOrderRepo,
-        IInventoryServiceClient inventoryClient)
-    {
-        _purchaseOrderRepo = purchaseOrderRepo;
-        _inventoryClient = inventoryClient;
-    }
-
     public async Task<Unit> Handle(CompletePurchaseOrderCommand request, CancellationToken cancellationToken)
     {
         // 1. Lấy PO kèm Items
-        var po = await _purchaseOrderRepo.GetByIdWithItemsAsync(request.PurchaseOrderId, cancellationToken)
+        var po = await purchaseOrderRepo.GetByIdWithItemsAsync(request.PurchaseOrderId, cancellationToken)
             ?? throw new KeyNotFoundException($"Purchase order {request.PurchaseOrderId} not found.");
 
         // 2. Validate — chỉ cho Complete khi đang Pending hoặc Processing
@@ -51,13 +43,13 @@ public class CompletePurchaseOrderCommandHandler : IRequestHandler<CompletePurch
         po.CompletedAt = DateTimeOffset.UtcNow;
 
         // 4. Lưu DB
-        await _purchaseOrderRepo.SaveChangesAsync(cancellationToken);
+        await purchaseOrderRepo.SaveChangesAsync(cancellationToken);
 
         // 5. Gọi gRPC sang InventoryService để cộng kho
         var stockEntries = po.Items.Select(item =>
             new IngredientStockEntry(item.IngredientId, item.Quantity, item.UnitPrice));
 
-        await _inventoryClient.IncreaseStockAsync(po.StoreId.Value, stockEntries, cancellationToken);
+        await inventoryClient.IncreaseStockAsync(po.StoreId.Value, stockEntries, cancellationToken);
 
         return Unit.Value;
     }

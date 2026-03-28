@@ -22,7 +22,7 @@ type LoggerZap struct {
 	*zap.Logger
 }
 
-func New(config config.Logger) Interface {
+func New(appEnv string, config config.Logger) Interface {
 	var level zapcore.Level
 	switch config.LogLevel {
 	case "debug":
@@ -39,20 +39,24 @@ func New(config config.Logger) Interface {
 
 	encoder := getEncoderLog()
 
-	hook := lumberjack.Logger{
-		Filename:   config.FileLogName, // "./storages/logs/dev.xxx.log"
-		MaxSize:    config.MaxSize,     // megabytes
-		MaxBackups: config.MaxBackups,  //
-		MaxAge:     config.MaxAge,      //days
-		Compress:   config.Compress,    // disabled by default
+	syncers := []zapcore.WriteSyncer{
+		zapcore.AddSync(os.Stdout),
+	}
+
+	if appEnv != "Production" {
+		hook := lumberjack.Logger{
+			Filename:   config.FileLogName, // "./storages/logs/dev.xxx.log"
+			MaxSize:    config.MaxSize,     // megabytes
+			MaxBackups: config.MaxBackups,  //
+			MaxAge:     config.MaxAge,      //days
+			Compress:   config.Compress,    // disabled by default
+		}
+		syncers = append(syncers, zapcore.AddSync(&hook))
 	}
 
 	core := zapcore.NewCore(
 		encoder,
-		zapcore.NewMultiWriteSyncer(
-			zapcore.AddSync(os.Stdout),
-			zapcore.AddSync(&hook),
-		),
+		zapcore.NewMultiWriteSyncer(syncers...),
 		level,
 	)
 

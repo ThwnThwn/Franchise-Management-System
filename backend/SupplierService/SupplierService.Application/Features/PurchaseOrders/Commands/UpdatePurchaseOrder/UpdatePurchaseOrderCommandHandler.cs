@@ -14,19 +14,13 @@ namespace SupplierService.Application.Features.PurchaseOrders.Commands.UpdatePur
 /// 5. Tính lại TotalAmount / NetAmount
 /// 6. Save
 /// </summary>
-public class UpdatePurchaseOrderCommandHandler : IRequestHandler<UpdatePurchaseOrderCommand>
+public class UpdatePurchaseOrderCommandHandler(IPurchaseOrderRepository purchaseOrderRepo
+) : IRequestHandler<UpdatePurchaseOrderCommand>
 {
-    private readonly IPurchaseOrderRepository _purchaseOrderRepo;
-
-    public UpdatePurchaseOrderCommandHandler(IPurchaseOrderRepository purchaseOrderRepo)
-    {
-        _purchaseOrderRepo = purchaseOrderRepo;
-    }
-
     public async Task<Unit> Handle(UpdatePurchaseOrderCommand request, CancellationToken cancellationToken)
     {
         // 1. Load PO
-        var po = await _purchaseOrderRepo.GetByIdWithItemsAsync(request.Id, cancellationToken)
+        var po = await purchaseOrderRepo.GetByIdWithItemsAsync(request.Id, cancellationToken)
             ?? throw new KeyNotFoundException($"Purchase order {request.Id} not found.");
 
         // 2. Validate status
@@ -34,7 +28,7 @@ public class UpdatePurchaseOrderCommandHandler : IRequestHandler<UpdatePurchaseO
             throw new InvalidOperationException($"Cannot update purchase order with status '{po.Status}'. Only 'Pending' orders can be updated.");
 
         // 3. Validate supplier
-        var supplierExists = await _purchaseOrderRepo.SupplierExistsAsync(request.SupplierId, cancellationToken);
+        var supplierExists = await purchaseOrderRepo.SupplierExistsAsync(request.SupplierId, cancellationToken);
         if (!supplierExists)
             throw new KeyNotFoundException($"Supplier {request.SupplierId} not found.");
 
@@ -44,7 +38,7 @@ public class UpdatePurchaseOrderCommandHandler : IRequestHandler<UpdatePurchaseO
 
         // 5. Tra cứu unit_price từ supplier_ingredients
         var ingredientIds = request.Items.Select(i => i.IngredientId).ToList();
-        var priceMap = await _purchaseOrderRepo.GetSupplierIngredientPricesAsync(
+        var priceMap = await purchaseOrderRepo.GetSupplierIngredientPricesAsync(
             request.SupplierId, ingredientIds, cancellationToken);
 
         var missingIds = ingredientIds.Where(id => !priceMap.ContainsKey(id)).ToList();
@@ -84,9 +78,8 @@ public class UpdatePurchaseOrderCommandHandler : IRequestHandler<UpdatePurchaseO
         po.NetAmount = totalAmount - request.DiscountAmount;
 
         // 8. Save
-        await _purchaseOrderRepo.SaveChangesAsync(cancellationToken);
+        await purchaseOrderRepo.SaveChangesAsync(cancellationToken);
 
         return Unit.Value;
     }
 }
-

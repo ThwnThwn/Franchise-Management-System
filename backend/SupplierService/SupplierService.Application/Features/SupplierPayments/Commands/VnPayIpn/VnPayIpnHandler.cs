@@ -10,35 +10,22 @@ using SupplierService.Domain.Enums;
 
 namespace SupplierService.Application.Features.SupplierPayments.Commands.VnPayIpn;
 
-public sealed class VnPayIpnHandler
-    : IRequestHandler<VnPayIpnCommand, Result<VnPayIpnResponse>>
+public sealed class VnPayIpnHandler(
+    ISupplierPaymentRepository paymentRepository,
+    IPurchaseOrderRepository poRepository,
+    IConfiguration config,
+    ILogger<VnPayIpnHandler> logger
+) : IRequestHandler<VnPayIpnCommand, Result<VnPayIpnResponse>>
 {
-    private readonly ISupplierPaymentRepository _paymentRepository;
-    private readonly IPurchaseOrderRepository _poRepository;
-    private readonly IConfiguration _config;
-    private readonly ILogger<VnPayIpnHandler> _logger;
-
-    public VnPayIpnHandler(
-        ISupplierPaymentRepository paymentRepository,
-        IPurchaseOrderRepository poRepository,
-        IConfiguration config,
-        ILogger<VnPayIpnHandler> logger)
-    {
-        _paymentRepository = paymentRepository;
-        _poRepository = poRepository;
-        _config = config;
-        _logger = logger;
-    }
-
     public async Task<Result<VnPayIpnResponse>> Handle(
         VnPayIpnCommand request,
         CancellationToken cancellationToken)
     {
-        var vnpSection = _config.GetSection("VNPay");
+        var vnpSection = config.GetSection("VNPay");
         var hashSecret = vnpSection["HashSecret"];
         if (string.IsNullOrWhiteSpace(hashSecret))
         {
-            _logger.LogError("VNPay HashSecret is not configured");
+            logger.LogError("VNPay HashSecret is not configured");
             return Result.Error("VNPay HashSecret is not configured");
         }
 
@@ -67,15 +54,15 @@ public sealed class VnPayIpnHandler
         var encodedQuery = string.Join("&", sortedDebug.Select(kv => $"{kv.Key}={WebUtility.UrlEncode(kv.Value)}"));
         var hashRaw = VNPayHelper.HmacSHA512(hashSecret, rawQuery);
         var hashEncoded = VNPayHelper.HmacSHA512(hashSecret, encodedQuery);
-        _logger.LogDebug("[VNPay IPN] received  hash = {Received}", vnpSecureHash);
-        _logger.LogDebug("[VNPay IPN] computed (raw)     = {Raw}", hashRaw);
-        _logger.LogDebug("[VNPay IPN] computed (encoded) = {Enc}", hashEncoded);
+        logger.LogDebug("[VNPay IPN] received  hash = {Received}", vnpSecureHash);
+        logger.LogDebug("[VNPay IPN] computed (raw)     = {Raw}", hashRaw);
+        logger.LogDebug("[VNPay IPN] computed (encoded) = {Enc}", hashEncoded);
         // ── END DEBUG ────────────────────────────────────────────────────────
 
         var isValidSignature = VNPayHelper.VerifySignature(hashSecret, vnpParams, vnpSecureHash);
         if (!isValidSignature)
         {
-            _logger.LogWarning("[VNPay IPN] Signature verification FAILED");
+            logger.LogWarning("[VNPay IPN] Signature verification FAILED");
             return Result.Success(new VnPayIpnResponse { RspCode = "97", Message = "Invalid signature" });
         }
 
@@ -90,7 +77,7 @@ public sealed class VnPayIpnHandler
             return Result.Success(new VnPayIpnResponse { RspCode = "01", Message = "Order not found" });
         }
 
-        var payment = await _paymentRepository.GetByIdAsync(paymentId, cancellationToken);
+        var payment = await paymentRepository.GetByIdAsync(paymentId, cancellationToken);
         if (payment == null)
         {
             return Result.Success(new VnPayIpnResponse { RspCode = "01", Message = "Order not found" });
@@ -99,7 +86,7 @@ public sealed class VnPayIpnHandler
         // 3. Kiểm tra trạng thái đã xử lý chưa (IPN có thể gọi lại nhiều lần)
         if (payment.Status == (int)PaymentStatus.Paid || payment.Status == (int)PaymentStatus.Failed)
         {
-            _logger.LogInformation("[VNPay IPN] PaymentId {PaymentId} already processed. Skipping.", payment.Id);
+            logger.LogInformation("[VNPay IPN] PaymentId {PaymentId} already processed. Skipping.", payment.Id);
             return Result.Success(new VnPayIpnResponse { RspCode = "02", Message = "Order already confirmed" });
         }
 
@@ -112,14 +99,14 @@ public sealed class VnPayIpnHandler
         var expected = (long)Math.Floor(payment.Amount) * 100;
         if (expected != vnpAmount)
         {
-            _logger.LogWarning(
+            logger.LogWarning(
                 "[VNPay IPN] Amount mismatch for PaymentId {PaymentId}: expected {Expected}, got {Got}",
                 paymentId, expected, vnpAmount);
 
             payment.Status = (int)PaymentStatus.Failed;
             payment.Provider = "vnpay";
             payment.ProviderPayload = JsonSerializer.Serialize(query);
-            await _paymentRepository.SaveChangesAsync(cancellationToken);
+            await paymentRepository.SaveChangesAsync(cancellationToken);
 
             return Result.Success(new VnPayIpnResponse { RspCode = "04", Message = "Invalid amount" });
         }
@@ -134,7 +121,7 @@ public sealed class VnPayIpnHandler
             payment.ProviderPayload = JsonSerializer.Serialize(query);
 
             // Cập nhật PurchaseOrder paid amount & payment status
-            var po = await _poRepository.GetByIdWithItemsAsync(payment.PurchaseOrderId, cancellationToken);
+            var po = await poRepository.GetByIdWithItemsAsync(payment.PurchaseOrderId, cancellationToken);
             if (po != null)
             {
                 po.PaidAmount += payment.Amount;
@@ -142,9 +129,9 @@ public sealed class VnPayIpnHandler
                 po.PaymentStatus = po.PaidAmount >= po.NetAmount
                     ? PaymentStatus.Paid
                     : PaymentStatus.Partial;
-                await _poRepository.SaveChangesAsync(cancellationToken);
+                await poRepository.SaveChangesAsync(cancellationToken);
 
-                _logger.LogInformation(
+                logger.LogInformation(
                     "[VNPay IPN] Thanh toán thành công: PaymentId {PaymentId}, PO {PurchaseOrderId}, PO Status: {PoStatus}",
                     payment.Id, payment.PurchaseOrderId, po.PaymentStatus);
             }
@@ -156,12 +143,12 @@ public sealed class VnPayIpnHandler
             payment.ProviderTxnId = transactionNo;
             payment.ProviderPayload = JsonSerializer.Serialize(query);
 
-            _logger.LogWarning(
+            logger.LogWarning(
                 "[VNPay IPN] Giao dịch thất bại: PaymentId {PaymentId}, ResponseCode {ResponseCode}",
                 payment.Id, responseCode);
         }
 
-        await _paymentRepository.SaveChangesAsync(cancellationToken);
+        await paymentRepository.SaveChangesAsync(cancellationToken);
 
         return Result.Success(new VnPayIpnResponse
         {

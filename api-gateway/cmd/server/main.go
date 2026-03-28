@@ -30,7 +30,7 @@ func main() {
 	// 1. Load Config
 	global.Config = config.LoadConfig()
 	errorcode.InitErrorMap(global.Config)
-	l := logger.New(global.Config.Logger)
+	l := logger.New(global.Config.GatewayEnvironment, global.Config.Logger)
 
 	// 2. Init App
 	app, cleanup, err := di.InitializeApp(global.Config, l)
