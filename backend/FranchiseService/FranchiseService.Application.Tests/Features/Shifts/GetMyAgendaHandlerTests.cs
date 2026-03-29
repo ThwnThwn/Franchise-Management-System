@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Moq;
 using FranchiseService.Application.ClientInterfaces;
+using FranchiseService.Application.Constants;
 using FranchiseService.Application.Features.Shifts.Queries.GetMyAgenda;
 using FranchiseService.Application.Repositories;
 using FranchiseService.Domain.Entities;
@@ -47,7 +48,10 @@ public class GetMyAgendaHandlerTests
     {
         var userId = Guid.NewGuid();
         var coworkerId = Guid.NewGuid();
-        var currentDay = (int)DateTime.UtcNow.DayOfWeek;
+        var vnNow = TimeZoneInfo.ConvertTimeFromUtc(
+            DateTime.UtcNow,
+            TimeZoneInfo.FindSystemTimeZoneById(DateConstants.GetVietnamTimeZoneId()));
+        var currentDay = (int)vnNow.DayOfWeek;
 
         var store = new Store
         {
@@ -208,3 +212,4 @@ public class GetMyAgendaHandlerTests
         _identityClientMock.Verify(c => c.GetUsersByIdsAsync(It.IsAny<IEnumerable<Guid>>()), Times.Never);
     }
 }
+

@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Moq;
+using FranchiseService.Application.Constants;
 using FranchiseService.Application.Features.ShiftSwaps.Helpers;
 using FranchiseService.Application.Persistences.Repositories;
 using FranchiseService.Application.Services;
@@ -116,14 +117,17 @@ public class SwapValidationHelperTests
             TimeLogs = new List<TimeLog>()
         };
 
-        var vnNow = DateTime.UtcNow.AddHours(7);
+        var vnNow = TimeZoneInfo.ConvertTimeFromUtc(
+            DateTime.UtcNow,
+            TimeZoneInfo.FindSystemTimeZoneById(DateConstants.GetVietnamTimeZoneId()));
+        var startedAt = vnNow.AddMinutes(-30);
         var shift = new Shift
         {
             Id = assignment.ShiftId,
             StoreId = Guid.NewGuid(),
-            ShiftDate = DateOnly.FromDateTime(vnNow),
-            StartTime = new TimeOnly(vnNow.Hour, vnNow.Minute).AddMinutes(-30),
-            EndTime = new TimeOnly(vnNow.Hour, vnNow.Minute).AddHours(4),
+            ShiftDate = DateOnly.FromDateTime(startedAt),
+            StartTime = TimeOnly.FromDateTime(startedAt),
+            EndTime = TimeOnly.FromDateTime(vnNow.AddHours(4)),
             Status = (int)ShiftStatus.Published,
             ShiftAssignments = new List<ShiftAssignment>()
         };
@@ -227,3 +231,4 @@ public class SwapValidationHelperTests
         swap.ReviewedAt.Should().NotBeNull();
     }
 }
+

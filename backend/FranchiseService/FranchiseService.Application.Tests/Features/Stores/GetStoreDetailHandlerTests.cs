@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Moq;
+using FranchiseService.Application.Constants;
 using FranchiseService.Application.Features.Stores.Queries.GetStoreDetail;
 using FranchiseService.Application.Repositories;
 using FranchiseService.Domain.Entities;
@@ -43,7 +44,10 @@ public class GetStoreDetailHandlerTests
     [Fact]
     public async Task Handle_ShouldMapStoreAndSetIsOpenNow_WhenStoreIsOpen()
     {
-        var currentDay = (int)DateTime.UtcNow.DayOfWeek;
+        var vnNow = TimeZoneInfo.ConvertTimeFromUtc(
+            DateTime.UtcNow,
+            TimeZoneInfo.FindSystemTimeZoneById(DateConstants.GetVietnamTimeZoneId()));
+        var currentDay = (int)vnNow.DayOfWeek;
         var store = new Store
         {
             Id = Guid.NewGuid(),
@@ -79,7 +83,10 @@ public class GetStoreDetailHandlerTests
     [Fact]
     public async Task Handle_ShouldSetIsOpenNowFalse_WhenStoreClosedBySchedule()
     {
-        var currentDay = (int)DateTime.UtcNow.DayOfWeek;
+        var vnNow = TimeZoneInfo.ConvertTimeFromUtc(
+            DateTime.UtcNow,
+            TimeZoneInfo.FindSystemTimeZoneById(DateConstants.GetVietnamTimeZoneId()));
+        var currentDay = (int)vnNow.DayOfWeek;
         var store = new Store
         {
             Id = Guid.NewGuid(),
@@ -111,3 +118,4 @@ public class GetStoreDetailHandlerTests
         result!.IsOpenNow.Should().BeFalse();
     }
 }
+
