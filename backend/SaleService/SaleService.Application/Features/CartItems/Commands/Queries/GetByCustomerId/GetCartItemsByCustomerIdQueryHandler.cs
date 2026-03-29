@@ -1,9 +1,10 @@
-﻿using MediatR;
+using MediatR;
 using SalesService.Application.ClientInterface.Products;
 using SalesService.Application.Dtos.CartItem.Response;
 using SalesService.Application.Features.CartItems.Queries.GetByCustomerId;
 using SalesService.Application.Interfaces.CartItems;
 
+namespace SalesService.Application.Features.CartItems.Queries.GetByCustomerId;
 public class GetCartItemsByCustomerIdHandler
     : IRequestHandler<GetCartItemsByCustomerIdQuery, List<CartItemRep>>
 {

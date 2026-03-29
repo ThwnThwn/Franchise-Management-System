@@ -1,9 +1,9 @@
-﻿using FluentValidation;
+using FluentValidation;
 using SalesService.Application.Features.WalletTransactions.Queries.GetByUserId;
 
 namespace SalesService.Application.Features.WalletTransactions.Querries.GetByUserId
 {
-    internal class GetWalletTransactionsByUserIdQueryValidator :
+    public class GetWalletTransactionsByUserIdQueryValidator :
         AbstractValidator<GetWalletTransactionsByUserIdQuery>
     {
         public GetWalletTransactionsByUserIdQueryValidator()

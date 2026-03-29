@@ -1,8 +1,9 @@
-﻿using SalesService.Application.Features.Orders.Queries.GetOrderVolume;
+using SalesService.Application.Features.Orders.Queries.GetOrderVolume;
 using SalesService.Domain.Enums;
 using System.Globalization;
 using System.Text;
 
+namespace SalesService.Application.Features.Orders.Queries.GetOrderVolume;
 public static class OrderVolumeCsvExporter
 {
     public static byte[] Export(IEnumerable<OrderVolumePerDayDto> orders)

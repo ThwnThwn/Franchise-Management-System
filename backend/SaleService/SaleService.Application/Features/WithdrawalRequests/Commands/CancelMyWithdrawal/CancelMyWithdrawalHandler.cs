@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using SalesService.Application.Persisitences;
 using SalesService.Application.Persisitences.Wallets;
@@ -66,6 +66,11 @@ public class CancelMyWithdrawalHandler(
             // 6. Commit một phát ăn cả 3 bảng
             await uow.CommitAsync(ct);
             return true;
+        }
+        catch (KeyNotFoundException)
+        {
+            await uow.RollbackAsync(ct);
+            throw;
         }
         catch (DbUpdateConcurrencyException)
         {

@@ -1,8 +1,8 @@
-﻿using FluentValidation;
+using FluentValidation;
 
 namespace SalesService.Application.Features.RefundTickets.Command.ApproveRefund
 {
-    internal sealed class ApproveRefundCommandValidator
+    public sealed class ApproveRefundCommandValidator
         : AbstractValidator<ApproveRefundCommand>
     {
         public ApproveRefundCommandValidator()

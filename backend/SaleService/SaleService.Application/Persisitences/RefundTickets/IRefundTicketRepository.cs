@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.Core.Pagination;
+using BuildingBlocks.Core.Pagination;
 using SalesService.Application.Features.Reports.Queries.ProductPerformance;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
@@ -26,7 +26,7 @@ namespace SalesService.Application.Persisitences
         Guid OriginalTransactionId,
         CancellationToken cancellationToken);
 
-        Task<PagedResult<RefundTicket>> GetAllRefundsAsync(
+        Task<PagedResult<RefundTicket>?> GetAllRefundsAsync(
         Guid? userId,
         RefundTicketStatus? status,
         int page,

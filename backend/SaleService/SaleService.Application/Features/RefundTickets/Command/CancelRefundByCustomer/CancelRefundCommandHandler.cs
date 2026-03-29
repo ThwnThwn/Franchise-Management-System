@@ -1,4 +1,4 @@
-﻿using Ardalis.Result;
+using Ardalis.Result;
 using DocumentFormat.OpenXml.Office2016.Excel;
 using MediatR;
 using SalesService.Application.Persisitences;
@@ -10,7 +10,7 @@ using static SalesService.Application.Features.RefundTickets.Command.CancelRefun
 
 namespace SalesService.Application.Features.RefundTickets.Command.CancelRefund;
 
-internal sealed class CancelRefundCommandHandler :
+public sealed class CancelRefundCommandHandler :
     IRequestHandler<CancelRefundCommand, Result<CancelRefundCommand.CancelRefundResponse>>
 {
     private readonly IRefundTicketRepository _refundTicketRepository;
