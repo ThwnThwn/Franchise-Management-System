@@ -63,3 +63,63 @@ BEGIN
         ON CONFLICT (id) DO NOTHING;
     END LOOP;
 END $$;
+
+DO $$
+DECLARE
+    -- Cấu hình tham số
+    target_user_id UUID := '00964234-2ce1-4bbd-b926-64bf68fef73b';
+    new_total_points DECIMAL(15, 3) := 100000.000;
+    
+    -- Biến tạm để tính toán log
+    old_balance DECIMAL(15, 3);
+    point_diff DECIMAL(15, 3);
+BEGIN
+    -- 1. Kiểm tra và lấy số dư hiện tại
+    SELECT available_points INTO old_balance 
+    FROM "loyalty_accounts" 
+    WHERE "id" = target_user_id;
+
+    -- Nếu user chưa có dòng trong loyalty_accounts, tạo mới luôn (đề phòng)
+    IF NOT FOUND THEN
+        INSERT INTO "loyalty_accounts" ("id", "available_points", "total_spent", "current_tier_id")
+        VALUES (target_user_id, new_total_points, 0, '00000000-0000-0000-0000-000000000001');
+        old_balance := 0;
+    ELSE
+        -- Nếu đã có, tiến hành cập nhật
+        UPDATE "loyalty_accounts"
+        SET "available_points" = new_total_points,
+            "updated_at" = CURRENT_TIMESTAMP
+        WHERE "id" = target_user_id;
+    END IF;
+
+    -- Tính toán số điểm chênh lệch thực tế để ghi log amount
+    point_diff := new_total_points - old_balance;
+
+    -- 2. Ghi Log biến động số dư (Audit Trail)
+    INSERT INTO "point_logs" (
+        "id",
+        "user_id",
+        "amount",
+        "balance_before",
+        "balance_after",
+        "action_type",
+        "reason_code",
+        "description",
+        "expired_at",
+        "created_at"
+    )
+    VALUES (
+        uuid_generate_v4(),
+        target_user_id,
+        point_diff,          -- Số điểm thay đổi (dương là cộng, âm là trừ)
+        old_balance,         -- Số dư cũ
+        new_total_points,    -- Số dư mới (100,000)
+        'ADJUST',            -- Enum point_action_type
+        'MANUAL_ADJUST',     -- Enum point_reason_code
+        'System manual set points to 100,000 for system testing',
+        CURRENT_TIMESTAMP + INTERVAL '1 year', -- Hết hạn sau 1 năm
+        CURRENT_TIMESTAMP
+    );
+
+    RAISE NOTICE 'User % balance updated: % -> %', target_user_id, old_balance, new_total_points;
+END $$;
