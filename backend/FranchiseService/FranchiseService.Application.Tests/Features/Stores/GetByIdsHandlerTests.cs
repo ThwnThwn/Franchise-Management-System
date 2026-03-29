@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Moq;
+using FranchiseService.Application.Constants;
 using FranchiseService.Application.Features.Stores.Queries.GetByIds;
 using FranchiseService.Application.Repositories;
 using FranchiseService.Domain.Entities;
@@ -45,7 +46,10 @@ public class GetByIdsHandlerTests
     [Fact]
     public async Task Handle_ShouldMapStoresAndCalculateIsOpenNow()
     {
-        var currentDay = (int)DateTime.UtcNow.DayOfWeek;
+        var vnNow = TimeZoneInfo.ConvertTimeFromUtc(
+            DateTime.UtcNow,
+            TimeZoneInfo.FindSystemTimeZoneById(DateConstants.GetVietnamTimeZoneId()));
+        var currentDay = (int)vnNow.DayOfWeek;
         var openStore = new Store
         {
             Id = Guid.NewGuid(),
@@ -103,3 +107,4 @@ public class GetByIdsHandlerTests
         result.Should().Contain(s => s.Id == closedStore.Id && !s.IsOpenNow);
     }
 }
+
