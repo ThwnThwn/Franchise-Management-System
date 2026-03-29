@@ -6,13 +6,13 @@ import { motion } from "framer-motion"
 import { productApi } from "@/features/products/services/productApi"
 import { Product } from "@/features/products/models/products/respone"
 import { ProductCard, ProductVariantsModal } from "@/features/products/components"
-import { useDisclosure } from "@heroui/react"
+import { cn, useDisclosure } from "@heroui/react"
 import { useLoginDiscloresureSingleton, useTokenStore } from "@/hooks"
 import { StoreDetailDto } from "@/features/stores/models/schema/response"
 import { useCartStore } from "@/features/cart/store"
 import { StoreSelectionModal } from "@/features/stores/components"
 
-export default function FeaturedSection() {
+export default function FeaturedSection({ className }: { className?: string }) {
     const [featuredItems, setFeaturedItems] = useState<Product[]>([])
     const [isLoading, setIsLoading] = useState(true)
 
@@ -82,11 +82,11 @@ export default function FeaturedSection() {
     }
 
     return (
-        <section className="py-20 bg-white relative overflow-hidden">
+        <section className={cn("py-20 bg-white relative overflow-hidden", className)}>
             {/* Decorative Background Blob */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-30">
-                <div className="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] bg-amber-100 rounded-full blur-[80px]" />
-                <div className="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] bg-orange-50 rounded-full blur-[60px]" />
+                <div className="absolute top-[-10%] left-[-5%] w-125 h-125 bg-amber-100 rounded-full blur-[80px]" />
+                <div className="absolute bottom-[-10%] right-[-5%] w-100 h-100 bg-orange-50 rounded-full blur-[60px]" />
             </div>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -100,7 +100,7 @@ export default function FeaturedSection() {
                         <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
                             Sản Phẩm <span className="text-amber-600">Nổi Bật</span>
                         </h2>
-                        <div className="w-24 h-1.5 bg-gradient-to-r from-amber-400 to-orange-500 mx-auto rounded-full mb-6" />
+                        <div className="w-24 h-1.5 bg-linear-to-r from-amber-400 to-orange-500 mx-auto rounded-full mb-6" />
                         <p className="mt-4 text-gray-600 text-lg max-w-2xl mx-auto">
                             Những thức uống được yêu thích nhất, được pha chế tỉ mỉ từ những hạt cà
                             phê thượng hạng.

@@ -1,7 +1,6 @@
 "use client"
 
 import { Button, Card, CardBody, Chip, Progress } from "@heroui/react"
-import clsx from "clsx"
 import { ArrowLeft, CalendarClock, Sparkles, TicketPercent } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
@@ -14,6 +13,8 @@ import { VoucherCard, VoucherViewModal } from "@/features/vouchers/components"
 import { Voucher } from "@/features/vouchers/models/response"
 import { useCountdown, useLoginDiscloresureSingleton, useTokenStore } from "@/hooks"
 import { formatCurrency, normalizeCurrency } from "@/utils/helpers/currency"
+import { CountdownUnit } from "@/features/campaigns/components"
+import { useTimeProgress } from "@/features/campaigns/hooks"
 
 interface Props {
     campaign: CampaignResponse
@@ -36,6 +37,7 @@ export const CampaignPublicDetailView = ({ campaign }: Props) => {
     // --- State & Mutations ---
     const [viewingVoucher, setViewingVoucher] = useState<Voucher | undefined>(undefined)
     const [redeemingId, setRedeemingId] = useState<string | null>(null) // Để biết đang quay loading ở nút nào
+    const progressValue = useTimeProgress(campaign.startDate, campaign.endDate)
 
     // Gọi hook của campaign
     const { mutate: redeem, isPending: isRedeeming } = useRedeemCampaignVoucher()
@@ -125,21 +127,42 @@ export const CampaignPublicDetailView = ({ campaign }: Props) => {
                             </h4>
 
                             <div className="flex justify-between items-baseline text-default-900">
-                                <CountdownUnit value={days} label="Ngày" />
+                                <CountdownUnit
+                                    value={days}
+                                    label="Ngày"
+                                    valueClassName="text-3xl"
+                                    labelClassName="text-default-400"
+                                />
                                 <span className="text-xl font-black mb-4 opacity-50">:</span>
-                                <CountdownUnit value={hours} label="Giờ" />
+                                <CountdownUnit
+                                    value={hours}
+                                    label="Giờ"
+                                    valueClassName="text-3xl"
+                                    labelClassName="text-default-400"
+                                />
                                 <span className="text-xl font-black mb-4 opacity-50">:</span>
-                                <CountdownUnit value={minutes} label="Phút" />
+                                <CountdownUnit
+                                    value={minutes}
+                                    label="Phút"
+                                    valueClassName="text-3xl"
+                                    labelClassName="text-default-400"
+                                />
                                 <span className="text-xl font-black mb-4 opacity-50 animate-pulse">
                                     :
                                 </span>
-                                <CountdownUnit value={seconds} label="Giây" isSeconds />
+                                <CountdownUnit
+                                    value={seconds}
+                                    label="Giây"
+                                    isSeconds
+                                    valueClassName="text-3xl text-danger-500"
+                                    labelClassName="text-default-400"
+                                />
                             </div>
 
                             <Progress
                                 size="sm"
                                 radius="full"
-                                value={((days * 24 + hours) / (30 * 24)) * 100}
+                                value={progressValue}
                                 color="warning"
                             />
                         </CardBody>
@@ -209,24 +232,3 @@ export const CampaignPublicDetailView = ({ campaign }: Props) => {
         </div>
     )
 }
-
-// --- Component phụ: Số Countdown (Có chống chớp Hydration) ---
-const CountdownUnit = ({
-    value,
-    label,
-    isSeconds
-}: {
-    value: number
-    label: string
-    isSeconds?: boolean
-}) => (
-    <div className="text-center min-w-8">
-        <span
-            suppressHydrationWarning
-            className={clsx("text-3xl font-black", isSeconds && "text-danger-500")}
-        >
-            {value.toString().padStart(2, "0")}
-        </span>
-        <p className="text-[10px] uppercase font-bold text-default-400 mt-1">{label}</p>
-    </div>
-)

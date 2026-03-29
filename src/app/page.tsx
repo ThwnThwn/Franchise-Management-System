@@ -21,7 +21,7 @@ export default async function Home() {
         <HydrationBoundary state={dehydrate(queryClient)}>
             <div className="flex flex-col w-full">
                 <HeroSection />
-                <CampaignSection className="py-8" />
+                <CampaignSection className="py-8 bg-white" />
                 <FeaturedSection />
                 <StoreHighlight />
                 <FranchiseSection />

@@ -69,7 +69,7 @@ export const CampaignCarousel = ({ campaigns }: Props) => {
                             opacity: { duration: 0.2 }
                         }}
                         // Dùng absolute inset-0 để nó bung full cái khung 4xl
-                        className="absolute inset-0 w-full h-full shadow-2xl rounded-3xl"
+                        className="absolute inset-0 w-full h-full shadow-none rounded-3xl"
                     >
                         <CampaignBanner
                             campaign={campaigns[currentIndex]}

@@ -7,7 +7,8 @@ import { ArrowRight, CalendarDays, Megaphone, PartyPopper, Sparkles } from "luci
 import { DATE_TIME_VIEW_FORMAT } from "@/constants/constants"
 import { CampaignResponse } from "@/features/campaigns/models/response"
 import { useCountdown, useDay } from "@/hooks"
-import dayjs from "dayjs"
+import { useTimeProgress } from "@/features/campaigns/hooks"
+import { CountdownUnit } from "@/features/campaigns/components"
 
 // --- Định nghĩa các style Banner theo size ---
 const SIZES = {
@@ -72,18 +73,16 @@ export const CampaignBanner = ({
     const { days, hours, minutes, seconds } = useCountdown(campaign.endDate)
 
     // Tính toán Progress Bar
-    const totalDuration = dayjs(campaign.endDate).diff(dayjs(campaign.startDate))
-    const elapsed = dayjs().diff(dayjs(campaign.startDate))
-    const progressValue = Math.min(Math.max((elapsed / totalDuration) * 100, 0), 100)
+    const progressValue = useTimeProgress(campaign.startDate, campaign.endDate)
 
     return (
         <Card
-            shadow="sm"
+            shadow="none"
             isPressable={!!onPress}
             onPress={onPress}
             className={clsx(
                 `bg-linear-to-br ${themeStyle.gradient} border border-default-100/30`,
-                "rounded-3xl shadow-lg transition-transform hover:scale-[1.01] active:scale-[0.99]",
+                "rounded-3xl transition-transform hover:scale-[1.01] active:scale-[0.99]",
                 style.card,
                 className
             )}
@@ -131,57 +130,15 @@ export const CampaignBanner = ({
                             </p>
 
                             <div className="flex justify-between items-baseline text-white">
-                                {/* Khối Ngày */}
-                                <div className="text-center min-w-8">
-                                    {/* THÊM suppressHydrationWarning VÀO ĐÂY */}
-                                    <span suppressHydrationWarning className="text-2xl font-black">
-                                        {days.toString().padStart(2, "0")}
-                                    </span>
-                                    <p className="text-[9px] uppercase font-bold opacity-70 mt-1">
-                                        Ngày
-                                    </p>
-                                </div>
-
+                                <CountdownUnit value={days} label="Ngày" />
                                 <span className="text-xl font-black mb-4 opacity-50">:</span>
-
-                                {/* Khối Giờ */}
-                                <div className="text-center min-w-8">
-                                    <span suppressHydrationWarning className="text-2xl font-black">
-                                        {hours.toString().padStart(2, "0")}
-                                    </span>
-                                    <p className="text-[9px] uppercase font-bold opacity-70 mt-1">
-                                        Giờ
-                                    </p>
-                                </div>
-
+                                <CountdownUnit value={hours} label="Giờ" />
                                 <span className="text-xl font-black mb-4 opacity-50">:</span>
-
-                                {/* Khối Phút */}
-                                <div className="text-center min-w-8">
-                                    <span suppressHydrationWarning className="text-2xl font-black">
-                                        {minutes.toString().padStart(2, "0")}
-                                    </span>
-                                    <p className="text-[9px] uppercase font-bold opacity-70 mt-1">
-                                        Phút
-                                    </p>
-                                </div>
-
+                                <CountdownUnit value={minutes} label="Phút" />
                                 <span className="text-xl font-black mb-4 opacity-50 animate-pulse">
                                     :
                                 </span>
-
-                                {/* Khối Giây */}
-                                <div className="text-center min-w-8">
-                                    <span
-                                        suppressHydrationWarning
-                                        className="text-2xl font-black text-danger-200"
-                                    >
-                                        {seconds.toString().padStart(2, "0")}
-                                    </span>
-                                    <p className="text-[9px] uppercase font-bold opacity-70 mt-1">
-                                        Giây
-                                    </p>
-                                </div>
+                                <CountdownUnit value={seconds} label="Giây" isSeconds />
                             </div>
 
                             <Progress
