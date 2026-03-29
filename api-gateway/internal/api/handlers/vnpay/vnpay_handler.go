@@ -22,9 +22,11 @@ func NewVnPayHandler(s sales.IPaymentService, sup supplier.ISupplierPaymentServi
 }
 
 // HandleIPN
-// @Summary      VNPay IPN Dispatcher
-// @Description  Nhận callback từ VNPay, phân loại đơn hàng và điều phối đến đúng Service qua gRPC.
+// @Summary      Handle VNPay IPN Webhook
+// @Description  Receive Instant Payment Notification (IPN) callbacks from VNPay. Acts as a dispatcher to classify the transaction type (e.g., Customer Orders vs. Supplier Purchase Orders) and securely route the payload to the appropriate underlying Microservice via gRPC.
 // @Tags         Payments
+// @Produce      json
+// @Success      200  {object} map[string]string "Always returns HTTP 200 with VNPay standard RspCode and Message"
 // @Router       /vnpay/ipn [get]
 func (h *VnPayHandler) HandleIPN(c *gin.Context) {
 	// 1. Thu thập params

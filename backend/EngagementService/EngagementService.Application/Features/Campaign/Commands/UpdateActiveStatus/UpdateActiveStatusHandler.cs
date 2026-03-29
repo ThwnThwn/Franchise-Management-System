@@ -1,14 +1,8 @@
 using AutoMapper;
 using EngagementService.Application.Dtos.Campaign.Response;
 using EngagementService.Application.Persistences.Repository;
-using IdentityModel.Client;
 using IdentityService.Application.Abstrations;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EngagementService.Application.Features.Campaign.Commands.UpdateActiveStatus
 {
@@ -36,7 +30,8 @@ namespace EngagementService.Application.Features.Campaign.Commands.UpdateActiveS
             Domain.Entities.Campaign? campaign = await _campaignRepository.GetCampaignById(request.Id);
             if (campaign == null)
             {
-                throw new ArgumentNullException($"campign with Id {request.Id} is null" + nameof(command)); }
+                throw new ArgumentNullException($"campign with Id {request.Id} is null" + nameof(command));
+            }
 
             campaign.IsActive = request.IsActive;
             campaign.Vouchers.ToList().ForEach(v => v.IsActive = request.IsActive);

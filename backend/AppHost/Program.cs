@@ -1,8 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
 using DotNetEnv;
 using Microsoft.Extensions.Configuration;
 
 namespace AppHost;
 
+[ExcludeFromCodeCoverage]
 internal class Program
 {
     private static void Main(string[] args)

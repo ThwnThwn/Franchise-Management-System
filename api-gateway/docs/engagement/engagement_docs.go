@@ -21,14 +21,14 @@ const docTemplateengagement = `{
     "paths": {
         "/campaigns": {
             "get": {
-                "description": "Lấy toàn bộ danh sách các chiến dịch / chương trình khuyến mãi hiện có trên hệ thống.",
+                "description": "Retrieve a list of all existing campaigns / promotional programs in the system.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Campaigns"
                 ],
-                "summary": "Lấy danh sách chiến dịch",
+                "summary": "Get all campaigns",
                 "responses": {
                     "200": {
                         "description": "Danh sách chiến dịch thành công",
@@ -40,7 +40,7 @@ const docTemplateengagement = `{
                         }
                     },
                     "500": {
-                        "description": "Lỗi hệ thống (Internal Server Error)",
+                        "description": "Internal Server Error",
                         "schema": {
                             "type": "object"
                         }
@@ -53,7 +53,7 @@ const docTemplateengagement = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Tạo một chiến dịch / đợt săn voucher mới.",
+                "description": "Create a new campaign or voucher hunting event.",
                 "consumes": [
                     "application/json"
                 ],
@@ -63,10 +63,10 @@ const docTemplateengagement = `{
                 "tags": [
                     "Campaigns"
                 ],
-                "summary": "Tạo chiến dịch mới",
+                "summary": "Create a new campaign",
                 "parameters": [
                     {
-                        "description": "Dữ liệu khởi tạo chiến dịch",
+                        "description": "Campaign initialization data",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -86,19 +86,19 @@ const docTemplateengagement = `{
                         }
                     },
                     "400": {
-                        "description": "Lỗi dữ liệu đầu vào (Validation Error)",
+                        "description": "Validation Error (Bad Request)",
                         "schema": {
                             "type": "object"
                         }
                     },
                     "401": {
-                        "description": "Chưa xác thực (Unauthorized)",
+                        "description": "Unauthorized",
                         "schema": {
                             "type": "object"
                         }
                     },
                     "500": {
-                        "description": "Lỗi hệ thống (Internal Server Error)",
+                        "description": "Internal Server Error",
                         "schema": {
                             "type": "object"
                         }
@@ -108,14 +108,14 @@ const docTemplateengagement = `{
         },
         "/campaigns/active": {
             "get": {
-                "description": "Lấy các chiến dịch / chương trình khuyến mãi hiện công khai trên hệ thống.",
+                "description": "Retrieve a list of currently active campaigns / promotional programs.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Campaigns"
                 ],
-                "summary": "Lấy danh sách chiến dịch đang công khai",
+                "summary": "Get active campaigns",
                 "responses": {
                     "200": {
                         "description": "Danh sách chiến dịch",
@@ -127,7 +127,7 @@ const docTemplateengagement = `{
                         }
                     },
                     "500": {
-                        "description": "Lỗi hệ thống (Internal Server Error)",
+                        "description": "Internal Server Error",
                         "schema": {
                             "type": "object"
                         }
@@ -142,7 +142,7 @@ const docTemplateengagement = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Người dùng đổi điểm lấy voucher hoặc nhận voucher miễn phí từ một chiến dịch cụ thể.",
+                "description": "User redeems points for a voucher or claims a free voucher from a specific campaign.",
                 "consumes": [
                     "application/json"
                 ],
@@ -152,11 +152,11 @@ const docTemplateengagement = `{
                 "tags": [
                     "Campaigns"
                 ],
-                "summary": "Đổi voucher từ chiến dịch",
+                "summary": "Redeem voucher from campaign",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Voucher ID (Mã quà tặng)",
+                        "description": "Voucher ID",
                         "name": "voucherId",
                         "in": "path",
                         "required": true
@@ -173,31 +173,31 @@ const docTemplateengagement = `{
                         }
                     },
                     "400": {
-                        "description": "ID không hợp lệ hoặc dữ liệu sai",
+                        "description": "Invalid ID or bad request data",
                         "schema": {
                             "type": "object"
                         }
                     },
                     "401": {
-                        "description": "Chưa đăng nhập (Unauthorized)",
+                        "description": "Unauthorized",
                         "schema": {
                             "type": "object"
                         }
                     },
                     "403": {
-                        "description": "Không đủ điểm hoặc không có quyền (Forbidden)",
+                        "description": "Insufficient points or Forbidden",
                         "schema": {
                             "type": "object"
                         }
                     },
                     "404": {
-                        "description": "Không tìm thấy chiến dịch hoặc voucher",
+                        "description": "Campaign or voucher not found",
                         "schema": {
                             "type": "object"
                         }
                     },
                     "500": {
-                        "description": "Lỗi hệ thống (Internal Server Error)",
+                        "description": "Internal Server Error",
                         "schema": {
                             "type": "object"
                         }
@@ -207,18 +207,18 @@ const docTemplateengagement = `{
         },
         "/campaigns/{id}": {
             "get": {
-                "description": "Lấy thông tin chi tiết của một chiến dịch dựa vào ID.",
+                "description": "Retrieve detailed information of a specific campaign by its ID.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Campaigns"
                 ],
-                "summary": "Lấy chi tiết chiến dịch",
+                "summary": "Get campaign details",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Campaign ID (Mã chiến dịch)",
+                        "description": "Campaign ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -232,19 +232,19 @@ const docTemplateengagement = `{
                         }
                     },
                     "400": {
-                        "description": "ID không hợp lệ (Bad Request)",
+                        "description": "Invalid ID (Bad Request)",
                         "schema": {
                             "type": "object"
                         }
                     },
                     "404": {
-                        "description": "Không tìm thấy chiến dịch (Not Found)",
+                        "description": "Campaign Not Found",
                         "schema": {
                             "type": "object"
                         }
                     },
                     "500": {
-                        "description": "Lỗi hệ thống (Internal Server Error)",
+                        "description": "Internal Server Error",
                         "schema": {
                             "type": "object"
                         }
@@ -259,7 +259,7 @@ const docTemplateengagement = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Bật hoặc tắt trạng thái hoạt động (Active/Inactive) của một chiến dịch cụ thể.",
+                "description": "Enable or disable the active status of a specific campaign.",
                 "consumes": [
                     "application/json"
                 ],
@@ -269,17 +269,17 @@ const docTemplateengagement = `{
                 "tags": [
                     "Campaigns"
                 ],
-                "summary": "Cập nhật trạng thái hoạt động của chiến dịch",
+                "summary": "Update campaign active status",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Campaign ID (Mã chiến dịch)",
+                        "description": "Campaign ID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Dữ liệu cập nhật trạng thái",
+                        "description": "Status update data",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -299,25 +299,25 @@ const docTemplateengagement = `{
                         }
                     },
                     "400": {
-                        "description": "Lỗi dữ liệu đầu vào hoặc ID không hợp lệ",
+                        "description": "Invalid input data or ID",
                         "schema": {
                             "type": "object"
                         }
                     },
                     "401": {
-                        "description": "Chưa xác thực (Unauthorized)",
+                        "description": "Unauthorized",
                         "schema": {
                             "type": "object"
                         }
                     },
                     "404": {
-                        "description": "Không tìm thấy chiến dịch (Not Found)",
+                        "description": "Campaign Not Found",
                         "schema": {
                             "type": "object"
                         }
                     },
                     "500": {
-                        "description": "Lỗi hệ thống (Internal Server Error)",
+                        "description": "Internal Server Error",
                         "schema": {
                             "type": "object"
                         }
@@ -1514,10 +1514,10 @@ const docTemplateengagement = `{
 // SwaggerInfoengagement holds exported Swagger Info so clients can modify it
 var SwaggerInfoengagement = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:8080",
+	Host:             "",
 	BasePath:         "/api",
 	Schemes:          []string{},
-	Title:            "API Gateway Documentation",
+	Title:            "Capital Franchise Supply Chain Management System API Document",
 	Description:      "API docs for CHD Gateway.",
 	InfoInstanceName: "engagement",
 	SwaggerTemplate:  docTemplateengagement,

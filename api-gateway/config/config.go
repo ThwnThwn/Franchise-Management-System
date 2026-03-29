@@ -1,6 +1,8 @@
 package config
 
 type Config struct {
+	GatewayEnvironment string
+
 	Logger Logger
 
 	Redis Redis

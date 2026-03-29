@@ -26,14 +26,14 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Lấy toàn bộ hồ sơ đăng ký nhượng quyền (hỗ trợ phân trang, lọc theo trạng thái).",
+                "description": "Retrieve all franchise applications (supports pagination, filtering by status).",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Franchise: Applications"
                 ],
-                "summary": "Lấy danh sách hồ sơ nhượng quyền (Admin)",
+                "summary": "Get all franchise applications (Admin)",
                 "parameters": [
                     {
                         "type": "integer",
@@ -71,7 +71,7 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Đối tác gửi hồ sơ (thông tin cá nhân, địa chỉ mặt bằng) kèm theo ảnh mặt bằng và các ảnh chứng nhận đất đai.",
+                "description": "Partner submits application (personal info, premise address) along with storefront and land certificate images.",
                 "consumes": [
                     "multipart/form-data"
                 ],
@@ -81,111 +81,111 @@ const docTemplatefranchise = `{
                 "tags": [
                     "Franchise: Applications"
                 ],
-                "summary": "Nộp hồ sơ đăng ký nhượng quyền",
+                "summary": "Submit franchise application",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Họ và tên",
+                        "description": "Full name",
                         "name": "fullName",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Email liên hệ",
+                        "description": "Contact email",
                         "name": "email",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Số điện thoại",
+                        "description": "Phone number",
                         "name": "phone",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "CMND/CCCD",
+                        "description": "Identity card number (CMND/CCCD)",
                         "name": "identityNumber",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Mã Tỉnh/Thành phố",
+                        "description": "Province/City ID",
                         "name": "provinceId",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Mã Quận/Huyện",
+                        "description": "District ID",
                         "name": "districtId",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Mã Phường/Xã",
+                        "description": "Ward ID",
                         "name": "wardId",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Tên quán dự kiến",
+                        "description": "Proposed store name",
                         "name": "storeName",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Địa chỉ chi tiết mặt bằng",
+                        "description": "Detailed premise address",
                         "name": "storeAddress",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "number",
-                        "description": "Vĩ độ (Latitude)",
+                        "description": "Latitude",
                         "name": "storeLatitude",
                         "in": "formData"
                     },
                     {
                         "type": "number",
-                        "description": "Kinh độ (Longitude)",
+                        "description": "Longitude",
                         "name": "storeLongitude",
                         "in": "formData"
                     },
                     {
                         "type": "number",
-                        "description": "Diện tích mặt bằng (m2)",
+                        "description": "Premise area (sqm)",
                         "name": "storeSizeSqm",
                         "in": "formData"
                     },
                     {
                         "type": "file",
-                        "description": "Ảnh mặt tiền (1 file)",
+                        "description": "Storefront image (1 file)",
                         "name": "storeFront",
                         "in": "formData"
                     },
                     {
                         "type": "file",
-                        "description": "Ảnh chứng nhận đất đai/Sổ đỏ (Nhiều file)",
+                        "description": "Land certificate images (Multiple files)",
                         "name": "landCerts",
                         "in": "formData"
                     }
                 ],
                 "responses": {
                     "201": {
-                        "description": "Hồ sơ vừa tạo",
+                        "description": "Created application",
                         "schema": {
                             "$ref": "#/definitions/api-gateway_internal_domain_models_franchise.FranchiseApplicationResponse"
                         }
                     },
                     "400": {
-                        "description": "Lỗi dữ liệu đầu vào",
+                        "description": "Validation error (Bad Request)",
                         "schema": {
                             "type": "object"
                         }
@@ -200,18 +200,18 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Xem chi tiết hồ sơ bao gồm cả danh sách các hợp đồng (Contracts) được sinh ra từ hồ sơ này.",
+                "description": "View application details including the list of contracts generated from this application.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Franchise: Applications"
                 ],
-                "summary": "Xem chi tiết một hồ sơ (Admin)",
+                "summary": "Get application details (Admin)",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "ID Hồ sơ (Application ID)",
+                        "description": "Application ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -234,7 +234,7 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Admin duyệt (Approve) hoặc từ chối (Reject) hồ sơ. Nếu Approve, hệ thống tự động sinh Hợp đồng và bắn link DocuSeal.",
+                "description": "Admin approves or rejects the application. If approved, the system automatically generates a Contract and sends a DocuSeal link.",
                 "consumes": [
                     "application/json"
                 ],
@@ -244,17 +244,17 @@ const docTemplatefranchise = `{
                 "tags": [
                     "Franchise: Applications"
                 ],
-                "summary": "Thẩm định hồ sơ nhượng quyền (Admin)",
+                "summary": "Review franchise application (Admin)",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "ID Hồ sơ (Application ID)",
+                        "description": "Application ID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Quyết định thẩm định \u0026 Thông số hợp đồng",
+                        "description": "Review decision \u0026 contract parameters",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -280,14 +280,14 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Lấy toàn bộ hợp đồng nhượng quyền (hỗ trợ phân trang, lọc theo trạng thái).",
+                "description": "Retrieve all franchise contracts (supports pagination, filtering by status).",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Franchise: Contracts"
                 ],
-                "summary": "Lấy danh sách hợp đồng (Admin/Kế toán)",
+                "summary": "Get all contracts (Admin/Accountant)",
                 "parameters": [
                     {
                         "type": "integer",
@@ -322,18 +322,18 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Lấy thông tin chi tiết của một hợp đồng nhượng quyền.",
+                "description": "Retrieve detailed information of a franchise contract.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Franchise: Contracts"
                 ],
-                "summary": "Xem chi tiết một hợp đồng",
+                "summary": "Get contract details",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "ID Hợp đồng",
+                        "description": "Contract ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -356,7 +356,7 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Chuyển trạng thái hợp đồng sang Active, tạo Cửa hàng mới và cấp quyền Manager cho đối tác.",
+                "description": "Change contract status to Active, create a new Store, and grant Manager role to the partner.",
                 "consumes": [
                     "application/json"
                 ],
@@ -366,17 +366,17 @@ const docTemplatefranchise = `{
                 "tags": [
                     "Franchise: Contracts"
                 ],
-                "summary": "Xác nhận đã đóng tiền cọc (Kế toán)",
+                "summary": "Confirm deposit payment (Accountant)",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "ID Hợp đồng",
+                        "description": "Contract ID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Ghi chú giao dịch",
+                        "description": "Transaction notes",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -387,7 +387,7 @@ const docTemplatefranchise = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "{\"message\": \"Xác nhận thanh toán thành công\"}",
+                        "description": "{\"message\": \"Xác nhận thanh toán thành công. Hợp đồng đã có hiệu lực.\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -405,7 +405,7 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Cộng thêm số năm hiệu lực vào hợp đồng hiện tại.",
+                "description": "Add valid years to the current contract.",
                 "consumes": [
                     "application/json"
                 ],
@@ -415,17 +415,17 @@ const docTemplatefranchise = `{
                 "tags": [
                     "Franchise: Contracts"
                 ],
-                "summary": "Gia hạn hợp đồng nhượng quyền",
+                "summary": "Renew franchise contract",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "ID Hợp đồng",
+                        "description": "Contract ID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Số năm gia hạn",
+                        "description": "Years to renew",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -451,7 +451,7 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Admin cập nhật trạng thái thi công (Design -\u003e Construction -\u003e Inspection -\u003e Ready).",
+                "description": "Admin updates the construction status (Design -\u003e Construction -\u003e Inspection -\u003e Ready).",
                 "consumes": [
                     "application/json"
                 ],
@@ -461,17 +461,17 @@ const docTemplatefranchise = `{
                 "tags": [
                     "Franchise: Contracts"
                 ],
-                "summary": "Cập nhật tiến độ thi công cửa hàng",
+                "summary": "Update store setup status",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "ID Hợp đồng",
+                        "description": "Contract ID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Trạng thái Setup",
+                        "description": "Setup status",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -497,7 +497,7 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Admin thay đổi trạng thái hợp đồng (Suspended, Terminated) kèm lý do.",
+                "description": "Admin changes the contract status (Suspended, Terminated) with a reason.",
                 "consumes": [
                     "application/json"
                 ],
@@ -507,17 +507,17 @@ const docTemplatefranchise = `{
                 "tags": [
                     "Franchise: Contracts"
                 ],
-                "summary": "Tạm ngưng / Chấm dứt hợp đồng",
+                "summary": "Suspend / Terminate contract",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "ID Hợp đồng",
+                        "description": "Contract ID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Trạng thái và lý do",
+                        "description": "Status and reason",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -543,14 +543,14 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Lấy toàn bộ hồ sơ đăng ký nhượng quyền của bản thân",
+                "description": "Retrieve all franchise applications submitted by the current user.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Franchise: Applications"
                 ],
-                "summary": "Lấy danh sách hồ sơ nhượng quyền của bản thân",
+                "summary": "Get my franchise applications",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -571,14 +571,14 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Lấy toàn bộ hợp đồng nhượng quyền của bản thân",
+                "description": "Retrieve all franchise contracts of the current user.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Franchise: Contracts"
                 ],
-                "summary": "Lấy danh sách hợp đồng của bản thân",
+                "summary": "Get my contracts",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -594,7 +594,7 @@ const docTemplatefranchise = `{
         },
         "/franchise/webhook/docuseal": {
             "post": {
-                "description": "Cập nhật trạng thái hợp đồng (Đã ký) dựa trên webhook từ hệ thống DocuSeal gửi về. Không dùng xác thực Token mà dùng Header HMAC.",
+                "description": "Update contract status (Signed) based on the webhook sent from DocuSeal. Uses HMAC Header instead of Token authentication.",
                 "consumes": [
                     "application/json"
                 ],
@@ -604,7 +604,7 @@ const docTemplatefranchise = `{
                 "tags": [
                     "Franchise: Webhooks"
                 ],
-                "summary": "Nhận Webhook từ DocuSeal (Internal)",
+                "summary": "Handle DocuSeal Webhook (Internal)",
                 "responses": {
                     "200": {
                         "description": "{\"message\": \"Webhook processed\"}",
@@ -625,11 +625,14 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Truy xuất danh sách lịch rảnh/bận đã đăng ký của nhân viên hiện tại kèm phân trang.",
+                "description": "Retrieve the paginated list of registered availability/unavailability for the current employee.",
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Shifts: Availabilities"
                 ],
-                "summary": "Lấy lịch sử đăng ký rảnh/bận của tôi",
+                "summary": "Get my shift availability history",
                 "parameters": [
                     {
                         "type": "integer",
@@ -682,7 +685,32 @@ const docTemplatefranchise = `{
                         "in": "query"
                     }
                 ],
-                "responses": {}
+                "responses": {
+                    "200": {
+                        "description": "Successful retrieval",
+                        "schema": {
+                            "$ref": "#/definitions/common.PaginationResult-shift_ShiftAvailabilityResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
             }
         },
         "/me/shift-swaps": {
@@ -692,15 +720,37 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Lấy toàn bộ các yêu cầu đổi ca mà tôi là người gửi hoặc người nhận.",
+                "description": "Retrieve all shift swap requests where the current logged-in user is either the sender or the receiver.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Shifts: Swaps"
                 ],
-                "summary": "Lấy danh sách yêu cầu đổi ca của tôi",
-                "responses": {}
+                "summary": "Get my shift swaps",
+                "responses": {
+                    "200": {
+                        "description": "List of user's swap requests",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/shift.SwapRequestItem"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
             }
         },
         "/me/shifts": {
@@ -710,11 +760,14 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retrieve shift schedule within a date range for the logged-in staff.",
+                "description": "Retrieve the shift schedule within a specified date range for the logged-in staff member.",
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Shifts: Staff"
                 ],
-                "summary": "Get Staff Agenda",
+                "summary": "Get staff shift agenda",
                 "parameters": [
                     {
                         "type": "string",
@@ -731,7 +784,35 @@ const docTemplatefranchise = `{
                         "required": true
                     }
                 ],
-                "responses": {}
+                "responses": {
+                    "200": {
+                        "description": "List of scheduled shifts",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/shift.StaffShiftAgenda"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
             }
         },
         "/me/shifts/assignments/{id}/check-in": {
@@ -741,40 +822,7 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Check-in to a specific shift assignment using GPS location.",
-                "tags": [
-                    "Shifts: Staff"
-                ],
-                "summary": "Staff Check-in",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Assignment ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "GPS \u0026 Note",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/shift.AttendancePayload"
-                        }
-                    }
-                ],
-                "responses": {}
-            }
-        },
-        "/me/shifts/current": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieve the current active shift for the logged-in user.",
+                "description": "Check-in to a specific shift assignment using GPS location data.",
                 "consumes": [
                     "application/json"
                 ],
@@ -784,22 +832,89 @@ const docTemplatefranchise = `{
                 "tags": [
                     "Shifts: Staff"
                 ],
-                "summary": "Get My Current Shift",
+                "summary": "Staff check-in",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Assignment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "GPS coordinates and notes",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/shift.AttendancePayload"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "Current shift details",
+                        "description": "Check-in successful",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
+                    "400": {
+                        "description": "Validation Error or Invalid ID",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/me/shifts/current": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve the current active shift details for the logged-in user.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shifts: Staff"
+                ],
+                "summary": "Get current active shift",
+                "responses": {
+                    "200": {
+                        "description": "Current shift details",
+                        "schema": {
+                            "$ref": "#/definitions/shift.UserCurrentShiftResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -812,21 +927,27 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Check-out from an active shift log.",
+                "description": "Check-out from an active shift log using GPS location data.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Shifts: Staff"
                 ],
-                "summary": "Staff Check-out",
+                "summary": "Staff check-out",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Log ID",
+                        "description": "Time Log ID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "GPS \u0026 Note",
+                        "description": "GPS coordinates and notes",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -835,7 +956,33 @@ const docTemplatefranchise = `{
                         }
                     }
                 ],
-                "responses": {}
+                "responses": {
+                    "200": {
+                        "description": "Check-out successful",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error or Invalid ID",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
             }
         },
         "/me/shifts/time-logs": {
@@ -845,11 +992,14 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Staff xem lại danh sách các bản ghi chấm công của chính mình. Gateway tự động gắn StaffID từ Token.",
+                "description": "Staff views their own time log history. The Gateway automatically binds the StaffID from the Token to ensure security.",
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Shifts: Staff"
                 ],
-                "summary": "Lấy lịch sử chấm công cá nhân",
+                "summary": "Get my time log history",
                 "parameters": [
                     {
                         "type": "string",
@@ -908,12 +1058,42 @@ const docTemplatefranchise = `{
                         "in": "query"
                     }
                 ],
-                "responses": {}
+                "responses": {
+                    "200": {
+                        "description": "Paginated time log history",
+                        "schema": {
+                            "$ref": "#/definitions/common.PaginationResult-shift_TimeLogResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
             }
         },
         "/shift-applications/{id}/review": {
             "patch": {
-                "description": "Manager cập nhật trạng thái đơn (Approved/Rejected). ID đơn lấy từ Path.",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Manager reviews an application and updates its status (Approved/Rejected). The application ID is provided in the path.",
                 "consumes": [
                     "application/json"
                 ],
@@ -923,7 +1103,7 @@ const docTemplatefranchise = `{
                 "tags": [
                     "Shifts: Applications"
                 ],
-                "summary": "Duyệt hoặc từ chối đơn đăng ký nhận ca",
+                "summary": "Review shift application",
                 "parameters": [
                     {
                         "type": "string",
@@ -933,7 +1113,7 @@ const docTemplatefranchise = `{
                         "required": true
                     },
                     {
-                        "description": "Kết quả duyệt đơn",
+                        "description": "Review decision and status",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -942,7 +1122,35 @@ const docTemplatefranchise = `{
                         }
                     }
                 ],
-                "responses": {}
+                "responses": {
+                    "200": {
+                        "description": "{\"message\": \"Đã cập nhật trạng thái đơn đăng ký\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
             }
         },
         "/shift-availabilities": {
@@ -952,11 +1160,14 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Quản lý xem toàn bộ danh sách lịch rảnh/bận của nhân viên để sắp ca làm việc.",
+                "description": "Managers view the complete list of employee availabilities to facilitate shift scheduling.",
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Shifts: Availabilities"
                 ],
-                "summary": "Quản lý toàn bộ lịch rảnh/bận",
+                "summary": "Manage all shift availabilities (Manager)",
                 "parameters": [
                     {
                         "type": "integer",
@@ -1009,7 +1220,32 @@ const docTemplatefranchise = `{
                         "in": "query"
                     }
                 ],
-                "responses": {}
+                "responses": {
+                    "200": {
+                        "description": "Successful retrieval",
+                        "schema": {
+                            "$ref": "#/definitions/common.PaginationResult-shift_ShiftAvailabilityResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
             },
             "post": {
                 "security": [
@@ -1017,14 +1253,20 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Gửi đơn đăng ký thời gian rảnh hoặc bận để quản lý sắp ca.",
+                "description": "Submit a request for available or unavailable time to assist managers in scheduling.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Shifts: Availabilities"
                 ],
-                "summary": "Đăng ký lịch rảnh/bận mới",
+                "summary": "Register new shift availability",
                 "parameters": [
                     {
-                        "description": "Dữ liệu đăng ký",
+                        "description": "Availability registration data",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -1033,7 +1275,33 @@ const docTemplatefranchise = `{
                         }
                     }
                 ],
-                "responses": {}
+                "responses": {
+                    "201": {
+                        "description": "Successfully created",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
             }
         },
         "/shift-availabilities/{id}": {
@@ -1043,21 +1311,50 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Xóa bỏ đơn đăng ký lịch rảnh/bận đã gửi.",
+                "description": "Remove a previously submitted availability request.",
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Shifts: Availabilities"
                 ],
-                "summary": "Hủy/Xóa lịch rảnh/bận",
+                "summary": "Delete shift availability",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "ID lịch đăng ký",
+                        "description": "Availability ID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     }
                 ],
-                "responses": {}
+                "responses": {
+                    "200": {
+                        "description": "Successfully deleted",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
             },
             "patch": {
                 "security": [
@@ -1065,21 +1362,27 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Chỉnh sửa đơn đăng ký lịch rảnh/bận đã gửi dựa trên ID.",
+                "description": "Edit a submitted availability/unavailability request by its ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Shifts: Availabilities"
                 ],
-                "summary": "Cập nhật lịch rảnh/bận",
+                "summary": "Update shift availability",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "ID lịch đăng ký",
+                        "description": "Availability ID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Dữ liệu cập nhật",
+                        "description": "Update data",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -1088,7 +1391,33 @@ const docTemplatefranchise = `{
                         }
                     }
                 ],
-                "responses": {}
+                "responses": {
+                    "200": {
+                        "description": "Successfully updated",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID or Bad Request",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
             }
         },
         "/shift-rules": {
@@ -1098,24 +1427,45 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Lấy thông tin cấu hình luật ca làm việc (Global và theo Store) để hiển thị trên trang cài đặt.",
+                "description": "Retrieve shift rule configurations (Global and Store-specific) to display on the settings page.",
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Shifts: Rule"
                 ],
-                "summary": "Lấy cấu hình quy định ca làm",
+                "summary": "Get shift rule settings",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "ID cửa hàng (Nếu muốn lọc theo store cụ thể)",
+                        "description": "Store ID (Optional, to filter by a specific store)",
                         "name": "storeId",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Dữ liệu cấu hình",
+                        "description": "Configuration data",
                         "schema": {
                             "$ref": "#/definitions/shift.ShiftRuleSettingsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -1126,14 +1476,20 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Cập nhật hoặc tạo mới các quy định về ca làm việc (Giờ tối đa, thời gian nghỉ...).",
+                "description": "Create or update shift rules and constraints (e.g., maximum working hours, required break times).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Shifts: Rule"
                 ],
-                "summary": "Lưu cấu hình quy định ca làm",
+                "summary": "Save shift rule settings",
                 "parameters": [
                     {
-                        "description": "Dữ liệu quy định cần lưu",
+                        "description": "Rule configuration data to save",
                         "name": "payload",
                         "in": "body",
                         "required": true,
@@ -1142,7 +1498,33 @@ const docTemplatefranchise = `{
                         }
                     }
                 ],
-                "responses": {}
+                "responses": {
+                    "200": {
+                        "description": "Successfully saved rule settings",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
             }
         },
         "/shift-swaps": {
@@ -1152,14 +1534,14 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Lấy toàn bộ các yêu cầu đổi ca.",
+                "description": "Retrieve a complete list of all shift swap requests (typically for managers).",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Shifts: Swaps"
                 ],
-                "summary": "Lấy danh sách yêu cầu đổi ca",
+                "summary": "Get all shift swaps",
                 "parameters": [
                     {
                         "type": "integer",
@@ -1172,7 +1554,35 @@ const docTemplatefranchise = `{
                         "in": "query"
                     }
                 ],
-                "responses": {}
+                "responses": {
+                    "200": {
+                        "description": "List of swap requests",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/shift.SwapRequestItem"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
             }
         },
         "/shift-swaps/{id}/approvals": {
@@ -1182,7 +1592,7 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Sau khi 2 nhân viên đồng ý, Manager cần duyệt cuối để chính thức đổi ca.",
+                "description": "After both employees agree to the swap, the Manager gives final approval to officially update the schedule.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1192,7 +1602,7 @@ const docTemplatefranchise = `{
                 "tags": [
                     "Shifts: Swaps"
                 ],
-                "summary": "Manager duyệt yêu cầu đổi ca cuối cùng",
+                "summary": "Approve a shift swap (Manager)",
                 "parameters": [
                     {
                         "type": "string",
@@ -1202,7 +1612,7 @@ const docTemplatefranchise = `{
                         "required": true
                     },
                     {
-                        "description": "Kết quả duyệt của Manager",
+                        "description": "Manager's approval decision",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -1211,7 +1621,33 @@ const docTemplatefranchise = `{
                         }
                     }
                 ],
-                "responses": {}
+                "responses": {
+                    "200": {
+                        "description": "{\"message\": \"Đã hoàn tất duyệt đổi ca\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error or Invalid ID",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
             }
         },
         "/shift-swaps/{id}/cancel": {
@@ -1221,14 +1657,14 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Nhân viên gửi yêu cầu có thể tự hủy nếu yêu cầu chưa được phê duyệt.",
+                "description": "The requesting employee can cancel their swap request if it hasn't been approved yet.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Shifts: Swaps"
                 ],
-                "summary": "Tự hủy yêu cầu đổi ca đã gửi",
+                "summary": "Cancel a sent swap request",
                 "parameters": [
                     {
                         "type": "string",
@@ -1238,7 +1674,29 @@ const docTemplatefranchise = `{
                         "required": true
                     }
                 ],
-                "responses": {}
+                "responses": {
+                    "204": {
+                        "description": "No Content (Cancelled successfully)"
+                    },
+                    "400": {
+                        "description": "Invalid ID or Bad Request",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
             }
         },
         "/shift-swaps/{id}/responses": {
@@ -1248,7 +1706,7 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Nhân viên B nhận được yêu cầu và chọn Chấp nhận hoặc Từ chối.",
+                "description": "Employee B receives the swap request and chooses to Accept or Reject it.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1258,7 +1716,7 @@ const docTemplatefranchise = `{
                 "tags": [
                     "Shifts: Swaps"
                 ],
-                "summary": "Nhân viên phản hồi yêu cầu đổi ca (B phản hồi cho A)",
+                "summary": "Respond to a shift swap request",
                 "parameters": [
                     {
                         "type": "string",
@@ -1268,7 +1726,7 @@ const docTemplatefranchise = `{
                         "required": true
                     },
                     {
-                        "description": "Phản hồi của nhân viên nhận yêu cầu",
+                        "description": "Respondent's reply data",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -1277,7 +1735,33 @@ const docTemplatefranchise = `{
                         }
                     }
                 ],
-                "responses": {}
+                "responses": {
+                    "200": {
+                        "description": "{\"message\": \"Đã ghi nhận phản hồi đổi ca\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error or Invalid ID",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
             }
         },
         "/shift-templates": {
@@ -1287,11 +1771,14 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Truy xuất toàn bộ danh sách các mẫu ca làm (Sáng, Chiều, Tối...) theo Store.",
+                "description": "Retrieve a complete list of shift templates (e.g., Morning, Afternoon, Night) for a specific store.",
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Shifts: Template"
                 ],
-                "summary": "Lấy danh sách mẫu ca làm việc",
+                "summary": "Get all shift templates",
                 "parameters": [
                     {
                         "type": "boolean",
@@ -1311,12 +1798,30 @@ const docTemplatefranchise = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Danh sách mẫu ca",
+                        "description": "List of shift templates",
                         "schema": {
                             "type": "array",
                             "items": {
                                 "$ref": "#/definitions/shift.ShiftTemplateResponse"
                             }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -1327,14 +1832,20 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Định nghĩa một khung giờ làm việc mẫu (mã code, tên, giờ bắt đầu/kết thúc).",
+                "description": "Define a new standard shift timeframe (including code, name, and start/end times).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Shifts: Template"
                 ],
-                "summary": "Tạo mẫu ca làm mới",
+                "summary": "Create a new shift template",
                 "parameters": [
                     {
-                        "description": "Thông tin mẫu ca",
+                        "description": "Shift template data",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -1343,7 +1854,33 @@ const docTemplatefranchise = `{
                         }
                     }
                 ],
-                "responses": {}
+                "responses": {
+                    "201": {
+                        "description": "Successfully created template",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
             }
         },
         "/shift-templates/{id}": {
@@ -1353,15 +1890,18 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Lấy thông tin chi tiết cấu hình của một mẫu ca làm việc dựa trên ID.",
+                "description": "Retrieve the detailed configuration of a specific shift template by its ID.",
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Shifts: Template"
                 ],
-                "summary": "Chi tiết mẫu ca làm việc",
+                "summary": "Get shift template details",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "ID mẫu ca",
+                        "description": "Template ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1369,9 +1909,33 @@ const docTemplatefranchise = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Template details",
                         "schema": {
                             "$ref": "#/definitions/shift.ShiftTemplateResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Template Not Found",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -1382,21 +1946,56 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Gỡ bỏ hoàn toàn một mẫu ca làm khỏi hệ thống.",
+                "description": "Completely remove a shift template from the system.",
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Shifts: Template"
                 ],
-                "summary": "Xóa mẫu ca làm việc",
+                "summary": "Delete a shift template",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "ID mẫu ca",
+                        "description": "Template ID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     }
                 ],
-                "responses": {}
+                "responses": {
+                    "200": {
+                        "description": "Successfully deleted template",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Template Not Found",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
             },
             "patch": {
                 "security": [
@@ -1404,21 +2003,27 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Chỉnh sửa cấu hình khung giờ hoặc tên của mẫu ca làm việc hiện có.",
+                "description": "Modify the timeframe configuration or the name of an existing shift template.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Shifts: Template"
                 ],
-                "summary": "Cập nhật mẫu ca làm việc",
+                "summary": "Update a shift template",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "ID mẫu ca",
+                        "description": "Template ID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Dữ liệu cập nhật",
+                        "description": "Update data",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -1427,7 +2032,39 @@ const docTemplatefranchise = `{
                         }
                     }
                 ],
-                "responses": {}
+                "responses": {
+                    "200": {
+                        "description": "Successfully updated template",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error or Invalid ID",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Template Not Found",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
             }
         },
         "/shifts": {
@@ -1437,11 +2074,14 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Truy xuất danh sách ca làm việc kèm bộ lọc (Dùng cho Calendar/List view).",
+                "description": "Retrieve a list of shifts with applied filters (Used for Calendar/List view).",
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Shifts"
                 ],
-                "summary": "Lấy danh sách ca làm việc",
+                "summary": "Get all shifts",
                 "parameters": [
                     {
                         "type": "string",
@@ -1467,12 +2107,30 @@ const docTemplatefranchise = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "List of shifts",
                         "schema": {
                             "type": "array",
                             "items": {
                                 "$ref": "#/definitions/shift.ShiftResponse"
                             }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -1483,14 +2141,20 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Tạo một ca làm việc mới cho cửa hàng.",
+                "description": "Create a new working shift for the store.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Shifts"
                 ],
-                "summary": "Tạo ca làm mới",
+                "summary": "Create a new shift",
                 "parameters": [
                     {
-                        "description": "Thông tin ca làm",
+                        "description": "Shift information",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -1499,7 +2163,33 @@ const docTemplatefranchise = `{
                         }
                     }
                 ],
-                "responses": {}
+                "responses": {
+                    "200": {
+                        "description": "Shift created successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
             }
         },
         "/shifts/auto-fill": {
@@ -1509,14 +2199,20 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Hệ thống tự động tính toán và gán nhân viên phù hợp vào các ca làm việc còn trống (Draft) dựa trên lịch rảnh và quy tắc ca làm.",
+                "description": "System automatically calculates and assigns suitable staff to empty (Draft) shifts based on availability and scheduling rules.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Shifts: Assignment"
                 ],
-                "summary": "Tự động xếp người vào ca làm việc",
+                "summary": "Auto-fill shift assignments",
                 "parameters": [
                     {
-                        "description": "Khoảng thời gian cần xếp ca tự động",
+                        "description": "Time range for auto-filling shifts",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -1525,7 +2221,32 @@ const docTemplatefranchise = `{
                         }
                     }
                 ],
-                "responses": {}
+                "responses": {
+                    "200": {
+                        "description": "Auto-fill result summary",
+                        "schema": {
+                            "$ref": "#/definitions/shift.AutoFillShiftsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
             }
         },
         "/shifts/bulk-delete": {
@@ -1535,14 +2256,20 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Xóa hàng loạt các ca làm việc (Chỉ áp dụng cho các ca đang ở trạng thái Nháp).",
+                "description": "Delete multiple shifts simultaneously (Only applicable for shifts currently in Draft status).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Shifts: Bulk action"
                 ],
-                "summary": "Xóa hàng loạt ca làm việc",
+                "summary": "Bulk delete shifts",
                 "parameters": [
                     {
-                        "description": "Danh sách ID các ca làm cần xóa",
+                        "description": "List of shift IDs to delete",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -1554,7 +2281,33 @@ const docTemplatefranchise = `{
                         }
                     }
                 ],
-                "responses": {}
+                "responses": {
+                    "200": {
+                        "description": "Successfully deleted shifts",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
             }
         },
         "/shifts/bulk-manual": {
@@ -1564,14 +2317,20 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Tạo nhiều ca làm việc cùng lúc dựa trên khung giờ và các ngày trong tuần được chọn.",
+                "description": "Create multiple shifts simultaneously based on selected time frames and days of the week.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Shifts: Bulk action"
                 ],
-                "summary": "Tạo ca làm việc thủ công hàng loạt",
+                "summary": "Bulk create manual shifts",
                 "parameters": [
                     {
-                        "description": "Dữ liệu tạo hàng loạt",
+                        "description": "Bulk creation data",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -1580,7 +2339,33 @@ const docTemplatefranchise = `{
                         }
                     }
                 ],
-                "responses": {}
+                "responses": {
+                    "201": {
+                        "description": "Successfully created shifts",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
             }
         },
         "/shifts/bulk-open": {
@@ -1590,14 +2375,20 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Chuyển trạng thái hàng loạt ca làm việc từ Draft sang Open để nhân viên có thể đăng ký nhận. StoreId được lấy tự động từ Token của Manager.",
+                "description": "Change the status of multiple shifts from Draft to Open, allowing employees to apply for them in the Shift Pool. StoreId is automatically extracted from the Manager's Token.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Shifts: Bulk action"
                 ],
-                "summary": "Mở hàng loạt ca ra Chợ Ca (Shift Pool)",
+                "summary": "Bulk open shifts to Shift Pool",
                 "parameters": [
                     {
-                        "description": "Danh sách ID các ca làm cần mở",
+                        "description": "List of shift IDs to open",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -1609,7 +2400,33 @@ const docTemplatefranchise = `{
                         }
                     }
                 ],
-                "responses": {}
+                "responses": {
+                    "200": {
+                        "description": "Returns the count of successfully opened shifts",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
             }
         },
         "/shifts/bulk-publish": {
@@ -1619,14 +2436,20 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Chuyển trạng thái hàng loạt ca làm từ Draft sang Published để nhân viên có thể thấy lịch.",
+                "description": "Change the status of multiple shifts from Draft to Published, making them visible to employees on the schedule.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Shifts: Bulk action"
                 ],
-                "summary": "Công khai ca làm việc hàng loạt",
+                "summary": "Bulk publish shifts",
                 "parameters": [
                     {
-                        "description": "Danh sách ID các ca làm cần công khai",
+                        "description": "List of shift IDs to publish",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -1638,7 +2461,33 @@ const docTemplatefranchise = `{
                         }
                     }
                 ],
-                "responses": {}
+                "responses": {
+                    "200": {
+                        "description": "Successfully published shifts",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
             }
         },
         "/shifts/bulk-template": {
@@ -1648,14 +2497,20 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Tạo hàng loạt ca làm việc trong một khoảng thời gian dựa trên các Shift Template có sẵn.",
+                "description": "Create multiple shifts over a specified period based on existing Shift Templates.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Shifts: Bulk action"
                 ],
-                "summary": "Tạo ca làm việc từ mẫu hàng loạt",
+                "summary": "Bulk create shifts from template",
                 "parameters": [
                     {
-                        "description": "Dữ liệu tạo từ mẫu",
+                        "description": "Template creation data",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -1664,7 +2519,33 @@ const docTemplatefranchise = `{
                         }
                     }
                 ],
-                "responses": {}
+                "responses": {
+                    "201": {
+                        "description": "Successfully created shifts from template",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
             }
         },
         "/shifts/time-logs": {
@@ -1674,11 +2555,14 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Manager lấy toàn bộ nhật ký chấm công trong Store kèm bộ lọc.",
+                "description": "Manager retrieves all time logs within the Store, applying optional filters.",
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Shifts: Time log"
                 ],
-                "summary": "Lấy danh sách chấm công",
+                "summary": "Get time logs",
                 "parameters": [
                     {
                         "type": "string",
@@ -1737,7 +2621,32 @@ const docTemplatefranchise = `{
                         "in": "query"
                     }
                 ],
-                "responses": {}
+                "responses": {
+                    "200": {
+                        "description": "Paginated list of time logs",
+                        "schema": {
+                            "$ref": "#/definitions/common.PaginationResult-shift_TimeLogResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
             }
         },
         "/shifts/time-logs/{id}": {
@@ -1747,21 +2656,27 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Manager phê duyệt (Valid) hoặc từ chối (Invalid) ca làm thực tế của nhân viên.",
+                "description": "Manager approves (Valid) or rejects (Invalid) an employee's actual worked shift.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Shifts: Time log"
                 ],
-                "summary": "Duyệt hoặc cập nhật chấm công",
+                "summary": "Review or update time log",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "ID nhật ký chấm công",
+                        "description": "Time log ID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Dữ liệu cập nhật",
+                        "description": "Update data",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -1772,9 +2687,28 @@ const docTemplatefranchise = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Time log updated successfully",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (e.g., missing rejection reason)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -1787,15 +2721,18 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Lấy thông tin chi tiết ca làm và danh sách nhân viên đã gán.",
+                "description": "Retrieve detailed information about a specific shift and its assigned staff.",
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Shifts"
                 ],
-                "summary": "Lấy chi tiết một ca làm",
+                "summary": "Get shift details",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "ID ca làm",
+                        "description": "Shift ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1803,9 +2740,33 @@ const docTemplatefranchise = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Shift details",
                         "schema": {
                             "$ref": "#/definitions/shift.ShiftResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid Shift ID (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Shift Not Found",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -1816,21 +2777,56 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Xóa ca làm (Chỉ khi ở trạng thái Draft/Planning).",
+                "description": "Delete a specific shift (Only allowed if it is in Draft or Planning status).",
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Shifts"
                 ],
-                "summary": "Xóa ca làm việc",
+                "summary": "Delete a shift",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "ID ca làm",
+                        "description": "Shift ID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     }
                 ],
-                "responses": {}
+                "responses": {
+                    "200": {
+                        "description": "Shift deleted successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID or Bad Request",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden (Cannot delete published shift)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
             },
             "patch": {
                 "security": [
@@ -1838,21 +2834,27 @@ const docTemplatefranchise = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Cập nhật giờ giấc hoặc số lượng nhân viên cần thiết cho ca làm.",
+                "description": "Update shift timings or the required number of staff.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Shifts"
                 ],
-                "summary": "Cập nhật ca làm việc",
+                "summary": "Update a shift",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "ID ca làm",
+                        "description": "Shift ID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Dữ liệu cập nhật",
+                        "description": "Update data",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -1861,19 +2863,56 @@ const docTemplatefranchise = `{
                         }
                     }
                 ],
-                "responses": {}
+                "responses": {
+                    "200": {
+                        "description": "Shift updated successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error or Invalid ID",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Shift Not Found",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
             }
         },
         "/shifts/{id}/applications": {
             "get": {
-                "description": "Manager xem danh sách ứng viên kèm điểm Smart Score để đưa ra quyết định duyệt.",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Manager views the list of applicants for a specific shift, along with their Smart Scores, to make approval decisions.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Shifts: Applications"
                 ],
-                "summary": "Lấy danh sách các đơn đăng ký của một ca làm việc",
+                "summary": "Get applications by shift ID",
                 "parameters": [
                     {
                         "type": "string",
@@ -1883,10 +2922,43 @@ const docTemplatefranchise = `{
                         "required": true
                     }
                 ],
-                "responses": {}
+                "responses": {
+                    "200": {
+                        "description": "List of shift applications",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/shift.ShiftApplicationItem"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid Shift ID (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
             },
             "post": {
-                "description": "Tạo một bản ghi ShiftApplication cho ca làm việc cụ thể. UserId lấy từ Token.",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Employee applies for a specific shift. Creates a new ShiftApplication record. UserId is extracted from the authentication token.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1896,7 +2968,7 @@ const docTemplatefranchise = `{
                 "tags": [
                     "Shifts: Applications"
                 ],
-                "summary": "Nhân viên đăng ký nhận ca (Tạo mới một đơn đăng ký)",
+                "summary": "Apply for a shift",
                 "parameters": [
                     {
                         "type": "string",
@@ -1906,7 +2978,7 @@ const docTemplatefranchise = `{
                         "required": true
                     },
                     {
-                        "description": "Ghi chú đăng ký",
+                        "description": "Application notes and details",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -1915,63 +2987,45 @@ const docTemplatefranchise = `{
                         }
                     }
                 ],
-                "responses": {}
+                "responses": {
+                    "201": {
+                        "description": "{\"message\": \"Gửi đơn đăng ký nhận ca thành công\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
             }
         },
-        "/shifts/{id}/publish": {
+        "/shifts/{id}/assign": {
             "put": {
-                "description": "Chuyển trạng thái sang Published để nhân viên thấy được lịch.",
-                "tags": [
-                    "Shifts"
-                ],
-                "summary": "Xuất bản ca làm",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "ID ca làm",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {}
-            }
-        },
-        "/shifts/{id}/releases": {
-            "patch": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Nhân viên trả lại ca làm đã nhận để người khác có thể đăng ký.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Shifts: Swaps"
-                ],
-                "summary": "Nhả ca về Chợ Ca (Shift Pool)",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Assignment ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {}
-            }
-        },
-        "/shifts/{id}/swaps": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Nhân viên A chọn một ca của mình và yêu cầu đổi với nhân viên B.",
+                "description": "Modify the list of employees assigned to a specific shift.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1979,47 +3033,19 @@ const docTemplatefranchise = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Shifts: Swaps"
+                    "Shifts: Assignment"
                 ],
-                "summary": "Tạo yêu cầu đổi ca (A gửi cho B)",
+                "summary": "Update staff assignments",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Assignment ID (Ca của người gửi)",
+                        "description": "Shift ID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Dữ liệu yêu cầu đổi ca",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/shift.RequestSwapRequest"
-                        }
-                    }
-                ],
-                "responses": {}
-            }
-        },
-        "/shifts/{shiftId}/assign": {
-            "put": {
-                "description": "Thay đổi danh sách nhân viên được gán vào ca làm việc.",
-                "tags": [
-                    "Shifts: Assignment"
-                ],
-                "summary": "Cập nhật phân công nhân sự",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "ID ca làm",
-                        "name": "shiftId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Danh sách User ID",
+                        "description": "List of User IDs to assign",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -2033,9 +3059,198 @@ const docTemplatefranchise = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Assignment update result",
                         "schema": {
                             "$ref": "#/definitions/shift.AssignStaffResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/shifts/{id}/publish": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Change the shift status to Published, making it visible to employees on the schedule.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shifts"
+                ],
+                "summary": "Publish a single shift",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Shift ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Shift published successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID or Bad Request",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/shifts/{id}/releases": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "The employee releases an assigned shift so other staff members can apply for it.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shifts: Swaps"
+                ],
+                "summary": "Release a shift to the Shift Pool",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Assignment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"message\": \"Đã nhả ca thành công\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID or Bad Request",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/shifts/{id}/swaps": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Employee A selects one of their assignments and requests a swap with Employee B.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shifts: Swaps"
+                ],
+                "summary": "Request a shift swap",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Assignment ID (Sender's shift)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Swap request details",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/shift.RequestSwapRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "{\"message\": \"Đã gửi yêu cầu đổi ca\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -2076,8 +3291,7 @@ const docTemplatefranchise = `{
                     "200": {
                         "description": "List of stores",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/common.PaginationResult-store_StoreDetailResponse"
                         }
                     },
                     "500": {
@@ -2135,8 +3349,7 @@ const docTemplatefranchise = `{
                     "200": {
                         "description": "List of nearby stores",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/common.PaginationResult-store_StoreDetailResponse"
                         }
                     },
                     "400": {
@@ -2177,8 +3390,7 @@ const docTemplatefranchise = `{
                     "200": {
                         "description": "Store details",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/store.StoreDetailResponse"
                         }
                     },
                     "400": {
@@ -2244,6 +3456,68 @@ const docTemplatefranchise = `{
                 }
             }
         },
+        "/stores/{id}/shifts/{shiftId}/candidates": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Check schedule conflicts and shift rules to suggest suitable staff members for a specific shift.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shifts: Assignment"
+                ],
+                "summary": "Get available staff candidates",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Store ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Shift ID",
+                        "name": "shiftId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of available staff",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/shift.StaffAssignmentCandidate"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
         "/stores/{id}/staffs/active": {
             "get": {
                 "security": [
@@ -2287,42 +3561,6 @@ const docTemplatefranchise = `{
                             "type": "object",
                             "additionalProperties": {
                                 "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/stores/{storeId}/shifts/{shiftId}/candidates": {
-            "get": {
-                "description": "Kiểm tra xung đột lịch và quy định để gợi ý nhân viên cho ca làm.",
-                "tags": [
-                    "Shifts: Assignment"
-                ],
-                "summary": "Lấy danh sách ứng viên khả dụng",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "ID cửa hàng",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "ID ca làm",
-                        "name": "shiftId",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/shift.StaffAssignmentCandidate"
                             }
                         }
                     }
@@ -2566,6 +3804,57 @@ const docTemplatefranchise = `{
                 }
             }
         },
+        "common.PaginationResult-shift_ShiftAvailabilityResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/shift.ShiftAvailabilityResponse"
+                    }
+                },
+                "totalCount": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "common.PaginationResult-shift_TimeLogResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/shift.TimeLogResponse"
+                    }
+                },
+                "totalCount": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "common.PaginationResult-store_StoreDetailResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/store.StoreDetailResponse"
+                    }
+                },
+                "totalCount": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
+                }
+            }
+        },
         "enum.TimeLogStatus": {
             "type": "integer",
             "enum": [
@@ -2622,10 +3911,6 @@ const docTemplatefranchise = `{
                     "type": "integer"
                 }
             }
-        },
-        "gin.H": {
-            "type": "object",
-            "additionalProperties": {}
         },
         "shift.ActiveStaffDto": {
             "type": "object",
@@ -2706,6 +3991,29 @@ const docTemplatefranchise = `{
                 },
                 "startDate": {
                     "type": "string"
+                }
+            }
+        },
+        "shift.AutoFillShiftsResponse": {
+            "type": "object",
+            "properties": {
+                "filledCount": {
+                    "description": "Số slot đã điền được người",
+                    "type": "integer"
+                },
+                "success": {
+                    "type": "boolean"
+                },
+                "totalSlots": {
+                    "description": "Tổng số slot trống cần xử lý",
+                    "type": "integer"
+                },
+                "unfilledShiftIds": {
+                    "description": "Danh sách ID các ca vẫn \"mồ côi\"",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -2790,6 +4098,26 @@ const docTemplatefranchise = `{
                 },
                 "weeklyHours": {
                     "type": "number"
+                }
+            }
+        },
+        "shift.CoWorkerDTO": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "type": "string"
+                },
+                "firstName": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "lastName": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
                 }
             }
         },
@@ -2953,6 +4281,50 @@ const docTemplatefranchise = `{
                 }
             }
         },
+        "shift.ShiftApplicationItem": {
+            "type": "object",
+            "properties": {
+                "appliedAt": {
+                    "type": "string"
+                },
+                "avatarUrl": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "hourlyWage": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "shiftId": {
+                    "type": "string"
+                },
+                "smartScore": {
+                    "description": "Điểm thông minh (0.0 - 1.0)",
+                    "type": "number"
+                },
+                "status": {
+                    "description": "Map từ Enum ShiftApplicationStatus",
+                    "type": "integer"
+                },
+                "userId": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                },
+                "weeklyHoursWorked": {
+                    "description": "Tổng giờ đã làm trong tuần",
+                    "type": "number"
+                }
+            }
+        },
         "shift.ShiftAssignment": {
             "type": "object",
             "properties": {
@@ -2979,6 +4351,45 @@ const docTemplatefranchise = `{
                 },
                 "status": {
                     "type": "integer"
+                },
+                "userId": {
+                    "type": "string"
+                }
+            }
+        },
+        "shift.ShiftAvailabilityResponse": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "dayOfWeek": {
+                    "description": "0-6",
+                    "type": "integer"
+                },
+                "endTime": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "isAvailable": {
+                    "type": "boolean"
+                },
+                "isRecurring": {
+                    "type": "boolean"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "specificDate": {
+                    "type": "string"
+                },
+                "startTime": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
                 },
                 "userId": {
                     "type": "string"
@@ -3114,6 +4525,29 @@ const docTemplatefranchise = `{
                 }
             }
         },
+        "shift.ShiftTimeLogRes": {
+            "type": "object",
+            "properties": {
+                "endTime": {
+                    "description": "HH:mm",
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "shiftDate": {
+                    "description": "YYYY-MM-DD",
+                    "type": "string"
+                },
+                "startTime": {
+                    "description": "HH:mm",
+                    "type": "string"
+                }
+            }
+        },
         "shift.StaffAssignmentCandidate": {
             "type": "object",
             "properties": {
@@ -3146,6 +4580,173 @@ const docTemplatefranchise = `{
                 },
                 "validation": {
                     "$ref": "#/definitions/shift.CandidateValidation"
+                }
+            }
+        },
+        "shift.StaffShiftAgenda": {
+            "type": "object",
+            "properties": {
+                "checkInAt": {
+                    "type": "string"
+                },
+                "checkOutAt": {
+                    "type": "string"
+                },
+                "coWorkers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/shift.CoWorkerDTO"
+                    }
+                },
+                "date": {
+                    "type": "string"
+                },
+                "endTime": {
+                    "type": "string"
+                },
+                "id": {
+                    "description": "assignmentId",
+                    "type": "string"
+                },
+                "shiftId": {
+                    "type": "string"
+                },
+                "startTime": {
+                    "type": "string"
+                },
+                "store": {
+                    "$ref": "#/definitions/store.StoreDetailResponse"
+                }
+            }
+        },
+        "shift.StaffTimeLogRes": {
+            "type": "object",
+            "properties": {
+                "avatarUrl": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "firstName": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "lastName": {
+                    "type": "string"
+                }
+            }
+        },
+        "shift.SwapRequestItem": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "endTime": {
+                    "type": "string"
+                },
+                "expiresAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "rejectReason": {
+                    "type": "string"
+                },
+                "shiftDate": {
+                    "type": "string"
+                },
+                "shiftId": {
+                    "type": "string"
+                },
+                "sourceUserId": {
+                    "type": "string"
+                },
+                "sourceUserName": {
+                    "type": "string"
+                },
+                "startTime": {
+                    "type": "string"
+                },
+                "status": {
+                    "description": "Map từ Enum SwapStatus",
+                    "type": "integer"
+                },
+                "targetUserId": {
+                    "type": "string"
+                },
+                "targetUserName": {
+                    "type": "string"
+                }
+            }
+        },
+        "shift.TimeLogResponse": {
+            "type": "object",
+            "properties": {
+                "checkInAt": {
+                    "type": "string"
+                },
+                "checkInImageUrl": {
+                    "type": "string"
+                },
+                "checkInLat": {
+                    "type": "number"
+                },
+                "checkInLong": {
+                    "type": "number"
+                },
+                "checkOutAt": {
+                    "type": "string"
+                },
+                "checkOutImageUrl": {
+                    "type": "string"
+                },
+                "checkOutLat": {
+                    "type": "number"
+                },
+                "checkOutLong": {
+                    "type": "number"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "dailyOtMinutes": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "managerNote": {
+                    "type": "string"
+                },
+                "regularMinutes": {
+                    "type": "integer"
+                },
+                "shift": {
+                    "$ref": "#/definitions/shift.ShiftTimeLogRes"
+                },
+                "shiftAssignmentId": {
+                    "type": "string"
+                },
+                "staff": {
+                    "$ref": "#/definitions/shift.StaffTimeLogRes"
+                },
+                "status": {
+                    "description": "Map từ Enum TimeLogStatus",
+                    "type": "integer"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "weeklyOtMinutes": {
+                    "type": "integer"
                 }
             }
         },
@@ -3242,6 +4843,59 @@ const docTemplatefranchise = `{
                 }
             }
         },
+        "shift.UserCurrentShiftResponse": {
+            "type": "object",
+            "properties": {
+                "assignmentId": {
+                    "type": "string"
+                },
+                "canCheckIn": {
+                    "type": "boolean"
+                },
+                "canCheckOut": {
+                    "type": "boolean"
+                },
+                "checkInAt": {
+                    "type": "string"
+                },
+                "checkOutAt": {
+                    "type": "string"
+                },
+                "currentLogId": {
+                    "type": "string"
+                },
+                "endTime": {
+                    "type": "string"
+                },
+                "hasShiftToday": {
+                    "type": "boolean"
+                },
+                "isOvertime": {
+                    "type": "boolean"
+                },
+                "serverTime": {
+                    "type": "string"
+                },
+                "shiftId": {
+                    "type": "string"
+                },
+                "startTime": {
+                    "type": "string"
+                },
+                "storeId": {
+                    "type": "string"
+                },
+                "storeLat": {
+                    "type": "number"
+                },
+                "storeLong": {
+                    "type": "number"
+                },
+                "storeName": {
+                    "type": "string"
+                }
+            }
+        },
         "shift.ValidationWarningDto": {
             "type": "object",
             "properties": {
@@ -3252,6 +4906,36 @@ const docTemplatefranchise = `{
                     "type": "string"
                 },
                 "severity": {
+                    "type": "string"
+                }
+            }
+        },
+        "store.StoreDetailResponse": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "imageUrl": {
+                    "type": "string"
+                },
+                "isOpenNow": {
+                    "description": "Tính toán dựa trên StoreHours ngay lúc gọi",
+                    "type": "boolean"
+                },
+                "latitude": {
+                    "type": "number"
+                },
+                "longitude": {
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
                     "type": "string"
                 }
             }
@@ -3270,10 +4954,10 @@ const docTemplatefranchise = `{
 // SwaggerInfofranchise holds exported Swagger Info so clients can modify it
 var SwaggerInfofranchise = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:8080",
+	Host:             "",
 	BasePath:         "/api",
 	Schemes:          []string{},
-	Title:            "API Gateway Documentation",
+	Title:            "Capital Franchise Supply Chain Management System API Document",
 	Description:      "API docs for CHD Gateway.",
 	InfoInstanceName: "franchise",
 	SwaggerTemplate:  docTemplatefranchise,

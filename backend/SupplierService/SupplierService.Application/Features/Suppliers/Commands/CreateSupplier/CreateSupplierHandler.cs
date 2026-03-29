@@ -8,19 +8,14 @@ namespace SupplierService.Application.Features.Suppliers.Commands.CreateSupplier
 /// Handler tạo mới nhà cung cấp.
 /// Kiểm tra trùng Code trước khi tạo.
 /// </summary>
-public class CreateSupplierHandler : IRequestHandler<CreateSupplierCommand, CreateSupplierResult>
+public class CreateSupplierHandler(
+    ISupplierRepository repo
+) : IRequestHandler<CreateSupplierCommand, CreateSupplierResult>
 {
-    private readonly ISupplierRepository _repo;
-
-    public CreateSupplierHandler(ISupplierRepository repo)
-    {
-        _repo = repo;
-    }
-
     public async Task<CreateSupplierResult> Handle(CreateSupplierCommand request, CancellationToken cancellationToken)
     {
         // Kiểm tra trùng TaxCode
-        if (!string.IsNullOrWhiteSpace(request.TaxCode) && await _repo.TaxCodeExistsAsync(request.TaxCode, cancellationToken: cancellationToken))
+        if (!string.IsNullOrWhiteSpace(request.TaxCode) && await repo.TaxCodeExistsAsync(request.TaxCode, cancellationToken: cancellationToken))
             throw new InvalidOperationException($"Supplier tax code '{request.TaxCode}' already exists.");
 
         var supplier = new Supplier
@@ -36,8 +31,8 @@ public class CreateSupplierHandler : IRequestHandler<CreateSupplierCommand, Crea
             IsActive = true
         };
 
-        await _repo.AddAsync(supplier, cancellationToken);
-        await _repo.SaveChangesAsync(cancellationToken);
+        await repo.AddAsync(supplier, cancellationToken);
+        await repo.SaveChangesAsync(cancellationToken);
 
         return new CreateSupplierResult
         {

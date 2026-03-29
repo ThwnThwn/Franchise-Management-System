@@ -16,7 +16,7 @@ public class GetPurchaseOrderByIdResult
     public string OrderDate { get; set; } = string.Empty;
     public string CompletedAt { get; set; } = string.Empty;
     public string Notes { get; set; } = string.Empty;
-    public IEnumerable<PurchaseOrderItemDetailDto> Items { get; set; } = new List<PurchaseOrderItemDetailDto>();
+    public IEnumerable<PurchaseOrderItemDetailDto> Items { get; set; } = [];
     public string CreatedAt { get; set; } = string.Empty;
     public string UpdatedAt { get; set; } = string.Empty;
 }

@@ -1,11 +1,6 @@
 ﻿using EngagementService.Application.Constants;
 using EngagementService.Application.Persistences.Repository;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EngagementService.Application.Features.Voucher.Commands.UpdateVoucherStatus
 {
@@ -21,16 +16,16 @@ namespace EngagementService.Application.Features.Voucher.Commands.UpdateVoucherS
             var updateRequest = request.Request;
 
             var voucher = await _voucherRepository.GetByIdAsync(updateRequest.Id);
-            if(voucher == null)
+            if (voucher == null)
                 throw new ArgumentException(VoucherMsg.NotFound);
 
-            if(voucher.IsActive != updateRequest.IsActive)
+            if (voucher.IsActive != updateRequest.IsActive)
             {
                 voucher.IsActive = updateRequest.IsActive;
 
                 await _voucherRepository.UpdateAsync(voucher);
             }
-             
+
             return Unit.Value;
         }
     }

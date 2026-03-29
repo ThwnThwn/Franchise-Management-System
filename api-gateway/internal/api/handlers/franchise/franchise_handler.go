@@ -25,28 +25,28 @@ func NewFranchiseHandler(franchiseGW franchise.IFranchiseService) *FranchiseHand
 // ── FRANCHISE APPLICATIONS ───────────────────────────────────────────────
 
 // SubmitApplication
-// @Summary      Nộp hồ sơ đăng ký nhượng quyền
-// @Description  Đối tác gửi hồ sơ (thông tin cá nhân, địa chỉ mặt bằng) kèm theo ảnh mặt bằng và các ảnh chứng nhận đất đai.
+// @Summary      Submit franchise application
+// @Description  Partner submits application (personal info, premise address) along with storefront and land certificate images.
 // @Tags         Franchise: Applications
 // @Security     BearerAuth
 // @Accept       multipart/form-data
 // @Produce      json
-// @Param        fullName        formData string  true  "Họ và tên"
-// @Param        email           formData string  true  "Email liên hệ"
-// @Param        phone           formData string  true  "Số điện thoại"
-// @Param        identityNumber  formData string  true  "CMND/CCCD"
-// @Param        provinceId      formData string  true  "Mã Tỉnh/Thành phố"
-// @Param        districtId      formData string  true  "Mã Quận/Huyện"
-// @Param        wardId          formData string  true  "Mã Phường/Xã"
-// @Param        storeName       formData string  true  "Tên quán dự kiến"
-// @Param        storeAddress    formData string  true  "Địa chỉ chi tiết mặt bằng"
-// @Param        storeLatitude   formData number  false "Vĩ độ (Latitude)"
-// @Param        storeLongitude  formData number  false "Kinh độ (Longitude)"
-// @Param        storeSizeSqm    formData number  false "Diện tích mặt bằng (m2)"
-// @Param        storeFront      formData file    false "Ảnh mặt tiền (1 file)"
-// @Param        landCerts       formData file    false "Ảnh chứng nhận đất đai/Sổ đỏ (Nhiều file)"
-// @Success      201  {object}  franchiseModel.FranchiseApplicationResponse "Hồ sơ vừa tạo"
-// @Failure      400  {object}  object "Lỗi dữ liệu đầu vào"
+// @Param        fullName        formData string  true  "Full name"
+// @Param        email           formData string  true  "Contact email"
+// @Param        phone           formData string  true  "Phone number"
+// @Param        identityNumber  formData string  true  "Identity card number (CMND/CCCD)"
+// @Param        provinceId      formData string  true  "Province/City ID"
+// @Param        districtId      formData string  true  "District ID"
+// @Param        wardId          formData string  true  "Ward ID"
+// @Param        storeName       formData string  true  "Proposed store name"
+// @Param        storeAddress    formData string  true  "Detailed premise address"
+// @Param        storeLatitude   formData number  false "Latitude"
+// @Param        storeLongitude  formData number  false "Longitude"
+// @Param        storeSizeSqm    formData number  false "Premise area (sqm)"
+// @Param        storeFront      formData file    false "Storefront image (1 file)"
+// @Param        landCerts       formData file    false "Land certificate images (Multiple files)"
+// @Success      201  {object}  franchiseModel.FranchiseApplicationResponse "Created application"
+// @Failure      400  {object}  object "Validation error (Bad Request)"
 // @Router       /franchise/applications [post]
 func (h *FranchiseHandler) SubmitApplication(c *gin.Context) error {
 	var req franchiseModel.SubmitApplicationRequest
@@ -103,12 +103,12 @@ func (h *FranchiseHandler) SubmitApplication(c *gin.Context) error {
 }
 
 // GetAllApplications
-// @Summary      Lấy danh sách hồ sơ nhượng quyền (Admin)
-// @Description  Lấy toàn bộ hồ sơ đăng ký nhượng quyền (hỗ trợ phân trang, lọc theo trạng thái).
+// @Summary      Get all franchise applications (Admin)
+// @Description  Retrieve all franchise applications (supports pagination, filtering by status).
 // @Tags         Franchise: Applications
 // @Security     BearerAuth
 // @Produce      json
-// @Param        query  query  franchiseModel.GetAllApplicationsRequest false "Bộ lọc và phân trang"
+// @Param        query  query  franchiseModel.GetAllApplicationsRequest false "Pagination and filters"
 // @Success      200    {object} franchiseModel.ApplicationPaginationResult
 // @Router       /franchise/applications [get]
 func (h *FranchiseHandler) GetAllApplications(c *gin.Context) error {
@@ -128,8 +128,8 @@ func (h *FranchiseHandler) GetAllApplications(c *gin.Context) error {
 }
 
 // GetMyApplications
-// @Summary      Lấy danh sách hồ sơ nhượng quyền của bản thân
-// @Description  Lấy toàn bộ hồ sơ đăng ký nhượng quyền của bản thân
+// @Summary      Get my franchise applications
+// @Description  Retrieve all franchise applications submitted by the current user.
 // @Tags         Franchise: Applications
 // @Security     BearerAuth
 // @Produce      json
@@ -147,12 +147,12 @@ func (h *FranchiseHandler) GetMyApplications(c *gin.Context) error {
 }
 
 // GetApplicationDetail
-// @Summary      Xem chi tiết một hồ sơ (Admin)
-// @Description  Xem chi tiết hồ sơ bao gồm cả danh sách các hợp đồng (Contracts) được sinh ra từ hồ sơ này.
+// @Summary      Get application details (Admin)
+// @Description  View application details including the list of contracts generated from this application.
 // @Tags         Franchise: Applications
 // @Security     BearerAuth
 // @Produce      json
-// @Param        id  path  string true "ID Hồ sơ (Application ID)"
+// @Param        id  path  string true "Application ID"
 // @Success      200 {object} franchiseModel.FranchiseApplicationDetailResponse
 // @Router       /franchise/applications/{id} [get]
 func (h *FranchiseHandler) GetApplicationDetail(c *gin.Context) error {
@@ -172,14 +172,14 @@ func (h *FranchiseHandler) GetApplicationDetail(c *gin.Context) error {
 }
 
 // ReviewApplication
-// @Summary      Thẩm định hồ sơ nhượng quyền (Admin)
-// @Description  Admin duyệt (Approve) hoặc từ chối (Reject) hồ sơ. Nếu Approve, hệ thống tự động sinh Hợp đồng và bắn link DocuSeal.
+// @Summary      Review franchise application (Admin)
+// @Description  Admin approves or rejects the application. If approved, the system automatically generates a Contract and sends a DocuSeal link.
 // @Tags         Franchise: Applications
 // @Security     BearerAuth
 // @Accept       json
 // @Produce      json
-// @Param        id    path  string true "ID Hồ sơ (Application ID)"
-// @Param        body  body  franchiseModel.ReviewFranchiseApplicationRequest true "Quyết định thẩm định & Thông số hợp đồng"
+// @Param        id    path  string true "Application ID"
+// @Param        body  body  franchiseModel.ReviewFranchiseApplicationRequest true "Review decision & contract parameters"
 // @Success      200   {object} franchiseModel.ReviewApplicationResponse
 // @Router       /franchise/applications/{id}/review [patch]
 func (h *FranchiseHandler) ReviewApplication(c *gin.Context) error {
@@ -206,12 +206,12 @@ func (h *FranchiseHandler) ReviewApplication(c *gin.Context) error {
 // ── FRANCHISE CONTRACTS ──────────────────────────────────────────────────
 
 // GetAllContracts
-// @Summary      Lấy danh sách hợp đồng (Admin/Kế toán)
-// @Description  Lấy toàn bộ hợp đồng nhượng quyền (hỗ trợ phân trang, lọc theo trạng thái).
+// @Summary      Get all contracts (Admin/Accountant)
+// @Description  Retrieve all franchise contracts (supports pagination, filtering by status).
 // @Tags         Franchise: Contracts
 // @Security     BearerAuth
 // @Produce      json
-// @Param        query  query  franchiseModel.GetAllContractsRequest false "Bộ lọc và phân trang"
+// @Param        query  query  franchiseModel.GetAllContractsRequest false "Pagination and filters"
 // @Success      200    {object} franchiseModel.ContractPaginationResult
 // @Router       /franchise/contracts [get]
 func (h *FranchiseHandler) GetAllContracts(c *gin.Context) error {
@@ -231,8 +231,8 @@ func (h *FranchiseHandler) GetAllContracts(c *gin.Context) error {
 }
 
 // GetMyContracts
-// @Summary      Lấy danh sách hợp đồng của bản thân
-// @Description  Lấy toàn bộ hợp đồng nhượng quyền của bản thân
+// @Summary      Get my contracts
+// @Description  Retrieve all franchise contracts of the current user.
 // @Tags         Franchise: Contracts
 // @Security     BearerAuth
 // @Produce      json
@@ -250,12 +250,12 @@ func (h *FranchiseHandler) GetMyContracts(c *gin.Context) error {
 }
 
 // GetContractDetail
-// @Summary      Xem chi tiết một hợp đồng
-// @Description  Lấy thông tin chi tiết của một hợp đồng nhượng quyền.
+// @Summary      Get contract details
+// @Description  Retrieve detailed information of a franchise contract.
 // @Tags         Franchise: Contracts
 // @Security     BearerAuth
 // @Produce      json
-// @Param        id  path  string true "ID Hợp đồng"
+// @Param        id  path  string true "Contract ID"
 // @Success      200 {object} franchiseModel.FranchiseContractResponse
 // @Router       /franchise/contracts/{id} [get]
 func (h *FranchiseHandler) GetContractDetail(c *gin.Context) error {
@@ -275,15 +275,15 @@ func (h *FranchiseHandler) GetContractDetail(c *gin.Context) error {
 }
 
 // ConfirmDepositPayment
-// @Summary      Xác nhận đã đóng tiền cọc (Kế toán)
-// @Description  Chuyển trạng thái hợp đồng sang Active, tạo Cửa hàng mới và cấp quyền Manager cho đối tác.
+// @Summary      Confirm deposit payment (Accountant)
+// @Description  Change contract status to Active, create a new Store, and grant Manager role to the partner.
 // @Tags         Franchise: Contracts
 // @Security     BearerAuth
 // @Accept       json
 // @Produce      json
-// @Param        id    path  string true "ID Hợp đồng"
-// @Param        body  body  franchiseModel.ConfirmDepositPaymentRequest true "Ghi chú giao dịch"
-// @Success      200   {object} map[string]string "{"message": "Xác nhận thanh toán thành công"}"
+// @Param        id    path  string true "Contract ID"
+// @Param        body  body  franchiseModel.ConfirmDepositPaymentRequest true "Transaction notes"
+// @Success      200   {object} map[string]string "{"message": "Xác nhận thanh toán thành công. Hợp đồng đã có hiệu lực."}"
 // @Router       /franchise/contracts/{id}/payment [post]
 func (h *FranchiseHandler) ConfirmDepositPayment(c *gin.Context) error {
 	contractId, err := uuid.Parse(c.Param("id"))
@@ -311,14 +311,14 @@ func (h *FranchiseHandler) ConfirmDepositPayment(c *gin.Context) error {
 }
 
 // UpdateSetupStatus
-// @Summary      Cập nhật tiến độ thi công cửa hàng
-// @Description  Admin cập nhật trạng thái thi công (Design -> Construction -> Inspection -> Ready).
+// @Summary      Update store setup status
+// @Description  Admin updates the construction status (Design -> Construction -> Inspection -> Ready).
 // @Tags         Franchise: Contracts
 // @Security     BearerAuth
 // @Accept       json
 // @Produce      json
-// @Param        id    path  string true "ID Hợp đồng"
-// @Param        body  body  franchiseModel.UpdateSetupStatusRequest true "Trạng thái Setup"
+// @Param        id    path  string true "Contract ID"
+// @Param        body  body  franchiseModel.UpdateSetupStatusRequest true "Setup status"
 // @Success      200   {object} franchiseModel.FranchiseContractResponse
 // @Router       /franchise/contracts/{id}/setup [patch]
 func (h *FranchiseHandler) UpdateSetupStatus(c *gin.Context) error {
@@ -348,14 +348,14 @@ func (h *FranchiseHandler) UpdateSetupStatus(c *gin.Context) error {
 }
 
 // UpdateContractStatus
-// @Summary      Tạm ngưng / Chấm dứt hợp đồng
-// @Description  Admin thay đổi trạng thái hợp đồng (Suspended, Terminated) kèm lý do.
+// @Summary      Suspend / Terminate contract
+// @Description  Admin changes the contract status (Suspended, Terminated) with a reason.
 // @Tags         Franchise: Contracts
 // @Security     BearerAuth
 // @Accept       json
 // @Produce      json
-// @Param        id    path  string true "ID Hợp đồng"
-// @Param        body  body  franchiseModel.UpdateContractStatusRequest true "Trạng thái và lý do"
+// @Param        id    path  string true "Contract ID"
+// @Param        body  body  franchiseModel.UpdateContractStatusRequest true "Status and reason"
 // @Success      200   {object} franchiseModel.FranchiseContractResponse
 // @Router       /franchise/contracts/{id}/status [patch]
 func (h *FranchiseHandler) UpdateContractStatus(c *gin.Context) error {
@@ -380,14 +380,14 @@ func (h *FranchiseHandler) UpdateContractStatus(c *gin.Context) error {
 }
 
 // RenewContract
-// @Summary      Gia hạn hợp đồng nhượng quyền
-// @Description  Cộng thêm số năm hiệu lực vào hợp đồng hiện tại.
+// @Summary      Renew franchise contract
+// @Description  Add valid years to the current contract.
 // @Tags         Franchise: Contracts
 // @Security     BearerAuth
 // @Accept       json
 // @Produce      json
-// @Param        id    path  string true "ID Hợp đồng"
-// @Param        body  body  franchiseModel.RenewContractRequest true "Số năm gia hạn"
+// @Param        id    path  string true "Contract ID"
+// @Param        body  body  franchiseModel.RenewContractRequest true "Years to renew"
 // @Success      200   {object} franchiseModel.FranchiseContractResponse
 // @Router       /franchise/contracts/{id}/renew [post]
 func (h *FranchiseHandler) RenewContract(c *gin.Context) error {
@@ -414,8 +414,8 @@ func (h *FranchiseHandler) RenewContract(c *gin.Context) error {
 // ── DOCUSEAL WEBHOOK ─────────────────────────────────────────────────────
 
 // HandleDocuSealWebhook
-// @Summary      Nhận Webhook từ DocuSeal (Internal)
-// @Description  Cập nhật trạng thái hợp đồng (Đã ký) dựa trên webhook từ hệ thống DocuSeal gửi về. Không dùng xác thực Token mà dùng Header HMAC.
+// @Summary      Handle DocuSeal Webhook (Internal)
+// @Description  Update contract status (Signed) based on the webhook sent from DocuSeal. Uses HMAC Header instead of Token authentication.
 // @Tags         Franchise: Webhooks
 // @Accept       json
 // @Produce      json

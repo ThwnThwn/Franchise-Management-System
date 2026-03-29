@@ -1,6 +1,5 @@
-﻿using MediatR;
-using EngagementService.Domain.Entities;
-using EngagementService.Application.Persistences.Repository;
+﻿using EngagementService.Application.Persistences.Repository;
+using MediatR;
 namespace EngagementService.Application.Features.LoyaltyAccount.Queries.GetById
 {
     public class GetByIdHandler : IRequestHandler<GetByIdQuery, Domain.Entities.LoyaltyAccount?>

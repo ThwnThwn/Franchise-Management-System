@@ -1,9 +1,10 @@
-﻿namespace ProductService.Application.Features.Products.Queries.GetByKeyword;
-
-using BuildingBlocks.Core.Pagination;
+﻿using BuildingBlocks.Core.Pagination;
 using MediatR;
 using ProductService.Application.Dtos;
+using ProductService.Application.Mapping;
 using ProductService.Application.Repositories;
+
+namespace ProductService.Application.Features.Products.Queries.GetByKeyword;
 
 public sealed class GetProductByKeywordQueryHandler(
     IProductRepository repo
@@ -21,33 +22,7 @@ public sealed class GetProductByKeywordQueryHandler(
             cancellationToken);
 
         var items = pageResult.Items
-            .Select(product =>
-            {
-                return new ProductDto
-                {
-                    Id = product.Id,
-                    Name = product.Name,
-                    Description = product.Description,
-                    ImageUrl = product.ImageUrl,
-                    IsActive = product.IsActive,
-                    IsDeleted = product.IsDeleted,
-                    CategoryId = product.CategoryId,
-                    CategoryName = product.Category.Name,
-                    CreatedAt = product.CreatedAt,
-                    UpdatedAt = product.UpdatedAt,
-
-                    Variants = product.ProductVariants.Select(v => new ProductVariantDto
-                    {
-                        Id = v.Id,
-                        Name = v.Name,
-                        Attributes = v.Attributes,
-                        BasePrice = v.BasePrice,
-                        Cost = v.Cost,
-                        IsActive = v.IsActive,
-                        Sku = v.Sku
-                    }).ToList()
-                };
-            })
+            .Select(product => product.MapToProductDto())
             .ToList();
 
         return new PagedResult<ProductDto>(

@@ -11,7 +11,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// @title           API Gateway Documentation
+// @title           Capital Franchise Supply Chain Management System API Document
 // @version         1.0
 // @description     API docs for CHD Gateway.
 // @termsOfService  http://swagger.io/terms/
@@ -19,7 +19,6 @@ import (
 // @contact.name    API Support
 // @contact.email   support@swagger.io
 
-// @host            localhost:8080
 // @BasePath        /api
 
 // @securityDefinitions.apikey BearerAuth
@@ -30,7 +29,7 @@ func main() {
 	// 1. Load Config
 	global.Config = config.LoadConfig()
 	errorcode.InitErrorMap(global.Config)
-	l := logger.New(global.Config.Logger)
+	l := logger.New(global.Config.GatewayEnvironment, global.Config.Logger)
 
 	// 2. Init App
 	app, cleanup, err := di.InitializeApp(global.Config, l)

@@ -3,6 +3,7 @@ package franchise
 import (
 	"api-gateway/internal/application/constants/errorcode"
 	"api-gateway/internal/application/gateways/franchise"
+	_ "api-gateway/internal/domain/models/common"
 	_ "api-gateway/internal/domain/models/shift"
 	"api-gateway/internal/domain/models/store"
 	"net/http"
@@ -33,7 +34,7 @@ func NewStoreHandler(
 // @Accept       json
 // @Produce      json
 // @Param        query  query     store.GetStoresRequest  false  "Filter options"
-// @Success      200    {object}  map[string]interface{}  "List of stores"
+// @Success      200    {object}  common.PaginationResult[store.StoreDetailResponse] "List of stores"
 // @Failure      500    {object}  map[string]string       "Internal server error"
 // @Router       /stores [get]
 func (h *StoreHandler) GetStores(c *gin.Context) error {
@@ -59,7 +60,7 @@ func (h *StoreHandler) GetStores(c *gin.Context) error {
 // @Accept       json
 // @Produce      json
 // @Param        query  query     store.FindNearbyStoresRequest  false  "Location params (Lat, Long, Radius)"
-// @Success      200    {object}  map[string]interface{}         "List of nearby stores"
+// @Success      200    {object}  common.PaginationResult[store.StoreDetailResponse] "List of nearby stores"
 // @Failure      400    {object}  map[string]string              "Validation error"
 // @Router       /stores/nearby [get]
 func (h *StoreHandler) FindNearbyStores(c *gin.Context) error {
@@ -85,7 +86,7 @@ func (h *StoreHandler) FindNearbyStores(c *gin.Context) error {
 // @Accept       json
 // @Produce      json
 // @Param        id   path      string  true  "Store UUID"
-// @Success      200  {object}  map[string]interface{} "Store details"
+// @Success      200  {object}  store.StoreDetailResponse "Store details"
 // @Failure      400  {object}  map[string]string      "Invalid ID format"
 // @Failure      404  {object}  map[string]string      "Store not found"
 // @Router       /stores/{id} [get]

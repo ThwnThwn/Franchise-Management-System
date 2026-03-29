@@ -11,19 +11,14 @@ namespace SupplierService.Application.Features.PurchaseOrders.Commands.CancelPur
 /// 3. Set Status = Cancelled, ghi reason vào Notes
 /// 4. Save
 /// </summary>
-public class CancelPurchaseOrderCommandHandler : IRequestHandler<CancelPurchaseOrderCommand>
+public class CancelPurchaseOrderCommandHandler(
+    IPurchaseOrderRepository purchaseOrderRepo
+) : IRequestHandler<CancelPurchaseOrderCommand>
 {
-    private readonly IPurchaseOrderRepository _purchaseOrderRepo;
-
-    public CancelPurchaseOrderCommandHandler(IPurchaseOrderRepository purchaseOrderRepo)
-    {
-        _purchaseOrderRepo = purchaseOrderRepo;
-    }
-
     public async Task<Unit> Handle(CancelPurchaseOrderCommand request, CancellationToken cancellationToken)
     {
         // 1. Load PO
-        var po = await _purchaseOrderRepo.GetByIdWithItemsAsync(request.Id, cancellationToken)
+        var po = await purchaseOrderRepo.GetByIdWithItemsAsync(request.Id, cancellationToken)
             ?? throw new KeyNotFoundException($"Purchase order {request.Id} not found.");
 
         // 2. Validate
@@ -44,7 +39,7 @@ public class CancelPurchaseOrderCommandHandler : IRequestHandler<CancelPurchaseO
         }
 
         // 4. Save
-        await _purchaseOrderRepo.SaveChangesAsync(cancellationToken);
+        await purchaseOrderRepo.SaveChangesAsync(cancellationToken);
 
         return Unit.Value;
     }

@@ -130,6 +130,8 @@ services:
     container_name: chb_gateway
     env_file:
       - .env
+    environment:
+      - GATEWAY_ENVIRONMENT=Production
     restart: always
     ports:
       - "${GATEWAY_PORT}:8080"

@@ -1,20 +1,14 @@
 ﻿using FluentValidation;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace ProductService.Application.Features.Products.Queries.GetByProductName
+namespace ProductService.Application.Features.Products.Queries.GetByProductName;
+
+public class GetProductByNameQueryValidator :
+    AbstractValidator<GetProductByNameQuery>
 {
-    internal class GetProductByNameQueryValidator :
-        AbstractValidator<GetProductByNameQuery>
+    public GetProductByNameQueryValidator()
     {
-        public GetProductByNameQueryValidator()
-        {
-            RuleFor(x => x.productName)
-                .NotNull()
-                .WithMessage("Product name is required.");
-        }
+        RuleFor(x => x.ProductName)
+            .NotNull()
+            .WithMessage("Product name is required.");
     }
 }

@@ -1,15 +1,10 @@
 ﻿using FluentValidation;
 using InventoryService.Application.Constants;
 using InventoryService.Application.Features.Category.Commands.CreateCategory;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace InventoryService.Application.Validators.Category
 {
-    internal class CreateCategoryCommandValidator : AbstractValidator<CreateCategoryCommand>
+    public class CreateCategoryCommandValidator : AbstractValidator<CreateCategoryCommand>
     {
         public CreateCategoryCommandValidator()
         {

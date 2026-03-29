@@ -19,11 +19,17 @@ func NewShiftBulkHandler(shiftGW franchise.IShiftService) *ShiftBulkHandler {
 }
 
 // CreateManual
-// @Summary      Tạo ca làm việc thủ công hàng loạt
-// @Description  Tạo nhiều ca làm việc cùng lúc dựa trên khung giờ và các ngày trong tuần được chọn.
+// @Summary      Bulk create manual shifts
+// @Description  Create multiple shifts simultaneously based on selected time frames and days of the week.
 // @Tags         Shifts: Bulk action
 // @Security     BearerAuth
-// @Param        body body shift.BulkCreateManualRequest true "Dữ liệu tạo hàng loạt"
+// @Accept       json
+// @Produce      json
+// @Param        body body shift.BulkCreateManualRequest true "Bulk creation data"
+// @Success      201  {object} map[string]interface{} "Successfully created shifts"
+// @Failure      400  {object} object "Validation Error (Bad Request)"
+// @Failure      401  {object} object "Unauthorized"
+// @Failure      500  {object} object "Internal Server Error"
 // @Router       /shifts/bulk-manual [post]
 func (h *ShiftBulkHandler) CreateManual(c *gin.Context) error {
 	var req shift.BulkCreateManualRequest
@@ -46,11 +52,17 @@ func (h *ShiftBulkHandler) CreateManual(c *gin.Context) error {
 }
 
 // CreateFromTemplate
-// @Summary      Tạo ca làm việc từ mẫu hàng loạt
-// @Description  Tạo hàng loạt ca làm việc trong một khoảng thời gian dựa trên các Shift Template có sẵn.
+// @Summary      Bulk create shifts from template
+// @Description  Create multiple shifts over a specified period based on existing Shift Templates.
 // @Tags         Shifts: Bulk action
 // @Security     BearerAuth
-// @Param        body body shift.BulkCreateFromTemplateRequest true "Dữ liệu tạo từ mẫu"
+// @Accept       json
+// @Produce      json
+// @Param        body body shift.BulkCreateFromTemplateRequest true "Template creation data"
+// @Success      201  {object} map[string]interface{} "Successfully created shifts from template"
+// @Failure      400  {object} object "Validation Error (Bad Request)"
+// @Failure      401  {object} object "Unauthorized"
+// @Failure      500  {object} object "Internal Server Error"
 // @Router       /shifts/bulk-template [post]
 func (h *ShiftBulkHandler) CreateFromTemplate(c *gin.Context) error {
 	var req shift.BulkCreateFromTemplateRequest
@@ -73,11 +85,17 @@ func (h *ShiftBulkHandler) CreateFromTemplate(c *gin.Context) error {
 }
 
 // Publish
-// @Summary      Công khai ca làm việc hàng loạt
-// @Description  Chuyển trạng thái hàng loạt ca làm từ Draft sang Published để nhân viên có thể thấy lịch.
+// @Summary      Bulk publish shifts
+// @Description  Change the status of multiple shifts from Draft to Published, making them visible to employees on the schedule.
 // @Tags         Shifts: Bulk action
 // @Security     BearerAuth
-// @Param        body body []string true "Danh sách ID các ca làm cần công khai"
+// @Accept       json
+// @Produce      json
+// @Param        body body []string true "List of shift IDs to publish"
+// @Success      200  {object} map[string]interface{} "Successfully published shifts"
+// @Failure      400  {object} object "Validation Error (Bad Request)"
+// @Failure      401  {object} object "Unauthorized"
+// @Failure      500  {object} object "Internal Server Error"
 // @Router       /shifts/bulk-publish [put]
 func (h *ShiftBulkHandler) Publish(c *gin.Context) error {
 	var ids []string
@@ -96,11 +114,17 @@ func (h *ShiftBulkHandler) Publish(c *gin.Context) error {
 }
 
 // Delete
-// @Summary      Xóa hàng loạt ca làm việc
-// @Description  Xóa hàng loạt các ca làm việc (Chỉ áp dụng cho các ca đang ở trạng thái Nháp).
+// @Summary      Bulk delete shifts
+// @Description  Delete multiple shifts simultaneously (Only applicable for shifts currently in Draft status).
 // @Tags         Shifts: Bulk action
 // @Security     BearerAuth
-// @Param        body body []string true "Danh sách ID các ca làm cần xóa"
+// @Accept       json
+// @Produce      json
+// @Param        body body []string true "List of shift IDs to delete"
+// @Success      200  {object} map[string]interface{} "Successfully deleted shifts"
+// @Failure      400  {object} object "Validation Error (Bad Request)"
+// @Failure      401  {object} object "Unauthorized"
+// @Failure      500  {object} object "Internal Server Error"
 // @Router       /shifts/bulk-delete [delete]
 func (h *ShiftBulkHandler) Delete(c *gin.Context) error {
 	var ids []string
@@ -118,12 +142,18 @@ func (h *ShiftBulkHandler) Delete(c *gin.Context) error {
 	return nil
 }
 
-// BulkOpen
-// @Summary      Mở hàng loạt ca ra Chợ Ca (Shift Pool)
-// @Description  Chuyển trạng thái hàng loạt ca làm việc từ Draft sang Open để nhân viên có thể đăng ký nhận. StoreId được lấy tự động từ Token của Manager.
+// Open
+// @Summary      Bulk open shifts to Shift Pool
+// @Description  Change the status of multiple shifts from Draft to Open, allowing employees to apply for them in the Shift Pool. StoreId is automatically extracted from the Manager's Token.
 // @Tags         Shifts: Bulk action
 // @Security     BearerAuth
-// @Param        body body []string true "Danh sách ID các ca làm cần mở"
+// @Accept       json
+// @Produce      json
+// @Param        body body []string true "List of shift IDs to open"
+// @Success      200  {object} map[string]interface{} "Returns the count of successfully opened shifts"
+// @Failure      400  {object} object "Validation Error (Bad Request)"
+// @Failure      401  {object} object "Unauthorized"
+// @Failure      500  {object} object "Internal Server Error"
 // @Router       /shifts/bulk-open [put]
 func (h *ShiftBulkHandler) Open(c *gin.Context) error {
 	var ids []string

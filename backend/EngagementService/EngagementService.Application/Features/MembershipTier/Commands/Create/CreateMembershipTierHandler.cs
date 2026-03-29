@@ -2,8 +2,6 @@
 using EngagementService.Application.Constants;
 using EngagementService.Application.Persistences.Cache;
 using EngagementService.Application.Persistences.Repository;
-using Google.Protobuf.WellKnownTypes;
-using IdentityModel.OidcClient;
 using MediatR;
 
 namespace EngagementService.Application.Features.MembershipTier.Commands.Create

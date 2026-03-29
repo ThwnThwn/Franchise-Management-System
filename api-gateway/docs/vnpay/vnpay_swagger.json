@@ -2,7 +2,7 @@
     "swagger": "2.0",
     "info": {
         "description": "API docs for CHD Gateway.",
-        "title": "API Gateway Documentation",
+        "title": "Capital Franchise Supply Chain Management System API Document",
         "termsOfService": "http://swagger.io/terms/",
         "contact": {
             "name": "API Support",
@@ -10,17 +10,29 @@
         },
         "version": "1.0"
     },
-    "host": "localhost:8080",
     "basePath": "/api",
     "paths": {
         "/vnpay/ipn": {
             "get": {
-                "description": "Nhận callback từ VNPay, phân loại đơn hàng và điều phối đến đúng Service qua gRPC.",
+                "description": "Receive Instant Payment Notification (IPN) callbacks from VNPay. Acts as a dispatcher to classify the transaction type (e.g., Customer Orders vs. Supplier Purchase Orders) and securely route the payload to the appropriate underlying Microservice via gRPC.",
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Payments"
                 ],
-                "summary": "VNPay IPN Dispatcher",
-                "responses": {}
+                "summary": "Handle VNPay IPN Webhook",
+                "responses": {
+                    "200": {
+                        "description": "Always returns HTTP 200 with VNPay standard RspCode and Message",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
             }
         }
     },

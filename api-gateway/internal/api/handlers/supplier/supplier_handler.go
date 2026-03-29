@@ -23,11 +23,16 @@ func NewSupplierHandler(supplierGW gw.ISupplierService) *SupplierHandler {
 }
 
 // GetAll
-// @Summary      Danh sách nhà cung cấp
+// @Summary      Get all suppliers
+// @Description  Retrieve a paginated list of all suppliers in the system.
 // @Tags         Suppliers
+// @Produce      json
 // @Security     BearerAuth
-// @Param        query query  supplier.GetSuppliersReq true "Tham số lọc và phân trang"
-// @Success      200   {object} common.PaginationResult[supplier.SupplierSummary]
+// @Param        query query  supplier.GetSuppliersReq true "Filtering and pagination parameters"
+// @Success      200   {object} common.PaginationResult[supplier.SupplierSummary] "List of suppliers"
+// @Failure      400   {object} object "Validation Error (Bad Request)"
+// @Failure      401   {object} object "Unauthorized"
+// @Failure      500   {object} object "Internal Server Error"
 // @Router       /suppliers [get]
 func (h *SupplierHandler) GetAll(c *gin.Context) error {
 	var req supplier.GetSuppliersReq
@@ -47,11 +52,17 @@ func (h *SupplierHandler) GetAll(c *gin.Context) error {
 }
 
 // GetById
-// @Summary      Chi tiết nhà cung cấp
+// @Summary      Get supplier details
+// @Description  Retrieve detailed information of a specific supplier by their UUID.
 // @Tags         Suppliers
+// @Produce      json
 // @Security     BearerAuth
-// @Param        id   path   string true "UUID nhà cung cấp"
-// @Success      200  {object} supplier.SupplierDetail
+// @Param        id    path   string true "Supplier UUID"
+// @Success      200   {object} supplier.SupplierDetail "Detailed supplier information"
+// @Failure      400   {object} object "Invalid UUID format"
+// @Failure      401   {object} object "Unauthorized"
+// @Failure      404   {object} object "Supplier Not Found"
+// @Failure      500   {object} object "Internal Server Error"
 // @Router       /suppliers/{id} [get]
 func (h *SupplierHandler) GetById(c *gin.Context) error {
 	idStr := c.Param("id")
@@ -72,12 +83,17 @@ func (h *SupplierHandler) GetById(c *gin.Context) error {
 }
 
 // Create
-// @Summary      Tạo mới nhà cung cấp
+// @Summary      Create a new supplier
+// @Description  Add a new supplier to the system.
 // @Tags         Suppliers
 // @Accept       json
+// @Produce      json
 // @Security     BearerAuth
-// @Param        request body supplier.CreateSupplierReq true "Thông tin nhà cung cấp"
-// @Success      200     {object} supplier.SupplierBaseRes
+// @Param        request body     supplier.CreateSupplierReq true "Supplier information"
+// @Success      200     {object} supplier.SupplierBaseRes "Successfully created"
+// @Failure      400     {object} object "Validation Error (Bad Request)"
+// @Failure      401     {object} object "Unauthorized"
+// @Failure      500     {object} object "Internal Server Error"
 // @Router       /suppliers [post]
 func (h *SupplierHandler) Create(c *gin.Context) error {
 	var req supplier.CreateSupplierReq
@@ -97,13 +113,19 @@ func (h *SupplierHandler) Create(c *gin.Context) error {
 }
 
 // Update
-// @Summary      Cập nhật nhà cung cấp
+// @Summary      Update a supplier
+// @Description  Modify the details of an existing supplier.
 // @Tags         Suppliers
 // @Accept       json
+// @Produce      json
 // @Security     BearerAuth
-// @Param        id      path string true "UUID nhà cung cấp"
-// @Param        request body supplier.UpdateSupplierReq true "Thông tin cập nhật"
-// @Success      200     {object} supplier.SupplierBaseRes
+// @Param        id      path     string true "Supplier UUID"
+// @Param        request body     supplier.UpdateSupplierReq true "Updated information"
+// @Success      200     {object} supplier.SupplierBaseRes "Successfully updated"
+// @Failure      400     {object} object "Validation Error or Invalid ID"
+// @Failure      401     {object} object "Unauthorized"
+// @Failure      404     {object} object "Supplier Not Found"
+// @Failure      500     {object} object "Internal Server Error"
 // @Router       /suppliers/{id} [patch]
 func (h *SupplierHandler) Update(c *gin.Context) error {
 	idStr := c.Param("id")
@@ -129,11 +151,17 @@ func (h *SupplierHandler) Update(c *gin.Context) error {
 }
 
 // Delete
-// @Summary      Xóa nhà cung cấp
+// @Summary      Delete a supplier
+// @Description  Remove a supplier from the system.
 // @Tags         Suppliers
+// @Produce      json
 // @Security     BearerAuth
-// @Param        id   path   string true "UUID nhà cung cấp"
-// @Success      200  {object} supplier.SupplierBaseRes
+// @Param        id    path     string true "Supplier UUID"
+// @Success      200   {object} supplier.SupplierBaseRes "Successfully deleted"
+// @Failure      400   {object} object "Invalid UUID format"
+// @Failure      401   {object} object "Unauthorized"
+// @Failure      404   {object} object "Supplier Not Found"
+// @Failure      500   {object} object "Internal Server Error"
 // @Router       /suppliers/{id} [delete]
 func (h *SupplierHandler) Delete(c *gin.Context) error {
 	idStr := c.Param("id")

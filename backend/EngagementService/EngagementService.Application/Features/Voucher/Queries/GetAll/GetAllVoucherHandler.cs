@@ -1,6 +1,5 @@
 ﻿using EngagementService.Application.Persistences.Repository;
 using MediatR;
-using System.Linq.Expressions;
 
 namespace EngagementService.Application.Features.Voucher.Queries.GetAll
 {
@@ -18,7 +17,7 @@ namespace EngagementService.Application.Features.Voucher.Queries.GetAll
         public async Task<IEnumerable<Domain.Entities.Voucher>> Handle(GetAllVoucherQuery request, CancellationToken cancellationToken)
         {
             var vouchers = await _voucherRepository.GetAllVoucherAsync(cancellationToken);
-            
+
             var voucherQueues = await _voucherQueueRepository.GetVouchersAndAmountInQueueAsync(cancellationToken);
 
             foreach (var voucher in vouchers)

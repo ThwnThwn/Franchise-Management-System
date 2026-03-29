@@ -3,15 +3,9 @@ using SupplierService.Application.Repositories;
 
 namespace SupplierService.Application.Features.PurchaseOrders.Queries.GetPurchaseOrderById;
 
-public class GetPurchaseOrderByIdQueryHandler : IRequestHandler<GetPurchaseOrderByIdQuery, GetPurchaseOrderByIdResult>
+public class GetPurchaseOrderByIdQueryHandler(IPurchaseOrderRepository repository
+) : IRequestHandler<GetPurchaseOrderByIdQuery, GetPurchaseOrderByIdResult>
 {
-    private readonly IPurchaseOrderRepository _repository;
-
-    public GetPurchaseOrderByIdQueryHandler(IPurchaseOrderRepository repository)
-    {
-        _repository = repository;
-    }
-
     public async Task<GetPurchaseOrderByIdResult> Handle(GetPurchaseOrderByIdQuery request, CancellationToken cancellationToken)
     {
         if (!Guid.TryParse(request.Id, out var poId))
@@ -19,7 +13,7 @@ public class GetPurchaseOrderByIdQueryHandler : IRequestHandler<GetPurchaseOrder
             throw new Exception("Invalid PurchaseOrder Id");
         }
 
-        var po = await _repository.GetByIdWithItemsAsync(poId, cancellationToken);
+        var po = await repository.GetByIdWithItemsAsync(poId, cancellationToken);
 
         if (po == null)
         {

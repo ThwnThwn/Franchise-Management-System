@@ -5,6 +5,7 @@ import (
 	"api-gateway/internal/application/gateways/franchise"
 	"api-gateway/internal/application/gateways/identity"
 	"api-gateway/internal/application/gateways/sales"
+	_ "api-gateway/internal/domain/models/common"
 	"api-gateway/internal/domain/models/order"
 	"api-gateway/pkg/mapper"
 	"api-gateway/pkg/utils/contextutils"
@@ -36,14 +37,16 @@ func NewOrderHandler(
 
 // GetOrders
 // @Summary      Get Orders History
-// @Description  Retrieve a list of orders placed with optional filtering.
+// @Description  Retrieve a paginated list of all orders with optional filtering parameters (Admin/Manager view).
 // @Tags         Orders
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        query  query     order.GetOrdersRequest  false  "Filter params (page, status, etc.)"
-// @Success      200    {object}  map[string]interface{}    "List of orders"
-// @Failure      401    {object}  map[string]string         "Unauthorized"
+// @Param        query  query     order.GetOrdersRequest  false  "Filter parameters (page, status, storeId, etc.)"
+// @Success      200    {object}  common.PaginationResult[order.OrderSummary] "Paginated list of orders"
+// @Failure      400    {object}  object "Validation Error (Bad Request)"
+// @Failure      401    {object}  object "Unauthorized"
+// @Failure      500    {object}  object "Internal Server Error"
 // @Router       /orders [get]
 func (h *OrderHandler) GetOrders(c *gin.Context) error {
 	var req order.GetOrdersRequest
@@ -94,15 +97,17 @@ func (h *OrderHandler) GetOrders(c *gin.Context) error {
 
 // GetOrderById
 // @Summary      Get Order Details
-// @Description  Retrieve full details of a specific order by its ID.
+// @Description  Retrieve full details of a specific order by its ID, including items, store info, and delivery personnel.
 // @Tags         Orders
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
 // @Param        id   path      string  true  "Order UUID"
-// @Success      200  {object}  map[string]interface{} "Order details"
-// @Failure      400  {object}  map[string]string      "Invalid ID format"
-// @Failure      404  {object}  map[string]string      "Order not found"
+// @Success      200  {object}  order.Order "Detailed order information"
+// @Failure      400  {object}  object "Invalid ID format"
+// @Failure      401  {object}  object "Unauthorized"
+// @Failure      404  {object}  object "Order not found"
+// @Failure      500  {object}  object "Internal Server Error"
 // @Router       /orders/{id} [get]
 func (h *OrderHandler) GetOrderById(c *gin.Context) error {
 	id := c.Param("id")
@@ -145,14 +150,16 @@ func (h *OrderHandler) GetOrderById(c *gin.Context) error {
 
 // GetMyOrders
 // @Summary      Get My Order History
-// @Description  Retrieve a list of orders placed by the current logged-in user with optional filtering.
+// @Description  Retrieve a list of orders placed by the current logged-in customer.
 // @Tags         Orders
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        query  query     order.GetMyOrdersRequest  false  "Filter params (page, status, etc.)"
-// @Success      200    {object}  map[string]interface{}    "List of orders"
-// @Failure      401    {object}  map[string]string         "Unauthorized"
+// @Param        query  query     order.GetMyOrdersRequest  false  "Filter parameters (page, status, etc.)"
+// @Success      200    {array}   order.OrderSummary    "Llist of user's orders"
+// @Failure      400    {object}  object "Validation Error (Bad Request)"
+// @Failure      401    {object}  object "Unauthorized"
+// @Failure      500    {object}  object "Internal Server Error"
 // @Router       /me/orders [get]
 func (h *OrderHandler) GetMyOrders(c *gin.Context) error {
 	var req order.GetMyOrdersRequest
@@ -201,14 +208,16 @@ func (h *OrderHandler) GetMyOrders(c *gin.Context) error {
 
 // CreateOrder
 // @Summary      Place New Order
-// @Description  Create a new order based on the provided items and shipping information.
+// @Description  Create a new order based on the provided items, store, and shipping information.
 // @Tags         Orders
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
 // @Param        request body     order.CreateOrderRequest  true  "Order creation details"
-// @Success      200     {object} map[string]interface{}    "Created Order Data"
-// @Failure      400     {object} map[string]string         "Validation error"
+// @Success      200     {object} order.OrderReply    "Created Order Data"
+// @Failure      400     {object} object "Validation Error (Bad Request)"
+// @Failure      401     {object} object "Unauthorized"
+// @Failure      500     {object} object "Internal Server Error"
 // @Router       /orders [post]
 func (h *OrderHandler) CreateOrder(c *gin.Context) error {
 	var req order.CreateOrderRequest
@@ -228,15 +237,18 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) error {
 
 // UpdateOrder
 // @Summary      Update Order Items
-// @Description  Update the list of items in an existing order (usually allowed only when order is in 'Pending' state).
+// @Description  Update the list of items in an existing order (typically allowed only when the order is in a 'Pending' state).
 // @Tags         Orders
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id       path     string                    true  "Order UUID"
-// @Param        request  body     []order.UpdateOrderItem   true  "List of items to update"
-// @Success      200      {object} map[string]interface{}    "Updated Order Data"
-// @Failure      400      {object} map[string]string         "Validation error"
+// @Param        id       path     string                   true  "Order UUID"
+// @Param        request  body     []order.UpdateOrderItem  true  "List of items to update"
+// @Success      200      {object} order.OrderReply   "Updated Order Data"
+// @Failure      400      {object} object "Validation Error or Invalid ID"
+// @Failure      401      {object} object "Unauthorized"
+// @Failure      404      {object} object "Order Not Found"
+// @Failure      500      {object} object "Internal Server Error"
 // @Router       /orders/{id} [put]
 func (h *OrderHandler) UpdateOrder(c *gin.Context) error {
 	id := c.Param("id")
@@ -262,15 +274,18 @@ func (h *OrderHandler) UpdateOrder(c *gin.Context) error {
 
 // UpdateOrderStatus
 // @Summary      Update Order Status
-// @Description  Change the status of an order (e.g., to 'Cancelled', 'Completed').
+// @Description  Change the lifecycle status of an order (e.g., to 'Processing', 'Cancelled', 'Completed').
 // @Tags         Orders
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
 // @Param        id       path     string                   true  "Order UUID"
-// @Param        request  body     order.UpdateOrderStatus  true  "New Status"
-// @Success      200      {object} map[string]interface{}   "Success"
-// @Failure      400      {object} map[string]string        "Validation error"
+// @Param        request  body     order.UpdateOrderStatus  true  "New Status details"
+// @Success      200      {object} map[string]interface{}   "Successfully updated status"
+// @Failure      400      {object} object "Validation Error or Invalid ID"
+// @Failure      401      {object} object "Unauthorized"
+// @Failure      404      {object} object "Order Not Found"
+// @Failure      500      {object} object "Internal Server Error"
 // @Router       /orders/{id}/status [patch]
 func (h *OrderHandler) UpdateOrderStatus(c *gin.Context) error {
 	id := c.Param("id")
@@ -296,15 +311,18 @@ func (h *OrderHandler) UpdateOrderStatus(c *gin.Context) error {
 
 // AssignStaffToDelivery
 // @Summary      Assign Staff To Delivery
-// @Description  Gán nhân viên vào ca làm để giao hàng
+// @Description  Manager assigns a specific staff member (delivery man) to handle an order's delivery.
 // @Tags         Orders
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
 // @Param        id       path     string                              true  "Order UUID"
-// @Param        request  body     order.AssignStaffToDeliveryRequest  true  "Chứa staff id"
-// @Success      200      {object} map[string]interface{}              "Success"
-// @Failure      400      {object} map[string]string        		   "Validation error"
+// @Param        request  body     order.AssignStaffToDeliveryRequest  true  "Staff ID to be assigned"
+// @Success      200      {object} map[string]interface{}              "Successfully assigned staff"
+// @Failure      400      {object} object "Validation Error or Invalid ID"
+// @Failure      401      {object} object "Unauthorized"
+// @Failure      404      {object} object "Order or Staff Not Found"
+// @Failure      500      {object} object "Internal Server Error"
 // @Router       /orders/{id}/delivery/assign [post]
 func (h *OrderHandler) AssignStaffToDelivery(c *gin.Context) error {
 	id := c.Param("id")
@@ -330,15 +348,18 @@ func (h *OrderHandler) AssignStaffToDelivery(c *gin.Context) error {
 
 // SelfAssignStaffToDelivery
 // @Summary      Self Assign Staff To Delivery
-// @Description  Tự gán bản thân vào ca làm để giao hàng
+// @Description  A delivery staff member assigns themselves to handle an order's delivery. Staff ID is automatically extracted from the Token.
 // @Tags         Orders
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id       path     string                              	   true  "Order UUID"
-// @Param        request  body     order.AssignStaffToDeliveryRequest      true  "Chứa staff id"
-// @Success      200      {object} map[string]interface{}              	   "Success"
-// @Failure      400      {object} map[string]string        		       "Validation error"
+// @Param        id       path     string                              true  "Order UUID"
+// @Param        request  body     order.AssignStaffToDeliveryRequest  true  "Optional assignment notes"
+// @Success      200      {object} map[string]interface{}              "Successfully self-assigned"
+// @Failure      400      {object} object "Validation Error or Invalid ID"
+// @Failure      401      {object} object "Unauthorized"
+// @Failure      404      {object} object "Order Not Found"
+// @Failure      500      {object} object "Internal Server Error"
 // @Router       /orders/{id}/delivery/me/assign [post]
 func (h *OrderHandler) SelfAssignStaffToDelivery(c *gin.Context) error {
 	id := c.Param("id")
@@ -373,13 +394,16 @@ func (h *OrderHandler) SelfAssignStaffToDelivery(c *gin.Context) error {
 
 // GetRevenueReport
 // @Summary      Get Revenue Report (JSON)
-// @Description  Get detailed revenue breakdown by product and category for charts.
+// @Description  Get a detailed revenue breakdown by product and category, primarily used for rendering dashboard charts.
 // @Tags         Orders
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        query  query    order.GetRevenueReportRequest  false  "Filter params (fromDate, toDate, storeId, categoryId)"
-// @Success      200    {object} order.GetRevenueReportReply    "Revenue data"
+// @Param        query  query     order.GetRevenueReportRequest  false  "Filter parameters (fromDate, toDate, storeId, categoryId)"
+// @Success      200    {object}  order.GetRevenueReportReply    "Revenue report data"
+// @Failure      400    {object}  object "Validation Error (Bad Request)"
+// @Failure      401    {object}  object "Unauthorized"
+// @Failure      500    {object}  object "Internal Server Error"
 // @Router       /orders/reports/revenue [get]
 func (h *OrderHandler) GetRevenueReport(c *gin.Context) error {
 	var req order.GetRevenueReportRequest
@@ -402,12 +426,15 @@ func (h *OrderHandler) GetRevenueReport(c *gin.Context) error {
 
 // ExportRevenueReport
 // @Summary      Export Revenue Report (CSV)
-// @Description  Download revenue report as a CSV file for bookkeeping.
+// @Description  Download the revenue report as a CSV file for bookkeeping and offline analysis.
 // @Tags         Orders
 // @Produce      text/csv
 // @Security     BearerAuth
-// @Param        query  query    order.GetRevenueReportRequest  false  "Filter params"
-// @Success      200    {file}   binary                         "CSV File"
+// @Param        query  query     order.GetRevenueReportRequest  false  "Filter parameters (fromDate, toDate, storeId, categoryId)"
+// @Success      200    {file}    binary                         "CSV File containing revenue data"
+// @Failure      400    {object}  object "Validation Error (Bad Request)"
+// @Failure      401    {object}  object "Unauthorized"
+// @Failure      500    {object}  object "Internal Server Error"
 // @Router       /orders/reports/revenue/export [get]
 func (h *OrderHandler) ExportRevenueReport(c *gin.Context) error {
 	var req order.GetRevenueReportRequest
@@ -435,13 +462,16 @@ func (h *OrderHandler) ExportRevenueReport(c *gin.Context) error {
 
 // GetOrderVolume
 // @Summary      Get Order Volume Statistics (JSON)
-// @Description  Get daily order counts and status breakdown for line charts.
+// @Description  Get daily order counts and status breakdown, primarily used for rendering line charts on the dashboard.
 // @Tags         Orders
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        query  query    order.GetOrderVolumeRequest  false  "Filter params (fromDate, toDate, storeId)"
-// @Success      200    {object} order.GetOrderVolumeReply    "Order volume data"
+// @Param        query  query     order.GetOrderVolumeRequest  false  "Filter parameters (fromDate, toDate, storeId)"
+// @Success      200    {object}  order.GetOrderVolumeReply    "Order volume statistics data"
+// @Failure      400    {object}  object "Validation Error (Bad Request)"
+// @Failure      401    {object}  object "Unauthorized"
+// @Failure      500    {object}  object "Internal Server Error"
 // @Router       /orders/reports/volume [get]
 func (h *OrderHandler) GetOrderVolume(c *gin.Context) error {
 	var req order.GetOrderVolumeRequest
@@ -467,8 +497,11 @@ func (h *OrderHandler) GetOrderVolume(c *gin.Context) error {
 // @Tags         Orders
 // @Produce      text/csv
 // @Security     BearerAuth
-// @Param        query  query    order.GetOrderVolumeRequest  false  "Filter params"
-// @Success      200    {file}   binary                       "CSV File"
+// @Param        query  query     order.GetOrderVolumeRequest  false  "Filter parameters (fromDate, toDate, storeId)"
+// @Success      200    {file}    binary                       "CSV File containing order volume data"
+// @Failure      400    {object}  object "Validation Error (Bad Request)"
+// @Failure      401    {object}  object "Unauthorized"
+// @Failure      500    {object}  object "Internal Server Error"
 // @Router       /orders/reports/volume/export [get]
 func (h *OrderHandler) ExportOrderVolume(c *gin.Context) error {
 	var req order.GetOrderVolumeRequest
@@ -494,19 +527,20 @@ func (h *OrderHandler) ExportOrderVolume(c *gin.Context) error {
 }
 
 // GetSalesTrend
-// @Summary      Lấy biểu đồ xu hướng doanh thu
-// @Description  Lấy dữ liệu xu hướng doanh thu (doanh thu, lượng đơn hàng) trong một khoảng thời gian được gom nhóm (giờ/ngày/tuần).
-// @Description  LƯU Ý VỀ PHÂN QUYỀN (StoreId):
-// @Description  - Nếu là Admin: Có thể truyền tham số storeId để xem cụ thể một cửa hàng, hoặc không truyền (bỏ trống) để xem dữ liệu của toàn hệ thống.
-// @Description  - Nếu là Manager/Staff: Truyền storeId hay không thì hệ thống cũng sẽ tự động ghi đè (override) bằng ID cửa hàng của tài khoản đang đăng nhập.
+// @Summary      Get Sales Trend Chart Data
+// @Description  Retrieve sales trend data (revenue, order volume) grouped by a specific time aggregation (hour/day/week).
+// @Description  **AUTHORIZATION NOTE (StoreId):**
+// @Description  - **Admin:** Can provide a `storeId` to view a specific store, or leave it blank to view system-wide data.
+// @Description  - **Manager/Staff:** Even if a `storeId` is provided, the system will securely override it with the store ID associated with the logged-in user's token.
 // @Tags         Orders
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        query  query     order.GetSalesTrendRequest  true  "Các tham số lọc (fromDate, toDate, aggregation, storeId...)"
-// @Success      200    {object}  order.GetSalesTrendReply    "Dữ liệu xu hướng và nhãn thời gian cao điểm/thấp điểm"
-// @Failure      400    {object}  map[string]string           "Lỗi dữ liệu đầu vào (Bad Request)"
-// @Failure      401    {object}  map[string]string           "Lỗi xác thực (Unauthorized)"
+// @Param        query  query     order.GetSalesTrendRequest  true  "Filtering and grouping parameters (fromDate, toDate, aggregation, storeId...)"
+// @Success      200    {object}  order.GetSalesTrendReply    "Trend data including peak/low time labels"
+// @Failure      400    {object}  object "Validation Error (Bad Request)"
+// @Failure      401    {object}  object "Unauthorized"
+// @Failure      500    {object}  object "Internal Server Error"
 // @Router       /orders/reports/sales-trend [get]
 func (h *OrderHandler) GetSalesTrend(c *gin.Context) error {
 	var req order.GetSalesTrendRequest
@@ -527,15 +561,17 @@ func (h *OrderHandler) GetSalesTrend(c *gin.Context) error {
 }
 
 // ExportSalesTrend
-// @Summary      Xuất file CSV xu hướng doanh thu
-// @Description  Tải xuống dữ liệu xu hướng doanh thu (doanh thu, lượng đơn hàng) dưới dạng file CSV.
-// @Description  Hỗ trợ các tham số lọc và phân quyền storeId tương tự như API lấy JSON.
+// @Summary      Export Sales Trend (CSV)
+// @Description  Download sales trend data (revenue, order volume) as a CSV file.
+// @Description  Supports the same filtering and storeId authorization logic as the JSON endpoint.
 // @Tags         Orders
 // @Produce      text/csv
 // @Security     BearerAuth
-// @Param        query  query    order.GetSalesTrendRequest  true  "Các tham số lọc (fromDate, toDate, aggregation, storeId...)"
-// @Success      200    {file}   binary                       "Tệp CSV chứa dữ liệu xu hướng doanh thu"
-// @Failure      400    {object} map[string]string            "Lỗi dữ liệu đầu vào"
+// @Param        query  query     order.GetSalesTrendRequest  true  "Filtering and grouping parameters (fromDate, toDate, aggregation, storeId...)"
+// @Success      200    {file}    binary                      "CSV File containing sales trend data"
+// @Failure      400    {object}  object "Validation Error (Bad Request)"
+// @Failure      401    {object}  object "Unauthorized"
+// @Failure      500    {object}  object "Internal Server Error"
 // @Router       /orders/reports/sales-trend/export [get]
 func (h *OrderHandler) ExportSalesTrend(c *gin.Context) error {
 	var req order.GetSalesTrendRequest

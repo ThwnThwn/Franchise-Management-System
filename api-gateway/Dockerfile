@@ -25,11 +25,14 @@ WORKDIR /app
 # Cài chứng chỉ SSL để Gateway gọi được API HTTPS ra ngoài (VNPAY, v.v.)
 RUN apk --no-cache add ca-certificates tzdata
 
-# Copy file binary Linux từ Stage 1 sang Stage 2
-COPY --from=build /app/bin/main .
+RUN adduser -D -g '' gatewayuser
 
-# Cấp quyền thực thi cho file (Tránh lỗi Permission Denied)
-RUN chmod +x ./main
+# Copy file binary Linux từ Stage 1 sang Stage 2
+COPY --chown=gatewayuser:gatewayuser --from=build /app/bin/main .
+
+COPY --chown=gatewayuser:gatewayuser --from=build /app/docs ./docs
+
+USER gatewayuser
 
 # Mở cổng 8080
 EXPOSE 8080

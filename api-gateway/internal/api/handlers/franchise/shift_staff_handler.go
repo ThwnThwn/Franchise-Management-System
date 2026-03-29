@@ -4,6 +4,7 @@ import (
 	"api-gateway/internal/application/constants/errorcode"
 	"api-gateway/internal/application/gateways/franchise"
 	"api-gateway/internal/application/gateways/identity"
+	_ "api-gateway/internal/domain/models/common"
 	"api-gateway/internal/domain/models/shift"
 	"api-gateway/pkg/utils/contextutils"
 	"api-gateway/pkg/utils/stringutils"
@@ -30,14 +31,15 @@ func NewShiftStaffHandler(
 }
 
 // GetUserCurrentShift
-// @Summary      Get My Current Shift
-// @Description  Retrieve the current active shift for the logged-in user.
+// @Summary      Get current active shift
+// @Description  Retrieve the current active shift details for the logged-in user.
 // @Tags         Shifts: Staff
+// @Security     BearerAuth
 // @Accept       json
 // @Produce      json
-// @Security     BearerAuth
-// @Success      200  {object}  map[string]interface{} "Current shift details"
-// @Failure      401  {object}  map[string]string      "Unauthorized"
+// @Success      200  {object} shift.UserCurrentShiftResponse "Current shift details"
+// @Failure      401  {object} object "Unauthorized"
+// @Failure      500  {object} object "Internal Server Error"
 // @Router       /me/shifts/current [get]
 func (h *ShiftStaffHandler) GetUserCurrentShift(c *gin.Context) error {
 	userId, err := contextutils.GetUserId(c)
@@ -55,13 +57,19 @@ func (h *ShiftStaffHandler) GetUserCurrentShift(c *gin.Context) error {
 	return nil
 }
 
-// CheckIn (Vào ca)
-// @Summary      Staff Check-in
-// @Description  Check-in to a specific shift assignment using GPS location.
+// CheckIn
+// @Summary      Staff check-in
+// @Description  Check-in to a specific shift assignment using GPS location data.
 // @Tags         Shifts: Staff
 // @Security     BearerAuth
-// @Param        id   path      string  true  "Assignment ID"
-// @Param        body body      shift.AttendancePayload true "GPS & Note"
+// @Accept       json
+// @Produce      json
+// @Param        id   path     string true "Assignment ID"
+// @Param        body body     shift.AttendancePayload true "GPS coordinates and notes"
+// @Success      200  {object} map[string]interface{} "Check-in successful"
+// @Failure      400  {object} object "Validation Error or Invalid ID"
+// @Failure      401  {object} object "Unauthorized"
+// @Failure      500  {object} object "Internal Server Error"
 // @Router       /me/shifts/assignments/{id}/check-in [put]
 func (h *ShiftStaffHandler) CheckIn(c *gin.Context) error {
 	// 1. Lấy userID từ Token Middleware
@@ -92,13 +100,19 @@ func (h *ShiftStaffHandler) CheckIn(c *gin.Context) error {
 	return nil
 }
 
-// CheckOut (Tan ca)
-// @Summary      Staff Check-out
-// @Description  Check-out from an active shift log.
+// CheckOut
+// @Summary      Staff check-out
+// @Description  Check-out from an active shift log using GPS location data.
 // @Tags         Shifts: Staff
 // @Security     BearerAuth
-// @Param        id   path      string  true  "Log ID"
-// @Param        body body      shift.AttendancePayload true "GPS & Note"
+// @Accept       json
+// @Produce      json
+// @Param        id   path     string true "Time Log ID"
+// @Param        body body     shift.AttendancePayload true "GPS coordinates and notes"
+// @Success      200  {object} map[string]interface{} "Check-out successful"
+// @Failure      400  {object} object "Validation Error or Invalid ID"
+// @Failure      401  {object} object "Unauthorized"
+// @Failure      500  {object} object "Internal Server Error"
 // @Router       /me/shifts/logs/{id}/check-out [put]
 func (h *ShiftStaffHandler) CheckOut(c *gin.Context) error {
 	userId, err := contextutils.GetUserId(c)
@@ -126,13 +140,18 @@ func (h *ShiftStaffHandler) CheckOut(c *gin.Context) error {
 	return nil
 }
 
-// GetMyAgenda (Lịch cá nhân)
-// @Summary      Get Staff Agenda
-// @Description  Retrieve shift schedule within a date range for the logged-in staff.
+// GetMyAgenda
+// @Summary      Get staff shift agenda
+// @Description  Retrieve the shift schedule within a specified date range for the logged-in staff member.
 // @Tags         Shifts: Staff
 // @Security     BearerAuth
-// @Param        startDate query     string  true  "Start Date (YYYY-MM-DD)"
-// @Param        endDate   query     string  true  "End Date (YYYY-MM-DD)"
+// @Produce      json
+// @Param        startDate query  string true "Start Date (YYYY-MM-DD)"
+// @Param        endDate   query  string true "End Date (YYYY-MM-DD)"
+// @Success      200       {array}  shift.StaffShiftAgenda "List of scheduled shifts"
+// @Failure      400       {object} object "Validation Error (Bad Request)"
+// @Failure      401       {object} object "Unauthorized"
+// @Failure      500       {object} object "Internal Server Error"
 // @Router       /me/shifts [get]
 func (h *ShiftStaffHandler) GetMyAgenda(c *gin.Context) error {
 	userId, err := contextutils.GetUserId(c)
@@ -156,12 +175,17 @@ func (h *ShiftStaffHandler) GetMyAgenda(c *gin.Context) error {
 	return nil
 }
 
-// GetMyTimeLogHistory (Lấy lịch sử chấm công cá nhân)
-// @Summary      Lấy lịch sử chấm công cá nhân
-// @Description  Staff xem lại danh sách các bản ghi chấm công của chính mình. Gateway tự động gắn StaffID từ Token.
+// GetMyTimeLogHistory
+// @Summary      Get my time log history
+// @Description  Staff views their own time log history. The Gateway automatically binds the StaffID from the Token to ensure security.
 // @Tags         Shifts: Staff
 // @Security     BearerAuth
-// @Param        query  query    shift.GetTimeLogsParams  false  "Bộ lọc thời gian, trạng thái"
+// @Produce      json
+// @Param        query query  shift.GetTimeLogsParams false "Time log filters and status"
+// @Success      200   {object} common.PaginationResult[shift.TimeLogResponse] "Paginated time log history"
+// @Failure      400   {object} object "Validation Error (Bad Request)"
+// @Failure      401   {object} object "Unauthorized"
+// @Failure      500   {object} object "Internal Server Error"
 // @Router       /me/shifts/time-logs [get]
 func (h *ShiftStaffHandler) GetMyTimeLogHistory(c *gin.Context) error {
 	ctx := c.Request.Context()
@@ -187,8 +211,8 @@ func (h *ShiftStaffHandler) GetMyTimeLogHistory(c *gin.Context) error {
 
 	// me, err := h.userGW.GetById(ctx, userUUID)
 	// if err == nil {
-	// 	users := []*user.UserResponse{me}
-	// 	logRes.Items = mapper.MapStaffToTimeLogsBatch(logRes.Items, users)
+	//  users := []*user.UserResponse{me}
+	//  logRes.Items = mapper.MapStaffToTimeLogsBatch(logRes.Items, users)
 	// }
 
 	c.JSON(http.StatusOK, logRes)

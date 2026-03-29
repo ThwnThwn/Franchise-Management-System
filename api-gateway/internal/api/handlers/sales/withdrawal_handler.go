@@ -29,18 +29,20 @@ func NewWithdrawalHandler(withdrawalGW sales.IWithdrawalService) *WithdrawalHand
 // ----------------------------------------------------------------------
 
 // CreateWithdrawal
-// @Summary      Tạo yêu cầu rút tiền mới
-// @Description  Khách hàng tạo yêu cầu rút tiền từ ví vào tài khoản ngân hàng. Tiền sẽ bị tạm trừ ngay lập tức.
-// @Description  Dùng api https://api.vietqr.io/v2/banks để lấy bank code và name cho khách chọn
-// @Description  Vẫn cho 1 ô nhập tên ngân hàng nếu api lỗi hoặc khách ko thấy trong danh sách
-// @Description  Trường hợp khách nhập tên ngân hàng thủ công thì ko cần code
+// @Summary      Create a new withdrawal request
+// @Description  Customer creates a request to withdraw funds from their wallet to a bank account. The requested amount is temporarily deducted immediately.
+// @Description  Use the API https://api.vietqr.io/v2/banks to fetch bank codes and names for the customer to select.
+// @Description  Provide a manual input field for the bank name in case the API fails or the bank is not listed.
+// @Description  If the customer enters the bank name manually, the bank code is not required.
 // @Tags         Withdrawals
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        request body      withdrawal.CreateWithdrawalReq true "Thông tin yêu cầu rút tiền"
-// @Success      200     {object}  withdrawal.WithdrawalBaseRes "Tạo thành công"
-// @Failure      400     {object}  map[string]string "Dữ liệu không hợp lệ"
+// @Param        request body     withdrawal.CreateWithdrawalReq true "Withdrawal request details"
+// @Success      200     {object} withdrawal.WithdrawalBaseRes "Successfully created"
+// @Failure      400     {object} map[string]string "Validation Error (Bad Request)"
+// @Failure      401     {object} object "Unauthorized"
+// @Failure      500     {object} object "Internal Server Error"
 // @Router       /me/withdrawals [post]
 func (h *WithdrawalHandler) CreateWithdrawal(c *gin.Context) error {
 	var req withdrawal.CreateWithdrawalReq
@@ -60,13 +62,16 @@ func (h *WithdrawalHandler) CreateWithdrawal(c *gin.Context) error {
 }
 
 // GetMyWithdrawals
-// @Summary      Xem danh sách yêu cầu rút tiền của tôi
-// @Description  Lấy lịch sử rút tiền của chính người dùng đang đăng nhập (có phân trang).
+// @Summary      Get my withdrawal requests
+// @Description  Retrieve the paginated withdrawal history for the currently logged-in user.
 // @Tags         Withdrawals
 // @Produce      json
 // @Security     BearerAuth
-// @Param        query   query     withdrawal.GetMyWithdrawalsReq true "Tham số lọc và phân trang"
-// @Success      200     {object}  common.PaginationResult[withdrawal.WithdrawalSummary] "Danh sách yêu cầu"
+// @Param        query   query    withdrawal.GetMyWithdrawalsReq true "Filtering and pagination parameters"
+// @Success      200     {object} common.PaginationResult[withdrawal.WithdrawalSummary] "List of user's withdrawal requests"
+// @Failure      400     {object} map[string]string "Validation Error (Bad Request)"
+// @Failure      401     {object} object "Unauthorized"
+// @Failure      500     {object} object "Internal Server Error"
 // @Router       /me/withdrawals [get]
 func (h *WithdrawalHandler) GetMyWithdrawals(c *gin.Context) error {
 	var req withdrawal.GetMyWithdrawalsReq
@@ -86,15 +91,18 @@ func (h *WithdrawalHandler) GetMyWithdrawals(c *gin.Context) error {
 }
 
 // CancelMyWithdrawal
-// @Summary      Khách hàng tự hủy yêu cầu rút tiền
-// @Description  Người dùng tự hủy lệnh khi chưa được Admin xử lý (Trạng thái PENDING). Tiền hoàn về ví.
+// @Summary      Cancel my withdrawal request
+// @Description  User cancels their own withdrawal request before it is processed by an Admin (PENDING status). Funds are refunded back to the wallet.
 // @Tags         Withdrawals
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id      path      string                         true "UUID của yêu cầu rút tiền"
-// @Param        request body      withdrawal.CancelMyWithdrawalReq true "Lý do hủy"
-// @Success      200     {object}  map[string]string "Hủy thành công"
+// @Param        id      path     string                           true "Withdrawal request UUID"
+// @Param        request body     withdrawal.CancelMyWithdrawalReq true "Cancellation reason"
+// @Success      200     {object} map[string]string "{"message": "Đã hủy yêu cầu rút tiền thành công và hoàn tiền vào ví."}"
+// @Failure      400     {object} map[string]string "Validation Error or Invalid ID"
+// @Failure      401     {object} object "Unauthorized"
+// @Failure      500     {object} object "Internal Server Error"
 // @Router       /me/withdrawals/{id}/cancel [patch]
 func (h *WithdrawalHandler) CancelMyWithdrawal(c *gin.Context) error {
 	idStr := c.Param("id")
@@ -124,13 +132,16 @@ func (h *WithdrawalHandler) CancelMyWithdrawal(c *gin.Context) error {
 // ----------------------------------------------------------------------
 
 // GetAllWithdrawals
-// @Summary      Xem toàn bộ danh sách yêu cầu rút tiền (Admin)
-// @Description  Dành cho quản trị viên xem và lọc danh sách rút tiền của toàn bộ người dùng.
+// @Summary      Get all withdrawal requests (Admin)
+// @Description  Intended for administrators and accountants to view and filter the withdrawal requests of all users across the system.
 // @Tags         Withdrawals
 // @Produce      json
 // @Security     BearerAuth
-// @Param        query   query     withdrawal.GetAllWithdrawalsReq true "Tham số lọc của Admin"
-// @Success      200     {object}  common.PaginationResult[withdrawal.WithdrawalSummary] "Danh sách yêu cầu"
+// @Param        query   query    withdrawal.GetAllWithdrawalsReq true "Filtering and pagination parameters"
+// @Success      200     {object} common.PaginationResult[withdrawal.WithdrawalSummary] "List of system withdrawal requests"
+// @Failure      400     {object} map[string]string "Validation Error (Bad Request)"
+// @Failure      401     {object} object "Unauthorized"
+// @Failure      500     {object} object "Internal Server Error"
 // @Router       /withdrawals [get]
 func (h *WithdrawalHandler) GetAllWithdrawals(c *gin.Context) error {
 	var req withdrawal.GetAllWithdrawalsReq
@@ -150,14 +161,17 @@ func (h *WithdrawalHandler) GetAllWithdrawals(c *gin.Context) error {
 }
 
 // GetWithdrawalById
-// @Summary      Xem chi tiết yêu cầu rút tiền
-// @Description  Lấy đầy đủ thông tin một yêu cầu rút tiền bao gồm số tài khoản đầy đủ (Raw) và lịch sử xử lý.
+// @Summary      Get withdrawal request details
+// @Description  Retrieve full details of a withdrawal request, including the raw bank account number and the processing history.
 // @Tags         Withdrawals
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id      path      string true "UUID của yêu cầu rút tiền"
-// @Success      200     {object}  withdrawal.WithdrawalDetailRes
-// @Failure      404     {object}  map[string]string "Không tìm thấy"
+// @Param        id      path     string true "Withdrawal request UUID"
+// @Success      200     {object} withdrawal.WithdrawalDetailRes "Detailed withdrawal information"
+// @Failure      400     {object} map[string]string "Invalid UUID format"
+// @Failure      401     {object} object "Unauthorized"
+// @Failure      404     {object} map[string]string "Withdrawal request not found"
+// @Failure      500     {object} object "Internal Server Error"
 // @Router       /withdrawals/{id} [get]
 func (h *WithdrawalHandler) GetWithdrawalById(c *gin.Context) error {
 	idStr := c.Param("id")
@@ -178,15 +192,18 @@ func (h *WithdrawalHandler) GetWithdrawalById(c *gin.Context) error {
 }
 
 // ApproveWithdrawal
-// @Summary      Duyệt yêu cầu rút tiền
-// @Description  (Admin) Xác nhận yêu cầu hợp lệ và chuẩn bị chuyển tiền. Trạng thái chuyển sang APPROVED.
+// @Summary      Approve withdrawal request (Admin)
+// @Description  Confirm that the request is valid and prepare for the fund transfer. The status changes to APPROVED.
 // @Tags         Withdrawals
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id      path      string                         true "UUID của yêu cầu rút tiền"
-// @Param        request body      withdrawal.ApproveWithdrawalReq true "Ghi chú duyệt"
-// @Success      200     {object}  map[string]string "Thành công"
+// @Param        id      path     string                          true "Withdrawal request UUID"
+// @Param        request body     withdrawal.ApproveWithdrawalReq true "Approval notes"
+// @Success      200     {object} map[string]string "{"message": "Đã duyệt yêu cầu rút tiền"}"
+// @Failure      400     {object} map[string]string "Validation Error or Invalid ID"
+// @Failure      401     {object} object "Unauthorized"
+// @Failure      500     {object} object "Internal Server Error"
 // @Router       /withdrawals/{id}/approve [patch]
 func (h *WithdrawalHandler) ApproveWithdrawal(c *gin.Context) error {
 	idStr := c.Param("id")
@@ -212,13 +229,18 @@ func (h *WithdrawalHandler) ApproveWithdrawal(c *gin.Context) error {
 }
 
 // RejectWithdrawal
-// @Summary      Admin từ chối yêu cầu (Chỉ dành cho lệnh PENDING)
-// @Description  Dùng để từ chối lệnh khi đang PENDING. Hệ thống tự hoàn tiền vào ví.
+// @Summary      Reject withdrawal request (Admin)
+// @Description  Reject a PENDING withdrawal request. The system automatically refunds the deducted amount back to the user's wallet.
 // @Tags         Withdrawals
+// @Accept       json
+// @Produce      json
 // @Security     BearerAuth
-// @Param        id      path      string                        true "ID yêu cầu"
-// @Param        request body      withdrawal.RejectWithdrawalReq true "Lý do từ chối"
-// @Success      200     {object}  map[string]string
+// @Param        id      path     string                         true "Withdrawal request UUID"
+// @Param        request body     withdrawal.RejectWithdrawalReq true "Rejection reason"
+// @Success      200     {object} map[string]string "{"message": "Đã từ chối yêu cầu rút tiền và hoàn tiền vào ví."}"
+// @Failure      400     {object} map[string]string "Validation Error or Invalid ID"
+// @Failure      401     {object} object "Unauthorized"
+// @Failure      500     {object} object "Internal Server Error"
 // @Router       /withdrawals/{id}/reject [patch]
 func (h *WithdrawalHandler) RejectWithdrawal(c *gin.Context) error {
 	idStr := c.Param("id")
@@ -244,13 +266,18 @@ func (h *WithdrawalHandler) RejectWithdrawal(c *gin.Context) error {
 }
 
 // CancelWithdrawal
-// @Summary      Admin hủy yêu cầu (Dành cho hầu hết trạng thái)
-// @Description  Dùng để hủy lệnh ở bất kỳ giai đoạn nào (Pending, Approved, Processing) TRỪ KHI đã thành công/hủy rồi. Hệ thống tự hoàn tiền vào ví.
+// @Summary      Cancel withdrawal request (Admin)
+// @Description  Cancel a withdrawal request at any stage (Pending, Approved, Processing) UNLESS it is already completed or cancelled. The system automatically refunds the amount to the user's wallet.
 // @Tags         Withdrawals
+// @Accept       json
+// @Produce      json
 // @Security     BearerAuth
-// @Param        id      path      string                        true "ID yêu cầu"
-// @Param        request body      withdrawal.CancelWithdrawalReq true "Lý do hủy từ Admin"
-// @Success      200     {object}  map[string]string
+// @Param        id      path     string                         true "Withdrawal request UUID"
+// @Param        request body     withdrawal.CancelWithdrawalReq true "Cancellation reason from Admin"
+// @Success      200     {object} map[string]string "{"message": "Admin đã hủy lệnh và hoàn tiền thành công."}"
+// @Failure      400     {object} map[string]string "Validation Error or Invalid ID"
+// @Failure      401     {object} object "Unauthorized"
+// @Failure      500     {object} object "Internal Server Error"
 // @Router       /withdrawals/{id}/cancel [patch]
 func (h *WithdrawalHandler) CancelWithdrawal(c *gin.Context) error {
 	idStr := c.Param("id")
@@ -276,16 +303,19 @@ func (h *WithdrawalHandler) CancelWithdrawal(c *gin.Context) error {
 }
 
 // CompleteWithdrawal
-// @Summary      Hoàn tất yêu cầu rút tiền (Kèm hóa đơn)
-// @Description  (Admin) Xác nhận đã chuyển khoản thành công. Phải upload ảnh bill (receiptFile) để minh chứng.
+// @Summary      Complete withdrawal request (Admin)
+// @Description  Confirm that the bank transfer was successful. A receipt image (receiptFile) must be uploaded as proof.
 // @Tags         Withdrawals
-// @Accept       mpfd
+// @Accept       multipart/form-data
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id                 path      string  true  "UUID của yêu cầu rút tiền"
-// @Param        receiptFile        formData  file    true  "Ảnh chụp biên lai chuyển khoản (Bill)"
-// @Param        bankTransactionId  formData  string  true  "Mã giao dịch"
-// @Success      200          {object}  map[string]string "Hoàn tất"
+// @Param        id                path     string  true "Withdrawal request UUID"
+// @Param        receiptFile       formData file    true "Transfer receipt image (Bill)"
+// @Param        bankTransactionId formData string  true "Bank transaction ID"
+// @Success      200               {object} map[string]string "{"message": "Đã hoàn tất yêu cầu rút tiền và cập nhật bằng chứng chuyển khoản."}"
+// @Failure      400               {object} map[string]string "Missing required file or transaction ID"
+// @Failure      401               {object} object "Unauthorized"
+// @Failure      500               {object} object "Internal Server Error"
 // @Router       /withdrawals/{id}/complete [patch]
 func (h *WithdrawalHandler) CompleteWithdrawal(c *gin.Context) error {
 	idStr := c.Param("id")

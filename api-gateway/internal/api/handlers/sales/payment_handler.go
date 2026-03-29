@@ -35,13 +35,15 @@ func NewPaymentHandler(
 // @Summary      Generate Payment URL
 // @Description  Generate a payment link (VNPay) for the specific order.
 // @Tags         Orders
+// @Security     BearerAuth
 // @Accept       json
 // @Produce      json
-// @Security     BearerAuth
-// @Param        id       path     string                    true  "Order UUID"
-// @Param        request  body     order.CreatePaymentRequest true "Payment details"
-// @Success      200      {object} map[string]interface{}    "Payment URL"
-// @Failure      400      {object} map[string]string         "Validation error"
+// @Param        id       path     string                     true  "Order UUID"
+// @Param        request  body     order.CreatePaymentRequest true  "Payment details"
+// @Success      200      {object} map[string]interface{}     "Payment URL"
+// @Failure      400      {object} map[string]string          "Validation Error (Bad Request)"
+// @Failure      401      {object} object "Unauthorized"
+// @Failure      500      {object} object "Internal Server Error"
 // @Router       /orders/{id}/payment [post]
 func (h *PaymentHandler) CreatePaymentUrl(c *gin.Context) error {
 	var req order.CreatePaymentRequest
@@ -68,13 +70,16 @@ func (h *PaymentHandler) CreatePaymentUrl(c *gin.Context) error {
 }
 
 // GetAllPayments
-// @Summary      Danh sách toàn bộ thanh toán (Admin)
-// @Description  Lấy danh sách lịch sử thanh toán của toàn hệ thống (Dành cho quản trị viên/kế toán).
+// @Summary      Get all payments (Admin)
+// @Description  Retrieve the payment history of the entire system (Intended for Administrators and Accountants).
 // @Tags         Orders
-// @Produce      json
 // @Security     BearerAuth
-// @Param        query query order.GetAllPaymentsReq true "Tham số phân trang"
-// @Success      200 {object} common.PaginationResult[order.PaymentSummary]
+// @Produce      json
+// @Param        query query order.GetAllPaymentsReq true "Pagination parameters"
+// @Success      200   {object} common.PaginationResult[order.PaymentSummary] "List of payments"
+// @Failure      400   {object} object "Validation Error (Bad Request)"
+// @Failure      401   {object} object "Unauthorized"
+// @Failure      500   {object} object "Internal Server Error"
 // @Router       /orders/payments [get]
 func (h *PaymentHandler) GetAllPayments(c *gin.Context) error {
 	var req order.GetAllPaymentsReq
@@ -93,13 +98,16 @@ func (h *PaymentHandler) GetAllPayments(c *gin.Context) error {
 }
 
 // GetMyPaymentHistory
-// @Summary      Lịch sử thanh toán của tôi (Customer)
-// @Description  Khách hàng tự xem lại lịch sử các đợt thanh toán đơn hàng của chính mình.
+// @Summary      Get my payment history
+// @Description  Retrieve the payment history for the currently logged-in customer.
 // @Tags         Orders
-// @Produce      json
 // @Security     BearerAuth
-// @Param        query query order.GetMyPaymentHistoryReq true "Bộ lọc và phân trang"
-// @Success      200 {object} common.PaginationResult[order.PaymentHistoryItem]
+// @Produce      json
+// @Param        query query order.GetMyPaymentHistoryReq true "Filtering and pagination parameters"
+// @Success      200   {object} common.PaginationResult[order.PaymentHistoryItem] "User's payment history"
+// @Failure      400   {object} object "Validation Error (Bad Request)"
+// @Failure      401   {object} object "Unauthorized"
+// @Failure      500   {object} object "Internal Server Error"
 // @Router       /me/orders/payments [get]
 func (h *PaymentHandler) GetMyPaymentHistory(c *gin.Context) error {
 	var req order.GetMyPaymentHistoryReq
@@ -129,7 +137,9 @@ func (h *PaymentHandler) GetMyPaymentHistory(c *gin.Context) error {
 // @Param        vnp_ResponseCode query string false "VNPAY Response Code"
 // @Param        vnp_TxnRef       query string false "Transaction Reference"
 // @Param        vnp_SecureHash   query string false "Security Hash"
-// @Success      302 "Redirects to the Frontend React application"
+// @Param        redirectTo       query string false "Frontend URL path to redirect to after processing"
+// @Success      302 "Redirects to the Frontend application with payment status"
+// @Failure      400 "Bad Request or Invalid Signature"
 // @Router       /orders/vnpay/return [get]
 func (h *PaymentHandler) ProcessVnPayReturn(c *gin.Context) error {
 	// 1. Phân loại Query Params: Lọc riêng vnp_ và nhặt redirectTo

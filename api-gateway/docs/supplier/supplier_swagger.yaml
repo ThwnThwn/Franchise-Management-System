@@ -344,18 +344,18 @@ definitions:
     required:
     - code
     type: object
-host: localhost:8080
 info:
   contact:
     email: support@swagger.io
     name: API Support
   description: API docs for CHD Gateway.
   termsOfService: http://swagger.io/terms/
-  title: API Gateway Documentation
+  title: Capital Franchise Supply Chain Management System API Document
   version: "1.0"
 paths:
   /suppliers:
     get:
+      description: Retrieve a paginated list of all suppliers in the system.
       parameters:
       - description: GET dùng form tag cho Query String
         in: query
@@ -373,99 +373,186 @@ paths:
       - in: query
         name: pageSize
         type: integer
+      produces:
+      - application/json
       responses:
         "200":
-          description: OK
+          description: List of suppliers
           schema:
             $ref: '#/definitions/common.PaginationResult-api-gateway_internal_domain_models_supplier_SupplierSummary'
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Danh sách nhà cung cấp
+      summary: Get all suppliers
       tags:
       - Suppliers
     post:
       consumes:
       - application/json
+      description: Add a new supplier to the system.
       parameters:
-      - description: Thông tin nhà cung cấp
+      - description: Supplier information
         in: body
         name: request
         required: true
         schema:
           $ref: '#/definitions/supplier.CreateSupplierReq'
+      produces:
+      - application/json
       responses:
         "200":
-          description: OK
+          description: Successfully created
           schema:
             $ref: '#/definitions/supplier.SupplierBaseRes'
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Tạo mới nhà cung cấp
+      summary: Create a new supplier
       tags:
       - Suppliers
   /suppliers/{id}:
     delete:
+      description: Remove a supplier from the system.
       parameters:
-      - description: UUID nhà cung cấp
+      - description: Supplier UUID
         in: path
         name: id
         required: true
         type: string
+      produces:
+      - application/json
       responses:
         "200":
-          description: OK
+          description: Successfully deleted
           schema:
             $ref: '#/definitions/supplier.SupplierBaseRes'
+        "400":
+          description: Invalid UUID format
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "404":
+          description: Supplier Not Found
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Xóa nhà cung cấp
+      summary: Delete a supplier
       tags:
       - Suppliers
     get:
+      description: Retrieve detailed information of a specific supplier by their UUID.
       parameters:
-      - description: UUID nhà cung cấp
+      - description: Supplier UUID
         in: path
         name: id
         required: true
         type: string
+      produces:
+      - application/json
       responses:
         "200":
-          description: OK
+          description: Detailed supplier information
           schema:
             $ref: '#/definitions/api-gateway_internal_domain_models_supplier.SupplierDetail'
+        "400":
+          description: Invalid UUID format
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "404":
+          description: Supplier Not Found
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Chi tiết nhà cung cấp
+      summary: Get supplier details
       tags:
       - Suppliers
     patch:
       consumes:
       - application/json
+      description: Modify the details of an existing supplier.
       parameters:
-      - description: UUID nhà cung cấp
+      - description: Supplier UUID
         in: path
         name: id
         required: true
         type: string
-      - description: Thông tin cập nhật
+      - description: Updated information
         in: body
         name: request
         required: true
         schema:
           $ref: '#/definitions/supplier.UpdateSupplierReq'
+      produces:
+      - application/json
       responses:
         "200":
-          description: OK
+          description: Successfully updated
           schema:
             $ref: '#/definitions/supplier.SupplierBaseRes'
+        "400":
+          description: Validation Error or Invalid ID
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "404":
+          description: Supplier Not Found
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Cập nhật nhà cung cấp
+      summary: Update a supplier
       tags:
       - Suppliers
   /suppliers/payments:
     get:
-      description: Dành cho Admin/Kế toán theo dõi toàn bộ dòng tiền nhập hàng.
+      description: Retrieve the complete payment history for suppliers (Intended for
+        Admins/Accountants to track cash flow).
       parameters:
       - in: query
         name: page
@@ -483,21 +570,33 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: List of supplier payments
           schema:
             $ref: '#/definitions/common.PaginationResult-supplier_SupplierPaymentSummary'
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Toàn bộ lịch sử thanh toán nhà cung cấp
+      summary: Get all supplier payments
       tags:
       - Suppliers / Payments
     post:
       consumes:
       - application/json
-      description: Khởi tạo thanh toán bằng Tiền mặt (CASH) hoặc lấy URL VNPay để
-        thanh toán.
+      description: Initialize a payment using Cash or generate a VNPay payment URL
+        for a purchase order.
       parameters:
-      - description: Thông tin thanh toán
+      - description: Payment information
         in: body
         name: request
         required: true
@@ -507,44 +606,56 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Successfully created payment
           schema:
             $ref: '#/definitions/supplier.CreateSupplierPaymentRes'
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Tạo thanh toán cho đơn nhập hàng
+      summary: Create purchase order payment
       tags:
       - Suppliers / Payments
   /suppliers/payments/vnpay/return:
     get:
-      description: Endpoint nhận redirect từ VNPay. Verify chữ ký qua gRPC và bẻ lái
-        trình duyệt về giao diện Frontend.
+      description: Callback endpoint for VNPay after a payment. Verifies the gRPC
+        signature and redirects the browser to the Frontend UI with the payment status.
       parameters:
-      - description: Số tiền giao dịch
+      - description: Transaction Amount
         in: query
         name: vnp_Amount
         type: string
-      - description: Mã ngân hàng
+      - description: Bank Code
         in: query
         name: vnp_BankCode
         type: string
-      - description: Thông tin đơn hàng
+      - description: Order Information
         in: query
         name: vnp_OrderInfo
         type: string
-      - description: Mã phản hồi VNPAY
+      - description: VNPAY Response Code
         in: query
         name: vnp_ResponseCode
         type: string
-      - description: Mã tham chiếu (Mã Payment)
+      - description: Transaction Reference (Payment Code)
         in: query
         name: vnp_TxnRef
         type: string
-      - description: Chữ ký bảo mật
+      - description: Checksum Security Hash
         in: query
         name: vnp_SecureHash
         type: string
-      - description: 'Path của FE muốn quay về (VD: /suppliers/purchase-orders/123)'
+      - description: Frontend path to redirect to (e.g., /suppliers/purchase-orders/123)
         in: query
         name: redirectTo
         type: string
@@ -552,14 +663,16 @@ paths:
       - text/html
       responses:
         "302":
-          description: Redirect về Frontend App
-      summary: Xử lý VNPay Return cho đơn nhập hàng (Supplier)
+          description: Redirects to the Frontend application
+        "400":
+          description: Bad Request or Invalid Signature
+      summary: Handle VNPay Return URL (Supplier Payment)
       tags:
       - Suppliers / Payments
   /suppliers/purchase-orders:
     get:
-      description: Lấy danh sách đơn nhập hàng có phân trang và lọc theo Supplier,
-        Store hoặc Status.
+      description: Retrieve a paginated list of purchase orders. Supports filtering
+        by Supplier, Store, or Status.
       parameters:
       - in: query
         name: page
@@ -580,20 +693,32 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: List of purchase orders
           schema:
             $ref: '#/definitions/common.PaginationResult-api-gateway_internal_domain_models_supplier_PurchaseOrderSummary'
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Danh sách đơn nhập hàng
+      summary: Get all purchase orders
       tags:
       - Suppliers / PurchaseOrders
     post:
       consumes:
       - application/json
-      description: Tạo một bản ghi đơn nhập hàng mới ở trạng thái PENDING.
+      description: Create a new purchase order record with an initial status of PENDING.
       parameters:
-      - description: Thông tin đơn nhập hàng
+      - description: Purchase order information
         in: body
         name: request
         required: true
@@ -603,20 +728,32 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Successfully created
           schema:
             $ref: '#/definitions/supplier.PurchaseOrderBaseRes'
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Tạo đơn nhập hàng mới
+      summary: Create a new purchase order
       tags:
       - Suppliers / PurchaseOrders
   /suppliers/purchase-orders/{id}:
     get:
-      description: Lấy thông tin chi tiết của một đơn nhập hàng kèm danh sách nguyên
-        liệu bên trong.
+      description: Retrieve detailed information of a specific purchase order, including
+        the list of imported ingredients.
       parameters:
-      - description: UUID của đơn nhập hàng
+      - description: Purchase Order UUID
         in: path
         name: id
         required: true
@@ -625,26 +762,42 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Detailed purchase order information
           schema:
             $ref: '#/definitions/api-gateway_internal_domain_models_supplier.PurchaseOrderDetail'
+        "400":
+          description: Invalid UUID format
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "404":
+          description: Purchase Order Not Found
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Chi tiết đơn nhập hàng
+      summary: Get purchase order details
       tags:
       - Suppliers / PurchaseOrders
     patch:
       consumes:
       - application/json
-      description: Chỉnh sửa thông tin đơn nhập hàng (chỉ thực hiện được khi đơn ở
-        trạng thái cho phép).
+      description: Modify the details of an existing purchase order (only allowed
+        when the PO is in an updatable status).
       parameters:
-      - description: UUID của đơn nhập hàng
+      - description: Purchase Order UUID
         in: path
         name: id
         required: true
         type: string
-      - description: Thông tin cập nhật
+      - description: Updated information
         in: body
         name: request
         required: true
@@ -654,26 +807,43 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Successfully updated
           schema:
             $ref: '#/definitions/supplier.PurchaseOrderBaseRes'
+        "400":
+          description: Validation Error or Invalid ID
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "404":
+          description: Purchase Order Not Found
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Cập nhật đơn nhập hàng
+      summary: Update a purchase order
       tags:
       - Suppliers / PurchaseOrders
   /suppliers/purchase-orders/{id}/cancel:
     patch:
       consumes:
       - application/json
-      description: Hủy bỏ đơn nhập hàng và ghi rõ lý do hủy.
+      description: Cancel an active purchase order and record the specific cancellation
+        reason.
       parameters:
-      - description: UUID của đơn nhập hàng
+      - description: Purchase Order UUID
         in: path
         name: id
         required: true
         type: string
-      - description: Lý do hủy
+      - description: Cancellation reason
         in: body
         name: request
         required: true
@@ -683,20 +853,36 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Successfully cancelled
           schema:
             $ref: '#/definitions/supplier.PurchaseOrderBaseRes'
+        "400":
+          description: Validation Error or Invalid ID
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "404":
+          description: Purchase Order Not Found
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Hủy đơn nhập hàng
+      summary: Cancel a purchase order
       tags:
       - Suppliers / PurchaseOrders
   /suppliers/purchase-orders/{id}/complete:
     patch:
-      description: Xác nhận đã nhận đủ hàng và chốt đơn nhập hàng (thường dùng để
-        tăng tồn kho).
+      description: Confirm that all goods have been successfully received and finalize
+        the purchase order (typically triggers an inventory restock).
       parameters:
-      - description: UUID của đơn nhập hàng
+      - description: Purchase Order UUID
         in: path
         name: id
         required: true
@@ -705,19 +891,36 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Successfully completed
           schema:
             $ref: '#/definitions/supplier.PurchaseOrderBaseRes'
+        "400":
+          description: Invalid ID format
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "404":
+          description: Purchase Order Not Found
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Hoàn tất nhập hàng
+      summary: Complete a purchase order
       tags:
       - Suppliers / PurchaseOrders
   /suppliers/purchase-orders/{id}/payments:
     get:
-      description: Lấy lịch sử các đợt trả tiền của một đơn nhập hàng cụ thể.
+      description: Retrieve the payment history (installments/transactions) for a
+        specific Purchase Order.
       parameters:
-      - description: UUID của đơn nhập hàng (Purchase Order)
+      - description: Purchase Order UUID
         in: path
         name: id
         required: true
@@ -726,24 +929,40 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: List of payments for the PO
           schema:
             items:
               $ref: '#/definitions/supplier.SupplierPaymentDetail'
             type: array
+        "400":
+          description: Invalid UUID format
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "404":
+          description: Purchase Order not found
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Danh sách thanh toán của một PO
+      summary: Get payments by Purchase Order ID
       tags:
       - Suppliers / Payments
   /suppliers/purchase-orders/latest-prices:
     post:
       consumes:
       - application/json
-      description: Tra cứu giá của danh sách ID nguyên liệu dựa trên các hóa đơn nhập
-        gần nhất.
+      description: Look up the most recent import prices for a provided list of ingredient
+        IDs based on the latest purchase order records.
       parameters:
-      - description: Danh sách ID nguyên liệu
+      - description: List of ingredient IDs
         in: body
         name: request
         required: true
@@ -753,15 +972,27 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Map of ingredient IDs to their latest prices
           schema:
             additionalProperties:
               format: float64
               type: number
             type: object
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Giá nhập mới nhất của nguyên liệu
+      summary: Get latest ingredient prices
       tags:
       - Suppliers / PurchaseOrders
 securityDefinitions:

@@ -21,6 +21,8 @@ func LoadConfig() *Config {
 	}
 
 	cfg := &Config{
+		GatewayEnvironment: getEnv("GATEWAY_ENVIRONMENT", "Development"),
+
 		Logger: Logger{
 			LogLevel:    getEnv("GATEWAY_LOGGER_LOG_LEVEL", "debug"),
 			FileLogName: getEnv("GATEWAY_LOGGER_FILE_LOG_NAME", "./logs/dev.log"),

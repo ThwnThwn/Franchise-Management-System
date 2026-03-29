@@ -7,21 +7,16 @@ namespace SupplierService.Application.Features.Suppliers.Queries.GetSupplierById
 /// Handler lấy chi tiết 1 nhà cung cấp theo ID.
 /// Chỉ trả về supplier chưa bị xóa (IsDeleted = false).
 /// </summary>
-public class GetSupplierByIdHandler : IRequestHandler<GetSupplierByIdQuery, SupplierDetailDto>
+public class GetSupplierByIdHandler(
+    ISupplierRepository repo
+) : IRequestHandler<GetSupplierByIdQuery, SupplierDetailDto>
 {
-    private readonly ISupplierRepository _repo;
-
-    public GetSupplierByIdHandler(ISupplierRepository repo)
-    {
-        _repo = repo;
-    }
-
     public async Task<SupplierDetailDto> Handle(GetSupplierByIdQuery request, CancellationToken cancellationToken)
     {
         if (!Guid.TryParse(request.Id, out var id))
             throw new ArgumentException("Invalid Supplier ID.");
 
-        var supplier = await _repo.GetByIdAsync(id, cancellationToken)
+        var supplier = await repo.GetByIdAsync(id, cancellationToken)
             ?? throw new KeyNotFoundException($"Supplier {request.Id} not found.");
 
         return new SupplierDetailDto

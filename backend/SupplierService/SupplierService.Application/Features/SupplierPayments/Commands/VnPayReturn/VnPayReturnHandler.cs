@@ -8,27 +8,17 @@ using SupplierService.Application.Repositories;
 
 namespace SupplierService.Application.Features.SupplierPayments.Commands.VnPayReturn;
 
-public sealed class VnPayReturnHandler : IRequestHandler<VnPayReturnCommand, Result<VnPayReturnResult>>
+public sealed class VnPayReturnHandler(
+    ISupplierPaymentRepository paymentRepository,
+    IConfiguration config,
+    ILogger<VnPayReturnHandler> logger
+) : IRequestHandler<VnPayReturnCommand, Result<VnPayReturnResult>>
 {
-    private readonly ISupplierPaymentRepository _paymentRepository;
-    private readonly IConfiguration _config;
-    private readonly ILogger<VnPayReturnHandler> _logger;
-
-    public VnPayReturnHandler(
-        ISupplierPaymentRepository paymentRepository,
-        IConfiguration config,
-        ILogger<VnPayReturnHandler> logger)
-    {
-        _paymentRepository = paymentRepository;
-        _config = config;
-        _logger = logger;
-    }
-
     public async Task<Result<VnPayReturnResult>> Handle(
         VnPayReturnCommand request,
         CancellationToken cancellationToken)
     {
-        var vnpSection = _config.GetSection("VNPay");
+        var vnpSection = config.GetSection("VNPay");
         var hashSecret = vnpSection["HashSecret"];
         if (string.IsNullOrWhiteSpace(hashSecret))
         {
@@ -69,10 +59,10 @@ public sealed class VnPayReturnHandler : IRequestHandler<VnPayReturnCommand, Res
         var encodedQuery = string.Join("&", sortedDebug.Select(kv => $"{kv.Key}={WebUtility.UrlEncode(kv.Value)}"));
         var hashRaw = VNPayHelper.HmacSHA512(hashSecret, rawQuery);
         var hashEncoded = VNPayHelper.HmacSHA512(hashSecret, encodedQuery);
-        _logger.LogDebug("[VNPay Return] received  hash = {Received}", vnpSecureHash);
-        _logger.LogDebug("[VNPay Return] computed (raw)     = {Raw}", hashRaw);
-        _logger.LogDebug("[VNPay Return] computed (encoded) = {Enc}", hashEncoded);
-        _logger.LogDebug("[VNPay Return] raw_match={RawMatch}  encoded_match={EncMatch}",
+        logger.LogDebug("[VNPay Return] received  hash = {Received}", vnpSecureHash);
+        logger.LogDebug("[VNPay Return] computed (raw)     = {Raw}", hashRaw);
+        logger.LogDebug("[VNPay Return] computed (encoded) = {Enc}", hashEncoded);
+        logger.LogDebug("[VNPay Return] raw_match={RawMatch}  encoded_match={EncMatch}",
             string.Equals(hashRaw, vnpSecureHash, StringComparison.OrdinalIgnoreCase),
             string.Equals(hashEncoded, vnpSecureHash, StringComparison.OrdinalIgnoreCase));
         // ── END DEBUG ────────────────────────────────────────────────────────
@@ -80,7 +70,7 @@ public sealed class VnPayReturnHandler : IRequestHandler<VnPayReturnCommand, Res
         var isValidSignature = VNPayHelper.VerifySignature(hashSecret, vnpParams, vnpSecureHash);
         if (!isValidSignature)
         {
-            _logger.LogWarning("[VNPay Return] Signature verification FAILED.");
+            logger.LogWarning("[VNPay Return] Signature verification FAILED.");
             return Result.Error("Invalid VNPay signature");
         }
 
@@ -99,7 +89,7 @@ public sealed class VnPayReturnHandler : IRequestHandler<VnPayReturnCommand, Res
             });
         }
 
-        var payment = await _paymentRepository.GetByIdAsync(paymentId, cancellationToken);
+        var payment = await paymentRepository.GetByIdAsync(paymentId, cancellationToken);
         if (payment == null)
         {
             return Result.NotFound("Payment not found");
@@ -111,11 +101,11 @@ public sealed class VnPayReturnHandler : IRequestHandler<VnPayReturnCommand, Res
 
         if (isSuccess)
         {
-            _logger.LogInformation("[VNPay Return] Giao dịch thành công cho PaymentId {PaymentId}. Chờ IPN xử lý DB.", payment.Id);
+            logger.LogInformation("[VNPay Return] Giao dịch thành công cho PaymentId {PaymentId}. Chờ IPN xử lý DB.", payment.Id);
         }
         else
         {
-            _logger.LogWarning("[VNPay Return] Giao dịch thất bại cho PaymentId {PaymentId} (Mã: {ResponseCode}).", payment.Id, responseCode);
+            logger.LogWarning("[VNPay Return] Giao dịch thất bại cho PaymentId {PaymentId} (Mã: {ResponseCode}).", payment.Id, responseCode);
         }
 
         return Result.Success(new VnPayReturnResult

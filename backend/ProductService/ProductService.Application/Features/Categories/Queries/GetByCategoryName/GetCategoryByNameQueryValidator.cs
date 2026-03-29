@@ -1,15 +1,14 @@
 ﻿using FluentValidation;
 
-namespace ProductService.Application.Features.Categories.Queries.GetByCategoryName
+namespace ProductService.Application.Features.Categories.Queries.GetByCategoryName;
+
+public sealed class GetCategoryByNameQueryValidator :
+    AbstractValidator<GetCategoryByNameQuery>
 {
-    public sealed class GetCategoryByNameQueryValidator :
-        AbstractValidator<GetCategoryByNameQuery>
+    public GetCategoryByNameQueryValidator()
     {
-        public GetCategoryByNameQueryValidator()
-        {
-            RuleFor(x=>x.categoryName)
-                .NotEmpty()
-                .WithMessage("Category name is required");
-        }
+        RuleFor(x => x.CategoryName)
+            .NotEmpty()
+            .WithMessage("Category name is required");
     }
 }

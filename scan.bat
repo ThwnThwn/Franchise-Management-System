@@ -76,27 +76,65 @@ cd /d "%BASE_DIR%backend\!SNAME!"
 if exist ".sonarqube" rd /s /q ".sonarqube"
 if exist "TestResults" rd /s /q "TestResults"
 
-:: BƯỚC 3.1: BẮT ĐẦU QUÉT (CHIẾN THUẬT LOẠI TRỪ COVERAGE)
-:: - sonar.sources=".": Quét TOÀN BỘ để tìm Code Smell (Bao gồm cả SharedKernel nếu có reference)
-:: - sonar.coverage.exclusions: LOẠI BỎ các tầng không phải logic khỏi bảng tính % Coverage
+:: ======================================================================
+:: BƯỚC 3.1: BẮT ĐẦU QUÉT (CHIẾN THUẬT LOẠI TRỪ COVERAGE ĐỘNG)
+:: ======================================================================
+set "DYNAMIC_EXCLUSIONS=**/*.API/**,**/*.Infrastructure/**,**/*.Domain/**,**/SharedKernel/**,**/*Command.cs,**/*Query.cs,**/*Response.cs,**/*Request.cs,**/Migrations/**"
+
+:: --- BỘ LỌC THÔNG MINH CHO BUILDING BLOCKS ---
+:: Mặc định: CẤM các service khác quét BuildingBlocks (để giữ coverage độc lập)
+set "EXCLUDE_BB=true"
+
+:: ĐẶC CÁCH: NẾU LÀ APPHOST HOẶC BUILDING BLOCKS -> CHO PHÉP QUÉT
+if "!SNAME!"=="AppHost" set "EXCLUDE_BB=false"
+if "!SNAME!"=="BuildingBlocks" set "EXCLUDE_BB=false"
+
+:: Áp dụng lệnh cấm nếu cờ = true
+if "!EXCLUDE_BB!"=="true" (
+    set "DYNAMIC_EXCLUSIONS=!DYNAMIC_EXCLUSIONS!,**/BuildingBlocks/**"
+)
+
 dotnet sonarscanner begin /k:"!PROJECT_KEY!" ^
   /d:sonar.host.url="!SONAR_URL!" ^
   /d:sonar.token="!SONAR_TOKEN!" ^
   /d:sonar.cs.opencover.reportsPaths="**/*.xml" ^
-  /d:sonar.coverage.exclusions="**/*.API/**,**/*.Infrastructure/**,**/*.Domain/**,**/SharedKernel/**,**/*Command.cs,**/*Query.cs,**/*Response.cs,**/*Request.cs,**/Migrations/**" ^
+  /d:sonar.coverage.exclusions="!DYNAMIC_EXCLUSIONS!" ^
   /d:sonar.exclusions="**/obj/**,**/bin/**,**/Migrations/**,**/Protos/**"
 
 :: BƯỚC 3.2: BUILD
 for /r %%i in (*.csproj) do (dotnet build "%%i" -c Debug -v quiet)
 
+:: ======================================================================
 :: BƯỚC 3.3: CHẠY UNIT TEST
-echo --- Dang chay Unit Test cho !SNAME!... ---
+:: ======================================================================
+echo --- Running Unit Test for !SNAME!... ---
+
+:: 1. Chạy test của Service hiện tại đang chọn
 for /d /r %%d in (*) do (
     set "foldername=%%~nxd"
     echo !foldername! | findstr /i "Test" >nul
     if !errorlevel! == 0 (
         if exist "%%d\*.csproj" (
+            echo [RUNNING] %%d
             dotnet test "%%d" --no-build --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+        )
+    )
+)
+
+:: 2. NẾU LÀ APPHOST -> Chạy thêm Unit Test của BuildingBlocks
+if "!SNAME!"=="AppHost" (
+    echo --- [AppHost Mode] Dang chay test cua BuildingBlocks... ---
+    :: Build BB trước cho chắc ăn
+    dotnet build "%BASE_DIR%backend\BuildingBlocks" -c Debug -v quiet
+    
+    for /d /r "%BASE_DIR%backend\BuildingBlocks" %%d in (*) do (
+        set "foldername=%%~nxd"
+        echo !foldername! | findstr /i "Test" >nul
+        if !errorlevel! == 0 (
+            if exist "%%d\*.csproj" (
+                echo [RUNNING KÉ] %%d
+                dotnet test "%%d" --no-build --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+            )
         )
     )
 )
