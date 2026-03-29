@@ -1,26 +1,17 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using WarehouseService.Application.Features.StockTransactions.Query.GetAll;
 using WarehouseService.Application.Repositories;
 
-namespace WarehouseService.Application.Features.StockTransactions.Query.GetStockTransactions;
+namespace WarehouseService.Application.Features.StockTransactions.Query.GetAll;
 
-public class GetStockTransactionsQueryHandler : IRequestHandler<GetStockTransactionsQuery, GetStockTransactionsResult>
+public class GetStockTransactionsQueryHandler(
+    IStockTransactionRepository stockTransactionRepository,
+    IWarehouseItemRepository warehouseItemRepository
+) : IRequestHandler<GetStockTransactionsQuery, GetStockTransactionsResult>
 {
-    private readonly IStockTransactionRepository _stockTransactionRepository;
-    private readonly IWarehouseItemRepository _warehouseItemRepository;
-
-    public GetStockTransactionsQueryHandler(
-        IStockTransactionRepository stockTransactionRepository,
-        IWarehouseItemRepository warehouseItemRepository)
-    {
-        _stockTransactionRepository = stockTransactionRepository;
-        _warehouseItemRepository = warehouseItemRepository;
-    }
-
     public async Task<GetStockTransactionsResult> Handle(GetStockTransactionsQuery request, CancellationToken cancellationToken)
     {
-        var query = _stockTransactionRepository.GetQueryable();
+        var query = stockTransactionRepository.GetQueryable();
 
         if (request.WarehouseId.HasValue)
             query = query.Where(t => t.WarehouseId == request.WarehouseId.Value);
@@ -48,7 +39,7 @@ public class GetStockTransactionsQueryHandler : IRequestHandler<GetStockTransact
 
         var totalCount = await query.CountAsync(cancellationToken);
 
-        var warehouseItems = _warehouseItemRepository.GetQueryable();
+        var warehouseItems = warehouseItemRepository.GetQueryable();
 
         var items = await query
             .OrderByDescending(t => t.CreatedAt)

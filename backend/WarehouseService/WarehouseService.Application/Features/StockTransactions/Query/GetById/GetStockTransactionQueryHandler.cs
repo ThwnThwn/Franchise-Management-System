@@ -1,28 +1,20 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using WarehouseService.Application.Features.StockTransactions.Query.GetById;
 using WarehouseService.Application.Repositories;
 
-namespace WarehouseService.Application.Features.StockTransactions.Query.GetStockTransaction;
+namespace WarehouseService.Application.Features.StockTransactions.Query.GetById;
 
-public class GetStockTransactionQueryHandler : IRequestHandler<GetStockTransactionQuery, GetStockTransactionResult>
+public class GetStockTransactionQueryHandler(
+    IStockTransactionRepository stockTransactionRepository,
+    IWarehouseItemRepository warehouseItemRepository
+) : IRequestHandler<GetStockTransactionQuery, GetStockTransactionResult>
 {
-    private readonly IStockTransactionRepository _stockTransactionRepository;
-    private readonly IWarehouseItemRepository _warehouseItemRepository;
-
-    public GetStockTransactionQueryHandler(
-        IStockTransactionRepository stockTransactionRepository,
-        IWarehouseItemRepository warehouseItemRepository)
+    public async Task<GetStockTransactionResult> Handle(GetStockTransactionQuery request,
+        CancellationToken cancellationToken)
     {
-        _stockTransactionRepository = stockTransactionRepository;
-        _warehouseItemRepository = warehouseItemRepository;
-    }
+        var warehouseItems = warehouseItemRepository.GetQueryable();
 
-    public async Task<GetStockTransactionResult> Handle(GetStockTransactionQuery request, CancellationToken cancellationToken)
-    {
-        var warehouseItems = _warehouseItemRepository.GetQueryable();
-
-        var result = await _stockTransactionRepository.GetQueryable()
+        var result = await stockTransactionRepository.GetQueryable()
             .Where(t => t.Id == request.Id)
             .Join(
                 warehouseItems,

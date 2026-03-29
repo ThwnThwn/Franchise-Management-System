@@ -1,34 +1,25 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using WarehouseService.Application.Features.WarehouseTransfers.Query.GetById;
 using WarehouseService.Application.Repositories;
 
-namespace WarehouseService.Application.Features.WarehouseTransfers.Query.GetWarehouseTransfer;
+namespace WarehouseService.Application.Features.WarehouseTransfers.Query.GetById;
 
-public class GetWarehouseTransferQueryHandler : IRequestHandler<GetWarehouseTransferQuery, GetWarehouseTransferResult>
+public class GetWarehouseTransferQueryHandler(
+    IWarehouseTransferRepository warehouseTransferRepository,
+    IWarehouseTransferItemRepository warehouseTransferItemRepository
+) : IRequestHandler<GetWarehouseTransferQuery, GetWarehouseTransferResult>
 {
-    private readonly IWarehouseTransferRepository _warehouseTransferRepository;
-    private readonly IWarehouseTransferItemRepository _warehouseTransferItemRepository;
-
-    public GetWarehouseTransferQueryHandler(
-        IWarehouseTransferRepository warehouseTransferRepository,
-        IWarehouseTransferItemRepository warehouseTransferItemRepository)
-    {
-        _warehouseTransferRepository = warehouseTransferRepository;
-        _warehouseTransferItemRepository = warehouseTransferItemRepository;
-    }
-
     public async Task<GetWarehouseTransferResult> Handle(GetWarehouseTransferQuery request, CancellationToken cancellationToken)
     {
-        var transfer = await _warehouseTransferRepository.GetByIdAsync(request.Id, cancellationToken);
+        var transfer = await warehouseTransferRepository.GetByIdAsync(request.Id, cancellationToken);
         if (transfer is null)
             throw new KeyNotFoundException($"Warehouse transfer with ID '{request.Id}' was not found.");
 
-        var transferItems = await _warehouseTransferItemRepository
+        var transferItems = await warehouseTransferItemRepository
             .GetQueryable()
             .Where(ti => ti.WarehouseTransferId == request.Id)
             .Join(
-                _warehouseTransferItemRepository.GetWarehouseItemQueryable(),
+                warehouseTransferItemRepository.GetWarehouseItemQueryable(),
                 ti => ti.WarehouseItemId,
                 wi => wi.Id,
                 (ti, wi) => new TransferItemInfoDto(

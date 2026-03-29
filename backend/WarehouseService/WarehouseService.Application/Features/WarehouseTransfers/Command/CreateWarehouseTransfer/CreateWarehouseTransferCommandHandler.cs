@@ -5,33 +5,21 @@ using WarehouseService.Domain.Enums;
 
 namespace WarehouseService.Application.Features.WarehouseTransfers.Command.CreateWarehouseTransfer;
 
-public class CreateWarehouseTransferCommandHandler : IRequestHandler<CreateWarehouseTransferCommand, CreateWarehouseTransferResult>
+public class CreateWarehouseTransferCommandHandler(
+    IWarehouseRepository warehouseRepository,
+    IWarehouseItemRepository warehouseItemRepository,
+    IWarehouseTransferRepository warehouseTransferRepository,
+    IWarehouseTransferItemRepository warehouseTransferItemRepository
+) : IRequestHandler<CreateWarehouseTransferCommand, CreateWarehouseTransferResult>
 {
-    private readonly IWarehouseRepository _warehouseRepository;
-    private readonly IWarehouseItemRepository _warehouseItemRepository;
-    private readonly IWarehouseTransferRepository _warehouseTransferRepository;
-    private readonly IWarehouseTransferItemRepository _warehouseTransferItemRepository;
-
-    public CreateWarehouseTransferCommandHandler(
-        IWarehouseRepository warehouseRepository,
-        IWarehouseItemRepository warehouseItemRepository,
-        IWarehouseTransferRepository warehouseTransferRepository,
-        IWarehouseTransferItemRepository warehouseTransferItemRepository)
-    {
-        _warehouseRepository = warehouseRepository;
-        _warehouseItemRepository = warehouseItemRepository;
-        _warehouseTransferRepository = warehouseTransferRepository;
-        _warehouseTransferItemRepository = warehouseTransferItemRepository;
-    }
-
     public async Task<CreateWarehouseTransferResult> Handle(CreateWarehouseTransferCommand request, CancellationToken cancellationToken)
     {
         // 1. Validate warehouses
-        var fromWarehouse = await _warehouseRepository.GetByIdAsync(request.FromWarehouseId, cancellationToken);
+        var fromWarehouse = await warehouseRepository.GetByIdAsync(request.FromWarehouseId, cancellationToken);
         if (fromWarehouse is null)
             throw new KeyNotFoundException($"Source warehouse '{request.FromWarehouseId}' was not found.");
 
-        var toWarehouse = await _warehouseRepository.GetByIdAsync(request.ToWarehouseId, cancellationToken);
+        var toWarehouse = await warehouseRepository.GetByIdAsync(request.ToWarehouseId, cancellationToken);
         if (toWarehouse is null)
             throw new KeyNotFoundException($"Destination warehouse '{request.ToWarehouseId}' was not found.");
 
@@ -45,7 +33,7 @@ public class CreateWarehouseTransferCommandHandler : IRequestHandler<CreateWareh
         // 2. Validate items + build TransferItem entities
         foreach (var transferItem in request.Items)
         {
-            var item = await _warehouseItemRepository.GetByIdAsync(transferItem.WarehouseItemId, cancellationToken);
+            var item = await warehouseItemRepository.GetByIdAsync(transferItem.WarehouseItemId, cancellationToken);
             if (item is null)
                 throw new KeyNotFoundException($"Warehouse item '{transferItem.WarehouseItemId}' was not found.");
 
@@ -98,9 +86,9 @@ public class CreateWarehouseTransferCommandHandler : IRequestHandler<CreateWareh
             ti.WarehouseTransferId = transfer.Id;
 
         // Save transfer header + items in ONE round-trip (same DbContext = same transaction)
-        await _warehouseTransferRepository.AddAsync(transfer, cancellationToken);
-        await _warehouseTransferItemRepository.AddRangeAsync(transferItemEntities, cancellationToken);
-        await _warehouseTransferItemRepository.SaveChangesAsync(cancellationToken);
+        await warehouseTransferRepository.AddAsync(transfer, cancellationToken);
+        await warehouseTransferItemRepository.AddRangeAsync(transferItemEntities, cancellationToken);
+        await warehouseTransferItemRepository.SaveChangesAsync(cancellationToken);
 
         return new CreateWarehouseTransferResult(
             transfer.Id,

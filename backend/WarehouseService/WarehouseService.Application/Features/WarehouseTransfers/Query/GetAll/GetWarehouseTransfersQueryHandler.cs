@@ -4,19 +4,14 @@ using WarehouseService.Application.Repositories;
 
 namespace WarehouseService.Application.Features.WarehouseTransfers.Query.GetAll;
 
-public class GetWarehouseTransfersQueryHandler : IRequestHandler<GetWarehouseTransfersQuery, GetWarehouseTransfersResult>
+public class GetWarehouseTransfersQueryHandler(
+    IWarehouseTransferRepository warehouseTransferRepository
+) : IRequestHandler<GetWarehouseTransfersQuery, GetWarehouseTransfersResult>
 {
-    private readonly IWarehouseTransferRepository _warehouseTransferRepository;
-
-    public GetWarehouseTransfersQueryHandler(IWarehouseTransferRepository warehouseTransferRepository)
-    {
-        _warehouseTransferRepository = warehouseTransferRepository;
-    }
-
     public async Task<GetWarehouseTransfersResult> Handle(GetWarehouseTransfersQuery request, CancellationToken cancellationToken)
     {
         // 1. Build base query
-        var query = _warehouseTransferRepository.GetQueryable();
+        var query = warehouseTransferRepository.GetQueryable();
 
         // 2. Apply filters
         if (request.FromWarehouseId.HasValue)

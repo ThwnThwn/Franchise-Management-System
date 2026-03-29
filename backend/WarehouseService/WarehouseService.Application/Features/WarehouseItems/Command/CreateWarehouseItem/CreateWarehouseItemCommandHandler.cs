@@ -5,36 +5,30 @@ using WarehouseService.Domain.Entities;
 
 namespace WarehouseService.Application.Features.WarehouseItems.Command.CreateWarehouseItem;
 
-public class CreateWarehouseItemCommandHandler : IRequestHandler<CreateWarehouseItemCommand, CreateWarehouseItemResult>
+public class CreateWarehouseItemCommandHandler(
+    IWarehouseRepository warehouseRepository,
+    IWarehouseItemRepository warehouseItemRepository,
+    IInventoryServiceClient inventoryServiceClient
+) : IRequestHandler<CreateWarehouseItemCommand, CreateWarehouseItemResult>
 {
-    private readonly IWarehouseRepository _warehouseRepository;
-    private readonly IWarehouseItemRepository _warehouseItemRepository;
-    private readonly IInventoryServiceClient _inventoryServiceClient;
-    public CreateWarehouseItemCommandHandler(
-        IWarehouseRepository warehouseRepository,
-        IWarehouseItemRepository warehouseItemRepository,
-        IInventoryServiceClient inventoryServiceClient)
-    {
-        _warehouseRepository = warehouseRepository;
-        _warehouseItemRepository = warehouseItemRepository;
-        _inventoryServiceClient=inventoryServiceClient;
-    }
-
     public async Task<CreateWarehouseItemResult> Handle(CreateWarehouseItemCommand request, CancellationToken cancellationToken)
     {
-        var warehouse = await _warehouseRepository.GetByIdAsync(request.WarehouseId, cancellationToken);
+        var warehouse = await warehouseRepository.GetByIdAsync(request.WarehouseId, cancellationToken);
         if (warehouse is null)
             throw new KeyNotFoundException($"Warehouse with ID '{request.WarehouseId}' was not found.");
 
-        var product = await _inventoryServiceClient.IngredientExistsAsync(request.IngredientId);
+        var product = await inventoryServiceClient.IngredientExistsAsync(request.IngredientId);
         if (product is false)
             throw new KeyNotFoundException($"Ingredient with ID '{request.IngredientId}' does not exist.");
 
-        var productExists = await _warehouseItemRepository.IngredientExistsInWarehouseAsync(
+        var productExists = await warehouseItemRepository.IngredientExistsInWarehouseAsync(
             request.WarehouseId, request.IngredientId, cancellationToken: cancellationToken);
         if (productExists)
             throw new InvalidOperationException($"Ingredient with ID '{request.IngredientId}' already exists in this warehouse.");
 
+        var parsedExpiryDate = request.ExpiryDate.HasValue
+            ? DateTime.SpecifyKind(request.ExpiryDate.Value, DateTimeKind.Utc)
+            : (DateTime?)null;
 
         var item = new WarehouseItem
         {
@@ -44,16 +38,14 @@ public class CreateWarehouseItemCommandHandler : IRequestHandler<CreateWarehouse
             Unit = request.Unit.Trim(),
             Quantity = request.Quantity,
             BasePrice = request.BasePrice,
-            ExpiryDate = request.ExpiryDate.HasValue
-            ? DateTime.SpecifyKind(request.ExpiryDate.Value, DateTimeKind.Utc)
-            : null,
+            ExpiryDate = parsedExpiryDate, // Truyền biến đã xử lý vào đây
             IsDeleted = false,
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow
         };
 
-        await _warehouseItemRepository.AddAsync(item, cancellationToken);
-        await _warehouseItemRepository.SaveChangesAsync(cancellationToken);
+        await warehouseItemRepository.AddAsync(item, cancellationToken);
+        await warehouseItemRepository.SaveChangesAsync(cancellationToken);
 
         return new CreateWarehouseItemResult(
             item.Id,

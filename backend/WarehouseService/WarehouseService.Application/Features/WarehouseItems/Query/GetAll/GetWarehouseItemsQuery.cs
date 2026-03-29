@@ -1,10 +1,10 @@
 ﻿using MediatR;
 
-namespace WarehouseService.Application.Features.WarehouseItems.Query.GetWarehouseItems;
+namespace WarehouseService.Application.Features.WarehouseItems.Query.GetAll;
 
 public sealed record GetWarehouseItemsQuery(
     Guid WarehouseId,
-    Guid? IngredientId,         
+    Guid? IngredientId,
     bool? LowStock,          // true = chỉ lấy hàng sắp hết (Quantity <= 10)
     bool? ExpiringSoon,      // true = chỉ lấy hàng sắp hết hạn trong 30 ngày
     int Page = 1,

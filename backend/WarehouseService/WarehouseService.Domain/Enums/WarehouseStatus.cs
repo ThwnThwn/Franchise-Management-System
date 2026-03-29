@@ -1,9 +1,8 @@
-﻿namespace WarehouseService.Domain.Enums
+﻿namespace WarehouseService.Domain.Enums;
+
+public enum WarehouseStatus
 {
-    public enum WarehouseStatus
-    {
-        Active = 1,
-        Inactive = 2,
-        UnderMaintenance = 3
-    }
+    Active = 1,
+    Inactive = 2,
+    UnderMaintenance = 3
 }

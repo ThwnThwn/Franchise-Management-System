@@ -1,9 +1,8 @@
-﻿namespace WarehouseService.Domain.Enums
+﻿namespace WarehouseService.Domain.Enums;
+
+public enum TransactionStatus
 {
-    public enum TransactionStatus
-    {
-        Pending = 1,
-        Completed = 2,
-        Cancelled = 3
-    }
+    Pending = 1,
+    Completed = 2,
+    Cancelled = 3
 }

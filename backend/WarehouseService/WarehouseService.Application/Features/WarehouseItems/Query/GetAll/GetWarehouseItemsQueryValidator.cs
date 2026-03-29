@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 
-namespace WarehouseService.Application.Features.WarehouseItems.Query.GetWarehouseItems;
+namespace WarehouseService.Application.Features.WarehouseItems.Query.GetAll;
 
 public class GetWarehouseItemsQueryValidator : AbstractValidator<GetWarehouseItemsQuery>
 {

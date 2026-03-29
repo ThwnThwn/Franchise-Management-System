@@ -8,6 +8,5 @@ public class CancelStockTransactionCommandValidator : AbstractValidator<CancelSt
     {
         RuleFor(x => x.Id)
             .NotEmpty().WithMessage("Stock transaction ID must not be empty.");
-
     }
 }

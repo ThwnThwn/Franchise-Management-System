@@ -4,19 +4,11 @@ using WarehouseService.Domain.Enums;
 
 namespace WarehouseService.Application.Features.StockTransactions.Command.CompleteStockTransaction;
 
-public class CompleteStockTransactionCommandHandler : IRequestHandler<CompleteStockTransactionCommand, CompleteStockTransactionResult>
+public class CompleteStockTransactionCommandHandler(
+    IStockTransactionRepository stockTransactionRepository,
+    IWarehouseItemRepository warehouseItemRepository
+) : IRequestHandler<CompleteStockTransactionCommand, CompleteStockTransactionResult>
 {
-    private readonly IStockTransactionRepository _stockTransactionRepository;
-    private readonly IWarehouseItemRepository _warehouseItemRepository;
-
-    public CompleteStockTransactionCommandHandler(
-        IStockTransactionRepository stockTransactionRepository,
-        IWarehouseItemRepository warehouseItemRepository)
-    {
-        _stockTransactionRepository = stockTransactionRepository;
-        _warehouseItemRepository = warehouseItemRepository;
-    }
-
     public async Task<CompleteStockTransactionResult> Handle(CompleteStockTransactionCommand request, CancellationToken cancellationToken)
     {
         var now = DateTimeOffset.UtcNow;
@@ -24,9 +16,8 @@ public class CompleteStockTransactionCommandHandler : IRequestHandler<CompleteSt
 
         foreach (var transactionId in request.TransactionIds)
         {
-            var transaction = await _stockTransactionRepository.GetByIdAsync(transactionId, cancellationToken);
-            if (transaction is null)
-                throw new KeyNotFoundException($"Stock transaction '{transactionId}' was not found.");
+            var transaction = await stockTransactionRepository.GetByIdAsync(transactionId, cancellationToken)
+                ?? throw new KeyNotFoundException($"Stock transaction '{transactionId}' was not found.");
 
             //  Only StockIn/StockOut + Pending can be completed
             if (transaction.Type != TransactionType.StockIn && transaction.Type != TransactionType.StockOut)
@@ -36,9 +27,8 @@ public class CompleteStockTransactionCommandHandler : IRequestHandler<CompleteSt
                 throw new InvalidOperationException($"Transaction '{transactionId}' is not Pending. Current status: {transaction.Status}.");
 
             //  Get warehouse item
-            var item = await _warehouseItemRepository.GetByIdAsync(transaction.WarehouseItemId, cancellationToken);
-            if (item is null)
-                throw new KeyNotFoundException($"Warehouse item '{transaction.WarehouseItemId}' was not found.");
+            var item = await warehouseItemRepository.GetByIdAsync(transaction.WarehouseItemId, cancellationToken)
+                ?? throw new KeyNotFoundException($"Warehouse item '{transaction.WarehouseItemId}' was not found.");
 
             //  Update quantity based on type
             if (transaction.Type == TransactionType.StockIn)
@@ -71,7 +61,7 @@ public class CompleteStockTransactionCommandHandler : IRequestHandler<CompleteSt
             ));
         }
 
-        await _stockTransactionRepository.SaveChangesAsync(cancellationToken);
+        await stockTransactionRepository.SaveChangesAsync(cancellationToken);
 
         return new CompleteStockTransactionResult(
             completed,

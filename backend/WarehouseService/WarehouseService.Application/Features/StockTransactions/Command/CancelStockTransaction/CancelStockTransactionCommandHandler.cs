@@ -4,18 +4,13 @@ using WarehouseService.Domain.Enums;
 
 namespace WarehouseService.Application.Features.StockTransactions.Command.CancelStockTransaction;
 
-public class CancelStockTransactionCommandHandler : IRequestHandler<CancelStockTransactionCommand, CancelStockTransactionResult>
+public class CancelStockTransactionCommandHandler(
+    IStockTransactionRepository stockTransactionRepository
+) : IRequestHandler<CancelStockTransactionCommand, CancelStockTransactionResult>
 {
-    private readonly IStockTransactionRepository _stockTransactionRepository;
-
-    public CancelStockTransactionCommandHandler(IStockTransactionRepository stockTransactionRepository)
-    {
-        _stockTransactionRepository = stockTransactionRepository;
-    }
-
     public async Task<CancelStockTransactionResult> Handle(CancelStockTransactionCommand request, CancellationToken cancellationToken)
     {
-        var transaction = await _stockTransactionRepository.GetByIdAsync(request.Id, cancellationToken);
+        var transaction = await stockTransactionRepository.GetByIdAsync(request.Id, cancellationToken);
         if (transaction is null)
             throw new KeyNotFoundException($"Stock transaction with ID '{request.Id}' was not found.");
 
@@ -33,7 +28,7 @@ public class CancelStockTransactionCommandHandler : IRequestHandler<CancelStockT
         transaction.Status = TransactionStatus.Cancelled;
         transaction.UpdatedAt = now;
 
-        await _stockTransactionRepository.SaveChangesAsync(cancellationToken);
+        await stockTransactionRepository.SaveChangesAsync(cancellationToken);
 
         return new CancelStockTransactionResult(
             transaction.Id,

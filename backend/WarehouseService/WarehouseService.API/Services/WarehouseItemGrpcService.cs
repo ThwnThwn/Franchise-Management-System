@@ -1,20 +1,18 @@
 ﻿using Grpc.Core;
 using MediatR;
 using WarehouseService.Application.Features.WarehouseItems.Command.CreateWarehouseItem;
-using WarehouseService.Application.Features.WarehouseItems.Command.UpdateWarehouseItem;
 using WarehouseService.Application.Features.WarehouseItems.Command.DeleteWarehouseItem;
+using WarehouseService.Application.Features.WarehouseItems.Command.UpdateWarehouseItem;
+using WarehouseService.Application.Features.WarehouseItems.Query.GetAll;
 using WarehouseService.Application.Features.WarehouseItems.Query.GetById;
-using WarehouseService.Application.Features.WarehouseItems.Query.GetWarehouseItems;
 using WarehouseService.Grpc.Protos.WarehouseItem;
 
 namespace WarehouseService.API.Services;
 
-public class WarehouseItemGrpcService : WarehouseItemGrpc.WarehouseItemGrpcBase
+public class WarehouseItemGrpcService(
+    IMediator mediator
+) : WarehouseItemGrpc.WarehouseItemGrpcBase
 {
-    private readonly IMediator _mediator;
-
-    public WarehouseItemGrpcService(IMediator mediator) => _mediator = mediator;
-
     public override async Task<CreateWarehouseItemReply> CreateWarehouseItem(
         CreateWarehouseItemRequest request, ServerCallContext context)
     {
@@ -23,7 +21,7 @@ public class WarehouseItemGrpcService : WarehouseItemGrpc.WarehouseItemGrpcBase
         if (!Guid.TryParse(request.IngredientId, out var productId))
             throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid Ingredient ID."));
 
-        var result = await _mediator.Send(new CreateWarehouseItemCommand(
+        var result = await mediator.Send(new CreateWarehouseItemCommand(
             warehouseId, productId, request.Unit,
             (decimal)request.Quantity, (decimal)request.BasePrice,
             string.IsNullOrWhiteSpace(request.ExpiryDate) ? null
@@ -50,7 +48,7 @@ public class WarehouseItemGrpcService : WarehouseItemGrpc.WarehouseItemGrpcBase
         if (!Guid.TryParse(request.Id, out var id))
             throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid Warehouse Item ID."));
 
-        var result = await _mediator.Send(new UpdateWarehouseItemCommand(
+        var result = await mediator.Send(new UpdateWarehouseItemCommand(
             id, request.Unit, (decimal)request.BasePrice,
             string.IsNullOrWhiteSpace(request.ExpiryDate) ? null
                 : DateTime.SpecifyKind(DateTime.Parse(request.ExpiryDate), DateTimeKind.Utc)
@@ -76,7 +74,7 @@ public class WarehouseItemGrpcService : WarehouseItemGrpc.WarehouseItemGrpcBase
         if (!Guid.TryParse(request.Id, out var id))
             throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid Warehouse Item ID."));
 
-        await _mediator.Send(new DeleteWarehouseItemCommand(id), context.CancellationToken);
+        await mediator.Send(new DeleteWarehouseItemCommand(id), context.CancellationToken);
         return new DeleteWarehouseItemReply { Message = "Warehouse item deleted successfully." };
     }
 
@@ -86,7 +84,7 @@ public class WarehouseItemGrpcService : WarehouseItemGrpc.WarehouseItemGrpcBase
         if (!Guid.TryParse(request.Id, out var id))
             throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid Warehouse Item ID."));
 
-        var result = await _mediator.Send(new GetWarehouseItemQuery(id), context.CancellationToken);
+        var result = await mediator.Send(new GetWarehouseItemQuery(id), context.CancellationToken);
 
         return new WarehouseItemDetail
         {
@@ -116,7 +114,7 @@ public class WarehouseItemGrpcService : WarehouseItemGrpc.WarehouseItemGrpcBase
             productId = parsedProductId;
         }
 
-        var result = await _mediator.Send(new GetWarehouseItemsQuery(
+        var result = await mediator.Send(new GetWarehouseItemsQuery(
             warehouseId, productId,
             request.HasLowStock ? request.LowStock : null,
             request.HasExpiringSoon ? request.ExpiringSoon : null,

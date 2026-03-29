@@ -4,28 +4,20 @@ using WarehouseService.Application.Repositories;
 
 namespace WarehouseService.Application.Features.Warehouses.Command.UpdateWarehouse;
 
-public class UpdateWarehouseCommandHandler : IRequestHandler<UpdateWarehouseCommand, UpdateWarehouseResult>
+public class UpdateWarehouseCommandHandler(
+    IWarehouseRepository warehouseRepository,
+    IFranchiseServiceClient franchiseServiceClient
+) : IRequestHandler<UpdateWarehouseCommand, UpdateWarehouseResult>
 {
-    private readonly IWarehouseRepository _warehouseRepository;
-    private readonly IFranchiseServiceClient _franchiseServiceClient;
-
-    public UpdateWarehouseCommandHandler(
-        IWarehouseRepository warehouseRepository,
-        IFranchiseServiceClient franchiseServiceClient)
-    {
-        _warehouseRepository = warehouseRepository;
-        _franchiseServiceClient = franchiseServiceClient;
-    }
-
     public async Task<UpdateWarehouseResult> Handle(UpdateWarehouseCommand request, CancellationToken cancellationToken)
     {
-        var warehouse = await _warehouseRepository.GetByIdAsync(request.Id, cancellationToken);
+        var warehouse = await warehouseRepository.GetByIdAsync(request.Id, cancellationToken);
         if (warehouse is null)
             throw new KeyNotFoundException($"Warehouse with ID '{request.Id}' was not found.");
 
         if (!string.IsNullOrWhiteSpace(request.Code))
         {
-            var codeExists = await _warehouseRepository.CodeExistsAsync(
+            var codeExists = await warehouseRepository.CodeExistsAsync(
                 request.Code, excludeId: request.Id, cancellationToken: cancellationToken);
             if (codeExists)
                 throw new InvalidOperationException($"Warehouse code '{request.Code}' already exists.");
@@ -38,7 +30,7 @@ public class UpdateWarehouseCommandHandler : IRequestHandler<UpdateWarehouseComm
 
         if (!string.IsNullOrWhiteSpace(request.Address))
         {
-            var addressExists = await _warehouseRepository.ExistWithStoreAddress(
+            var addressExists = await warehouseRepository.ExistWithStoreAddress(
                 request.Address, cancellationToken: cancellationToken);
             if (addressExists)
                 throw new InvalidOperationException($"Warehouse with address '{request.Address}' already exists.");
@@ -51,11 +43,11 @@ public class UpdateWarehouseCommandHandler : IRequestHandler<UpdateWarehouseComm
 
         if (request.StoreId.HasValue && request.StoreId.Value != warehouse.StoreId)
         {
-            var storeExists = await _franchiseServiceClient.StoreExistsAsync(request.StoreId.Value);
+            var storeExists = await franchiseServiceClient.StoreExistsAsync(request.StoreId.Value);
             if (!storeExists)
                 throw new KeyNotFoundException($"Store with ID '{request.StoreId.Value}' was not found.");
 
-            var warehouseExistsWithStoreId = await _warehouseRepository.ExistWithStoreId(
+            var warehouseExistsWithStoreId = await warehouseRepository.ExistWithStoreId(
                 request.StoreId.Value, cancellationToken: cancellationToken);
             if (warehouseExistsWithStoreId)
                 throw new InvalidOperationException($"A warehouse with store ID '{request.StoreId}' already exists.");
@@ -65,7 +57,7 @@ public class UpdateWarehouseCommandHandler : IRequestHandler<UpdateWarehouseComm
 
         warehouse.UpdatedAt = DateTimeOffset.UtcNow;
 
-        await _warehouseRepository.SaveChangesAsync(cancellationToken);
+        await warehouseRepository.SaveChangesAsync(cancellationToken);
 
         return new UpdateWarehouseResult(
             warehouse.Id,

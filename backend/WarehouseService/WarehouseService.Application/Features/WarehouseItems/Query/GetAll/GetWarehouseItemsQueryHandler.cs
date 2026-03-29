@@ -2,20 +2,15 @@
 using Microsoft.EntityFrameworkCore;
 using WarehouseService.Application.Repositories;
 
-namespace WarehouseService.Application.Features.WarehouseItems.Query.GetWarehouseItems;
+namespace WarehouseService.Application.Features.WarehouseItems.Query.GetAll;
 
-public class GetWarehouseItemsQueryHandler : IRequestHandler<GetWarehouseItemsQuery, GetWarehouseItemsResult>
+public class GetWarehouseItemsQueryHandler(
+    IWarehouseItemRepository warehouseItemRepository
+) : IRequestHandler<GetWarehouseItemsQuery, GetWarehouseItemsResult>
 {
-    private readonly IWarehouseItemRepository _warehouseItemRepository;
-
-    public GetWarehouseItemsQueryHandler(IWarehouseItemRepository warehouseItemRepository)
-    {
-        _warehouseItemRepository = warehouseItemRepository;
-    }
-
     public async Task<GetWarehouseItemsResult> Handle(GetWarehouseItemsQuery request, CancellationToken cancellationToken)
     {
-        var query = _warehouseItemRepository.GetQueryable()
+        var query = warehouseItemRepository.GetQueryable()
             .Where(wi => wi.WarehouseId == request.WarehouseId);
 
         //  Apply optional filters

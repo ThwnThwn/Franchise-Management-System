@@ -4,18 +4,13 @@ using WarehouseService.Domain.Enums;
 
 namespace WarehouseService.Application.Features.WarehouseTransfers.Command.ApproveWarehouseTransfer;
 
-public class ApproveWarehouseTransferCommandHandler : IRequestHandler<ApproveWarehouseTransferCommand, ApproveWarehouseTransferResult>
+public class ApproveWarehouseTransferCommandHandler(
+    IWarehouseTransferRepository warehouseTransferRepository
+) : IRequestHandler<ApproveWarehouseTransferCommand, ApproveWarehouseTransferResult>
 {
-    private readonly IWarehouseTransferRepository _warehouseTransferRepository;
-
-    public ApproveWarehouseTransferCommandHandler(IWarehouseTransferRepository warehouseTransferRepository)
-    {
-        _warehouseTransferRepository = warehouseTransferRepository;
-    }
-
     public async Task<ApproveWarehouseTransferResult> Handle(ApproveWarehouseTransferCommand request, CancellationToken cancellationToken)
     {
-        var transfer = await _warehouseTransferRepository.GetByIdAsync(request.Id, cancellationToken);
+        var transfer = await warehouseTransferRepository.GetByIdAsync(request.Id, cancellationToken);
         if (transfer is null)
             throw new KeyNotFoundException($"Warehouse transfer with ID '{request.Id}' was not found.");
 
@@ -29,7 +24,7 @@ public class ApproveWarehouseTransferCommandHandler : IRequestHandler<ApproveWar
         transfer.UpdatedAt = approvedAt;
         transfer.ApprovedBy = request.ApprovedBy;
 
-        await _warehouseTransferRepository.SaveChangesAsync(cancellationToken);
+        await warehouseTransferRepository.SaveChangesAsync(cancellationToken);
 
         return new ApproveWarehouseTransferResult(
             transfer.Id,
@@ -40,4 +35,4 @@ public class ApproveWarehouseTransferCommandHandler : IRequestHandler<ApproveWar
             transfer.UpdatedAt
         );
     }
-} 
+}

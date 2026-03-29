@@ -1,5 +1,4 @@
 ﻿using FluentValidation;
-using WarehouseService.Application.Features.Warehouses.Command.CreateWarehouse;
 
 namespace WarehouseService.Application.Features.Warehouses.Command.CreateWarehouse;
 

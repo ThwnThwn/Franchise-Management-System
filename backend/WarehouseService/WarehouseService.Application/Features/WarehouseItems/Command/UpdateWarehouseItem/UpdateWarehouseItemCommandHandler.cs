@@ -3,18 +3,13 @@ using WarehouseService.Application.Repositories;
 
 namespace WarehouseService.Application.Features.WarehouseItems.Command.UpdateWarehouseItem;
 
-public class UpdateWarehouseItemCommandHandler : IRequestHandler<UpdateWarehouseItemCommand, UpdateWarehouseItemResult>
+public class UpdateWarehouseItemCommandHandler(
+    IWarehouseItemRepository warehouseItemRepository
+) : IRequestHandler<UpdateWarehouseItemCommand, UpdateWarehouseItemResult>
 {
-    private readonly IWarehouseItemRepository _warehouseItemRepository;
-
-    public UpdateWarehouseItemCommandHandler(IWarehouseItemRepository warehouseItemRepository)
-    {
-        _warehouseItemRepository = warehouseItemRepository;
-    }
-
     public async Task<UpdateWarehouseItemResult> Handle(UpdateWarehouseItemCommand request, CancellationToken cancellationToken)
     {
-        var item = await _warehouseItemRepository.GetByIdAsync(request.Id, cancellationToken);
+        var item = await warehouseItemRepository.GetByIdAsync(request.Id, cancellationToken);
         if (item is null)
             throw new KeyNotFoundException($"Warehouse item with ID '{request.Id}' was not found.");
 
@@ -23,7 +18,7 @@ public class UpdateWarehouseItemCommandHandler : IRequestHandler<UpdateWarehouse
         item.ExpiryDate = request.ExpiryDate;
         item.UpdatedAt = DateTimeOffset.UtcNow;
 
-        await _warehouseItemRepository.SaveChangesAsync(cancellationToken);
+        await warehouseItemRepository.SaveChangesAsync(cancellationToken);
 
         return new UpdateWarehouseItemResult(
             item.Id,

@@ -23,7 +23,7 @@ public class UpdateWarehouseCommandValidator : AbstractValidator<UpdateWarehouse
             .When(x => x.Status.HasValue);
 
         RuleFor(x => x.StoreId)
-            .NotEmpty().WithMessage("Store ID must not be empty.")
+            .NotEqual(Guid.Empty).WithMessage("Store ID must not be empty.")
             .When(x => x.StoreId.HasValue);
     }
 }

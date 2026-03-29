@@ -4,18 +4,13 @@ using WarehouseService.Domain.Enums;
 
 namespace WarehouseService.Application.Features.WarehouseTransfers.Command.CancelWarehouseTransfer;
 
-public class CancelWarehouseTransferCommandHandler : IRequestHandler<CancelWarehouseTransferCommand, CancelWarehouseTransferResult>
+public class CancelWarehouseTransferCommandHandler(
+    IWarehouseTransferRepository warehouseTransferRepository
+) : IRequestHandler<CancelWarehouseTransferCommand, CancelWarehouseTransferResult>
 {
-    private readonly IWarehouseTransferRepository _warehouseTransferRepository;
-
-    public CancelWarehouseTransferCommandHandler(IWarehouseTransferRepository warehouseTransferRepository)
-    {
-        _warehouseTransferRepository = warehouseTransferRepository;
-    }
-
     public async Task<CancelWarehouseTransferResult> Handle(CancelWarehouseTransferCommand request, CancellationToken cancellationToken)
     {
-        var transfer = await _warehouseTransferRepository.GetByIdAsync(request.Id, cancellationToken);
+        var transfer = await warehouseTransferRepository.GetByIdAsync(request.Id, cancellationToken);
         if (transfer is null)
             throw new KeyNotFoundException($"Warehouse transfer with ID '{request.Id}' was not found.");
 
@@ -26,7 +21,7 @@ public class CancelWarehouseTransferCommandHandler : IRequestHandler<CancelWareh
         transfer.Reason = request.Reason ?? transfer.Reason;
         transfer.UpdatedAt = DateTimeOffset.UtcNow;
 
-        await _warehouseTransferRepository.SaveChangesAsync(cancellationToken);
+        await warehouseTransferRepository.SaveChangesAsync(cancellationToken);
 
         return new CancelWarehouseTransferResult(
             transfer.Id,

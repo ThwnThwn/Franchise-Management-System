@@ -6,26 +6,16 @@ using WarehouseService.Domain.Enums;
 
 namespace WarehouseService.Application.Features.StockTransactions.Command.CreateStockIn;
 
-public class CreateStockInCommandHandler : IRequestHandler<CreateStockInCommand, CreateStockInResult>
+public class CreateStockInCommandHandler(
+    IWarehouseRepository warehouseRepository,
+    IWarehouseItemRepository warehouseItemRepository,
+    IStockTransactionRepository stockTransactionRepository
+) : IRequestHandler<CreateStockInCommand, CreateStockInResult>
 {
-    private readonly IWarehouseRepository _warehouseRepository;
-    private readonly IWarehouseItemRepository _warehouseItemRepository;
-    private readonly IStockTransactionRepository _stockTransactionRepository;
-
-    public CreateStockInCommandHandler(
-        IWarehouseRepository warehouseRepository,
-        IWarehouseItemRepository warehouseItemRepository,
-        IStockTransactionRepository stockTransactionRepository)
-    {
-        _warehouseRepository = warehouseRepository;
-        _warehouseItemRepository = warehouseItemRepository;
-        _stockTransactionRepository = stockTransactionRepository;
-    }
-
     public async Task<CreateStockInResult> Handle(CreateStockInCommand request, CancellationToken cancellationToken)
     {
         // 1. Check warehouse exists
-        var warehouse = await _warehouseRepository.GetByIdAsync(request.WarehouseId, cancellationToken);
+        var warehouse = await warehouseRepository.GetByIdAsync(request.WarehouseId, cancellationToken);
         if (warehouse is null)
             throw new KeyNotFoundException($"Warehouse '{request.WarehouseId}' was not found.");
 
@@ -37,7 +27,7 @@ public class CreateStockInCommandHandler : IRequestHandler<CreateStockInCommand,
             if (warehouseItems.ContainsKey(stockItem.IngredientId))
                 throw new InvalidOperationException($"Duplicate ingredient ID '{stockItem.IngredientId}' in request.");
 
-            var item = await _warehouseItemRepository
+            var item = await warehouseItemRepository
                 .GetQueryable()
                 .FirstOrDefaultAsync(
                     wi => wi.WarehouseId == request.WarehouseId
@@ -80,12 +70,12 @@ public class CreateStockInCommandHandler : IRequestHandler<CreateStockInCommand,
                 UpdatedAt = now
             };
 
-            await _stockTransactionRepository.AddAsync(transaction, cancellationToken);
+            await stockTransactionRepository.AddAsync(transaction, cancellationToken);
             transactions.Add(transaction);
         }
 
         // 4. Save all in one round-trip
-        await _stockTransactionRepository.SaveChangesAsync(cancellationToken);
+        await stockTransactionRepository.SaveChangesAsync(cancellationToken);
 
         return new CreateStockInResult(
             transactions.Select(t => new StockInTransactionDto(

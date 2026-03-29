@@ -11,7 +11,7 @@ public sealed record CreateStockOutCommand(
 ) : IRequest<CreateStockOutResult>;
 
 public sealed record StockOutItemDto(
-    Guid IngredientId,   
+    Guid IngredientId,
     decimal Quantity,
     decimal UnitPrice
 );
@@ -28,7 +28,7 @@ public sealed record StockOutTransactionDto(
     Guid Id,
     string TransactionCode,
     Guid WarehouseItemId,
-    Guid IngredientId,   
+    Guid IngredientId,
     TransactionType Type,
     decimal Quantity,
     decimal UnitPrice,
