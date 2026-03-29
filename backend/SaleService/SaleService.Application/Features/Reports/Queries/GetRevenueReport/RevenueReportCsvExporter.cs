@@ -1,7 +1,8 @@
-﻿using SalesService.Application.Features.Reports.Queries.GetRevenueReport;
+using SalesService.Application.Features.Reports.Queries.GetRevenueReport;
 using System.Globalization;
 using System.Text;
 
+namespace SalesService.Application.Features.Reports.Queries.GetRevenueReport;
 public static class RevenueReportCsvExporter
 {
     public static byte[] Export(RevenueReportResponse report)

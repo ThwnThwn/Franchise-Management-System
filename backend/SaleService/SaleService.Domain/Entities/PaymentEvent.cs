@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
+namespace SalesService.Domain.Entities;
 public partial class PaymentEvent
 {
     public Guid Id { get; set; }
