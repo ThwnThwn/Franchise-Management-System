@@ -1,6 +1,7 @@
-﻿using SalesService.Domain.Entities;
+using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
 
+namespace SalesService.Domain.Entities;
 public partial class Payment
 {
     public Guid Id { get; set; }

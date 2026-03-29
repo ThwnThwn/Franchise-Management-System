@@ -7,7 +7,7 @@ public sealed class WalletAuthorizationService : IWalletAuthorizationService
     public Result ValidateStatusUpdatePermission(string userRole, WalletStatus newStatus)
     {
         // Only Admin and Manager can update wallet status
-        if (userRole is not ("Administrator" or "Manager"))
+        if (userRole is not ("Administrator" or "Manager" or "Admin"))
         {
             return Result.Forbidden("Only Admin or Manager can update wallet status");
         }
@@ -16,7 +16,7 @@ public sealed class WalletAuthorizationService : IWalletAuthorizationService
         if (newStatus == WalletStatus.Suspended)
         {
             // Only Admin can suspend
-            if (userRole != "Admin")
+            if (userRole is not ("Admin" or "Administrator"))
             {
                 return Result.Forbidden("Only Admin can suspend wallets");
             }

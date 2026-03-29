@@ -1,7 +1,8 @@
-﻿using SalesService.Application.Features.Reports.Queries.CustomerPurchaseBehavior;
+using SalesService.Application.Features.Reports.Queries.CustomerPurchaseBehavior;
 using System.Globalization;
 using System.Text;
 
+namespace SalesService.Application.Features.Reports.Queries.CustomerPurchaseBehavior;
 public static class CustomerOrderPatternCsvExporter
 {
     public static byte[] Export(List<CustomerOrderPatternResponse> items)

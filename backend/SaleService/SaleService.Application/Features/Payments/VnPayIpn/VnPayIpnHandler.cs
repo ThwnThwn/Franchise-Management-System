@@ -10,6 +10,7 @@ using SalesService.Application.Persisitences.Outbox;
 using SalesService.Application.Persisitences.Wallets;
 using SalesService.Application.Persisitences.WalletTransactions;
 using SalesService.Application.Signals;
+using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
 using SharedKernel.Constants;
 using SharedKernel.Events;

@@ -1,10 +1,10 @@
-﻿
+
 using FluentValidation;
 using SalesService.Application.Features.RefundTickets.Command.RejectRefundByAdmin;
 
 namespace SalesService.Application.Features.RefundTickets.Command.RejectRefundCommandValidator
 {
-    internal sealed class RejectRefundCommandValidator
+    public sealed class RejectRefundCommandValidator
         : AbstractValidator<RejectRefundCommand>
     {
         public RejectRefundCommandValidator()

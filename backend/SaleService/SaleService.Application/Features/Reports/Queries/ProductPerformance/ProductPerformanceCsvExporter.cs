@@ -1,7 +1,8 @@
-﻿using SalesService.Application.Features.Reports.Queries.ProductPerformance;
+using SalesService.Application.Features.Reports.Queries.ProductPerformance;
 using System.Globalization;
 using System.Text;
 
+namespace SalesService.Application.Features.Reports.Queries.ProductPerformance;
 public static class ProductPerformanceCsvExporter
 {
     public static byte[] Export(List<ProductPerformanceResponse> items)

@@ -1,5 +1,7 @@
-﻿using DotNetEnv;
+using DotNetEnv;
 using Microsoft.Extensions.Configuration;
+
+namespace AppHost;
 
 internal class Program
 {

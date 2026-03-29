@@ -1,4 +1,5 @@
 using BuildingBlocks.Core.Pagination;
+using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
 
 namespace SalesService.Application.Interfaces.Payments;
