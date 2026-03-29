@@ -27,6 +27,7 @@ public class CompleteWarehouseTransferCommandHandler : IRequestHandler<CompleteW
 
     public async Task<CompleteWarehouseTransferResult> Handle(CompleteWarehouseTransferCommand request, CancellationToken cancellationToken)
     {
+        // 1. Load transfer
         var transfer = await _warehouseTransferRepository.GetByIdAsync(request.Id, cancellationToken);
         if (transfer is null)
             throw new KeyNotFoundException($"Warehouse transfer '{request.Id}' was not found.");
@@ -34,12 +35,13 @@ public class CompleteWarehouseTransferCommandHandler : IRequestHandler<CompleteW
         if (transfer.Status != TransferStatus.Approved)
             throw new InvalidOperationException($"Only approved transfers can be completed. Current status: {transfer.Status}.");
 
+        // 2. Load only the specific items saved when transfer was created
         var transferItems = await _warehouseTransferItemRepository
             .GetQueryable()
             .Where(ti => ti.WarehouseTransferId == request.Id)
             .ToListAsync(cancellationToken);
 
-        if (transferItems.Count == 0)
+        if (!transferItems.Any())
             throw new InvalidOperationException($"Transfer '{request.Id}' has no items to process.");
 
         var now = DateTimeOffset.UtcNow;
@@ -47,15 +49,18 @@ public class CompleteWarehouseTransferCommandHandler : IRequestHandler<CompleteW
 
         foreach (var transferItem in transferItems)
         {
+            // 3. Get source item
             var fromItem = await _warehouseItemRepository.GetByIdAsync(transferItem.WarehouseItemId, cancellationToken);
             if (fromItem is null)
                 throw new KeyNotFoundException($"Source item '{transferItem.WarehouseItemId}' was not found.");
 
+            // Re-check stock at complete time
             if (fromItem.Quantity < transferItem.Quantity)
                 throw new InvalidOperationException(
                     $"Insufficient stock for ingredient '{transferItem.IngredientId}'. " +
                     $"Available: {fromItem.Quantity}, Required: {transferItem.Quantity}.");
 
+            // 4. Find matching destination item by IngredientId
             var toItem = await _warehouseItemRepository
                 .GetQueryable()
                 .FirstOrDefaultAsync(
@@ -67,13 +72,16 @@ public class CompleteWarehouseTransferCommandHandler : IRequestHandler<CompleteW
                 throw new KeyNotFoundException(
                     $"Destination warehouse '{transfer.ToWarehouseId}' has no item for ingredient '{transferItem.IngredientId}'.");
 
+            // 5. Deduct ONLY the specified quantity from source
             Console.WriteLine("--------" + transferItem.Quantity);
             fromItem.Quantity -= transferItem.Quantity;
             fromItem.UpdatedAt = now;
 
+            // 6. Add to destination
             toItem.Quantity += transferItem.Quantity;
             toItem.UpdatedAt = now;
 
+            // 7. TransferOut transaction
             await _stockTransactionRepository.AddAsync(new StockTransaction
             {
                 Id = Guid.NewGuid(),
@@ -92,6 +100,7 @@ public class CompleteWarehouseTransferCommandHandler : IRequestHandler<CompleteW
                 UpdatedAt = now
             }, cancellationToken);
 
+            // 8. TransferIn transaction
             await _stockTransactionRepository.AddAsync(new StockTransaction
             {
                 Id = Guid.NewGuid(),
@@ -119,9 +128,11 @@ public class CompleteWarehouseTransferCommandHandler : IRequestHandler<CompleteW
             ));
         }
 
+        // 9. Mark transfer completed
         transfer.Status = TransferStatus.Completed;
         transfer.UpdatedAt = now;
 
+        // 10. Save all in one round-trip
         await _stockTransactionRepository.SaveChangesAsync(cancellationToken);
 
         return new CompleteWarehouseTransferResult(

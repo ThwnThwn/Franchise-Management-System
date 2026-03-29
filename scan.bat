@@ -1,105 +1,109 @@
-
 @echo off
+set "BASE_DIR=%~dp0"
+cd /d "%BASE_DIR%"
 setlocal enabledelayedexpansion
 
 :: ======================================================
-:: CẤU HÌNH THÔNG TIN (thay Token của Duy vào đây)
+:: 1. NẠP CẤU HÌNH TỪ FILE .ENV
 :: ======================================================
-set SONAR_TOKEN=squ_ff1fc2526bf6b75680247b1477c91f6c6c426e01
-set SONAR_URL=http://localhost:9005
+if exist ".env" (
+    echo [INFO] Dang nap cau hinh tu file .env...
+    for /f "usebackq tokens=*" %%i in (".env") do (
+        set "line=%%i"
+        if not "!line!"=="" (
+            set "firstChar=!line:~0,1!"
+            if not "!firstChar!"=="#" (set "%%i")
+        )
+    )
+)
 
-:: TỰ ĐỘNG RESTORE LOCAL TOOL
-echo --- Dang kiem tra va khoi phuc SonarScanner trong thu muc backend... ---
-cd backend
-dotnet tool restore
-cd ..
+:: KHÔI PHỤC TOOL
+cd /d "%BASE_DIR%backend"
+dotnet tool restore >nul 2>&1
+cd /d "%BASE_DIR%"
 
 :MENU
 cls
 echo ======================================================
-echo           CHB BACKEND SERVICE SCANNER (LOCAL TOOL)
+echo           CHB FULLSTACK SERVICE SCANNER (v4.0)
 echo ======================================================
-echo  ID  ^| Service Name
+echo  ID  ^| Service Name (.NET)      ID  ^| Service Name (Go)
 echo ------------------------------------------------------
-echo  1   ^| AppHost             7   ^| NotificationService
-echo  2   ^| BuildingBlocks      8   ^| ProductService
-echo  3   ^| EngagementService   9   ^| SaleService
-echo  4   ^| FranchiseService    10  ^| SharedKernel
-echo  5   ^| IdentityService     11  ^| SupplierService
-echo  6   ^| InventoryService    12  ^| WarehouseService
-echo  0   ^| Thoat               13  ^| API-Gateway
+echo  1   ^| AppHost                 13  ^| API-Gateway
+echo  2   ^| BuildingBlocks
+echo  3   ^| EngagementService
+echo  4   ^| FranchiseService
+echo  5   ^| IdentityService
+echo  6   ^| InventoryService
+echo  7   ^| NotificationService
+echo  8   ^| ProductService
+echo  9   ^| SaleService
+echo  10  ^| SharedKernel
+echo  11  ^| SupplierService
+echo  12  ^| WarehouseService         0   ^| Thoat
 echo ------------------------------------------------------
 
 set /p CHOICE="Chon ID Service can quet (0-13): "
-
 if "%CHOICE%"=="0" exit
 
-:: ======================================================
-:: LOGIC QUÉT API-GATEWAY (GOLANG)
-:: ======================================================
-if "%CHOICE%"=="13" (
-    set SNAME=api-gateway
-    set PROJECT_KEY=chb-api-gateway
-    echo.
-    echo --- Dang chuan bi quet cho GO: !SNAME! ---
-    
-    :: Chạy Scanner CLI qua Docker (Sạch sẽ, không cần cài Java/Go Scanner vào máy)
-    :: Lưu ý: Dùng host.docker.internal để Container kết nối được SonarQube trên Host
-    docker run --rm ^
-      -v "%CD%\api-gateway:/usr/src" ^
-      sonarsource/sonar-scanner-cli ^
-      -Dsonar.projectKey=!PROJECT_KEY! ^
-      -Dsonar.sources=. ^
-      -Dsonar.host.url=http://host.docker.internal:9005 ^
-      -Dsonar.login=%SONAR_TOKEN%
-    
-    goto FINISH
-)
-
-:: ======================================================
-:: LOGIC QUÉT BACKEND (.NET)
-:: ======================================================
-if "%CHOICE%"=="1" set SNAME=AppHost
-if "%CHOICE%"=="2" set SNAME=BuildingBlocks
-if "%CHOICE%"=="3" set SNAME=EngagementService
-if "%CHOICE%"=="4" set SNAME=FranchiseService
-if "%CHOICE%"=="5" set SNAME=IdentityService
-if "%CHOICE%"=="6" set SNAME=InventoryService
-if "%CHOICE%"=="7" set SNAME=NotificationService
-if "%CHOICE%"=="8" set SNAME=ProductService
-if "%CHOICE%"=="9" set SNAME=SalesService
+:: LOGIC XỬ LÝ TÊN SERVICE
+if "%CHOICE%"=="1"  set SNAME=AppHost
+if "%CHOICE%"=="2"  set SNAME=BuildingBlocks
+if "%CHOICE%"=="3"  set SNAME=EngagementService
+if "%CHOICE%"=="4"  set SNAME=FranchiseService
+if "%CHOICE%"=="5"  set SNAME=IdentityService
+if "%CHOICE%"=="6"  set SNAME=InventoryService
+if "%CHOICE%"=="7"  set SNAME=NotificationService
+if "%CHOICE%"=="8"  set SNAME=ProductService
+if "%CHOICE%"=="9"  set SNAME=SaleService
 if "%CHOICE%"=="10" set SNAME=SharedKernel
 if "%CHOICE%"=="11" set SNAME=SupplierService
 if "%CHOICE%"=="12" set SNAME=WarehouseService
 
 if not defined SNAME (
-    echo Lua chon khong hop le! Nhan phim bat ky de thu lai.
-    pause >nul
+    echo Lua chon khong hop le!
+    pause
     goto MENU
 )
 
-set PROJECT_KEY=chb-%SNAME%
-
+set PROJECT_KEY=chb-!SNAME!
 echo.
-echo --- Dang chuan bi quet cho .NET: %SNAME% ---
+echo --- [START] Dang phan tich Service: !SNAME! ---
 
-cd backend\%SNAME%
-if exist ".sonarqube" rd /s /q ".sonarqube"
+cd /d "%BASE_DIR%backend\!SNAME!"
 
-:: ======================================================================
-:: BƯỚC 3.1: BẮT ĐẦU QUÉT (CHIẾN THUẬT LOẠI TRỪ COVERAGE ĐỘNG)
-:: ======================================================================
+:: ======================================================
+:: DỌN DẸP CACHE VÀ TESTRESULTS CŨ
+:: Bắt buộc xóa TestResults để tránh SonarScanner đọc
+:: coverage report từ phiên bản code cũ gây "Line out of range"
+:: ======================================================
+if exist ".sonarqube"  rd /s /q ".sonarqube"
+if exist "TestResults" rd /s /q "TestResults"
+
+:: Xóa TestResults trong từng subfolder test project
+for /d /r %%d in (*) do (
+    set "foldername=%%~nxd"
+    echo !foldername! | findstr /i "Test" >nul
+    if !errorlevel! == 0 (
+        if exist "%%d\TestResults" (
+            echo [CLEAN] Xoa TestResults cu: %%d\TestResults
+            rd /s /q "%%d\TestResults"
+        )
+    )
+)
+
+:: ======================================================
+:: BƯỚC 3.1: BẮT ĐẦU QUÉT
+:: FIX QUAN TRỌNG: dùng đường dẫn chính xác tới coverage.opencover.xml
+:: KHÔNG dùng **/*.xml vì sẽ match cả ProjectInfo.xml, SonarLint.xml...
+:: gây crash "Line out of range" và "Missing root element <CoverageSession>"
+:: ======================================================
 set "DYNAMIC_EXCLUSIONS=**/*.API/**,**/*.Infrastructure/**,**/*.Domain/**,**/SharedKernel/**,**/*Command.cs,**/*Query.cs,**/*Response.cs,**/*Request.cs,**/Migrations/**"
 
-:: --- BỘ LỌC THÔNG MINH CHO BUILDING BLOCKS ---
-:: Mặc định: CẤM các service khác quét BuildingBlocks (để giữ coverage độc lập)
 set "EXCLUDE_BB=true"
-
-:: ĐẶC CÁCH: NẾU LÀ APPHOST HOẶC BUILDING BLOCKS -> CHO PHÉP QUÉT
-if "!SNAME!"=="AppHost" set "EXCLUDE_BB=false"
+if "!SNAME!"=="AppHost"        set "EXCLUDE_BB=false"
 if "!SNAME!"=="BuildingBlocks" set "EXCLUDE_BB=false"
 
-:: Áp dụng lệnh cấm nếu cờ = true
 if "!EXCLUDE_BB!"=="true" (
     set "DYNAMIC_EXCLUSIONS=!DYNAMIC_EXCLUSIONS!,**/BuildingBlocks/**"
 )
@@ -107,63 +111,83 @@ if "!EXCLUDE_BB!"=="true" (
 dotnet sonarscanner begin /k:"!PROJECT_KEY!" ^
   /d:sonar.host.url="!SONAR_URL!" ^
   /d:sonar.token="!SONAR_TOKEN!" ^
-  /d:sonar.cs.opencover.reportsPaths="**/*.xml" ^
+  /d:sonar.cs.opencover.reportsPaths="%BASE_DIR%backend\!SNAME!\**\TestResults\coverage.opencover.xml" ^
   /d:sonar.coverage.exclusions="!DYNAMIC_EXCLUSIONS!" ^
   /d:sonar.exclusions="**/obj/**,**/bin/**,**/Migrations/**,**/Protos/**"
 
+:: ======================================================
 :: BƯỚC 3.2: BUILD
+:: ======================================================
 for /r %%i in (*.csproj) do (dotnet build "%%i" -c Debug -v quiet)
 
-:: ======================================================================
+:: ======================================================
+:: BƯỚC 3.3: CHẠY UNIT TEST với Coverlet opencover format
+:: FIX: dùng /p:CoverletOutputFormat=opencover thay vì
+::      DataCollectionRunSettings để output đúng định dạng
+::      và đúng tên file mà sonar.cs.opencover.reportsPaths tìm
+:: ======================================================
+:: ======================================================
 :: BƯỚC 3.3: CHẠY UNIT TEST
-:: ======================================================================
+:: Dùng --collect "XPlat Code Coverage" (built-in, không cần package thêm)
+:: kết hợp DataCollectionRunSettings để force opencover format
+:: Sau đó copy file về đường dẫn cố định để sonar tìm đúng
+:: ======================================================
 echo --- Running Unit Test for !SNAME!... ---
 
-:: 1. Chạy test của Service hiện tại đang chọn
 for /d /r %%d in (*) do (
     set "foldername=%%~nxd"
     echo !foldername! | findstr /i "Test" >nul
     if !errorlevel! == 0 (
         if exist "%%d\*.csproj" (
             echo [RUNNING] %%d
-            dotnet test "%%d" --no-build --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
-        )
-    )
-)
+            dotnet test "%%d" --no-build ^
+              --collect:"XPlat Code Coverage" ^
+              --results-directory "%%d\TestResults" ^
+              -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
 
-:: 2. NẾU LÀ APPHOST -> Chạy thêm Unit Test của BuildingBlocks
-if "!SNAME!"=="AppHost" (
-    echo --- [AppHost Mode] Dang chay test cua BuildingBlocks... ---
-    :: Build BB trước cho chắc ăn
-    dotnet build "%BASE_DIR%backend\BuildingBlocks" -c Debug -v quiet
-    
-    for /d /r "%BASE_DIR%backend\BuildingBlocks" %%d in (*) do (
-        set "foldername=%%~nxd"
-        echo !foldername! | findstr /i "Test" >nul
-        if !errorlevel! == 0 (
-            if exist "%%d\*.csproj" (
-                echo [RUNNING KÉ] %%d
-                dotnet test "%%d" --no-build --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+            :: Copy coverage file về đường dẫn cố định để sonar glob tìm được
+            for /r "%%d\TestResults" %%f in (coverage.opencover.xml) do (
+                copy /y "%%f" "%%d\TestResults\coverage.opencover.xml" >nul 2>&1
             )
         )
     )
 )
 
+:: NẾU LÀ APPHOST -> chạy thêm test của BuildingBlocks
+if "!SNAME!"=="AppHost" (
+    echo --- [AppHost Mode] Dang chay test cua BuildingBlocks... ---
+    dotnet build "%BASE_DIR%backend\BuildingBlocks" -c Debug -v quiet
+
+    for /d /r "%BASE_DIR%backend\BuildingBlocks" %%d in (*) do (
+        set "foldername=%%~nxd"
+        echo !foldername! | findstr /i "Test" >nul
+        if !errorlevel! == 0 (
+            if exist "%%d\*.csproj" (
+                echo [RUNNING KE] %%d
+                dotnet test "%%d" --no-build ^
+                  --collect:"XPlat Code Coverage" ^
+                  --results-directory "%%d\TestResults" ^
+                  -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+
+                for /r "%%d\TestResults" %%f in (coverage.opencover.xml) do (
+                    copy /y "%%f" "%%d\TestResults\coverage.opencover.xml" >nul 2>&1
+                )
+            )
+        )
+    )
+)
+
+:: ======================================================
 :: BƯỚC 3.4: KẾT THÚC
+:: ======================================================
 dotnet sonarscanner end /d:sonar.token="!SONAR_TOKEN!"
 
 cd /d "%BASE_DIR%"
 
 :FINISH
-echo.
 echo ======================================================
-echo HOAN TAT QUET %SNAME%!
+echo DONE! Check dashboard.
 echo ======================================================
-echo.
-
-:: Mo trinh duyet xem dashboard
-start %SONAR_URL%/dashboard?id=%PROJECT_KEY%
-
-echo Nhan phim bat ky de quay lai Menu...
-pause >nul
+start !SONAR_URL!/dashboard?id=!PROJECT_KEY!
+pause
 goto MENU

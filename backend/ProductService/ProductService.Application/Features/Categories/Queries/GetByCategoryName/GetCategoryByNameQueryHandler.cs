@@ -19,7 +19,7 @@ public sealed class GetCategoryByNameQueryHandler(
             return Result.Invalid(
                 new ValidationError("Category name cannot be empty."));
         }
-        var category = await categoryRepository.GetByCategoryNameAsync(
+        var category = await categoryRepository.GetByCategoryNameContainingAsync(
             request.CategoryName,
             cancellationToken);
         if (category == null)
