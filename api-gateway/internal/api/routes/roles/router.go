@@ -26,10 +26,10 @@ func (rR *RoleRouter) Init(r *gin.RouterGroup) {
 	rolePermApi := privateApi.Group("/:id/permissions")
 	{
 		rolePermApi.GET("",
-			rR.authMW.PermissionCheck("role.read_permission"),
+			rR.authMW.PermissionCheck("role.permission.read"),
 			api.WrapHandler(rR.roleHl.GetPermissionsByRoleId))
 		rolePermApi.PUT("",
-			rR.authMW.PermissionCheck("role.update_permission"),
+			rR.authMW.PermissionCheck("role.permission.update"),
 			api.WrapHandler(rR.roleHl.UpdateRolePermissions))
 	}
 }

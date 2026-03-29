@@ -114,12 +114,12 @@ func (s *ShiftsRouter) Init(r *gin.RouterGroup) {
 	timeLogApi := shiftApi.Group("/time-logs")
 	{
 		// 1. Lấy toàn bộ nhật ký chấm công (kèm bộ lọc: store, staff, status, date)
-		timeLogApi.GET("", s.authMW.PermissionCheck("shift.time_log.read"),
+		timeLogApi.GET("", s.authMW.PermissionCheck("shift.time-log.read"),
 			api.WrapHandler(s.shiftHl.GetAllTimeLogs),
 		)
 
 		// 2. Duyệt hoặc cập nhật trạng thái chấm công (Valid/Invalid + Note)
-		timeLogApi.PATCH("/:id", s.authMW.PermissionCheck("shift.time_log.write"),
+		timeLogApi.PATCH("/:id", s.authMW.PermissionCheck("shift.time-log.write"),
 			api.WrapHandler(s.shiftHl.UpdateTimeLog),
 		)
 	}

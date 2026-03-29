@@ -6,9 +6,11 @@ import (
 	"api-gateway/internal/application/constants/errorcode"
 	"api-gateway/internal/application/gateways/identity"
 	"api-gateway/internal/domain/constants/jwttype"
+	"api-gateway/internal/domain/constants/roleslug"
 	"api-gateway/pkg/utils/contextutils"
 	"api-gateway/pkg/utils/grpcutils"
 	"api-gateway/pkg/utils/jwtutils"
+	"slices"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -34,41 +36,44 @@ func NewAuthMiddleware(
 
 func (a *AuthMiddleware) PermissionCheck(permSlug string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		_, err := contextutils.GetRoleSlug(c)
+		roleSlug, err := contextutils.GetRoleSlug(c)
 		if err != nil {
 			abortWithErr(c, errorcode.ErrInvalidAccessToken)
 			return
 		}
 
-		// isLoaded, err := a.permCache.IsRoleLoaded(c, roleSlug)
-		// if err != nil {
-		// 	abortWithErr(c, err)
-		// 	return
-		// }
+		if roleSlug == string(roleslug.Admin) {
+			c.Next()
+			return
+		}
 
-		// if !isLoaded {
-		// 	perms, err := a.rpService.GetPermissionsBySlug(c, roleSlug)
-		// 	if err != nil {
-		// 		abortWithErr(c, err)
-		// 		return
-		// 	}
+		isLoaded, err := a.permCache.IsRoleLoaded(c, roleSlug)
+		if err != nil {
+			abortWithErr(c, err)
+			return
+		}
 
-		// 	if !slices.Contains(perms, permSlug) {
-		// 		abortWithErr(c, errorcode.ErrForbidden)
-		// 		return
-		// 	}
-		// } else {
-		// 	hasPerm, err := a.permCache.HasPermission(c, roleSlug, permSlug)
-		// 	if err != nil {
-		// 		abortWithErr(c, err)
-		// 		return
-		// 	}
+		var hasPerm bool
+		if !isLoaded {
+			perms, err := a.rpService.GetPermissionsBySlug(c, roleSlug)
+			if err != nil {
+				abortWithErr(c, err)
+				return
+			}
 
-		// 	if !hasPerm {
-		// 		abortWithErr(c, errorcode.ErrForbidden)
-		// 		return
-		// 	}
-		// }
+			hasPerm = slices.Contains(perms, permSlug)
+		} else {
+			hasPerm, err = a.permCache.HasPermission(c, roleSlug, permSlug)
+			if err != nil {
+				abortWithErr(c, err)
+				return
+			}
+		}
+
+		if !hasPerm {
+			abortWithErr(c, errorcode.ErrForbidden)
+			return
+		}
 
 		c.Next()
 	}
@@ -76,8 +81,6 @@ func (a *AuthMiddleware) PermissionCheck(permSlug string) gin.HandlerFunc {
 
 func (a *AuthMiddleware) ValidateToken(secret []byte) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// CHECK NHANH: Nếu đã xác thực rồi thì bỏ qua (Skip)
-		// Kiểm tra xem key "userID" đã tồn tại trong context chưa
 		if _, exists := c.Get(contextutils.CtxUserId); exists {
 			c.Next()
 			return
@@ -127,7 +130,6 @@ func (a *AuthMiddleware) ValidateToken(secret []byte) gin.HandlerFunc {
 			return
 		}
 
-		// 3. GHI ĐÈ Request Context hiện tại bằng Context mới đã có gRPC Metadata
 		c.Request = c.Request.WithContext(grpcCtx)
 
 		c.Next()

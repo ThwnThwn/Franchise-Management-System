@@ -12,14 +12,14 @@ func (i *IngredientCategoryRouter) Init(ingreR *gin.RouterGroup) {
 	privateApi := ingreApi.Group("")
 	privateApi.Use(i.authMW.ValidateToken([]byte(i.cfg.JwtSecret)))
 	{
-		privateApi.GET("", i.authMW.PermissionCheck("ingredient-category.read"),
+		privateApi.GET("", i.authMW.PermissionCheck("ingredient.category.read"),
 			api.WrapHandler(i.ingreCateHl.GetAll))
 
-		privateApi.POST("", i.authMW.PermissionCheck("ingredient-category.create"),
+		privateApi.POST("", i.authMW.PermissionCheck("ingredient.category.create"),
 			api.WrapHandler(i.ingreCateHl.Create))
-		privateApi.PATCH("/:id", i.authMW.PermissionCheck("ingredient-category.update"),
+		privateApi.PATCH("/:id", i.authMW.PermissionCheck("ingredient.category.update"),
 			api.WrapHandler(i.ingreCateHl.UpdateById))
-		privateApi.DELETE("/:id", i.authMW.PermissionCheck("ingredient-category.delete"),
+		privateApi.DELETE("/:id", i.authMW.PermissionCheck("ingredient.category.delete"),
 			api.WrapHandler(i.ingreCateHl.DeleteById))
 	}
 }
