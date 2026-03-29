@@ -29,15 +29,16 @@ func NewRefundTicketHandler(refundGW sales.IRefundTicketService) *RefundTicketHa
 // ----------------------------------------------------------------------
 
 // GetMyRefunds
-// @Summary      Xem danh sách yêu cầu hoàn tiền của tôi
-// @Description  Lấy danh sách các ticket hoàn tiền do chính user đang đăng nhập tạo (có phân trang).
+// @Summary      Get my refund requests
+// @Description  Retrieve a paginated list of refund tickets created by the currently logged-in user.
 // @Tags         Refunds
 // @Produce      json
 // @Security     BearerAuth
-// @Param        query query    wallet.GetAllRefundsRequest true "Các tham số lọc và phân trang"
-// @Success      200   {object} common.PaginationResult[wallet.RefundTicketSummary] "Danh sách ticket"
-// @Failure      400   {object} map[string]string "Tham số không hợp lệ"
-// @Failure      401   {object} map[string]string "Chưa đăng nhập"
+// @Param        query query  wallet.GetAllRefundsRequest true "Filtering and pagination parameters"
+// @Success      200   {object} common.PaginationResult[wallet.RefundTicketSummary] "List of refund tickets"
+// @Failure      400   {object} map[string]string "Validation Error (Bad Request)"
+// @Failure      401   {object} map[string]string "Unauthorized"
+// @Failure      500   {object} object "Internal Server Error"
 // @Router       /me/refunds [get]
 func (h *RefundTicketHandler) GetMyRefunds(c *gin.Context) error {
 	var req wallet.GetAllRefundsRequest
@@ -63,15 +64,17 @@ func (h *RefundTicketHandler) GetMyRefunds(c *gin.Context) error {
 }
 
 // CreateRefund
-// @Summary      Tạo yêu cầu hoàn tiền mới
-// @Description  Khách hàng chủ động tạo một yêu cầu hoàn tiền (ticket) cho một giao dịch/đơn hàng.
+// @Summary      Create a new refund request
+// @Description  Customer proactively creates a refund request (ticket) for a specific transaction or order.
 // @Tags         Refunds
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        request body     wallet.CreateRefundByCustomerRequest true "Thông tin yêu cầu hoàn tiền"
-// @Success      200     {object} map[string]string "Tạo thành công"
-// @Failure      400     {object} map[string]string "Dữ liệu đầu vào không hợp lệ"
+// @Param        request body     wallet.CreateRefundByCustomerRequest true "Refund request details"
+// @Success      200     {object} map[string]string "{"message": "Tạo yêu cầu hoàn tiền thành công"}"
+// @Failure      400     {object} map[string]string "Validation Error (Bad Request)"
+// @Failure      401     {object} object "Unauthorized"
+// @Failure      500     {object} object "Internal Server Error"
 // @Router       /me/refunds [post]
 func (h *RefundTicketHandler) CreateRefund(c *gin.Context) error {
 	var req wallet.CreateRefundByCustomerRequest
@@ -95,16 +98,17 @@ func (h *RefundTicketHandler) CreateRefund(c *gin.Context) error {
 // ----------------------------------------------------------------------
 
 // GetAllRefunds
-// @Summary      Xem toàn bộ danh sách hoàn tiền
-// @Description  Dành cho Staff, Manager, Admin lấy danh sách các ticket hoàn tiền. Có thể truyền thêm `userId` vào query để lọc riêng của một người.
+// @Summary      Get all refund requests (Admin)
+// @Description  Retrieve a list of all refund tickets (Intended for Staff, Manager, Admin). Can optionally pass a `userId` in the query to filter by a specific user.
 // @Tags         Refunds
 // @Produce      json
 // @Security     BearerAuth
-// @Param        userId query    string false "Lọc theo UUID của người dùng cụ thể (Tùy chọn)"
-// @Param        query  query    wallet.GetAllRefundsRequest true "Các tham số lọc và phân trang"
-// @Success      200    {object} common.PaginationResult[wallet.RefundTicketSummary] "Danh sách ticket"
-// @Failure      400    {object} map[string]string "Tham số không hợp lệ"
-// @Failure      401    {object} map[string]string "Chưa đăng nhập"
+// @Param        userId  query    string false "Filter by specific User UUID (Optional)"
+// @Param        query   query    wallet.GetAllRefundsRequest true "Filtering and pagination parameters"
+// @Success      200     {object} common.PaginationResult[wallet.RefundTicketSummary] "List of refund tickets"
+// @Failure      400     {object} map[string]string "Validation Error (Bad Request)"
+// @Failure      401     {object} map[string]string "Unauthorized"
+// @Failure      500     {object} object "Internal Server Error"
 // @Router       /refunds [get]
 func (h *RefundTicketHandler) GetAllRefunds(c *gin.Context) error {
 	// Dùng Struct Nặc Danh để hứng thêm userId từ Query
@@ -144,14 +148,16 @@ func (h *RefundTicketHandler) GetAllRefunds(c *gin.Context) error {
 // ----------------------------------------------------------------------
 
 // GetRefundById
-// @Summary      Xem chi tiết một yêu cầu hoàn tiền
-// @Description  Lấy thông tin chi tiết của ticket hoàn tiền. Tầng Service sẽ tự check quyền dựa trên ctxUserId.
+// @Summary      Get refund ticket details
+// @Description  Retrieve detailed information of a specific refund ticket. The service layer handles authorization based on the user's role and token.
 // @Tags         Refunds
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id  path     string true "UUID của ticket hoàn tiền"
-// @Success      200 {object} wallet.RefundTicketDetail
-// @Failure      404 {object} map[string]string "Không tìm thấy ticket"
+// @Param        id   path     string true "Refund ticket UUID"
+// @Success      200  {object} wallet.RefundTicketDetail "Refund ticket details"
+// @Failure      401  {object} object "Unauthorized"
+// @Failure      404  {object} map[string]string "Refund ticket not found"
+// @Failure      500  {object} object "Internal Server Error"
 // @Router       /refunds/{id} [get]
 func (h *RefundTicketHandler) GetRefundById(c *gin.Context) error {
 	ticketIdStr := c.Param("id")
@@ -177,15 +183,18 @@ func (h *RefundTicketHandler) GetRefundById(c *gin.Context) error {
 }
 
 // ApproveRefund
-// @Summary      Duyệt yêu cầu hoàn tiền
-// @Description  (Admin) Chấp nhận và tiến hành hoàn tiền cho khách.
+// @Summary      Approve refund request (Admin)
+// @Description  Accept and process the refund request for the customer.
 // @Tags         Refunds
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id      path     string                      true "UUID của ticket hoàn tiền"
-// @Param        request body     wallet.ApproveRefundRequest true "Lý do duyệt"
-// @Success      200     {object} map[string]string           "Thành công"
+// @Param        id       path     string                      true "Refund ticket UUID"
+// @Param        request  body     wallet.ApproveRefundRequest true "Approval details/reason"
+// @Success      200      {object} map[string]string           "{"message": "Đã duyệt yêu cầu hoàn tiền"}"
+// @Failure      400      {object} object "Validation Error or Invalid ID"
+// @Failure      401      {object} object "Unauthorized"
+// @Failure      500      {object} object "Internal Server Error"
 // @Router       /refunds/{id}/approve [patch]
 func (h *RefundTicketHandler) ApproveRefund(c *gin.Context) error {
 	var req wallet.ApproveRefundRequest
@@ -211,15 +220,18 @@ func (h *RefundTicketHandler) ApproveRefund(c *gin.Context) error {
 }
 
 // RejectRefund
-// @Summary      Từ chối yêu cầu hoàn tiền
-// @Description  (Admin) Từ chối yêu cầu hoàn tiền kèm theo lý do cụ thể.
+// @Summary      Reject refund request (Admin)
+// @Description  Reject a refund request and provide a specific reason to the customer.
 // @Tags         Refunds
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id      path     string                     true "UUID của ticket hoàn tiền"
-// @Param        request body     wallet.RejectRefundRequest true "Lý do từ chối"
-// @Success      200     {object} map[string]string          "Thành công"
+// @Param        id       path     string                     true "Refund ticket UUID"
+// @Param        request  body     wallet.RejectRefundRequest true "Rejection reason"
+// @Success      200      {object} map[string]string          "{"message": "Đã từ chối yêu cầu hoàn tiền"}"
+// @Failure      400      {object} object "Validation Error or Invalid ID"
+// @Failure      401      {object} object "Unauthorized"
+// @Failure      500      {object} object "Internal Server Error"
 // @Router       /refunds/{id}/reject [patch]
 func (h *RefundTicketHandler) RejectRefund(c *gin.Context) error {
 	var req wallet.RejectRefundRequest
@@ -245,15 +257,18 @@ func (h *RefundTicketHandler) RejectRefund(c *gin.Context) error {
 }
 
 // CancelRefund
-// @Summary      Hủy yêu cầu hoàn tiền
-// @Description  (Customer/Admin) Hủy bỏ ticket hoàn tiền (thường do khách hàng đổi ý).
+// @Summary      Cancel refund request
+// @Description  Cancel an active refund ticket (usually performed by the customer if they change their mind).
 // @Tags         Refunds
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id      path     string                     true "UUID của ticket hoàn tiền"
-// @Param        request body     wallet.CancelRefundRequest true "Lý do hủy"
-// @Success      200     {object} map[string]string          "Thành công"
+// @Param        id       path     string                     true "Refund ticket UUID"
+// @Param        request  body     wallet.CancelRefundRequest true "Cancellation reason"
+// @Success      200      {object} map[string]string          "{"message": "Đã hủy yêu cầu hoàn tiền"}"
+// @Failure      400      {object} object "Validation Error or Invalid ID"
+// @Failure      401      {object} object "Unauthorized"
+// @Failure      500      {object} object "Internal Server Error"
 // @Router       /refunds/{id}/cancel [patch]
 func (h *RefundTicketHandler) CancelRefund(c *gin.Context) error {
 	var req wallet.CancelRefundRequest
@@ -279,15 +294,18 @@ func (h *RefundTicketHandler) CancelRefund(c *gin.Context) error {
 }
 
 // CompleteRefund
-// @Summary      Đánh dấu hoàn tất hoàn tiền
-// @Description  (Staff/Manager/Admin) Xác nhận quá trình chuyển tiền đã xong, đóng ticket.
+// @Summary      Mark refund as complete (Admin)
+// @Description  Confirm that the money transfer process is successful and close the refund ticket.
 // @Tags         Refunds
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id      path     string                          true "UUID của ticket hoàn tiền"
-// @Param        request body     wallet.SetCompleteRefundRequest true "Ghi chú hoàn tất"
-// @Success      200     {object} map[string]string               "Thành công"
+// @Param        id       path     string                          true "Refund ticket UUID"
+// @Param        request  body     wallet.SetCompleteRefundRequest true "Completion notes"
+// @Success      200      {object} map[string]string               "{"message": "Đã đánh dấu hoàn tất yêu cầu hoàn tiền"}"
+// @Failure      400      {object} object "Validation Error or Invalid ID"
+// @Failure      401      {object} object "Unauthorized"
+// @Failure      500      {object} object "Internal Server Error"
 // @Router       /refunds/{id}/complete [patch]
 func (h *RefundTicketHandler) CompleteRefund(c *gin.Context) error {
 	var req wallet.SetCompleteRefundRequest

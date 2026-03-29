@@ -21,14 +21,18 @@ func NewShiftSwapHandler(swapGW franchise.IShiftSwapService) *ShiftSwapHandler {
 }
 
 // RequestSwap
-// @Summary      Tạo yêu cầu đổi ca (A gửi cho B)
-// @Description  Nhân viên A chọn một ca của mình và yêu cầu đổi với nhân viên B.
+// @Summary      Request a shift swap
+// @Description  Employee A selects one of their assignments and requests a swap with Employee B.
 // @Tags         Shifts: Swaps
 // @Security     BearerAuth
 // @Accept       json
 // @Produce      json
-// @Param        id   path string true "Assignment ID (Ca của người gửi)"
-// @Param        body body shift.RequestSwapRequest true "Dữ liệu yêu cầu đổi ca"
+// @Param        id   path   string true "Assignment ID (Sender's shift)"
+// @Param        body body   shift.RequestSwapRequest true "Swap request details"
+// @Success      201  {object} map[string]interface{} "{"message": "Đã gửi yêu cầu đổi ca"}"
+// @Failure      400  {object} object "Validation Error (Bad Request)"
+// @Failure      401  {object} object "Unauthorized"
+// @Failure      500  {object} object "Internal Server Error"
 // @Router       /shifts/{id}/swaps [post]
 func (h *ShiftSwapHandler) RequestSwap(c *gin.Context) error {
 	assignmentId, err := uuid.Parse(c.Param("id"))
@@ -56,14 +60,18 @@ func (h *ShiftSwapHandler) RequestSwap(c *gin.Context) error {
 }
 
 // RespondSwap
-// @Summary      Nhân viên phản hồi yêu cầu đổi ca (B phản hồi cho A)
-// @Description  Nhân viên B nhận được yêu cầu và chọn Chấp nhận hoặc Từ chối.
+// @Summary      Respond to a shift swap request
+// @Description  Employee B receives the swap request and chooses to Accept or Reject it.
 // @Tags         Shifts: Swaps
 // @Security     BearerAuth
 // @Accept       json
 // @Produce      json
-// @Param        id   path string true "Swap Request ID"
-// @Param        body body shift.RespondSwapRequest true "Phản hồi của nhân viên nhận yêu cầu"
+// @Param        id   path   string true "Swap Request ID"
+// @Param        body body   shift.RespondSwapRequest true "Respondent's reply data"
+// @Success      200  {object} map[string]interface{} "{"message": "Đã ghi nhận phản hồi đổi ca"}"
+// @Failure      400  {object} object "Validation Error or Invalid ID"
+// @Failure      401  {object} object "Unauthorized"
+// @Failure      500  {object} object "Internal Server Error"
 // @Router       /shift-swaps/{id}/responses [patch]
 func (h *ShiftSwapHandler) RespondSwap(c *gin.Context) error {
 	swapId, err := uuid.Parse(c.Param("id"))
@@ -91,14 +99,18 @@ func (h *ShiftSwapHandler) RespondSwap(c *gin.Context) error {
 }
 
 // ApproveSwap
-// @Summary      Manager duyệt yêu cầu đổi ca cuối cùng
-// @Description  Sau khi 2 nhân viên đồng ý, Manager cần duyệt cuối để chính thức đổi ca.
+// @Summary      Approve a shift swap (Manager)
+// @Description  After both employees agree to the swap, the Manager gives final approval to officially update the schedule.
 // @Tags         Shifts: Swaps
 // @Security     BearerAuth
 // @Accept       json
 // @Produce      json
-// @Param        id   path string true "Swap Request ID"
-// @Param        body body shift.ApproveSwapRequest true "Kết quả duyệt của Manager"
+// @Param        id   path   string true "Swap Request ID"
+// @Param        body body   shift.ApproveSwapRequest true "Manager's approval decision"
+// @Success      200  {object} map[string]interface{} "{"message": "Đã hoàn tất duyệt đổi ca"}"
+// @Failure      400  {object} object "Validation Error or Invalid ID"
+// @Failure      401  {object} object "Unauthorized"
+// @Failure      500  {object} object "Internal Server Error"
 // @Router       /shift-swaps/{id}/approvals [patch]
 func (h *ShiftSwapHandler) ApproveSwap(c *gin.Context) error {
 	swapId, err := uuid.Parse(c.Param("id"))
@@ -126,12 +138,16 @@ func (h *ShiftSwapHandler) ApproveSwap(c *gin.Context) error {
 }
 
 // CancelSwap
-// @Summary      Tự hủy yêu cầu đổi ca đã gửi
-// @Description  Nhân viên gửi yêu cầu có thể tự hủy nếu yêu cầu chưa được phê duyệt.
+// @Summary      Cancel a sent swap request
+// @Description  The requesting employee can cancel their swap request if it hasn't been approved yet.
 // @Tags         Shifts: Swaps
 // @Security     BearerAuth
 // @Produce      json
-// @Param        id path string true "Swap Request ID"
+// @Param        id   path   string true "Swap Request ID"
+// @Success      204  {object} nil "No Content (Cancelled successfully)"
+// @Failure      400  {object} object "Invalid ID or Bad Request"
+// @Failure      401  {object} object "Unauthorized"
+// @Failure      500  {object} object "Internal Server Error"
 // @Router       /shift-swaps/{id}/cancel [patch]
 func (h *ShiftSwapHandler) CancelSwap(c *gin.Context) error {
 	swapId, err := uuid.Parse(c.Param("id"))
@@ -154,12 +170,16 @@ func (h *ShiftSwapHandler) CancelSwap(c *gin.Context) error {
 }
 
 // Release
-// @Summary      Nhả ca về Chợ Ca (Shift Pool)
-// @Description  Nhân viên trả lại ca làm đã nhận để người khác có thể đăng ký.
+// @Summary      Release a shift to the Shift Pool
+// @Description  The employee releases an assigned shift so other staff members can apply for it.
 // @Tags         Shifts: Swaps
 // @Security     BearerAuth
 // @Produce      json
-// @Param        id path string true "Assignment ID"
+// @Param        id   path   string true "Assignment ID"
+// @Success      200  {object} map[string]interface{} "{"message": "Đã nhả ca thành công"}"
+// @Failure      400  {object} object "Invalid ID or Bad Request"
+// @Failure      401  {object} object "Unauthorized"
+// @Failure      500  {object} object "Internal Server Error"
 // @Router       /shifts/{id}/releases [patch]
 func (h *ShiftSwapHandler) Release(c *gin.Context) error {
 	assignmentId, err := uuid.Parse(c.Param("id"))
@@ -182,12 +202,16 @@ func (h *ShiftSwapHandler) Release(c *gin.Context) error {
 }
 
 // GetAll
-// @Summary      Lấy danh sách yêu cầu đổi ca
-// @Description  Lấy toàn bộ các yêu cầu đổi ca.
+// @Summary      Get all shift swaps
+// @Description  Retrieve a complete list of all shift swap requests (typically for managers).
 // @Tags         Shifts: Swaps
 // @Security     BearerAuth
 // @Produce      json
-// @Param        query  query     shift.GetAllSwapsParams  false  "Filter params"
+// @Param        query query  shift.GetAllSwapsParams false "Filter parameters"
+// @Success      200   {array}  shift.SwapRequestItem "List of swap requests"
+// @Failure      400   {object} object "Validation Error (Bad Request)"
+// @Failure      401   {object} object "Unauthorized"
+// @Failure      500   {object} object "Internal Server Error"
 // @Router       /shift-swaps [get]
 func (h *ShiftSwapHandler) GetAll(c *gin.Context) error {
 	var params shift.GetAllSwapsParams
@@ -208,11 +232,14 @@ func (h *ShiftSwapHandler) GetAll(c *gin.Context) error {
 }
 
 // GetMySwaps
-// @Summary      Lấy danh sách yêu cầu đổi ca của tôi
-// @Description  Lấy toàn bộ các yêu cầu đổi ca mà tôi là người gửi hoặc người nhận.
+// @Summary      Get my shift swaps
+// @Description  Retrieve all shift swap requests where the current logged-in user is either the sender or the receiver.
 // @Tags         Shifts: Swaps
 // @Security     BearerAuth
 // @Produce      json
+// @Success      200   {array}  shift.SwapRequestItem "List of user's swap requests"
+// @Failure      401   {object} object "Unauthorized"
+// @Failure      500   {object} object "Internal Server Error"
 // @Router       /me/shift-swaps [get]
 func (h *ShiftSwapHandler) GetMySwaps(c *gin.Context) error {
 	userId, err := contextutils.GetUserId(c)

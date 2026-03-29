@@ -21,12 +21,25 @@ const docTemplatevnpay = `{
     "paths": {
         "/vnpay/ipn": {
             "get": {
-                "description": "Nhận callback từ VNPay, phân loại đơn hàng và điều phối đến đúng Service qua gRPC.",
+                "description": "Receive Instant Payment Notification (IPN) callbacks from VNPay. Acts as a dispatcher to classify the transaction type (e.g., Customer Orders vs. Supplier Purchase Orders) and securely route the payload to the appropriate underlying Microservice via gRPC.",
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Payments"
                 ],
-                "summary": "VNPay IPN Dispatcher",
-                "responses": {}
+                "summary": "Handle VNPay IPN Webhook",
+                "responses": {
+                    "200": {
+                        "description": "Always returns HTTP 200 with VNPay standard RspCode and Message",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
             }
         }
     },
@@ -43,10 +56,10 @@ const docTemplatevnpay = `{
 // SwaggerInfovnpay holds exported Swagger Info so clients can modify it
 var SwaggerInfovnpay = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:8080",
+	Host:             "",
 	BasePath:         "/api",
 	Schemes:          []string{},
-	Title:            "API Gateway Documentation",
+	Title:            "Capital Franchise Supply Chain Management System API Document",
 	Description:      "API docs for CHD Gateway.",
 	InfoInstanceName: "vnpay",
 	SwaggerTemplate:  docTemplatevnpay,

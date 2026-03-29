@@ -32,14 +32,17 @@ func NewSupplierPaymentHandler(
 }
 
 // Create
-// @Summary      Tạo thanh toán cho đơn nhập hàng
-// @Description  Khởi tạo thanh toán bằng Tiền mặt (CASH) hoặc lấy URL VNPay để thanh toán.
+// @Summary      Create purchase order payment
+// @Description  Initialize a payment using Cash or generate a VNPay payment URL for a purchase order.
 // @Tags         Suppliers / Payments
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        request body supplier.CreateSupplierPaymentReq true "Thông tin thanh toán"
-// @Success      200 {object} supplier.CreateSupplierPaymentRes
+// @Param        request body     supplier.CreateSupplierPaymentReq true "Payment information"
+// @Success      200     {object} supplier.CreateSupplierPaymentRes "Successfully created payment"
+// @Failure      400     {object} object "Validation Error (Bad Request)"
+// @Failure      401     {object} object "Unauthorized"
+// @Failure      500     {object} object "Internal Server Error"
 // @Router       /suppliers/payments [post]
 func (h *SupplierPaymentHandler) Create(c *gin.Context) error {
 	var req supplier.CreateSupplierPaymentReq
@@ -59,13 +62,16 @@ func (h *SupplierPaymentHandler) Create(c *gin.Context) error {
 }
 
 // GetAll
-// @Summary      Toàn bộ lịch sử thanh toán nhà cung cấp
-// @Description  Dành cho Admin/Kế toán theo dõi toàn bộ dòng tiền nhập hàng.
+// @Summary      Get all supplier payments
+// @Description  Retrieve the complete payment history for suppliers (Intended for Admins/Accountants to track cash flow).
 // @Tags         Suppliers / Payments
 // @Produce      json
 // @Security     BearerAuth
-// @Param        query query supplier.GetAllSupplierPaymentsReq true "Phân trang và lọc"
-// @Success      200 {object} common.PaginationResult[supplier.SupplierPaymentSummary]
+// @Param        query   query    supplier.GetAllSupplierPaymentsReq true "Pagination and filtering parameters"
+// @Success      200     {object} common.PaginationResult[supplier.SupplierPaymentSummary] "List of supplier payments"
+// @Failure      400     {object} object "Validation Error (Bad Request)"
+// @Failure      401     {object} object "Unauthorized"
+// @Failure      500     {object} object "Internal Server Error"
 // @Router       /suppliers/payments [get]
 func (h *SupplierPaymentHandler) GetAll(c *gin.Context) error {
 	var req supplier.GetAllSupplierPaymentsReq
@@ -85,13 +91,17 @@ func (h *SupplierPaymentHandler) GetAll(c *gin.Context) error {
 }
 
 // GetByPoId
-// @Summary      Danh sách thanh toán của một PO
-// @Description  Lấy lịch sử các đợt trả tiền của một đơn nhập hàng cụ thể.
+// @Summary      Get payments by Purchase Order ID
+// @Description  Retrieve the payment history (installments/transactions) for a specific Purchase Order.
 // @Tags         Suppliers / Payments
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id path string true "UUID của đơn nhập hàng (Purchase Order)"
-// @Success      200 {array} supplier.SupplierPaymentDetail
+// @Param        id      path     string true "Purchase Order UUID"
+// @Success      200     {array}  supplier.SupplierPaymentDetail "List of payments for the PO"
+// @Failure      400     {object} object "Invalid UUID format"
+// @Failure      401     {object} object "Unauthorized"
+// @Failure      404     {object} object "Purchase Order not found"
+// @Failure      500     {object} object "Internal Server Error"
 // @Router       /suppliers/purchase-orders/{id}/payments [get]
 func (h *SupplierPaymentHandler) GetByPoId(c *gin.Context) error {
 	idStr := c.Param("id")
@@ -112,18 +122,19 @@ func (h *SupplierPaymentHandler) GetByPoId(c *gin.Context) error {
 }
 
 // HandleVnPayReturn
-// @Summary      Xử lý VNPay Return cho đơn nhập hàng (Supplier)
-// @Description  Endpoint nhận redirect từ VNPay. Verify chữ ký qua gRPC và bẻ lái trình duyệt về giao diện Frontend.
+// @Summary      Handle VNPay Return URL (Supplier Payment)
+// @Description  Callback endpoint for VNPay after a payment. Verifies the gRPC signature and redirects the browser to the Frontend UI with the payment status.
 // @Tags         Suppliers / Payments
 // @Produce      html
-// @Param        vnp_Amount       query string false "Số tiền giao dịch"
-// @Param        vnp_BankCode     query string false "Mã ngân hàng"
-// @Param        vnp_OrderInfo    query string false "Thông tin đơn hàng"
-// @Param        vnp_ResponseCode query string false "Mã phản hồi VNPAY"
-// @Param        vnp_TxnRef       query string false "Mã tham chiếu (Mã Payment)"
-// @Param        vnp_SecureHash   query string false "Chữ ký bảo mật"
-// @Param        redirectTo       query string false "Path của FE muốn quay về (VD: /suppliers/purchase-orders/123)"
-// @Success      302 "Redirect về Frontend App"
+// @Param        vnp_Amount       query string false "Transaction Amount"
+// @Param        vnp_BankCode     query string false "Bank Code"
+// @Param        vnp_OrderInfo    query string false "Order Information"
+// @Param        vnp_ResponseCode query string false "VNPAY Response Code"
+// @Param        vnp_TxnRef       query string false "Transaction Reference (Payment Code)"
+// @Param        vnp_SecureHash   query string false "Checksum Security Hash"
+// @Param        redirectTo       query string false "Frontend path to redirect to (e.g., /suppliers/purchase-orders/123)"
+// @Success      302 "Redirects to the Frontend application"
+// @Failure      400 "Bad Request or Invalid Signature"
 // @Router       /suppliers/payments/vnpay/return [get]
 func (h *SupplierPaymentHandler) HandleVnPayReturn(c *gin.Context) error {
 	// 1. PHÂN LOẠI PARAMS: Lọc riêng vnp_ và nhặt redirectTo

@@ -99,14 +99,13 @@ definitions:
       name:
         type: string
     type: object
-host: localhost:8080
 info:
   contact:
     email: support@swagger.io
     name: API Support
   description: API docs for CHD Gateway.
   termsOfService: http://swagger.io/terms/
-  title: API Gateway Documentation
+  title: Capital Franchise Supply Chain Management System API Document
   version: "1.0"
 paths:
   /categories:

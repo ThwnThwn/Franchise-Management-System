@@ -19,12 +19,16 @@ func NewShiftRuleHandler(shiftGW franchise.IShiftRuleService) *ShiftRuleHandler 
 }
 
 // GetSettings
-// @Summary      Lấy cấu hình quy định ca làm
-// @Description  Lấy thông tin cấu hình luật ca làm việc (Global và theo Store) để hiển thị trên trang cài đặt.
+// @Summary      Get shift rule settings
+// @Description  Retrieve shift rule configurations (Global and Store-specific) to display on the settings page.
 // @Tags         Shifts: Rule
 // @Security     BearerAuth
-// @Param        storeId query string false "ID cửa hàng (Nếu muốn lọc theo store cụ thể)"
-// @Success      200 {object} shift.ShiftRuleSettingsResponse "Dữ liệu cấu hình"
+// @Produce      json
+// @Param        storeId query  string false "Store ID (Optional, to filter by a specific store)"
+// @Success      200     {object} shift.ShiftRuleSettingsResponse "Configuration data"
+// @Failure      400     {object} object "Validation Error (Bad Request)"
+// @Failure      401     {object} object "Unauthorized"
+// @Failure      500     {object} object "Internal Server Error"
 // @Router       /shift-rules [get]
 func (h *ShiftRuleHandler) GetSettings(c *gin.Context) error {
 	// FE gửi params: { storeId } qua Query String
@@ -46,11 +50,17 @@ func (h *ShiftRuleHandler) GetSettings(c *gin.Context) error {
 }
 
 // Save
-// @Summary      Lưu cấu hình quy định ca làm
-// @Description  Cập nhật hoặc tạo mới các quy định về ca làm việc (Giờ tối đa, thời gian nghỉ...).
+// @Summary      Save shift rule settings
+// @Description  Create or update shift rules and constraints (e.g., maximum working hours, required break times).
 // @Tags         Shifts: Rule
 // @Security     BearerAuth
-// @Param        payload body shift.SaveShiftRuleRequest true "Dữ liệu quy định cần lưu"
+// @Accept       json
+// @Produce      json
+// @Param        payload body   shift.SaveShiftRuleRequest true "Rule configuration data to save"
+// @Success      200     {object} map[string]interface{} "Successfully saved rule settings"
+// @Failure      400     {object} object "Validation Error (Bad Request)"
+// @Failure      401     {object} object "Unauthorized"
+// @Failure      500     {object} object "Internal Server Error"
 // @Router       /shift-rules [put]
 func (h *ShiftRuleHandler) Save(c *gin.Context) error {
 	var req shift.SaveShiftRuleRequest

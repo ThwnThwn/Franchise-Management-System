@@ -34,7 +34,6 @@ func NewEngine(cfg *config.Config, aR *AppRouter) *gin.Engine {
 	r.Static("/api-docs", "./docs")
 	r.StaticFile("/swagger", "./docs/index.html")
 
-	// Truy cập: http://localhost:8080/swagger/index.html
 	r.GET("/swagger/*any", func(c *gin.Context) {
 		c.File("./docs/index.html")
 	})

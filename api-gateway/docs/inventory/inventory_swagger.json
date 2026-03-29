@@ -2,7 +2,7 @@
     "swagger": "2.0",
     "info": {
         "description": "API docs for CHD Gateway.",
-        "title": "API Gateway Documentation",
+        "title": "Capital Franchise Supply Chain Management System API Document",
         "termsOfService": "http://swagger.io/terms/",
         "contact": {
             "name": "API Support",
@@ -10,7 +10,6 @@
         },
         "version": "1.0"
     },
-    "host": "localhost:8080",
     "basePath": "/api",
     "paths": {
         "/ingredients": {

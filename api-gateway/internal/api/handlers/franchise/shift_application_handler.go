@@ -20,13 +20,18 @@ func NewShiftApplicationHandler(appGW franchise.IShiftApplicationService) *Shift
 }
 
 // Apply
-// @Summary      Nhân viên đăng ký nhận ca (Tạo mới một đơn đăng ký)
-// @Description  Tạo một bản ghi ShiftApplication cho ca làm việc cụ thể. UserId lấy từ Token.
+// @Summary      Apply for a shift
+// @Description  Employee applies for a specific shift. Creates a new ShiftApplication record. UserId is extracted from the authentication token.
 // @Tags         Shifts: Applications
+// @Security     BearerAuth
 // @Accept       json
 // @Produce      json
-// @Param        id path string true "Shift ID"
-// @Param        body body shift.ApplyForShiftRequest true "Ghi chú đăng ký"
+// @Param        id    path  string true "Shift ID"
+// @Param        body  body  shift.ApplyForShiftRequest true "Application notes and details"
+// @Success      201   {object} map[string]string "{"message": "Gửi đơn đăng ký nhận ca thành công"}"
+// @Failure      400   {object} object "Validation Error (Bad Request)"
+// @Failure      401   {object} object "Unauthorized"
+// @Failure      500   {object} object "Internal Server Error"
 // @Router       /shifts/{id}/applications [post]
 func (h *ShiftApplicationHandler) Apply(c *gin.Context) error {
 	shiftId, err := uuid.Parse(c.Param("id"))
@@ -54,11 +59,16 @@ func (h *ShiftApplicationHandler) Apply(c *gin.Context) error {
 }
 
 // GetByShiftId
-// @Summary      Lấy danh sách các đơn đăng ký của một ca làm việc
-// @Description  Manager xem danh sách ứng viên kèm điểm Smart Score để đưa ra quyết định duyệt.
+// @Summary      Get applications by shift ID
+// @Description  Manager views the list of applicants for a specific shift, along with their Smart Scores, to make approval decisions.
 // @Tags         Shifts: Applications
+// @Security     BearerAuth
 // @Produce      json
-// @Param        id path string true "Shift ID"
+// @Param        id    path  string true "Shift ID"
+// @Success      200   {array}  shift.ShiftApplicationItem "List of shift applications"
+// @Failure      400   {object} object "Invalid Shift ID (Bad Request)"
+// @Failure      401   {object} object "Unauthorized"
+// @Failure      500   {object} object "Internal Server Error"
 // @Router       /shifts/{id}/applications [get]
 func (h *ShiftApplicationHandler) GetByShiftId(c *gin.Context) error {
 	shiftId, err := uuid.Parse(c.Param("id"))
@@ -77,13 +87,18 @@ func (h *ShiftApplicationHandler) GetByShiftId(c *gin.Context) error {
 }
 
 // Review
-// @Summary      Duyệt hoặc từ chối đơn đăng ký nhận ca
-// @Description  Manager cập nhật trạng thái đơn (Approved/Rejected). ID đơn lấy từ Path.
+// @Summary      Review shift application
+// @Description  Manager reviews an application and updates its status (Approved/Rejected). The application ID is provided in the path.
 // @Tags         Shifts: Applications
+// @Security     BearerAuth
 // @Accept       json
 // @Produce      json
-// @Param        id path string true "Application ID"
-// @Param        body body shift.ReviewApplicationRequest true "Kết quả duyệt đơn"
+// @Param        id    path  string true "Application ID"
+// @Param        body  body  shift.ReviewApplicationRequest true "Review decision and status"
+// @Success      200   {object} map[string]string "{"message": "Đã cập nhật trạng thái đơn đăng ký"}"
+// @Failure      400   {object} object "Validation Error (Bad Request)"
+// @Failure      401   {object} object "Unauthorized"
+// @Failure      500   {object} object "Internal Server Error"
 // @Router       /shift-applications/{id}/review [patch]
 func (h *ShiftApplicationHandler) Review(c *gin.Context) error {
 	appId, err := uuid.Parse(c.Param("id"))

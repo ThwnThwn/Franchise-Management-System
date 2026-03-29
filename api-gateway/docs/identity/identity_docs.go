@@ -1709,10 +1709,10 @@ const docTemplateidentity = `{
 // SwaggerInfoidentity holds exported Swagger Info so clients can modify it
 var SwaggerInfoidentity = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:8080",
+	Host:             "",
 	BasePath:         "/api",
 	Schemes:          []string{},
-	Title:            "API Gateway Documentation",
+	Title:            "Capital Franchise Supply Chain Management System API Document",
 	Description:      "API docs for CHD Gateway.",
 	InfoInstanceName: "identity",
 	SwaggerTemplate:  docTemplateidentity,

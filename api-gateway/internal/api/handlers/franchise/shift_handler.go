@@ -5,6 +5,7 @@ import (
 	"api-gateway/internal/application/gateways/franchise"
 	"api-gateway/internal/application/gateways/identity"
 	"api-gateway/internal/domain/constants/enum"
+	_ "api-gateway/internal/domain/models/common"
 	"api-gateway/internal/domain/models/shift"
 	"api-gateway/pkg/utils/contextutils"
 	"api-gateway/pkg/utils/validation"
@@ -34,12 +35,16 @@ func NewShiftHandler(
 // =====================
 
 // GetAll (Lấy danh sách ca làm việc)
-// @Summary      Lấy danh sách ca làm việc
-// @Description  Truy xuất danh sách ca làm việc kèm bộ lọc (Dùng cho Calendar/List view).
+// @Summary      Get all shifts
+// @Description  Retrieve a list of shifts with applied filters (Used for Calendar/List view).
 // @Tags         Shifts
 // @Security     BearerAuth
-// @Param        query     query     shift.GetShiftsParams  false  "Filter params"
-// @Success      200       {array}   shift.ShiftResponse
+// @Produce      json
+// @Param        query  query  shift.GetShiftsParams  false  "Filter parameters"
+// @Success      200    {array}  shift.ShiftResponse "List of shifts"
+// @Failure      400    {object} object "Validation Error (Bad Request)"
+// @Failure      401    {object} object "Unauthorized"
+// @Failure      500    {object} object "Internal Server Error"
 // @Router       /shifts [get]
 func (h *ShiftHandler) GetAll(c *gin.Context) error {
 	var params shift.GetShiftsParams
@@ -57,12 +62,17 @@ func (h *ShiftHandler) GetAll(c *gin.Context) error {
 }
 
 // GetByID (Lấy chi tiết ca làm)
-// @Summary      Lấy chi tiết một ca làm
-// @Description  Lấy thông tin chi tiết ca làm và danh sách nhân viên đã gán.
+// @Summary      Get shift details
+// @Description  Retrieve detailed information about a specific shift and its assigned staff.
 // @Tags         Shifts
 // @Security     BearerAuth
-// @Param        id   path      string  true  "ID ca làm"
-// @Success      200  {object}  shift.ShiftResponse
+// @Produce      json
+// @Param        id   path   string  true  "Shift ID"
+// @Success      200  {object} shift.ShiftResponse "Shift details"
+// @Failure      400  {object} object "Invalid Shift ID (Bad Request)"
+// @Failure      401  {object} object "Unauthorized"
+// @Failure      404  {object} object "Shift Not Found"
+// @Failure      500  {object} object "Internal Server Error"
 // @Router       /shifts/{id} [get]
 func (h *ShiftHandler) GetByID(c *gin.Context) error {
 	id, err := uuid.Parse(c.Param("id"))
@@ -80,11 +90,17 @@ func (h *ShiftHandler) GetByID(c *gin.Context) error {
 }
 
 // Create (Tạo ca làm mới)
-// @Summary      Tạo ca làm mới
-// @Description  Tạo một ca làm việc mới cho cửa hàng.
+// @Summary      Create a new shift
+// @Description  Create a new working shift for the store.
 // @Tags         Shifts
 // @Security     BearerAuth
-// @Param        body body      shift.CreateShiftRequest true "Thông tin ca làm"
+// @Accept       json
+// @Produce      json
+// @Param        body body   shift.CreateShiftRequest true "Shift information"
+// @Success      200  {object} map[string]interface{} "Shift created successfully"
+// @Failure      400  {object} object "Validation Error (Bad Request)"
+// @Failure      401  {object} object "Unauthorized"
+// @Failure      500  {object} object "Internal Server Error"
 // @Router       /shifts [post]
 func (h *ShiftHandler) Create(c *gin.Context) error {
 	var req shift.CreateShiftRequest
@@ -108,12 +124,19 @@ func (h *ShiftHandler) Create(c *gin.Context) error {
 }
 
 // Update (Cập nhật ca làm - PATCH)
-// @Summary      Cập nhật ca làm việc
-// @Description  Cập nhật giờ giấc hoặc số lượng nhân viên cần thiết cho ca làm.
+// @Summary      Update a shift
+// @Description  Update shift timings or the required number of staff.
 // @Tags         Shifts
 // @Security     BearerAuth
-// @Param        id    path      string                   true  "ID ca làm"
-// @Param        body  body      shift.UpdateShiftRequest true  "Dữ liệu cập nhật"
+// @Accept       json
+// @Produce      json
+// @Param        id   path   string                   true  "Shift ID"
+// @Param        body body   shift.UpdateShiftRequest true  "Update data"
+// @Success      200  {object} map[string]interface{} "Shift updated successfully"
+// @Failure      400  {object} object "Validation Error or Invalid ID"
+// @Failure      401  {object} object "Unauthorized"
+// @Failure      404  {object} object "Shift Not Found"
+// @Failure      500  {object} object "Internal Server Error"
 // @Router       /shifts/{id} [patch]
 func (h *ShiftHandler) Update(c *gin.Context) error {
 	id, err := uuid.Parse(c.Param("id"))
@@ -142,11 +165,17 @@ func (h *ShiftHandler) Update(c *gin.Context) error {
 }
 
 // Delete (Xóa ca làm)
-// @Summary      Xóa ca làm việc
-// @Description  Xóa ca làm (Chỉ khi ở trạng thái Draft/Planning).
+// @Summary      Delete a shift
+// @Description  Delete a specific shift (Only allowed if it is in Draft or Planning status).
 // @Tags         Shifts
 // @Security     BearerAuth
-// @Param        id   path      string  true  "ID ca làm"
+// @Produce      json
+// @Param        id   path   string  true  "Shift ID"
+// @Success      200  {object} map[string]interface{} "Shift deleted successfully"
+// @Failure      400  {object} object "Invalid ID or Bad Request"
+// @Failure      401  {object} object "Unauthorized"
+// @Failure      403  {object} object "Forbidden (Cannot delete published shift)"
+// @Failure      500  {object} object "Internal Server Error"
 // @Router       /shifts/{id} [delete]
 func (h *ShiftHandler) Delete(c *gin.Context) error {
 	id, err := uuid.Parse(c.Param("id"))
@@ -164,10 +193,16 @@ func (h *ShiftHandler) Delete(c *gin.Context) error {
 }
 
 // Publish (Xuất bản ca lẻ)
-// @Summary      Xuất bản ca làm
-// @Description  Chuyển trạng thái sang Published để nhân viên thấy được lịch.
+// @Summary      Publish a single shift
+// @Description  Change the shift status to Published, making it visible to employees on the schedule.
 // @Tags         Shifts
-// @Param        id   path      string  true  "ID ca làm"
+// @Security     BearerAuth
+// @Produce      json
+// @Param        id   path   string  true  "Shift ID"
+// @Success      200  {object} map[string]interface{} "Shift published successfully"
+// @Failure      400  {object} object "Invalid ID or Bad Request"
+// @Failure      401  {object} object "Unauthorized"
+// @Failure      500  {object} object "Internal Server Error"
 // @Router       /shifts/{id}/publish [put]
 func (h *ShiftHandler) Publish(c *gin.Context) error {
 	id, err := uuid.Parse(c.Param("id"))
@@ -185,13 +220,18 @@ func (h *ShiftHandler) Publish(c *gin.Context) error {
 }
 
 // GetAvailableStaffs (Gợi ý nhân viên)
-// @Summary      Lấy danh sách ứng viên khả dụng
-// @Description  Kiểm tra xung đột lịch và quy định để gợi ý nhân viên cho ca làm.
+// @Summary      Get available staff candidates
+// @Description  Check schedule conflicts and shift rules to suggest suitable staff members for a specific shift.
 // @Tags         Shifts: Assignment
-// @Param        id      path      string  true  "ID cửa hàng"
-// @Param        shiftId path      string  true  "ID ca làm"
-// @Success      200     {array}   shift.StaffAssignmentCandidate
-// @Router       /stores/{storeId}/shifts/{shiftId}/candidates [get]
+// @Security     BearerAuth
+// @Produce      json
+// @Param        id      path   string  true  "Store ID"
+// @Param        shiftId path   string  true  "Shift ID"
+// @Success      200     {array}  shift.StaffAssignmentCandidate "List of available staff"
+// @Failure      400     {object} object "Invalid ID (Bad Request)"
+// @Failure      401     {object} object "Unauthorized"
+// @Failure      500     {object} object "Internal Server Error"
+// @Router       /stores/{id}/shifts/{shiftId}/candidates [get]
 func (h *ShiftHandler) GetAvailableStaffs(c *gin.Context) error {
 	storeID, err1 := uuid.Parse(c.Param("id"))
 	shiftID, err2 := uuid.Parse(c.Param("shiftId"))
@@ -209,13 +249,19 @@ func (h *ShiftHandler) GetAvailableStaffs(c *gin.Context) error {
 }
 
 // UpdateAssignments (Cập nhật phân công)
-// @Summary      Cập nhật phân công nhân sự
-// @Description  Thay đổi danh sách nhân viên được gán vào ca làm việc.
+// @Summary      Update staff assignments
+// @Description  Modify the list of employees assigned to a specific shift.
 // @Tags         Shifts: Assignment
-// @Param        shiftId path        string    true  "ID ca làm"
-// @Param        body    body        []string  true  "Danh sách User ID"
-// @Success      200     {object}    shift.AssignStaffResponse
-// @Router       /shifts/{shiftId}/assign [put]
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        id      path   string    true  "Shift ID"
+// @Param        body    body   []string  true  "List of User IDs to assign"
+// @Success      200     {object} shift.AssignStaffResponse "Assignment update result"
+// @Failure      400     {object} object "Validation Error (Bad Request)"
+// @Failure      401     {object} object "Unauthorized"
+// @Failure      500     {object} object "Internal Server Error"
+// @Router       /shifts/{id}/assign [put]
 func (h *ShiftHandler) UpdateAssignments(c *gin.Context) error {
 	shiftID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
@@ -242,11 +288,17 @@ func (h *ShiftHandler) UpdateAssignments(c *gin.Context) error {
 }
 
 // AutoFill
-// @Summary      Tự động xếp người vào ca làm việc
-// @Description  Hệ thống tự động tính toán và gán nhân viên phù hợp vào các ca làm việc còn trống (Draft) dựa trên lịch rảnh và quy tắc ca làm.
+// @Summary      Auto-fill shift assignments
+// @Description  System automatically calculates and assigns suitable staff to empty (Draft) shifts based on availability and scheduling rules.
 // @Tags         Shifts: Assignment
 // @Security     BearerAuth
-// @Param        body body shift.AutoFillShiftsRequest true "Khoảng thời gian cần xếp ca tự động"
+// @Accept       json
+// @Produce      json
+// @Param        body body shift.AutoFillShiftsRequest true "Time range for auto-filling shifts"
+// @Success      200  {object} shift.AutoFillShiftsResponse "Auto-fill result summary"
+// @Failure      400  {object} object "Validation Error (Bad Request)"
+// @Failure      401  {object} object "Unauthorized"
+// @Failure      500  {object} object "Internal Server Error"
 // @Router       /shifts/auto-fill [put]
 func (h *ShiftHandler) AutoFill(c *gin.Context) error {
 	var req shift.AutoFillShiftsRequest
@@ -274,11 +326,16 @@ func (h *ShiftHandler) AutoFill(c *gin.Context) error {
 // =====================
 
 // GetAllTimeLogs (Lấy danh sách nhật ký chấm công)
-// @Summary      Lấy danh sách chấm công
-// @Description  Manager lấy toàn bộ nhật ký chấm công trong Store kèm bộ lọc.
+// @Summary      Get time logs
+// @Description  Manager retrieves all time logs within the Store, applying optional filters.
 // @Tags         Shifts: Time log
 // @Security     BearerAuth
-// @Param        query  query    shift.GetTimeLogsParams  false  "Bộ lọc chấm công"
+// @Produce      json
+// @Param        query  query  shift.GetTimeLogsParams  false  "Time log filters"
+// @Success      200    {object} common.PaginationResult[shift.TimeLogResponse] "Paginated list of time logs"
+// @Failure      400    {object} object "Validation Error (Bad Request)"
+// @Failure      401    {object} object "Unauthorized"
+// @Failure      500    {object} object "Internal Server Error"
 // @Router       /shifts/time-logs [get]
 func (h *ShiftHandler) GetAllTimeLogs(c *gin.Context) error {
 	var params shift.GetTimeLogsParams
@@ -297,27 +354,27 @@ func (h *ShiftHandler) GetAllTimeLogs(c *gin.Context) error {
 	}
 
 	// if len(logRes.Items) == 0 {
-	// 	c.JSON(http.StatusOK, logRes)
-	// 	return nil
+	//  c.JSON(http.StatusOK, logRes)
+	//  return nil
 	// }
 
 	// 3. Gom danh sách ID nhân viên (Unique IDs) để chuẩn bị gọi Identity
 	// staffIDMap := make(map[string]bool)
 	// var staffIDs []string
 	// for _, log := range logRes.Items {
-	// 	if log != nil && log.Staff.Id != "" && !staffIDMap[log.Staff.Id] {
-	// 		staffIDMap[log.Staff.Id] = true
-	// 		staffIDs = append(staffIDs, log.Staff.Id)
-	// 	}
+	//  if log != nil && log.Staff.Id != "" && !staffIDMap[log.Staff.Id] {
+	//      staffIDMap[log.Staff.Id] = true
+	//      staffIDs = append(staffIDs, log.Staff.Id)
+	//  }
 	// }
 
 	// 4. Dùng userGW gọi sang Identity Service lấy thông tin User chi tiết
 	// users, err := h.userGW.GetByIds(ctx, staffIDs)
 	// if err != nil {
-	// 	// Ở Gateway, nếu Identity "die" nhưng Franchise vẫn có data,
-	// 	// mình vẫn nên trả về logs kèm ID nhân viên thay vì báo lỗi 500 (Graceful Degradation).
-	// 	c.JSON(http.StatusOK, logRes)
-	// 	return nil
+	//  // Ở Gateway, nếu Identity "die" nhưng Franchise vẫn có data,
+	//  // mình vẫn nên trả về logs kèm ID nhân viên thay vì báo lỗi 500 (Graceful Degradation).
+	//  c.JSON(http.StatusOK, logRes)
+	//  return nil
 	// }
 
 	// 5. Mapper Batch để trộn data từ users vào logRes.Items
@@ -329,13 +386,18 @@ func (h *ShiftHandler) GetAllTimeLogs(c *gin.Context) error {
 }
 
 // UpdateTimeLog (Duyệt/Cập nhật chấm công)
-// @Summary      Duyệt hoặc cập nhật chấm công
-// @Description  Manager phê duyệt (Valid) hoặc từ chối (Invalid) ca làm thực tế của nhân viên.
+// @Summary      Review or update time log
+// @Description  Manager approves (Valid) or rejects (Invalid) an employee's actual worked shift.
 // @Tags         Shifts: Time log
 // @Security     BearerAuth
-// @Param        id    path      string  true  "ID nhật ký chấm công"
-// @Param        body  body      shift.UpdateTimeLogRequest true "Dữ liệu cập nhật"
-// @Success      200   {object}  gin.H
+// @Accept       json
+// @Produce      json
+// @Param        id    path   string true "Time log ID"
+// @Param        body  body   shift.UpdateTimeLogRequest true "Update data"
+// @Success      200   {object} map[string]interface{} "Time log updated successfully"
+// @Failure      400   {object} object "Validation Error (e.g., missing rejection reason)"
+// @Failure      401   {object} object "Unauthorized"
+// @Failure      500   {object} object "Internal Server Error"
 // @Router       /shifts/time-logs/{id} [patch]
 func (h *ShiftHandler) UpdateTimeLog(c *gin.Context) error {
 	id, err := uuid.Parse(c.Param("id"))

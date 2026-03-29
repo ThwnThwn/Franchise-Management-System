@@ -33,14 +33,14 @@ func NewWalletHandler(walletGW sales.IWalletService, cfg *config.Config) *Wallet
 // ----------------------------------------------------------------------
 
 // GetMyWallet
-// @Summary      Xem ví cá nhân
-// @Description  Lấy thông tin ví và số dư hiện tại của người dùng đang đăng nhập.
+// @Summary      Get my wallet details
+// @Description  Retrieve the wallet information and current balance of the logged-in user.
 // @Tags         Wallets
 // @Produce      json
 // @Security     BearerAuth
-// @Success      200  {object}  wallet.WalletResponse "Thông tin chi tiết của ví"
-// @Failure      401  {object}  map[string]string     "Chưa đăng nhập hoặc token không hợp lệ"
-// @Failure      500  {object}  map[string]string     "Lỗi hệ thống nội bộ"
+// @Success      200  {object} wallet.WalletResponse "Detailed wallet information"
+// @Failure      401  {object} map[string]string     "Unauthorized or invalid token"
+// @Failure      500  {object} map[string]string     "Internal Server Error"
 // @Router       /me/wallet [get]
 func (h *WalletHandler) GetMyWallet(c *gin.Context) error {
 	ctx := c.Request.Context()
@@ -60,17 +60,17 @@ func (h *WalletHandler) GetMyWallet(c *gin.Context) error {
 }
 
 // TopUpMyWallet
-// @Summary      Nạp tiền vào ví
-// @Description  Tạo link thanh toán qua cổng VNPay để người dùng nạp tiền vào ví cá nhân.
+// @Summary      Top up wallet balance
+// @Description  Generate a VNPay payment link to allow the user to deposit funds into their personal wallet.
 // @Tags         Wallets
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        request body     wallet.TopUpWalletRequest true "Thông tin nạp tiền (VD: số tiền)"
-// @Success      200     {object} map[string]string         "Trả về URL để redirect sang VNPay { paymentUrl: '...' }"
-// @Failure      400     {object} map[string]string         "Dữ liệu đầu vào không hợp lệ"
-// @Failure      401     {object} map[string]string         "Chưa đăng nhập"
-// @Failure      500     {object} map[string]string         "Lỗi hệ thống hoặc lỗi kết nối cổng thanh toán"
+// @Param        request body     wallet.TopUpWalletRequest true "Top-up details (e.g., amount)"
+// @Success      200     {object} map[string]string         "Returns the VNPay URL { paymentUrl: '...' }"
+// @Failure      400     {object} map[string]string         "Validation Error (Bad Request)"
+// @Failure      401     {object} map[string]string         "Unauthorized"
+// @Failure      500     {object} map[string]string         "Internal Server Error or Payment Gateway connection issue"
 // @Router       /me/wallet/top-up [post]
 func (h *WalletHandler) TopUpMyWallet(c *gin.Context) error {
 	var req wallet.TopUpWalletRequest
@@ -101,17 +101,17 @@ func (h *WalletHandler) TopUpMyWallet(c *gin.Context) error {
 // ----------------------------------------------------------------------
 
 // GetWalletByUserId
-// @Summary      Xem ví của người dùng
-// @Description  Dành cho Staff, Manager, Admin lấy thông tin ví của một user bất kỳ thông qua User ID.
+// @Summary      Get user wallet details (Admin)
+// @Description  Intended for Staff, Manager, or Admin to retrieve wallet information of a specific user by their User ID.
 // @Tags         Wallets
 // @Produce      json
 // @Security     BearerAuth
-// @Param        userId  path     string                true "UUID của người dùng cần xem"
-// @Success      200     {object} wallet.WalletResponse "Thông tin chi tiết của ví"
-// @Failure      400     {object} map[string]string     "ID người dùng không đúng định dạng UUID"
-// @Failure      401     {object} map[string]string     "Chưa đăng nhập"
-// @Failure      403     {object} map[string]string     "Không có quyền thao tác (Forbidden)"
-// @Failure      404     {object} map[string]string     "Không tìm thấy ví của người dùng này"
+// @Param        userId  path     string                true "Target User UUID"
+// @Success      200     {object} wallet.WalletResponse "Detailed wallet information"
+// @Failure      400     {object} map[string]string     "Invalid User UUID format"
+// @Failure      401     {object} map[string]string     "Unauthorized"
+// @Failure      403     {object} map[string]string     "Forbidden (Insufficient permissions)"
+// @Failure      404     {object} map[string]string     "Wallet not found for this user"
 // @Router       /wallets/users/{userId} [get]
 func (h *WalletHandler) GetWalletByUserId(c *gin.Context) error {
 	targetUserIdStr := c.Param("userId")
@@ -132,18 +132,18 @@ func (h *WalletHandler) GetWalletByUserId(c *gin.Context) error {
 }
 
 // UpdateWalletStatus
-// @Summary      Cập nhật trạng thái ví (Admin)
-// @Description  Dành cho Quản trị viên khóa (tạm dừng) hoặc mở khóa ví của người dùng.
+// @Summary      Update wallet status (Admin)
+// @Description  Intended for Administrators to lock (suspend) or unlock a user's wallet.
 // @Tags         Wallets
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id      path     string                           true "UUID của ví cần cập nhật"
-// @Param        request body     wallet.UpdateWalletStatusRequest true "Thông tin trạng thái mới"
-// @Success      200     {object} map[string]string                "Thông báo cập nhật thành công { message: '...' }"
-// @Failure      400     {object} map[string]string                "Dữ liệu đầu vào hoặc UUID ví không hợp lệ"
-// @Failure      401     {object} map[string]string                "Chưa đăng nhập"
-// @Failure      403     {object} map[string]string                "Không có quyền thao tác (Forbidden)"
+// @Param        id       path     string                           true "Target Wallet UUID"
+// @Param        request  body     wallet.UpdateWalletStatusRequest true "New status information"
+// @Success      200      {object} map[string]string                "{"message": "Cập nhật trạng thái ví thành công"}"
+// @Failure      400      {object} map[string]string                "Validation Error or Invalid Wallet UUID"
+// @Failure      401      {object} map[string]string                "Unauthorized"
+// @Failure      403      {object} map[string]string                "Forbidden (Insufficient permissions)"
 // @Router       /wallets/{id}/status [patch]
 func (h *WalletHandler) UpdateWalletStatus(c *gin.Context) error {
 	var req wallet.UpdateWalletStatusRequest
@@ -178,16 +178,16 @@ func (h *WalletHandler) UpdateWalletStatus(c *gin.Context) error {
 // ----------------------------------------------------------------------
 
 // ProcessTopUpVnPayReturn
-// @Summary      Xử lý Callback VNPay Return (Nạp tiền ví)
-// @Description  Endpoint hứng callback từ VNPay sau khi khách thanh toán xong. Thực hiện xác thực chữ ký gRPC và bẻ lái (redirect) về Frontend kèm theo trạng thái giao dịch.
+// @Summary      Handle VNPay Return URL (Wallet Top-up)
+// @Description  Callback endpoint for VNPay after a customer completes a wallet top-up payment. Validates the gRPC signature and redirects the user to the Frontend UI with the transaction status.
 // @Tags         Wallets
 // @Produce      html
-// @Param        redirectTo       query string false "Đường dẫn Frontend muốn bẻ lái về (VD: /my-wallet)"
-// @Param        vnp_Amount       query string false "Số tiền giao dịch (nhân 100)"
-// @Param        vnp_ResponseCode query string false "Mã phản hồi từ VNPay (00 là thành công)"
-// @Param        vnp_TxnRef       query string false "Mã tham chiếu giao dịch nội bộ"
-// @Param        vnp_SecureHash   query string false "Mã băm bảo mật checksum"
-// @Success      302 "Chuyển hướng (Redirect) về ứng dụng Frontend"
+// @Param        redirectTo       query string false "Frontend path to redirect to (e.g., /my-wallet)"
+// @Param        vnp_Amount       query string false "Transaction Amount (multiplied by 100)"
+// @Param        vnp_ResponseCode query string false "VNPay Response Code (00 means success)"
+// @Param        vnp_TxnRef       query string false "Internal Transaction Reference"
+// @Param        vnp_SecureHash   query string false "Checksum Security Hash"
+// @Success      302 "Redirects to the Frontend application"
 // @Router       /wallets/vnpay/return [get]
 func (h *WalletHandler) ProcessTopUpVnPayReturn(c *gin.Context) error {
 	vnpayParams := make(map[string]string)

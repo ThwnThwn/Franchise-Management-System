@@ -26,10 +26,14 @@ const docTemplatesupplier = `{
                         "BearerAuth": []
                     }
                 ],
+                "description": "Retrieve a paginated list of all suppliers in the system.",
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Suppliers"
                 ],
-                "summary": "Danh sách nhà cung cấp",
+                "summary": "Get all suppliers",
                 "parameters": [
                     {
                         "type": "string",
@@ -60,9 +64,27 @@ const docTemplatesupplier = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "List of suppliers",
                         "schema": {
                             "$ref": "#/definitions/common.PaginationResult-api-gateway_internal_domain_models_supplier_SupplierSummary"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -73,16 +95,20 @@ const docTemplatesupplier = `{
                         "BearerAuth": []
                     }
                 ],
+                "description": "Add a new supplier to the system.",
                 "consumes": [
+                    "application/json"
+                ],
+                "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Suppliers"
                 ],
-                "summary": "Tạo mới nhà cung cấp",
+                "summary": "Create a new supplier",
                 "parameters": [
                     {
-                        "description": "Thông tin nhà cung cấp",
+                        "description": "Supplier information",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -93,9 +119,27 @@ const docTemplatesupplier = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Successfully created",
                         "schema": {
                             "$ref": "#/definitions/supplier.SupplierBaseRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -108,14 +152,14 @@ const docTemplatesupplier = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Dành cho Admin/Kế toán theo dõi toàn bộ dòng tiền nhập hàng.",
+                "description": "Retrieve the complete payment history for suppliers (Intended for Admins/Accountants to track cash flow).",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Suppliers / Payments"
                 ],
-                "summary": "Toàn bộ lịch sử thanh toán nhà cung cấp",
+                "summary": "Get all supplier payments",
                 "parameters": [
                     {
                         "type": "integer",
@@ -140,9 +184,27 @@ const docTemplatesupplier = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "List of supplier payments",
                         "schema": {
                             "$ref": "#/definitions/common.PaginationResult-supplier_SupplierPaymentSummary"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -153,7 +215,7 @@ const docTemplatesupplier = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Khởi tạo thanh toán bằng Tiền mặt (CASH) hoặc lấy URL VNPay để thanh toán.",
+                "description": "Initialize a payment using Cash or generate a VNPay payment URL for a purchase order.",
                 "consumes": [
                     "application/json"
                 ],
@@ -163,10 +225,10 @@ const docTemplatesupplier = `{
                 "tags": [
                     "Suppliers / Payments"
                 ],
-                "summary": "Tạo thanh toán cho đơn nhập hàng",
+                "summary": "Create purchase order payment",
                 "parameters": [
                     {
-                        "description": "Thông tin thanh toán",
+                        "description": "Payment information",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -177,9 +239,27 @@ const docTemplatesupplier = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Successfully created payment",
                         "schema": {
                             "$ref": "#/definitions/supplier.CreateSupplierPaymentRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -187,61 +267,64 @@ const docTemplatesupplier = `{
         },
         "/suppliers/payments/vnpay/return": {
             "get": {
-                "description": "Endpoint nhận redirect từ VNPay. Verify chữ ký qua gRPC và bẻ lái trình duyệt về giao diện Frontend.",
+                "description": "Callback endpoint for VNPay after a payment. Verifies the gRPC signature and redirects the browser to the Frontend UI with the payment status.",
                 "produces": [
                     "text/html"
                 ],
                 "tags": [
                     "Suppliers / Payments"
                 ],
-                "summary": "Xử lý VNPay Return cho đơn nhập hàng (Supplier)",
+                "summary": "Handle VNPay Return URL (Supplier Payment)",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Số tiền giao dịch",
+                        "description": "Transaction Amount",
                         "name": "vnp_Amount",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Mã ngân hàng",
+                        "description": "Bank Code",
                         "name": "vnp_BankCode",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Thông tin đơn hàng",
+                        "description": "Order Information",
                         "name": "vnp_OrderInfo",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Mã phản hồi VNPAY",
+                        "description": "VNPAY Response Code",
                         "name": "vnp_ResponseCode",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Mã tham chiếu (Mã Payment)",
+                        "description": "Transaction Reference (Payment Code)",
                         "name": "vnp_TxnRef",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Chữ ký bảo mật",
+                        "description": "Checksum Security Hash",
                         "name": "vnp_SecureHash",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Path của FE muốn quay về (VD: /suppliers/purchase-orders/123)",
+                        "description": "Frontend path to redirect to (e.g., /suppliers/purchase-orders/123)",
                         "name": "redirectTo",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "302": {
-                        "description": "Redirect về Frontend App"
+                        "description": "Redirects to the Frontend application"
+                    },
+                    "400": {
+                        "description": "Bad Request or Invalid Signature"
                     }
                 }
             }
@@ -253,14 +336,14 @@ const docTemplatesupplier = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Lấy danh sách đơn nhập hàng có phân trang và lọc theo Supplier, Store hoặc Status.",
+                "description": "Retrieve a paginated list of purchase orders. Supports filtering by Supplier, Store, or Status.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Suppliers / PurchaseOrders"
                 ],
-                "summary": "Danh sách đơn nhập hàng",
+                "summary": "Get all purchase orders",
                 "parameters": [
                     {
                         "type": "integer",
@@ -290,9 +373,27 @@ const docTemplatesupplier = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "List of purchase orders",
                         "schema": {
                             "$ref": "#/definitions/common.PaginationResult-api-gateway_internal_domain_models_supplier_PurchaseOrderSummary"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -303,7 +404,7 @@ const docTemplatesupplier = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Tạo một bản ghi đơn nhập hàng mới ở trạng thái PENDING.",
+                "description": "Create a new purchase order record with an initial status of PENDING.",
                 "consumes": [
                     "application/json"
                 ],
@@ -313,10 +414,10 @@ const docTemplatesupplier = `{
                 "tags": [
                     "Suppliers / PurchaseOrders"
                 ],
-                "summary": "Tạo đơn nhập hàng mới",
+                "summary": "Create a new purchase order",
                 "parameters": [
                     {
-                        "description": "Thông tin đơn nhập hàng",
+                        "description": "Purchase order information",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -327,9 +428,27 @@ const docTemplatesupplier = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Successfully created",
                         "schema": {
                             "$ref": "#/definitions/supplier.PurchaseOrderBaseRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -342,7 +461,7 @@ const docTemplatesupplier = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Tra cứu giá của danh sách ID nguyên liệu dựa trên các hóa đơn nhập gần nhất.",
+                "description": "Look up the most recent import prices for a provided list of ingredient IDs based on the latest purchase order records.",
                 "consumes": [
                     "application/json"
                 ],
@@ -352,10 +471,10 @@ const docTemplatesupplier = `{
                 "tags": [
                     "Suppliers / PurchaseOrders"
                 ],
-                "summary": "Giá nhập mới nhất của nguyên liệu",
+                "summary": "Get latest ingredient prices",
                 "parameters": [
                     {
-                        "description": "Danh sách ID nguyên liệu",
+                        "description": "List of ingredient IDs",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -366,13 +485,31 @@ const docTemplatesupplier = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Map of ingredient IDs to their latest prices",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
                                 "type": "number",
                                 "format": "float64"
                             }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -385,18 +522,18 @@ const docTemplatesupplier = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Lấy thông tin chi tiết của một đơn nhập hàng kèm danh sách nguyên liệu bên trong.",
+                "description": "Retrieve detailed information of a specific purchase order, including the list of imported ingredients.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Suppliers / PurchaseOrders"
                 ],
-                "summary": "Chi tiết đơn nhập hàng",
+                "summary": "Get purchase order details",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "UUID của đơn nhập hàng",
+                        "description": "Purchase Order UUID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -404,9 +541,33 @@ const docTemplatesupplier = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Detailed purchase order information",
                         "schema": {
                             "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.PurchaseOrderDetail"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid UUID format",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Purchase Order Not Found",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -417,7 +578,7 @@ const docTemplatesupplier = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Chỉnh sửa thông tin đơn nhập hàng (chỉ thực hiện được khi đơn ở trạng thái cho phép).",
+                "description": "Modify the details of an existing purchase order (only allowed when the PO is in an updatable status).",
                 "consumes": [
                     "application/json"
                 ],
@@ -427,17 +588,17 @@ const docTemplatesupplier = `{
                 "tags": [
                     "Suppliers / PurchaseOrders"
                 ],
-                "summary": "Cập nhật đơn nhập hàng",
+                "summary": "Update a purchase order",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "UUID của đơn nhập hàng",
+                        "description": "Purchase Order UUID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Thông tin cập nhật",
+                        "description": "Updated information",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -448,9 +609,33 @@ const docTemplatesupplier = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Successfully updated",
                         "schema": {
                             "$ref": "#/definitions/supplier.PurchaseOrderBaseRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error or Invalid ID",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Purchase Order Not Found",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -463,7 +648,7 @@ const docTemplatesupplier = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Hủy bỏ đơn nhập hàng và ghi rõ lý do hủy.",
+                "description": "Cancel an active purchase order and record the specific cancellation reason.",
                 "consumes": [
                     "application/json"
                 ],
@@ -473,17 +658,17 @@ const docTemplatesupplier = `{
                 "tags": [
                     "Suppliers / PurchaseOrders"
                 ],
-                "summary": "Hủy đơn nhập hàng",
+                "summary": "Cancel a purchase order",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "UUID của đơn nhập hàng",
+                        "description": "Purchase Order UUID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Lý do hủy",
+                        "description": "Cancellation reason",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -494,9 +679,33 @@ const docTemplatesupplier = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Successfully cancelled",
                         "schema": {
                             "$ref": "#/definitions/supplier.PurchaseOrderBaseRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error or Invalid ID",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Purchase Order Not Found",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -509,18 +718,18 @@ const docTemplatesupplier = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Xác nhận đã nhận đủ hàng và chốt đơn nhập hàng (thường dùng để tăng tồn kho).",
+                "description": "Confirm that all goods have been successfully received and finalize the purchase order (typically triggers an inventory restock).",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Suppliers / PurchaseOrders"
                 ],
-                "summary": "Hoàn tất nhập hàng",
+                "summary": "Complete a purchase order",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "UUID của đơn nhập hàng",
+                        "description": "Purchase Order UUID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -528,9 +737,33 @@ const docTemplatesupplier = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Successfully completed",
                         "schema": {
                             "$ref": "#/definitions/supplier.PurchaseOrderBaseRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID format",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Purchase Order Not Found",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -543,18 +776,18 @@ const docTemplatesupplier = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Lấy lịch sử các đợt trả tiền của một đơn nhập hàng cụ thể.",
+                "description": "Retrieve the payment history (installments/transactions) for a specific Purchase Order.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Suppliers / Payments"
                 ],
-                "summary": "Danh sách thanh toán của một PO",
+                "summary": "Get payments by Purchase Order ID",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "UUID của đơn nhập hàng (Purchase Order)",
+                        "description": "Purchase Order UUID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -562,12 +795,36 @@ const docTemplatesupplier = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "List of payments for the PO",
                         "schema": {
                             "type": "array",
                             "items": {
                                 "$ref": "#/definitions/supplier.SupplierPaymentDetail"
                             }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid UUID format",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Purchase Order not found",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -580,14 +837,18 @@ const docTemplatesupplier = `{
                         "BearerAuth": []
                     }
                 ],
+                "description": "Retrieve detailed information of a specific supplier by their UUID.",
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Suppliers"
                 ],
-                "summary": "Chi tiết nhà cung cấp",
+                "summary": "Get supplier details",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "UUID nhà cung cấp",
+                        "description": "Supplier UUID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -595,9 +856,33 @@ const docTemplatesupplier = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Detailed supplier information",
                         "schema": {
                             "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.SupplierDetail"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid UUID format",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Supplier Not Found",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -608,14 +893,18 @@ const docTemplatesupplier = `{
                         "BearerAuth": []
                     }
                 ],
+                "description": "Remove a supplier from the system.",
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Suppliers"
                 ],
-                "summary": "Xóa nhà cung cấp",
+                "summary": "Delete a supplier",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "UUID nhà cung cấp",
+                        "description": "Supplier UUID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -623,9 +912,33 @@ const docTemplatesupplier = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Successfully deleted",
                         "schema": {
                             "$ref": "#/definitions/supplier.SupplierBaseRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid UUID format",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Supplier Not Found",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -636,23 +949,27 @@ const docTemplatesupplier = `{
                         "BearerAuth": []
                     }
                 ],
+                "description": "Modify the details of an existing supplier.",
                 "consumes": [
+                    "application/json"
+                ],
+                "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Suppliers"
                 ],
-                "summary": "Cập nhật nhà cung cấp",
+                "summary": "Update a supplier",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "UUID nhà cung cấp",
+                        "description": "Supplier UUID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Thông tin cập nhật",
+                        "description": "Updated information",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -663,9 +980,33 @@ const docTemplatesupplier = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Successfully updated",
                         "schema": {
                             "$ref": "#/definitions/supplier.SupplierBaseRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error or Invalid ID",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Supplier Not Found",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -1210,10 +1551,10 @@ const docTemplatesupplier = `{
 // SwaggerInfosupplier holds exported Swagger Info so clients can modify it
 var SwaggerInfosupplier = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:8080",
+	Host:             "",
 	BasePath:         "/api",
 	Schemes:          []string{},
-	Title:            "API Gateway Documentation",
+	Title:            "Capital Franchise Supply Chain Management System API Document",
 	Description:      "API docs for CHD Gateway.",
 	InfoInstanceName: "supplier",
 	SwaggerTemplate:  docTemplatesupplier,

@@ -3,6 +3,7 @@ package franchise
 import (
 	"api-gateway/internal/application/constants/errorcode"
 	"api-gateway/internal/application/gateways/franchise"
+	_ "api-gateway/internal/domain/models/common"
 	"api-gateway/internal/domain/models/shift"
 	"api-gateway/pkg/utils/contextutils"
 	"api-gateway/pkg/utils/stringutils"
@@ -26,11 +27,16 @@ func NewShiftAvailabilityHandler(shiftGW franchise.IShiftAvailabilityService) *S
 // ===============================
 
 // GetMyHistory
-// @Summary      Lấy lịch sử đăng ký rảnh/bận của tôi
-// @Description  Truy xuất danh sách lịch rảnh/bận đã đăng ký của nhân viên hiện tại kèm phân trang.
+// @Summary      Get my shift availability history
+// @Description  Retrieve the paginated list of registered availability/unavailability for the current employee.
 // @Tags         Shifts: Availabilities
 // @Security     BearerAuth
-// @Param        query query shift.GetAvailabilityParams false "Bộ lọc tìm kiếm"
+// @Produce      json
+// @Param        query query shift.GetAvailabilityParams false "Search filters"
+// @Success      200 {object} common.PaginationResult[shift.ShiftAvailabilityResponse] "Successful retrieval"
+// @Failure      400 {object} object "Bad Request"
+// @Failure      401 {object} object "Unauthorized"
+// @Failure      500 {object} object "Internal Server Error"
 // @Router       /me/shift-availabilities [get]
 func (h *ShiftAvailabilityHandler) GetMyHistory(c *gin.Context) error {
 	userID, err := contextutils.GetUserId(c)
@@ -54,11 +60,17 @@ func (h *ShiftAvailabilityHandler) GetMyHistory(c *gin.Context) error {
 }
 
 // Create
-// @Summary      Đăng ký lịch rảnh/bận mới
-// @Description  Gửi đơn đăng ký thời gian rảnh hoặc bận để quản lý sắp ca.
+// @Summary      Register new shift availability
+// @Description  Submit a request for available or unavailable time to assist managers in scheduling.
 // @Tags         Shifts: Availabilities
 // @Security     BearerAuth
-// @Param        body body shift.CreateShiftAvailabilityRequest true "Dữ liệu đăng ký"
+// @Accept       json
+// @Produce      json
+// @Param        body body shift.CreateShiftAvailabilityRequest true "Availability registration data"
+// @Success      201 {object} map[string]interface{} "Successfully created"
+// @Failure      400 {object} object "Validation Error (Bad Request)"
+// @Failure      401 {object} object "Unauthorized"
+// @Failure      500 {object} object "Internal Server Error"
 // @Router       /shift-availabilities [post]
 func (h *ShiftAvailabilityHandler) Create(c *gin.Context) error {
 	userID, err := contextutils.GetUserId(c)
@@ -82,12 +94,18 @@ func (h *ShiftAvailabilityHandler) Create(c *gin.Context) error {
 }
 
 // Update
-// @Summary      Cập nhật lịch rảnh/bận
-// @Description  Chỉnh sửa đơn đăng ký lịch rảnh/bận đã gửi dựa trên ID.
+// @Summary      Update shift availability
+// @Description  Edit a submitted availability/unavailability request by its ID.
 // @Tags         Shifts: Availabilities
 // @Security     BearerAuth
-// @Param        id   path string true "ID lịch đăng ký"
-// @Param        body body shift.UpdateShiftAvailabilityRequest true "Dữ liệu cập nhật"
+// @Accept       json
+// @Produce      json
+// @Param        id   path string true "Availability ID"
+// @Param        body body shift.UpdateShiftAvailabilityRequest true "Update data"
+// @Success      200 {object} map[string]interface{} "Successfully updated"
+// @Failure      400 {object} object "Invalid ID or Bad Request"
+// @Failure      401 {object} object "Unauthorized"
+// @Failure      500 {object} object "Internal Server Error"
 // @Router       /shift-availabilities/{id} [patch]
 func (h *ShiftAvailabilityHandler) Update(c *gin.Context) error {
 	id, err := uuid.Parse(c.Param("id"))
@@ -116,11 +134,16 @@ func (h *ShiftAvailabilityHandler) Update(c *gin.Context) error {
 }
 
 // Delete
-// @Summary      Hủy/Xóa lịch rảnh/bận
-// @Description  Xóa bỏ đơn đăng ký lịch rảnh/bận đã gửi.
+// @Summary      Delete shift availability
+// @Description  Remove a previously submitted availability request.
 // @Tags         Shifts: Availabilities
 // @Security     BearerAuth
-// @Param        id path string true "ID lịch đăng ký"
+// @Produce      json
+// @Param        id path string true "Availability ID"
+// @Success      200 {object} map[string]interface{} "Successfully deleted"
+// @Failure      400 {object} object "Invalid ID"
+// @Failure      401 {object} object "Unauthorized"
+// @Failure      500 {object} object "Internal Server Error"
 // @Router       /shift-availabilities/{id} [delete]
 func (h *ShiftAvailabilityHandler) Delete(c *gin.Context) error {
 	id, err := uuid.Parse(c.Param("id"))
@@ -148,11 +171,16 @@ func (h *ShiftAvailabilityHandler) Delete(c *gin.Context) error {
 // ===============================
 
 // GetAll
-// @Summary      Quản lý toàn bộ lịch rảnh/bận
-// @Description  Quản lý xem toàn bộ danh sách lịch rảnh/bận của nhân viên để sắp ca làm việc.
+// @Summary      Manage all shift availabilities (Manager)
+// @Description  Managers view the complete list of employee availabilities to facilitate shift scheduling.
 // @Tags         Shifts: Availabilities
 // @Security     BearerAuth
-// @Param        query query shift.GetAvailabilityParams false "Bộ lọc tìm kiếm (Store, User, Date...)"
+// @Produce      json
+// @Param        query query shift.GetAvailabilityParams false "Search filters (Store, User, Date...)"
+// @Success      200 {object} common.PaginationResult[shift.ShiftAvailabilityResponse] "Successful retrieval"
+// @Failure      400 {object} object "Bad Request"
+// @Failure      401 {object} object "Unauthorized"
+// @Failure      500 {object} object "Internal Server Error"
 // @Router       /shift-availabilities [get]
 func (h *ShiftAvailabilityHandler) GetAll(c *gin.Context) error {
 	var params shift.GetAvailabilityParams

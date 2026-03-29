@@ -155,6 +155,39 @@ definitions:
         description: '0: Design, 1: Construction, 2: Inspection, 3: Ready'
         type: integer
     type: object
+  common.PaginationResult-shift_ShiftAvailabilityResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/shift.ShiftAvailabilityResponse'
+        type: array
+      totalCount:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  common.PaginationResult-shift_TimeLogResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/shift.TimeLogResponse'
+        type: array
+      totalCount:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  common.PaginationResult-store_StoreDetailResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/store.StoreDetailResponse'
+        type: array
+      totalCount:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
   enum.TimeLogStatus:
     enum:
     - 0
@@ -194,9 +227,6 @@ definitions:
         type: integer
       totalPages:
         type: integer
-    type: object
-  gin.H:
-    additionalProperties: {}
     type: object
   shift.ActiveStaffDto:
     properties:
@@ -250,6 +280,22 @@ definitions:
     required:
     - endDate
     - startDate
+    type: object
+  shift.AutoFillShiftsResponse:
+    properties:
+      filledCount:
+        description: Số slot đã điền được người
+        type: integer
+      success:
+        type: boolean
+      totalSlots:
+        description: Tổng số slot trống cần xử lý
+        type: integer
+      unfilledShiftIds:
+        description: Danh sách ID các ca vẫn "mồ côi"
+        items:
+          type: string
+        type: array
     type: object
   shift.BulkCreateFromTemplateRequest:
     properties:
@@ -306,6 +352,19 @@ definitions:
         type: number
       weeklyHours:
         type: number
+    type: object
+  shift.CoWorkerDTO:
+    properties:
+      avatar:
+        type: string
+      firstName:
+        type: string
+      id:
+        type: string
+      lastName:
+        type: string
+      phone:
+        type: string
     type: object
   shift.CreateShiftAvailabilityRequest:
     properties:
@@ -414,6 +473,36 @@ definitions:
       weeklyOtThresholdHours:
         type: integer
     type: object
+  shift.ShiftApplicationItem:
+    properties:
+      appliedAt:
+        type: string
+      avatarUrl:
+        type: string
+      email:
+        type: string
+      hourlyWage:
+        type: number
+      id:
+        type: string
+      note:
+        type: string
+      shiftId:
+        type: string
+      smartScore:
+        description: Điểm thông minh (0.0 - 1.0)
+        type: number
+      status:
+        description: Map từ Enum ShiftApplicationStatus
+        type: integer
+      userId:
+        type: string
+      username:
+        type: string
+      weeklyHoursWorked:
+        description: Tổng giờ đã làm trong tuần
+        type: number
+    type: object
   shift.ShiftAssignment:
     properties:
       avatarUrl:
@@ -432,6 +521,32 @@ definitions:
         type: string
       status:
         type: integer
+      userId:
+        type: string
+    type: object
+  shift.ShiftAvailabilityResponse:
+    properties:
+      createdAt:
+        type: string
+      dayOfWeek:
+        description: 0-6
+        type: integer
+      endTime:
+        type: string
+      id:
+        type: string
+      isAvailable:
+        type: boolean
+      isRecurring:
+        type: boolean
+      note:
+        type: string
+      specificDate:
+        type: string
+      startTime:
+        type: string
+      updatedAt:
+        type: string
       userId:
         type: string
     type: object
@@ -521,6 +636,22 @@ definitions:
       storeId:
         type: string
     type: object
+  shift.ShiftTimeLogRes:
+    properties:
+      endTime:
+        description: HH:mm
+        type: string
+      id:
+        type: string
+      note:
+        type: string
+      shiftDate:
+        description: YYYY-MM-DD
+        type: string
+      startTime:
+        description: HH:mm
+        type: string
+    type: object
   shift.StaffAssignmentCandidate:
     properties:
       avatarUrl:
@@ -543,6 +674,117 @@ definitions:
         type: string
       validation:
         $ref: '#/definitions/shift.CandidateValidation'
+    type: object
+  shift.StaffShiftAgenda:
+    properties:
+      checkInAt:
+        type: string
+      checkOutAt:
+        type: string
+      coWorkers:
+        items:
+          $ref: '#/definitions/shift.CoWorkerDTO'
+        type: array
+      date:
+        type: string
+      endTime:
+        type: string
+      id:
+        description: assignmentId
+        type: string
+      shiftId:
+        type: string
+      startTime:
+        type: string
+      store:
+        $ref: '#/definitions/store.StoreDetailResponse'
+    type: object
+  shift.StaffTimeLogRes:
+    properties:
+      avatarUrl:
+        type: string
+      email:
+        type: string
+      firstName:
+        type: string
+      id:
+        type: string
+      lastName:
+        type: string
+    type: object
+  shift.SwapRequestItem:
+    properties:
+      createdAt:
+        type: string
+      endTime:
+        type: string
+      expiresAt:
+        type: string
+      id:
+        type: string
+      reason:
+        type: string
+      rejectReason:
+        type: string
+      shiftDate:
+        type: string
+      shiftId:
+        type: string
+      sourceUserId:
+        type: string
+      sourceUserName:
+        type: string
+      startTime:
+        type: string
+      status:
+        description: Map từ Enum SwapStatus
+        type: integer
+      targetUserId:
+        type: string
+      targetUserName:
+        type: string
+    type: object
+  shift.TimeLogResponse:
+    properties:
+      checkInAt:
+        type: string
+      checkInImageUrl:
+        type: string
+      checkInLat:
+        type: number
+      checkInLong:
+        type: number
+      checkOutAt:
+        type: string
+      checkOutImageUrl:
+        type: string
+      checkOutLat:
+        type: number
+      checkOutLong:
+        type: number
+      createdAt:
+        type: string
+      dailyOtMinutes:
+        type: integer
+      id:
+        type: string
+      managerNote:
+        type: string
+      regularMinutes:
+        type: integer
+      shift:
+        $ref: '#/definitions/shift.ShiftTimeLogRes'
+      shiftAssignmentId:
+        type: string
+      staff:
+        $ref: '#/definitions/shift.StaffTimeLogRes'
+      status:
+        description: Map từ Enum TimeLogStatus
+        type: integer
+      updatedAt:
+        type: string
+      weeklyOtMinutes:
+        type: integer
     type: object
   shift.UpdateShiftAvailabilityRequest:
     properties:
@@ -605,6 +847,41 @@ definitions:
     required:
     - status
     type: object
+  shift.UserCurrentShiftResponse:
+    properties:
+      assignmentId:
+        type: string
+      canCheckIn:
+        type: boolean
+      canCheckOut:
+        type: boolean
+      checkInAt:
+        type: string
+      checkOutAt:
+        type: string
+      currentLogId:
+        type: string
+      endTime:
+        type: string
+      hasShiftToday:
+        type: boolean
+      isOvertime:
+        type: boolean
+      serverTime:
+        type: string
+      shiftId:
+        type: string
+      startTime:
+        type: string
+      storeId:
+        type: string
+      storeLat:
+        type: number
+      storeLong:
+        type: number
+      storeName:
+        type: string
+    type: object
   shift.ValidationWarningDto:
     properties:
       code:
@@ -614,20 +891,39 @@ definitions:
       severity:
         type: string
     type: object
-host: localhost:8080
+  store.StoreDetailResponse:
+    properties:
+      address:
+        type: string
+      id:
+        type: string
+      imageUrl:
+        type: string
+      isOpenNow:
+        description: Tính toán dựa trên StoreHours ngay lúc gọi
+        type: boolean
+      latitude:
+        type: number
+      longitude:
+        type: number
+      name:
+        type: string
+      phone:
+        type: string
+    type: object
 info:
   contact:
     email: support@swagger.io
     name: API Support
   description: API docs for CHD Gateway.
   termsOfService: http://swagger.io/terms/
-  title: API Gateway Documentation
+  title: Capital Franchise Supply Chain Management System API Document
   version: "1.0"
 paths:
   /franchise/applications:
     get:
-      description: Lấy toàn bộ hồ sơ đăng ký nhượng quyền (hỗ trợ phân trang, lọc
-        theo trạng thái).
+      description: Retrieve all franchise applications (supports pagination, filtering
+        by status).
       parameters:
       - in: query
         name: page
@@ -650,77 +946,77 @@ paths:
             $ref: '#/definitions/franchise.ApplicationPaginationResult'
       security:
       - BearerAuth: []
-      summary: Lấy danh sách hồ sơ nhượng quyền (Admin)
+      summary: Get all franchise applications (Admin)
       tags:
       - 'Franchise: Applications'
     post:
       consumes:
       - multipart/form-data
-      description: Đối tác gửi hồ sơ (thông tin cá nhân, địa chỉ mặt bằng) kèm theo
-        ảnh mặt bằng và các ảnh chứng nhận đất đai.
+      description: Partner submits application (personal info, premise address) along
+        with storefront and land certificate images.
       parameters:
-      - description: Họ và tên
+      - description: Full name
         in: formData
         name: fullName
         required: true
         type: string
-      - description: Email liên hệ
+      - description: Contact email
         in: formData
         name: email
         required: true
         type: string
-      - description: Số điện thoại
+      - description: Phone number
         in: formData
         name: phone
         required: true
         type: string
-      - description: CMND/CCCD
+      - description: Identity card number (CMND/CCCD)
         in: formData
         name: identityNumber
         required: true
         type: string
-      - description: Mã Tỉnh/Thành phố
+      - description: Province/City ID
         in: formData
         name: provinceId
         required: true
         type: string
-      - description: Mã Quận/Huyện
+      - description: District ID
         in: formData
         name: districtId
         required: true
         type: string
-      - description: Mã Phường/Xã
+      - description: Ward ID
         in: formData
         name: wardId
         required: true
         type: string
-      - description: Tên quán dự kiến
+      - description: Proposed store name
         in: formData
         name: storeName
         required: true
         type: string
-      - description: Địa chỉ chi tiết mặt bằng
+      - description: Detailed premise address
         in: formData
         name: storeAddress
         required: true
         type: string
-      - description: Vĩ độ (Latitude)
+      - description: Latitude
         in: formData
         name: storeLatitude
         type: number
-      - description: Kinh độ (Longitude)
+      - description: Longitude
         in: formData
         name: storeLongitude
         type: number
-      - description: Diện tích mặt bằng (m2)
+      - description: Premise area (sqm)
         in: formData
         name: storeSizeSqm
         type: number
-      - description: Ảnh mặt tiền (1 file)
+      - description: Storefront image (1 file)
         in: formData
         name: storeFront
         type: file
-      - description: Ảnh chứng nhận đất đai/Sổ đỏ (Nhiều file)
+      - description: Land certificate images (Multiple files)
         in: formData
         name: landCerts
         type: file
@@ -728,24 +1024,24 @@ paths:
       - application/json
       responses:
         "201":
-          description: Hồ sơ vừa tạo
+          description: Created application
           schema:
             $ref: '#/definitions/api-gateway_internal_domain_models_franchise.FranchiseApplicationResponse'
         "400":
-          description: Lỗi dữ liệu đầu vào
+          description: Validation error (Bad Request)
           schema:
             type: object
       security:
       - BearerAuth: []
-      summary: Nộp hồ sơ đăng ký nhượng quyền
+      summary: Submit franchise application
       tags:
       - 'Franchise: Applications'
   /franchise/applications/{id}:
     get:
-      description: Xem chi tiết hồ sơ bao gồm cả danh sách các hợp đồng (Contracts)
-        được sinh ra từ hồ sơ này.
+      description: View application details including the list of contracts generated
+        from this application.
       parameters:
-      - description: ID Hồ sơ (Application ID)
+      - description: Application ID
         in: path
         name: id
         required: true
@@ -759,22 +1055,22 @@ paths:
             $ref: '#/definitions/api-gateway_internal_domain_models_franchise.FranchiseApplicationDetailResponse'
       security:
       - BearerAuth: []
-      summary: Xem chi tiết một hồ sơ (Admin)
+      summary: Get application details (Admin)
       tags:
       - 'Franchise: Applications'
   /franchise/applications/{id}/review:
     patch:
       consumes:
       - application/json
-      description: Admin duyệt (Approve) hoặc từ chối (Reject) hồ sơ. Nếu Approve,
-        hệ thống tự động sinh Hợp đồng và bắn link DocuSeal.
+      description: Admin approves or rejects the application. If approved, the system
+        automatically generates a Contract and sends a DocuSeal link.
       parameters:
-      - description: ID Hồ sơ (Application ID)
+      - description: Application ID
         in: path
         name: id
         required: true
         type: string
-      - description: Quyết định thẩm định & Thông số hợp đồng
+      - description: Review decision & contract parameters
         in: body
         name: body
         required: true
@@ -789,13 +1085,13 @@ paths:
             $ref: '#/definitions/api-gateway_internal_domain_models_franchise.ReviewApplicationResponse'
       security:
       - BearerAuth: []
-      summary: Thẩm định hồ sơ nhượng quyền (Admin)
+      summary: Review franchise application (Admin)
       tags:
       - 'Franchise: Applications'
   /franchise/contracts:
     get:
-      description: Lấy toàn bộ hợp đồng nhượng quyền (hỗ trợ phân trang, lọc theo
-        trạng thái).
+      description: Retrieve all franchise contracts (supports pagination, filtering
+        by status).
       parameters:
       - in: query
         name: page
@@ -815,14 +1111,14 @@ paths:
             $ref: '#/definitions/franchise.ContractPaginationResult'
       security:
       - BearerAuth: []
-      summary: Lấy danh sách hợp đồng (Admin/Kế toán)
+      summary: Get all contracts (Admin/Accountant)
       tags:
       - 'Franchise: Contracts'
   /franchise/contracts/{id}:
     get:
-      description: Lấy thông tin chi tiết của một hợp đồng nhượng quyền.
+      description: Retrieve detailed information of a franchise contract.
       parameters:
-      - description: ID Hợp đồng
+      - description: Contract ID
         in: path
         name: id
         required: true
@@ -836,22 +1132,22 @@ paths:
             $ref: '#/definitions/api-gateway_internal_domain_models_franchise.FranchiseContractResponse'
       security:
       - BearerAuth: []
-      summary: Xem chi tiết một hợp đồng
+      summary: Get contract details
       tags:
       - 'Franchise: Contracts'
   /franchise/contracts/{id}/payment:
     post:
       consumes:
       - application/json
-      description: Chuyển trạng thái hợp đồng sang Active, tạo Cửa hàng mới và cấp
-        quyền Manager cho đối tác.
+      description: Change contract status to Active, create a new Store, and grant
+        Manager role to the partner.
       parameters:
-      - description: ID Hợp đồng
+      - description: Contract ID
         in: path
         name: id
         required: true
         type: string
-      - description: Ghi chú giao dịch
+      - description: Transaction notes
         in: body
         name: body
         required: true
@@ -861,28 +1157,29 @@ paths:
       - application/json
       responses:
         "200":
-          description: '{"message": "Xác nhận thanh toán thành công"}'
+          description: '{"message": "Xác nhận thanh toán thành công. Hợp đồng đã có
+            hiệu lực."}'
           schema:
             additionalProperties:
               type: string
             type: object
       security:
       - BearerAuth: []
-      summary: Xác nhận đã đóng tiền cọc (Kế toán)
+      summary: Confirm deposit payment (Accountant)
       tags:
       - 'Franchise: Contracts'
   /franchise/contracts/{id}/renew:
     post:
       consumes:
       - application/json
-      description: Cộng thêm số năm hiệu lực vào hợp đồng hiện tại.
+      description: Add valid years to the current contract.
       parameters:
-      - description: ID Hợp đồng
+      - description: Contract ID
         in: path
         name: id
         required: true
         type: string
-      - description: Số năm gia hạn
+      - description: Years to renew
         in: body
         name: body
         required: true
@@ -897,22 +1194,22 @@ paths:
             $ref: '#/definitions/api-gateway_internal_domain_models_franchise.FranchiseContractResponse'
       security:
       - BearerAuth: []
-      summary: Gia hạn hợp đồng nhượng quyền
+      summary: Renew franchise contract
       tags:
       - 'Franchise: Contracts'
   /franchise/contracts/{id}/setup:
     patch:
       consumes:
       - application/json
-      description: Admin cập nhật trạng thái thi công (Design -> Construction -> Inspection
-        -> Ready).
+      description: Admin updates the construction status (Design -> Construction ->
+        Inspection -> Ready).
       parameters:
-      - description: ID Hợp đồng
+      - description: Contract ID
         in: path
         name: id
         required: true
         type: string
-      - description: Trạng thái Setup
+      - description: Setup status
         in: body
         name: body
         required: true
@@ -927,22 +1224,22 @@ paths:
             $ref: '#/definitions/api-gateway_internal_domain_models_franchise.FranchiseContractResponse'
       security:
       - BearerAuth: []
-      summary: Cập nhật tiến độ thi công cửa hàng
+      summary: Update store setup status
       tags:
       - 'Franchise: Contracts'
   /franchise/contracts/{id}/status:
     patch:
       consumes:
       - application/json
-      description: Admin thay đổi trạng thái hợp đồng (Suspended, Terminated) kèm
-        lý do.
+      description: Admin changes the contract status (Suspended, Terminated) with
+        a reason.
       parameters:
-      - description: ID Hợp đồng
+      - description: Contract ID
         in: path
         name: id
         required: true
         type: string
-      - description: Trạng thái và lý do
+      - description: Status and reason
         in: body
         name: body
         required: true
@@ -957,12 +1254,12 @@ paths:
             $ref: '#/definitions/api-gateway_internal_domain_models_franchise.FranchiseContractResponse'
       security:
       - BearerAuth: []
-      summary: Tạm ngưng / Chấm dứt hợp đồng
+      summary: Suspend / Terminate contract
       tags:
       - 'Franchise: Contracts'
   /franchise/me/applications:
     get:
-      description: Lấy toàn bộ hồ sơ đăng ký nhượng quyền của bản thân
+      description: Retrieve all franchise applications submitted by the current user.
       produces:
       - application/json
       responses:
@@ -974,12 +1271,12 @@ paths:
             type: array
       security:
       - BearerAuth: []
-      summary: Lấy danh sách hồ sơ nhượng quyền của bản thân
+      summary: Get my franchise applications
       tags:
       - 'Franchise: Applications'
   /franchise/me/contracts:
     get:
-      description: Lấy toàn bộ hợp đồng nhượng quyền của bản thân
+      description: Retrieve all franchise contracts of the current user.
       produces:
       - application/json
       responses:
@@ -991,15 +1288,15 @@ paths:
             type: array
       security:
       - BearerAuth: []
-      summary: Lấy danh sách hợp đồng của bản thân
+      summary: Get my contracts
       tags:
       - 'Franchise: Contracts'
   /franchise/webhook/docuseal:
     post:
       consumes:
       - application/json
-      description: Cập nhật trạng thái hợp đồng (Đã ký) dựa trên webhook từ hệ thống
-        DocuSeal gửi về. Không dùng xác thực Token mà dùng Header HMAC.
+      description: Update contract status (Signed) based on the webhook sent from
+        DocuSeal. Uses HMAC Header instead of Token authentication.
       produces:
       - application/json
       responses:
@@ -1009,13 +1306,13 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Nhận Webhook từ DocuSeal (Internal)
+      summary: Handle DocuSeal Webhook (Internal)
       tags:
       - 'Franchise: Webhooks'
   /me/shift-availabilities:
     get:
-      description: Truy xuất danh sách lịch rảnh/bận đã đăng ký của nhân viên hiện
-        tại kèm phân trang.
+      description: Retrieve the paginated list of registered availability/unavailability
+        for the current employee.
       parameters:
       - in: query
         name: dayOfWeek
@@ -1047,26 +1344,60 @@ paths:
       - in: query
         name: userId
         type: string
-      responses: {}
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful retrieval
+          schema:
+            $ref: '#/definitions/common.PaginationResult-shift_ShiftAvailabilityResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Lấy lịch sử đăng ký rảnh/bận của tôi
+      summary: Get my shift availability history
       tags:
       - 'Shifts: Availabilities'
   /me/shift-swaps:
     get:
-      description: Lấy toàn bộ các yêu cầu đổi ca mà tôi là người gửi hoặc người nhận.
+      description: Retrieve all shift swap requests where the current logged-in user
+        is either the sender or the receiver.
       produces:
       - application/json
-      responses: {}
+      responses:
+        "200":
+          description: List of user's swap requests
+          schema:
+            items:
+              $ref: '#/definitions/shift.SwapRequestItem'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Lấy danh sách yêu cầu đổi ca của tôi
+      summary: Get my shift swaps
       tags:
       - 'Shifts: Swaps'
   /me/shifts:
     get:
-      description: Retrieve shift schedule within a date range for the logged-in staff.
+      description: Retrieve the shift schedule within a specified date range for the
+        logged-in staff member.
       parameters:
       - description: Start Date (YYYY-MM-DD)
         in: query
@@ -1078,82 +1409,145 @@ paths:
         name: endDate
         required: true
         type: string
-      responses: {}
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of scheduled shifts
+          schema:
+            items:
+              $ref: '#/definitions/shift.StaffShiftAgenda'
+            type: array
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Get Staff Agenda
+      summary: Get staff shift agenda
       tags:
       - 'Shifts: Staff'
   /me/shifts/assignments/{id}/check-in:
     put:
-      description: Check-in to a specific shift assignment using GPS location.
+      consumes:
+      - application/json
+      description: Check-in to a specific shift assignment using GPS location data.
       parameters:
       - description: Assignment ID
         in: path
         name: id
         required: true
         type: string
-      - description: GPS & Note
+      - description: GPS coordinates and notes
         in: body
         name: body
         required: true
         schema:
           $ref: '#/definitions/shift.AttendancePayload'
-      responses: {}
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Check-in successful
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation Error or Invalid ID
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Staff Check-in
+      summary: Staff check-in
       tags:
       - 'Shifts: Staff'
   /me/shifts/current:
     get:
       consumes:
       - application/json
-      description: Retrieve the current active shift for the logged-in user.
+      description: Retrieve the current active shift details for the logged-in user.
       produces:
       - application/json
       responses:
         "200":
           description: Current shift details
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/shift.UserCurrentShiftResponse'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
             type: object
       security:
       - BearerAuth: []
-      summary: Get My Current Shift
+      summary: Get current active shift
       tags:
       - 'Shifts: Staff'
   /me/shifts/logs/{id}/check-out:
     put:
-      description: Check-out from an active shift log.
+      consumes:
+      - application/json
+      description: Check-out from an active shift log using GPS location data.
       parameters:
-      - description: Log ID
+      - description: Time Log ID
         in: path
         name: id
         required: true
         type: string
-      - description: GPS & Note
+      - description: GPS coordinates and notes
         in: body
         name: body
         required: true
         schema:
           $ref: '#/definitions/shift.AttendancePayload'
-      responses: {}
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Check-out successful
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation Error or Invalid ID
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Staff Check-out
+      summary: Staff check-out
       tags:
       - 'Shifts: Staff'
   /me/shifts/time-logs:
     get:
-      description: Staff xem lại danh sách các bản ghi chấm công của chính mình. Gateway
-        tự động gắn StaffID từ Token.
+      description: Staff views their own time log history. The Gateway automatically
+        binds the StaffID from the Token to ensure security.
       parameters:
       - description: 'Format: YYYY-MM-DD'
         in: query
@@ -1193,25 +1587,43 @@ paths:
       - in: query
         name: toDate
         type: string
-      responses: {}
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Paginated time log history
+          schema:
+            $ref: '#/definitions/common.PaginationResult-shift_TimeLogResponse'
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Lấy lịch sử chấm công cá nhân
+      summary: Get my time log history
       tags:
       - 'Shifts: Staff'
   /shift-applications/{id}/review:
     patch:
       consumes:
       - application/json
-      description: Manager cập nhật trạng thái đơn (Approved/Rejected). ID đơn lấy
-        từ Path.
+      description: Manager reviews an application and updates its status (Approved/Rejected).
+        The application ID is provided in the path.
       parameters:
       - description: Application ID
         in: path
         name: id
         required: true
         type: string
-      - description: Kết quả duyệt đơn
+      - description: Review decision and status
         in: body
         name: body
         required: true
@@ -1219,14 +1631,34 @@ paths:
           $ref: '#/definitions/shift.ReviewApplicationRequest'
       produces:
       - application/json
-      responses: {}
-      summary: Duyệt hoặc từ chối đơn đăng ký nhận ca
+      responses:
+        "200":
+          description: '{"message": "Đã cập nhật trạng thái đơn đăng ký"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Review shift application
       tags:
       - 'Shifts: Applications'
   /shift-availabilities:
     get:
-      description: Quản lý xem toàn bộ danh sách lịch rảnh/bận của nhân viên để sắp
-        ca làm việc.
+      description: Managers view the complete list of employee availabilities to facilitate
+        shift scheduling.
       parameters:
       - in: query
         name: dayOfWeek
@@ -1258,100 +1690,216 @@ paths:
       - in: query
         name: userId
         type: string
-      responses: {}
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful retrieval
+          schema:
+            $ref: '#/definitions/common.PaginationResult-shift_ShiftAvailabilityResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Quản lý toàn bộ lịch rảnh/bận
+      summary: Manage all shift availabilities (Manager)
       tags:
       - 'Shifts: Availabilities'
     post:
-      description: Gửi đơn đăng ký thời gian rảnh hoặc bận để quản lý sắp ca.
+      consumes:
+      - application/json
+      description: Submit a request for available or unavailable time to assist managers
+        in scheduling.
       parameters:
-      - description: Dữ liệu đăng ký
+      - description: Availability registration data
         in: body
         name: body
         required: true
         schema:
           $ref: '#/definitions/shift.CreateShiftAvailabilityRequest'
-      responses: {}
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Successfully created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Đăng ký lịch rảnh/bận mới
+      summary: Register new shift availability
       tags:
       - 'Shifts: Availabilities'
   /shift-availabilities/{id}:
     delete:
-      description: Xóa bỏ đơn đăng ký lịch rảnh/bận đã gửi.
+      description: Remove a previously submitted availability request.
       parameters:
-      - description: ID lịch đăng ký
+      - description: Availability ID
         in: path
         name: id
         required: true
         type: string
-      responses: {}
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully deleted
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Hủy/Xóa lịch rảnh/bận
+      summary: Delete shift availability
       tags:
       - 'Shifts: Availabilities'
     patch:
-      description: Chỉnh sửa đơn đăng ký lịch rảnh/bận đã gửi dựa trên ID.
+      consumes:
+      - application/json
+      description: Edit a submitted availability/unavailability request by its ID.
       parameters:
-      - description: ID lịch đăng ký
+      - description: Availability ID
         in: path
         name: id
         required: true
         type: string
-      - description: Dữ liệu cập nhật
+      - description: Update data
         in: body
         name: body
         required: true
         schema:
           $ref: '#/definitions/shift.UpdateShiftAvailabilityRequest'
-      responses: {}
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully updated
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID or Bad Request
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Cập nhật lịch rảnh/bận
+      summary: Update shift availability
       tags:
       - 'Shifts: Availabilities'
   /shift-rules:
     get:
-      description: Lấy thông tin cấu hình luật ca làm việc (Global và theo Store)
-        để hiển thị trên trang cài đặt.
+      description: Retrieve shift rule configurations (Global and Store-specific)
+        to display on the settings page.
       parameters:
-      - description: ID cửa hàng (Nếu muốn lọc theo store cụ thể)
+      - description: Store ID (Optional, to filter by a specific store)
         in: query
         name: storeId
         type: string
+      produces:
+      - application/json
       responses:
         "200":
-          description: Dữ liệu cấu hình
+          description: Configuration data
           schema:
             $ref: '#/definitions/shift.ShiftRuleSettingsResponse'
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Lấy cấu hình quy định ca làm
+      summary: Get shift rule settings
       tags:
       - 'Shifts: Rule'
     put:
-      description: Cập nhật hoặc tạo mới các quy định về ca làm việc (Giờ tối đa,
-        thời gian nghỉ...).
+      consumes:
+      - application/json
+      description: Create or update shift rules and constraints (e.g., maximum working
+        hours, required break times).
       parameters:
-      - description: Dữ liệu quy định cần lưu
+      - description: Rule configuration data to save
         in: body
         name: payload
         required: true
         schema:
           $ref: '#/definitions/shift.SaveShiftRuleRequest'
-      responses: {}
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully saved rule settings
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Lưu cấu hình quy định ca làm
+      summary: Save shift rule settings
       tags:
       - 'Shifts: Rule'
   /shift-swaps:
     get:
-      description: Lấy toàn bộ các yêu cầu đổi ca.
+      description: Retrieve a complete list of all shift swap requests (typically
+        for managers).
       parameters:
       - in: query
         name: status
@@ -1361,25 +1909,43 @@ paths:
         type: string
       produces:
       - application/json
-      responses: {}
+      responses:
+        "200":
+          description: List of swap requests
+          schema:
+            items:
+              $ref: '#/definitions/shift.SwapRequestItem'
+            type: array
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Lấy danh sách yêu cầu đổi ca
+      summary: Get all shift swaps
       tags:
       - 'Shifts: Swaps'
   /shift-swaps/{id}/approvals:
     patch:
       consumes:
       - application/json
-      description: Sau khi 2 nhân viên đồng ý, Manager cần duyệt cuối để chính thức
-        đổi ca.
+      description: After both employees agree to the swap, the Manager gives final
+        approval to officially update the schedule.
       parameters:
       - description: Swap Request ID
         in: path
         name: id
         required: true
         type: string
-      - description: Kết quả duyệt của Manager
+      - description: Manager's approval decision
         in: body
         name: body
         required: true
@@ -1387,15 +1953,33 @@ paths:
           $ref: '#/definitions/shift.ApproveSwapRequest'
       produces:
       - application/json
-      responses: {}
+      responses:
+        "200":
+          description: '{"message": "Đã hoàn tất duyệt đổi ca"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation Error or Invalid ID
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Manager duyệt yêu cầu đổi ca cuối cùng
+      summary: Approve a shift swap (Manager)
       tags:
       - 'Shifts: Swaps'
   /shift-swaps/{id}/cancel:
     patch:
-      description: Nhân viên gửi yêu cầu có thể tự hủy nếu yêu cầu chưa được phê duyệt.
+      description: The requesting employee can cancel their swap request if it hasn't
+        been approved yet.
       parameters:
       - description: Swap Request ID
         in: path
@@ -1404,24 +1988,39 @@ paths:
         type: string
       produces:
       - application/json
-      responses: {}
+      responses:
+        "204":
+          description: No Content (Cancelled successfully)
+        "400":
+          description: Invalid ID or Bad Request
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Tự hủy yêu cầu đổi ca đã gửi
+      summary: Cancel a sent swap request
       tags:
       - 'Shifts: Swaps'
   /shift-swaps/{id}/responses:
     patch:
       consumes:
       - application/json
-      description: Nhân viên B nhận được yêu cầu và chọn Chấp nhận hoặc Từ chối.
+      description: Employee B receives the swap request and chooses to Accept or Reject
+        it.
       parameters:
       - description: Swap Request ID
         in: path
         name: id
         required: true
         type: string
-      - description: Phản hồi của nhân viên nhận yêu cầu
+      - description: Respondent's reply data
         in: body
         name: body
         required: true
@@ -1429,16 +2028,33 @@ paths:
           $ref: '#/definitions/shift.RespondSwapRequest'
       produces:
       - application/json
-      responses: {}
+      responses:
+        "200":
+          description: '{"message": "Đã ghi nhận phản hồi đổi ca"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation Error or Invalid ID
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Nhân viên phản hồi yêu cầu đổi ca (B phản hồi cho A)
+      summary: Respond to a shift swap request
       tags:
       - 'Shifts: Swaps'
   /shift-templates:
     get:
-      description: Truy xuất toàn bộ danh sách các mẫu ca làm (Sáng, Chiều, Tối...)
-        theo Store.
+      description: Retrieve a complete list of shift templates (e.g., Morning, Afternoon,
+        Night) for a specific store.
       parameters:
       - in: query
         name: isActive
@@ -1449,92 +2065,193 @@ paths:
       - in: query
         name: storeId
         type: string
+      produces:
+      - application/json
       responses:
         "200":
-          description: Danh sách mẫu ca
+          description: List of shift templates
           schema:
             items:
               $ref: '#/definitions/shift.ShiftTemplateResponse'
             type: array
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Lấy danh sách mẫu ca làm việc
+      summary: Get all shift templates
       tags:
       - 'Shifts: Template'
     post:
-      description: Định nghĩa một khung giờ làm việc mẫu (mã code, tên, giờ bắt đầu/kết
-        thúc).
+      consumes:
+      - application/json
+      description: Define a new standard shift timeframe (including code, name, and
+        start/end times).
       parameters:
-      - description: Thông tin mẫu ca
+      - description: Shift template data
         in: body
         name: body
         required: true
         schema:
           $ref: '#/definitions/shift.CreateShiftTemplateRequest'
-      responses: {}
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Successfully created template
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Tạo mẫu ca làm mới
+      summary: Create a new shift template
       tags:
       - 'Shifts: Template'
   /shift-templates/{id}:
     delete:
-      description: Gỡ bỏ hoàn toàn một mẫu ca làm khỏi hệ thống.
+      description: Completely remove a shift template from the system.
       parameters:
-      - description: ID mẫu ca
+      - description: Template ID
         in: path
         name: id
         required: true
         type: string
-      responses: {}
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully deleted template
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "404":
+          description: Template Not Found
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Xóa mẫu ca làm việc
+      summary: Delete a shift template
       tags:
       - 'Shifts: Template'
     get:
-      description: Lấy thông tin chi tiết cấu hình của một mẫu ca làm việc dựa trên
-        ID.
+      description: Retrieve the detailed configuration of a specific shift template
+        by its ID.
       parameters:
-      - description: ID mẫu ca
+      - description: Template ID
         in: path
         name: id
         required: true
         type: string
+      produces:
+      - application/json
       responses:
         "200":
-          description: OK
+          description: Template details
           schema:
             $ref: '#/definitions/shift.ShiftTemplateResponse'
+        "400":
+          description: Invalid ID (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "404":
+          description: Template Not Found
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Chi tiết mẫu ca làm việc
+      summary: Get shift template details
       tags:
       - 'Shifts: Template'
     patch:
-      description: Chỉnh sửa cấu hình khung giờ hoặc tên của mẫu ca làm việc hiện
-        có.
+      consumes:
+      - application/json
+      description: Modify the timeframe configuration or the name of an existing shift
+        template.
       parameters:
-      - description: ID mẫu ca
+      - description: Template ID
         in: path
         name: id
         required: true
         type: string
-      - description: Dữ liệu cập nhật
+      - description: Update data
         in: body
         name: body
         required: true
         schema:
           $ref: '#/definitions/shift.UpdateShiftTemplateRequest'
-      responses: {}
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully updated template
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation Error or Invalid ID
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "404":
+          description: Template Not Found
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Cập nhật mẫu ca làm việc
+      summary: Update a shift template
       tags:
       - 'Shifts: Template'
   /shifts:
     get:
-      description: Truy xuất danh sách ca làm việc kèm bộ lọc (Dùng cho Calendar/List
+      description: Retrieve a list of shifts with applied filters (Used for Calendar/List
         view).
       parameters:
       - in: query
@@ -1550,90 +2267,72 @@ paths:
       - in: query
         name: toDate
         type: string
+      produces:
+      - application/json
       responses:
         "200":
-          description: OK
+          description: List of shifts
           schema:
             items:
               $ref: '#/definitions/shift.ShiftResponse'
             type: array
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Lấy danh sách ca làm việc
+      summary: Get all shifts
       tags:
       - Shifts
     post:
-      description: Tạo một ca làm việc mới cho cửa hàng.
+      consumes:
+      - application/json
+      description: Create a new working shift for the store.
       parameters:
-      - description: Thông tin ca làm
+      - description: Shift information
         in: body
         name: body
         required: true
         schema:
           $ref: '#/definitions/shift.CreateShiftRequest'
-      responses: {}
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Shift created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Tạo ca làm mới
+      summary: Create a new shift
       tags:
       - Shifts
   /shifts/{id}:
     delete:
-      description: Xóa ca làm (Chỉ khi ở trạng thái Draft/Planning).
-      parameters:
-      - description: ID ca làm
-        in: path
-        name: id
-        required: true
-        type: string
-      responses: {}
-      security:
-      - BearerAuth: []
-      summary: Xóa ca làm việc
-      tags:
-      - Shifts
-    get:
-      description: Lấy thông tin chi tiết ca làm và danh sách nhân viên đã gán.
-      parameters:
-      - description: ID ca làm
-        in: path
-        name: id
-        required: true
-        type: string
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/shift.ShiftResponse'
-      security:
-      - BearerAuth: []
-      summary: Lấy chi tiết một ca làm
-      tags:
-      - Shifts
-    patch:
-      description: Cập nhật giờ giấc hoặc số lượng nhân viên cần thiết cho ca làm.
-      parameters:
-      - description: ID ca làm
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Dữ liệu cập nhật
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/shift.UpdateShiftRequest'
-      responses: {}
-      security:
-      - BearerAuth: []
-      summary: Cập nhật ca làm việc
-      tags:
-      - Shifts
-  /shifts/{id}/applications:
-    get:
-      description: Manager xem danh sách ứng viên kèm điểm Smart Score để đưa ra quyết
-        định duyệt.
+      description: Delete a specific shift (Only allowed if it is in Draft or Planning
+        status).
       parameters:
       - description: Shift ID
         in: path
@@ -1642,22 +2341,163 @@ paths:
         type: string
       produces:
       - application/json
-      responses: {}
-      summary: Lấy danh sách các đơn đăng ký của một ca làm việc
+      responses:
+        "200":
+          description: Shift deleted successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID or Bad Request
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "403":
+          description: Forbidden (Cannot delete published shift)
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete a shift
       tags:
-      - 'Shifts: Applications'
-    post:
-      consumes:
-      - application/json
-      description: Tạo một bản ghi ShiftApplication cho ca làm việc cụ thể. UserId
-        lấy từ Token.
+      - Shifts
+    get:
+      description: Retrieve detailed information about a specific shift and its assigned
+        staff.
       parameters:
       - description: Shift ID
         in: path
         name: id
         required: true
         type: string
-      - description: Ghi chú đăng ký
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Shift details
+          schema:
+            $ref: '#/definitions/shift.ShiftResponse'
+        "400":
+          description: Invalid Shift ID (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "404":
+          description: Shift Not Found
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get shift details
+      tags:
+      - Shifts
+    patch:
+      consumes:
+      - application/json
+      description: Update shift timings or the required number of staff.
+      parameters:
+      - description: Shift ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/shift.UpdateShiftRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Shift updated successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation Error or Invalid ID
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "404":
+          description: Shift Not Found
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update a shift
+      tags:
+      - Shifts
+  /shifts/{id}/applications:
+    get:
+      description: Manager views the list of applicants for a specific shift, along
+        with their Smart Scores, to make approval decisions.
+      parameters:
+      - description: Shift ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of shift applications
+          schema:
+            items:
+              $ref: '#/definitions/shift.ShiftApplicationItem'
+            type: array
+        "400":
+          description: Invalid Shift ID (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get applications by shift ID
+      tags:
+      - 'Shifts: Applications'
+    post:
+      consumes:
+      - application/json
+      description: Employee applies for a specific shift. Creates a new ShiftApplication
+        record. UserId is extracted from the authentication token.
+      parameters:
+      - description: Shift ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Application notes and details
         in: body
         name: body
         required: true
@@ -1665,26 +2505,112 @@ paths:
           $ref: '#/definitions/shift.ApplyForShiftRequest'
       produces:
       - application/json
-      responses: {}
-      summary: Nhân viên đăng ký nhận ca (Tạo mới một đơn đăng ký)
+      responses:
+        "201":
+          description: '{"message": "Gửi đơn đăng ký nhận ca thành công"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Apply for a shift
       tags:
       - 'Shifts: Applications'
-  /shifts/{id}/publish:
+  /shifts/{id}/assign:
     put:
-      description: Chuyển trạng thái sang Published để nhân viên thấy được lịch.
+      consumes:
+      - application/json
+      description: Modify the list of employees assigned to a specific shift.
       parameters:
-      - description: ID ca làm
+      - description: Shift ID
         in: path
         name: id
         required: true
         type: string
-      responses: {}
-      summary: Xuất bản ca làm
+      - description: List of User IDs to assign
+        in: body
+        name: body
+        required: true
+        schema:
+          items:
+            type: string
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Assignment update result
+          schema:
+            $ref: '#/definitions/shift.AssignStaffResponse'
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update staff assignments
+      tags:
+      - 'Shifts: Assignment'
+  /shifts/{id}/publish:
+    put:
+      description: Change the shift status to Published, making it visible to employees
+        on the schedule.
+      parameters:
+      - description: Shift ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Shift published successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID or Bad Request
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Publish a single shift
       tags:
       - Shifts
   /shifts/{id}/releases:
     patch:
-      description: Nhân viên trả lại ca làm đã nhận để người khác có thể đăng ký.
+      description: The employee releases an assigned shift so other staff members
+        can apply for it.
       parameters:
       - description: Assignment ID
         in: path
@@ -1693,24 +2619,42 @@ paths:
         type: string
       produces:
       - application/json
-      responses: {}
+      responses:
+        "200":
+          description: '{"message": "Đã nhả ca thành công"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID or Bad Request
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Nhả ca về Chợ Ca (Shift Pool)
+      summary: Release a shift to the Shift Pool
       tags:
       - 'Shifts: Swaps'
   /shifts/{id}/swaps:
     post:
       consumes:
       - application/json
-      description: Nhân viên A chọn một ca của mình và yêu cầu đổi với nhân viên B.
+      description: Employee A selects one of their assignments and requests a swap
+        with Employee B.
       parameters:
-      - description: Assignment ID (Ca của người gửi)
+      - description: Assignment ID (Sender's shift)
         in: path
         name: id
         required: true
         type: string
-      - description: Dữ liệu yêu cầu đổi ca
+      - description: Swap request details
         in: body
         name: body
         required: true
@@ -1718,60 +2662,74 @@ paths:
           $ref: '#/definitions/shift.RequestSwapRequest'
       produces:
       - application/json
-      responses: {}
+      responses:
+        "201":
+          description: '{"message": "Đã gửi yêu cầu đổi ca"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Tạo yêu cầu đổi ca (A gửi cho B)
+      summary: Request a shift swap
       tags:
       - 'Shifts: Swaps'
-  /shifts/{shiftId}/assign:
-    put:
-      description: Thay đổi danh sách nhân viên được gán vào ca làm việc.
-      parameters:
-      - description: ID ca làm
-        in: path
-        name: shiftId
-        required: true
-        type: string
-      - description: Danh sách User ID
-        in: body
-        name: body
-        required: true
-        schema:
-          items:
-            type: string
-          type: array
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/shift.AssignStaffResponse'
-      summary: Cập nhật phân công nhân sự
-      tags:
-      - 'Shifts: Assignment'
   /shifts/auto-fill:
     put:
-      description: Hệ thống tự động tính toán và gán nhân viên phù hợp vào các ca
-        làm việc còn trống (Draft) dựa trên lịch rảnh và quy tắc ca làm.
+      consumes:
+      - application/json
+      description: System automatically calculates and assigns suitable staff to empty
+        (Draft) shifts based on availability and scheduling rules.
       parameters:
-      - description: Khoảng thời gian cần xếp ca tự động
+      - description: Time range for auto-filling shifts
         in: body
         name: body
         required: true
         schema:
           $ref: '#/definitions/shift.AutoFillShiftsRequest'
-      responses: {}
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Auto-fill result summary
+          schema:
+            $ref: '#/definitions/shift.AutoFillShiftsResponse'
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Tự động xếp người vào ca làm việc
+      summary: Auto-fill shift assignments
       tags:
       - 'Shifts: Assignment'
   /shifts/bulk-delete:
     delete:
-      description: Xóa hàng loạt các ca làm việc (Chỉ áp dụng cho các ca đang ở trạng
-        thái Nháp).
+      consumes:
+      - application/json
+      description: Delete multiple shifts simultaneously (Only applicable for shifts
+        currently in Draft status).
       parameters:
-      - description: Danh sách ID các ca làm cần xóa
+      - description: List of shift IDs to delete
         in: body
         name: body
         required: true
@@ -1779,35 +2737,78 @@ paths:
           items:
             type: string
           type: array
-      responses: {}
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully deleted shifts
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Xóa hàng loạt ca làm việc
+      summary: Bulk delete shifts
       tags:
       - 'Shifts: Bulk action'
   /shifts/bulk-manual:
     post:
-      description: Tạo nhiều ca làm việc cùng lúc dựa trên khung giờ và các ngày trong
-        tuần được chọn.
+      consumes:
+      - application/json
+      description: Create multiple shifts simultaneously based on selected time frames
+        and days of the week.
       parameters:
-      - description: Dữ liệu tạo hàng loạt
+      - description: Bulk creation data
         in: body
         name: body
         required: true
         schema:
           $ref: '#/definitions/shift.BulkCreateManualRequest'
-      responses: {}
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Successfully created shifts
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Tạo ca làm việc thủ công hàng loạt
+      summary: Bulk create manual shifts
       tags:
       - 'Shifts: Bulk action'
   /shifts/bulk-open:
     put:
-      description: Chuyển trạng thái hàng loạt ca làm việc từ Draft sang Open để nhân
-        viên có thể đăng ký nhận. StoreId được lấy tự động từ Token của Manager.
+      consumes:
+      - application/json
+      description: Change the status of multiple shifts from Draft to Open, allowing
+        employees to apply for them in the Shift Pool. StoreId is automatically extracted
+        from the Manager's Token.
       parameters:
-      - description: Danh sách ID các ca làm cần mở
+      - description: List of shift IDs to open
         in: body
         name: body
         required: true
@@ -1815,18 +2816,39 @@ paths:
           items:
             type: string
           type: array
-      responses: {}
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Returns the count of successfully opened shifts
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Mở hàng loạt ca ra Chợ Ca (Shift Pool)
+      summary: Bulk open shifts to Shift Pool
       tags:
       - 'Shifts: Bulk action'
   /shifts/bulk-publish:
     put:
-      description: Chuyển trạng thái hàng loạt ca làm từ Draft sang Published để nhân
-        viên có thể thấy lịch.
+      consumes:
+      - application/json
+      description: Change the status of multiple shifts from Draft to Published, making
+        them visible to employees on the schedule.
       parameters:
-      - description: Danh sách ID các ca làm cần công khai
+      - description: List of shift IDs to publish
         in: body
         name: body
         required: true
@@ -1834,32 +2856,73 @@ paths:
           items:
             type: string
           type: array
-      responses: {}
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully published shifts
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Công khai ca làm việc hàng loạt
+      summary: Bulk publish shifts
       tags:
       - 'Shifts: Bulk action'
   /shifts/bulk-template:
     post:
-      description: Tạo hàng loạt ca làm việc trong một khoảng thời gian dựa trên các
-        Shift Template có sẵn.
+      consumes:
+      - application/json
+      description: Create multiple shifts over a specified period based on existing
+        Shift Templates.
       parameters:
-      - description: Dữ liệu tạo từ mẫu
+      - description: Template creation data
         in: body
         name: body
         required: true
         schema:
           $ref: '#/definitions/shift.BulkCreateFromTemplateRequest'
-      responses: {}
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Successfully created shifts from template
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Tạo ca làm việc từ mẫu hàng loạt
+      summary: Bulk create shifts from template
       tags:
       - 'Shifts: Bulk action'
   /shifts/time-logs:
     get:
-      description: Manager lấy toàn bộ nhật ký chấm công trong Store kèm bộ lọc.
+      description: Manager retrieves all time logs within the Store, applying optional
+        filters.
       parameters:
       - description: 'Format: YYYY-MM-DD'
         in: query
@@ -1899,36 +2962,71 @@ paths:
       - in: query
         name: toDate
         type: string
-      responses: {}
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Paginated list of time logs
+          schema:
+            $ref: '#/definitions/common.PaginationResult-shift_TimeLogResponse'
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Lấy danh sách chấm công
+      summary: Get time logs
       tags:
       - 'Shifts: Time log'
   /shifts/time-logs/{id}:
     patch:
-      description: Manager phê duyệt (Valid) hoặc từ chối (Invalid) ca làm thực tế
-        của nhân viên.
+      consumes:
+      - application/json
+      description: Manager approves (Valid) or rejects (Invalid) an employee's actual
+        worked shift.
       parameters:
-      - description: ID nhật ký chấm công
+      - description: Time log ID
         in: path
         name: id
         required: true
         type: string
-      - description: Dữ liệu cập nhật
+      - description: Update data
         in: body
         name: body
         required: true
         schema:
           $ref: '#/definitions/shift.UpdateTimeLogRequest'
+      produces:
+      - application/json
       responses:
         "200":
-          description: OK
+          description: Time log updated successfully
           schema:
-            $ref: '#/definitions/gin.H'
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation Error (e.g., missing rejection reason)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
       security:
       - BearerAuth: []
-      summary: Duyệt hoặc cập nhật chấm công
+      summary: Review or update time log
       tags:
       - 'Shifts: Time log'
   /stores:
@@ -1954,8 +3052,7 @@ paths:
         "200":
           description: List of stores
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/common.PaginationResult-store_StoreDetailResponse'
         "500":
           description: Internal server error
           schema:
@@ -1982,8 +3079,7 @@ paths:
         "200":
           description: Store details
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/store.StoreDetailResponse'
         "400":
           description: Invalid ID format
           schema:
@@ -2027,6 +3123,47 @@ paths:
       summary: Check Store Availability
       tags:
       - Stores
+  /stores/{id}/shifts/{shiftId}/candidates:
+    get:
+      description: Check schedule conflicts and shift rules to suggest suitable staff
+        members for a specific shift.
+      parameters:
+      - description: Store ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Shift ID
+        in: path
+        name: shiftId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of available staff
+          schema:
+            items:
+              $ref: '#/definitions/shift.StaffAssignmentCandidate'
+            type: array
+        "400":
+          description: Invalid ID (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get available staff candidates
+      tags:
+      - 'Shifts: Assignment'
   /stores/{id}/staffs/active:
     get:
       consumes:
@@ -2058,30 +3195,6 @@ paths:
       summary: Get Active Staffs At Store
       tags:
       - Stores
-  /stores/{storeId}/shifts/{shiftId}/candidates:
-    get:
-      description: Kiểm tra xung đột lịch và quy định để gợi ý nhân viên cho ca làm.
-      parameters:
-      - description: ID cửa hàng
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: ID ca làm
-        in: path
-        name: shiftId
-        required: true
-        type: string
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/shift.StaffAssignmentCandidate'
-            type: array
-      summary: Lấy danh sách ứng viên khả dụng
-      tags:
-      - 'Shifts: Assignment'
   /stores/nearby:
     get:
       consumes:
@@ -2110,8 +3223,7 @@ paths:
         "200":
           description: List of nearby stores
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/common.PaginationResult-store_StoreDetailResponse'
         "400":
           description: Validation error
           schema:

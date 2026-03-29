@@ -154,7 +154,7 @@ const docTemplatesales = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retrieve a list of orders placed by the current logged-in user with optional filtering.",
+                "description": "Retrieve a list of orders placed by the current logged-in customer.",
                 "consumes": [
                     "application/json"
                 ],
@@ -179,19 +179,30 @@ const docTemplatesales = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "List of orders",
+                        "description": "Llist of user's orders",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/order.OrderSummary"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -204,14 +215,14 @@ const docTemplatesales = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Khách hàng tự xem lại lịch sử các đợt thanh toán đơn hàng của chính mình.",
+                "description": "Retrieve the payment history for the currently logged-in customer.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Orders"
                 ],
-                "summary": "Lịch sử thanh toán của tôi (Customer)",
+                "summary": "Get my payment history",
                 "parameters": [
                     {
                         "type": "string",
@@ -243,9 +254,27 @@ const docTemplatesales = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "User's payment history",
                         "schema": {
                             "$ref": "#/definitions/common.PaginationResult-order_PaymentHistoryItem"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -258,14 +287,14 @@ const docTemplatesales = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Lấy danh sách các ticket hoàn tiền do chính user đang đăng nhập tạo (có phân trang).",
+                "description": "Retrieve a paginated list of refund tickets created by the currently logged-in user.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Refunds"
                 ],
-                "summary": "Xem danh sách yêu cầu hoàn tiền của tôi",
+                "summary": "Get my refund requests",
                 "parameters": [
                     {
                         "type": "integer",
@@ -304,13 +333,13 @@ const docTemplatesales = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Danh sách ticket",
+                        "description": "List of refund tickets",
                         "schema": {
                             "$ref": "#/definitions/common.PaginationResult-wallet_RefundTicketSummary"
                         }
                     },
                     "400": {
-                        "description": "Tham số không hợp lệ",
+                        "description": "Validation Error (Bad Request)",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -319,12 +348,18 @@ const docTemplatesales = `{
                         }
                     },
                     "401": {
-                        "description": "Chưa đăng nhập",
+                        "description": "Unauthorized",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
                                 "type": "string"
                             }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -335,7 +370,7 @@ const docTemplatesales = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Khách hàng chủ động tạo một yêu cầu hoàn tiền (ticket) cho một giao dịch/đơn hàng.",
+                "description": "Customer proactively creates a refund request (ticket) for a specific transaction or order.",
                 "consumes": [
                     "application/json"
                 ],
@@ -345,10 +380,10 @@ const docTemplatesales = `{
                 "tags": [
                     "Refunds"
                 ],
-                "summary": "Tạo yêu cầu hoàn tiền mới",
+                "summary": "Create a new refund request",
                 "parameters": [
                     {
-                        "description": "Thông tin yêu cầu hoàn tiền",
+                        "description": "Refund request details",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -359,7 +394,7 @@ const docTemplatesales = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Tạo thành công",
+                        "description": "{\"message\": \"Tạo yêu cầu hoàn tiền thành công\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -368,12 +403,24 @@ const docTemplatesales = `{
                         }
                     },
                     "400": {
-                        "description": "Dữ liệu đầu vào không hợp lệ",
+                        "description": "Validation Error (Bad Request)",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
                                 "type": "string"
                             }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -386,23 +433,23 @@ const docTemplatesales = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Lấy thông tin ví và số dư hiện tại của người dùng đang đăng nhập.",
+                "description": "Retrieve the wallet information and current balance of the logged-in user.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Wallets"
                 ],
-                "summary": "Xem ví cá nhân",
+                "summary": "Get my wallet details",
                 "responses": {
                     "200": {
-                        "description": "Thông tin chi tiết của ví",
+                        "description": "Detailed wallet information",
                         "schema": {
                             "$ref": "#/definitions/wallet.WalletResponse"
                         }
                     },
                     "401": {
-                        "description": "Chưa đăng nhập hoặc token không hợp lệ",
+                        "description": "Unauthorized or invalid token",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -411,7 +458,7 @@ const docTemplatesales = `{
                         }
                     },
                     "500": {
-                        "description": "Lỗi hệ thống nội bộ",
+                        "description": "Internal Server Error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -429,7 +476,7 @@ const docTemplatesales = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Tạo link thanh toán qua cổng VNPay để người dùng nạp tiền vào ví cá nhân.",
+                "description": "Generate a VNPay payment link to allow the user to deposit funds into their personal wallet.",
                 "consumes": [
                     "application/json"
                 ],
@@ -439,10 +486,10 @@ const docTemplatesales = `{
                 "tags": [
                     "Wallets"
                 ],
-                "summary": "Nạp tiền vào ví",
+                "summary": "Top up wallet balance",
                 "parameters": [
                     {
-                        "description": "Thông tin nạp tiền (VD: số tiền)",
+                        "description": "Top-up details (e.g., amount)",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -453,7 +500,7 @@ const docTemplatesales = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Trả về URL để redirect sang VNPay { paymentUrl: '...' }",
+                        "description": "Returns the VNPay URL { paymentUrl: '...' }",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -462,7 +509,7 @@ const docTemplatesales = `{
                         }
                     },
                     "400": {
-                        "description": "Dữ liệu đầu vào không hợp lệ",
+                        "description": "Validation Error (Bad Request)",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -471,7 +518,7 @@ const docTemplatesales = `{
                         }
                     },
                     "401": {
-                        "description": "Chưa đăng nhập",
+                        "description": "Unauthorized",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -480,7 +527,7 @@ const docTemplatesales = `{
                         }
                     },
                     "500": {
-                        "description": "Lỗi hệ thống hoặc lỗi kết nối cổng thanh toán",
+                        "description": "Internal Server Error or Payment Gateway connection issue",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -498,14 +545,14 @@ const docTemplatesales = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Lấy danh sách các giao dịch ví (nạp tiền, trừ tiền, hoàn tiền...) của người dùng đang đăng nhập có phân trang.",
+                "description": "Retrieve a paginated list of wallet transactions (top-ups, deductions, refunds, etc.) for the currently logged-in user.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Wallet Transactions"
                 ],
-                "summary": "Xem lịch sử giao dịch ví của tôi",
+                "summary": "Get my wallet transaction history",
                 "parameters": [
                     {
                         "type": "integer",
@@ -520,13 +567,13 @@ const docTemplatesales = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Danh sách giao dịch",
+                        "description": "List of transactions",
                         "schema": {
                             "$ref": "#/definitions/common.PaginationResult-wallet_WalletTransactionResponse"
                         }
                     },
                     "400": {
-                        "description": "Tham số không hợp lệ",
+                        "description": "Validation Error (Bad Request)",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -535,12 +582,18 @@ const docTemplatesales = `{
                         }
                     },
                     "401": {
-                        "description": "Chưa đăng nhập",
+                        "description": "Unauthorized",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
                                 "type": "string"
                             }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -553,14 +606,14 @@ const docTemplatesales = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Lấy lịch sử rút tiền của chính người dùng đang đăng nhập (có phân trang).",
+                "description": "Retrieve the paginated withdrawal history for the currently logged-in user.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Withdrawals"
                 ],
-                "summary": "Xem danh sách yêu cầu rút tiền của tôi",
+                "summary": "Get my withdrawal requests",
                 "parameters": [
                     {
                         "type": "integer",
@@ -617,9 +670,30 @@ const docTemplatesales = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Danh sách yêu cầu",
+                        "description": "List of user's withdrawal requests",
                         "schema": {
                             "$ref": "#/definitions/common.PaginationResult-withdrawal_WithdrawalSummary"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -630,7 +704,7 @@ const docTemplatesales = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Khách hàng tạo yêu cầu rút tiền từ ví vào tài khoản ngân hàng. Tiền sẽ bị tạm trừ ngay lập tức.\nDùng api https://api.vietqr.io/v2/banks để lấy bank code và name cho khách chọn\nVẫn cho 1 ô nhập tên ngân hàng nếu api lỗi hoặc khách ko thấy trong danh sách\nTrường hợp khách nhập tên ngân hàng thủ công thì ko cần code",
+                "description": "Customer creates a request to withdraw funds from their wallet to a bank account. The requested amount is temporarily deducted immediately.\nUse the API https://api.vietqr.io/v2/banks to fetch bank codes and names for the customer to select.\nProvide a manual input field for the bank name in case the API fails or the bank is not listed.\nIf the customer enters the bank name manually, the bank code is not required.",
                 "consumes": [
                     "application/json"
                 ],
@@ -640,10 +714,10 @@ const docTemplatesales = `{
                 "tags": [
                     "Withdrawals"
                 ],
-                "summary": "Tạo yêu cầu rút tiền mới",
+                "summary": "Create a new withdrawal request",
                 "parameters": [
                     {
-                        "description": "Thông tin yêu cầu rút tiền",
+                        "description": "Withdrawal request details",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -654,18 +728,30 @@ const docTemplatesales = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Tạo thành công",
+                        "description": "Successfully created",
                         "schema": {
                             "$ref": "#/definitions/withdrawal.WithdrawalBaseRes"
                         }
                     },
                     "400": {
-                        "description": "Dữ liệu không hợp lệ",
+                        "description": "Validation Error (Bad Request)",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
                                 "type": "string"
                             }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -678,7 +764,7 @@ const docTemplatesales = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Người dùng tự hủy lệnh khi chưa được Admin xử lý (Trạng thái PENDING). Tiền hoàn về ví.",
+                "description": "User cancels their own withdrawal request before it is processed by an Admin (PENDING status). Funds are refunded back to the wallet.",
                 "consumes": [
                     "application/json"
                 ],
@@ -688,17 +774,17 @@ const docTemplatesales = `{
                 "tags": [
                     "Withdrawals"
                 ],
-                "summary": "Khách hàng tự hủy yêu cầu rút tiền",
+                "summary": "Cancel my withdrawal request",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "UUID của yêu cầu rút tiền",
+                        "description": "Withdrawal request UUID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Lý do hủy",
+                        "description": "Cancellation reason",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -709,12 +795,33 @@ const docTemplatesales = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Hủy thành công",
+                        "description": "{\"message\": \"Đã hủy yêu cầu rút tiền thành công và hoàn tiền vào ví.\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
                                 "type": "string"
                             }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error or Invalid ID",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -727,7 +834,7 @@ const docTemplatesales = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retrieve a list of orders placed with optional filtering.",
+                "description": "Retrieve a paginated list of all orders with optional filtering parameters (Admin/Manager view).",
                 "consumes": [
                     "application/json"
                 ],
@@ -782,19 +889,27 @@ const docTemplatesales = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "List of orders",
+                        "description": "Paginated list of orders",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/common.PaginationResult-order_OrderSummary"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -805,7 +920,7 @@ const docTemplatesales = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Create a new order based on the provided items and shipping information.",
+                "description": "Create a new order based on the provided items, store, and shipping information.",
                 "consumes": [
                     "application/json"
                 ],
@@ -831,17 +946,25 @@ const docTemplatesales = `{
                     "200": {
                         "description": "Created Order Data",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/order.OrderReply"
                         }
                     },
                     "400": {
-                        "description": "Validation error",
+                        "description": "Validation Error (Bad Request)",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -854,14 +977,14 @@ const docTemplatesales = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Lấy danh sách lịch sử thanh toán của toàn hệ thống (Dành cho quản trị viên/kế toán).",
+                "description": "Retrieve the payment history of the entire system (Intended for Administrators and Accountants).",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Orders"
                 ],
-                "summary": "Danh sách toàn bộ thanh toán (Admin)",
+                "summary": "Get all payments (Admin)",
                 "parameters": [
                     {
                         "type": "integer",
@@ -876,9 +999,27 @@ const docTemplatesales = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "List of payments",
                         "schema": {
                             "$ref": "#/definitions/common.PaginationResult-order_PaymentSummary"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -891,7 +1032,7 @@ const docTemplatesales = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get detailed revenue breakdown by product and category for charts.",
+                "description": "Get a detailed revenue breakdown by product and category, primarily used for rendering dashboard charts.",
                 "consumes": [
                     "application/json"
                 ],
@@ -928,9 +1069,27 @@ const docTemplatesales = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Revenue data",
+                        "description": "Revenue report data",
                         "schema": {
                             "$ref": "#/definitions/order.GetRevenueReportReply"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -943,7 +1102,7 @@ const docTemplatesales = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Download revenue report as a CSV file for bookkeeping.",
+                "description": "Download the revenue report as a CSV file for bookkeeping and offline analysis.",
                 "produces": [
                     "text/csv"
                 ],
@@ -977,9 +1136,27 @@ const docTemplatesales = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "CSV File",
+                        "description": "CSV File containing revenue data",
                         "schema": {
                             "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -992,7 +1169,7 @@ const docTemplatesales = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Lấy dữ liệu xu hướng doanh thu (doanh thu, lượng đơn hàng) trong một khoảng thời gian được gom nhóm (giờ/ngày/tuần).\nLƯU Ý VỀ PHÂN QUYỀN (StoreId):\n- Nếu là Admin: Có thể truyền tham số storeId để xem cụ thể một cửa hàng, hoặc không truyền (bỏ trống) để xem dữ liệu của toàn hệ thống.\n- Nếu là Manager/Staff: Truyền storeId hay không thì hệ thống cũng sẽ tự động ghi đè (override) bằng ID cửa hàng của tài khoản đang đăng nhập.",
+                "description": "Retrieve sales trend data (revenue, order volume) grouped by a specific time aggregation (hour/day/week).\n**AUTHORIZATION NOTE (StoreId):**\n- **Admin:** Can provide a ` + "`" + `storeId` + "`" + ` to view a specific store, or leave it blank to view system-wide data.\n- **Manager/Staff:** Even if a ` + "`" + `storeId` + "`" + ` is provided, the system will securely override it with the store ID associated with the logged-in user's token.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1002,7 +1179,7 @@ const docTemplatesales = `{
                 "tags": [
                     "Orders"
                 ],
-                "summary": "Lấy biểu đồ xu hướng doanh thu",
+                "summary": "Get Sales Trend Chart Data",
                 "parameters": [
                     {
                         "enum": [
@@ -1050,27 +1227,27 @@ const docTemplatesales = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Dữ liệu xu hướng và nhãn thời gian cao điểm/thấp điểm",
+                        "description": "Trend data including peak/low time labels",
                         "schema": {
                             "$ref": "#/definitions/order.GetSalesTrendReply"
                         }
                     },
                     "400": {
-                        "description": "Lỗi dữ liệu đầu vào (Bad Request)",
+                        "description": "Validation Error (Bad Request)",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "type": "object"
                         }
                     },
                     "401": {
-                        "description": "Lỗi xác thực (Unauthorized)",
+                        "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -1083,14 +1260,14 @@ const docTemplatesales = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Tải xuống dữ liệu xu hướng doanh thu (doanh thu, lượng đơn hàng) dưới dạng file CSV.\nHỗ trợ các tham số lọc và phân quyền storeId tương tự như API lấy JSON.",
+                "description": "Download sales trend data (revenue, order volume) as a CSV file.\nSupports the same filtering and storeId authorization logic as the JSON endpoint.",
                 "produces": [
                     "text/csv"
                 ],
                 "tags": [
                     "Orders"
                 ],
-                "summary": "Xuất file CSV xu hướng doanh thu",
+                "summary": "Export Sales Trend (CSV)",
                 "parameters": [
                     {
                         "enum": [
@@ -1138,18 +1315,27 @@ const docTemplatesales = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Tệp CSV chứa dữ liệu xu hướng doanh thu",
+                        "description": "CSV File containing sales trend data",
                         "schema": {
                             "type": "file"
                         }
                     },
                     "400": {
-                        "description": "Lỗi dữ liệu đầu vào",
+                        "description": "Validation Error (Bad Request)",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -1162,7 +1348,7 @@ const docTemplatesales = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get daily order counts and status breakdown for line charts.",
+                "description": "Get daily order counts and status breakdown, primarily used for rendering line charts on the dashboard.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1220,9 +1406,27 @@ const docTemplatesales = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Order volume data",
+                        "description": "Order volume statistics data",
                         "schema": {
                             "$ref": "#/definitions/order.GetOrderVolumeReply"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -1290,9 +1494,27 @@ const docTemplatesales = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "CSV File",
+                        "description": "CSV File containing order volume data",
                         "schema": {
                             "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -1347,11 +1569,20 @@ const docTemplatesales = `{
                         "description": "Security Hash",
                         "name": "vnp_SecureHash",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Frontend URL path to redirect to after processing",
+                        "name": "redirectTo",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "302": {
-                        "description": "Redirects to the Frontend React application"
+                        "description": "Redirects to the Frontend application with payment status"
+                    },
+                    "400": {
+                        "description": "Bad Request or Invalid Signature"
                     }
                 }
             }
@@ -1363,7 +1594,7 @@ const docTemplatesales = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retrieve full details of a specific order by its ID.",
+                "description": "Retrieve full details of a specific order by its ID, including items, store info, and delivery personnel.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1385,28 +1616,33 @@ const docTemplatesales = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Order details",
+                        "description": "Detailed order information",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/order.Order"
                         }
                     },
                     "400": {
                         "description": "Invalid ID format",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
                         }
                     },
                     "404": {
                         "description": "Order not found",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -1417,7 +1653,7 @@ const docTemplatesales = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Update the list of items in an existing order (usually allowed only when order is in 'Pending' state).",
+                "description": "Update the list of items in an existing order (typically allowed only when the order is in a 'Pending' state).",
                 "consumes": [
                     "application/json"
                 ],
@@ -1453,17 +1689,31 @@ const docTemplatesales = `{
                     "200": {
                         "description": "Updated Order Data",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/order.OrderReply"
                         }
                     },
                     "400": {
-                        "description": "Validation error",
+                        "description": "Validation Error or Invalid ID",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Order Not Found",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -1476,7 +1726,7 @@ const docTemplatesales = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Gán nhân viên vào ca làm để giao hàng",
+                "description": "Manager assigns a specific staff member (delivery man) to handle an order's delivery.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1496,7 +1746,7 @@ const docTemplatesales = `{
                         "required": true
                     },
                     {
-                        "description": "Chứa staff id",
+                        "description": "Staff ID to be assigned",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -1507,19 +1757,34 @@ const docTemplatesales = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "Successfully assigned staff",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "400": {
-                        "description": "Validation error",
+                        "description": "Validation Error or Invalid ID",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Order or Staff Not Found",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -1532,7 +1797,7 @@ const docTemplatesales = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Tự gán bản thân vào ca làm để giao hàng",
+                "description": "A delivery staff member assigns themselves to handle an order's delivery. Staff ID is automatically extracted from the Token.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1552,7 +1817,7 @@ const docTemplatesales = `{
                         "required": true
                     },
                     {
-                        "description": "Chứa staff id",
+                        "description": "Optional assignment notes",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -1563,19 +1828,34 @@ const docTemplatesales = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "Successfully self-assigned",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "400": {
-                        "description": "Validation error",
+                        "description": "Validation Error or Invalid ID",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Order Not Found",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -1626,12 +1906,24 @@ const docTemplatesales = `{
                         }
                     },
                     "400": {
-                        "description": "Validation error",
+                        "description": "Validation Error (Bad Request)",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
                                 "type": "string"
                             }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -1644,7 +1936,7 @@ const docTemplatesales = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Change the status of an order (e.g., to 'Cancelled', 'Completed').",
+                "description": "Change the lifecycle status of an order (e.g., to 'Processing', 'Cancelled', 'Completed').",
                 "consumes": [
                     "application/json"
                 ],
@@ -1664,7 +1956,7 @@ const docTemplatesales = `{
                         "required": true
                     },
                     {
-                        "description": "New Status",
+                        "description": "New Status details",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -1675,19 +1967,34 @@ const docTemplatesales = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "Successfully updated status",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "400": {
-                        "description": "Validation error",
+                        "description": "Validation Error or Invalid ID",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Order Not Found",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -1700,18 +2007,18 @@ const docTemplatesales = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Dành cho Staff, Manager, Admin lấy danh sách các ticket hoàn tiền. Có thể truyền thêm ` + "`" + `userId` + "`" + ` vào query để lọc riêng của một người.",
+                "description": "Retrieve a list of all refund tickets (Intended for Staff, Manager, Admin). Can optionally pass a ` + "`" + `userId` + "`" + ` in the query to filter by a specific user.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Refunds"
                 ],
-                "summary": "Xem toàn bộ danh sách hoàn tiền",
+                "summary": "Get all refund requests (Admin)",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Lọc theo UUID của người dùng cụ thể (Tùy chọn)",
+                        "description": "Filter by specific User UUID (Optional)",
                         "name": "userId",
                         "in": "query"
                     },
@@ -1752,13 +2059,13 @@ const docTemplatesales = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Danh sách ticket",
+                        "description": "List of refund tickets",
                         "schema": {
                             "$ref": "#/definitions/common.PaginationResult-wallet_RefundTicketSummary"
                         }
                     },
                     "400": {
-                        "description": "Tham số không hợp lệ",
+                        "description": "Validation Error (Bad Request)",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -1767,12 +2074,18 @@ const docTemplatesales = `{
                         }
                     },
                     "401": {
-                        "description": "Chưa đăng nhập",
+                        "description": "Unauthorized",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
                                 "type": "string"
                             }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -1785,18 +2098,18 @@ const docTemplatesales = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Lấy thông tin chi tiết của ticket hoàn tiền. Tầng Service sẽ tự check quyền dựa trên ctxUserId.",
+                "description": "Retrieve detailed information of a specific refund ticket. The service layer handles authorization based on the user's role and token.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Refunds"
                 ],
-                "summary": "Xem chi tiết một yêu cầu hoàn tiền",
+                "summary": "Get refund ticket details",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "UUID của ticket hoàn tiền",
+                        "description": "Refund ticket UUID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1804,18 +2117,30 @@ const docTemplatesales = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Refund ticket details",
                         "schema": {
                             "$ref": "#/definitions/wallet.RefundTicketDetail"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
                     "404": {
-                        "description": "Không tìm thấy ticket",
+                        "description": "Refund ticket not found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
                                 "type": "string"
                             }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -1828,7 +2153,7 @@ const docTemplatesales = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "(Admin) Chấp nhận và tiến hành hoàn tiền cho khách.",
+                "description": "Accept and process the refund request for the customer.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1838,17 +2163,17 @@ const docTemplatesales = `{
                 "tags": [
                     "Refunds"
                 ],
-                "summary": "Duyệt yêu cầu hoàn tiền",
+                "summary": "Approve refund request (Admin)",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "UUID của ticket hoàn tiền",
+                        "description": "Refund ticket UUID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Lý do duyệt",
+                        "description": "Approval details/reason",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -1859,12 +2184,30 @@ const docTemplatesales = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Thành công",
+                        "description": "{\"message\": \"Đã duyệt yêu cầu hoàn tiền\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
                                 "type": "string"
                             }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error or Invalid ID",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -1877,7 +2220,7 @@ const docTemplatesales = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "(Customer/Admin) Hủy bỏ ticket hoàn tiền (thường do khách hàng đổi ý).",
+                "description": "Cancel an active refund ticket (usually performed by the customer if they change their mind).",
                 "consumes": [
                     "application/json"
                 ],
@@ -1887,17 +2230,17 @@ const docTemplatesales = `{
                 "tags": [
                     "Refunds"
                 ],
-                "summary": "Hủy yêu cầu hoàn tiền",
+                "summary": "Cancel refund request",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "UUID của ticket hoàn tiền",
+                        "description": "Refund ticket UUID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Lý do hủy",
+                        "description": "Cancellation reason",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -1908,12 +2251,30 @@ const docTemplatesales = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Thành công",
+                        "description": "{\"message\": \"Đã hủy yêu cầu hoàn tiền\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
                                 "type": "string"
                             }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error or Invalid ID",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -1926,7 +2287,7 @@ const docTemplatesales = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "(Staff/Manager/Admin) Xác nhận quá trình chuyển tiền đã xong, đóng ticket.",
+                "description": "Confirm that the money transfer process is successful and close the refund ticket.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1936,17 +2297,17 @@ const docTemplatesales = `{
                 "tags": [
                     "Refunds"
                 ],
-                "summary": "Đánh dấu hoàn tất hoàn tiền",
+                "summary": "Mark refund as complete (Admin)",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "UUID của ticket hoàn tiền",
+                        "description": "Refund ticket UUID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Ghi chú hoàn tất",
+                        "description": "Completion notes",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -1957,12 +2318,30 @@ const docTemplatesales = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Thành công",
+                        "description": "{\"message\": \"Đã đánh dấu hoàn tất yêu cầu hoàn tiền\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
                                 "type": "string"
                             }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error or Invalid ID",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -1975,7 +2354,7 @@ const docTemplatesales = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "(Admin) Từ chối yêu cầu hoàn tiền kèm theo lý do cụ thể.",
+                "description": "Reject a refund request and provide a specific reason to the customer.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1985,17 +2364,17 @@ const docTemplatesales = `{
                 "tags": [
                     "Refunds"
                 ],
-                "summary": "Từ chối yêu cầu hoàn tiền",
+                "summary": "Reject refund request (Admin)",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "UUID của ticket hoàn tiền",
+                        "description": "Refund ticket UUID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Lý do từ chối",
+                        "description": "Rejection reason",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -2006,12 +2385,30 @@ const docTemplatesales = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Thành công",
+                        "description": "{\"message\": \"Đã từ chối yêu cầu hoàn tiền\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
                                 "type": "string"
                             }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error or Invalid ID",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -2024,18 +2421,18 @@ const docTemplatesales = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Dành cho Staff, Manager, Admin lấy danh sách giao dịch. Có thể truyền thêm ` + "`" + `userId` + "`" + ` vào query để lọc riêng giao dịch của một người.",
+                "description": "Intended for Staff, Manager, or Admin to retrieve a list of all wallet transactions. Can optionally pass a ` + "`" + `userId` + "`" + ` in the query to filter transactions for a specific user.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Wallet Transactions"
                 ],
-                "summary": "Xem toàn bộ giao dịch ví hệ thống",
+                "summary": "Get all system wallet transactions (Admin)",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Lọc theo UUID của người dùng cụ thể (Tùy chọn)",
+                        "description": "Filter by specific User UUID (Optional)",
                         "name": "userId",
                         "in": "query"
                     },
@@ -2052,13 +2449,13 @@ const docTemplatesales = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Danh sách giao dịch",
+                        "description": "List of transactions",
                         "schema": {
                             "$ref": "#/definitions/common.PaginationResult-wallet_WalletTransactionResponse"
                         }
                     },
                     "400": {
-                        "description": "Tham số không hợp lệ",
+                        "description": "Validation Error (Bad Request)",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2067,7 +2464,7 @@ const docTemplatesales = `{
                         }
                     },
                     "401": {
-                        "description": "Chưa đăng nhập",
+                        "description": "Unauthorized",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2076,12 +2473,18 @@ const docTemplatesales = `{
                         }
                     },
                     "403": {
-                        "description": "Không có quyền thao tác",
+                        "description": "Forbidden (Insufficient permissions)",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
                                 "type": "string"
                             }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -2094,18 +2497,18 @@ const docTemplatesales = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Xem chi tiết một giao dịch ví thông qua mã code (VD: WT-12345).",
+                "description": "View details of a specific wallet transaction using its unique code (e.g., WT-12345).",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Wallet Transactions"
                 ],
-                "summary": "Lấy chi tiết giao dịch bằng Mã giao dịch",
+                "summary": "Get transaction details by Code",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Mã giao dịch (Code)",
+                        "description": "Transaction Code",
                         "name": "code",
                         "in": "path",
                         "required": true
@@ -2113,18 +2516,42 @@ const docTemplatesales = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Transaction details",
                         "schema": {
                             "$ref": "#/definitions/wallet.WalletTransactionResponse"
                         }
                     },
-                    "404": {
-                        "description": "Không tìm thấy giao dịch",
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
                                 "type": "string"
                             }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Transaction not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -2137,18 +2564,18 @@ const docTemplatesales = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Xem chi tiết một giao dịch ví thông qua UUID của giao dịch. Tầng service sẽ tự kiểm tra xem ` + "`" + `ctxUserId` + "`" + ` có quyền xem ID này hay không.",
+                "description": "View details of a specific wallet transaction using its UUID. The service layer verifies if the requesting user has permission to view this transaction.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Wallet Transactions"
                 ],
-                "summary": "Lấy chi tiết giao dịch bằng ID",
+                "summary": "Get transaction details by ID",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "UUID của giao dịch",
+                        "description": "Transaction UUID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -2156,18 +2583,33 @@ const docTemplatesales = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Transaction details",
                         "schema": {
                             "$ref": "#/definitions/wallet.WalletTransactionResponse"
                         }
                     },
-                    "404": {
-                        "description": "Không tìm thấy giao dịch",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
                                 "type": "string"
                             }
+                        }
+                    },
+                    "404": {
+                        "description": "Transaction not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -2180,18 +2622,18 @@ const docTemplatesales = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Dành cho Staff, Manager, Admin lấy thông tin ví của một user bất kỳ thông qua User ID.",
+                "description": "Intended for Staff, Manager, or Admin to retrieve wallet information of a specific user by their User ID.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Wallets"
                 ],
-                "summary": "Xem ví của người dùng",
+                "summary": "Get user wallet details (Admin)",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "UUID của người dùng cần xem",
+                        "description": "Target User UUID",
                         "name": "userId",
                         "in": "path",
                         "required": true
@@ -2199,13 +2641,13 @@ const docTemplatesales = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Thông tin chi tiết của ví",
+                        "description": "Detailed wallet information",
                         "schema": {
                             "$ref": "#/definitions/wallet.WalletResponse"
                         }
                     },
                     "400": {
-                        "description": "ID người dùng không đúng định dạng UUID",
+                        "description": "Invalid User UUID format",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2214,7 +2656,7 @@ const docTemplatesales = `{
                         }
                     },
                     "401": {
-                        "description": "Chưa đăng nhập",
+                        "description": "Unauthorized",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2223,7 +2665,7 @@ const docTemplatesales = `{
                         }
                     },
                     "403": {
-                        "description": "Không có quyền thao tác (Forbidden)",
+                        "description": "Forbidden (Insufficient permissions)",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2232,7 +2674,7 @@ const docTemplatesales = `{
                         }
                     },
                     "404": {
-                        "description": "Không tìm thấy ví của người dùng này",
+                        "description": "Wallet not found for this user",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2245,49 +2687,49 @@ const docTemplatesales = `{
         },
         "/wallets/vnpay/return": {
             "get": {
-                "description": "Endpoint hứng callback từ VNPay sau khi khách thanh toán xong. Thực hiện xác thực chữ ký gRPC và bẻ lái (redirect) về Frontend kèm theo trạng thái giao dịch.",
+                "description": "Callback endpoint for VNPay after a customer completes a wallet top-up payment. Validates the gRPC signature and redirects the user to the Frontend UI with the transaction status.",
                 "produces": [
                     "text/html"
                 ],
                 "tags": [
                     "Wallets"
                 ],
-                "summary": "Xử lý Callback VNPay Return (Nạp tiền ví)",
+                "summary": "Handle VNPay Return URL (Wallet Top-up)",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Đường dẫn Frontend muốn bẻ lái về (VD: /my-wallet)",
+                        "description": "Frontend path to redirect to (e.g., /my-wallet)",
                         "name": "redirectTo",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Số tiền giao dịch (nhân 100)",
+                        "description": "Transaction Amount (multiplied by 100)",
                         "name": "vnp_Amount",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Mã phản hồi từ VNPay (00 là thành công)",
+                        "description": "VNPay Response Code (00 means success)",
                         "name": "vnp_ResponseCode",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Mã tham chiếu giao dịch nội bộ",
+                        "description": "Internal Transaction Reference",
                         "name": "vnp_TxnRef",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Mã băm bảo mật checksum",
+                        "description": "Checksum Security Hash",
                         "name": "vnp_SecureHash",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "302": {
-                        "description": "Chuyển hướng (Redirect) về ứng dụng Frontend"
+                        "description": "Redirects to the Frontend application"
                     }
                 }
             }
@@ -2299,7 +2741,7 @@ const docTemplatesales = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Dành cho Quản trị viên khóa (tạm dừng) hoặc mở khóa ví của người dùng.",
+                "description": "Intended for Administrators to lock (suspend) or unlock a user's wallet.",
                 "consumes": [
                     "application/json"
                 ],
@@ -2309,17 +2751,17 @@ const docTemplatesales = `{
                 "tags": [
                     "Wallets"
                 ],
-                "summary": "Cập nhật trạng thái ví (Admin)",
+                "summary": "Update wallet status (Admin)",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "UUID của ví cần cập nhật",
+                        "description": "Target Wallet UUID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Thông tin trạng thái mới",
+                        "description": "New status information",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -2330,7 +2772,7 @@ const docTemplatesales = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Thông báo cập nhật thành công { message: '...' }",
+                        "description": "{\"message\": \"Cập nhật trạng thái ví thành công\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2339,7 +2781,7 @@ const docTemplatesales = `{
                         }
                     },
                     "400": {
-                        "description": "Dữ liệu đầu vào hoặc UUID ví không hợp lệ",
+                        "description": "Validation Error or Invalid Wallet UUID",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2348,7 +2790,7 @@ const docTemplatesales = `{
                         }
                     },
                     "401": {
-                        "description": "Chưa đăng nhập",
+                        "description": "Unauthorized",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2357,7 +2799,7 @@ const docTemplatesales = `{
                         }
                     },
                     "403": {
-                        "description": "Không có quyền thao tác (Forbidden)",
+                        "description": "Forbidden (Insufficient permissions)",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2375,14 +2817,14 @@ const docTemplatesales = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Dành cho quản trị viên xem và lọc danh sách rút tiền của toàn bộ người dùng.",
+                "description": "Intended for administrators and accountants to view and filter the withdrawal requests of all users across the system.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Withdrawals"
                 ],
-                "summary": "Xem toàn bộ danh sách yêu cầu rút tiền (Admin)",
+                "summary": "Get all withdrawal requests (Admin)",
                 "parameters": [
                     {
                         "type": "integer",
@@ -2444,9 +2886,30 @@ const docTemplatesales = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Danh sách yêu cầu",
+                        "description": "List of system withdrawal requests",
                         "schema": {
                             "$ref": "#/definitions/common.PaginationResult-withdrawal_WithdrawalSummary"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -2459,18 +2922,18 @@ const docTemplatesales = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Lấy đầy đủ thông tin một yêu cầu rút tiền bao gồm số tài khoản đầy đủ (Raw) và lịch sử xử lý.",
+                "description": "Retrieve full details of a withdrawal request, including the raw bank account number and the processing history.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Withdrawals"
                 ],
-                "summary": "Xem chi tiết yêu cầu rút tiền",
+                "summary": "Get withdrawal request details",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "UUID của yêu cầu rút tiền",
+                        "description": "Withdrawal request UUID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -2478,18 +2941,39 @@ const docTemplatesales = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Detailed withdrawal information",
                         "schema": {
                             "$ref": "#/definitions/withdrawal.WithdrawalDetailRes"
                         }
                     },
-                    "404": {
-                        "description": "Không tìm thấy",
+                    "400": {
+                        "description": "Invalid UUID format",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
                                 "type": "string"
                             }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Withdrawal request not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -2502,7 +2986,7 @@ const docTemplatesales = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "(Admin) Xác nhận yêu cầu hợp lệ và chuẩn bị chuyển tiền. Trạng thái chuyển sang APPROVED.",
+                "description": "Confirm that the request is valid and prepare for the fund transfer. The status changes to APPROVED.",
                 "consumes": [
                     "application/json"
                 ],
@@ -2512,17 +2996,17 @@ const docTemplatesales = `{
                 "tags": [
                     "Withdrawals"
                 ],
-                "summary": "Duyệt yêu cầu rút tiền",
+                "summary": "Approve withdrawal request (Admin)",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "UUID của yêu cầu rút tiền",
+                        "description": "Withdrawal request UUID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Ghi chú duyệt",
+                        "description": "Approval notes",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -2533,12 +3017,33 @@ const docTemplatesales = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Thành công",
+                        "description": "{\"message\": \"Đã duyệt yêu cầu rút tiền\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
                                 "type": "string"
                             }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error or Invalid ID",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -2551,21 +3056,27 @@ const docTemplatesales = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Dùng để hủy lệnh ở bất kỳ giai đoạn nào (Pending, Approved, Processing) TRỪ KHI đã thành công/hủy rồi. Hệ thống tự hoàn tiền vào ví.",
+                "description": "Cancel a withdrawal request at any stage (Pending, Approved, Processing) UNLESS it is already completed or cancelled. The system automatically refunds the amount to the user's wallet.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Withdrawals"
                 ],
-                "summary": "Admin hủy yêu cầu (Dành cho hầu hết trạng thái)",
+                "summary": "Cancel withdrawal request (Admin)",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "ID yêu cầu",
+                        "description": "Withdrawal request UUID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Lý do hủy từ Admin",
+                        "description": "Cancellation reason from Admin",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -2576,12 +3087,33 @@ const docTemplatesales = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "{\"message\": \"Admin đã hủy lệnh và hoàn tiền thành công.\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
                                 "type": "string"
                             }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error or Invalid ID",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -2594,7 +3126,7 @@ const docTemplatesales = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "(Admin) Xác nhận đã chuyển khoản thành công. Phải upload ảnh bill (receiptFile) để minh chứng.",
+                "description": "Confirm that the bank transfer was successful. A receipt image (receiptFile) must be uploaded as proof.",
                 "consumes": [
                     "multipart/form-data"
                 ],
@@ -2604,25 +3136,25 @@ const docTemplatesales = `{
                 "tags": [
                     "Withdrawals"
                 ],
-                "summary": "Hoàn tất yêu cầu rút tiền (Kèm hóa đơn)",
+                "summary": "Complete withdrawal request (Admin)",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "UUID của yêu cầu rút tiền",
+                        "description": "Withdrawal request UUID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "file",
-                        "description": "Ảnh chụp biên lai chuyển khoản (Bill)",
+                        "description": "Transfer receipt image (Bill)",
                         "name": "receiptFile",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Mã giao dịch",
+                        "description": "Bank transaction ID",
                         "name": "bankTransactionId",
                         "in": "formData",
                         "required": true
@@ -2630,12 +3162,33 @@ const docTemplatesales = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Hoàn tất",
+                        "description": "{\"message\": \"Đã hoàn tất yêu cầu rút tiền và cập nhật bằng chứng chuyển khoản.\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
                                 "type": "string"
                             }
+                        }
+                    },
+                    "400": {
+                        "description": "Missing required file or transaction ID",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -2648,21 +3201,27 @@ const docTemplatesales = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Dùng để từ chối lệnh khi đang PENDING. Hệ thống tự hoàn tiền vào ví.",
+                "description": "Reject a PENDING withdrawal request. The system automatically refunds the deducted amount back to the user's wallet.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Withdrawals"
                 ],
-                "summary": "Admin từ chối yêu cầu (Chỉ dành cho lệnh PENDING)",
+                "summary": "Reject withdrawal request (Admin)",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "ID yêu cầu",
+                        "description": "Withdrawal request UUID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Lý do từ chối",
+                        "description": "Rejection reason",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -2673,12 +3232,33 @@ const docTemplatesales = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "{\"message\": \"Đã từ chối yêu cầu rút tiền và hoàn tiền vào ví.\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
                                 "type": "string"
                             }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error or Invalid ID",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -2705,6 +3285,23 @@ const docTemplatesales = `{
                 },
                 "sku": {
                     "type": "string"
+                }
+            }
+        },
+        "common.PaginationResult-order_OrderSummary": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/order.OrderSummary"
+                    }
+                },
+                "totalCount": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
                 }
             }
         },
@@ -2792,6 +3389,22 @@ const docTemplatesales = `{
                     "type": "integer"
                 }
             }
+        },
+        "enum.OrderSaleItemType": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+                0,
+                1,
+                2,
+                3
+            ],
+            "x-enum-varnames": [
+                "OrderSaleItemType_VOUCHER",
+                "OrderSaleItemType_WALLET",
+                "OrderSaleItemType_POINT",
+                "OrderSaleItemType_PROMOTION"
+            ]
         },
         "enum.OrderStatus": {
             "type": "integer",
@@ -3039,6 +3652,20 @@ const docTemplatesales = `{
                 }
             }
         },
+        "order.CheckEnoughStockResponse": {
+            "type": "object",
+            "properties": {
+                "isEnough": {
+                    "type": "boolean"
+                },
+                "shortageItems": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/order.ShortageItem"
+                    }
+                }
+            }
+        },
         "order.CreateOrderRequest": {
             "type": "object",
             "required": [
@@ -3093,6 +3720,32 @@ const docTemplatesales = `{
                 }
             }
         },
+        "order.DeliveryMan": {
+            "type": "object",
+            "properties": {
+                "avatarUrl": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "firstName": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "lastName": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
         "order.GetOrderVolumeReply": {
             "type": "object",
             "properties": {
@@ -3142,6 +3795,232 @@ const docTemplatesales = `{
                     "type": "string"
                 },
                 "slowPeriodLabel": {
+                    "type": "string"
+                }
+            }
+        },
+        "order.Order": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "customerId": {
+                    "type": "string"
+                },
+                "deliveryMan": {
+                    "$ref": "#/definitions/order.DeliveryMan"
+                },
+                "distance": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/order.OrderItem"
+                    }
+                },
+                "latitude": {
+                    "type": "number"
+                },
+                "longitude": {
+                    "type": "number"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "paidAmount": {
+                    "type": "number"
+                },
+                "paidAt": {
+                    "type": "string"
+                },
+                "paymentMethod": {
+                    "type": "integer"
+                },
+                "saleItems": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/order.OrderSaleItemReply"
+                    }
+                },
+                "scheduledTime": {
+                    "type": "string"
+                },
+                "shippingFee": {
+                    "type": "number"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "store": {
+                    "$ref": "#/definitions/store.StoreDetailResponse"
+                },
+                "subtotal": {
+                    "type": "number"
+                },
+                "tax": {
+                    "type": "number"
+                },
+                "totalAmount": {
+                    "type": "number"
+                },
+                "type": {
+                    "$ref": "#/definitions/enum.OrderType"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "order.OrderItem": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "imageUrl": {
+                    "type": "string"
+                },
+                "productId": {
+                    "type": "string"
+                },
+                "productName": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "type": "integer"
+                },
+                "sku": {
+                    "type": "string"
+                },
+                "unitPrice": {
+                    "type": "number"
+                },
+                "variantId": {
+                    "type": "string"
+                }
+            }
+        },
+        "order.OrderReply": {
+            "type": "object",
+            "properties": {
+                "checkStockResponse": {
+                    "$ref": "#/definitions/order.CheckEnoughStockResponse"
+                },
+                "customerId": {
+                    "type": "string"
+                },
+                "orderCode": {
+                    "type": "string"
+                },
+                "orderId": {
+                    "type": "string"
+                },
+                "storeId": {
+                    "type": "string"
+                },
+                "totalAmount": {
+                    "type": "number"
+                }
+            }
+        },
+        "order.OrderSaleItemReply": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "referenceId": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/enum.OrderSaleItemType"
+                }
+            }
+        },
+        "order.OrderSummary": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "customerId": {
+                    "type": "string"
+                },
+                "deliveryMan": {
+                    "$ref": "#/definitions/order.DeliveryMan"
+                },
+                "distance": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "latitude": {
+                    "type": "number"
+                },
+                "longitude": {
+                    "type": "number"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "paidAmount": {
+                    "type": "number"
+                },
+                "paidAt": {
+                    "type": "string"
+                },
+                "paymentMethod": {
+                    "type": "integer"
+                },
+                "scheduledTime": {
+                    "type": "string"
+                },
+                "shippingFee": {
+                    "type": "number"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "store": {
+                    "$ref": "#/definitions/store.StoreDetailResponse"
+                },
+                "subtotal": {
+                    "type": "number"
+                },
+                "tax": {
+                    "type": "number"
+                },
+                "totalAmount": {
+                    "type": "number"
+                },
+                "type": {
+                    "$ref": "#/definitions/enum.OrderType"
+                },
+                "updatedAt": {
                     "type": "string"
                 }
             }
@@ -3273,6 +4152,20 @@ const docTemplatesales = `{
                 }
             }
         },
+        "order.ShortageItem": {
+            "type": "object",
+            "properties": {
+                "maxFeasibleQuantity": {
+                    "type": "integer"
+                },
+                "sku": {
+                    "type": "string"
+                },
+                "variantId": {
+                    "type": "string"
+                }
+            }
+        },
         "order.UpdateOrderItem": {
             "type": "object",
             "required": [
@@ -3297,6 +4190,36 @@ const docTemplatesales = `{
             "properties": {
                 "status": {
                     "$ref": "#/definitions/enum.OrderStatus"
+                }
+            }
+        },
+        "store.StoreDetailResponse": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "imageUrl": {
+                    "type": "string"
+                },
+                "isOpenNow": {
+                    "description": "Tính toán dựa trên StoreHours ngay lúc gọi",
+                    "type": "boolean"
+                },
+                "latitude": {
+                    "type": "number"
+                },
+                "longitude": {
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
                 }
             }
         },
@@ -3769,10 +4692,10 @@ const docTemplatesales = `{
 // SwaggerInfosales holds exported Swagger Info so clients can modify it
 var SwaggerInfosales = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:8080",
+	Host:             "",
 	BasePath:         "/api",
 	Schemes:          []string{},
-	Title:            "API Gateway Documentation",
+	Title:            "Capital Franchise Supply Chain Management System API Document",
 	Description:      "API docs for CHD Gateway.",
 	InfoInstanceName: "sales",
 	SwaggerTemplate:  docTemplatesales,

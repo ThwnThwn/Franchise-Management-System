@@ -30,6 +30,8 @@ RUN adduser -D -g '' gatewayuser
 # Copy file binary Linux từ Stage 1 sang Stage 2
 COPY --chown=gatewayuser:gatewayuser --from=build /app/bin/main .
 
+COPY --chown=gatewayuser:gatewayuser --from=build /app/docs ./docs
+
 USER gatewayuser
 
 # Mở cổng 8080

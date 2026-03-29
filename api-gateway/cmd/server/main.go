@@ -11,7 +11,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// @title           API Gateway Documentation
+// @title           Capital Franchise Supply Chain Management System API Document
 // @version         1.0
 // @description     API docs for CHD Gateway.
 // @termsOfService  http://swagger.io/terms/
@@ -19,7 +19,6 @@ import (
 // @contact.name    API Support
 // @contact.email   support@swagger.io
 
-// @host            localhost:8080
 // @BasePath        /api
 
 // @securityDefinitions.apikey BearerAuth

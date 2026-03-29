@@ -28,15 +28,16 @@ func NewWalletTransactionHandler(transGW sales.IWalletTransactionService) *Walle
 // ----------------------------------------------------------------------
 
 // GetMyWalletTransactions
-// @Summary      Xem lịch sử giao dịch ví của tôi
-// @Description  Lấy danh sách các giao dịch ví (nạp tiền, trừ tiền, hoàn tiền...) của người dùng đang đăng nhập có phân trang.
+// @Summary      Get my wallet transaction history
+// @Description  Retrieve a paginated list of wallet transactions (top-ups, deductions, refunds, etc.) for the currently logged-in user.
 // @Tags         Wallet Transactions
 // @Produce      json
 // @Security     BearerAuth
-// @Param        query query    wallet.GetAllWalletTransactionsRequest true "Các tham số lọc và phân trang"
-// @Success      200   {object} common.PaginationResult[wallet.WalletTransactionResponse] "Danh sách giao dịch"
-// @Failure      400   {object} map[string]string "Tham số không hợp lệ"
-// @Failure      401   {object} map[string]string "Chưa đăng nhập"
+// @Param        query query    wallet.GetAllWalletTransactionsRequest true "Filtering and pagination parameters"
+// @Success      200   {object} common.PaginationResult[wallet.WalletTransactionResponse] "List of transactions"
+// @Failure      400   {object} map[string]string "Validation Error (Bad Request)"
+// @Failure      401   {object} map[string]string "Unauthorized"
+// @Failure      500   {object} object "Internal Server Error"
 // @Router       /me/wallet/transactions [get]
 func (h *WalletTransactionHandler) GetMyWalletTransactions(c *gin.Context) error {
 	var req wallet.GetAllWalletTransactionsRequest
@@ -65,17 +66,18 @@ func (h *WalletTransactionHandler) GetMyWalletTransactions(c *gin.Context) error
 // ----------------------------------------------------------------------
 
 // GetAllTransactions
-// @Summary      Xem toàn bộ giao dịch ví hệ thống
-// @Description  Dành cho Staff, Manager, Admin lấy danh sách giao dịch. Có thể truyền thêm `userId` vào query để lọc riêng giao dịch của một người.
+// @Summary      Get all system wallet transactions (Admin)
+// @Description  Intended for Staff, Manager, or Admin to retrieve a list of all wallet transactions. Can optionally pass a `userId` in the query to filter transactions for a specific user.
 // @Tags         Wallet Transactions
 // @Produce      json
 // @Security     BearerAuth
-// @Param        userId query    string false "Lọc theo UUID của người dùng cụ thể (Tùy chọn)"
-// @Param        query  query    wallet.GetAllWalletTransactionsRequest true "Các tham số lọc và phân trang"
-// @Success      200    {object} common.PaginationResult[wallet.WalletTransactionResponse] "Danh sách giao dịch"
-// @Failure      400    {object} map[string]string "Tham số không hợp lệ"
-// @Failure      401    {object} map[string]string "Chưa đăng nhập"
-// @Failure      403    {object} map[string]string "Không có quyền thao tác"
+// @Param        userId query    string false "Filter by specific User UUID (Optional)"
+// @Param        query  query    wallet.GetAllWalletTransactionsRequest true "Filtering and pagination parameters"
+// @Success      200    {object} common.PaginationResult[wallet.WalletTransactionResponse] "List of transactions"
+// @Failure      400    {object} map[string]string "Validation Error (Bad Request)"
+// @Failure      401    {object} map[string]string "Unauthorized"
+// @Failure      403    {object} map[string]string "Forbidden (Insufficient permissions)"
+// @Failure      500    {object} object "Internal Server Error"
 // @Router       /wallets/transactions [get]
 func (h *WalletTransactionHandler) GetAllTransactions(c *gin.Context) error {
 	var req struct {
@@ -121,14 +123,16 @@ func (h *WalletTransactionHandler) GetAllTransactions(c *gin.Context) error {
 // ----------------------------------------------------------------------
 
 // GetTransactionById
-// @Summary      Lấy chi tiết giao dịch bằng ID
-// @Description  Xem chi tiết một giao dịch ví thông qua UUID của giao dịch. Tầng service sẽ tự kiểm tra xem `ctxUserId` có quyền xem ID này hay không.
+// @Summary      Get transaction details by ID
+// @Description  View details of a specific wallet transaction using its UUID. The service layer verifies if the requesting user has permission to view this transaction.
 // @Tags         Wallet Transactions
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id  path     string true "UUID của giao dịch"
-// @Success      200 {object} wallet.WalletTransactionResponse
-// @Failure      404 {object} map[string]string "Không tìm thấy giao dịch"
+// @Param        id   path     string true "Transaction UUID"
+// @Success      200  {object} wallet.WalletTransactionResponse "Transaction details"
+// @Failure      401  {object} map[string]string "Unauthorized"
+// @Failure      404  {object} map[string]string "Transaction not found"
+// @Failure      500  {object} object "Internal Server Error"
 // @Router       /wallets/transactions/{id} [get]
 func (h *WalletTransactionHandler) GetTransactionById(c *gin.Context) error {
 	transIdStr := c.Param("id")
@@ -154,14 +158,17 @@ func (h *WalletTransactionHandler) GetTransactionById(c *gin.Context) error {
 }
 
 // GetTransactionByCode
-// @Summary      Lấy chi tiết giao dịch bằng Mã giao dịch
-// @Description  Xem chi tiết một giao dịch ví thông qua mã code (VD: WT-12345).
+// @Summary      Get transaction details by Code
+// @Description  View details of a specific wallet transaction using its unique code (e.g., WT-12345).
 // @Tags         Wallet Transactions
 // @Produce      json
 // @Security     BearerAuth
-// @Param        code path    string true "Mã giao dịch (Code)"
-// @Success      200  {object} wallet.WalletTransactionResponse
-// @Failure      404  {object} map[string]string "Không tìm thấy giao dịch"
+// @Param        code path     string true "Transaction Code"
+// @Success      200  {object} wallet.WalletTransactionResponse "Transaction details"
+// @Failure      400  {object} map[string]string "Validation Error (Bad Request)"
+// @Failure      401  {object} map[string]string "Unauthorized"
+// @Failure      404  {object} map[string]string "Transaction not found"
+// @Failure      500  {object} object "Internal Server Error"
 // @Router       /wallets/transactions/code/{code} [get]
 func (h *WalletTransactionHandler) GetTransactionByCode(c *gin.Context) error {
 	code := c.Param("code")
