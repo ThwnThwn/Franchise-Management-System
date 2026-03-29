@@ -68,7 +68,7 @@ export function PermissionRow({
 
     return (
         <CardStyled
-            className={`p-4 transition-all border-2 ${isEditing ? "border-primary shadow-md" : "border-transparent shadow-none bg-white"} group`}
+            className={`px-4 py-2 transition-all border-2 ${isEditing ? "border-primary shadow-md" : "border-0 border-transparent shadow-none bg-white"} group`}
         >
             <div className="flex flex-col gap-4">
                 <div className="flex items-start justify-between gap-4">

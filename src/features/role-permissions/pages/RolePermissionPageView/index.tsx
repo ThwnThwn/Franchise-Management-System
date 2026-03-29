@@ -1,18 +1,16 @@
 "use client"
 
-import React, { useState, useMemo } from "react"
+import { InputStyled, UnsavedChangesNotifier } from "@/components"
+import { Accordion, AccordionItem, Spinner, Switch } from "@heroui/react"
+import { ChevronRight, FilterX, Search, ShieldUser } from "lucide-react"
+import { useMemo, useState, useTransition } from "react"
+import { PermissionRow } from "@/features/role-permissions/components/PermissionRow"
 import {
     useGetAllPermissions,
     useGetAllRoles,
     useGetPermissionsByRoleId,
     useUpdateRolePermissions
-} from "../../hooks"
-import { PermissionRow } from "../../components/PermissionRow"
-import { ButtonIconStyled, InputStyled } from "@/components"
-import { Search, FilterX, ChevronRight, ShieldUser, RotateCcw, Save } from "lucide-react"
-import { Accordion, AccordionItem, Spinner, Switch } from "@heroui/react"
-import { createPortal } from "react-dom"
-import { motion, AnimatePresence } from "framer-motion"
+} from "@/features/role-permissions/hooks"
 
 export default function RolePermissionPageView({ roleId }: { roleId: string }) {
     const { data: roles } = useGetAllRoles({})
@@ -81,6 +79,16 @@ export default function RolePermissionPageView({ roleId }: { roleId: string }) {
         return { toGrant, toRevoke }
     }, [localPermissions, mergedGroups])
 
+    const [isPending, startTransition] = useTransition()
+    const isEverythingSelected = useMemo(() => {
+        if (filteredGroups.length === 0) return false
+        return filteredGroups.every((group) =>
+            group.permissions.every((p) =>
+                p.slug in localPermissions ? localPermissions[p.slug] : p.isActived
+            )
+        )
+    }, [filteredGroups, localPermissions])
+
     // Lấy danh sách keys để mặc định mở hết Accordion
     // const allGroupKeys = useMemo(() => {
     //     return filteredGroups.map((g) => g.resource)
@@ -115,6 +123,26 @@ export default function RolePermissionPageView({ roleId }: { roleId: string }) {
         setLocalPermissions(newState)
     }
 
+    // Thêm hàm này vào trong component
+    const handleToggleAll = () => {
+        // 1. Tính toán trạng thái đích trước
+        const isAllSelected = filteredGroups.every((group) =>
+            group.permissions.every((p) =>
+                p.slug in localPermissions ? localPermissions[p.slug] : p.isActived
+            )
+        )
+
+        // 2. Chạy logic nặng trong transition để không block UI
+        startTransition(() => {
+            const newState = { ...localPermissions }
+            filteredGroups.forEach((group) => {
+                group.permissions.forEach((p) => {
+                    newState[p.slug] = !isAllSelected
+                })
+            })
+            setLocalPermissions(newState)
+        })
+    }
     if (isLoadingAll || isLoadingRole || !role)
         return (
             <div className="text-center">
@@ -153,6 +181,37 @@ export default function RolePermissionPageView({ roleId }: { roleId: string }) {
                         onValueChange={setSearchQuery}
                     />
                 </div>
+
+                {/* NÚT CHỌN TẤT CẢ CÓ LOADING */}
+                <div
+                    className={`flex items-center gap-3 px-3 py-2 rounded-xl border transition-all duration-300 ${
+                        isPending
+                            ? "bg-slate-100 border-slate-200"
+                            : "bg-primary-50/50 border-primary-100"
+                    }`}
+                >
+                    <div className="flex flex-col items-end">
+                        <span className="text-xs font-black text-slate-700">CHỌN TẤT CẢ</span>
+                    </div>
+
+                    <div className="relative flex items-center justify-center">
+                        <Switch
+                            size="md"
+                            color="primary"
+                            isDisabled={isPending}
+                            isSelected={isEverythingSelected}
+                            onValueChange={handleToggleAll}
+                            classNames={{
+                                wrapper: isPending ? "opacity-20" : ""
+                            }}
+                        />
+                        {isPending && (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <Spinner size="sm" color="primary" />
+                            </div>
+                        )}
+                    </div>
+                </div>
             </div>
 
             {/* ACCORDION LIST */}
@@ -187,7 +246,7 @@ export default function RolePermissionPageView({ roleId }: { roleId: string }) {
                                         </div>
                                     }
                                 >
-                                    <div className="flex gap-2 items-center mb-3">
+                                    <div className="flex gap-2 justify-end items-center mb-3 px-4">
                                         <Switch
                                             size="sm"
                                             color="primary"
@@ -196,9 +255,7 @@ export default function RolePermissionPageView({ roleId }: { roleId: string }) {
                                                 handleToggleGroup(group.permissions)
                                             }
                                             aria-label={`Toggle all permission`}
-                                        >
-                                            {isGroupAllActive ? "Bỏ chọn hết" : "Chọn hết nhóm"}
-                                        </Switch>
+                                        />
                                     </div>
                                     <div className="flex flex-col gap-1">
                                         {group.permissions.map((p) => (
@@ -226,49 +283,13 @@ export default function RolePermissionPageView({ roleId }: { roleId: string }) {
                 )}
             </div>
 
-            {createPortal(
-                <AnimatePresence>
-                    {hasChanges && (
-                        <motion.div
-                            initial={{ y: 100, x: "-50%", opacity: 0 }}
-                            animate={{ y: 0, x: "-50%", opacity: 1 }}
-                            exit={{ y: 100, x: "-50%", opacity: 0 }}
-                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                            className="fixed bottom-8 left-1/2 z-9999 bg-slate-900 border border-slate-700 text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-8 min-w-125"
-                        >
-                            <div className="flex flex-col">
-                                <span className="text-sm font-bold text-success">Cẩn thận!</span>
-                                <span className="text-xs text-slate-400 font-medium">
-                                    Bạn có thay đổi chưa lưu trên quyền hạn này.
-                                </span>
-                            </div>
-
-                            <div className="ml-auto flex items-center gap-3">
-                                {!updateMutation.isPending && (
-                                    <ButtonIconStyled
-                                        size="sm"
-                                        variant="light"
-                                        className="text-white hover:bg-white/10"
-                                        onPress={() => setLocalPermissions({})} // Nút khôi phục
-                                    >
-                                        <RotateCcw size={18} />
-                                    </ButtonIconStyled>
-                                )}
-
-                                <ButtonIconStyled
-                                    size="sm"
-                                    color="success"
-                                    onPress={handleSave}
-                                    isLoading={updateMutation.isPending}
-                                >
-                                    <Save size={18} />
-                                </ButtonIconStyled>
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>,
-                document.body
-            )}
+            <UnsavedChangesNotifier
+                hasChanges={hasChanges}
+                isLoading={updateMutation.isPending}
+                onSave={handleSave}
+                onReset={() => setLocalPermissions({})}
+                message="Bạn có thay đổi chưa lưu trên quyền hạn này."
+            />
         </div>
     )
 }
