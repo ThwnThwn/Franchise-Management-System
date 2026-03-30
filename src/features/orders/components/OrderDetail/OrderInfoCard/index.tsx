@@ -5,9 +5,12 @@ import {
     PaymentMethodLabels
 } from "@/features/orders/constants"
 import { OrderHeader } from "@/features/orders/models/response"
+import { useDay } from "@/hooks"
 import { OrderDeliverySection } from "../OrderDeliverySection"
 
 export const OrderInfoCard = ({ order }: { order: OrderHeader }) => {
+    const { formatTime } = useDay()
+
     return (
         <div className="flex flex-col gap-5 px-5 py-3 rounded-2xl border border-default-200 bg-white shadow-sm">
             {/* Hàng 1: 4 Cột thông tin cơ bản */}
@@ -48,7 +51,7 @@ export const OrderInfoCard = ({ order }: { order: OrderHeader }) => {
                     <div className="text-base font-bold text-default-900">
                         {order.scheduledTime ? (
                             <span className="text-warning-600 bg-warning-50 px-2 py-0.5 rounded-full text-sm">
-                                Hẹn lúc: {order.scheduledTime}
+                                Hẹn lúc: {formatTime(order.scheduledTime, false)}
                             </span>
                         ) : (
                             "Nhận ngay"
