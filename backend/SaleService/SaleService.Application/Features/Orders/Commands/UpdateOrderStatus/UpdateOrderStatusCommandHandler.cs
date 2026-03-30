@@ -6,6 +6,7 @@ using SalesService.Application.Mapping.Orders;
 using SalesService.Application.Persisitences.Orders;
 using SalesService.Application.Persisitences.Outbox;
 using SalesService.Application.Persisitences.Wallets;
+using SalesService.Application.Persisitences.WalletTransactions;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
 using SharedKernel.Constants;
@@ -25,11 +26,12 @@ public sealed class UpdateOrderStatusCommandHandler
     private readonly ILogger<UpdateOrderStatusCommandHandler> _logger;
     private readonly IInventoryServiceClient _inventoryServiceClient;
     private readonly IWalletRepository _walletRepository;
+    IWalletTransactionRepository _transactionRepo;
 
     public UpdateOrderStatusCommandHandler(IOrderRepository orderRepository, IPaymentRepository paymentRepository,
         IOutboxRepository outboxRepository,
         ILogger<UpdateOrderStatusCommandHandler> logger,
-        IKafkaProducer kafkaProducer, IInventoryServiceClient inventoryServiceClient, IWalletRepository walletRepository)
+        IKafkaProducer kafkaProducer, IInventoryServiceClient inventoryServiceClient, IWalletRepository walletRepository, IWalletTransactionRepository transactionRepo)
     {
         _orderRepository = orderRepository;
         _paymentRepository = paymentRepository;
@@ -38,6 +40,7 @@ public sealed class UpdateOrderStatusCommandHandler
         _kafkaProducer = kafkaProducer;
         _inventoryServiceClient = inventoryServiceClient;
         _walletRepository = walletRepository;
+        _transactionRepo = transactionRepo;
     }
 
     public async Task<string> Handle(UpdateOrderStatusCommand commnad, CancellationToken cancellationToken)
@@ -75,7 +78,7 @@ public sealed class UpdateOrderStatusCommandHandler
                 OrderId = order.Id,
                 StoreId = order.StoreId!.Value
             });
-            if (order.Status == OrderStatus.ConfirmationPending && order.PaymentMethod == PaymentMethod.VNPay)
+            if (order.Status == OrderStatus.ConfirmationPending)
             {
                 //Hoàn về wallet
                 var wallet = await _walletRepository.GetByUserIdAsync(order.CustomerId.Value);
@@ -83,11 +86,38 @@ public sealed class UpdateOrderStatusCommandHandler
                 {
                     return "Cancel fail due to no wallet found";
                 }
+                decimal walletAmount = order.OrderSaleItems
+                        .Where(x => x.Type == OrderSaleItemType.Wallet)
+                        .Select(x => x.Amount)
+                        .FirstOrDefault();
                 if (order.PaidAmount == null)
                 {
                     return $"Cancel fail due to no PaidAmout found in order with ID {order.Id}";
                 }
-                await _walletRepository.AddBalanceAsync(wallet.Id, order.PaidAmount.Value, wallet.RowVersion);
+                decimal amount = walletAmount;  
+                if(order.PaymentMethod == PaymentMethod.VNPay)
+                {
+                    amount += order.PaidAmount.Value;
+                }
+                var withdrawTransaction = new WalletTransaction
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = order.CustomerId.Value,
+                    WalletId = wallet.Id,
+                    TransactionCode = $"WDR-{DateTime.UtcNow:yyyyMMddHHmmss}",
+                    Amount = amount,
+                    TransactionType = TransactionType.Withdrawal,
+                    PaymentMethod = order.PaymentMethod,
+                    Status = TransactionStatus.Completed,
+                    ReferenceType = WalletReferenceType.Withdrawal,
+                    Notes = "Order Refund",
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    UpdatedAt = DateTimeOffset.UtcNow,
+                    BalanceBefore = wallet.Balance,
+                    BalanceAfter = wallet.Balance+amount
+                };
+                await _transactionRepo.AddAsync(withdrawTransaction, cancellationToken);
+                await _walletRepository.AddBalanceAsync(wallet.Id, amount, wallet.RowVersion,cancellationToken);
 
                 if (request.RoleSlug == "staff")
                 {

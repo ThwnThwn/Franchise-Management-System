@@ -60,6 +60,10 @@ public sealed class CreatePaymentHandler(
         if (order.Status == OrderStatus.Completed)
             return Result.Error("Order này đã hoàn thành.");
 
+        if (order.PaidAmount <= 10000)
+        {
+            return Result.Error("Hóa đơn phải trên 10.000 Vnđ !");
+        }
         // Ràng buộc: Không cho tạo thêm Payment nếu đã có Payment thành công (Paid)
         var existingPaidPayment = await paymentRepository.GetNewestByOrderIdAndStatusAsync(request.OrderId, PaymentStatus.Paid, cancellationToken);
         if (existingPaidPayment != null)
