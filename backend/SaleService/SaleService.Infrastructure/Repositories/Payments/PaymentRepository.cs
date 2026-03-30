@@ -16,6 +16,7 @@ public sealed class PaymentRepository : IPaymentRepository
     {
         _db = db;
     }
+
     /// <summary>
     /// Creates the asynchronous.
     /// </summary>
@@ -28,6 +29,7 @@ public sealed class PaymentRepository : IPaymentRepository
         await _db.SaveChangesAsync(cancellationToken);
         return payment;
     }
+
     /// <summary>
     /// Gets the by order identifier asynchronous.
     /// </summary>
@@ -40,6 +42,7 @@ public sealed class PaymentRepository : IPaymentRepository
             .Where(p => p.OrderId == orderId && (p.IsDeleted == null || p.IsDeleted == false))
             .ToListAsync(cancellationToken);
     }
+
     /// <summary>
     /// Gets the by identifier with order asynchronous.
     /// </summary>
@@ -51,8 +54,11 @@ public sealed class PaymentRepository : IPaymentRepository
         return await _db.Payments
             .Include(p => p.Order)
                 .ThenInclude(o => o.OrderItems)
+            .Include(p => p.Order)
+                .ThenInclude(o => o.OrderSaleItems)
             .FirstOrDefaultAsync(p => p.Id == paymentId, cancellationToken);
     }
+
     /// <summary>
     /// Gets the newest by order identifier and status asynchronous.
     /// </summary>
@@ -60,13 +66,14 @@ public sealed class PaymentRepository : IPaymentRepository
     /// <param name="status">The status.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns></returns>
-    public async Task<Payment?> GetNewestByOrderIdAndStatusAsync(Guid orderId, PaymentStatus status,CancellationToken cancellationToken = default)
+    public async Task<Payment?> GetNewestByOrderIdAndStatusAsync(Guid orderId, PaymentStatus status, CancellationToken cancellationToken = default)
     {
         return await _db.Payments
             .Where(p => p.OrderId == orderId && p.Status == (int)status)
             .OrderByDescending(p => p.CreatedAt)
             .FirstOrDefaultAsync(cancellationToken);
     }
+
     /// <summary>
     /// Adds the event asynchronous.
     /// </summary>
@@ -76,6 +83,7 @@ public sealed class PaymentRepository : IPaymentRepository
     {
         await _db.PaymentEvents.AddAsync(paymentEvent, cancellationToken);
     }
+
     /// <summary>
     /// Saves the changes asynchronous.
     /// </summary>
@@ -85,6 +93,7 @@ public sealed class PaymentRepository : IPaymentRepository
     {
         return _db.SaveChangesAsync(cancellationToken);
     }
+
     /// <summary>
     /// Gets all asynchronous.
     /// </summary>
@@ -103,6 +112,7 @@ public sealed class PaymentRepository : IPaymentRepository
 
         return await query.ToPagedListAsync(page, pageSize, cancellationToken);
     }
+
     /// <summary>
     /// Gets the by identifier asynchronous.
     /// </summary>
@@ -111,9 +121,10 @@ public sealed class PaymentRepository : IPaymentRepository
     /// <returns></returns>
     public async Task<Payment?> GetByIdAsync(Guid paymentId, CancellationToken cancellationToken)
     {
-       return await _db.Payments
-            .FirstOrDefaultAsync(p => p.Id == paymentId, cancellationToken);
+        return await _db.Payments
+             .FirstOrDefaultAsync(p => p.Id == paymentId, cancellationToken);
     }
+
     /// <summary>
     /// Gets the by reference identifier asynchronous.
     /// </summary>
@@ -125,6 +136,7 @@ public sealed class PaymentRepository : IPaymentRepository
         return await _db.Payments
              .FirstOrDefaultAsync(p => p.ReferenceId == paymentId, cancellationToken);
     }
+
     /// <summary>
     /// Updates the asynchronous.
     /// </summary>
@@ -147,6 +159,7 @@ public sealed class PaymentRepository : IPaymentRepository
 
         return await _db.SaveChangesAsync();
     }
+
     /// <summary>
     /// Gets my payment history asynchronous.
     /// </summary>
@@ -186,4 +199,3 @@ public sealed class PaymentRepository : IPaymentRepository
         return await query.ToPagedListAsync(page, pageSize, cancellationToken);
     }
 }
-

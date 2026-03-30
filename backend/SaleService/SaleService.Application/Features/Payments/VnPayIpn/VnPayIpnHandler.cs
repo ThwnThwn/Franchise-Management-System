@@ -51,6 +51,7 @@ public sealed class VnPayIpnHandler
         VnPayIpnCommand request,
         CancellationToken cancellationToken)
     {
+        
         var vnpSection = _config.GetSection("VNPay");
         var hashSecret = vnpSection["HashSecret"];
         if (string.IsNullOrWhiteSpace(hashSecret))

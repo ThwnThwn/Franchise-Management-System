@@ -62,6 +62,8 @@ public sealed class DepositWalletHandler
             WalletId = wallet.Id,
             TransactionCode = $"DEP-{DateTime.UtcNow:yyyyMMddHHmmss}",
             Amount = request.Amount,
+            BalanceBefore = wallet.Balance,
+            BalanceAfter = wallet.Balance + request.Amount,
             TransactionType = TransactionType.Deposit,
             PaymentMethod = PaymentMethod.VNPay,
             Status = TransactionStatus.Pending,
