@@ -27,7 +27,7 @@ export const WalletTransactionTable = () => {
         if (amount > 0)
             return <span className="text-success font-bold">+{formatCurrency(amount)}</span>
         if (amount < 0)
-            return <span className="text-danger font-bold">{formatCurrency(amount)}</span>
+            return <span className="text-danger font-bold">-{formatCurrency(amount)}</span>
         return <span>0</span>
     }
 
