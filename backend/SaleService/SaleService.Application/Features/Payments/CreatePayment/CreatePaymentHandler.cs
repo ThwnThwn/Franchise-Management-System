@@ -62,7 +62,7 @@ public sealed class CreatePaymentHandler(
 
         if (order.PaidAmount <= 10000 && order.PaymentMethod == PaymentMethod.VNPay)
         {
-            return Result.Error("Hóa đơn phải trên 10.000 Vnđ !");
+            return Result.Error("Hóa đơn phải trên 10.000 VNĐ để sử dụng VN Pay, vui lòng sử dụng phương thức thanh toán khác!");
         }
         // Ràng buộc: Không cho tạo thêm Payment nếu đã có Payment thành công (Paid)
         var existingPaidPayment = await paymentRepository.GetNewestByOrderIdAndStatusAsync(request.OrderId, PaymentStatus.Paid, cancellationToken);
