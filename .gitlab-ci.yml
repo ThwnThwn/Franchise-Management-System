@@ -5,6 +5,10 @@ deploy_backend:
   stage: deploy
   tags:
     - backend-deploy
+  before_script:
+    - echo "Cleaning up Docker from previous build..."
+    - docker system prune -f
+    - docker builder prune -a -f
   script:
     - echo "Deploying Backend..."
 
@@ -49,6 +53,9 @@ deploy_backend:
     - docker compose -f docker-compose.prod.yml up -d --build api-gateway
 
     # Clean up to free up disk space
+    - echo "Syncing state and removing orphans..."
+    - docker compose -f docker-compose.prod.yml up -d --remove-orphans
+
     - echo "Pruning unused Docker images..."
     - docker image prune -f
 
