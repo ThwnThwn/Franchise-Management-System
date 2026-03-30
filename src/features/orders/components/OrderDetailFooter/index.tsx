@@ -120,17 +120,34 @@ export function OrderDetailFooter({
     // NẾU ĐƠN KHÔNG PHẢI TRẠNG THÁI PENDING
     if (order.status !== OrderStatus.PaymentPending) {
         return (
-            <div className="w-full text-center space-y-2 py-4">
-                <p className="text-default-400 font-medium italic">
-                    Cảm ơn bạn đã tin tưởng dịch vụ của chúng tôi.
-                </p>
-                <p className="text-[10px] text-default-300 uppercase tracking-widest">
-                    Bản sao hóa đơn điện tử • {order.id}
-                </p>
-                {isStaff && (
-                    <OrderStatusActions currentStatus={order.status} onUpdate={handleUpdate} />
+            <>
+                {/* Hủy đơn */}
+                {canCancelFrom(order.status) && (
+                    <center>
+                        <ButtonStyled
+                            variant="light"
+                            color="danger"
+                            size="sm"
+                            className="font-bold opacity-40 hover:opacity-100 transition-all underline"
+                            onPress={handleCancel}
+                            isLoading={updateStatus.isPending}
+                        >
+                            Tôi muốn huỷ đơn hàng này
+                        </ButtonStyled>
+                    </center>
                 )}
-            </div>
+                <div className="w-full text-center space-y-2 py-4">
+                    <p className="text-default-400 font-medium italic">
+                        Cảm ơn bạn đã tin tưởng dịch vụ của chúng tôi.
+                    </p>
+                    <p className="text-[10px] text-default-300 uppercase tracking-widest">
+                        Bản sao hóa đơn điện tử • {order.id}
+                    </p>
+                    {isStaff && (
+                        <OrderStatusActions currentStatus={order.status} onUpdate={handleUpdate} />
+                    )}
+                </div>
+            </>
         )
     }
 
