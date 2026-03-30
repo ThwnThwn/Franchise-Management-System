@@ -60,7 +60,7 @@ public sealed class CreatePaymentHandler(
         if (order.Status == OrderStatus.Completed)
             return Result.Error("Order này đã hoàn thành.");
 
-        if (order.PaidAmount <= 10000)
+        if (order.PaidAmount <= 10000 && order.PaymentMethod == PaymentMethod.VNPay)
         {
             return Result.Error("Hóa đơn phải trên 10.000 Vnđ !");
         }
