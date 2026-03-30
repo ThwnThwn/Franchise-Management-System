@@ -61,7 +61,7 @@ export const BaseSidebar = ({
         }
 
         // Nếu không truyền userRole vào Component, tự động show hết toàn bộ menu gốc
-        if (!userRole) return items
+        // if (!userRole) return items
 
         return filterMenu(items)
     }, [items, userRole])

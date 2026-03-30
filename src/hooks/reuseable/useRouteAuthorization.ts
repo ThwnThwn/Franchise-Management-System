@@ -9,7 +9,7 @@ interface UseRouteAuthOptions {
     fallbackUrl?: string
     rootPath?: string
     roleSlug?: RoleSlug
-    isLoadingRole: boolean
+    isLoadingRole?: boolean
 }
 
 export const useRouteAuthorization = ({
@@ -18,7 +18,7 @@ export const useRouteAuthorization = ({
     fallbackUrl = "/",
     rootPath = "/dashboard",
     roleSlug,
-    isLoadingRole
+    isLoadingRole = false
 }: UseRouteAuthOptions) => {
     const router = useRouter()
 

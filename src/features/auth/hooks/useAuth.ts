@@ -1,4 +1,4 @@
-import { useTokenStore } from "@/hooks"
+import { confirmDialog, useTokenStore } from "@/hooks"
 import { useMutation } from "@tanstack/react-query"
 import { authApi } from "@/features/auth/services"
 import { addToast } from "@heroui/react"
@@ -6,6 +6,7 @@ import { BackendError } from "@/models/common/respone"
 import { useInvalidateMeQuery, useRemoveMeQuery } from "@/hooks/queries/useProfile"
 import { AUTH_TEXT } from "../constants"
 import { STRINGS } from "@/constants/strings"
+import { ChangePasswordReq } from "../models/request"
 
 export const useLogin = ({
     rememberMe,
@@ -178,4 +179,57 @@ export const useResendForgotPasswordOtp = ({ onSuccess }: { onSuccess?: () => vo
             })
         }
     })
+}
+
+export const useChangePassword = ({ onSuccess }: { onSuccess?: () => void } = {}) => {
+    const removeAccessToken = useTokenStore((s) => s.removeAccessToken)
+    const removeMeQuery = useRemoveMeQuery()
+
+    const mutation = useMutation({
+        mutationFn: authApi.changePassword,
+        onSuccess: (_data, variables) => {
+            addToast({
+                title: STRINGS.COMMON.SUCCESS,
+                description: "Mật khẩu đã được thay đổi thành công.",
+                color: "success"
+            })
+
+            if (variables.forgetAll) {
+                removeAccessToken()
+                removeMeQuery()
+
+                addToast({
+                    title: "Đã đăng xuất thiết bị",
+                    description: "Bạn đã được đăng xuất khỏi tất cả thiết bị theo yêu cầu.",
+                    color: "warning"
+                })
+            }
+
+            onSuccess?.()
+        },
+        onError: (error: BackendError) => {
+            addToast({
+                title: error.title || STRINGS.COMMON.ERROR,
+                description: error.detail || "Không thể đổi mật khẩu, vui lòng thử lại.",
+                color: "danger"
+            })
+        }
+    })
+
+    const changeWithConfirm = async (data: ChangePasswordReq) => {
+        const isConfirmed = await confirmDialog({
+            title: "Xác nhận đổi mật khẩu",
+            message: data.forgetAll
+                ? "Hệ thống sẽ đổi mật khẩu và đăng xuất bạn khỏi tất cả các thiết bị. Tiếp tục?"
+                : "Bạn có chắc chắn muốn thay đổi mật khẩu không?",
+            variant: "danger",
+            confirmText: "Xác nhận đổi"
+        })
+
+        if (isConfirmed) {
+            mutation.mutate(data)
+        }
+    }
+
+    return { ...mutation, changeWithConfirm }
 }

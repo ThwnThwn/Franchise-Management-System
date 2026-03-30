@@ -1,6 +1,6 @@
 import axiosInstance from "@/utils/axios"
 import { TokenRes } from "../models/respone"
-import { UserRegisterReq } from "../models/request"
+import { ChangePasswordReq, UserRegisterReq } from "../models/request"
 
 /**
  * AUTH API
@@ -61,5 +61,9 @@ export const authApi = {
 
     resendForgotPasswordOtp: async (email: string): Promise<void> => {
         await axiosInstance.post("/auth/forgot-password/resend-otp", { email })
+    },
+
+    changePassword: async (req: ChangePasswordReq): Promise<void> => {
+        await axiosInstance.post("/auth/change-password", req)
     }
 }

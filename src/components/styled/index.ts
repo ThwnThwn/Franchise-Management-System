@@ -43,6 +43,7 @@ export * from "./NumberInputStyled"
 
 /* ========================= P ========================= */
 export * from "./PaginationStyle"
+export * from "./PasswordInputStyled"
 
 /* ========================= S ========================= */
 export * from "./SearchStyle"

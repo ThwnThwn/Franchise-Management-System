@@ -1,14 +1,14 @@
 "use client"
 
 import { ButtonStyled, ButtonToggleVisibility, InputStyled, LogoStyled } from "@/components"
-import { AUTH_ERRORS, AUTH_TEXT } from "@/features/auth/constants"
 import { useLogin } from "@/features/"
+import { AUTH_ERRORS, AUTH_TEXT } from "@/features/auth/constants"
+import { useForgotPasswordDiscloresureSingleton, useLoginDiscloresureSingleton } from "@/hooks"
 import { Checkbox, Divider, Link } from "@heroui/react"
 import { useFormik } from "formik"
-import React, { useCallback, useState } from "react"
-import * as Yup from "yup"
-import { useLoginDiscloresureSingleton, useForgotPasswordDiscloresureSingleton } from "@/hooks"
 import { useRouter } from "next/navigation"
+import { useCallback, useState } from "react"
+import * as Yup from "yup"
 
 export function LoginForm({ onSuccess }: { onSuccess?: () => void }) {
     const [isVisible, setIsvisible] = useState(false)
@@ -48,9 +48,7 @@ export function LoginForm({ onSuccess }: { onSuccess?: () => void }) {
         },
         validationSchema: Yup.object().shape({
             emailOrUsername: Yup.string().required(AUTH_ERRORS.AUTH.EMAIL_REQUIRED),
-            // .matches(EMAIL_REGEX, AUTH_ERRORS.AUTH.INVALID_EMAIL),
             password: Yup.string().required(AUTH_ERRORS.AUTH.PASSWORD_REQUIRED)
-            // .min(8, AUTH_ERRORS.AUTH.PASSWORD_TOO_SHORT)
         }),
         onSubmit: handleLogin
     })

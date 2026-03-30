@@ -1,3 +1,5 @@
+export * from "./ChangePasswordModal"
 export * from "./LoginModal"
 export * from "./RegisterModal"
 export * from "./ForgotPasswordModal"
+export * from "./SecurityRows"

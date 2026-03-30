@@ -12,3 +12,10 @@ export type UserRegisterReq = {
     gender: Gender
     dateOfBirth: string
 }
+
+export interface ChangePasswordReq {
+    oldPassword: string
+    newPassword: string
+    confirmNewPassword: string
+    forgetAll: boolean
+}

@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client"
 
 import { ButtonStyled, DatePickerStyled, InputStyled } from "@/components"
@@ -378,7 +379,7 @@ export default function ProfilePageView() {
                         </div>
                         <div className="relative z-10 hidden md:flex flex-col items-center justify-center shrink-0">
                             {loyalty?.currentTier?.name ? (
-                                <div className="w-28 h-28 bg-gradient-to-br from-white/30 to-white/5 backdrop-blur-sm shadow-[0_0_20px_rgba(255,255,255,0.1)] rounded-full p-2 border border-white/20 transform hover:scale-105 transition-transform duration-300 flex items-center justify-center">
+                                <div className="w-28 h-28 bg-linear-to-br from-white/30 to-white/5 backdrop-blur-sm shadow-[0_0_20px_rgba(255,255,255,0.1)] rounded-full p-2 border border-white/20 transform hover:scale-105 transition-transform duration-300 flex items-center justify-center">
                                     <img
                                         src={`/images/tiers/${
                                             loyalty.currentTier.name
