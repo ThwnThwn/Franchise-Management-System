@@ -1,12 +1,10 @@
 "use client"
 
-import { ButtonStyled, ModalStyled } from "@/components/styled"
-import { PasswordInputStyled } from "@/components/styled"
+import { ButtonStyled, ModalStyled, PasswordInputStyled } from "@/components/styled"
 import { useChangePassword } from "@/features/auth/hooks"
 import { useFormikHelpers } from "@/hooks"
 import { ModalBody, ModalContent, ModalFooter, ModalHeader, Switch } from "@heroui/react"
 import { useFormik } from "formik"
-import { Lock, ShieldCheck } from "lucide-react"
 import { ChangePasswordSchema } from "./schema"
 
 interface Props {
@@ -56,7 +54,6 @@ export const ChangePasswordModal = ({ isOpen, onOpenChange }: Props) => {
                                     label="Mật khẩu hiện tại"
                                     placeholder="Nhập mật khẩu đang dùng"
                                     variant="bordered"
-                                    startContent={<Lock size={18} className="text-default-400" />}
                                     name="oldPassword"
                                     value={formik.values.oldPassword}
                                     onChange={formik.handleChange}
@@ -69,9 +66,6 @@ export const ChangePasswordModal = ({ isOpen, onOpenChange }: Props) => {
                                     label="Mật khẩu mới"
                                     placeholder="Nhập mật khẩu mới"
                                     variant="bordered"
-                                    startContent={
-                                        <ShieldCheck size={18} className="text-default-400" />
-                                    }
                                     name="newPassword"
                                     value={formik.values.newPassword}
                                     onChange={formik.handleChange}
