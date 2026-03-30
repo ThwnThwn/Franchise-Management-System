@@ -397,9 +397,10 @@ public sealed class CreatePaymentHandler(
                 var walletTransaction = new WalletTransaction
                 {
                     Id = Guid.NewGuid(),
+                    TransactionCode = $"ORD-{DateTime.UtcNow:yyyyMMddHHmmss}",
                     UserId = order.CustomerId ?? Guid.Empty,
                     OrderId = order.Id,
-                    Amount = walletItem.Amount,
+                    Amount = -walletItem.Amount,
                     TransactionType = TransactionType.Payment,
                     Status = TransactionStatus.Completed,
                     ReferenceId = order.Id,
@@ -409,7 +410,8 @@ public sealed class CreatePaymentHandler(
                     BalanceBefore = userWallet.Balance,
                     BalanceAfter = userWallet.Balance - walletItem.Amount,
                     CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
+                    UpdatedAt = DateTime.UtcNow,
+                    WalletId = userWallet.Id
                 };
 
                 await walletTransactionRepository.AddAsync(walletTransaction, cancellationToken);

@@ -18,45 +18,24 @@ using SharedKernel.Infrastructure.Extensions;
 
 namespace SalesService.Application.Features.Payments.VnPayIpn;
 
-public sealed class VnPayIpnHandler
-    : IRequestHandler<VnPayIpnCommand, Result<VnPayIpnResponse>>
+public sealed class VnPayIpnHandler(
+    IPaymentRepository paymentRepository,
+    IWalletRepository walletRepository,
+    IWalletTransactionRepository walletTransactionRepository,
+    IConfiguration config,
+    IOutboxRepository outboxRepository,
+    IOutboxSignal outboxSignal,
+    ILogger<VnPayIpnHandler> logger
+) : IRequestHandler<VnPayIpnCommand, Result<VnPayIpnResponse>>
 {
-    private readonly IPaymentRepository _paymentRepository;
-    private readonly IWalletRepository _walletRepository;
-    private readonly IWalletTransactionRepository _walletTransactionRepository;
-    private readonly IConfiguration _config;
-    private readonly IOutboxRepository _outboxRepository;
-    private readonly IOutboxSignal _outboxSignal;
-    private readonly ILogger<VnPayIpnHandler> _logger;
-
-    public VnPayIpnHandler(
-        IPaymentRepository paymentRepository,
-        IWalletRepository walletRepository,
-        IWalletTransactionRepository walletTransactionRepository,
-        IConfiguration config,
-        IOutboxRepository outboxRepository,
-        IOutboxSignal outboxSignal,
-        ILogger<VnPayIpnHandler> logger)
-    {
-        _paymentRepository = paymentRepository;
-        _walletRepository = walletRepository;
-        _walletTransactionRepository = walletTransactionRepository;
-        _config = config;
-        _outboxRepository = outboxRepository;
-        _outboxSignal = outboxSignal;
-        _logger = logger;
-    }
-
     public async Task<Result<VnPayIpnResponse>> Handle(
         VnPayIpnCommand request,
         CancellationToken cancellationToken)
     {
-        
-        var vnpSection = _config.GetSection("VNPay");
+        var vnpSection = config.GetSection("VNPay");
         var hashSecret = vnpSection["HashSecret"];
         if (string.IsNullOrWhiteSpace(hashSecret))
         {
-            _logger.LogError("VNPay HashSecret is not configured");
             return Result.Error("VNPay HashSecret is not configured");
         }
 
@@ -66,26 +45,18 @@ public sealed class VnPayIpnHandler
             return Result.Success(new VnPayIpnResponse { RspCode = "97", Message = "Invalid signature" });
         }
 
-        // lấy tất cả tham số bắt đầu với vnp_ để kiểm tra chữ ký
         var vnpParams = new Dictionary<string, string>();
         foreach (var kv in query)
         {
-            if (!kv.Key.StartsWith("vnp_", StringComparison.OrdinalIgnoreCase))
-                continue;
-
-            if (string.Equals(kv.Key, "vnp_SecureHash", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(kv.Key, "vnp_SecureHashType", StringComparison.OrdinalIgnoreCase))
-                continue;
-
-            vnpParams[kv.Key] = kv.Value;
+            if (kv.Key.StartsWith("vnp_", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(kv.Key, "vnp_SecureHash", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(kv.Key, "vnp_SecureHashType", StringComparison.OrdinalIgnoreCase))
+            {
+                vnpParams[kv.Key] = kv.Value;
+            }
         }
 
-        // xác thực chữ ký
         var isValidSignature = VNPayHelper.VerifySignature(hashSecret, vnpParams, vnpSecureHash);
-        
-        // muốn test trên grpc xem hàm viết đúng không 
-        // thì cmt lại cái check valid này lại 
-        
         if (!isValidSignature)
         {
             return Result.Success(new VnPayIpnResponse { RspCode = "97", Message = "Invalid signature" });
@@ -101,45 +72,39 @@ public sealed class VnPayIpnHandler
             return Result.Success(new VnPayIpnResponse { RspCode = "01", Message = "Order not found" });
         }
 
-        // Dùng GetByIdAsync thay vì GetByIdWithOrderAsync để đảm bảo tìm thấy Payment 
-        // ngay cả khi không có Order (ví dụ: nạp tiền ví).
-        var payment = await _paymentRepository.GetByIdAsync(paymentId, cancellationToken);
-
+        var payment = await paymentRepository.GetByIdWithOrderAsync(paymentId, cancellationToken);
         if (payment == null)
         {
-            _logger.LogWarning("[IPN] Payment {PaymentId} not found", paymentId);
+            logger.LogWarning("[IPN] Payment {PaymentId} not found", paymentId);
             throw new Exception("payment is null |VnpayHandler");
         }
-        // ── PHÂN NHÁNH: Wallet Deposit vs Order ──────────────────────────────
+
+        // 1. Nhánh Nạp tiền vào ví
         if (payment.ReferenceType == PaymentReferenceType.Deposit && payment.ReferenceId.HasValue)
         {
             return await HandleWalletDepositIpnAsync(payment, responseCode, transactionNo, query, cancellationToken);
         }
-        // Kiểm tra xem Payment đã được cập nhật trước đó chưa (IPN có thể gọi nhiều lần)
+
         if (payment.Status == (int)PaymentStatus.Paid || payment.Status == (int)PaymentStatus.Failed)
         {
             return Result.Success(new VnPayIpnResponse { RspCode = "02", Message = "Order already confirmed" });
         }
 
-        // Nếu là thanh toán đơn hàng (không phải nạp ví) và có OrderId, load thêm Order
         if (payment.ReferenceType != PaymentReferenceType.Deposit && payment.OrderId.HasValue)
         {
-            payment = await _paymentRepository.GetByIdWithOrderAsync(paymentId, cancellationToken);
+            payment = await paymentRepository.GetByIdWithOrderAsync(paymentId, cancellationToken);
         }
-        
-        // xác thực số tiền
+
         if (long.TryParse(amountStr, out var vnpAmount))
         {
             var expected = (long)(payment!.Amount * 100);
             if (expected != vnpAmount)
             {
                 await AddPaymentEvent(payment.Id, "VNPAY_IPN_AMOUNT_MISMATCH", query, cancellationToken);
-
                 payment.Status = (int)PaymentStatus.Failed;
                 payment.Provider = "vnpay";
                 payment.ProviderPayload = JsonSerializer.Serialize(query);
-
-                await _paymentRepository.SaveChangesAsync(cancellationToken);
+                await paymentRepository.SaveChangesAsync(cancellationToken);
 
                 return Result.Success(new VnPayIpnResponse { RspCode = "04", Message = "Invalid amount" });
             }
@@ -149,8 +114,8 @@ public sealed class VnPayIpnHandler
             return Result.Success(new VnPayIpnResponse { RspCode = "04", Message = "Invalid amount" });
         }
 
-        // cập nhật trạng thái payment
-        if (responseCode == "00") // 00 = Thanh toán thành công
+        // 2. Nhánh Thanh toán Order
+        if (responseCode == "00")
         {
             payment.Status = (int)PaymentStatus.Paid;
             payment.PaidAt = DateTime.UtcNow;
@@ -160,29 +125,95 @@ public sealed class VnPayIpnHandler
 
             if (payment.Order != null)
             {
-                payment.Order.Status = OrderStatus.ConfirmationPending;
-                payment.Order.PaidAt = DateTimeOffset.UtcNow;
-                payment.Order.PaidAmount = payment.Amount;
-                payment.Order.PaymentMethod = PaymentMethod.VNPay;
+                var order = payment.Order;
+                order.Status = OrderStatus.ConfirmationPending;
+                order.PaidAt = DateTimeOffset.UtcNow;
+                order.PaidAmount = payment.Amount;
+                order.PaymentMethod = PaymentMethod.VNPay;
 
-                // PUBLISH OrderPaidEvent
-                if (payment.Order.OrderItems != null && payment.Order.OrderItems.Any())
+                // --- LOGIC TRỪ VÍ / ĐIỂM / VOUCHER BÊ TỪ RETURN SANG ---
+                if (order.OrderSaleItems != null && order.OrderSaleItems.Count != 0)
                 {
-                    // 1. OrderStatusEvent → NotificationService (thông báo khách hàng)
-                    var orderStatusEvent = OrderToKafka.MapToOrderStatusEvent(payment.Order);
-                    _outboxRepository.AddEvent(orderStatusEvent, KafkaTopics.OrderNotifications);
+                    // 2.1 Trừ Voucher (Dùng Outbox thay vì Publish trực tiếp)
+                    var voucherList = order.OrderSaleItems
+                        .Where(x => x.Type == OrderSaleItemType.Voucher && x.ReferenceId != null)
+                        .Select(x => x.ReferenceId!.Value)
+                        .ToList();
 
-                    // 2. OrderPaidEvent → InventoryService (trừ kho)
-                    var orderPaidEvent = OrderToKafka.MapToOrderPaidEvent(payment.Order);
-                    _outboxRepository.AddEvent(orderPaidEvent, KafkaTopics.OrderPaid);
+                    if (voucherList.Count != 0)
+                    {
+                        var userVoucherEvent = new UseVouchersEvent
+                        {
+                            OrderId = order.Id,
+                            UserId = order.CustomerId ?? Guid.Empty,
+                            VoucherIds = voucherList
+                        };
+                        outboxRepository.AddEvent(userVoucherEvent, KafkaTopics.DeductUserVoucher);
+                    }
 
-                    _logger.LogInformation("Outbox: OrderStatusEvent + OrderPaidEvent cho Order {OrderId} via IPN", payment.Order.Id);
+                    // 2.2 Trừ Điểm (Dùng Outbox)
+                    decimal point = order.OrderSaleItems
+                        .Where(x => x.Type == OrderSaleItemType.LoyaltyPoint)
+                        .Select(x => x.Amount)
+                        .FirstOrDefault();
+
+                    if (point > 0)
+                    {
+                        var userPointEvent = new UpdatePointEvent
+                        {
+                            Id = order.CustomerId ?? Guid.Empty,
+                            OrderId = order.Id,
+                            Point = point,
+                            ActionType = UpdatePointType.Minus
+                        };
+                        outboxRepository.AddEvent(userPointEvent, KafkaTopics.UpdateUserPoint);
+                    }
+
+                    // 2.3 Trừ Số dư Ví nếu có thanh toán kết hợp
+                    decimal walletAmount = order.OrderSaleItems
+                        .Where(x => x.Type == OrderSaleItemType.Wallet)
+                        .Select(x => x.Amount)
+                        .FirstOrDefault();
+
+                    if (walletAmount > 0 && order.CustomerId != null)
+                    {
+                        var userWallet = await walletRepository.GetByUserIdAsync(order.CustomerId.Value, cancellationToken);
+                        if (userWallet != null && userWallet.RowVersion != null)
+                        {
+                            var walletTransaction = new WalletTransaction
+                            {
+                                Id = Guid.NewGuid(),
+                                TransactionCode = $"ORD-{DateTime.UtcNow:yyyyMMddHHmmss}",
+                                UserId = order.CustomerId.Value,
+                                OrderId = order.Id,
+                                Amount = -walletAmount,
+                                TransactionType = TransactionType.Payment,
+                                Status = TransactionStatus.Completed,
+                                ReferenceId = order.Id,
+                                ReferenceType = WalletReferenceType.Order,
+                                Description = $"Sử dụng số dư ví cho đơn hàng {order.Code}",
+                                PaymentMethod = order.PaymentMethod,
+                                BalanceBefore = userWallet.Balance,
+                                BalanceAfter = userWallet.Balance - walletAmount,
+                                CreatedAt = DateTime.UtcNow,
+                                UpdatedAt = DateTime.UtcNow,
+                                WalletId = userWallet.Id
+                            };
+
+                            walletTransactionRepository.Add(walletTransaction);
+                            walletRepository.ApplyDeductBalance(userWallet, walletAmount, userWallet.RowVersion);
+                        }
+                    }
+
+                    // 2.4 Bắn Event Order
+                    outboxRepository.AddEvent(OrderToKafka.MapToOrderStatusEvent(order), KafkaTopics.OrderNotifications);
+                    outboxRepository.AddEvent(OrderToKafka.MapToOrderPaidEvent(order), KafkaTopics.OrderPaid);
                 }
             }
 
             await AddPaymentEvent(payment.Id, "VNPAY_IPN_SUCCESS", query, cancellationToken);
         }
-        else
+        else // Thất bại
         {
             payment.Status = (int)PaymentStatus.Failed;
             payment.Provider = "vnpay";
@@ -191,30 +222,23 @@ public sealed class VnPayIpnHandler
 
             if (payment.Order != null)
             {
-                // OrderCancelledEvent → InventoryService (giải phóng giữ chỗ)
                 var cancelledEvent = new OrderCancelledEvent
                 {
                     OrderId = payment.Order.Id,
                     CancelledAt = DateTimeOffset.UtcNow,
                     Reason = $"Payment Failed via IPN: {responseCode}"
                 };
-
-                _outboxRepository.AddEvent(cancelledEvent, KafkaTopics.OrderCancelled);
+                outboxRepository.AddEvent(cancelledEvent, KafkaTopics.OrderCancelled);
             }
 
             await AddPaymentEvent(payment.Id, "VNPAY_IPN_FAILED", query, cancellationToken);
         }
 
-        await _paymentRepository.SaveChangesAsync(cancellationToken);
+        // Lưu TẤT CẢ (Payment, Order, Wallet, Outbox) trong 1 Transaction
+        await paymentRepository.SaveChangesAsync(cancellationToken);
+        outboxSignal.Pulse();
 
-        // Pulse Outbox Worker
-        _outboxSignal.Pulse();
-
-        return Result.Success(new VnPayIpnResponse
-        {
-            RspCode = "00",
-            Message = "Confirm Success"
-        });
+        return Result.Success(new VnPayIpnResponse { RspCode = "00", Message = "Confirm Success" });
     }
 
     // Wallet Deposit IPN handler
@@ -226,19 +250,19 @@ public sealed class VnPayIpnHandler
         CancellationToken cancellationToken)
     {
         // Lấy WalletTransaction tham chiếu từ payment
-        var walletTxn = await _walletTransactionRepository
+        var walletTxn = await walletTransactionRepository
             .GetByIdAsync(payment.ReferenceId!.Value, cancellationToken);
 
         if (walletTxn == null)
         {
-            _logger.LogError("[WalletIPN] WalletTransaction not found for PaymentId {PaymentId}", payment.Id);
+            logger.LogError("[WalletIPN] WalletTransaction not found for PaymentId {PaymentId}", payment.Id);
             return Result.Success(new VnPayIpnResponse { RspCode = "01", Message = "Wallet transaction not found" });
         }
 
-        var wallet = await _walletRepository.GetByIdAsync(walletTxn.WalletId!.Value, cancellationToken);
+        var wallet = await walletRepository.GetByIdAsync(walletTxn.WalletId!.Value, cancellationToken);
         if (wallet == null)
         {
-            _logger.LogError("[WalletIPN] Wallet not found for WalletId {WalletId}", walletTxn.WalletId);
+            logger.LogError("[WalletIPN] Wallet not found for WalletId {WalletId}", walletTxn.WalletId);
             return Result.Success(new VnPayIpnResponse { RspCode = "01", Message = "Wallet not found" });
         }
 
@@ -257,7 +281,7 @@ public sealed class VnPayIpnHandler
             payment.ProviderTxnId = transactionNo;
             payment.ProviderPayload = JsonSerializer.Serialize(query);
 
-            _logger.LogInformation("[WalletIPN] Nạp tiền thành công. WalletId={WalletId}, Amount={Amount}",
+            logger.LogInformation("[WalletIPN] Nạp tiền thành công. WalletId={WalletId}, Amount={Amount}",
                 wallet.Id, payment.Amount);
         }
         else // Thất bại
@@ -270,11 +294,11 @@ public sealed class VnPayIpnHandler
             payment.ProviderTxnId = transactionNo;
             payment.ProviderPayload = JsonSerializer.Serialize(query);
 
-            _logger.LogWarning("[WalletIPN] Nạp tiền thất bại. WalletId={WalletId}, Code={Code}",
+            logger.LogWarning("[WalletIPN] Nạp tiền thất bại. WalletId={WalletId}, Code={Code}",
                 wallet.Id, responseCode);
         }
 
-        await _paymentRepository.SaveChangesAsync(cancellationToken);
+        await paymentRepository.SaveChangesAsync(cancellationToken);
 
         return Result.Success(new VnPayIpnResponse { RspCode = "00", Message = "Confirm Success" });
     }
@@ -296,6 +320,6 @@ public sealed class VnPayIpnHandler
             CreatedAt = DateTime.UtcNow
         };
 
-        await _paymentRepository.AddEventAsync(evt, cancellationToken);
+        await paymentRepository.AddEventAsync(evt, cancellationToken);
     }
 }

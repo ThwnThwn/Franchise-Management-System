@@ -23,7 +23,6 @@ namespace SalesService.Infrastructure.Repositories
             CancellationToken cancellationToken = default)
         {
             return await _dbSet
-                .AsNoTracking()
                 .FirstOrDefaultAsync(
                     w => w.UserId == userId && !w.IsDeleted,
                     cancellationToken);

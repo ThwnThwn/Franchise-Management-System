@@ -32,15 +32,15 @@ namespace SalesService.Domain.Entities
         public PaymentMethod? PaymentMethod { get; set; }
         public DateTimeOffset? ProcessedAt { get; set; }
 
-        public virtual ICollection<WalletTransaction> InverseParentTransaction { get; set; } = new List<WalletTransaction>();
+        public virtual ICollection<WalletTransaction> InverseParentTransaction { get; set; } = [];
 
         public virtual Order? Order { get; set; }
 
         public virtual WalletTransaction? ParentTransaction { get; set; }
 
-        public virtual ICollection<RefundTicket> RefundTicketOriginalTransactions { get; set; } = new List<RefundTicket>();
+        public virtual ICollection<RefundTicket> RefundTicketOriginalTransactions { get; set; } = [];
 
-        public virtual ICollection<RefundTicket> RefundTicketTransactions { get; set; } = new List<RefundTicket>();
+        public virtual ICollection<RefundTicket> RefundTicketTransactions { get; set; } = [];
 
         public virtual Wallet Wallet { get; set; } = null!;
 
