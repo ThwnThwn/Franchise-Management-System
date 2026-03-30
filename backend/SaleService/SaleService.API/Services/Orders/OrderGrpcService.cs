@@ -99,7 +99,7 @@ public class OrderGrpcService : OrderGrpc.OrderGrpcBase
             OrderCode = result.Value.OrderCode ?? string.Empty, // Tránh lỗi null cũ
             TotalAmount = (double)(result.Value.TotalAmount ?? 0),
             CustomerId = customerId.ToString(),
-            Type = (OrderType)result.Value.Type!,
+            Type = (OrderType?)result.Value.Type ?? OrderType.Delivery,
             CheckStockRespone = new CheckEnoughStockResponse
             {
                 IsEnough = result.Value.CheckEnoughStockRes.IsEnough

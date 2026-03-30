@@ -14,6 +14,7 @@ using SalesService.Application.Mapping.Orders;
 using SalesService.Application.Persisitences.Orders;
 using SalesService.Application.Persisitences.Outbox;
 using SalesService.Application.Persisitences.Wallets;
+using SalesService.Application.Persisitences.WalletTransactions;
 using SalesService.Application.Signals;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
@@ -35,7 +36,8 @@ public sealed class CreatePaymentHandler(
     IProductServiceClient productServiceClient,
     IInventoryServiceClient inventoryServiceClient,
     IIdentityServiceClient identityServiceClient,
-    IWalletRepository walletRepository
+    IWalletRepository walletRepository,
+    IWalletTransactionRepository walletTransactionRepository
 ) : IRequestHandler<CreatePaymentCommand, Result<CreatePaymentRes>>
 {
     public async Task<Result<CreatePaymentRes>> Handle(
@@ -64,6 +66,7 @@ public sealed class CreatePaymentHandler(
         {
             return Result.Error("Hóa đơn phải trên 10.000 VNĐ để sử dụng VN Pay, vui lòng sử dụng phương thức thanh toán khác!");
         }
+
         // Ràng buộc: Không cho tạo thêm Payment nếu đã có Payment thành công (Paid)
         var existingPaidPayment = await paymentRepository.GetNewestByOrderIdAndStatusAsync(request.OrderId, PaymentStatus.Paid, cancellationToken);
         if (existingPaidPayment != null)
@@ -80,7 +83,7 @@ public sealed class CreatePaymentHandler(
         {
             var customerId = order.CustomerId!.Value;
             // Hứng kết quả trả về từ Tuple
-            var (prodDiscount, shipDiscount) = await ProcessVouchersAsync(request, order, customerId, cancellationToken);
+            var (prodDiscount, shipDiscount) = await ProcessVouchersAsync(request, order, customerId);
 
             totalProductDiscount += prodDiscount;
             totalShippingDiscount += shipDiscount;
@@ -156,7 +159,7 @@ public sealed class CreatePaymentHandler(
     // ======================== HELPER METHODS =================================
     // =========================================================================
 
-    private async Task<(decimal ProductDiscount, decimal ShippingDiscount)> ProcessVouchersAsync(CreatePaymentReq request, Order order, Guid customerId, CancellationToken cancellationToken)
+    private async Task<(decimal ProductDiscount, decimal ShippingDiscount)> ProcessVouchersAsync(CreatePaymentReq request, Order order, Guid customerId)
     {
         if (string.IsNullOrWhiteSpace(request.VoucherDiscountCode) && string.IsNullOrWhiteSpace(request.VoucherShipCode))
             return (0, 0);
@@ -391,6 +394,25 @@ public sealed class CreatePaymentHandler(
                 var rowVersion = userWallet.RowVersion
                     ?? throw new Exception("Thiếu row version.");
 
+                var walletTransaction = new WalletTransaction
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = order.CustomerId ?? Guid.Empty,
+                    OrderId = order.Id,
+                    Amount = walletItem.Amount,
+                    TransactionType = TransactionType.Payment,
+                    Status = TransactionStatus.Completed,
+                    ReferenceId = order.Id,
+                    ReferenceType = WalletReferenceType.Order,
+                    Description = $"Sử dụng số dư ví cho đơn hàng {order.Code}",
+                    PaymentMethod = order.PaymentMethod,
+                    BalanceBefore = userWallet.Balance,
+                    BalanceAfter = userWallet.Balance - walletItem.Amount,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                await walletTransactionRepository.AddAsync(walletTransaction, cancellationToken);
                 await walletRepository.DeductBalanceAsync(userWallet.Id, walletItem.Amount, rowVersion, cancellationToken);
             }
         }
