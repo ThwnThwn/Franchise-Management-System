@@ -94,9 +94,18 @@ wire:
 # Tạo danh sách các target ảo: swagger-engagement, swagger-franchise, v.v.
 SWAGGER_TARGETS := $(addprefix swagger-, $(HANDLER_NAMES))
 
-# Điểm neo chính: Nếu có cờ target=... thì chạy 1 cái, không thì chạy tất cả (SWAGGER_TARGETS)
-swagger: $(if $(target), swagger-$(target), $(SWAGGER_TARGETS))
+# Điểm neo chính: Nếu có cờ target=... thì chạy 1 cái, không thì chạy tất cả (bao gồm cả thư mục 'all')
+swagger: $(if $(target), swagger-$(target), $(SWAGGER_TARGETS) swagger-all)
 	@echo "Swagger docs generation completed! (Check folder ./$(SWAGGER_DOCS_DIR))"
+
+# Rule ĐẶC BIỆT: Gộp tất cả API vào 1 thư mục duy nhất (để in PDF)
+swagger-all:
+	@echo "Regenerating Swagger for [ALL SERVICES] (Combined)..."
+	@swag init -g main.go \
+		--dir ./$(GO_MAIN_DIR),./$(HANDLERS_DIR) \
+		--instanceName all \
+		--output $(SWAGGER_DOCS_DIR)/all \
+		--parseDependency --parseInternal
 
 # Rule động xử lý từng thư mục (Dấu % đại diện cho tên folder)
 swagger-%:
