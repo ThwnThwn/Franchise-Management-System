@@ -3,7 +3,9 @@ using Ardalis.Result;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using SalesService.Application.ClientInterface.Engagement;
 using SalesService.Application.Helpers;
+using SalesService.Application.Interfaces.Identity;
 using SalesService.Application.Interfaces.Payments;
 using SalesService.Application.Mapping.Orders;
 using SalesService.Application.Persisitences.Outbox;
@@ -22,6 +24,7 @@ public sealed class VnPayIpnHandler(
     IPaymentRepository paymentRepository,
     IWalletRepository walletRepository,
     IWalletTransactionRepository walletTransactionRepository,
+    IIdentityServiceClient identityServiceClient,
     IConfiguration config,
     IOutboxRepository outboxRepository,
     IOutboxSignal outboxSignal,
@@ -152,18 +155,33 @@ public sealed class VnPayIpnHandler(
                     }
 
                     // 2.2 Trừ Điểm (Dùng Outbox)
-                    decimal point = order.OrderSaleItems
+                    decimal pointAmount = order.OrderSaleItems
                         .Where(x => x.Type == OrderSaleItemType.LoyaltyPoint)
                         .Select(x => x.Amount)
                         .FirstOrDefault();
 
-                    if (point > 0)
+                    if (pointAmount > 0 && order.CustomerId != null)
                     {
+                        MembershipTier? membershipTier = null;
+                        try
+                        {
+                            var user = await identityServiceClient.GetUserByIdAsync(
+                            order.CustomerId ?? Guid.Empty);
+
+                            membershipTier = user?.LoyaltyTier?.CurrentTier;
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.LogError(ex, "Failed to get user info for user {UserId}", order.CustomerId);
+                        }
+
+                        var usedPoint = pointAmount / (membershipTier?.ValuePerPoint ?? 1000);
+
                         var userPointEvent = new UpdatePointEvent
                         {
                             Id = order.CustomerId ?? Guid.Empty,
                             OrderId = order.Id,
-                            Point = point,
+                            Point = usedPoint,
                             ActionType = UpdatePointType.Minus
                         };
                         outboxRepository.AddEvent(userPointEvent, KafkaTopics.UpdateUserPoint);

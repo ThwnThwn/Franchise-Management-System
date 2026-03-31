@@ -1,5 +1,4 @@
 ﻿using EngagementService.Grpc.Protos.LoyaltyAccountGrpc;
-using EngagementService.Grpc.Protos.VoucherGrpc;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Net.Client;
 using Microsoft.Extensions.Configuration;
@@ -13,8 +12,8 @@ namespace SalesService.Infrastructure.ExternalServices
 {
     public class EngagementSeviceClient : IEngagementServiceClient
     {
-        private readonly VoucherGrpc.VoucherGrpcClient _voucherClient;
-        private readonly LoyaltyAccountGrpc.LoyaltyAccountGrpcClient _accountClient;
+        private readonly VoucherGrpcClient _voucherClient;
+        private readonly LoyaltyAccountGrpcClient _accountClient;
         private readonly ILogger<VoucherGrpcClient> _voucherLogger;
         private readonly ILogger<LoyaltyAccountGrpcClient> _accountLogger;
 
@@ -22,11 +21,10 @@ namespace SalesService.Infrastructure.ExternalServices
         {
             var engagementServiceUrl = configuration["ENGAGEMENT_SERVICE_URL"] ?? "http://localhost:5007";
             var channel = GrpcChannel.ForAddress(engagementServiceUrl);
-            _voucherClient = new VoucherGrpc.VoucherGrpcClient(channel);
-            _accountClient = new LoyaltyAccountGrpc.LoyaltyAccountGrpcClient(channel);
+            _voucherClient = new VoucherGrpcClient(channel);
+            _accountClient = new LoyaltyAccountGrpcClient(channel);
             _voucherLogger = voucherLogger;
             _accountLogger = accountLogger;
-
         }
 
         public async Task<decimal> GetMyPointByEmailAsync(string email)
@@ -47,7 +45,6 @@ namespace SalesService.Infrastructure.ExternalServices
                     point = 0;
                 }
                 return point;
-
             }
             catch (Exception ex)
             {
