@@ -16,6 +16,6 @@ public class UpdatePointEventHandler(IMediator mediator
             OrderId = @event.OrderId,
             ActionType = @event.ActionType
         };
-        await mediator.Send(new Features.LoyaltyAccount.Commands.DetuctPoint.UpdatePointCommand(req));
+        await mediator.Send(new Features.LoyaltyAccount.Commands.UpdatePoint.UpdatePointCommand(req));
     }
 }

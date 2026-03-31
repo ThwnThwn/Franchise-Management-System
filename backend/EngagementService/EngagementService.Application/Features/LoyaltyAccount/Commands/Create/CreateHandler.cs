@@ -7,7 +7,6 @@ using MediatR;
 
 namespace EngagementService.Application.Features.LoyaltyAccount.Commands.Create
 {
-
     public class CreateHandler : IRequestHandler<CreateCommand, Unit>
     {
         private readonly ILoyaltyAccountRepository _loyaltyAccountRepository;
@@ -16,6 +15,7 @@ namespace EngagementService.Application.Features.LoyaltyAccount.Commands.Create
         private readonly IPointLogRepository _pointLogRepository;
         private readonly IPointRuleCache _pointRuleCache;
         private readonly IPointRuleRepository _pointRuleRepository;
+
         public CreateHandler(ILoyaltyAccountRepository loyaltyAccountRepository, IMembershipTierRepository membershipTierRepository, IMembershipTierCache membershipTierCache, IPointLogRepository pointLogRepository, IPointRuleCache pointRuleCache, IPointRuleRepository pointRuleRepository)
         {
             _loyaltyAccountRepository = loyaltyAccountRepository;
@@ -25,6 +25,7 @@ namespace EngagementService.Application.Features.LoyaltyAccount.Commands.Create
             _pointRuleCache = pointRuleCache;
             _pointRuleRepository = pointRuleRepository;
         }
+
         public async Task<Unit> Handle(CreateCommand command, CancellationToken cancellationToken)
         {
             var request = command.Request;
@@ -57,11 +58,10 @@ namespace EngagementService.Application.Features.LoyaltyAccount.Commands.Create
                     return data.ToList();
                 });
 
-                var pointLog = HandlePointLog.CreatePointLog(loyaltyAccount, 0, loyaltyAccount.AvailablePoints, point, request.OrderId, PointReasonCode.ORDER_COMPLETED, PointActionType.EARN, "Initial points", allRules);
+                var pointLog = HandlePointLog.CreatePointLog(loyaltyAccount, 0, loyaltyAccount.AvailablePoints, point, request.OrderId, PointReasonCode.ORDER_COMPLETED, PointActionType.EARN, "Điểm khởi tạo", allRules);
 
                 loyaltyAccount.PointLogs.Add(pointLog);
             }
-
 
             await _loyaltyAccountRepository.AddAsync(loyaltyAccount);
 

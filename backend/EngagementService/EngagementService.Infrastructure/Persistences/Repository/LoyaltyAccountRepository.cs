@@ -175,7 +175,7 @@ namespace EngagementService.Infrastructure.Persistences.Repository
                 // Chuyển đổi sang List để khớp với yêu cầu của hàm Cache
                 return data.ToList();
             });
-            var pointLog = HandlePointLog.CreatePointLog(account, balanceBefore, balanceAfter, pointToDeduct, voucher.Id, PointReasonCode.POINT_REDEEM, PointActionType.REDEEM, "Points deducted for voucher " + voucher.Code, allRules);
+            var pointLog = HandlePointLog.CreatePointLog(account, balanceBefore, balanceAfter, pointToDeduct, voucher.Id, PointReasonCode.POINT_REDEEM, PointActionType.REDEEM, "Dùng điểm cho voucher " + voucher.Code, allRules);
 
             account.PointLogs.Add(pointLog);
         }

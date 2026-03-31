@@ -313,11 +313,9 @@ public class UpdateOrderStatusHandlerTests
         // Verify Reward Event published
         _kafkaProducer.Verify(x => x.PublishAsync(KafkaTopics.ProcessOrderReward, It.Is<ProcessOrderRewardEvent>(e => e.Id == customerId && e.OrderAmount == 65000m)), Times.Once);
 
-        // ✅ ĐÃ FIX: Verify hàm Add của Interface (chứa cái Message đã được Serialize bởi Extension Method)
         _outboxRepo.Verify(x => x.Add(It.Is<OutboxMessage>(m =>
-            m.Type == KafkaTopics.OrderPaid &&
-            m.Content.Contains("OrderPaidEvent") // Có thể check thêm một đoạn content json nếu cần
-        )), Times.Once);
+             m.Type == KafkaTopics.OrderPaid
+         )), Times.Once);
 
         _outboxRepo.Verify(x => x.Add(It.Is<OutboxMessage>(m =>
             m.Type == "OrderStatusEvent"

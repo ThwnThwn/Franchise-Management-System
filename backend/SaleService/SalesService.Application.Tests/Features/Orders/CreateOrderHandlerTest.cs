@@ -108,7 +108,7 @@ public class CreateOrderHandlerTests
     {
         var request = new CreateOrderRequestDto
         {
-            Items = new List<CartItemDto> { new CartItemDto { Sku = "CF-ROBUSTA-DA", Quantity = 1 } },
+            Items = [new() { Sku = "CF-ROBUSTA-DA", Quantity = 1 }],
             StoreId = Guid.NewGuid(),
             Type = OrderType.Pickup,
             ScheduledTime = TimeOnly.FromDateTime(DateTime.UtcNow.AddHours(2))
@@ -123,12 +123,16 @@ public class CreateOrderHandlerTests
     [Fact]
     public async Task Handle_WhenScheduledTimeIsTooEarly_ThrowsBusinessException()
     {
+        // Khắc phục lỗi TimeZone: Lấy UTC cộng thêm 7 tiếng để ra đúng giờ VN
+        var vnNow = DateTime.UtcNow.AddHours(7);
+
         var request = new CreateOrderRequestDto
         {
             Items = new List<CartItemDto> { new CartItemDto { Sku = "MACCHIATO-01", Quantity = 1 } },
             StoreId = Guid.NewGuid(),
             Type = OrderType.Delivery,
-            ScheduledTime = TimeOnly.FromDateTime(DateTime.UtcNow.AddMinutes(10))
+            // Setup ScheduledTime đúng múi giờ VN (chỉ cách hiện tại 10 phút)
+            ScheduledTime = TimeOnly.FromDateTime(vnNow.AddMinutes(10))
         };
 
         var action = async () => await _handler.Handle(new CreateOrderCommand(request), CancellationToken.None);

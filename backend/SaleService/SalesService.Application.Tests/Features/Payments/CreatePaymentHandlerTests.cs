@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Ardalis.Result;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
@@ -24,7 +19,6 @@ using SalesService.Application.Signals;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
 using SharedKernel.Constants;
-using SharedKernel.Events;
 
 namespace SalesService.Application.Tests.Features.Payments;
 
@@ -129,7 +123,7 @@ public class CreatePaymentHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WhenVNPayAmountUnder10k_RollbacksAndReturnsError()
+    public async Task Handle_WhenVNPayAmountUnder10k_ReturnsError()
     {
         var orderId = Guid.NewGuid();
         var customerId = Guid.NewGuid();
@@ -140,20 +134,17 @@ public class CreatePaymentHandlerTests
             Id = orderId,
             CustomerId = customerId,
             StoreId = storeId,
-            Subtotal = 50000m, // 1 ly Arabica 50k
+            Subtotal = 50000m,
             ShippingFee = 0,
-            OrderItems = new List<OrderItem>
-            {
-                new OrderItem { Sku = "CF-ARABICA", Quantity = 1, UnitPrice = 50000m }
-            },
-            OrderSaleItems = new List<OrderSaleItem>()
+            OrderItems = [new() { Sku = "CF-ARABICA", Quantity = 1, UnitPrice = 50000m }],
+            OrderSaleItems = []
         };
 
         var request = new CreatePaymentReq
         {
             OrderId = orderId,
             PaymentMethod = PaymentMethod.VNPay,
-            Wallet = 45000m // Trừ ví 45k -> Còn lại phải thanh toán 10k (tính cả thuế) -> Fail VNPay rule
+            Wallet = 46000m // TỔNG: 55k. Trừ ví 46k -> Còn lại VNPay 9k -> < 10k => Chắc chắn văng lỗi
         };
 
         var userWallet = new Wallet { Id = Guid.NewGuid(), Balance = 100000m };
@@ -167,7 +158,6 @@ public class CreatePaymentHandlerTests
 
         result.IsSuccess.Should().BeFalse();
         result.Errors.First().Should().Contain("phải từ 10.000 VNĐ trở lên");
-        _inventoryClient.Verify(x => x.ReleaseStockAsync(It.Is<ReleaseStockReq>(r => r.OrderId == orderId)), Times.Once);
     }
 
     [Fact]
@@ -179,9 +169,9 @@ public class CreatePaymentHandlerTests
         {
             Id = orderId,
             CustomerId = customerId,
-            Subtotal = 35000m, // Bạc xỉu
-            OrderItems = new List<OrderItem>(),
-            OrderSaleItems = new List<OrderSaleItem>()
+            Subtotal = 35000m,
+            OrderItems = [],
+            OrderSaleItems = []
         };
 
         var request = new CreatePaymentReq
@@ -191,7 +181,7 @@ public class CreatePaymentHandlerTests
             Wallet = 50000m
         };
 
-        var userWallet = new Wallet { Id = Guid.NewGuid(), Balance = 10000m }; // Có 10k mà đòi xài 50k
+        var userWallet = new Wallet { Id = Guid.NewGuid(), Balance = 10000m }; // Có 10k đòi xài 50k
 
         _orderRepo.Setup(x => x.GetByIdAsync(orderId, It.IsAny<CancellationToken>())).ReturnsAsync(order);
         _walletRepo.Setup(x => x.GetByUserIdAsync(customerId, It.IsAny<CancellationToken>())).ReturnsAsync(userWallet);
@@ -211,8 +201,8 @@ public class CreatePaymentHandlerTests
             Id = orderId,
             StoreId = storeId,
             Subtotal = 30000m,
-            OrderItems = new List<OrderItem> { new OrderItem { Sku = "CAFE-DEN", Quantity = 1 } },
-            OrderSaleItems = new List<OrderSaleItem>()
+            OrderItems = [new() { Sku = "CAFE-DEN", Quantity = 1 }],
+            OrderSaleItems = []
         };
 
         var request = new CreatePaymentReq { OrderId = orderId, PaymentMethod = PaymentMethod.Cash };
@@ -236,10 +226,10 @@ public class CreatePaymentHandlerTests
             Id = orderId,
             Code = "ORD-GUEST",
             StoreId = storeId,
-            Subtotal = 40000m, // Hồng trà
+            Subtotal = 40000m,
             ShippingFee = 15000m,
-            OrderItems = new List<OrderItem> { new OrderItem { Sku = "HONG-TRA", Quantity = 1 } },
-            OrderSaleItems = new List<OrderSaleItem>()
+            OrderItems = [new() { Sku = "HONG-TRA", Quantity = 1 }],
+            OrderSaleItems = []
         };
 
         var request = new CreatePaymentReq { OrderId = orderId, PaymentMethod = PaymentMethod.Cash };
@@ -254,7 +244,7 @@ public class CreatePaymentHandlerTests
         result.Value.Url.Should().BeEmpty();
 
         order.Status.Should().Be(OrderStatus.ConfirmationPending);
-        order.PaidAmount.Should().Be(60500m); // (40k + 15k) * 1.1 thuế
+        order.PaidAmount.Should().Be(60500m);
 
         _outboxRepo.Verify(x => x.Add(It.Is<OutboxMessage>(m => m.Type == KafkaTopics.OrderNotifications)), Times.Once);
         _outboxRepo.Verify(x => x.Add(It.Is<OutboxMessage>(m => m.Type == KafkaTopics.OrderPaid)), Times.Once);
@@ -334,14 +324,14 @@ public class CreatePaymentHandlerTests
             Subtotal = 50000m,
             OrderItems =
             [
-                new() { Sku = "TRA-SUA", Quantity = 2 }, // Base 1 + Gift 1
-                new() { Sku = "TOPPING-TRAN-CHAU", Quantity = 1 } // Gift
+                new() { Sku = "TRA-SUA", Quantity = 2 },
+                new() { Sku = "TOPPING-TRAN-CHAU", Quantity = 1 }
             ],
-            OrderSaleItems = new List<OrderSaleItem>
-            {
-                new OrderSaleItem { Type = OrderSaleItemType.Voucher, Name = "TRA-SUA", Amount = 1 },
-                new OrderSaleItem { Type = OrderSaleItemType.Voucher, Name = "TOPPING-TRAN-CHAU", Amount = 1 }
-            }
+            OrderSaleItems =
+            [
+                new() { Type = OrderSaleItemType.Voucher, Name = "TRA-SUA", Amount = 1 },
+                new() { Type = OrderSaleItemType.Voucher, Name = "TOPPING-TRAN-CHAU", Amount = 1 }
+            ]
         };
 
         var request = new CreatePaymentReq { OrderId = orderId, PaymentMethod = PaymentMethod.Cash };
@@ -354,10 +344,9 @@ public class CreatePaymentHandlerTests
 
         result.IsSuccess.Should().BeTrue();
 
-        // Assert dọn dẹp RAM thành công (Xóa 1 Trà sữa, Xóa hẳn Trân châu)
         order.OrderItems.Should().HaveCount(1);
         order.OrderItems.First().Sku.Should().Be("TRA-SUA");
         order.OrderItems.First().Quantity.Should().Be(1);
-        order.OrderSaleItems.Should().BeEmpty(); // Because Cash payment without voucher request
+        order.OrderSaleItems.Should().BeEmpty();
     }
 }

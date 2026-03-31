@@ -2,32 +2,30 @@
 using BuildingBlocks.Core.Pagination;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace BuildingBlocks.Core.Tests.Extensions;
 
 public class QueryableExtensionsTests
 {
-    // 1. Tạo Entity và DbContext giả lập mang đậm chất F&B để test
+    // 1. Thêm trường Code (không dấu) để OrderBy chuẩn xác trên mọi môi trường OS
     public class Drink
     {
         public Guid Id { get; set; }
+        public string Code { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
     }
 
-    public class TestDbContext : DbContext
+    public class TestDbContext(DbContextOptions<QueryableExtensionsTests.TestDbContext> options) : DbContext(options)
     {
-        public TestDbContext(DbContextOptions<TestDbContext> options) : base(options)
-        {
-        }
-
         public DbSet<Drink> Drinks { get; set; }
     }
 
-    // Hàm helper để tạo In-Memory DB mới tinh cho mỗi test case (tránh đụng độ data)
     private static TestDbContext CreateInMemoryDbContext()
     {
         var options = new DbContextOptionsBuilder<TestDbContext>()
-            // Mỗi test dùng 1 tên DB khác nhau (GUID) để đảm bảo cô lập 100%
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
 
@@ -37,14 +35,11 @@ public class QueryableExtensionsTests
     [Fact]
     public async Task ToPagedListAsync_ShouldReturnEmptyResult_WhenNoDataExists()
     {
-        // Arrange
         await using var context = CreateInMemoryDbContext();
-        var query = context.Drinks.AsQueryable(); // Bảng trống, kích hoạt nhánh (count == 0)
+        var query = context.Drinks.AsQueryable();
 
-        // Act
         var result = await query.ToPagedListAsync(1, 10);
 
-        // Assert
         result.Should().BeOfType<PagedResult<Drink>>();
         result.Items.Should().BeEmpty();
         result.TotalCount.Should().Be(0);
@@ -55,82 +50,74 @@ public class QueryableExtensionsTests
     [Fact]
     public async Task ToPagedListAsync_ShouldReturnFirstPage_WhenDataExists()
     {
-        // Arrange
         await using var context = CreateInMemoryDbContext();
         context.Drinks.AddRange(
-            new Drink { Id = Guid.NewGuid(), Name = "Cà phê đen đá" },
-            new Drink { Id = Guid.NewGuid(), Name = "Bạc xỉu" },
-            new Drink { Id = Guid.NewGuid(), Name = "Trà đào cam sả" },
-            new Drink { Id = Guid.NewGuid(), Name = "Trà vải" },
-            new Drink { Id = Guid.NewGuid(), Name = "Cacao sữa" }
+            new Drink { Id = Guid.NewGuid(), Code = "D01", Name = "Bạc xỉu" },
+            new Drink { Id = Guid.NewGuid(), Code = "D02", Name = "Cacao sữa" },
+            new Drink { Id = Guid.NewGuid(), Code = "D03", Name = "Cà phê đen đá" },
+            new Drink { Id = Guid.NewGuid(), Code = "D04", Name = "Trà đào cam sả" },
+            new Drink { Id = Guid.NewGuid(), Code = "D05", Name = "Trà vải" }
         );
         await context.SaveChangesAsync();
 
-        var query = context.Drinks.OrderBy(d => d.Name).AsQueryable(); // OrderBy để list ổn định
+        // Order theo Code (D01, D02, D03...) để né lỗi Sort Culture của tiếng Việt
+        var query = context.Drinks.OrderBy(d => d.Code).AsQueryable();
 
-        // Act
-        var result = await query.ToPagedListAsync(1, 2); // Lấy trang 1, mỗi trang 2 ly
+        var result = await query.ToPagedListAsync(1, 2);
 
-        // Assert
         result.TotalCount.Should().Be(5);
         result.Items.Should().HaveCount(2);
-        // Vì đã OrderBy(Name) nên Bạc xỉu và Cacao sữa sẽ lên đầu
-        result.Items[0].Name.Should().Be("Bạc xỉu");
-        result.Items[1].Name.Should().Be("Cacao sữa");
+
+        result.Items[0].Name.Should().Be("Bạc xỉu"); // D01
+        result.Items[1].Name.Should().Be("Cacao sữa"); // D02
         result.Page.Should().Be(1);
     }
 
     [Fact]
     public async Task ToPagedListAsync_ShouldReturnSecondPage_WhenDataExists()
     {
-        // Arrange
         await using var context = CreateInMemoryDbContext();
         context.Drinks.AddRange(
-            new Drink { Id = Guid.NewGuid(), Name = "Cà phê đen đá" },
-            new Drink { Id = Guid.NewGuid(), Name = "Bạc xỉu" },
-            new Drink { Id = Guid.NewGuid(), Name = "Trà đào cam sả" },
-            new Drink { Id = Guid.NewGuid(), Name = "Trà vải" },
-            new Drink { Id = Guid.NewGuid(), Name = "Cacao sữa" }
+            new Drink { Id = Guid.NewGuid(), Code = "D01", Name = "Bạc xỉu" },
+            new Drink { Id = Guid.NewGuid(), Code = "D02", Name = "Cacao sữa" },
+            new Drink { Id = Guid.NewGuid(), Code = "D03", Name = "Cà phê đen đá" },
+            new Drink { Id = Guid.NewGuid(), Code = "D04", Name = "Trà đào cam sả" },
+            new Drink { Id = Guid.NewGuid(), Code = "D05", Name = "Trà vải" }
         );
         await context.SaveChangesAsync();
 
-        var query = context.Drinks.OrderBy(d => d.Name).AsQueryable();
+        var query = context.Drinks.OrderBy(d => d.Code).AsQueryable();
 
-        // Act
-        var result = await query.ToPagedListAsync(2, 2); // Lấy trang 2
+        var result = await query.ToPagedListAsync(2, 2); // Lấy trang 2 (Skip 2, Take 2)
 
-        // Assert
         result.TotalCount.Should().Be(5);
         result.Items.Should().HaveCount(2);
-        // Kiểm tra logic Skip/Take có lấy đúng ly số 3 và 4 không
-        result.Items[0].Name.Should().Be("Cà phê đen đá");
-        result.Items[1].Name.Should().Be("Trà đào cam sả");
+
+        result.Items[0].Name.Should().Be("Cà phê đen đá"); // D03
+        result.Items[1].Name.Should().Be("Trà đào cam sả"); // D04
         result.Page.Should().Be(2);
     }
 
     [Fact]
     public async Task ToPagedListAsync_ShouldReturnRemainingItems_WhenOnLastPageWithOddNumber()
     {
-        // Arrange
         await using var context = CreateInMemoryDbContext();
         context.Drinks.AddRange(
-            new Drink { Id = Guid.NewGuid(), Name = "Cà phê đen đá" },
-            new Drink { Id = Guid.NewGuid(), Name = "Bạc xỉu" },
-            new Drink { Id = Guid.NewGuid(), Name = "Trà đào cam sả" },
-            new Drink { Id = Guid.NewGuid(), Name = "Trà vải" },
-            new Drink { Id = Guid.NewGuid(), Name = "Cacao sữa" }
+            new Drink { Id = Guid.NewGuid(), Code = "D01", Name = "Bạc xỉu" },
+            new Drink { Id = Guid.NewGuid(), Code = "D02", Name = "Cacao sữa" },
+            new Drink { Id = Guid.NewGuid(), Code = "D03", Name = "Cà phê đen đá" },
+            new Drink { Id = Guid.NewGuid(), Code = "D04", Name = "Trà đào cam sả" },
+            new Drink { Id = Guid.NewGuid(), Code = "D05", Name = "Trà vải" }
         );
         await context.SaveChangesAsync();
 
-        var query = context.Drinks.OrderBy(d => d.Name).AsQueryable();
+        var query = context.Drinks.OrderBy(d => d.Code).AsQueryable();
 
-        // Act
-        var result = await query.ToPagedListAsync(3, 2); // Lấy trang 3, rớt lại đúng 1 ly cuối cùng
+        var result = await query.ToPagedListAsync(3, 2); // Lấy trang 3, rớt lại đúng 1 ly D05
 
-        // Assert
         result.TotalCount.Should().Be(5);
         result.Items.Should().HaveCount(1);
-        result.Items[0].Name.Should().Be("Trà vải");
+        result.Items[0].Name.Should().Be("Trà vải"); // D05
         result.Page.Should().Be(3);
     }
 }

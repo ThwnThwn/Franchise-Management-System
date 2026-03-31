@@ -15,6 +15,7 @@ namespace EngagementService.Application.Features.LoyaltyAccount.Commands.Process
         private readonly IPointLogRepository _pointLogRepository;
         private readonly IPointRuleCache _pointRuleCache;
         private readonly IPointRuleRepository _pointRuleRepository;
+
         public ProcessOrderRewardHandler(
             IMembershipTierCache membershipTierCache,
             ILoyaltyAccountRepository loyaltyAccountRepository,
@@ -30,6 +31,7 @@ namespace EngagementService.Application.Features.LoyaltyAccount.Commands.Process
             _pointRuleCache = pointRuleCache;
             _pointRuleRepository = pointRuleRepository;
         }
+
         public async Task<Unit> Handle(ProcessOrderRewardCommand command, CancellationToken cancellationToken)
         {
             var request = command.Request;
@@ -56,7 +58,7 @@ namespace EngagementService.Application.Features.LoyaltyAccount.Commands.Process
                 // Chuyển đổi sang List để khớp với yêu cầu của hàm Cache
                 return data.ToList();
             });
-            var pointLog = HandlePointLog.CreatePointLog(loyaltyAccount, loyaltyAccount.AvailablePoints - point, loyaltyAccount.AvailablePoints, point, request.OrderId, PointReasonCode.ORDER_COMPLETED, PointActionType.EARN, "Points earned for order completion", allRules);
+            var pointLog = HandlePointLog.CreatePointLog(loyaltyAccount, loyaltyAccount.AvailablePoints - point, loyaltyAccount.AvailablePoints, point, request.OrderId, PointReasonCode.ORDER_COMPLETED, PointActionType.EARN, "Điểm tích luỹ từ order " + request.OrderId, allRules);
 
             loyaltyAccount.PointLogs.Add(pointLog);
 

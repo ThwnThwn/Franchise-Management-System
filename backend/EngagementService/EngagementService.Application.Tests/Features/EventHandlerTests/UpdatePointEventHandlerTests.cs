@@ -1,10 +1,10 @@
 ﻿using EngagementService.Application.EventHandler;
-using EngagementService.Application.Features.LoyaltyAccount.Commands.DetuctPoint;
+using EngagementService.Application.Features.LoyaltyAccount.Commands.UpdatePoint;
 using MediatR;
 using Moq;
 using SharedKernel.Events;
 
-namespace EngagementService.Application.Tests.EventHandlerTests;
+namespace EngagementService.Application.Tests.Features.EventHandlerTests;
 
 public class UpdatePointIntegrationHandlerTests
 {
@@ -40,7 +40,7 @@ public class UpdatePointIntegrationHandlerTests
                 c.Request.Id == @event.Id &&
                 c.Request.Point == @event.Point &&
                 c.Request.OrderId == @event.OrderId &&
-                c.Request.ActionType == (SharedKernel.Events.UpdatePointType)@event.ActionType),
+                c.Request.ActionType == @event.ActionType),
             It.IsAny<CancellationToken>()),
             Times.Once);
     }

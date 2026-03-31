@@ -1,6 +1,6 @@
 ﻿using EngagementService.Application.Constants;
 using EngagementService.Application.Dtos.LoyaltyAccount;
-using EngagementService.Application.Features.LoyaltyAccount.Commands.DetuctPoint;
+using EngagementService.Application.Features.LoyaltyAccount.Commands.UpdatePoint;
 using EngagementService.Application.Persistences.Cache;
 using EngagementService.Application.Persistences.Repository;
 using EngagementService.Domain.Entities;

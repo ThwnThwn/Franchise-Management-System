@@ -128,7 +128,7 @@ namespace EngagementService.API.Services.LoyaltyAccount
                 OrderId = Guid.Parse(request.OrderId),
                 ActionType = (SharedKernel.Events.UpdatePointType)request.ActionType
             };
-            await _mediator.Send(new Application.Features.LoyaltyAccount.Commands.DetuctPoint.UpdatePointCommand(req));
+            await _mediator.Send(new Application.Features.LoyaltyAccount.Commands.UpdatePoint.UpdatePointCommand(req));
             return new Empty();
         }
 
