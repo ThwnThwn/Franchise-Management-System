@@ -195,7 +195,7 @@ export function OrderDetailFooter({
                             )}
                             <div className="flex justify-between items-end pt-2">
                                 <span className="text-xs font-black uppercase text-default-500 tracking-widest">
-                                    Tiền mặt cần trả:
+                                    Tiền cần trả:
                                 </span>
                                 <span className="text-2xl font-black text-primary leading-none">
                                     {formatCurrencyWithSymbol(finalAmount)}

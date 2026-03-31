@@ -2,14 +2,18 @@
 "use client"
 
 import {
+    useGetMe,
     useGetMembershipTiers,
     useGetMyLoyalty,
-    useGetMyPointLogs,
-    useGetMe
+    useGetMyPointLogs
 } from "@/features/profile/hooks/useProfile"
-import { normalizeCurrency } from "@/utils/helpers/currency"
+import {
+    formatCurrency,
+    formatCurrencyWithSymbol,
+    normalizeCurrency
+} from "@/utils/helpers/currency"
 import { motion } from "framer-motion"
-import { Coffee, ChevronLeft, History, Award, CheckCircle2 } from "lucide-react"
+import { Award, CheckCircle2, ChevronLeft, Coffee, History } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
 const newLocal = "bg-gradient-to-r from-amber-500 to-amber-200 h-full rounded-full relative"
@@ -93,16 +97,13 @@ export default function LoyaltyPageView() {
                                 <div className="bg-black/20 rounded-2xl p-4 border border-white/10">
                                     <p className="text-amber-100/70 text-xs mb-1">ĐIỂM HIỆN CÓ</p>
                                     <p className="text-2xl font-bold text-white">
-                                        {loyalty?.availablePoints || 0}
+                                        {formatCurrency(loyalty?.availablePoints)}
                                     </p>
                                 </div>
                                 <div className="bg-black/20 rounded-2xl p-4 border border-white/10">
                                     <p className="text-amber-100/70 text-xs mb-1">TỔNG CHI TIÊU</p>
                                     <p className="text-2xl font-bold text-white">
-                                        {normalizeCurrency(
-                                            loyalty?.totalSpent || 0
-                                        ).toLocaleString()}
-                                        đ
+                                        {formatCurrencyWithSymbol(loyalty?.totalSpent)}
                                     </p>
                                 </div>
                             </div>
@@ -200,10 +201,9 @@ export default function LoyaltyPageView() {
                                                         </h3>
                                                         <p className="text-sm text-gray-500">
                                                             Mức chi:{" "}
-                                                            {normalizeCurrency(
-                                                                tier.minSpendRequired || 0
-                                                            ).toLocaleString()}
-                                                            đ
+                                                            {formatCurrencyWithSymbol(
+                                                                tier.minSpendRequired
+                                                            )}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -222,10 +222,10 @@ export default function LoyaltyPageView() {
                                                             Tích điểm
                                                         </span>
                                                         <span className="font-bold text-gray-900">
-                                                            {normalizeCurrency(
-                                                                tier.amountPerPoint || 0
-                                                            ).toLocaleString()}
-                                                            đ = 1đ
+                                                            {formatCurrencyWithSymbol(
+                                                                tier.amountPerPoint
+                                                            )}{" "}
+                                                            = 1 điểm
                                                         </span>
                                                     </div>
                                                     <div className="flex justify-between items-center bg-gray-50 p-3 rounded-xl">
@@ -233,11 +233,10 @@ export default function LoyaltyPageView() {
                                                             Giá trị điểm
                                                         </span>
                                                         <span className="font-bold text-gray-900">
-                                                            1đ ={" "}
-                                                            {normalizeCurrency(
-                                                                tier.valuePerPoint || 0
-                                                            ).toLocaleString()}
-                                                            đ
+                                                            1 điểm ={" "}
+                                                            {formatCurrencyWithSymbol(
+                                                                tier.valuePerPoint
+                                                            )}
                                                         </span>
                                                     </div>
                                                 </div>
@@ -293,9 +292,7 @@ export default function LoyaltyPageView() {
                                                             className={`font-bold text-lg ${isAdd ? "text-green-600" : "text-red-500"}`}
                                                         >
                                                             {isAdd ? "+" : "-"}
-                                                            {Math.abs(
-                                                                normalizeCurrency(log.amount)
-                                                            )}
+                                                            {formatCurrency(log.amount)}
                                                         </p>
                                                     </div>
                                                 </div>

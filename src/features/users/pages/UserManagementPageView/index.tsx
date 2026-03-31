@@ -183,7 +183,7 @@ export default function UserManagementPageView() {
                         <UserTable
                             users={data?.items || []}
                             isLoading={isLoading}
-                            emptyMessage="Không tìm thấy nhân viên nào"
+                            emptyMessage="Không tìm thấy người dùng nào"
                             onViewUser={(user: User) => {
                                 setSelectedUser(user)
                                 onOpen()

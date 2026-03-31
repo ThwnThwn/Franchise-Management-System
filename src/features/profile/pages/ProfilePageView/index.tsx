@@ -2,23 +2,23 @@
 "use client"
 
 import { ButtonStyled, DatePickerStyled, InputStyled } from "@/components"
+import { EnumPicker } from "@/components/modules/EnumPicker"
 import { Gender } from "@/constants/enums"
 import { GenderLabels } from "@/constants/labels"
 import { NAME_REGEX, PHONE_REGEX } from "@/constants/regexs"
 import { AUTH_ERRORS } from "@/features"
+import { AvatarImageUploader } from "@/features/profile"
 import { useGetMe, useGetMyLoyalty, useUpdateMe } from "@/features/profile/hooks/useProfile"
 import { UserUpdateReq } from "@/features/profile/models/request"
 import { useUserHelper } from "@/hooks/reuseable/useUserHelper"
-import { EnumPicker } from "@/components/modules/EnumPicker"
-import { useFormik } from "formik"
-import { Coffee, Mail, MapPin, Phone, User, Pencil, Save, X, ChevronRight } from "lucide-react"
-import React, { useCallback, useState } from "react"
-import Link from "next/link"
-import * as Yup from "yup"
-import { motion } from "framer-motion"
+import { formatCurrency, formatCurrencyWithSymbol } from "@/utils/helpers/currency"
 import { parseDate } from "@internationalized/date"
-import { AvatarImageUploader } from "@/features/profile"
-import { normalizeCurrency } from "@/utils/helpers/currency"
+import { useFormik } from "formik"
+import { motion } from "framer-motion"
+import { ChevronRight, Coffee, Mail, MapPin, Pencil, Phone, Save, User, X } from "lucide-react"
+import Link from "next/link"
+import { useCallback, useState } from "react"
+import * as Yup from "yup"
 
 export default function ProfilePageView() {
     const [editable, setEditable] = useState(false)
@@ -349,16 +349,13 @@ export default function ProfilePageView() {
                                         <div className="bg-white/20 px-3 py-1.5 rounded-xl backdrop-blur-xs border border-white/10">
                                             Điểm hiện có:{" "}
                                             <span className="text-amber-200 font-bold ml-1">
-                                                {loyalty.availablePoints || 0}
+                                                {formatCurrency(loyalty.availablePoints)}
                                             </span>
                                         </div>
                                         <div className="bg-white/20 px-3 py-1.5 rounded-xl backdrop-blur-xs border border-white/10">
                                             Đã chi tiêu:{" "}
                                             <span className="text-amber-200 font-bold ml-1">
-                                                {normalizeCurrency(
-                                                    loyalty.totalSpent || 0
-                                                ).toLocaleString()}
-                                                đ
+                                                {formatCurrencyWithSymbol(loyalty.totalSpent)}
                                             </span>
                                         </div>
                                     </div>

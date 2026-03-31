@@ -1,7 +1,7 @@
 import { Voucher } from "@/features/vouchers/models/response"
 import { VoucherType } from "@/features/vouchers/constants"
 import { Gift, Truck, Tag, Circle, CheckCircle2 } from "lucide-react"
-import { formatCurrencyWithSymbol } from "@/utils/helpers/currency"
+import { formatCurrencyWithSymbol, normalizeCurrency } from "@/utils/helpers/currency"
 
 interface Props {
     voucher: Voucher
@@ -41,7 +41,7 @@ export function VoucherSelectionItem({ voucher, isSelected, isEligible, reason, 
             >
                 {isGift ? <Gift size={32} /> : isShipping ? <Truck size={32} /> : <Tag size={32} />}
                 <span className="text-[10px] font-bold uppercase mt-2 text-center px-2">
-                    {isGift ? "Quà Tặng" : isShipping ? "Vận Chuyển" : "Giảm Giá"}
+                    {isGift ? "Quà Tặng" : isShipping ? "Giao hàng" : "Giảm Giá"}
                 </span>
             </div>
 
@@ -58,7 +58,7 @@ export function VoucherSelectionItem({ voucher, isSelected, isEligible, reason, 
                             Giảm{" "}
                             {voucher.type === VoucherType.SHIPPING_PERCENTAGE ||
                             voucher.type === VoucherType.DISCOUNT_PERCENTAGE
-                                ? `${voucher.discountValue}%`
+                                ? `${normalizeCurrency(voucher.discountValue)}%`
                                 : formatCurrencyWithSymbol(voucher.discountValue)}
                         </p>
                     )}

@@ -64,7 +64,7 @@ export const VoucherBasicForm = ({
                             title={
                                 <div className="flex items-center gap-2">
                                     <Truck size={16} />
-                                    <span>Vận chuyển</span>
+                                    <span>Giao hàng</span>
                                 </div>
                             }
                         />

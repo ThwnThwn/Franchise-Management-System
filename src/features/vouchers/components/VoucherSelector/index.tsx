@@ -153,7 +153,7 @@ export function VoucherSelector({
                                                 key="shipping"
                                                 title={
                                                     <div className="font-bold">
-                                                        Vận Chuyển{" "}
+                                                        Giao hàng{" "}
                                                         {shippingVouchers.length > 0 &&
                                                             `(${shippingVouchers.length})`}
                                                     </div>

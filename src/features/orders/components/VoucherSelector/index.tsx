@@ -82,7 +82,7 @@ export function VoucherSelector({
             found.type === VoucherType.SHIPPING_PERCENTAGE
         if (isShipping) {
             setSelectedShipping(found)
-            setCodeSuccess(`Đã chọn voucher vận chuyển: ${found.code}`)
+            setCodeSuccess(`Đã chọn voucher giao hàng: ${found.code}`)
         } else {
             setSelectedDiscount(found)
             setCodeSuccess(`Đã chọn voucher giảm giá: ${found.code}`)
@@ -269,7 +269,7 @@ export function VoucherSelector({
                                 <Ticket className="text-primary" /> Chọn Voucher
                             </h2>
                             <p className="text-sm font-normal text-default-500">
-                                Bạn có thể chọn 1 Voucher vận chuyển và 1 Voucher giảm giá/quà tặng
+                                Bạn có thể chọn 1 Voucher giao hàng và 1 Voucher giảm giá/quà tặng
                             </p>
                         </ModalHeader>
                         <ModalBody className="p-6">
@@ -347,7 +347,7 @@ export function VoucherSelector({
                                         shippingVouchers,
                                         selectedShipping,
                                         setSelectedShipping,
-                                        "Voucher Vận Chuyển",
+                                        "Voucher Giao Hàng",
                                         <Truck size={20} />
                                     )}
                                     {renderVoucherList(
