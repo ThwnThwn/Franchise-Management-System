@@ -3,7 +3,6 @@ using Ardalis.Result;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using SalesService.Application.ClientInterface.Engagement;
 using SalesService.Application.Helpers;
 using SalesService.Application.Interfaces.Identity;
 using SalesService.Application.Interfaces.Payments;

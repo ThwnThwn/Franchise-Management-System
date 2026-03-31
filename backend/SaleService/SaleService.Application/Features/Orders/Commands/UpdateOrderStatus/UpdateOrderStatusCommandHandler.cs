@@ -16,33 +16,17 @@ using SharedKernel.Infrastructure.Kafka;
 
 namespace SalesService.Application.Features.Orders.Commands.UpdateOrderStatus;
 
-public sealed class UpdateOrderStatusCommandHandler
-    : IRequestHandler<UpdateOrderStatusCommand, string>
+public sealed class UpdateOrderStatusCommandHandler(
+    IOrderRepository orderRepository,
+    IPaymentRepository paymentRepository,
+    IOutboxRepository outboxRepository,
+    ILogger<UpdateOrderStatusCommandHandler> logger,
+    IKafkaProducer kafkaProducer,
+    IInventoryServiceClient inventoryServiceClient,
+    IWalletRepository walletRepository,
+    IWalletTransactionRepository transactionRepo
+) : IRequestHandler<UpdateOrderStatusCommand, string>
 {
-    private readonly IOrderRepository _orderRepository;
-    private readonly IPaymentRepository _paymentRepository;
-    private readonly IKafkaProducer _kafkaProducer;
-    private readonly IOutboxRepository _outboxRepository;
-    private readonly ILogger<UpdateOrderStatusCommandHandler> _logger;
-    private readonly IInventoryServiceClient _inventoryServiceClient;
-    private readonly IWalletRepository _walletRepository;
-    IWalletTransactionRepository _transactionRepo;
-
-    public UpdateOrderStatusCommandHandler(IOrderRepository orderRepository, IPaymentRepository paymentRepository,
-        IOutboxRepository outboxRepository,
-        ILogger<UpdateOrderStatusCommandHandler> logger,
-        IKafkaProducer kafkaProducer, IInventoryServiceClient inventoryServiceClient, IWalletRepository walletRepository, IWalletTransactionRepository transactionRepo)
-    {
-        _orderRepository = orderRepository;
-        _paymentRepository = paymentRepository;
-        _outboxRepository = outboxRepository;
-        _logger = logger;
-        _kafkaProducer = kafkaProducer;
-        _inventoryServiceClient = inventoryServiceClient;
-        _walletRepository = walletRepository;
-        _transactionRepo = transactionRepo;
-    }
-
     public async Task<string> Handle(UpdateOrderStatusCommand commnad, CancellationToken cancellationToken)
     {
         var request = commnad.Request;
@@ -54,7 +38,7 @@ public sealed class UpdateOrderStatusCommandHandler
         }
 
         //Load Order
-        var order = await _orderRepository.GetByIdAsync(request.OrderId, cancellationToken);
+        var order = await orderRepository.GetByIdAsync(request.OrderId, cancellationToken);
 
         if (order == null || order.IsDeleted)
         {
@@ -73,7 +57,7 @@ public sealed class UpdateOrderStatusCommandHandler
         // Đơn hàng hủy thì xóa queue  || Bù vào wallet nếu đã thanh toán
         if (request.Status == OrderStatus.Cancelled)
         {
-            await _inventoryServiceClient.ReleaseStockAsync(new ReleaseStockReq
+            await inventoryServiceClient.ReleaseStockAsync(new ReleaseStockReq
             {
                 OrderId = order.Id,
                 StoreId = order.StoreId!.Value
@@ -81,7 +65,7 @@ public sealed class UpdateOrderStatusCommandHandler
             if (order.Status == OrderStatus.ConfirmationPending)
             {
                 //Hoàn về wallet
-                var wallet = await _walletRepository.GetByUserIdAsync(order.CustomerId.Value);
+                var wallet = await walletRepository.GetByUserIdAsync(order.CustomerId.Value, cancellationToken);
                 if (wallet == null || wallet.RowVersion == null)
                 {
                     return "Cancel fail due to no wallet found";
@@ -94,8 +78,8 @@ public sealed class UpdateOrderStatusCommandHandler
                 {
                     return $"Cancel fail due to no PaidAmout found in order with ID {order.Id}";
                 }
-                decimal amount = walletAmount;  
-                if(order.PaymentMethod == PaymentMethod.VNPay)
+                decimal amount = walletAmount;
+                if (order.PaymentMethod == PaymentMethod.VNPay)
                 {
                     amount += order.PaidAmount.Value;
                 }
@@ -111,13 +95,14 @@ public sealed class UpdateOrderStatusCommandHandler
                     Status = TransactionStatus.Completed,
                     ReferenceType = WalletReferenceType.Withdrawal,
                     Notes = "Order Refund",
+                    Description = $"Hoàn tiền cho huỷ đơn hàng {order.Code}",
                     CreatedAt = DateTimeOffset.UtcNow,
                     UpdatedAt = DateTimeOffset.UtcNow,
                     BalanceBefore = wallet.Balance,
-                    BalanceAfter = wallet.Balance+amount
+                    BalanceAfter = wallet.Balance + amount
                 };
-                await _transactionRepo.AddAsync(withdrawTransaction, cancellationToken);
-                await _walletRepository.AddBalanceAsync(wallet.Id, amount, wallet.RowVersion,cancellationToken);
+                await transactionRepo.AddAsync(withdrawTransaction, cancellationToken);
+                await walletRepository.AddBalanceAsync(wallet.Id, amount, wallet.RowVersion, cancellationToken);
 
                 if (request.RoleSlug == "staff")
                 {
@@ -128,22 +113,22 @@ public sealed class UpdateOrderStatusCommandHandler
                         .FirstOrDefault();
                     if (point != 0)
                     {
-                        UpdatePointEvent userPoint = new UpdatePointEvent
+                        UpdatePointEvent userPoint = new()
                         {
                             Id = order.CustomerId.Value,
                             OrderId = order.Id,
                             Point = point,
                             ActionType = UpdatePointType.Add
                         };
-                        await _kafkaProducer.PublishAsync(KafkaTopics.UpdateUserPoint, userPoint);
+                        await kafkaProducer.PublishAsync(KafkaTopics.UpdateUserPoint, userPoint);
                     }
 
                     // Kakfa Event Voucher
-                    ReverseVoucherEvent userVoucher = new ReverseVoucherEvent
+                    ReverseVoucherEvent userVoucher = new()
                     {
                         OrderId = order.Id
                     };
-                    await _kafkaProducer.PublishAsync(KafkaTopics.ReverseUserVoucher, userVoucher);
+                    await kafkaProducer.PublishAsync(KafkaTopics.ReverseUserVoucher, userVoucher);
                 }
             }
         }
@@ -153,7 +138,7 @@ public sealed class UpdateOrderStatusCommandHandler
         {
             if (order.PaymentMethod == PaymentMethod.VNPay)
             {
-                var payment = await _paymentRepository.GetNewestByOrderIdAndStatusAsync(request.OrderId, PaymentStatus.Paid, cancellationToken);
+                var payment = await paymentRepository.GetNewestByOrderIdAndStatusAsync(request.OrderId, PaymentStatus.Paid, cancellationToken);
                 if (payment == null)
                 {
                     return "Order cannot be completed because payment is not paid.";
@@ -162,7 +147,7 @@ public sealed class UpdateOrderStatusCommandHandler
             }
             else
             {
-                var payment = await _paymentRepository.GetNewestByOrderIdAndStatusAsync(request.OrderId, PaymentStatus.Pending, cancellationToken);
+                var payment = await paymentRepository.GetNewestByOrderIdAndStatusAsync(request.OrderId, PaymentStatus.Pending, cancellationToken);
                 if (payment == null)
                 {
                     return "No pending payment found for this order.";
@@ -171,13 +156,13 @@ public sealed class UpdateOrderStatusCommandHandler
                 order.PaidAt = DateTime.UtcNow;
                 //OrderPaidEvent → InventoryService (trừ kho)
                 var orderPaidEvent = OrderToKafka.MapToOrderPaidEvent(payment.Order);
-                _outboxRepository.AddEvent(orderPaidEvent, KafkaTopics.OrderPaid);
+                outboxRepository.AddEvent(orderPaidEvent, KafkaTopics.OrderPaid);
 
                 payment.UpdatedAt = DateTime.UtcNow;
-                await _paymentRepository.SaveChangesAsync();
+                await paymentRepository.SaveChangesAsync(cancellationToken);
             }
             // Publish process Point loyalty event to Kafka
-            await _kafkaProducer.PublishAsync(KafkaTopics.ProcessOrderReward, new ProcessOrderRewardEvent
+            await kafkaProducer.PublishAsync(KafkaTopics.ProcessOrderReward, new ProcessOrderRewardEvent
             {
                 Id = order.CustomerId ?? Guid.Empty,
                 OrderAmount = order.PaidAmount ?? 0
@@ -213,15 +198,15 @@ public sealed class UpdateOrderStatusCommandHandler
         };
 
         // Add to Outbox Repository
-        _outboxRepository.Add(outboxMessage);
-        _logger.LogInformation("Added OrderCreatedEvent to Outbox for Order {OrderCode}", order.Code);
+        outboxRepository.Add(outboxMessage);
+        logger.LogInformation("Added OrderCreatedEvent to Outbox for Order {OrderCode}", order.Code);
 
         // Publish order notification event to Kafka
-        await _kafkaProducer.PublishAsync(KafkaTopics.OrderNotifications, orderEvent);
+        await kafkaProducer.PublishAsync(KafkaTopics.OrderNotifications, orderEvent);
         //Update Status
         order.UpdatedAt = DateTime.UtcNow;
 
-        await _orderRepository.UpdateAsync(order, cancellationToken);
+        await orderRepository.UpdateAsync(order, cancellationToken);
         return $"Order status updated successfully to '{request.Status}'";
     }
 }

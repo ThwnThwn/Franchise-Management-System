@@ -3,55 +3,30 @@ using MediatR;
 using SalesService.Application.AppExceptions;
 using SalesService.Application.ClientInterface.Inventory;
 using SalesService.Application.ClientInterface.Products;
+using SalesService.Application.Constants;
 using SalesService.Application.Dtos.Inventory;
+using SalesService.Application.Interfaces;
 using SalesService.Application.Interfaces.CartItems;
+using SalesService.Application.Interfaces.Franchise;
+using SalesService.Application.Interfaces.Geocoding;
 using SalesService.Application.Persisitences.Orders;
-using SalesService.Application.Persisitences.Outbox;
 using SalesService.Application.Signals;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
-using SalesService.Application.Interfaces;
-using SalesService.Application.Interfaces.Franchise;
-using SalesService.Application.Interfaces.Geocoding;
-using SalesService.Application.Constants;
 
 namespace SalesService.Application.Features.Orders.Commands.Create;
 
-public sealed class CreateOrderHandler
-    : IRequestHandler<CreateOrderCommand, Result<CreateOrderResponseDto>>
+public sealed class CreateOrderHandler(
+    IOrderRepository orderRepository,
+    ICartItemRepository cartItemRepository,
+    IProductServiceClient productServiceClient,
+    IInventoryServiceClient inventoryServiceClient,
+    IOutboxSignal outboxSignal,
+    IFranchiseServiceClient franchiseServiceClient,
+    IDistanceService distanceService,
+    IGeocodingService geocodingService
+) : IRequestHandler<CreateOrderCommand, Result<CreateOrderResponseDto>>
 {
-    private readonly IOrderRepository _orderRepository;
-    private readonly ICartItemRepository _cartItemRepository;
-    private readonly IProductServiceClient _productServiceClient;
-    private readonly IInventoryServiceClient _inventoryServiceClient;
-    private readonly IOutboxRepository _outboxRepository;
-    private readonly IOutboxSignal _outboxSignal;
-    private readonly IFranchiseServiceClient _franchiseServiceClient;
-    private readonly IDistanceService _distanceService;
-    private readonly IGeocodingService _geocodingService;
-
-    public CreateOrderHandler(
-        IOrderRepository orderRepository,
-        ICartItemRepository cartItemRepository,
-        IProductServiceClient productServiceClient,
-        IInventoryServiceClient inventoryServiceClient,
-        IOutboxRepository outboxRepository,
-        IOutboxSignal outboxSignal,
-        IFranchiseServiceClient franchiseServiceClient,
-        IDistanceService distanceService,
-        IGeocodingService geocodingService)
-    {
-        _orderRepository = orderRepository;
-        _cartItemRepository = cartItemRepository;
-        _productServiceClient = productServiceClient;
-        _inventoryServiceClient = inventoryServiceClient;
-        _outboxRepository = outboxRepository;
-        _outboxSignal = outboxSignal;
-        _franchiseServiceClient = franchiseServiceClient;
-        _distanceService = distanceService;
-        _geocodingService = geocodingService;
-    }
-
     public async Task<Result<CreateOrderResponseDto>> Handle(
         CreateOrderCommand request,
         CancellationToken cancellationToken)
@@ -118,7 +93,7 @@ public sealed class CreateOrderHandler
         //kiểm tra xem còn đủ hàng trong kho không
         var skus = request.Request.Items.Select(i => i.Sku).ToList();
 
-        var variantInfo = await _productServiceClient.GetListProductVariantsBySkusAsync(skus);
+        var variantInfo = await productServiceClient.GetListProductVariantsBySkusAsync(skus);
 
         if (variantInfo.Count != skus.Count)
         {
@@ -143,7 +118,7 @@ public sealed class CreateOrderHandler
             OrderId = orderId,
             Items = listItemCheck.ToList()
         };
-        var reserveRes = await _inventoryServiceClient.ReserveStockAsync(reserveReq);
+        var reserveRes = await inventoryServiceClient.ReserveStockAsync(reserveReq);
 
         if (!reserveRes.IsEnough)
         {
@@ -211,7 +186,7 @@ public sealed class CreateOrderHandler
             // Nếu thiếu tọa độ nhưng có địa chỉ -> Tự động Geocode
             if ((!currentLat.HasValue || !currentLong.HasValue) && !string.IsNullOrWhiteSpace(request.Request.Address))
             {
-                var geocodeResult = await _geocodingService.GeocodeAsync(request.Request.Address);
+                var geocodeResult = await geocodingService.GeocodeAsync(request.Request.Address);
                 if (geocodeResult != null)
                 {
                     currentLat = geocodeResult.Latitude;
@@ -237,10 +212,10 @@ public sealed class CreateOrderHandler
 
             if (currentLat.HasValue && currentLong.HasValue)
             {
-                var storeDetail = await _franchiseServiceClient.GetStoreDetailAsync(request.Request.StoreId.Value);
+                var storeDetail = await franchiseServiceClient.GetStoreDetailAsync(request.Request.StoreId.Value);
                 if (storeDetail != null)
                 {
-                    var distance = await _distanceService.CalculateDistanceAsync(
+                    var distance = await distanceService.CalculateDistanceAsync(
                         storeDetail.Latitude, storeDetail.Longitude,
                         currentLat.Value, currentLong.Value
                     );
@@ -306,15 +281,15 @@ public sealed class CreateOrderHandler
         // → Chỉ notify khách khi đơn hàng đã thanh toán (ConfirmationPending trở đi)
 
         //Remove orderd items in cartItem
-        await _cartItemRepository.RemoveItemsAsync(order.CustomerId, skus, cancellationToken);
+        await cartItemRepository.RemoveItemsAsync(order.CustomerId, skus, cancellationToken);
 
         // 2. Save Order (and OutboxMessage) in one transaction (implicitly handled by CreateAsync -> SaveChanges)
-        var createdOrder = await _orderRepository.CreateAsync(order, cancellationToken);
+        var createdOrder = await orderRepository.CreateAsync(order, cancellationToken);
 
         // Optimize: Pulse Signal
         if (order.CustomerId.HasValue)
         {
-            _outboxSignal.Pulse();
+            outboxSignal.Pulse();
         }
         return Result.Success(new CreateOrderResponseDto
         {

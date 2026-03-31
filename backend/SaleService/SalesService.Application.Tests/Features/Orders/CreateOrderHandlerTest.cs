@@ -1,5 +1,4 @@
-using Ardalis.Result;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Moq;
 using SalesService.Application.AppExceptions;
 using SalesService.Application.ClientInterface.Inventory;
@@ -11,40 +10,40 @@ using SalesService.Application.Interfaces.CartItems;
 using SalesService.Application.Interfaces.Franchise;
 using SalesService.Application.Interfaces.Geocoding;
 using SalesService.Application.Persisitences.Orders;
-using SalesService.Application.Persisitences.Outbox;
 using SalesService.Application.Signals;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
-using Xunit;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace SalesService.Application.Tests.Features.Orders;
 
-public class CreateOrderHandlerTest
+public class CreateOrderHandlerTests
 {
-    private readonly Mock<IOrderRepository> _orderRepo = new();
-    private readonly Mock<ICartItemRepository> _cartRepo = new();
-    private readonly Mock<IProductServiceClient> _productClient = new();
-    private readonly Mock<IInventoryServiceClient> _inventoryClient = new();
-    private readonly Mock<IOutboxRepository> _outboxRepo = new();
-    private readonly Mock<IOutboxSignal> _outboxSignal = new();
-    private readonly Mock<IFranchiseServiceClient> _franchiseClient = new();
-    private readonly Mock<IDistanceService> _distanceService = new();
-    private readonly Mock<IGeocodingService> _geocodingService = new();
+    private readonly Mock<IOrderRepository> _orderRepo;
+    private readonly Mock<ICartItemRepository> _cartRepo;
+    private readonly Mock<IProductServiceClient> _productClient;
+    private readonly Mock<IInventoryServiceClient> _inventoryClient;
+    private readonly Mock<IOutboxSignal> _outboxSignal;
+    private readonly Mock<IFranchiseServiceClient> _franchiseClient;
+    private readonly Mock<IDistanceService> _distanceService;
+    private readonly Mock<IGeocodingService> _geocodingService;
     private readonly CreateOrderHandler _handler;
 
-    public CreateOrderHandlerTest()
+    public CreateOrderHandlerTests()
     {
+        _orderRepo = new Mock<IOrderRepository>();
+        _cartRepo = new Mock<ICartItemRepository>();
+        _productClient = new Mock<IProductServiceClient>();
+        _inventoryClient = new Mock<IInventoryServiceClient>();
+        _outboxSignal = new Mock<IOutboxSignal>();
+        _franchiseClient = new Mock<IFranchiseServiceClient>();
+        _distanceService = new Mock<IDistanceService>();
+        _geocodingService = new Mock<IGeocodingService>();
+
         _handler = new CreateOrderHandler(
             _orderRepo.Object,
             _cartRepo.Object,
             _productClient.Object,
             _inventoryClient.Object,
-            _outboxRepo.Object,
             _outboxSignal.Object,
             _franchiseClient.Object,
             _distanceService.Object,
@@ -53,174 +52,182 @@ public class CreateOrderHandlerTest
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnError_When_CartEmpty()
+    public async Task Handle_WhenCartIsEmpty_ReturnsError()
     {
-        var request = new CreateOrderRequestDto { Items = new List<CartItemDto>() };
+        var request = new CreateOrderRequestDto { Items = [] };
         var result = await _handler.Handle(new CreateOrderCommand(request), CancellationToken.None);
+
         result.IsSuccess.Should().BeFalse();
         result.Errors.First().Should().Contain("Cart is empty");
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnError_When_StoreIdMissing()
+    public async Task Handle_WhenItemSkuIsMissing_ReturnsError()
     {
-        var request = new CreateOrderRequestDto 
-        { 
-            Items = new List<CartItemDto> { new CartItemDto { Sku = "SKU1", Quantity = 1 } },
+        var request = new CreateOrderRequestDto
+        {
+            Items = [new() { Sku = "   ", Quantity = 2 }]
+        };
+        var result = await _handler.Handle(new CreateOrderCommand(request), CancellationToken.None);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.First().Should().Contain("missing SKU");
+    }
+
+    [Fact]
+    public async Task Handle_WhenStoreIdIsMissing_ReturnsError()
+    {
+        var request = new CreateOrderRequestDto
+        {
+            Items = [new() { Sku = "CF-ARABICA-01", Quantity = 1 }],
             StoreId = Guid.Empty
         };
         var result = await _handler.Handle(new CreateOrderCommand(request), CancellationToken.None);
+
+        result.IsSuccess.Should().BeFalse();
         result.Errors.First().Should().Contain("StoreId is required");
     }
 
     [Fact]
-    public async Task Handle_Should_ThrowBusinessException_When_ScheduledTime_On_Pickup()
+    public async Task Handle_WhenOrderTypeIsInvalid_ReturnsError()
     {
-        var request = new CreateOrderRequestDto 
-        { 
-            Items = new List<CartItemDto> { new CartItemDto { Sku = "SKU1", Quantity = 1 } },
+        var request = new CreateOrderRequestDto
+        {
+            Items = [new CartItemDto { Sku = "CF-ARABICA-01", Quantity = 1 }],
             StoreId = Guid.NewGuid(),
-            Type = OrderType.Pickup,
-            ScheduledTime = TimeOnly.FromDateTime(DateTime.Now.AddHours(2))
+            Type = (OrderType)999
         };
-        
-        await _handler.Awaiting(x => x.Handle(new CreateOrderCommand(request), CancellationToken.None))
-            .Should().ThrowAsync<BusinessException>();
+        var result = await _handler.Handle(new CreateOrderCommand(request), CancellationToken.None);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.First().Should().Contain("Invalid OrderType");
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnShortage_When_StockNotEnough()
+    public async Task Handle_WhenScheduledTimeUsedForPickup_ThrowsBusinessException()
     {
-        var storeId = Guid.NewGuid();
-        var request = new CreateOrderRequestDto 
-        { 
-            Items = new List<CartItemDto> { new CartItemDto { Sku = "SKU1", Quantity = 10 } },
-            StoreId = storeId,
-            Type = OrderType.Pickup
+        var request = new CreateOrderRequestDto
+        {
+            Items = new List<CartItemDto> { new CartItemDto { Sku = "CF-ROBUSTA-DA", Quantity = 1 } },
+            StoreId = Guid.NewGuid(),
+            Type = OrderType.Pickup,
+            ScheduledTime = TimeOnly.FromDateTime(DateTime.UtcNow.AddHours(2))
         };
 
-        var variants = new List<ProductVariantInfo> { new ProductVariantInfo { Sku = "SKU1", VariantId = Guid.NewGuid() } };
-        _productClient.Setup(x => x.GetListProductVariantsBySkusAsync(It.IsAny<List<string>>())).ReturnsAsync(variants);
-        
+        var action = async () => await _handler.Handle(new CreateOrderCommand(request), CancellationToken.None);
+
+        await action.Should().ThrowAsync<BusinessException>()
+            .WithMessage("ScheduledTime can only be set for type Delivery orders.");
+    }
+
+    [Fact]
+    public async Task Handle_WhenScheduledTimeIsTooEarly_ThrowsBusinessException()
+    {
+        var request = new CreateOrderRequestDto
+        {
+            Items = new List<CartItemDto> { new CartItemDto { Sku = "MACCHIATO-01", Quantity = 1 } },
+            StoreId = Guid.NewGuid(),
+            Type = OrderType.Delivery,
+            ScheduledTime = TimeOnly.FromDateTime(DateTime.UtcNow.AddMinutes(10))
+        };
+
+        var action = async () => await _handler.Handle(new CreateOrderCommand(request), CancellationToken.None);
+
+        await action.Should().ThrowAsync<BusinessException>()
+            .WithMessage("Scheduled time must be at least 30 minutes in the future.");
+    }
+
+    [Fact]
+    public async Task Handle_WhenProductVariantsNotFound_ReturnsError()
+    {
+        var request = new CreateOrderRequestDto
+        {
+            Items = new List<CartItemDto>
+            {
+                new CartItemDto { Sku = "CF-SUA-DA", Quantity = 1 },
+                new CartItemDto { Sku = "MATCHA-LATTE", Quantity = 1 }
+            },
+            StoreId = Guid.NewGuid()
+        };
+
+        _productClient.Setup(x => x.GetListProductVariantsBySkusAsync(It.IsAny<List<string>>()))
+            .ReturnsAsync(new List<ProductVariantInfo>
+            {
+                new ProductVariantInfo { Sku = "CF-SUA-DA" }
+            });
+
+        var result = await _handler.Handle(new CreateOrderCommand(request), CancellationToken.None);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.First().Should().Contain("variants not found or inactive");
+    }
+
+    [Fact]
+    public async Task Handle_WhenStockIsNotEnough_ReturnsSuccessWithShortageInfo()
+    {
+        var variantId = Guid.NewGuid();
+        var request = new CreateOrderRequestDto
+        {
+            Items = new List<CartItemDto> { new CartItemDto { Sku = "COLD-BREW-01", Quantity = 50 } },
+            StoreId = Guid.NewGuid()
+        };
+
+        _productClient.Setup(x => x.GetListProductVariantsBySkusAsync(It.IsAny<List<string>>()))
+            .ReturnsAsync(new List<ProductVariantInfo>
+            {
+                new ProductVariantInfo { Sku = "COLD-BREW-01", VariantId = variantId }
+            });
+
         _inventoryClient.Setup(x => x.ReserveStockAsync(It.IsAny<ReserveStockReq>()))
-            .ReturnsAsync(new CheckEnoughStockRes { IsEnough = false, ShortageItems = new List<AmountVariant> { new AmountVariant { VariantId = variants[0].VariantId, Amount = 5 } } });
+            .ReturnsAsync(new CheckEnoughStockRes
+            {
+                IsEnough = false,
+                ShortageItems = new List<AmountVariant> { new AmountVariant { VariantId = variantId, Amount = 40 } }
+            });
 
         var result = await _handler.Handle(new CreateOrderCommand(request), CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
         result.Value.CheckEnoughStockRes.IsEnough.Should().BeFalse();
+        result.Value.CheckEnoughStockRes.ShortageItems.First().Sku.Should().Be("COLD-BREW-01");
     }
 
     [Fact]
-    public async Task Handle_Should_Success_With_Delivery_And_Geocoding()
+    public async Task Handle_WhenProductPriceIsInvalid_ReturnsError()
     {
-        var storeId = Guid.NewGuid();
-        var customerId = Guid.NewGuid();
-        var sku = "SKU1";
-        var variantId = Guid.NewGuid();
-        var request = new CreateOrderRequestDto 
-        { 
-            Items = new List<CartItemDto> { new CartItemDto { Sku = sku, Quantity = 2 } },
-            StoreId = storeId,
-            Type = OrderType.Delivery,
-            Address = "Some Address",
-            CustomerId = customerId
-        };
-
-        var variants = new List<ProductVariantInfo> { 
-            new ProductVariantInfo { Sku = sku, VariantId = variantId, ProductId = Guid.NewGuid(), BasePrice = 50, ProductName = "Product 1" } 
-        };
-        _productClient.Setup(x => x.GetListProductVariantsBySkusAsync(It.IsAny<List<string>>())).ReturnsAsync(variants);
-        _inventoryClient.Setup(x => x.ReserveStockAsync(It.IsAny<ReserveStockReq>())).ReturnsAsync(new CheckEnoughStockRes { IsEnough = true });
-        
-        _geocodingService.Setup(x => x.GeocodeAsync("Some Address")).ReturnsAsync(new CoordinateDto { Latitude = 10.0, Longitude = 106.0 });
-        _franchiseClient.Setup(x => x.GetStoreDetailAsync(storeId)).ReturnsAsync(new StoreDetailInfo { Latitude = 10.05, Longitude = 106.05 });
-        _distanceService.Setup(x => x.CalculateDistanceAsync(10.05, 106.05, 10.0, 106.0)).ReturnsAsync(7.0); // > 5km tier
-
-        _orderRepo.Setup(x => x.CreateAsync(It.IsAny<Order>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Order o, CancellationToken ct) => o);
-
-        var result = await _handler.Handle(new CreateOrderCommand(request), CancellationToken.None);
-
-        result.IsSuccess.Should().BeTrue();
-        result.Value.ShippingFee.Should().Be(39000m); 
-        _cartRepo.Verify(x => x.RemoveItemsAsync(customerId, It.IsAny<List<string>>(), It.IsAny<CancellationToken>()), Times.Once);
-        _outboxSignal.Verify(x => x.Pulse(), Times.Once);
-    }
-
-    [Fact]
-    public async Task Handle_Should_Success_With_Delivery_2km_Tier()
-    {
-        var storeId = Guid.NewGuid();
-        var sku = "SKU1";
-        var request = new CreateOrderRequestDto 
-        { 
-            Items = new List<CartItemDto> { new CartItemDto { Sku = sku, Quantity = 1 } },
-            StoreId = storeId,
-            Type = OrderType.Delivery,
-            Latitude = 10.0, Longitude = 106.0
+        var request = new CreateOrderRequestDto
+        {
+            Items = new List<CartItemDto> { new CartItemDto { Sku = "BAC-XIU", Quantity = 1 } },
+            StoreId = Guid.NewGuid()
         };
 
         _productClient.Setup(x => x.GetListProductVariantsBySkusAsync(It.IsAny<List<string>>()))
-            .ReturnsAsync(new List<ProductVariantInfo> { new ProductVariantInfo { Sku = sku, BasePrice = 50 } });
-        _inventoryClient.Setup(x => x.ReserveStockAsync(It.IsAny<ReserveStockReq>())).ReturnsAsync(new CheckEnoughStockRes { IsEnough = true });
-        _franchiseClient.Setup(x => x.GetStoreDetailAsync(storeId)).ReturnsAsync(new StoreDetailInfo { Latitude = 10.01, Longitude = 106.01 });
-        _distanceService.Setup(x => x.CalculateDistanceAsync(It.IsAny<double>(), It.IsAny<double>(), It.IsAny<double>(), It.IsAny<double>())).ReturnsAsync(1.5); 
+            .ReturnsAsync(new List<ProductVariantInfo>
+            {
+                new ProductVariantInfo { Sku = "BAC-XIU", BasePrice = 0 }
+            });
 
-        _orderRepo.Setup(x => x.CreateAsync(It.IsAny<Order>(), It.IsAny<CancellationToken>())).ReturnsAsync((Order o, CancellationToken ct) => o);
+        _inventoryClient.Setup(x => x.ReserveStockAsync(It.IsAny<ReserveStockReq>()))
+            .ReturnsAsync(new CheckEnoughStockRes { IsEnough = true });
 
         var result = await _handler.Handle(new CreateOrderCommand(request), CancellationToken.None);
-        result.Value.ShippingFee.Should().Be(15000m);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.First().Should().Contain("has invalid price");
     }
 
     [Fact]
-    public async Task Handle_Should_Success_With_Delivery_5km_Tier()
+    public async Task Handle_WhenDeliveryGeocodingFails_ReturnsError()
     {
-        var storeId = Guid.NewGuid();
-        var sku = "SKU1";
-        var request = new CreateOrderRequestDto { Items = new List<CartItemDto> { new CartItemDto { Sku = sku, Quantity = 1 } }, StoreId = storeId, Type = OrderType.Delivery, Latitude = 10.0, Longitude = 106.0 };
-
-        _productClient.Setup(x => x.GetListProductVariantsBySkusAsync(It.IsAny<List<string>>()))
-            .ReturnsAsync(new List<ProductVariantInfo> { new ProductVariantInfo { Sku = sku, BasePrice = 50 } });
-        _inventoryClient.Setup(x => x.ReserveStockAsync(It.IsAny<ReserveStockReq>())).ReturnsAsync(new CheckEnoughStockRes { IsEnough = true });
-        _franchiseClient.Setup(x => x.GetStoreDetailAsync(storeId)).ReturnsAsync(new StoreDetailInfo { Latitude = 10.01, Longitude = 106.01 });
-        _distanceService.Setup(x => x.CalculateDistanceAsync(It.IsAny<double>(), It.IsAny<double>(), It.IsAny<double>(), It.IsAny<double>())).ReturnsAsync(4.0); 
-
-        _orderRepo.Setup(x => x.CreateAsync(It.IsAny<Order>(), It.IsAny<CancellationToken>())).ReturnsAsync((Order o, CancellationToken ct) => o);
-
-        var result = await _handler.Handle(new CreateOrderCommand(request), CancellationToken.None);
-        result.Value.ShippingFee.Should().Be(15000m + 2 * 4000m); // 2km -> 4km is 2km extra. 15k + 2*4k = 23k.
-    }
-
-    [Fact]
-    public async Task Handle_Should_Throw_When_ScheduledTime_TooEarly()
-    {
-        var request = new CreateOrderRequestDto 
-        { 
-            Items = new List<CartItemDto> { new CartItemDto { Sku = "SKU1", Quantity = 1 } },
+        var request = new CreateOrderRequestDto
+        {
+            Items = new List<CartItemDto> { new CartItemDto { Sku = "AMERICANO", Quantity = 1 } },
             StoreId = Guid.NewGuid(),
             Type = OrderType.Delivery,
-            ScheduledTime = TimeOnly.FromDateTime(DateTime.Now.AddMinutes(10)) 
+            Address = "Hẻm cụt không xác định"
         };
-        
-        await _handler.Awaiting(x => x.Handle(new CreateOrderCommand(request), CancellationToken.None))
-            .Should().ThrowAsync<BusinessException>().WithMessage("Scheduled time must be at least 30 minutes in the future.");
-    }
 
-    [Fact]
-    public async Task Handle_Should_ReturnError_When_GeocodeFails()
-    {
-        var request = new CreateOrderRequestDto 
-        { 
-            Items = new List<CartItemDto> { new CartItemDto { Sku = "SKU1", Quantity = 1 } },
-            StoreId = Guid.NewGuid(),
-            Type = OrderType.Delivery,
-            Address = "Unknown Address"
-        };
-        
-        _productClient.Setup(x => x.GetListProductVariantsBySkusAsync(It.IsAny<List<string>>()))
-            .ReturnsAsync(new List<ProductVariantInfo> { new ProductVariantInfo { Sku = "SKU1", BasePrice = 10 } });
-        _inventoryClient.Setup(x => x.ReserveStockAsync(It.IsAny<ReserveStockReq>())).ReturnsAsync(new CheckEnoughStockRes { IsEnough = true });
+        SetupValidProductAndInventory("AMERICANO", 40000m);
         _geocodingService.Setup(x => x.GeocodeAsync(It.IsAny<string>())).ReturnsAsync((CoordinateDto?)null);
 
         var result = await _handler.Handle(new CreateOrderCommand(request), CancellationToken.None);
@@ -230,41 +237,163 @@ public class CreateOrderHandlerTest
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnError_When_Variant_Missing()
+    public async Task Handle_WhenDeliveryNoLocationProvided_ReturnsError()
     {
-        var request = new CreateOrderRequestDto 
-        { 
-            Items = new List<CartItemDto> { new CartItemDto { Sku = "SKU1", Quantity = 1 }, new CartItemDto { Sku = "MISSING", Quantity = 1 } },
+        var request = new CreateOrderRequestDto
+        {
+            Items = new List<CartItemDto> { new CartItemDto { Sku = "AMERICANO", Quantity = 1 } },
             StoreId = Guid.NewGuid(),
-            Type = OrderType.Pickup
+            Type = OrderType.Delivery
         };
-        
-        _productClient.Setup(x => x.GetListProductVariantsBySkusAsync(It.IsAny<List<string>>()))
-            .ReturnsAsync(new List<ProductVariantInfo> { new ProductVariantInfo { Sku = "SKU1" } });
+
+        SetupValidProductAndInventory("AMERICANO", 40000m);
 
         var result = await _handler.Handle(new CreateOrderCommand(request), CancellationToken.None);
 
         result.IsSuccess.Should().BeFalse();
-        result.Errors.First().Should().Contain("variants not found");
+        result.Errors.First().Should().Contain("Delivery coordinates or a valid address are required");
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnError_When_PriceInvalid()
+    public async Task Handle_WhenDeliveryDistanceIsUnder2Km_CalculatesCorrectShippingFee()
     {
-        var request = new CreateOrderRequestDto 
-        { 
-            Items = new List<CartItemDto> { new CartItemDto { Sku = "SKU1", Quantity = 1 } },
-            StoreId = Guid.NewGuid(),
-            Type = OrderType.Pickup
+        var storeId = Guid.NewGuid();
+        var request = new CreateOrderRequestDto
+        {
+            Items = new List<CartItemDto> { new CartItemDto { Sku = "ESPRESSO", Quantity = 2 } },
+            StoreId = storeId,
+            Type = OrderType.Delivery,
+            Address = "123 Nguyễn Huệ, Quận 1, TP.HCM"
         };
-        
-        var variants = new List<ProductVariantInfo> { new ProductVariantInfo { Sku = "SKU1", BasePrice = -10 } };
-        _productClient.Setup(x => x.GetListProductVariantsBySkusAsync(It.IsAny<List<string>>())).ReturnsAsync(variants);
-        _inventoryClient.Setup(x => x.ReserveStockAsync(It.IsAny<ReserveStockReq>())).ReturnsAsync(new CheckEnoughStockRes { IsEnough = true });
+
+        SetupValidProductAndInventory("ESPRESSO", 35000m);
+
+        _geocodingService.Setup(x => x.GeocodeAsync(It.IsAny<string>()))
+            .ReturnsAsync(new CoordinateDto { Latitude = 10.7769, Longitude = 106.7009 });
+
+        _franchiseClient.Setup(x => x.GetStoreDetailAsync(storeId))
+            .ReturnsAsync(new StoreDetailInfo { Latitude = 10.7800, Longitude = 106.7000 });
+
+        _distanceService.Setup(x => x.CalculateDistanceAsync(It.IsAny<double>(), It.IsAny<double>(), It.IsAny<double>(), It.IsAny<double>()))
+            .ReturnsAsync(1.5);
+
+        _orderRepo.Setup(x => x.CreateAsync(It.IsAny<Order>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Order o, CancellationToken ct) => o);
 
         var result = await _handler.Handle(new CreateOrderCommand(request), CancellationToken.None);
 
-        result.IsSuccess.Should().BeFalse();
-        result.Errors.First().Should().Contain("invalid price");
+        result.IsSuccess.Should().BeTrue();
+        result.Value.ShippingFee.Should().Be(15000m);
+        result.Value.TotalAmount.Should().Be(93500m);
+    }
+
+    [Fact]
+    public async Task Handle_WhenDeliveryDistanceIsUnder5Km_CalculatesCorrectShippingFee()
+    {
+        var storeId = Guid.NewGuid();
+        var request = new CreateOrderRequestDto
+        {
+            Items = new List<CartItemDto> { new CartItemDto { Sku = "TRA-DAO-CAM-SA", Quantity = 1 } },
+            StoreId = storeId,
+            Type = OrderType.Delivery,
+            Latitude = 10.7,
+            Longitude = 106.7
+        };
+
+        SetupValidProductAndInventory("TRA-DAO-CAM-SA", 50000m);
+        _franchiseClient.Setup(x => x.GetStoreDetailAsync(storeId)).ReturnsAsync(new StoreDetailInfo());
+
+        _distanceService.Setup(x => x.CalculateDistanceAsync(It.IsAny<double>(), It.IsAny<double>(), It.IsAny<double>(), It.IsAny<double>()))
+            .ReturnsAsync(4.1);
+
+        _orderRepo.Setup(x => x.CreateAsync(It.IsAny<Order>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Order o, CancellationToken ct) => o);
+
+        var result = await _handler.Handle(new CreateOrderCommand(request), CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value.ShippingFee.Should().Be(27000m);
+    }
+
+    [Fact]
+    public async Task Handle_WhenDeliveryDistanceIsOver5Km_CalculatesCorrectShippingFee()
+    {
+        var storeId = Guid.NewGuid();
+        var request = new CreateOrderRequestDto
+        {
+            Items = new List<CartItemDto> { new CartItemDto { Sku = "CAPPUCCINO", Quantity = 1 } },
+            StoreId = storeId,
+            Type = OrderType.Delivery,
+            Latitude = 10.7,
+            Longitude = 106.7
+        };
+
+        SetupValidProductAndInventory("CAPPUCCINO", 55000m);
+        _franchiseClient.Setup(x => x.GetStoreDetailAsync(storeId)).ReturnsAsync(new StoreDetailInfo());
+
+        _distanceService.Setup(x => x.CalculateDistanceAsync(It.IsAny<double>(), It.IsAny<double>(), It.IsAny<double>(), It.IsAny<double>()))
+            .ReturnsAsync(7.2);
+
+        _orderRepo.Setup(x => x.CreateAsync(It.IsAny<Order>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Order o, CancellationToken ct) => o);
+
+        var result = await _handler.Handle(new CreateOrderCommand(request), CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value.ShippingFee.Should().Be(45000m);
+    }
+
+    [Fact]
+    public async Task Handle_WhenGuestOrderIsSuccessful_DoesNotPulseSignal()
+    {
+        var request = new CreateOrderRequestDto
+        {
+            Items = new List<CartItemDto> { new CartItemDto { Sku = "CA-PHE-SUA", Quantity = 1 } },
+            StoreId = Guid.NewGuid(),
+            Type = null
+        };
+
+        SetupValidProductAndInventory("CA-PHE-SUA", 29000m);
+        _orderRepo.Setup(x => x.CreateAsync(It.IsAny<Order>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Order o, CancellationToken ct) => o);
+
+        var result = await _handler.Handle(new CreateOrderCommand(request), CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Type.Should().Be(OrderType.Pickup);
+        _outboxSignal.Verify(x => x.Pulse(), Times.Never);
+        _cartRepo.Verify(x => x.RemoveItemsAsync(It.IsAny<Guid?>(), It.IsAny<List<string>>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_WhenAuthenticatedUserOrderIsSuccessful_PulsesSignal()
+    {
+        var request = new CreateOrderRequestDto
+        {
+            Items = new List<CartItemDto> { new CartItemDto { Sku = "MOCHA-CARAMEL", Quantity = 1 } },
+            StoreId = Guid.NewGuid(),
+            CustomerId = Guid.NewGuid()
+        };
+
+        SetupValidProductAndInventory("MOCHA-CARAMEL", 60000m);
+        _orderRepo.Setup(x => x.CreateAsync(It.IsAny<Order>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Order o, CancellationToken ct) => o);
+
+        var result = await _handler.Handle(new CreateOrderCommand(request), CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        _outboxSignal.Verify(x => x.Pulse(), Times.Once);
+    }
+
+    private void SetupValidProductAndInventory(string sku, decimal price)
+    {
+        _productClient.Setup(x => x.GetListProductVariantsBySkusAsync(It.IsAny<List<string>>()))
+            .ReturnsAsync(new List<ProductVariantInfo>
+            {
+                new ProductVariantInfo { Sku = sku, BasePrice = price, ProductId = Guid.NewGuid(), VariantId = Guid.NewGuid(), ProductName = "Test F&B Product" }
+            });
+
+        _inventoryClient.Setup(x => x.ReserveStockAsync(It.IsAny<ReserveStockReq>()))
+            .ReturnsAsync(new CheckEnoughStockRes { IsEnough = true, ShortageItems = new List<AmountVariant>() });
     }
 }

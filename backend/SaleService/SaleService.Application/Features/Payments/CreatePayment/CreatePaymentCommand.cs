@@ -4,7 +4,7 @@ using SalesService.Domain.Enums;
 
 namespace SalesService.Application.Features.Payments.CreatePayment
 {
-    public sealed record CreatePaymentCommand(CreatePaymentReq Requets)
+    public sealed record CreatePaymentCommand(CreatePaymentReq Request)
         : IRequest<Result<CreatePaymentRes>>;
 
     public sealed class CreatePaymentRes

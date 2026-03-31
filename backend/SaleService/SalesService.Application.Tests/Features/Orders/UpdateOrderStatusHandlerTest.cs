@@ -1,541 +1,326 @@
-using Moq;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Ardalis.Result;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
+using Moq;
 using SalesService.Application.ClientInterface.Inventory;
+using SalesService.Application.Dtos.Inventory;
 using SalesService.Application.Features.Orders.Commands.UpdateOrderStatus;
 using SalesService.Application.Interfaces.Payments;
 using SalesService.Application.Persisitences.Orders;
 using SalesService.Application.Persisitences.Outbox;
 using SalesService.Application.Persisitences.Wallets;
+using SalesService.Application.Persisitences.WalletTransactions;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
+using SharedKernel.Constants;
+using SharedKernel.Events;
 using SharedKernel.Infrastructure.Kafka;
 
 namespace SalesService.Application.Tests.Features.Orders;
 
-public class UpdateOrderStatusCommandHandlerTests
+public class UpdateOrderStatusHandlerTests
 {
-    private readonly Mock<IOrderRepository> _orderRepositoryMock;
-    private readonly Mock<IPaymentRepository> _paymentRepositoryMock;
-    private readonly Mock<IOutboxRepository> _outboxRepositoryMock;
-    private readonly Mock<ILogger<UpdateOrderStatusCommandHandler>> _loggerMock;
-    private readonly Mock<IKafkaProducer> _kafkaProducerMock;
-    private readonly Mock<IInventoryServiceClient> _inventoryServiceClientMock;
-    private readonly Mock<IWalletRepository> _walletRepositoryMock;
+    private readonly Mock<IOrderRepository> _orderRepo;
+    private readonly Mock<IPaymentRepository> _paymentRepo;
+    private readonly Mock<IOutboxRepository> _outboxRepo;
+    private readonly Mock<ILogger<UpdateOrderStatusCommandHandler>> _logger;
+    private readonly Mock<IKafkaProducer> _kafkaProducer;
+    private readonly Mock<IInventoryServiceClient> _inventoryClient;
+    private readonly Mock<IWalletRepository> _walletRepo;
+    private readonly Mock<IWalletTransactionRepository> _transactionRepo;
     private readonly UpdateOrderStatusCommandHandler _handler;
 
-    public UpdateOrderStatusCommandHandlerTests()
+    public UpdateOrderStatusHandlerTests()
     {
-        _orderRepositoryMock = new Mock<IOrderRepository>();
-        _paymentRepositoryMock = new Mock<IPaymentRepository>();
-        _outboxRepositoryMock = new Mock<IOutboxRepository>();
-        _loggerMock = new Mock<ILogger<UpdateOrderStatusCommandHandler>>();
-        _kafkaProducerMock = new Mock<IKafkaProducer>();
-        _inventoryServiceClientMock = new Mock<IInventoryServiceClient>();
-        _walletRepositoryMock = new Mock<IWalletRepository>();
+        _orderRepo = new Mock<IOrderRepository>();
+        _paymentRepo = new Mock<IPaymentRepository>();
+        _outboxRepo = new Mock<IOutboxRepository>();
+        _logger = new Mock<ILogger<UpdateOrderStatusCommandHandler>>();
+        _kafkaProducer = new Mock<IKafkaProducer>();
+        _inventoryClient = new Mock<IInventoryServiceClient>();
+        _walletRepo = new Mock<IWalletRepository>();
+        _transactionRepo = new Mock<IWalletTransactionRepository>();
 
         _handler = new UpdateOrderStatusCommandHandler(
-            _orderRepositoryMock.Object,
-            _paymentRepositoryMock.Object,
-            _outboxRepositoryMock.Object,
-            _loggerMock.Object,
-            _kafkaProducerMock.Object,
-            _inventoryServiceClientMock.Object,
-            _walletRepositoryMock.Object);
+            _orderRepo.Object,
+            _paymentRepo.Object,
+            _outboxRepo.Object,
+            _logger.Object,
+            _kafkaProducer.Object,
+            _inventoryClient.Object,
+            _walletRepo.Object,
+            _transactionRepo.Object
+        );
     }
 
-    /// <summary>
-    /// Tạo order hợp lệ với trạng thái chỉ định
-    /// </summary>
-    private Order CreateOrder(OrderStatus status, PaymentMethod? paymentMethod = null, Guid? customerId = null)
-    {
-        return new Order
-        {
-            Id = Guid.NewGuid(),
-            Code = "ORD-TEST-001",
-            CustomerId = customerId ?? Guid.NewGuid(),
-            StoreId = Guid.NewGuid(),
-            Status = status,
-            PaymentMethod = paymentMethod,
-            TotalAmount = 100_000m,
-            Tax = 10_000m,
-            OrderItems = new List<OrderItem>()
-        };
-    }
-
-    // ============================
-    // NHÓM 1: VALIDATE ĐẦU VÀO
-    // ============================
-
-    // 1. LỖI - OrderId rỗng → trả về thông báo lỗi
     [Fact]
-    public async Task Handle_ShouldReturnError_WhenOrderIdIsEmpty()
+    public async Task Handle_WhenOrderIdIsEmpty_ReturnsErrorMessage()
     {
-        // Arrange
-        var command = new UpdateOrderStatusCommand(new UpdateOrderStatusReq
-        {
-            OrderId = Guid.Empty,
-            Status = OrderStatus.ConfirmationPending
-        });
+        var request = new UpdateOrderStatusReq { OrderId = Guid.Empty, Status = OrderStatus.Preparing };
+        var result = await _handler.Handle(new UpdateOrderStatusCommand(request), CancellationToken.None);
 
-        // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
-
-        // Assert
         result.Should().Be("OrderId is required.");
-
-        _orderRepositoryMock.Verify(
-            x => x.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()),
-            Times.Never);
     }
 
-    // 2. LỖI - Không tìm thấy order
     [Fact]
-    public async Task Handle_ShouldReturnNotFound_WhenOrderDoesNotExist()
+    public async Task Handle_WhenOrderIsNotFound_ReturnsErrorMessage()
     {
-        // Arrange
         var orderId = Guid.NewGuid();
-        var command = new UpdateOrderStatusCommand(new UpdateOrderStatusReq
-        {
-            OrderId = orderId,
-            Status = OrderStatus.ConfirmationPending
-        });
+        var request = new UpdateOrderStatusReq { OrderId = orderId, Status = OrderStatus.Preparing };
 
-        _orderRepositoryMock.Setup(x => x.GetByIdAsync(orderId, It.IsAny<CancellationToken>()))
+        _orderRepo.Setup(x => x.GetByIdAsync(orderId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Order?)null);
 
-        // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await _handler.Handle(new UpdateOrderStatusCommand(request), CancellationToken.None);
 
-        // Assert
-        result.Should().Be($"Order with id '{orderId}' not found.");
+        result.Should().Contain($"Order with id '{orderId}' not found.");
     }
 
-    // 3. LỖI - Order đã bị xoá (IsDeleted = true)
     [Fact]
-    public async Task Handle_ShouldReturnNotFound_WhenOrderIsDeleted()
+    public async Task Handle_WhenOrderIsDeleted_ReturnsErrorMessage()
     {
-        // Arrange
         var orderId = Guid.NewGuid();
-        var order = CreateOrder(OrderStatus.PaymentPending);
-        order.Id = orderId;
-        order.IsDeleted = true; // Đã xoá
+        var order = new Order { Id = orderId, IsDeleted = true };
+        var request = new UpdateOrderStatusReq { OrderId = orderId, Status = OrderStatus.Preparing };
 
-        var command = new UpdateOrderStatusCommand(new UpdateOrderStatusReq
-        {
-            OrderId = orderId,
-            Status = OrderStatus.ConfirmationPending
-        });
-
-        _orderRepositoryMock.Setup(x => x.GetByIdAsync(orderId, It.IsAny<CancellationToken>()))
+        _orderRepo.Setup(x => x.GetByIdAsync(orderId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(order);
 
-        // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await _handler.Handle(new UpdateOrderStatusCommand(request), CancellationToken.None);
 
-        // Assert
-        result.Should().Be($"Order with id '{orderId}' not found.");
+        result.Should().Contain($"Order with id '{orderId}' not found.");
     }
 
-    // 4. LỖI - Order không có CustomerId
     [Fact]
-    public async Task Handle_ShouldReturnError_WhenOrderHasNoCustomerId()
+    public async Task Handle_WhenCustomerIdIsNull_ReturnsErrorMessage()
     {
-        // Arrange
         var orderId = Guid.NewGuid();
-        var order = CreateOrder(OrderStatus.PaymentPending, customerId: null);
-        order.Id = orderId;
-        order.CustomerId = null; // Không có customer
+        var order = new Order { Id = orderId, CustomerId = null, IsDeleted = false };
+        var request = new UpdateOrderStatusReq { OrderId = orderId, Status = OrderStatus.Preparing };
 
-        var command = new UpdateOrderStatusCommand(new UpdateOrderStatusReq
-        {
-            OrderId = orderId,
-            Status = OrderStatus.ConfirmationPending
-        });
+        _orderRepo.Setup(x => x.GetByIdAsync(orderId, It.IsAny<CancellationToken>())).ReturnsAsync(order);
 
-        _orderRepositoryMock.Setup(x => x.GetByIdAsync(orderId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(order);
+        var result = await _handler.Handle(new UpdateOrderStatusCommand(request), CancellationToken.None);
 
-        // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
-
-        // Assert
         result.Should().Be("CustomerId is null");
     }
 
-    // 5. LỖI - Chuyển trạng thái không hợp lệ (vi phạm TransitionPolicy)
     [Fact]
-    public async Task Handle_ShouldReturnError_WhenStatusTransitionIsInvalid()
+    public async Task Handle_WhenStatusTransitionIsInvalid_ReturnsErrorMessage()
     {
-        // Arrange
         var orderId = Guid.NewGuid();
-        var order = CreateOrder(OrderStatus.Completed); // Đã hoàn thành, không thể chuyển sang trạng thái nào
-        order.Id = orderId;
+        var order = new Order { Id = orderId, CustomerId = Guid.NewGuid(), Status = OrderStatus.Completed };
 
-        var command = new UpdateOrderStatusCommand(new UpdateOrderStatusReq
-        {
-            OrderId = orderId,
-            Status = OrderStatus.Cancelled // Không hợp lệ: Completed → Cancelled
-        });
+        var request = new UpdateOrderStatusReq { OrderId = orderId, Status = OrderStatus.PaymentPending };
 
-        _orderRepositoryMock.Setup(x => x.GetByIdAsync(orderId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(order);
+        _orderRepo.Setup(x => x.GetByIdAsync(orderId, It.IsAny<CancellationToken>())).ReturnsAsync(order);
 
-        // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await _handler.Handle(new UpdateOrderStatusCommand(request), CancellationToken.None);
 
-        // Assert
-        result.Should().Be($"Invalid order status transition from {OrderStatus.Completed} to {OrderStatus.Cancelled}");
+        result.Should().Contain("Invalid order status transition");
     }
 
-    // ============================
-    // NHÓM 2: THÀNH CÔNG - UPDATE STATUS
-    // ============================
-
-    // 6. THÀNH CÔNG - PaymentPending → ConfirmationPending (thanh toán xong)
     [Fact]
-    public async Task Handle_ShouldUpdateStatus_FromPaymentPendingToConfirmationPending()
+    public async Task Handle_WhenCancelledAndNotConfirmationPending_ReleasesStockAndUpdatesStatus()
     {
-        // Arrange
         var orderId = Guid.NewGuid();
-        var order = CreateOrder(OrderStatus.PaymentPending, PaymentMethod.Cash);
-        order.Id = orderId;
-
-        var command = new UpdateOrderStatusCommand(new UpdateOrderStatusReq
+        var order = new Order
         {
-            OrderId = orderId,
-            Status = OrderStatus.ConfirmationPending
-        });
+            Id = orderId,
+            Code = "ORD-ESPRESSO",
+            CustomerId = Guid.NewGuid(),
+            Status = OrderStatus.PaymentPending,
+            StoreId = Guid.NewGuid(),
+            OrderItems = []
+        };
 
-        _orderRepositoryMock.Setup(x => x.GetByIdAsync(orderId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(order);
+        var request = new UpdateOrderStatusReq { OrderId = orderId, Status = OrderStatus.Cancelled };
 
-        _outboxRepositoryMock.Setup(x => x.Add(It.IsAny<OutboxMessage>()));
+        _orderRepo.Setup(x => x.GetByIdAsync(orderId, It.IsAny<CancellationToken>())).ReturnsAsync(order);
 
-        _kafkaProducerMock.Setup(x => x.PublishAsync(It.IsAny<string>(), It.IsAny<object>()))
-            .Returns(Task.CompletedTask);
+        var result = await _handler.Handle(new UpdateOrderStatusCommand(request), CancellationToken.None);
 
-        _orderRepositoryMock.Setup(x => x.UpdateAsync(It.IsAny<Order>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-
-        // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
-
-        // Assert
-        result.Should().Be($"Order status updated successfully to '{OrderStatus.ConfirmationPending}'");
-        order.Status.Should().Be(OrderStatus.ConfirmationPending);
-
-        _orderRepositoryMock.Verify(
-            x => x.UpdateAsync(order, It.IsAny<CancellationToken>()),
-            Times.Once);
+        result.Should().Contain("updated successfully to 'Cancelled'");
+        _inventoryClient.Verify(x => x.ReleaseStockAsync(It.Is<ReleaseStockReq>(r => r.OrderId == orderId)), Times.Once);
     }
 
-    // 7. THÀNH CÔNG - ConfirmationPending → Confirmed
     [Fact]
-    public async Task Handle_ShouldUpdateStatus_FromConfirmationPendingToConfirmed()
+    public async Task Handle_WhenCancelledAndConfirmationPendingButWalletNotFound_ReturnsErrorMessage()
     {
-        // Arrange
-        var orderId = Guid.NewGuid();
-        var order = CreateOrder(OrderStatus.ConfirmationPending, PaymentMethod.Cash);
-        order.Id = orderId;
-
-        var command = new UpdateOrderStatusCommand(new UpdateOrderStatusReq
-        {
-            OrderId = orderId,
-            Status = OrderStatus.Confirmed
-        });
-
-        _orderRepositoryMock.Setup(x => x.GetByIdAsync(orderId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(order);
-        _outboxRepositoryMock.Setup(x => x.Add(It.IsAny<OutboxMessage>()));
-        _kafkaProducerMock.Setup(x => x.PublishAsync(It.IsAny<string>(), It.IsAny<object>()))
-            .Returns(Task.CompletedTask);
-        _orderRepositoryMock.Setup(x => x.UpdateAsync(It.IsAny<Order>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-
-        // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
-
-        // Assert
-        result.Should().Be($"Order status updated successfully to '{OrderStatus.Confirmed}'");
-        order.Status.Should().Be(OrderStatus.Confirmed);
-    }
-
-    // ============================
-    // NHÓM 3: HỦY ĐƠN HÀNG
-    // ============================
-
-    // 8. THÀNH CÔNG - Hủy đơn PaymentPending → giải phóng tồn kho
-    [Fact]
-    public async Task Handle_ShouldCancelOrder_WhenStatusIsPaymentPending()
-    {
-        // Arrange
-        var orderId = Guid.NewGuid();
-        var order = CreateOrder(OrderStatus.PaymentPending, PaymentMethod.Cash);
-        order.Id = orderId;
-        order.StoreId = Guid.NewGuid();
-
-        var command = new UpdateOrderStatusCommand(new UpdateOrderStatusReq
-        {
-            OrderId = orderId,
-            Status = OrderStatus.Cancelled
-        });
-
-        _orderRepositoryMock.Setup(x => x.GetByIdAsync(orderId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(order);
-
-        _inventoryServiceClientMock
-            .Setup(x => x.ReleaseStockAsync(It.IsAny<ReleaseStockReq>()))
-            .ReturnsAsync(new ReleaseStockRes { Success = true });
-
-        _outboxRepositoryMock.Setup(x => x.Add(It.IsAny<OutboxMessage>()));
-        _kafkaProducerMock.Setup(x => x.PublishAsync(It.IsAny<string>(), It.IsAny<object>()))
-            .Returns(Task.CompletedTask);
-        _orderRepositoryMock.Setup(x => x.UpdateAsync(It.IsAny<Order>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-
-        // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
-
-        // Assert
-        result.Should().Be($"Order status updated successfully to '{OrderStatus.Cancelled}'");
-        order.Status.Should().Be(OrderStatus.Cancelled);
-
-        // Xác nhận đã giải phóng tồn kho
-        _inventoryServiceClientMock.Verify(
-            x => x.ReleaseStockAsync(It.Is<ReleaseStockReq>(r => r.OrderId == orderId)),
-            Times.Once);
-    }
-
-    // 9. LỖI - Hủy đơn ConfirmationPending + VNPay nhưng không tìm thấy ví
-    [Fact]
-    public async Task Handle_ShouldReturnError_WhenCancelVnPayOrderAndWalletNotFound()
-    {
-        // Arrange
         var orderId = Guid.NewGuid();
         var customerId = Guid.NewGuid();
-        var order = CreateOrder(OrderStatus.ConfirmationPending, PaymentMethod.VNPay, customerId);
-        order.Id = orderId;
-        order.PaidAmount = 100_000m;
-
-        var command = new UpdateOrderStatusCommand(new UpdateOrderStatusReq
+        var order = new Order
         {
-            OrderId = orderId,
-            Status = OrderStatus.Cancelled
-        });
+            Id = orderId,
+            CustomerId = customerId,
+            Status = OrderStatus.ConfirmationPending,
+            StoreId = Guid.NewGuid()
+        };
+        var request = new UpdateOrderStatusReq { OrderId = orderId, Status = OrderStatus.Cancelled };
 
-        _orderRepositoryMock.Setup(x => x.GetByIdAsync(orderId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(order);
+        _orderRepo.Setup(x => x.GetByIdAsync(orderId, It.IsAny<CancellationToken>())).ReturnsAsync(order);
+        _walletRepo.Setup(x => x.GetByUserIdAsync(customerId, It.IsAny<CancellationToken>())).ReturnsAsync((Wallet?)null);
 
-        _inventoryServiceClientMock
-            .Setup(x => x.ReleaseStockAsync(It.IsAny<ReleaseStockReq>()))
-            .ReturnsAsync(new ReleaseStockRes { Success = true });
+        var result = await _handler.Handle(new UpdateOrderStatusCommand(request), CancellationToken.None);
 
-        // Không tìm thấy ví
-        _walletRepositoryMock.Setup(x => x.GetByUserIdAsync(customerId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Wallet?)null);
-
-        // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
-
-        // Assert
         result.Should().Be("Cancel fail due to no wallet found");
     }
 
-    // ============================
-    // NHÓM 4: HOÀN THÀNH ĐƠN HÀNG
-    // ============================
-
-    // 10. THÀNH CÔNG - Hoàn thành đơn COD (Cash) từ ReadyForPickup → Completed
     [Fact]
-    public async Task Handle_ShouldCompleteOrder_WhenPaymentMethodIsCashAndPendingPaymentExists()
+    public async Task Handle_WhenCancelledAndConfirmationPendingButPaidAmountIsNull_ReturnsErrorMessage()
     {
-        // Arrange
         var orderId = Guid.NewGuid();
-        var order = CreateOrder(OrderStatus.ReadyForPickup, PaymentMethod.Cash);
-        order.Id = orderId;
-
-        var pendingPayment = new Payment
+        var customerId = Guid.NewGuid();
+        var order = new Order
         {
-            Id = Guid.NewGuid(),
-            OrderId = orderId,
-            Order = order,
-            Status = (int)PaymentStatus.Pending
+            Id = orderId,
+            CustomerId = customerId,
+            Status = OrderStatus.ConfirmationPending,
+            StoreId = Guid.NewGuid(),
+            PaidAmount = null,
+            OrderSaleItems = []
+        };
+        var wallet = new Wallet { Id = Guid.NewGuid(), RowVersion = [1] };
+        var request = new UpdateOrderStatusReq { OrderId = orderId, Status = OrderStatus.Cancelled };
+
+        _orderRepo.Setup(x => x.GetByIdAsync(orderId, It.IsAny<CancellationToken>())).ReturnsAsync(order);
+        _walletRepo.Setup(x => x.GetByUserIdAsync(customerId, It.IsAny<CancellationToken>())).ReturnsAsync(wallet);
+
+        var result = await _handler.Handle(new UpdateOrderStatusCommand(request), CancellationToken.None);
+
+        result.Should().Contain("Cancel fail due to no PaidAmout found");
+    }
+
+    [Fact]
+    public async Task Handle_WhenCancelledSuccessfullyAsStaff_RefundsWalletPointsVouchersAndPublishesEvents()
+    {
+        var orderId = Guid.NewGuid();
+        var customerId = Guid.NewGuid();
+        var walletId = Guid.NewGuid();
+        var rowVersion = new byte[] { 1, 2, 3 };
+
+        var order = new Order
+        {
+            Id = orderId,
+            Code = "ORD-COLD-BREW",
+            CustomerId = customerId,
+            Status = OrderStatus.ConfirmationPending,
+            StoreId = Guid.NewGuid(),
+            PaidAmount = 50000m,
+            PaymentMethod = PaymentMethod.VNPay,
+            OrderItems = [],
+            OrderSaleItems =
+            [
+                new() { Type = OrderSaleItemType.Wallet, Amount = 10000m },
+                new() { Type = OrderSaleItemType.LoyaltyPoint, Amount = 1500m }
+            ]
         };
 
-        var command = new UpdateOrderStatusCommand(new UpdateOrderStatusReq
-        {
-            OrderId = orderId,
-            Status = OrderStatus.Completed
-        });
+        var wallet = new Wallet { Id = walletId, Balance = 0m, RowVersion = rowVersion };
+        var request = new UpdateOrderStatusReq { OrderId = orderId, Status = OrderStatus.Cancelled, RoleSlug = "staff" };
 
-        _orderRepositoryMock.Setup(x => x.GetByIdAsync(orderId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(order);
+        _orderRepo.Setup(x => x.GetByIdAsync(orderId, It.IsAny<CancellationToken>())).ReturnsAsync(order);
+        _walletRepo.Setup(x => x.GetByUserIdAsync(customerId, It.IsAny<CancellationToken>())).ReturnsAsync(wallet);
 
-        _paymentRepositoryMock
-            .Setup(x => x.GetNewestByOrderIdAndStatusAsync(orderId, PaymentStatus.Pending, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(pendingPayment);
+        var result = await _handler.Handle(new UpdateOrderStatusCommand(request), CancellationToken.None);
 
-        _paymentRepositoryMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+        result.Should().Contain("updated successfully to 'Cancelled'");
 
-        _outboxRepositoryMock.Setup(x => x.Add(It.IsAny<OutboxMessage>()));
+        // 10k Wallet + 50k VNPay = 60k total refund
+        _transactionRepo.Verify(x => x.AddAsync(It.Is<WalletTransaction>(w => w.Amount == 60000m && w.TransactionType == TransactionType.Withdrawal), It.IsAny<CancellationToken>()), Times.Once);
+        _walletRepo.Verify(x => x.AddBalanceAsync(walletId, 60000m, rowVersion, It.IsAny<CancellationToken>()), Times.Once);
 
-        _kafkaProducerMock.Setup(x => x.PublishAsync(It.IsAny<string>(), It.IsAny<object>()))
-            .Returns(Task.CompletedTask);
-
-        _orderRepositoryMock.Setup(x => x.UpdateAsync(It.IsAny<Order>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-
-        // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
-
-        // Assert
-        result.Should().Be($"Order status updated successfully to '{OrderStatus.Completed}'");
-        order.Status.Should().Be(OrderStatus.Completed);
-        pendingPayment.Status.Should().Be((int)PaymentStatus.Paid);
-
-        // Xác nhận SaveChanges được gọi để cập nhật payment
-        _paymentRepositoryMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _kafkaProducer.Verify(x => x.PublishAsync(KafkaTopics.UpdateUserPoint, It.Is<UpdatePointEvent>(e => e.Point == 1500m && e.ActionType == UpdatePointType.Add)), Times.Once);
+        _kafkaProducer.Verify(x => x.PublishAsync(KafkaTopics.ReverseUserVoucher, It.Is<ReverseVoucherEvent>(e => e.OrderId == orderId)), Times.Once);
     }
 
-    // 11. LỖI - Hoàn thành đơn COD nhưng không tìm thấy Pending Payment
     [Fact]
-    public async Task Handle_ShouldReturnError_WhenCompletingCashOrderAndNoPendingPaymentFound()
+    public async Task Handle_WhenCompletedWithVNPayButPaymentNotFound_ReturnsErrorMessage()
     {
-        // Arrange
         var orderId = Guid.NewGuid();
-        var order = CreateOrder(OrderStatus.ReadyForPickup, PaymentMethod.Cash);
-        order.Id = orderId;
-
-        var command = new UpdateOrderStatusCommand(new UpdateOrderStatusReq
+        var order = new Order
         {
-            OrderId = orderId,
-            Status = OrderStatus.Completed
-        });
+            Id = orderId,
+            CustomerId = Guid.NewGuid(),
+            Status = OrderStatus.Delivering,
+            PaymentMethod = PaymentMethod.VNPay
+        };
+        var request = new UpdateOrderStatusReq { OrderId = orderId, Status = OrderStatus.Completed };
 
-        _orderRepositoryMock.Setup(x => x.GetByIdAsync(orderId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(order);
+        _orderRepo.Setup(x => x.GetByIdAsync(orderId, It.IsAny<CancellationToken>())).ReturnsAsync(order);
+        _paymentRepo.Setup(x => x.GetNewestByOrderIdAndStatusAsync(orderId, PaymentStatus.Paid, It.IsAny<CancellationToken>())).ReturnsAsync((Payment?)null);
 
-        // Không có pending payment
-        _paymentRepositoryMock
-            .Setup(x => x.GetNewestByOrderIdAndStatusAsync(orderId, PaymentStatus.Pending, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Payment?)null);
+        var result = await _handler.Handle(new UpdateOrderStatusCommand(request), CancellationToken.None);
 
-        // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
-
-        // Assert
-        result.Should().Be("No pending payment found for this order.");
-    }
-
-    // 12. LỖI - Hoàn thành đơn VNPay nhưng chưa thanh toán (không có Paid payment)
-    [Fact]
-    public async Task Handle_ShouldReturnError_WhenCompletingVnPayOrderAndPaymentNotPaid()
-    {
-        // Arrange
-        var orderId = Guid.NewGuid();
-        var order = CreateOrder(OrderStatus.ReadyForPickup, PaymentMethod.VNPay);
-        order.Id = orderId;
-
-        var command = new UpdateOrderStatusCommand(new UpdateOrderStatusReq
-        {
-            OrderId = orderId,
-            Status = OrderStatus.Completed
-        });
-
-        _orderRepositoryMock.Setup(x => x.GetByIdAsync(orderId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(order);
-
-        // Không có Paid payment
-        _paymentRepositoryMock
-            .Setup(x => x.GetNewestByOrderIdAndStatusAsync(orderId, PaymentStatus.Paid, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Payment?)null);
-
-        // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
-
-        // Assert
         result.Should().Be("Order cannot be completed because payment is not paid.");
     }
 
-    // 13. THÀNH CÔNG - Hủy đơn ConfirmationPending + VNPay (Staff hủy) → Hoàn tiền + Hoàn Point/Voucher
     [Fact]
-    public async Task Handle_ShouldRefundWalletAndReversePoints_WhenStaffCancelsPaidVnPayOrder()
+    public async Task Handle_WhenCompletedWithCashButNoPendingPayment_ReturnsErrorMessage()
     {
-        // Arrange
         var orderId = Guid.NewGuid();
-        var customerId = Guid.NewGuid();
-        var order = CreateOrder(OrderStatus.ConfirmationPending, PaymentMethod.VNPay, customerId);
-        order.Id = orderId;
-        order.PaidAmount = 100_000m;
-        order.OrderSaleItems = new List<OrderSaleItem>
+        var order = new Order
         {
-            new OrderSaleItem { Type = OrderSaleItemType.LoyaltyPoint, Amount = 50 }
+            Id = orderId,
+            CustomerId = Guid.NewGuid(),
+            Status = OrderStatus.Delivering,
+            PaymentMethod = PaymentMethod.Cash
         };
+        var request = new UpdateOrderStatusReq { OrderId = orderId, Status = OrderStatus.Completed };
 
-        var command = new UpdateOrderStatusCommand(new UpdateOrderStatusReq
-        {
-            OrderId = orderId,
-            Status = OrderStatus.Cancelled,
-            RoleSlug = "staff"
-        });
+        _orderRepo.Setup(x => x.GetByIdAsync(orderId, It.IsAny<CancellationToken>())).ReturnsAsync(order);
+        _paymentRepo.Setup(x => x.GetNewestByOrderIdAndStatusAsync(orderId, PaymentStatus.Pending, It.IsAny<CancellationToken>())).ReturnsAsync((Payment?)null);
 
-        _orderRepositoryMock.Setup(x => x.GetByIdAsync(orderId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(order);
+        var result = await _handler.Handle(new UpdateOrderStatusCommand(request), CancellationToken.None);
 
-        _inventoryServiceClientMock
-            .Setup(x => x.ReleaseStockAsync(It.IsAny<ReleaseStockReq>()))
-            .ReturnsAsync(new ReleaseStockRes { Success = true });
-
-        var wallet = new Wallet { Id = Guid.NewGuid(), RowVersion = new byte[] { 1 } };
-        _walletRepositoryMock.Setup(x => x.GetByUserIdAsync(customerId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(wallet);
-
-        _walletRepositoryMock.Setup(x => x.AddBalanceAsync(wallet.Id, 100_000m, wallet.RowVersion, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
-
-        // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
-
-        // Assert
-        result.Should().Contain("successfully");
-        _walletRepositoryMock.Verify(x => x.AddBalanceAsync(wallet.Id, 100_000m, wallet.RowVersion, It.IsAny<CancellationToken>()), Times.Once);
-        _kafkaProducerMock.Verify(x => x.PublishAsync(It.IsAny<string>(), It.IsAny<object>()), Times.AtLeast(2)); // Reversal events + OrderStatusEvent
+        result.Should().Be("No pending payment found for this order.");
     }
 
-    // 14. LỖI - Hủy đơn ConfirmationPending + VNPay nhưng PaidAmount null
     [Fact]
-    public async Task Handle_ShouldReturnError_WhenCancelPaidVnPayOrderButPaidAmountIsNull()
+    public async Task Handle_WhenCompletedSuccessfullyWithCash_UpdatesPaymentAndPublishesEvents()
     {
-        // Arrange
         var orderId = Guid.NewGuid();
         var customerId = Guid.NewGuid();
-        var order = CreateOrder(OrderStatus.ConfirmationPending, PaymentMethod.VNPay, customerId);
-        order.Id = orderId;
-        order.PaidAmount = null; // NULL
-
-        var command = new UpdateOrderStatusCommand(new UpdateOrderStatusReq
+        var order = new Order
         {
-            OrderId = orderId,
-            Status = OrderStatus.Cancelled
-        });
+            Id = orderId,
+            Code = "ORD-MATCHA-LATTE",
+            CustomerId = customerId,
+            Status = OrderStatus.Delivering,
+            PaymentMethod = PaymentMethod.Cash,
+            PaidAmount = 65000m,
+            OrderItems = []
+        };
+        var payment = new Payment { Id = Guid.NewGuid(), OrderId = orderId, Status = (int)PaymentStatus.Pending, Order = order };
+        var request = new UpdateOrderStatusReq { OrderId = orderId, Status = OrderStatus.Completed };
 
-        _orderRepositoryMock.Setup(x => x.GetByIdAsync(orderId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(order);
+        _orderRepo.Setup(x => x.GetByIdAsync(orderId, It.IsAny<CancellationToken>())).ReturnsAsync(order);
+        _paymentRepo.Setup(x => x.GetNewestByOrderIdAndStatusAsync(orderId, PaymentStatus.Pending, It.IsAny<CancellationToken>())).ReturnsAsync(payment);
 
-        _inventoryServiceClientMock
-            .Setup(x => x.ReleaseStockAsync(It.IsAny<ReleaseStockReq>()))
-            .ReturnsAsync(new ReleaseStockRes { Success = true });
+        var result = await _handler.Handle(new UpdateOrderStatusCommand(request), CancellationToken.None);
 
-        var wallet = new Wallet { Id = Guid.NewGuid(), RowVersion = new byte[] { 1 } };
-        _walletRepositoryMock.Setup(x => x.GetByUserIdAsync(customerId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(wallet);
+        result.Should().Contain("updated successfully to 'Completed'");
 
-        // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        // Verify Payment updated to Paid
+        payment.Status.Should().Be((int)PaymentStatus.Paid);
+        _paymentRepo.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
 
-        // Assert
-        result.Should().Be($"Cancel fail due to no PaidAmout found in order with ID {orderId}");
+        // Verify Reward Event published
+        _kafkaProducer.Verify(x => x.PublishAsync(KafkaTopics.ProcessOrderReward, It.Is<ProcessOrderRewardEvent>(e => e.Id == customerId && e.OrderAmount == 65000m)), Times.Once);
+
+        // ✅ ĐÃ FIX: Verify hàm Add của Interface (chứa cái Message đã được Serialize bởi Extension Method)
+        _outboxRepo.Verify(x => x.Add(It.Is<OutboxMessage>(m =>
+            m.Type == KafkaTopics.OrderPaid &&
+            m.Content.Contains("OrderPaidEvent") // Có thể check thêm một đoạn content json nếu cần
+        )), Times.Once);
+
+        _outboxRepo.Verify(x => x.Add(It.Is<OutboxMessage>(m =>
+            m.Type == "OrderStatusEvent"
+        )), Times.Once);
     }
 }

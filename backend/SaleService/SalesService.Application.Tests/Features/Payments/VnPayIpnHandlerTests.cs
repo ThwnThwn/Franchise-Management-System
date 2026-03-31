@@ -1,301 +1,474 @@
-using Moq;
+﻿using System.Security.Cryptography;
+using System.Text;
 using FluentAssertions;
-using SalesService.Application.Features.Payments.VnPayIpn;
-using SalesService.Application.Interfaces.Payments;
-using SalesService.Application.Persisitences.Wallets;
-using SalesService.Application.Persisitences.WalletTransactions;
-using SalesService.Application.Persisitences.Outbox;
-using SalesService.Application.Signals;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Moq;
+using SalesService.Application.Features.Payments.VnPayIpn;
+using SalesService.Application.Interfaces.Identity;
+using SalesService.Application.Interfaces.Payments;
+using SalesService.Application.Persisitences.Outbox;
+using SalesService.Application.Persisitences.Wallets;
+using SalesService.Application.Persisitences.WalletTransactions;
+using SalesService.Application.Signals;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
-using SalesService.Application.Helpers;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using System;
-using SharedKernel.Events;
 using SharedKernel.Constants;
+using SharedKernel.Events;
 
-namespace SalesService.Application.Tests.Features.Payments.VnPayIpn;
+namespace SalesService.Application.Tests.Features.Payments;
 
 public class VnPayIpnHandlerTests
 {
-    private readonly Mock<IPaymentRepository> _paymentRepoMock = new();
-    private readonly Mock<IWalletRepository> _walletRepoMock = new();
-    private readonly Mock<IWalletTransactionRepository> _transactionRepoMock = new();
-    private readonly Mock<IConfiguration> _configMock = new();
-    private readonly Mock<IOutboxRepository> _outboxRepoMock = new();
-    private readonly Mock<IOutboxSignal> _outboxSignalMock = new();
-    private readonly Mock<ILogger<VnPayIpnHandler>> _loggerMock = new();
-
+    private readonly Mock<IPaymentRepository> _paymentRepo;
+    private readonly Mock<IWalletRepository> _walletRepo;
+    private readonly Mock<IWalletTransactionRepository> _walletTxnRepo;
+    private readonly Mock<IIdentityServiceClient> _identityClient;
+    private readonly Mock<IConfiguration> _config;
+    private readonly Mock<IOutboxRepository> _outboxRepo;
+    private readonly Mock<IOutboxSignal> _outboxSignal;
+    private readonly Mock<ILogger<VnPayIpnHandler>> _logger;
     private readonly VnPayIpnHandler _handler;
-    private const string HashSecret = "my_secret";
+
+    private const string HashSecret = "SECRET_COFFEE_SHOP_HASH_KEY_1234567890";
 
     public VnPayIpnHandlerTests()
     {
-        var configSectionMock = new Mock<IConfigurationSection>();
-        configSectionMock.Setup(x => x["HashSecret"]).Returns(HashSecret);
-        _configMock.Setup(x => x.GetSection("VNPay")).Returns(configSectionMock.Object);
+        _paymentRepo = new Mock<IPaymentRepository>();
+        _walletRepo = new Mock<IWalletRepository>();
+        _walletTxnRepo = new Mock<IWalletTransactionRepository>();
+        _identityClient = new Mock<IIdentityServiceClient>();
+        _config = new Mock<IConfiguration>();
+        _outboxRepo = new Mock<IOutboxRepository>();
+        _outboxSignal = new Mock<IOutboxSignal>();
+        _logger = new Mock<ILogger<VnPayIpnHandler>>();
 
         _handler = new VnPayIpnHandler(
-            _paymentRepoMock.Object,
-            _walletRepoMock.Object,
-            _transactionRepoMock.Object,
-            _configMock.Object,
-            _outboxRepoMock.Object,
-            _outboxSignalMock.Object,
-            _loggerMock.Object);
+            _paymentRepo.Object,
+            _walletRepo.Object,
+            _walletTxnRepo.Object,
+            _identityClient.Object,
+            _config.Object,
+            _outboxRepo.Object,
+            _outboxSignal.Object,
+            _logger.Object
+        );
     }
 
     [Fact]
-    public async Task Handle_ShouldReturn97_WhenSignatureInvalid()
+    public async Task Handle_WhenHashSecretIsMissing_ReturnsError()
     {
-        var query = new Dictionary<string, string>
-        {
-            ["vnp_TxnRef"] = Guid.NewGuid().ToString(),
-            ["vnp_SecureHash"] = "INVALID"
-        };
-        var cmd = new VnPayIpnCommand(query);
+        var section = new Mock<IConfigurationSection>();
+        section.Setup(s => s["HashSecret"]).Returns(string.Empty);
+        _config.Setup(c => c.GetSection("VNPay")).Returns(section.Object);
 
-        var result = await _handler.Handle(cmd, CancellationToken.None);
+        var result = await _handler.Handle(new VnPayIpnCommand(new Dictionary<string, string>()), CancellationToken.None);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.First().Should().Contain("HashSecret is not configured");
+    }
+
+    [Fact]
+    public async Task Handle_WhenSecureHashIsMissing_Returns97()
+    {
+        SetupMockConfig();
+        var queryParams = new Dictionary<string, string> { { "vnp_Amount", "5000000" } };
+
+        var result = await _handler.Handle(new VnPayIpnCommand(queryParams), CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value.RspCode.Should().Be("97");
+        result.Value.Message.Should().Be("Invalid signature");
+    }
+
+    [Fact]
+    public async Task Handle_WhenSignatureIsInvalid_Returns97()
+    {
+        SetupMockConfig();
+        var queryParams = new Dictionary<string, string>
+        {
+            { "vnp_Amount", "4500000" }, // 45k cho Bạc Xỉu
+            { "vnp_SecureHash", "FAKE_HASH_SIGNATURE_INVALID" }
+        };
+
+        var result = await _handler.Handle(new VnPayIpnCommand(queryParams), CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
         result.Value.RspCode.Should().Be("97");
     }
 
     [Fact]
-    public async Task Handle_ShouldReturn01_WhenTxnRefInvalid()
+    public async Task Handle_WhenTxnRefIsInvalid_Returns01()
     {
-        var query = new Dictionary<string, string>
+        SetupMockConfig();
+        var queryParams = CreateValidVnPayParams(new Dictionary<string, string>
         {
-            ["vnp_TxnRef"] = "not_a_guid"
-        };
-        // Need to add valid signature so it passes the Verify part
-        AddSignature(query);
-        var cmd = new VnPayIpnCommand(query);
+            { "vnp_Amount", "6500000" },
+            { "vnp_TxnRef", "INVALID_GUID_STRING" }
+        });
 
-        var result = await _handler.Handle(cmd, CancellationToken.None);
+        var result = await _handler.Handle(new VnPayIpnCommand(queryParams), CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
         result.Value.RspCode.Should().Be("01");
+        result.Value.Message.Should().Be("Order not found");
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnSuccess_WhenOrderPaymentConfirmedSuccess()
+    public async Task Handle_WhenPaymentIsNull_ThrowsException()
     {
+        SetupMockConfig();
         var paymentId = Guid.NewGuid();
-        var orderId = Guid.NewGuid();
-        var query = new Dictionary<string, string>
+        var queryParams = CreateValidVnPayParams(new Dictionary<string, string>
         {
-            ["vnp_TxnRef"] = paymentId.ToString(),
-            ["vnp_ResponseCode"] = "00",
-            ["vnp_Amount"] = "10000000", // 100,000 VND
-            ["vnp_TransactionNo"] = "TRANS_123"
-        };
-        AddSignature(query);
+            { "vnp_Amount", "10000000" },
+            { "vnp_TxnRef", paymentId.ToString() }
+        });
 
-        var payment = new Payment 
-        { 
-            Id = paymentId, 
-            Amount = 100000, 
-            Status = (int)PaymentStatus.Pending,
-            OrderId = orderId 
-        };
-        var order = new Order 
-        { 
-            Id = orderId, 
-            Status = OrderStatus.PaymentPending,
-            OrderItems = new List<OrderItem> { new OrderItem { Id = Guid.NewGuid() } }
-        };
-        payment.Order = order;
+        _paymentRepo.Setup(x => x.GetByIdWithOrderAsync(paymentId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Payment?)null);
 
-        _paymentRepoMock.Setup(x => x.GetByIdAsync(paymentId, It.IsAny<CancellationToken>())).ReturnsAsync(payment);
-        _paymentRepoMock.Setup(x => x.GetByIdWithOrderAsync(paymentId, It.IsAny<CancellationToken>())).ReturnsAsync(payment);
+        var action = async () => await _handler.Handle(new VnPayIpnCommand(queryParams), CancellationToken.None);
 
-        var result = await _handler.Handle(new VnPayIpnCommand(query), CancellationToken.None);
+        await action.Should().ThrowAsync<Exception>().WithMessage("payment is null |VnpayHandler");
+    }
 
-        result.IsSuccess.Should().BeTrue();
+    [Fact]
+    public async Task Handle_WhenWalletDepositTxnNotFound_Returns01()
+    {
+        SetupMockConfig();
+        var paymentId = Guid.NewGuid();
+        var queryParams = CreateValidVnPayParams(new Dictionary<string, string>
+        {
+            { "vnp_Amount", "50000000" }, // Nạp 500k vào ví
+            { "vnp_TxnRef", paymentId.ToString() },
+            { "vnp_ResponseCode", "00" }
+        });
+
+        var payment = new Payment { Id = paymentId, ReferenceType = PaymentReferenceType.Deposit, ReferenceId = Guid.NewGuid() };
+        _paymentRepo.Setup(x => x.GetByIdWithOrderAsync(paymentId, It.IsAny<CancellationToken>())).ReturnsAsync(payment);
+        _walletTxnRepo.Setup(x => x.GetByIdAsync(payment.ReferenceId.Value, It.IsAny<CancellationToken>())).ReturnsAsync((WalletTransaction?)null);
+
+        var result = await _handler.Handle(new VnPayIpnCommand(queryParams), CancellationToken.None);
+
+        result.Value.RspCode.Should().Be("01");
+        result.Value.Message.Should().Be("Wallet transaction not found");
+    }
+
+    [Fact]
+    public async Task Handle_WhenWalletDepositWalletNotFound_Returns01()
+    {
+        SetupMockConfig();
+        var paymentId = Guid.NewGuid();
+        var queryParams = CreateValidVnPayParams(new Dictionary<string, string>
+        {
+            { "vnp_Amount", "20000000" },
+            { "vnp_TxnRef", paymentId.ToString() },
+            { "vnp_ResponseCode", "00" }
+        });
+
+        var payment = new Payment { Id = paymentId, ReferenceType = PaymentReferenceType.Deposit, ReferenceId = Guid.NewGuid() };
+        var walletTxn = new WalletTransaction { Id = payment.ReferenceId.Value, WalletId = Guid.NewGuid() };
+
+        _paymentRepo.Setup(x => x.GetByIdWithOrderAsync(paymentId, It.IsAny<CancellationToken>())).ReturnsAsync(payment);
+        _walletTxnRepo.Setup(x => x.GetByIdAsync(payment.ReferenceId.Value, It.IsAny<CancellationToken>())).ReturnsAsync(walletTxn);
+        _walletRepo.Setup(x => x.GetByIdAsync(walletTxn.WalletId.Value, It.IsAny<CancellationToken>())).ReturnsAsync((Wallet?)null);
+
+        var result = await _handler.Handle(new VnPayIpnCommand(queryParams), CancellationToken.None);
+
+        result.Value.RspCode.Should().Be("01");
+        result.Value.Message.Should().Be("Wallet not found");
+    }
+
+    [Fact]
+    public async Task Handle_WhenWalletDepositIsSuccessful_UpdatesWalletAndReturns00()
+    {
+        SetupMockConfig();
+        var paymentId = Guid.NewGuid();
+        var queryParams = CreateValidVnPayParams(new Dictionary<string, string>
+        {
+            { "vnp_Amount", "10000000" },
+            { "vnp_TxnRef", paymentId.ToString() },
+            { "vnp_ResponseCode", "00" },
+            { "vnp_TransactionNo", "VNPTXN123" }
+        });
+
+        var payment = new Payment { Id = paymentId, Amount = 100000, ReferenceType = PaymentReferenceType.Deposit, ReferenceId = Guid.NewGuid() };
+        var walletTxn = new WalletTransaction { Id = payment.ReferenceId.Value, WalletId = Guid.NewGuid() };
+        var wallet = new Wallet { Id = walletTxn.WalletId.Value, Balance = 50000 };
+
+        _paymentRepo.Setup(x => x.GetByIdWithOrderAsync(paymentId, It.IsAny<CancellationToken>())).ReturnsAsync(payment);
+        _walletTxnRepo.Setup(x => x.GetByIdAsync(payment.ReferenceId.Value, It.IsAny<CancellationToken>())).ReturnsAsync(walletTxn);
+        _walletRepo.Setup(x => x.GetByIdAsync(walletTxn.WalletId.Value, It.IsAny<CancellationToken>())).ReturnsAsync(wallet);
+
+        var result = await _handler.Handle(new VnPayIpnCommand(queryParams), CancellationToken.None);
+
         result.Value.RspCode.Should().Be("00");
-        payment.Status.Should().Be((int)PaymentStatus.Paid);
-        order.Status.Should().Be(OrderStatus.ConfirmationPending);
-        _outboxRepoMock.Verify(x => x.Add(It.IsAny<OutboxMessage>()), Times.AtLeastOnce());
-        _outboxSignalMock.Verify(x => x.Pulse(), Times.Once());
-    }
-
-    [Fact]
-    public async Task Handle_ShouldReturn04_WhenAmountMismatch()
-    {
-        var paymentId = Guid.NewGuid();
-        var query = new Dictionary<string, string>
-        {
-            ["vnp_TxnRef"] = paymentId.ToString(),
-            ["vnp_Amount"] = "20000000" // Corresponds to 200,000
-        };
-        AddSignature(query);
-
-        var payment = new Payment { Id = paymentId, Amount = 100000, Status = (int)PaymentStatus.Pending };
-        _paymentRepoMock.Setup(x => x.GetByIdAsync(paymentId, It.IsAny<CancellationToken>())).ReturnsAsync(payment);
-
-        var result = await _handler.Handle(new VnPayIpnCommand(query), CancellationToken.None);
-
-        result.IsSuccess.Should().BeTrue();
-        result.Value.RspCode.Should().Be("04");
-        payment.Status.Should().Be((int)PaymentStatus.Failed);
-    }
-
-    [Fact]
-    public async Task Handle_ShouldReturnSuccess_WhenWalletDepositSuccess()
-    {
-        var paymentId = Guid.NewGuid();
-        var walletTxnId = Guid.NewGuid();
-        var walletId = Guid.NewGuid();
-        var query = new Dictionary<string, string>
-        {
-            ["vnp_TxnRef"] = paymentId.ToString(),
-            ["vnp_ResponseCode"] = "00",
-            ["vnp_Amount"] = "50000000"
-        };
-        AddSignature(query);
-
-        var payment = new Payment 
-        { 
-            Id = paymentId, 
-            Amount = 500000, 
-            ReferenceType = PaymentReferenceType.Deposit,
-            ReferenceId = walletTxnId 
-        };
-        var walletTxn = new WalletTransaction { Id = walletTxnId, WalletId = walletId, Status = TransactionStatus.Pending };
-        var wallet = new Wallet { Id = walletId, Balance = 1000 };
-
-        _paymentRepoMock.Setup(x => x.GetByIdAsync(paymentId, It.IsAny<CancellationToken>())).ReturnsAsync(payment);
-        _transactionRepoMock.Setup(x => x.GetByIdAsync(walletTxnId, It.IsAny<CancellationToken>())).ReturnsAsync(walletTxn);
-        _walletRepoMock.Setup(x => x.GetByIdAsync(walletId, It.IsAny<CancellationToken>())).ReturnsAsync(wallet);
-
-        var result = await _handler.Handle(new VnPayIpnCommand(query), CancellationToken.None);
-
-        result.IsSuccess.Should().BeTrue();
-        result.Value.RspCode.Should().Be("00");
-        wallet.Balance.Should().Be(501000);
+        wallet.Balance.Should().Be(150000);
         walletTxn.Status.Should().Be(TransactionStatus.Completed);
         payment.Status.Should().Be((int)PaymentStatus.Paid);
+        _paymentRepo.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnSuccessWithFailedStatus_WhenResponseCodeNot00()
+    public async Task Handle_WhenWalletDepositIsFailed_UpdatesTxnStatusAndReturns00()
     {
+        SetupMockConfig();
         var paymentId = Guid.NewGuid();
-        var query = new Dictionary<string, string>
+        var queryParams = CreateValidVnPayParams(new Dictionary<string, string>
         {
-            ["vnp_TxnRef"] = paymentId.ToString(),
-            ["vnp_ResponseCode"] = "24", // Cancelled
-            ["vnp_Amount"] = "10000000"
-        };
-        AddSignature(query);
+            { "vnp_Amount", "10000000" },
+            { "vnp_TxnRef", paymentId.ToString() },
+            { "vnp_ResponseCode", "24" }
+        });
 
-        var payment = new Payment { Id = paymentId, Amount = 100000, Status = (int)PaymentStatus.Pending, Order = new Order { Id = Guid.NewGuid() } };
-        _paymentRepoMock.Setup(x => x.GetByIdAsync(paymentId, It.IsAny<CancellationToken>())).ReturnsAsync(payment);
+        var payment = new Payment { Id = paymentId, Amount = 100000, ReferenceType = PaymentReferenceType.Deposit, ReferenceId = Guid.NewGuid() };
+        var walletTxn = new WalletTransaction { Id = payment.ReferenceId.Value, WalletId = Guid.NewGuid() };
+        var wallet = new Wallet { Id = walletTxn.WalletId.Value, Balance = 50000 };
 
-        var result = await _handler.Handle(new VnPayIpnCommand(query), CancellationToken.None);
+        _paymentRepo.Setup(x => x.GetByIdWithOrderAsync(paymentId, It.IsAny<CancellationToken>())).ReturnsAsync(payment);
+        _walletTxnRepo.Setup(x => x.GetByIdAsync(payment.ReferenceId.Value, It.IsAny<CancellationToken>())).ReturnsAsync(walletTxn);
+        _walletRepo.Setup(x => x.GetByIdAsync(walletTxn.WalletId.Value, It.IsAny<CancellationToken>())).ReturnsAsync(wallet);
 
-        result.IsSuccess.Should().BeTrue();
+        var result = await _handler.Handle(new VnPayIpnCommand(queryParams), CancellationToken.None);
+
+        result.Value.RspCode.Should().Be("00");
+        wallet.Balance.Should().Be(50000);
+        walletTxn.Status.Should().Be(TransactionStatus.Failed);
         payment.Status.Should().Be((int)PaymentStatus.Failed);
     }
 
     [Fact]
-    public async Task Handle_ShouldReturn02_WhenPaymentAlreadyConfirmed()
+    public async Task Handle_WhenPaymentIsAlreadyProcessed_Returns02()
     {
+        SetupMockConfig();
         var paymentId = Guid.NewGuid();
-        var query = new Dictionary<string, string>
+        var queryParams = CreateValidVnPayParams(new Dictionary<string, string>
         {
-            ["vnp_TxnRef"] = paymentId.ToString()
-        };
-        AddSignature(query);
+            { "vnp_Amount", "5000000" },
+            { "vnp_TxnRef", paymentId.ToString() }
+        });
 
         var payment = new Payment { Id = paymentId, Status = (int)PaymentStatus.Paid };
-        _paymentRepoMock.Setup(x => x.GetByIdAsync(paymentId, It.IsAny<CancellationToken>())).ReturnsAsync(payment);
+        _paymentRepo.Setup(x => x.GetByIdWithOrderAsync(paymentId, It.IsAny<CancellationToken>())).ReturnsAsync(payment);
 
-        var result = await _handler.Handle(new VnPayIpnCommand(query), CancellationToken.None);
+        var result = await _handler.Handle(new VnPayIpnCommand(queryParams), CancellationToken.None);
 
-        result.IsSuccess.Should().BeTrue();
         result.Value.RspCode.Should().Be("02");
     }
 
-    private void AddSignature(Dictionary<string, string> query)
+    [Fact]
+    public async Task Handle_WhenAmountParseFails_Returns04()
     {
-        var vnpParams = new SortedDictionary<string, string>(StringComparer.Ordinal);
-        foreach (var kv in query)
+        SetupMockConfig();
+        var paymentId = Guid.NewGuid();
+        var queryParams = CreateValidVnPayParams(new Dictionary<string, string>
         {
-            if (kv.Key.StartsWith("vnp_") && kv.Key != "vnp_SecureHash")
+            { "vnp_Amount", "NOT_A_NUMBER" },
+            { "vnp_TxnRef", paymentId.ToString() }
+        });
+
+        var payment = new Payment { Id = paymentId, Status = (int)PaymentStatus.Pending };
+        _paymentRepo.Setup(x => x.GetByIdWithOrderAsync(paymentId, It.IsAny<CancellationToken>())).ReturnsAsync(payment);
+
+        var result = await _handler.Handle(new VnPayIpnCommand(queryParams), CancellationToken.None);
+
+        result.Value.RspCode.Should().Be("04");
+    }
+
+    [Fact]
+    public async Task Handle_WhenAmountMismatches_UpdatesStatusToFailedAndReturns04()
+    {
+        SetupMockConfig();
+        var paymentId = Guid.NewGuid();
+        var queryParams = CreateValidVnPayParams(new Dictionary<string, string>
+        {
+            { "vnp_Amount", "4500000" },
+            { "vnp_TxnRef", paymentId.ToString() }
+        });
+
+        var payment = new Payment { Id = paymentId, Amount = 50000, Status = (int)PaymentStatus.Pending }; // Expected: 5000000
+        _paymentRepo.Setup(x => x.GetByIdWithOrderAsync(paymentId, It.IsAny<CancellationToken>())).ReturnsAsync(payment);
+
+        var result = await _handler.Handle(new VnPayIpnCommand(queryParams), CancellationToken.None);
+
+        result.Value.RspCode.Should().Be("04");
+        payment.Status.Should().Be((int)PaymentStatus.Failed);
+        _paymentRepo.Verify(x => x.AddEventAsync(It.Is<PaymentEvent>(e => e.EventType == "VNPAY_IPN_AMOUNT_MISMATCH"), It.IsAny<CancellationToken>()), Times.Once);
+        _paymentRepo.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_WhenOrderPaymentIsFailed_CancelsOrderAndReturns00()
+    {
+        SetupMockConfig();
+        var paymentId = Guid.NewGuid();
+        var orderId = Guid.NewGuid();
+        var queryParams = CreateValidVnPayParams(new Dictionary<string, string>
+        {
+            { "vnp_Amount", "6000000" },
+            { "vnp_TxnRef", paymentId.ToString() },
+            { "vnp_ResponseCode", "24" }
+        });
+
+        var order = new Order { Id = orderId };
+        var payment = new Payment { Id = paymentId, OrderId = orderId, Amount = 60000, Status = (int)PaymentStatus.Pending, Order = order };
+        _paymentRepo.Setup(x => x.GetByIdWithOrderAsync(paymentId, It.IsAny<CancellationToken>())).ReturnsAsync(payment);
+
+        var result = await _handler.Handle(new VnPayIpnCommand(queryParams), CancellationToken.None);
+
+        result.Value.RspCode.Should().Be("00");
+        payment.Status.Should().Be((int)PaymentStatus.Failed);
+
+        _outboxRepo.Verify(x => x.Add(It.Is<OutboxMessage>(m => m.Type == KafkaTopics.OrderCancelled)), Times.Once);
+
+        _paymentRepo.Verify(x => x.AddEventAsync(It.Is<PaymentEvent>(e => e.EventType == "VNPAY_IPN_FAILED"), It.IsAny<CancellationToken>()), Times.Once);
+        _outboxSignal.Verify(x => x.Pulse(), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_WhenOrderPaymentIsSuccessful_WithVouchersPointsWallet_ProcessesAndReturns00()
+    {
+        SetupMockConfig();
+        var paymentId = Guid.NewGuid();
+        var orderId = Guid.NewGuid();
+        var customerId = Guid.NewGuid();
+        var walletId = Guid.NewGuid();
+        var rowVersion = new byte[] { 1, 2, 3 };
+
+        var queryParams = CreateValidVnPayParams(new Dictionary<string, string>
+        {
+            { "vnp_Amount", "4000000" },
+            { "vnp_TxnRef", paymentId.ToString() },
+            { "vnp_ResponseCode", "00" },
+            { "vnp_TransactionNo", "VNP12345" }
+        });
+
+        var order = new Order
+        {
+            Id = orderId,
+            CustomerId = customerId,
+            Code = "ORD-CA-PHE",
+            OrderSaleItems =
+            [
+                new() { Type = OrderSaleItemType.Voucher, ReferenceId = Guid.NewGuid() },
+                new() { Type = OrderSaleItemType.LoyaltyPoint, Amount = 500 },
+                new() { Type = OrderSaleItemType.Wallet, Amount = 15000 }
+            ]
+        };
+
+        var payment = new Payment { Id = paymentId, OrderId = orderId, Amount = 40000, Status = (int)PaymentStatus.Pending, Order = order };
+
+        var userWallet = new Wallet { Id = walletId, Balance = 50000, RowVersion = rowVersion };
+        var user = new UserInfo { Id = customerId, Email = "customer@coffee.com", LoyaltyTier = new LoyaltyRes { CurrentTier = new MembershipTier { ValuePerPoint = 10 } } };
+
+        _paymentRepo.Setup(x => x.GetByIdWithOrderAsync(paymentId, It.IsAny<CancellationToken>())).ReturnsAsync(payment);
+        _walletRepo.Setup(x => x.GetByUserIdAsync(customerId, It.IsAny<CancellationToken>())).ReturnsAsync(userWallet);
+        _identityClient.Setup(x => x.GetUserByIdAsync(customerId)).ReturnsAsync(user);
+
+        var result = await _handler.Handle(new VnPayIpnCommand(queryParams), CancellationToken.None);
+
+        result.Value.RspCode.Should().Be("00");
+        payment.Status.Should().Be((int)PaymentStatus.Paid);
+        order.Status.Should().Be(OrderStatus.ConfirmationPending);
+        order.PaidAmount.Should().Be(40000);
+
+        // Đã đổi toàn bộ nameof(...) thành KafkaTopics... tương ứng
+        _outboxRepo.Verify(x => x.Add(It.Is<OutboxMessage>(m => m.Type == KafkaTopics.DeductUserVoucher)), Times.Once);
+        _outboxRepo.Verify(x => x.Add(It.Is<OutboxMessage>(m => m.Type == KafkaTopics.UpdateUserPoint)), Times.Once);
+        _outboxRepo.Verify(x => x.Add(It.Is<OutboxMessage>(m => m.Type == KafkaTopics.OrderNotifications)), Times.Once);
+        _outboxRepo.Verify(x => x.Add(It.Is<OutboxMessage>(m => m.Type == KafkaTopics.OrderPaid)), Times.Once);
+
+        // 1. Sửa AddAsync thành Add (bỏ CancellationToken đi)
+        _walletTxnRepo.Verify(x => x.Add(It.Is<WalletTransaction>(w => w.Amount == -15000)), Times.Once);
+
+        // 2. Sửa DeductBalanceAsync thành ApplyDeductBalance cho khớp với IpnHandler
+        _walletRepo.Verify(x => x.ApplyDeductBalance(userWallet, 15000, rowVersion), Times.Once);
+
+        _paymentRepo.Verify(x => x.AddEventAsync(It.Is<PaymentEvent>(e => e.EventType == "VNPAY_IPN_SUCCESS"), It.IsAny<CancellationToken>()), Times.Once);
+        _paymentRepo.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _outboxSignal.Verify(x => x.Pulse(), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_WhenIdentityThrowsException_StillProcessesPointsAndReturns00()
+    {
+        SetupMockConfig();
+        var paymentId = Guid.NewGuid();
+        var orderId = Guid.NewGuid();
+        var customerId = Guid.NewGuid();
+
+        var queryParams = CreateValidVnPayParams(new Dictionary<string, string>
+        {
+            { "vnp_Amount", "5500000" },
+            { "vnp_TxnRef", paymentId.ToString() },
+            { "vnp_ResponseCode", "00" }
+        });
+
+        var order = new Order
+        {
+            Id = orderId,
+            CustomerId = customerId,
+            OrderSaleItems =
+            [
+                new() { Type = OrderSaleItemType.LoyaltyPoint, Amount = 1000 }
+            ]
+        };
+
+        var payment = new Payment { Id = paymentId, OrderId = orderId, Amount = 55000, Status = (int)PaymentStatus.Pending, Order = order };
+
+        _paymentRepo.Setup(x => x.GetByIdWithOrderAsync(paymentId, It.IsAny<CancellationToken>())).ReturnsAsync(payment);
+        _identityClient.Setup(x => x.GetUserByIdAsync(customerId)).ThrowsAsync(new Exception("Identity service is down"));
+
+        var result = await _handler.Handle(new VnPayIpnCommand(queryParams), CancellationToken.None);
+
+        result.Value.RspCode.Should().Be("00");
+
+        // Đã đổi nameof(UpdatePointEvent) thành KafkaTopics.UpdateUserPoint
+        _outboxRepo.Verify(x => x.Add(It.Is<OutboxMessage>(m => m.Type == KafkaTopics.UpdateUserPoint)), Times.Once);
+    }
+
+    private void SetupMockConfig()
+    {
+        var section = new Mock<IConfigurationSection>();
+        section.Setup(s => s["HashSecret"]).Returns(HashSecret);
+        _config.Setup(c => c.GetSection("VNPay")).Returns(section.Object);
+    }
+
+    private static Dictionary<string, string> CreateValidVnPayParams(Dictionary<string, string> inputParams)
+    {
+        var vnpParams = new Dictionary<string, string>();
+        foreach (var kv in inputParams)
+        {
+            if (kv.Key.StartsWith("vnp_", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(kv.Key, "vnp_SecureHash", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(kv.Key, "vnp_SecureHashType", StringComparison.OrdinalIgnoreCase))
             {
                 vnpParams[kv.Key] = kv.Value;
             }
         }
-        var rawData = string.Join("&", vnpParams.Select(kv => $"{kv.Key}={System.Net.WebUtility.UrlEncode(kv.Value)}"));
-        query["vnp_SecureHash"] = VNPayHelper.HmacSHA512(HashSecret, rawData);
-    }
 
-    [Fact]
-    public async Task Handle_ShouldReturn01_WhenWalletTxnNotFoundInDeposit()
-    {
-        var paymentId = Guid.NewGuid();
-        var walletTxnId = Guid.NewGuid();
-        var query = new Dictionary<string, string>
+        var sortedParams = new SortedList<string, string>(vnpParams, StringComparer.Ordinal);
+
+        var queryBuilder = new StringBuilder();
+        foreach (var kv in sortedParams)
         {
-            ["vnp_TxnRef"] = paymentId.ToString(),
-            ["vnp_ResponseCode"] = "00",
-            ["vnp_Amount"] = "100"
-        };
-        AddSignature(query);
+            if (!string.IsNullOrEmpty(kv.Value))
+            {
+                queryBuilder.Append(kv.Key).Append('=').Append(Uri.EscapeDataString(kv.Value)).Append('&');
+            }
+        }
 
-        var payment = new Payment 
-        { 
-            Id = paymentId, 
-            ReferenceType = PaymentReferenceType.Deposit,
-            ReferenceId = walletTxnId 
-        };
-
-        _paymentRepoMock.Setup(x => x.GetByIdAsync(paymentId, It.IsAny<CancellationToken>())).ReturnsAsync(payment);
-        _transactionRepoMock.Setup(x => x.GetByIdAsync(walletTxnId, It.IsAny<CancellationToken>())).ReturnsAsync((WalletTransaction?)null);
-
-        var result = await _handler.Handle(new VnPayIpnCommand(query), CancellationToken.None);
-
-        result.Value.RspCode.Should().Be("01");
-        result.Value.Message.Should().Contain("Wallet transaction not found");
-    }
-
-    [Fact]
-    public async Task Handle_ShouldThrowException_WhenPaymentIsNull()
-    {
-        var paymentId = Guid.NewGuid();
-        var query = new Dictionary<string, string>
+        if (queryBuilder.Length > 0)
         {
-            ["vnp_TxnRef"] = paymentId.ToString()
-        };
-        AddSignature(query);
+            queryBuilder.Length--;
+        }
 
-        _paymentRepoMock.Setup(x => x.GetByIdAsync(paymentId, It.IsAny<CancellationToken>())).ReturnsAsync((Payment?)null);
+        var signData = queryBuilder.ToString();
+        var hashBytes = new HMACSHA512(Encoding.UTF8.GetBytes(HashSecret)).ComputeHash(Encoding.UTF8.GetBytes(signData));
+        var secureHash = BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
 
-        await Assert.ThrowsAsync<Exception>(() => _handler.Handle(new VnPayIpnCommand(query), CancellationToken.None));
-    }
-
-    [Fact]
-    public async Task Handle_ShouldReturn04_WhenAmountStrIsInvalid()
-    {
-        var paymentId = Guid.NewGuid();
-        var query = new Dictionary<string, string>
-        {
-            ["vnp_TxnRef"] = paymentId.ToString(),
-            ["vnp_Amount"] = "abc"
-        };
-        AddSignature(query);
-
-        var payment = new Payment { Id = paymentId, Status = (int)PaymentStatus.Pending };
-        _paymentRepoMock.Setup(x => x.GetByIdAsync(paymentId, It.IsAny<CancellationToken>())).ReturnsAsync(payment);
-
-        var result = await _handler.Handle(new VnPayIpnCommand(query), CancellationToken.None);
-
-        result.Value.RspCode.Should().Be("04");
+        inputParams["vnp_SecureHash"] = secureHash;
+        return inputParams;
     }
 }

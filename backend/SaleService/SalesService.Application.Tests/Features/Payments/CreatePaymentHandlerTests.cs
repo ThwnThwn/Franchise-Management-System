@@ -1,54 +1,65 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Ardalis.Result;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Moq;
+using SalesService.Application.AppExceptions;
 using SalesService.Application.ClientInterface.Engagement;
 using SalesService.Application.ClientInterface.Inventory;
 using SalesService.Application.ClientInterface.Products;
-using SalesService.Application.Features.Payments.CreatePayment;
-using SalesService.Application.Dtos.Voucher;
 using SalesService.Application.Dtos.Inventory;
-using SalesService.Application.Helpers;
+using SalesService.Application.Dtos.Voucher;
+using SalesService.Application.Features.Payments.CreatePayment;
 using SalesService.Application.Interfaces.Identity;
 using SalesService.Application.Interfaces.Payments;
 using SalesService.Application.Persisitences.Orders;
 using SalesService.Application.Persisitences.Outbox;
 using SalesService.Application.Persisitences.Wallets;
+using SalesService.Application.Persisitences.WalletTransactions;
 using SalesService.Application.Signals;
 using SalesService.Domain.Entities;
 using SalesService.Domain.Enums;
-using SharedKernel.Infrastructure.Kafka;
-using Xunit;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.Linq;
+using SharedKernel.Constants;
+using SharedKernel.Events;
 
 namespace SalesService.Application.Tests.Features.Payments;
 
 public class CreatePaymentHandlerTests
 {
-    private readonly Mock<IOrderRepository> _orderRepo = new();
-    private readonly Mock<IPaymentRepository> _paymentRepo = new();
-    private readonly Mock<IKafkaProducer> _kafkaProducer = new();
-    private readonly Mock<IConfiguration> _config = new();
-    private readonly Mock<IOutboxRepository> _outboxRepo = new();
-    private readonly Mock<IOutboxSignal> _outboxSignal = new();
-    private readonly Mock<IEngagementServiceClient> _engagementClient = new();
-    private readonly Mock<IProductServiceClient> _productClient = new();
-    private readonly Mock<IInventoryServiceClient> _inventoryClient = new();
-    private readonly Mock<IIdentityServiceClient> _identityClient = new();
-    private readonly Mock<IWalletRepository> _walletRepo = new();
-
+    private readonly Mock<IOrderRepository> _orderRepo;
+    private readonly Mock<IPaymentRepository> _paymentRepo;
+    private readonly Mock<IConfiguration> _config;
+    private readonly Mock<IOutboxRepository> _outboxRepo;
+    private readonly Mock<IOutboxSignal> _outboxSignal;
+    private readonly Mock<IEngagementServiceClient> _engagementClient;
+    private readonly Mock<IProductServiceClient> _productClient;
+    private readonly Mock<IInventoryServiceClient> _inventoryClient;
+    private readonly Mock<IIdentityServiceClient> _identityClient;
+    private readonly Mock<IWalletRepository> _walletRepo;
+    private readonly Mock<IWalletTransactionRepository> _walletTxnRepo;
     private readonly CreatePaymentHandler _handler;
 
     public CreatePaymentHandlerTests()
     {
+        _orderRepo = new Mock<IOrderRepository>();
+        _paymentRepo = new Mock<IPaymentRepository>();
+        _config = new Mock<IConfiguration>();
+        _outboxRepo = new Mock<IOutboxRepository>();
+        _outboxSignal = new Mock<IOutboxSignal>();
+        _engagementClient = new Mock<IEngagementServiceClient>();
+        _productClient = new Mock<IProductServiceClient>();
+        _inventoryClient = new Mock<IInventoryServiceClient>();
+        _identityClient = new Mock<IIdentityServiceClient>();
+        _walletRepo = new Mock<IWalletRepository>();
+        _walletTxnRepo = new Mock<IWalletTransactionRepository>();
+
         _handler = new CreatePaymentHandler(
             _orderRepo.Object,
             _paymentRepo.Object,
-            _kafkaProducer.Object,
             _config.Object,
             _outboxRepo.Object,
             _outboxSignal.Object,
@@ -56,236 +67,297 @@ public class CreatePaymentHandlerTests
             _productClient.Object,
             _inventoryClient.Object,
             _identityClient.Object,
-            _walletRepo.Object
+            _walletRepo.Object,
+            _walletTxnRepo.Object
         );
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnInvalid_When_OrderId_Empty()
+    public async Task Handle_WhenOrderIdIsEmpty_ReturnsInvalid()
     {
-        var command = new CreatePaymentCommand(new CreatePaymentReq { OrderId = Guid.Empty });
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var request = new CreatePaymentReq { OrderId = Guid.Empty };
+        var result = await _handler.Handle(new CreatePaymentCommand(request), CancellationToken.None);
+
         result.Status.Should().Be(ResultStatus.Invalid);
+        result.ValidationErrors.First().Identifier.Should().Be("OrderId");
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnNotFound_When_Order_NotExist()
+    public async Task Handle_WhenOrderNotFoundOrDeleted_ReturnsNotFound()
     {
         var orderId = Guid.NewGuid();
+        var request = new CreatePaymentReq { OrderId = orderId };
+
         _orderRepo.Setup(x => x.GetByIdAsync(orderId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Order?)null);
 
-        var command = new CreatePaymentCommand(new CreatePaymentReq { OrderId = orderId });
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await _handler.Handle(new CreatePaymentCommand(request), CancellationToken.None);
+
         result.Status.Should().Be(ResultStatus.NotFound);
     }
 
     [Fact]
-    public async Task Handle_Should_ProcessCashPayment_Successfully()
+    public async Task Handle_WhenOrderIsCompleted_ReturnsError()
     {
-        var order = new Order { Id = Guid.NewGuid(), Code = "ORD-001", Subtotal = 1000, ShippingFee = 50, Status = OrderStatus.PaymentPending };
-        _orderRepo.Setup(x => x.GetByIdAsync(order.Id, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(order);
-        _paymentRepo.Setup(x => x.GetNewestByOrderIdAndStatusAsync(order.Id, PaymentStatus.Paid, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Payment?)null);
-
-        var request = new CreatePaymentReq { OrderId = order.Id, PaymentMethod = PaymentMethod.Cash };
-        var command = new CreatePaymentCommand(request);
-
-        var result = await _handler.Handle(command, CancellationToken.None);
-
-        result.IsSuccess.Should().BeTrue();
-        order.Status.Should().Be(OrderStatus.ConfirmationPending);
-        _paymentRepo.Verify(x => x.CreateAsync(It.IsAny<Payment>(), It.IsAny<CancellationToken>()), Times.Once);
-    }
-
-    [Fact]
-    public async Task Handle_Should_ProcessVNPayPayment_Successfully()
-    {
-        var order = new Order { Id = Guid.NewGuid(), Code = "ORD-001", Subtotal = 1000, ShippingFee = 50, Status = OrderStatus.PaymentPending };
-        _orderRepo.Setup(x => x.GetByIdAsync(order.Id, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(order);
-        
-        var vnpSection = new Mock<IConfigurationSection>();
-        vnpSection.Setup(x => x["PaymentUrl"]).Returns("https://vnpay.vn");
-        vnpSection.Setup(x => x["HashSecret"]).Returns("secret");
-        vnpSection.Setup(x => x["TmnCode"]).Returns("tmn");
-        vnpSection.Setup(x => x["ReturnUrl"]).Returns("http://localhost/return");
-        
-        _config.Setup(x => x.GetSection("VNPay")).Returns(vnpSection.Object);
-
-        var request = new CreatePaymentReq { OrderId = order.Id, PaymentMethod = PaymentMethod.VNPay, ReturnUrl = "http://client/thanks" };
-        var command = new CreatePaymentCommand(request);
-
-        var result = await _handler.Handle(command, CancellationToken.None);
-
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Url.Should().StartWith("https://vnpay.vn");
-    }
-
-    [Fact]
-    public async Task Handle_Should_ProcessVouchersAndPoints_Successfully()
-    {
-        var customerId = Guid.NewGuid();
-        var order = new Order { 
-            Id = Guid.NewGuid(), 
-            Code = "ORD-001", 
-            Subtotal = 1000, 
-            ShippingFee = 50, 
-            Status = OrderStatus.PaymentPending,
-            CustomerId = customerId
-        };
-        _orderRepo.Setup(x => x.GetByIdAsync(order.Id, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(order);
-  
-        var vouchers = new List<Voucher> {
-            new Voucher { Code = "VOU-1", MinOrderValue = 100, Type = VoucherType.DISCOUNT_FIXED_AMOUNT, DiscountValue = 10 }
-        };
-        _engagementClient.Setup(x => x.GetMyVoucherAsync(customerId)).ReturnsAsync(vouchers.AsEnumerable());
-        
-        var userInfo = new UserInfo { 
-            Email = "test@test.com", 
-            LoyaltyTier = new LoyaltyRes { 
-                CurrentTier = new MembershipTier { ValuePerPoint = 1000, DiscountRate = 0.1 } 
-            } 
-        };
-        _identityClient.Setup(x => x.GetUserByIdAsync(customerId)).ReturnsAsync(userInfo);
-        _engagementClient.Setup(x => x.GetMyPointByEmailAsync("test@test.com")).ReturnsAsync(100);
-
-        var request = new CreatePaymentReq { 
-            OrderId = order.Id, 
-            PaymentMethod = PaymentMethod.Cash,
-            VoucherDiscountCode = "VOU-1",
-            Point = 10
-        };
-        var command = new CreatePaymentCommand(request);
-
-        var result = await _handler.Handle(command, CancellationToken.None);
-
-        result.IsSuccess.Should().BeTrue();
-        order.OrderSaleItems.Should().Contain(x => x.Type == OrderSaleItemType.Voucher);
-        order.OrderSaleItems.Should().Contain(x => x.Type == OrderSaleItemType.LoyaltyPoint);
-    }
-
-    [Fact]
-    public async Task Handle_Should_ProcessWallet_Successfully()
-    {
-        var customerId = Guid.NewGuid();
-        var order = new Order { 
-            Id = Guid.NewGuid(), 
-            Code = "ORD-001", 
-            Subtotal = 1000, 
-            ShippingFee = 50, 
-            Status = OrderStatus.PaymentPending,
-            CustomerId = customerId
-        };
-        _orderRepo.Setup(x => x.GetByIdAsync(order.Id, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(order);
-
-        var wallet = new Wallet { Id = Guid.NewGuid(), UserId = customerId, Balance = 500, RowVersion = new byte[] { 1 } };
-        _walletRepo.Setup(x => x.GetByUserIdAsync(customerId, It.IsAny<CancellationToken>())).ReturnsAsync(wallet);
-
-        var request = new CreatePaymentReq { 
-            OrderId = order.Id, 
-            PaymentMethod = PaymentMethod.Cash,
-            Wallet = 100
-        };
-        var command = new CreatePaymentCommand(request);
-
-        var result = await _handler.Handle(command, CancellationToken.None);
-
-        result.IsSuccess.Should().BeTrue();
-        order.OrderSaleItems.Should().Contain(x => x.Type == OrderSaleItemType.Wallet);
-        _walletRepo.Verify(x => x.DeductBalanceAsync(wallet.Id, 100, It.IsAny<byte[]>(), It.IsAny<CancellationToken>()), Times.Once);
-    }
-
-    [Fact]
-    public async Task Handle_Should_ProcessShippingVoucher_Successfully()
-    {
-        var customerId = Guid.NewGuid();
-        var order = new Order { 
-            Id = Guid.NewGuid(), 
-            Code = "ORD-001", 
-            Subtotal = 1000, 
-            ShippingFee = 50, 
-            Status = OrderStatus.PaymentPending,
-            CustomerId = customerId
-        };
-        _orderRepo.Setup(x => x.GetByIdAsync(order.Id, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(order);
-
-        var vouchers = new List<Voucher> {
-            new Voucher { Code = "SHIP-1", MinOrderValue = 100, Type = VoucherType.DISCOUNT_FIXED_AMOUNT, DiscountValue = 30 }
-        };
-        _engagementClient.Setup(x => x.GetMyVoucherAsync(customerId)).ReturnsAsync(vouchers.AsEnumerable());
-        _identityClient.Setup(x => x.GetUserByIdAsync(customerId)).ReturnsAsync(new UserInfo());
-
-        var request = new CreatePaymentReq { 
-            OrderId = order.Id, 
-            PaymentMethod = PaymentMethod.Cash,
-            VoucherShipCode = "SHIP-1"
-        };
-        var command = new CreatePaymentCommand(request);
-
-        var result = await _handler.Handle(command, CancellationToken.None);
-
-        result.IsSuccess.Should().BeTrue();
-        order.OrderSaleItems.Should().Contain(x => x.Name.Contains("Miễn phí Ship"));
-    }
-
-    [Fact]
-    public async Task Handle_Should_ProcessVoucherGiftItems_Successfully()
-    {
-        var customerId = Guid.NewGuid();
         var orderId = Guid.NewGuid();
-        var order = new Order { 
-            Id = orderId, 
-            Code = "ORD-001", 
-            Subtotal = 1000, 
-            ShippingFee = 50, 
-            Status = OrderStatus.PaymentPending,
+        var order = new Order { Id = orderId, Status = OrderStatus.Completed };
+        var request = new CreatePaymentReq { OrderId = orderId };
+
+        _orderRepo.Setup(x => x.GetByIdAsync(orderId, It.IsAny<CancellationToken>())).ReturnsAsync(order);
+
+        var result = await _handler.Handle(new CreatePaymentCommand(request), CancellationToken.None);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.First().Should().Contain("đã hoàn thành");
+    }
+
+    [Fact]
+    public async Task Handle_WhenPaymentAlreadyPaid_ReturnsError()
+    {
+        var orderId = Guid.NewGuid();
+        var order = new Order { Id = orderId, Status = OrderStatus.PaymentPending };
+        var request = new CreatePaymentReq { OrderId = orderId };
+
+        _orderRepo.Setup(x => x.GetByIdAsync(orderId, It.IsAny<CancellationToken>())).ReturnsAsync(order);
+        _paymentRepo.Setup(x => x.GetNewestByOrderIdAndStatusAsync(orderId, PaymentStatus.Paid, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new Payment());
+
+        var result = await _handler.Handle(new CreatePaymentCommand(request), CancellationToken.None);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.First().Should().Contain("đã được thanh toán thành công");
+    }
+
+    [Fact]
+    public async Task Handle_WhenVNPayAmountUnder10k_RollbacksAndReturnsError()
+    {
+        var orderId = Guid.NewGuid();
+        var customerId = Guid.NewGuid();
+        var storeId = Guid.NewGuid();
+
+        var order = new Order
+        {
+            Id = orderId,
             CustomerId = customerId,
-            StoreId = Guid.NewGuid()
+            StoreId = storeId,
+            Subtotal = 50000m, // 1 ly Arabica 50k
+            ShippingFee = 0,
+            OrderItems = new List<OrderItem>
+            {
+                new OrderItem { Sku = "CF-ARABICA", Quantity = 1, UnitPrice = 50000m }
+            },
+            OrderSaleItems = new List<OrderSaleItem>()
         };
-        order.OrderItems.Add(new OrderItem { Sku = "SKU-REQ", Quantity = 1 });
-        
-        _orderRepo.Setup(x => x.GetByIdAsync(order.Id, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(order);
- 
-        var voucherId = Guid.NewGuid();
-        var vouchers = new List<Voucher> {
-            new Voucher { 
-                Id = voucherId, 
-                Code = "GIFT-1", 
-                MinOrderValue = 100, 
-                Type = VoucherType.GIFT, 
-                VoucherItems = new List<VoucherItem> {
-                    new VoucherItem { Sku = "SKU-REQ", Quantity = 1, Type = VoucherItemType.ITEM_REQUIRED, VoucherId = voucherId },
-                    new VoucherItem { Sku = "SKU-GIFT", Quantity = 1, Type = VoucherItemType.ITEM_GIFT, VoucherId = voucherId }
-                }
+
+        var request = new CreatePaymentReq
+        {
+            OrderId = orderId,
+            PaymentMethod = PaymentMethod.VNPay,
+            Wallet = 45000m // Trừ ví 45k -> Còn lại phải thanh toán 10k (tính cả thuế) -> Fail VNPay rule
+        };
+
+        var userWallet = new Wallet { Id = Guid.NewGuid(), Balance = 100000m };
+
+        _orderRepo.Setup(x => x.GetByIdAsync(orderId, It.IsAny<CancellationToken>())).ReturnsAsync(order);
+        _walletRepo.Setup(x => x.GetByUserIdAsync(customerId, It.IsAny<CancellationToken>())).ReturnsAsync(userWallet);
+        _inventoryClient.Setup(x => x.ReserveStockAsync(It.IsAny<ReserveStockReq>()))
+            .ReturnsAsync(new CheckEnoughStockRes { IsEnough = true });
+
+        var result = await _handler.Handle(new CreatePaymentCommand(request), CancellationToken.None);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.First().Should().Contain("phải từ 10.000 VNĐ trở lên");
+        _inventoryClient.Verify(x => x.ReleaseStockAsync(It.Is<ReleaseStockReq>(r => r.OrderId == orderId)), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_WhenWalletBalanceInsufficient_ThrowsBusinessException()
+    {
+        var orderId = Guid.NewGuid();
+        var customerId = Guid.NewGuid();
+        var order = new Order
+        {
+            Id = orderId,
+            CustomerId = customerId,
+            Subtotal = 35000m, // Bạc xỉu
+            OrderItems = new List<OrderItem>(),
+            OrderSaleItems = new List<OrderSaleItem>()
+        };
+
+        var request = new CreatePaymentReq
+        {
+            OrderId = orderId,
+            PaymentMethod = PaymentMethod.Cash,
+            Wallet = 50000m
+        };
+
+        var userWallet = new Wallet { Id = Guid.NewGuid(), Balance = 10000m }; // Có 10k mà đòi xài 50k
+
+        _orderRepo.Setup(x => x.GetByIdAsync(orderId, It.IsAny<CancellationToken>())).ReturnsAsync(order);
+        _walletRepo.Setup(x => x.GetByUserIdAsync(customerId, It.IsAny<CancellationToken>())).ReturnsAsync(userWallet);
+
+        var action = async () => await _handler.Handle(new CreatePaymentCommand(request), CancellationToken.None);
+
+        await action.Should().ThrowAsync<BusinessException>().WithMessage("Số dư ví không đủ.");
+    }
+
+    [Fact]
+    public async Task Handle_WhenInventoryShortageAtFinalReserve_ThrowsBusinessException()
+    {
+        var orderId = Guid.NewGuid();
+        var storeId = Guid.NewGuid();
+        var order = new Order
+        {
+            Id = orderId,
+            StoreId = storeId,
+            Subtotal = 30000m,
+            OrderItems = new List<OrderItem> { new OrderItem { Sku = "CAFE-DEN", Quantity = 1 } },
+            OrderSaleItems = new List<OrderSaleItem>()
+        };
+
+        var request = new CreatePaymentReq { OrderId = orderId, PaymentMethod = PaymentMethod.Cash };
+
+        _orderRepo.Setup(x => x.GetByIdAsync(orderId, It.IsAny<CancellationToken>())).ReturnsAsync(order);
+        _inventoryClient.Setup(x => x.ReserveStockAsync(It.IsAny<ReserveStockReq>()))
+            .ReturnsAsync(new CheckEnoughStockRes { IsEnough = false });
+
+        var action = async () => await _handler.Handle(new CreatePaymentCommand(request), CancellationToken.None);
+
+        await action.Should().ThrowAsync<BusinessException>().WithMessage("Không đủ số lượng hàng quà tặng trong kho!");
+    }
+
+    [Fact]
+    public async Task Handle_WhenGuestCashPayment_Successful_GeneratesCashFlowEvents()
+    {
+        var orderId = Guid.NewGuid();
+        var storeId = Guid.NewGuid();
+        var order = new Order
+        {
+            Id = orderId,
+            Code = "ORD-GUEST",
+            StoreId = storeId,
+            Subtotal = 40000m, // Hồng trà
+            ShippingFee = 15000m,
+            OrderItems = new List<OrderItem> { new OrderItem { Sku = "HONG-TRA", Quantity = 1 } },
+            OrderSaleItems = new List<OrderSaleItem>()
+        };
+
+        var request = new CreatePaymentReq { OrderId = orderId, PaymentMethod = PaymentMethod.Cash };
+
+        _orderRepo.Setup(x => x.GetByIdAsync(orderId, It.IsAny<CancellationToken>())).ReturnsAsync(order);
+        _inventoryClient.Setup(x => x.ReserveStockAsync(It.IsAny<ReserveStockReq>()))
+            .ReturnsAsync(new CheckEnoughStockRes { IsEnough = true });
+
+        var result = await _handler.Handle(new CreatePaymentCommand(request), CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Url.Should().BeEmpty();
+
+        order.Status.Should().Be(OrderStatus.ConfirmationPending);
+        order.PaidAmount.Should().Be(60500m); // (40k + 15k) * 1.1 thuế
+
+        _outboxRepo.Verify(x => x.Add(It.Is<OutboxMessage>(m => m.Type == KafkaTopics.OrderNotifications)), Times.Once);
+        _outboxRepo.Verify(x => x.Add(It.Is<OutboxMessage>(m => m.Type == KafkaTopics.OrderPaid)), Times.Once);
+        _outboxSignal.Verify(x => x.Pulse(), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_WhenAuthenticatedUserWithGiftVoucherAndVNPay_GeneratesVNPayUrl()
+    {
+        var orderId = Guid.NewGuid();
+        var customerId = Guid.NewGuid();
+        var storeId = Guid.NewGuid();
+
+        var order = new Order
+        {
+            Id = orderId,
+            Code = "ORD-MATCHA",
+            CustomerId = customerId,
+            StoreId = storeId,
+            Subtotal = 55000m,
+            ShippingFee = 0,
+            OrderItems = [new() { Sku = "MATCHA-LATTE", Quantity = 1 }],
+            OrderSaleItems = []
+        };
+
+        var request = new CreatePaymentReq
+        {
+            OrderId = orderId,
+            PaymentMethod = PaymentMethod.VNPay,
+            VoucherDiscountCode = "TANG-BANH",
+            ReturnUrl = "https://coffee.com/return"
+        };
+
+        var voucher = new Voucher
+        {
+            Id = Guid.NewGuid(),
+            Code = "TANG-BANH",
+            Type = VoucherType.GIFT,
+            MinOrderValue = 50000m,
+            VoucherItems = [new() { Type = VoucherItemType.ITEM_GIFT, Sku = "BANH-CROISSANT", Quantity = 1 }]
+        };
+
+        _orderRepo.Setup(x => x.GetByIdAsync(orderId, It.IsAny<CancellationToken>())).ReturnsAsync(order);
+        _engagementClient.Setup(x => x.GetMyVoucherAsync(customerId)).ReturnsAsync([voucher]);
+
+        _productClient.Setup(x => x.GetListProductVariantsBySkusAsync(It.IsAny<List<string>>()))
+            .ReturnsAsync([new() { Sku = "BANH-CROISSANT", BasePrice = 0 }]);
+
+        _inventoryClient.Setup(x => x.ReserveStockAsync(It.IsAny<ReserveStockReq>()))
+            .ReturnsAsync(new CheckEnoughStockRes { IsEnough = true });
+
+        var vnpSection = new Mock<IConfigurationSection>();
+        vnpSection.Setup(s => s["PaymentUrl"]).Returns("https://sandbox.vnpayment.vn/paymentv2/vpcpay.html");
+        vnpSection.Setup(s => s["HashSecret"]).Returns("SECRET");
+        vnpSection.Setup(s => s["TmnCode"]).Returns("TMN");
+        vnpSection.Setup(s => s["ReturnUrl"]).Returns("https://api.coffee.com/vnpay-return");
+        _config.Setup(c => c.GetSection("VNPay")).Returns(vnpSection.Object);
+
+        var result = await _handler.Handle(new CreatePaymentCommand(request), CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Url.Should().Contain("sandbox.vnpayment.vn");
+        order.OrderItems.Should().Contain(x => x.Sku == "BANH-CROISSANT");
+        order.OrderSaleItems.Should().Contain(x => x.Name == "BANH-CROISSANT");
+    }
+
+    [Fact]
+    public async Task Handle_WithExistingGiftSaleItems_CleansUpRamCorrectly()
+    {
+        var orderId = Guid.NewGuid();
+        var storeId = Guid.NewGuid();
+
+        var order = new Order
+        {
+            Id = orderId,
+            StoreId = storeId,
+            Subtotal = 50000m,
+            OrderItems =
+            [
+                new() { Sku = "TRA-SUA", Quantity = 2 }, // Base 1 + Gift 1
+                new() { Sku = "TOPPING-TRAN-CHAU", Quantity = 1 } // Gift
+            ],
+            OrderSaleItems = new List<OrderSaleItem>
+            {
+                new OrderSaleItem { Type = OrderSaleItemType.Voucher, Name = "TRA-SUA", Amount = 1 },
+                new OrderSaleItem { Type = OrderSaleItemType.Voucher, Name = "TOPPING-TRAN-CHAU", Amount = 1 }
             }
         };
-        _engagementClient.Setup(x => x.GetMyVoucherAsync(customerId)).ReturnsAsync(vouchers.AsEnumerable());
-        
-        _identityClient.Setup(x => x.GetUserByIdAsync(customerId)).ReturnsAsync(new UserInfo());
 
-        var variants = new List<ProductVariantInfo> {
-            new ProductVariantInfo { Sku = "SKU-GIFT", VariantId = Guid.NewGuid(), ProductId = Guid.NewGuid(), ProductName = "Gift Item", BasePrice = 0 }
-        };
-        _productClient.Setup(x => x.GetListProductVariantsBySkusAsync(It.IsAny<List<string>>())).ReturnsAsync(variants);
-        _inventoryClient.Setup(x => x.ReleaseStockAsync(It.IsAny<ReleaseStockReq>())).ReturnsAsync(new ReleaseStockRes { Success = true });
-        _inventoryClient.Setup(x => x.ReserveStockAsync(It.IsAny<ReserveStockReq>())).ReturnsAsync(new CheckEnoughStockRes { IsEnough = true });
+        var request = new CreatePaymentReq { OrderId = orderId, PaymentMethod = PaymentMethod.Cash };
 
-        var request = new CreatePaymentReq { 
-            OrderId = order.Id, 
-            PaymentMethod = PaymentMethod.Cash,
-            VoucherDiscountCode = "GIFT-1"
-        };
-        var command = new CreatePaymentCommand(request);
+        _orderRepo.Setup(x => x.GetByIdAsync(orderId, It.IsAny<CancellationToken>())).ReturnsAsync(order);
+        _inventoryClient.Setup(x => x.ReserveStockAsync(It.IsAny<ReserveStockReq>()))
+            .ReturnsAsync(new CheckEnoughStockRes { IsEnough = true });
 
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await _handler.Handle(new CreatePaymentCommand(request), CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
-        order.OrderItems.Any(x => x.Sku == "SKU-GIFT").Should().BeTrue();
+
+        // Assert dọn dẹp RAM thành công (Xóa 1 Trà sữa, Xóa hẳn Trân châu)
+        order.OrderItems.Should().HaveCount(1);
+        order.OrderItems.First().Sku.Should().Be("TRA-SUA");
+        order.OrderItems.First().Quantity.Should().Be(1);
+        order.OrderSaleItems.Should().BeEmpty(); // Because Cash payment without voucher request
     }
 }

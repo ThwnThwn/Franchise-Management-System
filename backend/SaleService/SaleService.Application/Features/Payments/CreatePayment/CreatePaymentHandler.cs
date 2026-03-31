@@ -5,6 +5,7 @@ using SalesService.Application.AppExceptions;
 using SalesService.Application.ClientInterface.Engagement;
 using SalesService.Application.ClientInterface.Inventory;
 using SalesService.Application.ClientInterface.Products;
+using SalesService.Application.Constants;
 using SalesService.Application.Dtos.Inventory;
 using SalesService.Application.Dtos.Voucher;
 using SalesService.Application.Helpers;
@@ -21,14 +22,12 @@ using SalesService.Domain.Enums;
 using SharedKernel.Constants;
 using SharedKernel.Events;
 using SharedKernel.Infrastructure.Extensions;
-using SharedKernel.Infrastructure.Kafka;
 
 namespace SalesService.Application.Features.Payments.CreatePayment;
 
 public sealed class CreatePaymentHandler(
     IOrderRepository orderRepository,
     IPaymentRepository paymentRepository,
-    IKafkaProducer kafkaProducer,
     IConfiguration config,
     IOutboxRepository outboxRepository,
     IOutboxSignal outboxSignal,
@@ -44,7 +43,7 @@ public sealed class CreatePaymentHandler(
         CreatePaymentCommand command,
         CancellationToken cancellationToken)
     {
-        var request = command.Requets;
+        var request = command.Request;
         if (request.OrderId == Guid.Empty)
         {
             return Result.Invalid(new ValidationError
@@ -62,11 +61,6 @@ public sealed class CreatePaymentHandler(
         if (order.Status == OrderStatus.Completed)
             return Result.Error("Order này đã hoàn thành.");
 
-        if (order.PaidAmount <= 10000 && order.PaymentMethod == PaymentMethod.VNPay)
-        {
-            return Result.Error("Hóa đơn phải trên 10.000 VNĐ để sử dụng VN Pay, vui lòng sử dụng phương thức thanh toán khác!");
-        }
-
         // Ràng buộc: Không cho tạo thêm Payment nếu đã có Payment thành công (Paid)
         var existingPaidPayment = await paymentRepository.GetNewestByOrderIdAndStatusAsync(request.OrderId, PaymentStatus.Paid, cancellationToken);
         if (existingPaidPayment != null)
@@ -79,6 +73,46 @@ public sealed class CreatePaymentHandler(
         decimal totalProductDiscount = 0m;
         decimal totalShippingDiscount = 0m;
 
+        // =======================================================
+        // 1. DỌN DẸP IN-MEMORY TRƯỚC (XÓA SALE ITEMS & QUÀ TẶNG CŨ)
+        // =======================================================
+        if (order.OrderSaleItems.Count != 0)
+        {
+            var giftSaleItems = order.OrderSaleItems
+                .Where(x => x.Type == OrderSaleItemType.Voucher
+                         && !x.Name.StartsWith(SaleItemDescriptions.ProductDiscount)
+                         && !x.Name.StartsWith(SaleItemDescriptions.ShippingDiscount))
+                .ToList();
+
+            foreach (var gift in giftSaleItems)
+            {
+                var sku = gift.Name;
+                var giftQuantity = (int)gift.Amount;
+
+                var orderItem = order.OrderItems.FirstOrDefault(x => x.Sku == sku);
+                if (orderItem != null)
+                {
+                    orderItem.Quantity -= giftQuantity;
+                    if (orderItem.Quantity <= 0)
+                    {
+                        order.OrderItems.Remove(orderItem);
+                    }
+                }
+            }
+            order.OrderSaleItems.Clear();
+        }
+
+        // =======================================================
+        // 2. LẤY MỐC SỐ LƯỢNG HÀNG GỐC (DÙNG ĐỂ ROLLBACK NẾU LỖI)
+        // =======================================================
+        // Lúc này order.OrderItems CHẮC CHẮN chỉ còn lại hàng khách thực sự mua (không dính quà tặng cũ)
+        var baseReserveItems = order.OrderItems.Select(o => new AmountVariant
+        {
+            VariantId = o.VariantId,
+            Sku = o.Sku,
+            Amount = o.Quantity
+        }).ToList();
+
         if (!isGuest)
         {
             var customerId = order.CustomerId!.Value;
@@ -89,7 +123,7 @@ public sealed class CreatePaymentHandler(
             totalShippingDiscount += shipDiscount;
 
             // Điểm thưởng thường trừ vào tiền hàng
-            totalProductDiscount += await ProcessLoyaltyAsync(request, order, customerId);
+            totalProductDiscount += await ProcessLoyaltyAsync(request, order, customerId, totalProductDiscount);
         }
 
         // Tính số tiền chịu thuế (chưa làm tròn)
@@ -98,7 +132,7 @@ public sealed class CreatePaymentHandler(
         decimal taxableAmount = taxableItemAmount + taxableShippingAmount;
 
         // Tính TỔNG TIỀN CHỐT HẠ (nhân 1.1 để thêm 10% thuế) và Làm tròn thành số nguyên
-        order.TotalAmount = Math.Round(taxableAmount * 1.1m);
+        order.TotalAmount = Math.Round(taxableAmount * 1.1m, MidpointRounding.AwayFromZero);
 
         // Tính ngược lại số THUẾ (Đảm bảo chắc chắn: TaxableAmount + Tax = TotalAmount)
         order.Tax = order.TotalAmount - taxableAmount;
@@ -124,6 +158,40 @@ public sealed class CreatePaymentHandler(
         {
             fetchedWallet = await ProcessWalletAsync(request, order, payment, order.CustomerId!.Value);
         }
+
+        if (request.PaymentMethod == PaymentMethod.VNPay && payment.Amount < 10000)
+        {
+            if (payment.Amount == 0)
+                return Result.Error("Số tiền thanh toán đã bằng 0. Vui lòng chọn phương thức thanh toán tiền mặt (Cash) để hoàn tất.");
+
+            return Result.Error("Số tiền thanh toán qua VNPay phải từ 10.000 VNĐ trở lên. Vui lòng giảm số tiền dùng ví hoặc dùng phương thức khác!");
+        }
+
+        // =======================================================
+        // CHỐT KHO TRƯỚC KHI LƯU DB
+        // =======================================================
+        var finalReserveItems = order.OrderItems.Select(o => new AmountVariant
+        {
+            VariantId = o.VariantId,
+            Sku = o.Sku,
+            Amount = o.Quantity
+        }).ToList();
+
+        // Nhả kho Base ra và Khóa kho Final (Bao gồm Base + Gifts)
+        await inventoryServiceClient.ReleaseStockAsync(new ReleaseStockReq
+        {
+            OrderId = order.Id,
+            StoreId = order.StoreId!.Value
+        });
+        var finalReserveRes = await inventoryServiceClient.ReserveStockAsync(new ReserveStockReq
+        {
+            StoreId = order.StoreId!.Value,
+            OrderId = order.Id,
+            Items = finalReserveItems
+        });
+
+        if (!finalReserveRes.IsEnough)
+            throw new BusinessException("Không đủ số lượng hàng quà tặng trong kho!");
 
         // Tiến hành commit
         if (request.PaymentMethod == PaymentMethod.Cash)
@@ -187,12 +255,12 @@ public sealed class CreatePaymentHandler(
                     decimal calc = order.Subtotal * voucherDiscount.DiscountValue.GetValueOrDefault() / 100m;
                     decimal applied = voucherDiscount.MaxDiscountValue.HasValue ? Math.Min(calc, voucherDiscount.MaxDiscountValue.Value) : calc;
                     productDiscount += applied;
-                    AddOrderSaleItem(order, $"Giảm giá SP: {voucherDiscount.Code}", applied, voucherDiscount.Id, OrderSaleItemType.Voucher);
+                    AddOrderSaleItem(order, $"{SaleItemDescriptions.ProductDiscount}: {voucherDiscount.Code}", applied, voucherDiscount.Id, OrderSaleItemType.Voucher);
                 }
                 else if (voucherDiscount.Type == VoucherType.DISCOUNT_FIXED_AMOUNT)
                 {
                     productDiscount += voucherDiscount.DiscountValue.GetValueOrDefault();
-                    AddOrderSaleItem(order, $"Giảm giá SP: {voucherDiscount.Code}", voucherDiscount.DiscountValue.GetValueOrDefault(), voucherDiscount.Id, OrderSaleItemType.Voucher);
+                    AddOrderSaleItem(order, $"{SaleItemDescriptions.ProductDiscount}: {voucherDiscount.Code}", voucherDiscount.DiscountValue.GetValueOrDefault(), voucherDiscount.Id, OrderSaleItemType.Voucher);
                 }
             }
         }
@@ -219,7 +287,7 @@ public sealed class CreatePaymentHandler(
                 appliedShip = Math.Min(appliedShip, order.ShippingFee);
 
                 shippingDiscount += appliedShip;
-                AddOrderSaleItem(order, $"Miễn phí Ship: {voucherShip.Code}", appliedShip, voucherShip.Id, OrderSaleItemType.Voucher);
+                AddOrderSaleItem(order, $"{SaleItemDescriptions.ShippingDiscount}: {voucherShip.Code}", appliedShip, voucherShip.Id, OrderSaleItemType.Voucher);
             }
         }
 
@@ -248,27 +316,27 @@ public sealed class CreatePaymentHandler(
         if (variants.Count != skus.Count)
             throw new Exception("Không tìm thấy đủ sản phẩm được tặng.");
 
-        var newReserveItems = variants.Select(v => new AmountVariant
-        {
-            VariantId = v.VariantId,
-            Sku = v.Sku,
-            Amount = giftItems.First(i => i.Sku == v.Sku).Quantity
-        }).ToList();
+        //var newReserveItems = variants.Select(v => new AmountVariant
+        //{
+        //    VariantId = v.VariantId,
+        //    Sku = v.Sku,
+        //    Amount = giftItems.First(i => i.Sku == v.Sku).Quantity
+        //}).ToList();
 
         // Inventory: Release & Reserve
-        await inventoryServiceClient.ReleaseStockAsync(new ReleaseStockReq
-        {
-            OrderId = order.Id,
-            StoreId = order.StoreId!.Value
-        });
+        //await inventoryServiceClient.ReleaseStockAsync(new ReleaseStockReq
+        //{
+        //    OrderId = order.Id,
+        //    StoreId = order.StoreId!.Value
+        //});
 
-        var reserveRes = await inventoryServiceClient.ReserveStockAsync(new ReserveStockReq
-        {
-            OrderId = order.Id,
-            StoreId = order.StoreId!.Value,
-            Items = newReserveItems
-        });
-        if (!reserveRes.IsEnough) throw new Exception($"Cập nhật kho thất bại: {reserveRes.ShortageItems}");
+        //var reserveRes = await inventoryServiceClient.ReserveStockAsync(new ReserveStockReq
+        //{
+        //    OrderId = order.Id,
+        //    StoreId = order.StoreId!.Value,
+        //    Items = newReserveItems
+        //});
+        //if (!reserveRes.IsEnough) throw new Exception($"Cập nhật kho thất bại.");
 
         // Add OrderItems & SaleItems
         foreach (var item in giftItems)
@@ -297,34 +365,65 @@ public sealed class CreatePaymentHandler(
         }
     }
 
-    private async Task<decimal> ProcessLoyaltyAsync(CreatePaymentReq request, Order order, Guid customerId)
+    private async Task<decimal> ProcessLoyaltyAsync(CreatePaymentReq request, Order order, Guid customerId, decimal currentProductDiscount)
     {
         decimal loyaltyDiscount = 0;
         var user = await identityServiceClient.GetUserByIdAsync(customerId);
-        if (user == null || user.LoyaltyTier == null) return 0;
 
-        // 1. Point
+        // Gom chung cái check Tier vào đây cho gọn
+        if (user == null || user.LoyaltyTier?.CurrentTier == null) return 0;
+
+        // 1. TÍNH TIỀN HÀNG CÒN LẠI SAU KHI ÁP VOUCHER
+        decimal remainingSubtotal = Math.Max(0, order.Subtotal - currentProductDiscount);
+
+        // 2. POINT (ĐIỂM)
         if (request.Point != null && request.Point > 0)
         {
             var pointBalance = await engagementServiceClient.GetMyPointByEmailAsync(user.Email);
             if (pointBalance < request.Point)
                 throw new BusinessException("Điểm còn lại trong tài khoản không đủ.");
 
-            decimal pointValue = request.Point.Value * user.LoyaltyTier.CurrentTier!.ValuePerPoint;
+            decimal pointValue = request.Point.Value * user.LoyaltyTier.CurrentTier.ValuePerPoint;
+
+            // BÓP CHẶT: Quy ra tiền không được lớn hơn Tiền hàng còn lại
+            if (pointValue > remainingSubtotal)
+            {
+                // Tính số điểm tối đa để báo lỗi cho user biết đường mà sửa
+                var valuePerPoint = user.LoyaltyTier.CurrentTier.ValuePerPoint;
+                var maxPointsAllowed = valuePerPoint > 0 ? Math.Floor(remainingSubtotal / valuePerPoint) : 0;
+
+                throw new BusinessException(
+                    $"Số điểm sử dụng ({request.Point:N0}) quy đổi ra {pointValue:N0}đ, " +
+                    $"vượt quá tiền hàng còn lại ({remainingSubtotal:N0}đ). " +
+                    $"Bạn chỉ có thể dùng tối đa {maxPointsAllowed:N0} điểm cho đơn hàng này."
+                );
+            }
+
             loyaltyDiscount += pointValue;
-            AddOrderSaleItem(order, $"Dùng {request.Point} điểm", pointValue, user.LoyaltyTier.CurrentTier.Id, OrderSaleItemType.LoyaltyPoint);
+            remainingSubtotal -= pointValue; // Trừ tiếp để lát xuống dưới chặn Tier Discount
+
+            AddOrderSaleItem(order, $"{SaleItemDescriptions.PointUsage} {request.Point} điểm", pointValue, user.LoyaltyTier.CurrentTier.Id, OrderSaleItemType.LoyaltyPoint);
         }
 
-        // 2. Tier Discount
-        if (user.LoyaltyTier?.CurrentTier != null)
+        // 3. TIER DISCOUNT (CHIẾT KHẤU HẠNG)
+        if (user.LoyaltyTier.CurrentTier.DiscountRate > 0)
         {
+            // Tính chiết khấu (vẫn dựa trên Subtotal gốc theo ý tưởng cũ của bro)
             decimal tierDiscount = order.Subtotal * (decimal)user.LoyaltyTier.CurrentTier.DiscountRate;
+
+            // BÓP CHẶT: Không được vượt quá phần tiền hàng còn lại
+            if (tierDiscount > remainingSubtotal)
+            {
+                tierDiscount = remainingSubtotal; // Nếu vọt lố thì cắt ngang bằng đúng phần còn dư
+            }
+
             if (tierDiscount > 0)
             {
                 loyaltyDiscount += tierDiscount;
                 AddOrderSaleItem(order, user.LoyaltyTier.CurrentTier.Name, tierDiscount, user.LoyaltyTier.CurrentTier.Id, OrderSaleItemType.DiscountRate);
             }
         }
+
         return loyaltyDiscount;
     }
 
@@ -336,8 +435,13 @@ public sealed class CreatePaymentHandler(
         if (userWallet.Balance < request.Wallet)
             throw new BusinessException("Số dư ví không đủ.");
 
-        payment.Amount -= request.Wallet!.Value;
-        AddOrderSaleItem(order, "Dùng số dư ví", request.Wallet!.Value, userWallet.Id, OrderSaleItemType.Wallet);
+        var appliedWallet = Math.Min(request.Wallet!.Value, payment.Amount);
+
+        if (request.Wallet!.Value > payment.Amount)
+            throw new BusinessException($"Số tiền dùng từ ví ({request.Wallet.Value:N0}) không được vượt quá số tiền cần thanh toán ({payment.Amount:N0}).");
+
+        payment.Amount -= appliedWallet;
+        AddOrderSaleItem(order, SaleItemDescriptions.WalletUsage, request.Wallet!.Value, userWallet.Id, OrderSaleItemType.Wallet);
 
         return userWallet;
     }
@@ -351,7 +455,7 @@ public sealed class CreatePaymentHandler(
         {
             var orderStatusEvent = OrderToKafka.MapToOrderStatusEvent(order);
             outboxRepository.AddEvent(orderStatusEvent, KafkaTopics.OrderNotifications);
-            await kafkaProducer.PublishAsync(KafkaTopics.OrderNotifications, orderStatusEvent);
+            //await kafkaProducer.PublishAsync(KafkaTopics.OrderNotifications, orderStatusEvent);
 
             var orderPaidEvent = OrderToKafka.MapToOrderPaidEvent(order);
             outboxRepository.AddEvent(orderPaidEvent, KafkaTopics.OrderPaid);
@@ -367,24 +471,37 @@ public sealed class CreatePaymentHandler(
 
             if (voucherIds.Count != 0)
             {
-                await kafkaProducer.PublishAsync(KafkaTopics.DeductUserVoucher, new UseVouchersEvent
+                outboxRepository.AddEvent(new UseVouchersEvent
                 {
                     OrderId = order.Id,
                     UserId = order.CustomerId!.Value,
                     VoucherIds = voucherIds
-                });
+                }, KafkaTopics.DeductUserVoucher);
+                //await kafkaProducer.PublishAsync(KafkaTopics.DeductUserVoucher, new UseVouchersEvent
+                //{
+                //    OrderId = order.Id,
+                //    UserId = order.CustomerId!.Value,
+                //    VoucherIds = voucherIds
+                //});
             }
 
             // Kafka Point (Lấy thẳng từ request, không đọc nhầm Amount)
             if (request.Point != null && request.Point > 0)
             {
-                await kafkaProducer.PublishAsync(KafkaTopics.UpdateUserPoint, new UpdatePointEvent
+                outboxRepository.AddEvent(new UpdatePointEvent
                 {
                     Id = order.CustomerId!.Value,
                     OrderId = order.Id,
                     Point = request.Point.Value,
                     ActionType = UpdatePointType.Minus
-                });
+                }, KafkaTopics.UpdateUserPoint);
+                //await kafkaProducer.PublishAsync(KafkaTopics.UpdateUserPoint, new UpdatePointEvent
+                //{
+                //    Id = order.CustomerId!.Value,
+                //    OrderId = order.Id,
+                //    Point = request.Point.Value,
+                //    ActionType = UpdatePointType.Minus
+                //});
             }
 
             // Wallet Deduct
