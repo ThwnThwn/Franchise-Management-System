@@ -1,3 +1,4 @@
+using FranchiseService.Application.ClientInterfaces;
 using FranchiseService.Application.Repositories;
 using FranchiseService.Domain.Enums;
 using MediatR;
@@ -16,36 +17,73 @@ public class UpdateSetupStatusCommand : IRequest<bool>
     public Guid UpdatedBy { get; set; }
 }
 
-public class UpdateSetupStatusHandler : IRequestHandler<UpdateSetupStatusCommand, bool>
+public class UpdateSetupStatusHandler(
+    IFranchiseUow uow,
+    IFranchiseContractRepository contractRepo,
+    IStoreRepository storeRepo,
+    IIdentityServiceClient identityServiceClient,
+    ILogger<UpdateSetupStatusHandler> logger
+) : IRequestHandler<UpdateSetupStatusCommand, bool>
 {
-    private readonly IFranchiseContractRepository _contractRepo;
-    private readonly ILogger<UpdateSetupStatusHandler> _logger;
-
-    public UpdateSetupStatusHandler(
-        IFranchiseContractRepository contractRepo,
-        ILogger<UpdateSetupStatusHandler> logger)
-    {
-        _contractRepo = contractRepo;
-        _logger = logger;
-    }
-
     public async Task<bool> Handle(UpdateSetupStatusCommand request, CancellationToken cancellationToken)
     {
-        var contract = await _contractRepo.GetByIdAsync(request.ContractId)
-            ?? throw new KeyNotFoundException($"Không tìm thấy hợp đồng với ID: {request.ContractId}");
+        await uow.BeginTransactionAsync(cancellationToken);
 
-        if (contract.Status != ContractStatus.Active)
-            throw new InvalidOperationException(
-                "Chỉ có thể cập nhật tiến độ thi công khi hợp đồng đang ở trạng thái Active.");
+        try
+        {
+            var contract = await contractRepo.GetByIdAsync(request.ContractId)
+                ?? throw new KeyNotFoundException($"Không tìm thấy hợp đồng với ID: {request.ContractId}");
 
-        contract.SetupStatus = request.SetupStatus;
-        contract.UpdatedAt = DateTimeOffset.UtcNow;
-        await _contractRepo.UpdateAsync(contract);
+            if (contract.Status != ContractStatus.Active)
+                throw new InvalidOperationException(
+                    "Chỉ có thể cập nhật tiến độ thi công khi hợp đồng đang ở trạng thái Active.");
 
-        _logger.LogInformation(
-            "Contract {ContractId} setup status updated to {Status} by {UserId}",
-            contract.Id, request.SetupStatus, request.UpdatedBy);
+            contract.SetupStatus = request.SetupStatus;
+            contract.UpdatedAt = DateTimeOffset.UtcNow;
 
-        return true;
+            if (request.SetupStatus == ContractSetupStatus.Ready)
+            {
+                var application = contract.Application;
+                var newStore = new Domain.Entities.Store
+                {
+                    Id = Guid.NewGuid(),
+                    Code = $"STR-{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}",
+                    Name = application.StoreName,
+                    Address = application.StoreAddress,
+                    Phone = application.Phone,
+                    Email = application.Email,
+                    Type = (int)StoreType.Franchise,
+                    Status = (int)StoreStatus.Open,
+                    ImageUrl = application.StoreFrontUrl,
+                    Latitude = application.StoreLatitude,
+                    Longitude = application.StoreLongitude,
+                };
+
+                contract.Application.StoreId = newStore.Id;
+
+                await storeRepo.AddOnlyAsync(newStore);
+
+                await identityServiceClient.UpdateUserAsync(new UserInfo
+                {
+                    Id = application.ManagerId,
+                    RoleSlug = "manager",
+                    HomeStoreId = newStore.Id
+                }, cancellationToken);
+            }
+
+            await uow.SaveChangesAsync(cancellationToken);
+
+            logger.LogInformation(
+                "Contract {ContractId} setup status updated to {Status} by {UserId}",
+                contract.Id, request.SetupStatus, request.UpdatedBy);
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error updating setup status for contract {ContractId}", request.ContractId);
+            await uow.RollbackAsync(cancellationToken);
+            throw;
+        }
     }
 }

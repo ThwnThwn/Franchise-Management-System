@@ -1,4 +1,3 @@
-using FranchiseService.Application.ClientInterfaces;
 using FranchiseService.Application.Repositories;
 using FranchiseService.Domain.Enums;
 using MediatR;
@@ -18,10 +17,7 @@ public class ConfirmDepositPaymentCommand : IRequest<bool>
 }
 
 public class ConfirmDepositPaymentHandler(
-    IFranchiseUow uow,
     IFranchiseContractRepository contractRepo,
-    IStoreRepository storeRepo,
-    IIdentityServiceClient identityServiceClient,
     ILogger<ConfirmDepositPaymentHandler> logger
 ) : IRequestHandler<ConfirmDepositPaymentCommand, bool>
 {
@@ -33,56 +29,16 @@ public class ConfirmDepositPaymentHandler(
 
         if (contract.Status != ContractStatus.AwaitingPayment)
             throw new InvalidOperationException(
-                $"Hợp đồng đang ở trạng thái '{contract.Status}', chỉ có thể xác nhận thanh toán khi ở trạng thái AwaitingPayment.");
+                $"Hợp đồng đang ở trạng thái '{contract.Status}', chỉ có thể xác nhận thanh toán khi ở trạng thái Chờ thanh toán.");
 
-        await uow.BeginTransactionAsync(cancellationToken);
+        contract.DepositStatus = DepositStatus.Paid;
+        contract.Status = ContractStatus.Active;
+        contract.UpdatedAt = DateTimeOffset.UtcNow;
 
-        try
-        {
-            var application = contract.Application;
-            var newStore = new Domain.Entities.Store
-            {
-                Id = Guid.NewGuid(),
-                Code = $"STR-{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}",
-                Name = application.StoreName,
-                Address = application.StoreAddress,
-                Phone = application.Phone,
-                Email = application.Email,
-                Type = (int)StoreType.Franchise,
-                Status = (int)StoreStatus.ComingSoon, // Đợi thi công xong mới Open
-                ImageUrl = application.StoreFrontUrl,
-                Latitude = application.StoreLatitude,
-                Longitude = application.StoreLongitude,
-            };
+        await contractRepo.UpdateAsync(contract);
 
-            contract.DepositStatus = DepositStatus.Paid;
-            contract.Status = ContractStatus.Active;
-            contract.Application.StoreId = newStore.Id;
-            contract.UpdatedAt = DateTimeOffset.UtcNow;
+        logger.LogInformation("Contract {ContractId} is now ACTIVE.", contract.Id);
 
-            await storeRepo.AddOnlyAsync(newStore);
-
-            await identityServiceClient.UpdateUserAsync(new UserInfo
-            {
-                Id = application.ManagerId,
-                RoleSlug = "manager",
-                HomeStoreId = newStore.Id
-            }, cancellationToken);
-
-            await uow.SaveChangesAsync(cancellationToken);
-
-            logger.LogInformation(
-                "Contract {ContractId} is now ACTIVE. Store {StoreId} created and User {UserId} promoted to Manager.",
-                contract.Id, newStore.Id, application.ManagerId);
-
-            return true;
-        }
-        catch (Exception ex)
-        {
-            await uow.RollbackAsync(cancellationToken);
-
-            logger.LogError(ex, "Lỗi khi xác nhận thanh toán cho hợp đồng {ContractId}.", request.ContractId);
-            throw;
-        }
+        return true;
     }
 }

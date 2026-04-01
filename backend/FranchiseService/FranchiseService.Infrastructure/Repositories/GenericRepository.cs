@@ -113,14 +113,18 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class, IEnti
 
     public virtual async Task<int> UpdateAsync(T entity)
     {
-        var entityFromDb = await GetByIdAsync(entity.Id)
-            ?? throw new KeyNotFoundException($"Không tìm thấy {typeof(T).Name}");
-
-        _dbContext.Entry(entityFromDb).CurrentValues.SetValues(entity);
-
-        if (_dbContext.Entry(entityFromDb).Metadata.FindProperty("CreatedAt") != null)
+        var trackedEntity = _dbSet.Local.FirstOrDefault(e => e.Id == entity.Id);
+        if (trackedEntity == null)
         {
-            _dbContext.Entry(entityFromDb).Property("CreatedAt").IsModified = false;
+            trackedEntity = await GetByIdAsync(entity.Id)
+                ?? throw new KeyNotFoundException();
+        }
+
+        _dbContext.Entry(trackedEntity).CurrentValues.SetValues(entity);
+
+        if (_dbContext.Entry(trackedEntity).Metadata.FindProperty("CreatedAt") != null)
+        {
+            _dbContext.Entry(trackedEntity).Property("CreatedAt").IsModified = false;
         }
 
         return await _dbContext.SaveChangesAsync();
