@@ -94,27 +94,30 @@ public sealed class UpdateOrderStatusCommandHandler(
                         amount += order.PaidAmount.Value;
                     }
 
-                    var withdrawTransaction = new WalletTransaction
+                    if (amount > 0)
                     {
-                        Id = Guid.NewGuid(),
-                        UserId = order.CustomerId.Value,
-                        WalletId = wallet.Id,
-                        TransactionCode = $"WDR-{DateTime.UtcNow:yyyyMMddHHmmss}",
-                        Amount = amount,
-                        TransactionType = TransactionType.Withdrawal,
-                        PaymentMethod = order.PaymentMethod,
-                        Status = TransactionStatus.Completed,
-                        ReferenceType = WalletReferenceType.Withdrawal,
-                        Notes = "Order Refund",
-                        Description = $"Hoàn tiền cho huỷ đơn hàng {order.Code}",
-                        CreatedAt = DateTimeOffset.UtcNow,
-                        UpdatedAt = DateTimeOffset.UtcNow,
-                        BalanceBefore = wallet.Balance,
-                        BalanceAfter = wallet.Balance + amount
-                    };
+                        var withdrawTransaction = new WalletTransaction
+                        {
+                            Id = Guid.NewGuid(),
+                            UserId = order.CustomerId.Value,
+                            WalletId = wallet.Id,
+                            TransactionCode = $"WDR-{DateTime.UtcNow:yyyyMMddHHmmss}",
+                            Amount = amount,
+                            TransactionType = TransactionType.Withdrawal,
+                            PaymentMethod = order.PaymentMethod,
+                            Status = TransactionStatus.Completed,
+                            ReferenceType = WalletReferenceType.Withdrawal,
+                            Notes = "Order Refund",
+                            Description = $"Hoàn tiền cho huỷ đơn hàng {order.Code}",
+                            CreatedAt = DateTimeOffset.UtcNow,
+                            UpdatedAt = DateTimeOffset.UtcNow,
+                            BalanceBefore = wallet.Balance,
+                            BalanceAfter = wallet.Balance + amount
+                        };
 
-                    transactionRepo.Add(withdrawTransaction);
-                    walletRepository.ApplyAddBalance(wallet, amount, wallet.RowVersion);
+                        transactionRepo.Add(withdrawTransaction);
+                        walletRepository.ApplyAddBalance(wallet, amount, wallet.RowVersion);
+                    }
 
                     if (request.RoleSlug == "staff")
                     {
