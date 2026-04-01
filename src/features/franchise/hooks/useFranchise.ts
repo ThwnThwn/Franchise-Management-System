@@ -8,7 +8,7 @@ import {
     GetAllContractsRequest
 } from "@/features/franchise/models/request"
 import { BackendError } from "@/models/common/respone"
-import { FranchiseApplicationStatus } from "@/features/franchise/constants"
+import { ContractSetupStatus, FranchiseApplicationStatus } from "@/features/franchise/constants"
 import { QUERY_KEYS } from "@/constants/queryKeys"
 
 // ── HOOKS CHO APPLICATIONS ───────────────────────────────────────────────
@@ -178,7 +178,11 @@ export const useUpdateSetupStatus = ({ onSuccess }: { onSuccess?: () => void } =
 
     return useMutation({
         mutationFn: franchiseApi.updateSetupStatus,
-        onSuccess: () => {
+        onSuccess: (_, variables) => {
+            if (variables.req.setupStatus === ContractSetupStatus.Ready) {
+                queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ME], exact: false })
+            }
+
             queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.FRANCHISE_CONTRACTS] })
             addToast({
                 title: STRINGS.COMMON.SUCCESS,
