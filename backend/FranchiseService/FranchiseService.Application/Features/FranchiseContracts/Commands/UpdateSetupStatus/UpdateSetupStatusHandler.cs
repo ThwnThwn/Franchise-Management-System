@@ -31,7 +31,7 @@ public class UpdateSetupStatusHandler(
 
         try
         {
-            var contract = await contractRepo.GetByIdAsync(request.ContractId)
+            var contract = await contractRepo.GetByIdAsync(request.ContractId, cancellationToken)
                 ?? throw new KeyNotFoundException($"Không tìm thấy hợp đồng với ID: {request.ContractId}");
 
             if (contract.Status != ContractStatus.Active)

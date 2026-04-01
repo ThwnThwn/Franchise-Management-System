@@ -8,12 +8,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FranchiseService.Infrastructure.Repositories;
 
-public class FranchiseContractRepository : GenericRepository<FranchiseContract>, IFranchiseContractRepository
+public class FranchiseContractRepository(
+    IFranchiseDbContext dbContext
+) : GenericRepository<FranchiseContract>(dbContext), IFranchiseContractRepository
 {
-    public FranchiseContractRepository(IFranchiseDbContext dbContext) : base(dbContext)
-    {
-    }
-
     public async Task<FranchiseContract?> GetByDocusealSubmissionAsync(int submissionId, CancellationToken cancellationToken)
     {
         return await _dbContext.FranchiseContracts
