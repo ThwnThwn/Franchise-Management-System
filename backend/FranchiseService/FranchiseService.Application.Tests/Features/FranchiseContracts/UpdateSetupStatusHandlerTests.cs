@@ -48,7 +48,10 @@ public class UpdateSetupStatusHandlerTests
         };
 
         _uowMock.Setup(x => x.BeginTransactionAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
-        _contractRepoMock.Setup(x => x.GetByIdAsync(contractId)).ReturnsAsync((FranchiseContract?)null);
+
+        // Đã fix: Thêm It.IsAny<CancellationToken>() để khớp với Handler
+        _contractRepoMock.Setup(x => x.GetByIdAsync(contractId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((FranchiseContract?)null);
 
         var action = async () => await _handler.Handle(command, CancellationToken.None);
 
@@ -68,7 +71,9 @@ public class UpdateSetupStatusHandlerTests
         };
 
         _uowMock.Setup(x => x.BeginTransactionAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
-        _contractRepoMock.Setup(x => x.GetByIdAsync(contract.Id)).ReturnsAsync(contract);
+
+        _contractRepoMock.Setup(x => x.GetByIdAsync(contract.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(contract);
 
         var action = async () => await _handler.Handle(command, CancellationToken.None);
 
@@ -88,7 +93,9 @@ public class UpdateSetupStatusHandlerTests
         };
 
         _uowMock.Setup(x => x.BeginTransactionAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
-        _contractRepoMock.Setup(x => x.GetByIdAsync(contract.Id)).ReturnsAsync(contract);
+
+        _contractRepoMock.Setup(x => x.GetByIdAsync(contract.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(contract);
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -115,7 +122,9 @@ public class UpdateSetupStatusHandlerTests
         UserInfo? updatedUser = null;
 
         _uowMock.Setup(x => x.BeginTransactionAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
-        _contractRepoMock.Setup(x => x.GetByIdAsync(contract.Id)).ReturnsAsync(contract);
+
+        _contractRepoMock.Setup(x => x.GetByIdAsync(contract.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(contract);
 
         _storeRepoMock.Setup(x => x.AddOnlyAsync(It.IsAny<Store>()))
             .Callback<Store>(s => createdStore = s)
@@ -157,7 +166,9 @@ public class UpdateSetupStatusHandlerTests
         };
 
         _uowMock.Setup(x => x.BeginTransactionAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
-        _contractRepoMock.Setup(x => x.GetByIdAsync(contract.Id)).ReturnsAsync(contract);
+
+        _contractRepoMock.Setup(x => x.GetByIdAsync(contract.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(contract);
 
         _identityClientMock.Setup(x => x.UpdateUserAsync(It.IsAny<UserInfo>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("Identity API Timeout"));
@@ -188,7 +199,7 @@ public class UpdateSetupStatusHandlerTests
                 StoreFrontUrl = "https://coffee.com/store.jpg",
                 StoreLatitude = 10.77m,
                 StoreLongitude = 106.69m,
-                Contracts = new List<FranchiseContract>()
+                Contracts = []
             }
         };
     }
