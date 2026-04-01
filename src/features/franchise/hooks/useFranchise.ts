@@ -179,14 +179,17 @@ export const useUpdateSetupStatus = ({ onSuccess }: { onSuccess?: () => void } =
     return useMutation({
         mutationFn: franchiseApi.updateSetupStatus,
         onSuccess: (_, variables) => {
+            let successMsg = "Cập nhật tiến độ thành công"
+
             if (variables.req.setupStatus === ContractSetupStatus.Ready) {
-                queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ME], exact: false })
+                queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ME] })
+                successMsg += ". Vui lòng đăng nhập lại để cập nhật trạng thái mới nhất!"
             }
 
             queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.FRANCHISE_CONTRACTS] })
             addToast({
                 title: STRINGS.COMMON.SUCCESS,
-                description: "Cập nhật tiến độ thành công",
+                description: successMsg,
                 color: "success"
             })
             onSuccess?.()
