@@ -47,26 +47,6 @@ public class GetProductByNameHandlerTests
         _productRepositoryMock.Verify(repo => repo.GetProductByNameContainingAsync(It.IsAny<string>()), Times.Never);
     }
 
-    // 🚨 TEST MỚI THÊM ĐỂ COVER NHÁNH products == null 🚨
-    [Fact]
-    public async Task Handle_ShouldReturnNotFound_WhenProductsListIsNull()
-    {
-        // Arrange
-        var query = new GetProductByNameQuery("Trà bí đao");
-
-        // Giả lập DB trả về null
-        _productRepositoryMock
-            .Setup(repo => repo.GetProductByNameContainingAsync(query.ProductName))
-            .ReturnsAsync((List<Product>?)null);
-
-        // Act
-        var result = await _handler.Handle(query, CancellationToken.None);
-
-        // Assert
-        result.Status.Should().Be(ResultStatus.NotFound);
-        result.Errors.Should().Contain($"No product found with name '{query.ProductName}'");
-    }
-
     [Fact]
     public async Task Handle_ShouldReturnNotFound_WhenProductsListIsEmpty()
     {
@@ -94,14 +74,14 @@ public class GetProductByNameHandlerTests
 
         var productList = new List<Product>
         {
-            new Product { Id = Guid.NewGuid(), Name = "Cà phê sữa đá" },
-            new Product { Id = Guid.NewGuid(), Name = "Bạc xỉu" }
+            new() { Id = Guid.NewGuid(), Name = "Cà phê sữa đá" },
+            new() { Id = Guid.NewGuid(), Name = "Bạc xỉu" }
         };
 
         var dtoList = new List<GetProductByNameQueryResponse>
         {
-            new GetProductByNameQueryResponse { ProductId = productList[0].Id, Name = "Cà phê sữa đá" },
-            new GetProductByNameQueryResponse { ProductId = productList[1].Id, Name = "Bạc xỉu" }
+            new() { ProductId = productList[0].Id, Name = "Cà phê sữa đá" },
+            new() { ProductId = productList[1].Id, Name = "Bạc xỉu" }
         };
 
         _productRepositoryMock

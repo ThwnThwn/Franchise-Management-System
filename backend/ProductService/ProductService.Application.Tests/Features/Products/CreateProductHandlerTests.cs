@@ -125,38 +125,45 @@ public class CreateProductHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnSuccess_ButNotSetImageUrl_WhenCloudinaryReturnsNull()
+    public async Task Handle_ShouldThrowException_AndNotSaveToDb_WhenCloudinaryUploadFails()
     {
         // Arrange
         var fileMock = new Mock<IFormFile>();
-        var request = new CreateProductCommandRequest { Name = "New Product", ImageFile = fileMock.Object };
-        var command = new CreateProductCommand(request);
-        var productEntity = new Product { Name = request.Name };
-        var expectedResponse = new CreateProductCommandResponse { Name = request.Name };
+        // Cần setup FileName cho fileMock vì CloudinaryService kiểm tra extension
+        fileMock.Setup(f => f.FileName).Returns("test-image.jpg");
+        fileMock.Setup(f => f.Length).Returns(100);
 
+        var request = new CreateProductCommandRequest
+        {
+            Name = "Trà Oolong Trân Châu",
+            ImageFile = fileMock.Object
+        };
+        var command = new CreateProductCommand(request);
+
+        // Mock kiểm tra tên sản phẩm (không trùng)
         _productRepositoryMock
             .Setup(repo => repo.GetProductByNameAsync(request.Name, null))
             .ReturnsAsync((Product?)null);
 
-        _mapperMock.Setup(m => m.Map<Product>(request)).Returns(productEntity);
-
-        // Mô phỏng trường hợp Cloudinary bị lỗi/trả về null
+        // Mô phỏng CloudinaryService ném Exception (giống như code thực tế ném lỗi khi upload tạch)
+        var expectedExceptionMessage = "Cloudinary upload failed: Unknown error (Status: BadRequest)";
         _cloudinaryServiceMock
             .Setup(c => c.UploadImageAsync(request.ImageFile))
-            .ReturnsAsync((CloudinaryUploadResult?)null);
-
-        _mapperMock.Setup(m => m.Map<CreateProductCommandResponse>(productEntity)).Returns(expectedResponse);
+            .ThrowsAsync(new Exception(expectedExceptionMessage));
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var action = async () => await _handler.Handle(command, CancellationToken.None);
 
         // Assert
-        result.IsSuccess.Should().BeTrue();
-        productEntity.ImageUrl.Should().BeNull(); // URL không được set
-        productEntity.ImagePublicId.Should().BeNull();
+        // 1. Phải ném ra Exception đúng với những gì CloudinaryService ném
+        await action.Should().ThrowAsync<Exception>().WithMessage(expectedExceptionMessage);
 
+        // 2. Xác minh rằng hàm UploadImageAsync thực sự được gọi
         _cloudinaryServiceMock.Verify(c => c.UploadImageAsync(request.ImageFile), Times.Once);
-        _productRepositoryMock.Verify(repo => repo.AddAsync(productEntity), Times.Once);
+
+        // 3. Quan trọng nhất: Vì lỗi xảy ra ở bước Upload, hệ thống PHẢI NGỪNG LẠI
+        // Tuyệt đối không được gọi hàm AddAsync để lưu vào Database
+        _productRepositoryMock.Verify(repo => repo.AddAsync(It.IsAny<Product>()), Times.Never);
     }
 
     #endregion Handler Tests

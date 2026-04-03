@@ -173,12 +173,27 @@ public sealed class UpdateOrderStatusCommandHandler(
                     var orderPaidEvent = OrderToKafka.MapToOrderPaidEvent(payment.Order);
                     outboxRepository.AddEvent(orderPaidEvent, KafkaTopics.OrderPaid);
                 }
-                // Publish process Point loyalty event to Kafka
-                await kafkaProducer.PublishAsync(KafkaTopics.ProcessOrderReward, new ProcessOrderRewardEvent
+
+                if (order.CustomerId != null)
                 {
-                    Id = order.CustomerId ?? Guid.Empty,
-                    OrderAmount = order.PaidAmount ?? 0
-                });
+                    var paidAmount = order.PaidAmount ?? 0;
+                    var walletAmount = order.OrderSaleItems
+                        .Where(x => x.Type == OrderSaleItemType.Wallet)
+                        .Select(x => x.Amount)
+                        .FirstOrDefault();
+
+                    paidAmount += walletAmount;
+
+                    if (paidAmount > 0)
+                    {
+                        // Publish process Point loyalty event to Kafka
+                        await kafkaProducer.PublishAsync(KafkaTopics.ProcessOrderReward, new ProcessOrderRewardEvent
+                        {
+                            Id = order.CustomerId ?? Guid.Empty,
+                            OrderAmount = paidAmount
+                        });
+                    }
+                }
             }
 
             #endregion Order Completed
