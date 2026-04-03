@@ -1,10 +1,8 @@
-using Microsoft.EntityFrameworkCore;
-using SharedKernel.Infrastructure.Kafka;
-using SharedKernel.Constants;
-using SalesService.Infrastructure.ApplicationDbContext;
-using SharedKernel.Events;
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 using SalesService.Application.Signals;
+using SalesService.Infrastructure.ApplicationDbContext;
+using SharedKernel.Infrastructure.Kafka;
 
 namespace SalesService.API.BackgroundJobs;
 
@@ -22,8 +20,8 @@ public class OutboxWorker : BackgroundService
     private readonly KafkaProducerRegistry _registry;
 
     public OutboxWorker(
-        IServiceProvider serviceProvider, 
-        IOutboxSignal outboxSignal, 
+        IServiceProvider serviceProvider,
+        IOutboxSignal outboxSignal,
         ILogger<OutboxWorker> logger,
         KafkaProducerRegistry registry)
     {
@@ -55,7 +53,7 @@ public class OutboxWorker : BackgroundService
     {
         using var scope = _serviceProvider.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ISalesDbContext>();
-        var kafkaProducer = scope.ServiceProvider.GetRequiredService<IKafkaProducer>(); 
+        var kafkaProducer = scope.ServiceProvider.GetRequiredService<IKafkaProducer>();
 
         var messages = await dbContext.OutboxMessages
             .Where(m => m.ProcessedOn == null)
@@ -63,7 +61,7 @@ public class OutboxWorker : BackgroundService
             .Take(20)
             .ToListAsync(stoppingToken);
 
-        if (!messages.Any()) return;
+        if (messages.Count == 0) return;
 
         foreach (var message in messages)
         {
@@ -78,7 +76,7 @@ public class OutboxWorker : BackgroundService
                 {
                     // 2. Deserialize generic
                     var payload = JsonSerializer.Deserialize(message.Content, eventType);
-                    
+
                     if (payload != null)
                     {
                         // 3. Publish generic

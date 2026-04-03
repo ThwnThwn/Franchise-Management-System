@@ -1,5 +1,5 @@
-using SalesService.Application.Signals;
 using System.Threading.Channels;
+using SalesService.Application.Signals;
 
 namespace SalesService.Infrastructure.Signals;
 
@@ -30,11 +30,11 @@ public class OutboxSignal : IOutboxSignal
     {
         try
         {
-           await _channel.Reader.ReadAsync(cancellationToken);
+            await _channel.Reader.ReadAsync(cancellationToken);
         }
         catch (ChannelClosedException)
         {
-           // Ignore
+            // Ignore
         }
     }
 }

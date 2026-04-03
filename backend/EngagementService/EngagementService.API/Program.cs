@@ -1,6 +1,4 @@
-﻿
-
-using DotNetEnv;
+﻿using DotNetEnv;
 using EngagementService.API.BackgroundJob;
 using EngagementService.API.Services.Campagin;
 using EngagementService.API.Services.Identity;
@@ -22,6 +20,7 @@ using Npgsql;
 using Npgsql.NameTranslation; // Thêm namespace này
 using QuestPDF.Infrastructure;
 using SharedKernel.Infrastructure.Kafka;
+
 namespace EngagementService.API;
 
 public class Program
@@ -114,12 +113,11 @@ public class Program
             });
         });
 
-
         //Client service
         builder.Services.AddScoped<IIdentityServiceClient, IdentityServiceClient>();
         // KAFKA - Override for local development
-        var kafkaBootstrap = Environment.GetEnvironmentVariable("KAFKA_BOOTSTRAP_SERVERS") 
-                     ?? builder.Configuration["KAFKA_BOOTSTRAP_SERVERS"] 
+        var kafkaBootstrap = Environment.GetEnvironmentVariable("KAFKA_BOOTSTRAP_SERVERS")
+                     ?? builder.Configuration["KAFKA_BOOTSTRAP_SERVERS"]
                      ?? "localhost:9092";
 
         bool isDocker = Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true";
@@ -132,14 +130,14 @@ public class Program
         // KAFKA CONSUMER (Generic)
         builder.Services.AddKafkaConsumer(config =>
         {
-            config.Register<SharedKernel.Events.UserRegisteredEvent>(SharedKernel.Constants.KafkaTopics.LoyaltyTierAccount, typeof(EngagementService.Application.EventHandler.CreateLoyaltyAccountHandler));
-            config.Register<SharedKernel.Events.ProcessOrderRewardEvent>(SharedKernel.Constants.KafkaTopics.ProcessOrderReward, typeof(EngagementService.Application.EventHandler.ProcessOrderRewardHandler));
-            config.Register<SharedKernel.Events.UpdatePointEvent>(SharedKernel.Constants.KafkaTopics.UpdateUserPoint, typeof(EngagementService.Application.EventHandler.UpdatePointEventHandler));
-            config.Register<SharedKernel.Events.UseVouchersEvent>(SharedKernel.Constants.KafkaTopics.DeductUserVoucher, typeof(EngagementService.Application.EventHandler.UseVoucherEventHandler));
+            config.Register<SharedKernel.Events.UserRegisteredEvent>(SharedKernel.Constants.KafkaTopics.LoyaltyTierAccount, typeof(Application.EventHandler.CreateLoyaltyAccountHandler));
+            config.Register<SharedKernel.Events.ProcessOrderRewardEvent>(SharedKernel.Constants.KafkaTopics.ProcessOrderReward, typeof(Application.EventHandler.ProcessOrderRewardHandler));
+            config.Register<SharedKernel.Events.UpdatePointEvent>(SharedKernel.Constants.KafkaTopics.UpdateUserPoint, typeof(Application.EventHandler.UpdatePointEventHandler));
+            config.Register<SharedKernel.Events.UseVouchersEvent>(SharedKernel.Constants.KafkaTopics.DeductUserVoucher, typeof(Application.EventHandler.UseVoucherEventHandler));
             config.Register<SharedKernel.Events.ReverseVoucherEvent>
-                (SharedKernel.Constants.KafkaTopics.ReverseUserVoucher, typeof(EngagementService.Application.EventHandler.ReverseVoucherEventHandler));
+                (SharedKernel.Constants.KafkaTopics.ReverseUserVoucher, typeof(Application.EventHandler.ReverseVoucherEventHandler));
             config.Register<SharedKernel.Events.RedeemCampaignVoucherEvent>
-                (SharedKernel.Constants.KafkaTopics.RedeemCampaignVoucher, typeof(EngagementService.Application.EventHandler.RedeemCampaignVoucherEventHanlder));
+                (SharedKernel.Constants.KafkaTopics.RedeemCampaignVoucher, typeof(Application.EventHandler.RedeemCampaignVoucherEventHanlder));
         });
 
         // 1. Cấu hình bản quyền QuestPDF (Bắt buộc để không bị lỗi khi chạy)

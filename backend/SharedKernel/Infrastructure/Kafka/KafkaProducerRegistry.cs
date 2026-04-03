@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace SharedKernel.Infrastructure.Kafka;
 
 /// <summary>
@@ -9,7 +6,7 @@ namespace SharedKernel.Infrastructure.Kafka;
 /// </summary>
 public class KafkaProducerRegistry
 {
-    private readonly Dictionary<string, (Type EventType, string Topic)> _typeMappings = new();
+    private readonly Dictionary<string, (Type EventType, string Topic)> _typeMappings = [];
 
     /// <summary>
     /// Đăng ký mapping từ Event Type sang Topic.

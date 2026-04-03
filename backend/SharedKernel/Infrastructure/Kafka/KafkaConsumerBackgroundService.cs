@@ -103,11 +103,10 @@ public class KafkaConsumerBackgroundService : BackgroundService
 
             // Invoke Handle method dynamically using reflection since types are known only at runtime
             var method = handlerType.GetMethod("Handle")!;
-            var task = (Task)method.Invoke(handler, new[] { @event })!;
+            var task = (Task)method.Invoke(handler, [@event])!;
             await task;
 
             _logger.LogInformation("Successfully processed message from {Topic} using {Handler}", topic, handlerType.Name);
-
         }
         catch (Exception ex)
         {
