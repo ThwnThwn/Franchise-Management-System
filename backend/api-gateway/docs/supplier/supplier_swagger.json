@@ -1,0 +1,1542 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "API docs for CHD Gateway.",
+        "title": "Capital Franchise Supply Chain Management System API Document",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "API Support",
+            "email": "support@swagger.io"
+        },
+        "version": "1.0"
+    },
+    "basePath": "/api",
+    "paths": {
+        "/suppliers": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve a paginated list of all suppliers in the system.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Suppliers"
+                ],
+                "summary": "Get all suppliers",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "GET dùng form tag cho Query String",
+                        "name": "code",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "name": "isActive",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of suppliers",
+                        "schema": {
+                            "$ref": "#/definitions/common.PaginationResult-api-gateway_internal_domain_models_supplier_SupplierSummary"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Add a new supplier to the system.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Suppliers"
+                ],
+                "summary": "Create a new supplier",
+                "parameters": [
+                    {
+                        "description": "Supplier information",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/supplier.CreateSupplierReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully created",
+                        "schema": {
+                            "$ref": "#/definitions/supplier.SupplierBaseRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/suppliers/payments": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve the complete payment history for suppliers (Intended for Admins/Accountants to track cash flow).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Suppliers / Payments"
+                ],
+                "summary": "Get all supplier payments",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "purchaseOrderId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "supplierId",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of supplier payments",
+                        "schema": {
+                            "$ref": "#/definitions/common.PaginationResult-supplier_SupplierPaymentSummary"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Initialize a payment using Cash or generate a VNPay payment URL for a purchase order.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Suppliers / Payments"
+                ],
+                "summary": "Create purchase order payment",
+                "parameters": [
+                    {
+                        "description": "Payment information",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/supplier.CreateSupplierPaymentReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully created payment",
+                        "schema": {
+                            "$ref": "#/definitions/supplier.CreateSupplierPaymentRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/suppliers/payments/vnpay/return": {
+            "get": {
+                "description": "Callback endpoint for VNPay after a payment. Verifies the gRPC signature and redirects the browser to the Frontend UI with the payment status.",
+                "produces": [
+                    "text/html"
+                ],
+                "tags": [
+                    "Suppliers / Payments"
+                ],
+                "summary": "Handle VNPay Return URL (Supplier Payment)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Transaction Amount",
+                        "name": "vnp_Amount",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bank Code",
+                        "name": "vnp_BankCode",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Order Information",
+                        "name": "vnp_OrderInfo",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "VNPAY Response Code",
+                        "name": "vnp_ResponseCode",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Transaction Reference (Payment Code)",
+                        "name": "vnp_TxnRef",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Checksum Security Hash",
+                        "name": "vnp_SecureHash",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Frontend path to redirect to (e.g., /suppliers/purchase-orders/123)",
+                        "name": "redirectTo",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "302": {
+                        "description": "Redirects to the Frontend application"
+                    },
+                    "400": {
+                        "description": "Bad Request or Invalid Signature"
+                    }
+                }
+            }
+        },
+        "/suppliers/purchase-orders": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve a paginated list of purchase orders. Supports filtering by Supplier, Store, or Status.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Suppliers / PurchaseOrders"
+                ],
+                "summary": "Get all purchase orders",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "storeId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "supplierId",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of purchase orders",
+                        "schema": {
+                            "$ref": "#/definitions/common.PaginationResult-api-gateway_internal_domain_models_supplier_PurchaseOrderSummary"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a new purchase order record with an initial status of PENDING.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Suppliers / PurchaseOrders"
+                ],
+                "summary": "Create a new purchase order",
+                "parameters": [
+                    {
+                        "description": "Purchase order information",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/supplier.CreatePurchaseOrderReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully created",
+                        "schema": {
+                            "$ref": "#/definitions/supplier.PurchaseOrderBaseRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/suppliers/purchase-orders/latest-prices": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Look up the most recent import prices for a provided list of ingredient IDs based on the latest purchase order records.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Suppliers / PurchaseOrders"
+                ],
+                "summary": "Get latest ingredient prices",
+                "parameters": [
+                    {
+                        "description": "List of ingredient IDs",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/supplier.GetLatestPricesReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Map of ingredient IDs to their latest prices",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "number",
+                                "format": "float64"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/suppliers/purchase-orders/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve detailed information of a specific purchase order, including the list of imported ingredients.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Suppliers / PurchaseOrders"
+                ],
+                "summary": "Get purchase order details",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Purchase Order UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detailed purchase order information",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.PurchaseOrderDetail"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid UUID format",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Purchase Order Not Found",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Modify the details of an existing purchase order (only allowed when the PO is in an updatable status).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Suppliers / PurchaseOrders"
+                ],
+                "summary": "Update a purchase order",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Purchase Order UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated information",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/supplier.UpdatePurchaseOrderReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully updated",
+                        "schema": {
+                            "$ref": "#/definitions/supplier.PurchaseOrderBaseRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error or Invalid ID",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Purchase Order Not Found",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/suppliers/purchase-orders/{id}/cancel": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Cancel an active purchase order and record the specific cancellation reason.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Suppliers / PurchaseOrders"
+                ],
+                "summary": "Cancel a purchase order",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Purchase Order UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Cancellation reason",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/supplier.CancelPurchaseOrderReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully cancelled",
+                        "schema": {
+                            "$ref": "#/definitions/supplier.PurchaseOrderBaseRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error or Invalid ID",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Purchase Order Not Found",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/suppliers/purchase-orders/{id}/complete": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Confirm that all goods have been successfully received and finalize the purchase order (typically triggers an inventory restock).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Suppliers / PurchaseOrders"
+                ],
+                "summary": "Complete a purchase order",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Purchase Order UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully completed",
+                        "schema": {
+                            "$ref": "#/definitions/supplier.PurchaseOrderBaseRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID format",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Purchase Order Not Found",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/suppliers/purchase-orders/{id}/payments": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve the payment history (installments/transactions) for a specific Purchase Order.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Suppliers / Payments"
+                ],
+                "summary": "Get payments by Purchase Order ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Purchase Order UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of payments for the PO",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/supplier.SupplierPaymentDetail"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid UUID format",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Purchase Order not found",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/suppliers/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve detailed information of a specific supplier by their UUID.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Suppliers"
+                ],
+                "summary": "Get supplier details",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Supplier UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detailed supplier information",
+                        "schema": {
+                            "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.SupplierDetail"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid UUID format",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Supplier Not Found",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Remove a supplier from the system.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Suppliers"
+                ],
+                "summary": "Delete a supplier",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Supplier UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully deleted",
+                        "schema": {
+                            "$ref": "#/definitions/supplier.SupplierBaseRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid UUID format",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Supplier Not Found",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Modify the details of an existing supplier.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Suppliers"
+                ],
+                "summary": "Update a supplier",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Supplier UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated information",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/supplier.UpdateSupplierReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully updated",
+                        "schema": {
+                            "$ref": "#/definitions/supplier.SupplierBaseRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error or Invalid ID",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Supplier Not Found",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "api-gateway_internal_domain_models_supplier.PurchaseOrderDetail": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "completedAt": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "discountAmount": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.PurchaseOrderItemDetail"
+                    }
+                },
+                "netAmount": {
+                    "type": "number"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "orderDate": {
+                    "type": "string"
+                },
+                "paidAmount": {
+                    "type": "number"
+                },
+                "paymentStatus": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "storeId": {
+                    "type": "string"
+                },
+                "supplierId": {
+                    "type": "string"
+                },
+                "supplierName": {
+                    "type": "string"
+                },
+                "totalAmount": {
+                    "type": "number"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_supplier.PurchaseOrderItemDetail": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "ingredientId": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "type": "number"
+                },
+                "totalPrice": {
+                    "type": "number"
+                },
+                "unitPrice": {
+                    "type": "number"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_supplier.PurchaseOrderSummary": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "netAmount": {
+                    "type": "number"
+                },
+                "orderDate": {
+                    "type": "string"
+                },
+                "paymentStatus": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "supplierName": {
+                    "type": "string"
+                },
+                "totalAmount": {
+                    "type": "number"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_supplier.SupplierDetail": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "contactPerson": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "isActive": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "taxCode": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "api-gateway_internal_domain_models_supplier.SupplierSummary": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "contactPerson": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "isActive": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                }
+            }
+        },
+        "common.PaginationResult-api-gateway_internal_domain_models_supplier_PurchaseOrderSummary": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.PurchaseOrderSummary"
+                    }
+                },
+                "totalCount": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "common.PaginationResult-api-gateway_internal_domain_models_supplier_SupplierSummary": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api-gateway_internal_domain_models_supplier.SupplierSummary"
+                    }
+                },
+                "totalCount": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "common.PaginationResult-supplier_SupplierPaymentSummary": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/supplier.SupplierPaymentSummary"
+                    }
+                },
+                "totalCount": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "enum.SupplierPaymentMethod": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+                0,
+                1
+            ],
+            "x-enum-varnames": [
+                "PaymentMethodCash",
+                "PaymentMethodVNPay"
+            ]
+        },
+        "supplier.CancelPurchaseOrderReq": {
+            "type": "object",
+            "properties": {
+                "reason": {
+                    "type": "string"
+                }
+            }
+        },
+        "supplier.CreatePurchaseOrderItemReq": {
+            "type": "object",
+            "required": [
+                "ingredientId",
+                "quantity"
+            ],
+            "properties": {
+                "ingredientId": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "type": "number"
+                }
+            }
+        },
+        "supplier.CreatePurchaseOrderReq": {
+            "type": "object",
+            "required": [
+                "items",
+                "supplierId"
+            ],
+            "properties": {
+                "discountAmount": {
+                    "type": "number"
+                },
+                "expectedDeliveryDate": {
+                    "type": "string"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/supplier.CreatePurchaseOrderItemReq"
+                    }
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "referenceCode": {
+                    "type": "string"
+                },
+                "storeId": {
+                    "type": "string"
+                },
+                "supplierId": {
+                    "type": "string"
+                }
+            }
+        },
+        "supplier.CreateSupplierPaymentReq": {
+            "type": "object",
+            "required": [
+                "purchaseOrderId"
+            ],
+            "properties": {
+                "method": {
+                    "$ref": "#/definitions/enum.SupplierPaymentMethod"
+                },
+                "purchaseOrderId": {
+                    "type": "string"
+                },
+                "returnUrl": {
+                    "type": "string"
+                }
+            }
+        },
+        "supplier.CreateSupplierPaymentRes": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "paymentId": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "supplier.CreateSupplierReq": {
+            "type": "object",
+            "required": [
+                "code",
+                "name"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "contactPerson": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "taxCode": {
+                    "type": "string"
+                }
+            }
+        },
+        "supplier.GetLatestPricesReq": {
+            "type": "object",
+            "required": [
+                "ingredientIds"
+            ],
+            "properties": {
+                "ingredientIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "supplier.PurchaseOrderBaseRes": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "supplier.SupplierBaseRes": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "supplier.SupplierPaymentDetail": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "method": {
+                    "type": "integer"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "paidAt": {
+                    "type": "string"
+                },
+                "purchaseOrderId": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                }
+            }
+        },
+        "supplier.SupplierPaymentSummary": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "method": {
+                    "type": "integer"
+                },
+                "paidAt": {
+                    "type": "string"
+                },
+                "purchaseOrderCode": {
+                    "type": "string"
+                },
+                "purchaseOrderId": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                }
+            }
+        },
+        "supplier.UpdatePurchaseOrderReq": {
+            "type": "object",
+            "required": [
+                "items",
+                "supplierId"
+            ],
+            "properties": {
+                "discountAmount": {
+                    "type": "number"
+                },
+                "expectedDeliveryDate": {
+                    "type": "string"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/supplier.CreatePurchaseOrderItemReq"
+                    }
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "referenceCode": {
+                    "type": "string"
+                },
+                "storeId": {
+                    "type": "string"
+                },
+                "supplierId": {
+                    "type": "string"
+                }
+            }
+        },
+        "supplier.UpdateSupplierReq": {
+            "type": "object",
+            "required": [
+                "code"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "contactPerson": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "isActive": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "taxCode": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "description": "Don't forget to type \"Bearer\" before the token. For example: Bearer eyJhbG...",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}

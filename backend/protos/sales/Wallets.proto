@@ -1,0 +1,156 @@
+syntax = "proto3";
+
+option csharp_namespace = "SalesService.Grpc";
+option go_package = "api-gateway/pkg/pb/sales";
+
+package wallet;
+
+/* ================= SERVICE ================= */
+service WalletGrpc {
+  rpc CreateWallet (CreateWalletRequest) returns (CreateWalletResponse);
+  rpc AddBalance (AddBalanceRequest) returns (AddBalanceResponse);
+  rpc DeductBalance (DeductBalanceRequest) returns (DeductBalanceResponse);
+  rpc UpdateWalletStatus (UpdateWalletStatusRequest) returns (UpdateWalletStatusResponse);
+  rpc GetWalletByUserId (GetWalletByUserIdRequest) returns (GetWalletByUserIdResponse);
+  rpc DepositWallet (DepositWalletRequest) returns (DepositWalletResponse);
+  rpc DepositVnPayReturn (DepositVnPayReturnRequest) returns (DepositVnPayReturnResponse);
+  // rpc WithdrawWallet (WithdrawWalletRequest) returns (WithdrawWalletResponse);
+}
+
+/* ================= ENUMS ================= */
+enum WalletStatus {
+  WALLET_STATUS_UNSPECIFIED = 0;
+  WALLET_STATUS_INACTIVE = 1;
+  WALLET_STATUS_ACTIVE = 2;
+  WALLET_STATUS_LOCKED = 3;
+  WALLET_STATUS_SUSPENDED = 4;
+}
+
+enum WalletPaymentMethod {
+  PAYMENT_METHOD_UNSPECIFIED = 0;
+  PAYMENT_METHOD_CASH = 1;
+  PAYMENT_METHOD_VNPAY = 2;
+  PAYMENT_METHOD_WALLET = 3;
+}
+
+/* ================= CREATE WALLET ================= */
+message CreateWalletRequest {
+  string user_id = 1;
+}
+
+message CreateWalletResponse {
+  string wallet_id = 1;
+  string user_id = 2;
+  string balance = 3;  // String for precision (e.g., "100.50")
+  WalletStatus status = 4;
+  string created_at = 5;
+}
+
+/* ================= ADD BALANCE ================= */
+message AddBalanceRequest {
+  string user_id = 1;  // Server looks up wallet by user_id
+  string amount = 2;   // String for precision (e.g., "50.00")
+  string description = 3;
+  WalletPaymentMethod payment_method = 4;
+  string external_transaction_id = 5;
+}
+
+message AddBalanceResponse {
+  string wallet_id = 1;
+  string user_id = 2;
+  string balance_before = 3;
+  string balance_after = 4;
+  string amount_added = 5;
+  string transaction_id = 6;
+  string transaction_code = 7;
+  string updated_at = 8;
+}
+
+/* ================= DEDUCT BALANCE ================= */
+message DeductBalanceRequest {
+  string user_id = 1;
+  string amount = 2;
+  string description = 3;
+  WalletPaymentMethod payment_method = 4;
+  string external_transaction_id = 5;
+}
+
+message DeductBalanceResponse {
+  string wallet_id = 1;
+  string user_id = 2;
+  string balance_before = 3;
+  string balance_after = 4;
+  string amount_deducted = 5;
+  string transaction_id = 6;
+  string transaction_code = 7;
+  string updated_at = 8;
+}
+
+/* ================= UPDATE STATUS ================= */
+message UpdateWalletStatusRequest {
+  string wallet_id = 1;
+  string admin_id = 2;
+  WalletStatus new_status = 3;
+  string reason = 4;
+  string admin_notes = 5;
+}
+
+message UpdateWalletStatusResponse {
+  string wallet_id = 1;
+  WalletStatus old_status = 2;
+  WalletStatus new_status = 3;
+  string reason = 4;
+  string updated_by = 5;
+  string updated_at = 6;
+}
+
+/* ================= GET WALLET ================= */
+message GetWalletByUserIdRequest {
+  string user_id = 1;
+}
+
+message GetWalletByUserIdResponse {
+  string id = 1;
+  string user_id = 2;
+  string balance = 3;
+  WalletStatus status = 4;
+  string created_at = 5;
+  string updated_at = 6;
+}
+
+// ===== DEPOSIT =====
+message DepositWalletRequest {
+  string user_id   = 1;
+  double amount    = 2;
+  optional string return_url = 3;
+}
+
+message DepositWalletResponse {
+  string payment_url = 1;
+}
+
+// ===== DEPOSIT VNPAY RETURN =====
+message DepositVnPayReturnRequest {
+  map<string, string> query_params = 1;
+}
+
+message DepositVnPayReturnResponse {
+  bool   success                = 1;
+  string wallet_transaction_id  = 2;
+  double amount                 = 3;
+  double new_balance            = 4;
+}
+
+// ===== WITHDRAW =====
+message WithdrawWalletRequest {
+  string user_id                  = 1;
+  double amount                   = 2;
+  string reason                   = 3;
+}
+
+message WithdrawWalletResponse {
+  string withdraw_transaction_id  = 1;
+  double amount                   = 2;
+  string message                  = 3;
+  string status                   = 4;
+}

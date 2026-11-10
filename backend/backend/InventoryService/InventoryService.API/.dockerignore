@@ -1,0 +1,9 @@
+.git/
+bin/
+obj/
+*.exe
+.env
+.envrc
+*.log
+.vscode/
+.air.toml

@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+option csharp_namespace = "InventoryService.Grpc.Protos.Recipe";
+option go_package = "api-gateway/pkg/pb/inventory";
+
+package inventory;
+
+service RecipeGrpc {
+  // Hàm lấy danh sách theo VariantIds
+  rpc GetByVariantIds (GetByVariantIdsRequest) returns (GetByVariantIdsResponse);
+
+  // Thêm hàm Create: Nhận vào CreateRecipeReq và trả về Empty
+  rpc Mutation (MutationRecipeRequest) returns (google.protobuf.Empty);
+
+}
+
+// --- Messages cho hàm hiện có ---
+
+message GetByVariantIdsRequest {
+  repeated string variant_ids = 1;
+}
+
+message GetByVariantIdsResponse {
+  repeated RecipeRep items = 1;
+}
+
+message RecipeRep {
+  string variant_id = 1; 
+  double quantity = 2;   
+  string name = 3;
+  string base_unit = 4;
+  string ingredient_id = 5;
+}
+
+
+message MutationRecipeRequest {
+  string variant_id = 1;
+  repeated RecipeIngredientRequest ingredients = 2;
+}
+
+message RecipeIngredientRequest {
+  string ingredient_id = 1;
+  double quantity = 2;
+}

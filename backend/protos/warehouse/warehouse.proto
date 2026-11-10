@@ -1,0 +1,106 @@
+syntax = "proto3";
+
+option csharp_namespace = "WarehouseService.Grpc.Protos.Warehouse";
+option go_package = "api-gateway/pkg/pb/warehouse";
+
+package warehouse;
+
+service WarehouseGrpc {
+  rpc CreateWarehouse  (CreateWarehouseRequest)  returns (CreateWarehouseReply);
+  rpc UpdateWarehouse  (UpdateWarehouseRequest)  returns (UpdateWarehouseReply);
+  rpc DeleteWarehouse  (DeleteWarehouseRequest)  returns (DeleteWarehouseReply);
+  rpc GetWarehouseById (GetWarehouseByIdRequest) returns (WarehouseDetail);
+  rpc GetWarehouses    (GetWarehousesRequest)    returns (GetWarehousesReply);
+}
+
+enum WarehouseStatus {
+  ACTIVE = 0;
+  INACTIVE = 1;
+  UNDER_MAINTENANCE = 2;
+}
+
+message CreateWarehouseRequest {
+  string code = 1;
+  string name = 2;
+  string address = 3;
+  string store_id = 4;
+  int32 status = 5;
+}
+
+message UpdateWarehouseRequest {
+  string          id      = 1;
+  optional string code    = 2;
+  optional string name    = 3;
+  optional string address = 4;
+  optional WarehouseStatus status   = 5;
+  optional string store_id = 6;
+}
+
+message DeleteWarehouseRequest {
+  string id = 1;
+}
+
+message GetWarehouseByIdRequest {
+  string id = 1;
+}
+
+message GetWarehousesRequest {
+  optional string store_id = 1;
+  optional WarehouseStatus status = 2;
+  optional string search_term = 3;
+  int32 page = 4;
+  int32 page_size = 5;
+}
+
+message CreateWarehouseReply {
+  string id         = 1;
+  string code       = 2;
+  string name       = 3;
+  string address    = 4;
+  string store_id   = 5;
+  int32  status     = 6;
+  string created_at = 7;
+  string message    = 8;
+}
+
+message UpdateWarehouseReply {
+  string id         = 1;
+  string code       = 2;
+  string name       = 3;
+  string address    = 4;
+  string store_id   = 5;
+  int32  status     = 6;
+  string updated_at = 7;
+  string message    = 8;
+}
+
+message DeleteWarehouseReply {
+  string message = 1;
+}
+
+message WarehouseSummary {
+  string id = 1;
+  string code = 2;
+  string name = 3;
+  string store_id = 4;
+  int32 status = 5;
+}
+
+message WarehouseDetail {
+  string id = 1;
+  string code = 2;
+  string name = 3;
+  string address = 4;
+  string store_id = 5;
+  int32 status = 6;
+  string created_at = 7;
+  string updated_at = 8;
+}
+
+message GetWarehousesReply {
+  repeated WarehouseSummary warehouses = 1;
+  int32 total_count = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+  int32 total_pages = 5;
+}

@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+option csharp_namespace = "EngagementService.Grpc.Protos.CampaignGrpc";
+option go_package = "api-gateway/pkg/pb/engagement";
+
+package engagement;
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+import "engagement/voucher.proto";
+
+// Service định nghĩa các hành động liên quan đến Campagin
+service CampaignGrpc {
+  rpc CreateCampaign (CreateCampaignRequest) returns (CampaignResponse);
+
+  rpc UpdateActiveStatus (UpdateActiveStatusRequest) returns (CampaignResponse);
+
+  rpc RedeemCampainVocuher (RedeemCampainVoucherRequest) returns (CampaignResponse);
+
+  rpc GetById (GetByIdRequest) returns (CampaignResponse);
+
+  rpc GetAll (google.protobuf.Empty) returns (ListCampaignResponse);
+
+  rpc GetActive (google.protobuf.Empty) returns (ListCampaignResponse);
+}
+
+// ===== REQUEST =====
+message GetByIdRequest{
+  string id = 1;
+}
+
+message UpdateActiveStatusRequest{
+  string id = 1;
+  bool isActive = 2;
+}
+
+message RedeemCampainVoucherRequest{
+  string userId = 1;
+  string voucherId = 2;
+}
+
+message CreateCampaignRequest {
+  string name = 1;
+  string description = 2;
+
+  google.protobuf.Timestamp start_date = 3;
+  google.protobuf.Timestamp end_date = 4;
+
+  repeated string voucher_ids = 5;
+}
+
+// ===== RESPONSE =====
+message ListCampaignResponse{
+  repeated CampaignResponse Campaigns = 1;
+}
+message CampaignResponse {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+
+  google.protobuf.Timestamp start_date = 4;
+  google.protobuf.Timestamp end_date = 5;
+
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+
+  repeated VoucherResponse vouchers = 8;
+  bool isActive = 9;
+}

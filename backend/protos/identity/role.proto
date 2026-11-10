@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+option csharp_namespace = "IdentityService.Grpc.Protos.Role";
+option go_package = "api-gateway/pkg/pb/identity";
+
+package identity.role;
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+service RoleGrpc {
+  rpc Create(CreateRoleRequest) returns (RoleResponse);
+
+  rpc GetById(GetRoleByIdRequest) returns (RoleResponse);
+  rpc GetAll(google.protobuf.Empty) returns (RoleListResponse);
+
+  rpc Update(UpdateRoleRequest) returns (RoleResponse);
+
+  rpc Delete(DeleteRoleRequest) returns (DeleteRoleResponse);
+}
+
+message GetRoleByIdRequest {
+  string id = 1;
+}
+
+message DeleteRoleRequest {
+  string id = 1;
+}
+
+message DeleteRoleResponse {
+  bool success = 1;
+}
+
+message RoleListResponse {
+  repeated RoleResponse roles = 1;
+}
+
+message CreateRoleRequest {
+  string name = 1;
+  string slug = 2;
+  string description = 3;
+}
+
+message UpdateRoleRequest {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+}
+
+message RoleResponse {
+  string id = 1;
+  string name = 2;
+  string slug = 3;
+  string description = 4;
+
+  google.protobuf.Timestamp createdAt = 5;
+  google.protobuf.Timestamp updatedAt = 6;
+}
+
+message RoleUserResponse {
+  string id = 1;
+  string name = 2;
+  string slug = 3;
+}
+

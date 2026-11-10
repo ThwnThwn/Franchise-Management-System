@@ -1,0 +1,479 @@
+syntax = "proto3";
+
+option csharp_namespace = "SalesService.API";
+option go_package = "api-gateway/pkg/pb/sales";
+
+package order;
+
+service OrderGrpc {
+  // Tạo đơn hàng từ giỏ hàng
+  rpc CreateOrder (CreateOrderRequest) returns (OrderReply);
+  
+  // Lấy thông tin đơn hàng theo ID
+  rpc GetOrderById (GetOrderByIdRequest) returns (GetOrderByIdReply);
+
+  // Lấy danh sách đơn hàng của khách hàng hiện tại
+  rpc GetMyOrders (GetMyOrdersRequest) returns (GetMyOrdersReply);
+
+  // Cập nhật trạng thái đơn hàng bởi nhân viên (staff)
+  rpc UpdateOrderStatus(UpdateOrderStatusRequest) returns (UpdateOrderStatusReply);
+
+  // Cập nhật đơn hàng 
+  rpc UpdateOrder(UpdateOrderRequest) returns (OrderReply);
+
+  // Lấy danh sách đơn hàng với bộ lọc và phân trang
+  rpc GetOrders (GetOrdersRequest) returns (GetOrdersReply);
+
+  // Lấy báo cáo doanh thu
+  rpc GetRevenueReport (GetRevenueReportRequest) returns (GetRevenueReportReply);
+
+  // Lấy danh sách đơn hàng
+  rpc GetOrderVolume (GetOrderVolumeRequest) returns (GetOrderVolumeReply);
+
+  // Thanh toán order bằng ví
+  rpc PayOrderWithWallet (PayOrderWithWalletRequest) returns (PayOrderWithWalletReply);
+      
+  // Lấy số đơn hàng
+  rpc GetCountOrderByUserIds (GetCountOrderByUserIdsRequest) returns (GetCountOrderByUserIdsResponse);
+
+  // Thống kê Product Performance
+  rpc GetProductPerformance (GetProductPerformanceRequest) returns (GetProductPerformanceReply);
+
+  // Lấy dữ liệu biểu đồ phân tích xu hướng doanh thu và lượng đơn
+  rpc GetSalesTrend (GetSalesTrendRequest) returns (GetSalesTrendReply);
+  // Gán nhân viên giao hàng cho đơn hàng
+  rpc AssignStaffToDelivery (AssignStaffToDeliveryRequest) returns (AssignStaffToDeliveryReply);
+
+  // Lấy lịch sử theo dõi đơn hàng
+  rpc GetOrderTrackings (GetOrderTrackingsRequest) returns (GetOrderTrackingsReply);
+
+  // Thống kê Customer Purchase Behavior
+  rpc GetCustomerOrderPattern (GetCustomerOrderPatternRequest) returns (GetCustomerOrderPatternReply);
+}
+
+message GetCountOrderByUserIdsRequest{
+  repeated string userId = 1;
+}
+
+message GetCountOrderByUserIdsResponse{
+  repeated CountOrderByUserId UserCountOrder = 1;
+}
+
+message CountOrderByUserId{
+  string userId = 1;
+  int32 OrderCount = 2;
+}
+
+message CreateOrderRequest {
+  repeated CartItem items = 1;
+  string notes = 2;
+  string storeId = 3;
+  optional OrderType type = 4;
+  optional string scheduled_time = 5;
+  optional double latitude = 6;
+  optional double longitude = 7;
+  optional string address = 8;
+}
+
+message CartItem {
+  string sku = 1;
+  int32 quantity = 2;
+}
+
+message OrderReply {
+  string order_id = 1;
+  string order_code = 2;
+  double total_amount = 3;
+  string customer_id = 4;
+  string store_id = 5;
+  repeated OrderItemReply items = 6;
+  CheckEnoughStockResponse check_stock_respone = 7;
+  optional OrderType type=8;
+  repeated OrderSaleItemReply sale_items = 9;
+  optional string scheduled_time = 10;
+  double shipping_fee = 11;
+  optional double latitude = 12;
+  optional double longitude = 13;
+  optional string address = 14;
+  optional double distance = 15;
+}
+
+message OrderItemReply {
+  string sku = 1;
+  int32 quantity = 2;
+  double unit_price = 3;
+}
+
+message OrderSaleItemReply {
+  string id = 1;
+  double amount = 2;
+  OrderSaleItemType type = 3;
+  optional string reference_id = 4;
+  string name = 5;
+}
+enum OrderSaleItemType {
+  VOUCHER = 0;
+  WALLET = 1;
+  POINT = 2;
+  DISCOUNTRATE = 3;
+}
+message GetOrderByIdRequest {
+  string id = 1;
+}
+
+message GetOrderByIdReply {
+  Order order = 1;
+}
+
+message Order {
+  string id = 1;
+  string code = 2;
+  double subtotal = 3;
+  optional double tax = 4;
+  double total_amount = 5;
+  double paid_amount = 6;
+  optional int32 payment_method = 7;
+  optional int32 status = 8;
+  string paid_at = 9;
+  string notes = 10;
+  string created_at = 11;
+  string updated_at = 12;
+  string customer_id = 13;
+  string store_id = 14;
+  repeated OrderItem items = 15;
+  OrderType type=16;
+  repeated OrderSaleItemReply sale_items = 17;
+
+  optional string deliverer_id = 18;
+  optional string scheduled_time = 19;
+  double shipping_fee = 20;
+  optional double latitude = 21;
+  optional double longitude = 22;
+  optional double distance = 23;
+  optional string address = 24;
+}
+
+
+message OrderItem {
+  string id = 1;
+  string product_id = 2;
+  string variant_id = 3;
+  int32 quantity = 4;
+  double unit_price = 5;
+  string product_name = 6;
+  string sku = 7;
+  string image_url = 8;
+}
+
+message GetMyOrdersRequest {
+  optional int32 page = 1;
+  optional int32 page_size = 2;
+}
+
+message GetMyOrdersReply {
+  repeated OrderSummary orders = 1;
+  int32 total_count = 2;
+}
+
+message OrderSummary {
+  string id = 1;
+  string code = 2;
+  double subtotal = 3;
+  optional double tax = 4;
+  double total_amount = 5;
+  optional double paid_amount = 6;
+  optional int32 payment_method = 7;
+  optional int32 status = 8;
+  string paid_at = 9;
+  string notes = 10;
+  string created_at = 11;
+  string updated_at = 12;
+  string customer_id = 13;
+  string store_id = 14;
+  OrderType type=15;
+
+  optional string deliverer_id = 16;
+  optional string scheduled_time = 17;
+  double shipping_fee = 18;
+  optional double latitude = 19;
+  optional double longitude = 20;
+  optional double distance = 21;
+  optional string address = 22;
+}
+
+
+message CheckEnoughStockResponse {
+  bool is_enough = 1;
+  repeated ShortageItem shortage_items = 2;
+}
+
+message ShortageItem {
+  string variant_id = 1;
+  string sku = 2;
+  int32 max_feasible_quantity = 3;
+}
+
+enum OrderStatus{
+  PaymentPending = 0;
+  ConfirmationPending = 1; 
+  Confirmed = 2; 
+  Preparing = 3; 
+  ReadyForPickup = 4;
+  Delivering = 5; 
+  Completed = 6; 
+  Cancelled = 7;
+}
+
+enum OrderType{
+  Delivery=0;
+  Pickup=1;
+}
+
+message UpdateOrderStatusRequest {
+  string orderId = 1;
+  OrderStatus status = 2; // PaymentPending, Preparing, Ready, Completed, Cancel
+}
+
+message UpdateOrderStatusReply {
+  string message = 1;
+}
+
+message UpdateOrderItem {
+  string sku = 1;
+  int32 quantity = 2;
+}
+
+message UpdateOrderRequest {
+  string order_id = 1;
+  repeated UpdateOrderItem items = 2;
+}
+
+message GetOrdersRequest {
+  optional string store_id = 1;
+  optional string code = 2;
+  optional int32 status = 3;
+  optional int32 payment_method = 4;
+  optional string from_date = 5; // YYYY-MM-DD
+  optional string to_date = 6;   // YYYY-MM-DD
+  optional int32 page = 7;
+  optional int32 page_size = 8;
+  optional OrderType  type=9;
+}
+
+message GetOrdersReply {
+  repeated OrderSummary orders = 1;
+  int32 total_count = 2;
+  int32 total_pages = 3;
+}
+
+message GetRevenueReportRequest {
+  optional string from_date = 1; // ISO 8601 string
+  optional string to_date = 2;   // ISO 8601 string
+  optional string category_id = 3;
+  optional string store_id = 4;
+  bool include_csv = 5;
+}
+
+message GetRevenueReportReply {
+  string from_date = 1;
+  string to_date = 2;
+  string category_id = 3;
+  repeated RevenueItem items = 4;
+  double overall_total_revenue = 5;
+
+  optional CsvFile csv_file = 6;
+}
+
+message RevenueItem {
+  optional string store_id = 1;
+  string product_name = 2;
+  string sku = 3;
+  int32 quantity_sold = 4;
+  double unit_price = 5;
+  double total_revenue = 6;
+}
+
+message GetOrderVolumeRequest{
+  string from_date = 1; // YYYY-MM-DD
+  string to_date = 2; // YYYY-MM-DD
+  optional string store_id = 3;
+  optional OrderStatus status = 4; //
+  optional bool include_csv = 5;
+}
+
+message GetOrderVolumeReply{
+  repeated OrderVolumeADay orders = 1;
+  optional CsvFile csv_file = 6;
+}
+
+message OrderVolumeADay{
+  string date = 1; // YYYY-MM-DD
+  int32 total_orders = 2;
+  int32 canceled_order = 3;
+  int32 completed_order = 4;
+  optional string store_id = 5;
+  map<string, int32> status_counts = 6;
+
+  optional CsvFile csv_file = 7;
+}
+
+message CsvFile{
+  bytes csv_raw = 1;
+  string csv_file_name = 2;
+}
+message GetSalesTrendRequest {
+  string from_date = 1; // DateTimeOffset format (ISO 8601)
+  string to_date = 2;   // DateTimeOffset format (ISO 8601)
+  int32 aggregation = 3; // 0 = Hour, 1 = Day, 2 = Week
+  optional string store_id = 4;
+  optional string category_id = 5;
+  bool include_csv = 6; // Nếu true, trả về file CSV trong response
+}
+
+message SalesTrendDataPoint {
+  string time_label = 1;
+  int32 order_volume = 2;
+  double revenue = 3;
+}
+
+message GetSalesTrendReply {
+  repeated SalesTrendDataPoint data_points = 1;
+  optional string peak_period_label = 2;
+  optional string slow_period_label = 3;
+  optional CsvFile csv_file = 4; // Xuất file CSV (nếu include_csv = true)
+}
+
+message PayOrderWithWalletRequest {
+  string order_id = 1;
+}
+
+message PayOrderWithWalletReply {
+  string order_id = 1;
+  string order_code = 2;
+
+  string customer_wallet_id = 3;
+  string shop_wallet_id = 4;
+
+  double amount = 5;
+
+  double customer_balance_before = 6;
+  double customer_balance_after = 7;
+
+  double shop_balance_before = 8;
+  double shop_balance_after = 9;
+
+  string customer_transaction_id = 10;
+  string shop_transaction_id = 11;
+
+  string customer_transaction_code = 12;
+  string shop_transaction_code = 13;
+
+  string paid_at = 14;
+}
+message AssignStaffToDeliveryRequest {
+  string order_id = 1;
+  optional string staff_id = 2; // Nếu không có, hệ thống sẽ tự chọn (chưa hỗ trợ)
+}
+
+message AssignStaffToDeliveryReply {
+  string order_id = 1;
+  string order_code = 2;
+  string deliverer_id = 3;
+  string message = 4;
+}
+
+message GetOrderTrackingsRequest {
+  optional string store_id = 1;
+  optional string order_id = 2;
+  optional int32 page = 3;
+  optional int32 page_size = 4;
+}
+
+message GetOrderTrackingsReply {
+  repeated OrderTrackingMessage trackings = 1;
+  int32 total_count = 2;
+}
+
+message OrderTrackingMessage {
+  string id = 1;
+  string order_id = 2;
+  string order_code = 3;
+  int32 status = 4;
+  string action = 5;
+  string note = 6;
+  string created_at = 7;
+}
+
+message GetProductPerformanceRequest {
+  string store_id = 1;
+  optional string from_date = 2;
+  optional string to_date = 3;
+  optional string category_id = 4;
+  optional string sort_by = 5;
+  optional string sort_order = 6;
+  int32 page_index = 7;
+  int32 page_size = 8;
+  optional bool include_csv = 9;
+}
+
+message GetProductPerformanceReply {
+  repeated ProductPerformanceItem items = 1;
+  int32 total_count = 2;
+  int32 page_index = 3;
+  int32 page_size = 4;
+  optional CsvFile csv_file = 5;
+}
+
+message ProductPerformanceItem {
+  string product_id = 1;
+  string product_name = 2;
+  string category_id = 3;
+  string category_name = 4;
+  int32 units_sold = 5;
+  double revenue = 6;
+  double cancelled_rate = 7;
+  int32 total_orders = 8;
+  int32 total_cancelled = 9;
+  PerformanceTag tag = 10;
+}
+
+enum PerformanceTag {
+  PERFORMANCE_TAG_NORMAL = 0;
+  PERFORMANCE_TAG_TOP = 1;
+  PERFORMANCE_TAG_BOTTOM = 2;
+}
+
+message GetCustomerOrderPatternRequest {
+  string store_id = 1;
+  optional string from_date = 2;
+  optional string to_date = 3;
+  optional int32 min_orders = 4;
+  optional int32 max_orders = 5;
+  optional string sort_by = 6;
+  optional string sort_order = 7;
+  int32 page_index = 8;
+  int32 page_size = 9;
+  optional bool include_csv = 10;
+}
+
+
+
+message GetCustomerOrderPatternReply {
+  repeated CustomerOrderPatternItem items = 1;
+  int32 total_count = 2;
+  int32 page_index = 3;
+  int32 page_size = 4;
+  optional CsvFile csv_file = 5;
+}
+
+message CustomerOrderPatternItem {
+  string customer_id = 1;
+  string full_name = 2;
+  string email = 3;
+  string phone = 4;
+  int32 total_orders = 5;
+  double average_order_value = 6;
+  double total_spent = 7;
+  string last_order_date = 8;
+}
+

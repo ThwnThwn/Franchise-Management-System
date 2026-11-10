@@ -1,0 +1,77 @@
+syntax = "proto3";
+
+option csharp_namespace = "FranchiseService.Grpc";
+option go_package = "api-gateway/pkg/pb/franchise";
+
+package franchise;
+
+// =======================================================
+// Service quan ly don dang ky nhan ca tu Cho Ca (Shift Pool)
+// =======================================================
+service ShiftApplicationGrpcService {
+  // Nhan vien dang ky nhan ca tu Cho Ca
+  rpc ApplyForShift (ApplyForShiftRequest) returns (ApplyForShiftResponse);
+
+  // Manager xem danh sach ung vien kem Smart Score
+  rpc GetApplicationsByShift (GetApplicationsByShiftRequest) returns (GetApplicationsByShiftResponse);
+
+  // Manager duyet hoac tu choi don dang ky
+  rpc ReviewApplication (ReviewApplicationRequest) returns (ReviewApplicationResponse);
+}
+
+// =======================================================
+// MESSAGES
+// =======================================================
+
+// --- ApplyForShift ---
+message ApplyForShiftRequest {
+  string shift_id = 1;
+  string user_id = 2;
+  string note = 3;
+}
+
+message ApplyForShiftResponse {
+  bool success = 1;
+  string application_id = 2;
+  string message = 3;
+}
+
+// --- GetApplicationsByShift ---
+message GetApplicationsByShiftRequest {
+  string shift_id = 1;
+}
+
+message GetApplicationsByShiftResponse {
+  repeated ShiftApplicationItem applications = 1;
+}
+
+message ShiftApplicationItem {
+  string id = 1;
+  string shift_id = 2;
+  string user_id = 3;
+  int32 status = 4;
+  string note = 5;
+  string applied_at = 6;
+  // Thong tin nhan vien
+  string user_name = 7;
+  string user_email = 8;
+  string avatar_url = 9;
+  double hourly_wage = 10;
+  // Diem Smart Score (0.0 - 1.0)
+  double smart_score = 11;
+  // Tong so gio da lam trong tuan
+  double weekly_hours_worked = 12;
+}
+
+// --- ReviewApplication ---
+message ReviewApplicationRequest {
+  string application_id = 1;
+  bool is_approved = 2;
+  string reviewed_by = 3;
+  string review_note = 4;
+}
+
+message ReviewApplicationResponse {
+  bool success = 1;
+  string message = 2;
+}

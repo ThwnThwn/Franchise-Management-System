@@ -1,0 +1,262 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+option csharp_namespace = "ProductService.API";
+option go_package = "api-gateway/pkg/pb/product";
+
+package product;
+
+service ProductGrpc {
+
+  rpc GetProducts (GetProductsRequest) returns (GetProductsReply);
+
+  rpc GetProductById (GetProductByIdRequest) returns (GetProductByIdReply);
+
+  rpc GetProductsByName (GetProductsByNameRequest)
+      returns (GetProductsReply);
+
+  rpc CreateProduct (CreateProductRequest) returns (CreateProductReply);
+
+  rpc UpdateProduct (UpdateProductRequest) returns (UpdateProductReply);
+
+  rpc DeleteProduct (DeleteProductRequest) returns (DeleteProductReply);
+
+
+  rpc GetProductsByKeyword (GetProductsByKeywordRequest)
+    returns (GetProductsByKeywordReply);
+
+  rpc UploadImage (UploadImageRequest) returns (UploadImageReply);
+
+  // Upload image and assign to a specific product
+  rpc UploadProductImage (UploadProductImageRequest) returns (UploadProductImageReply);
+
+  // Get product variant info by SKU
+  rpc GetProductBySku (GetProductBySkuRequest) returns (GetProductBySkuReply);
+
+  // Get multiple product variants by list of SKUs
+  rpc GetProductsBySkus (GetProductsBySkusRequest) returns (GetProductsBySkusReply);
+
+  // Get SKUs by Category ID
+  rpc GetSkusByCategory (GetSkusByCategoryRequest) returns (GetSkusByCategoryReply);
+
+  // Recalculate variant costs from InventoryService MAC updates
+  rpc RecalculateVariantCosts (RecalculateVariantCostsRequest) returns (google.protobuf.Empty);
+
+  rpc GetProductsByIds (GetProductsByIdsRequest) returns (GetProductsByIdsReply);
+}
+
+// ── GetProductBySku ──
+message GetProductBySkuRequest {
+  string sku = 1;
+}
+
+message GetProductBySkuReply {
+  bool found = 1;
+  string product_id = 2;
+  string variant_id = 3;
+  string product_name = 4;
+  string sku = 5;
+  string attributes = 6;
+  double base_price = 7;
+  string image_url = 8;
+}
+
+// ── GetProductsBySkus ──
+message GetProductsBySkusRequest {
+  repeated string skus = 1;
+}
+
+message GetProductsBySkusReply {
+  repeated ProductVariantDetail variants = 1;
+}
+
+message ProductVariantDetail {
+  string product_id = 1;
+  string variant_id = 2;
+  string product_name = 3;
+  string sku = 4;
+  string attributes = 5;
+  double base_price = 6;
+  string image_url = 7;
+}
+
+// ── GetSkusByCategory ──
+message GetSkusByCategoryRequest {
+  string category_id = 1;
+}
+
+message GetSkusByCategoryReply {
+  repeated string skus = 1;
+}
+
+message GetProductsRequest {
+  string category_id = 1;
+}
+
+message GetProductsByName {
+  repeated Product products = 1;
+  int32 total_count = 2;
+}
+message GetProductsByNameRequest{
+    string name = 1;
+}
+
+message GetProductsReply {
+  repeated Product products = 1;
+  int32 total_count = 2;
+}
+
+message GetProductByIdRequest {
+  string id = 1;
+}
+
+message GetProductByIdReply {
+  Product product = 1;
+}
+
+message CreateProductRequest {
+  string name = 1;
+  optional string description = 2;
+  optional string image_url = 3;
+  optional string image_public_id = 4;
+  string category_id = 5;
+  repeated CreateProductVariant variants = 6;
+}
+
+message CreateProductVariant {
+  optional string sku = 1;
+  optional string name = 2;
+  optional string attributes = 3;
+  double base_price = 4;
+  double cost = 5;
+  optional bool is_active = 6;
+}
+
+message CreateProductReply {
+  string product_id = 1;
+  string name = 2;
+  optional string description = 3;
+  optional string image_url = 4;
+  optional string image_public_id = 5;
+  bool is_active = 6;
+  string category_id = 7;
+  string created_at = 8;
+  repeated string variant_ids = 9;
+}
+
+message UpdateProductRequest {
+  string product_id = 1;
+  optional string name = 2;
+  optional string description = 3;
+  optional string image_url = 4;
+  optional string image_public_id = 5;
+  optional bool is_active = 6;
+  optional string category_id = 7;
+  repeated UpdateProductVariant variants = 8;
+}
+
+message UpdateProductVariant {
+  optional string sku = 1;
+  optional string name = 2;
+  optional string attributes = 3;
+  optional double base_price = 4;
+  optional double cost = 5;
+  optional bool is_active = 6;
+}
+
+message UpdateProductReply {
+  string product_id = 1;
+}
+
+message DeleteProductRequest {
+  string id = 1;
+}
+
+message DeleteProductReply {
+  bool success = 1;
+}
+
+message Product {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string image_url = 4;
+  bool is_active = 5;
+  string category_id = 6;
+  string category_name = 7;
+  string created_at = 8;
+  string updated_at = 9;
+  repeated ProductVariant variants = 10;
+}
+
+message ProductVariant {
+  string id = 1;
+  string sku = 2;
+  string name = 3;
+  string attributes = 4;
+  double base_price = 5;
+  double cost = 6;
+  bool is_active = 7;
+}
+
+message GetProductsByKeywordRequest {
+  optional string keyword = 1;
+  optional string category_id = 2;
+
+  int32 page = 3;
+  int32 page_size = 4;
+}
+message GetProductsByKeywordReply {
+  repeated Product products = 1;
+
+  int32 total_count = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+  int32 total_pages = 5;
+
+  bool has_next_page = 6;
+  bool has_previous_page = 7;
+}
+
+message UploadImageRequest {
+  bytes image_data = 1;
+  string file_name = 2;
+  string content_type = 3;
+}
+
+message UploadImageReply {
+  string url = 1;
+  string public_id = 2;
+}
+
+message UploadProductImageRequest {
+  string product_id = 1;
+  bytes image_data = 2;
+  string file_name = 3;
+  string content_type = 4;
+}
+
+message UploadProductImageReply {
+  string product_id = 1;
+  string image_url = 2;
+  string image_public_id = 3;
+}
+
+// ── RecalculateVariantCosts ──
+message RecalculateVariantCostsRequest {
+    repeated VariantCostUpdate updates = 1;
+}
+
+message VariantCostUpdate {
+    string variant_id = 1;
+    double new_cost = 2;
+}
+
+message GetProductsByIdsRequest {
+  repeated string product_ids = 1;
+}
+
+message GetProductsByIdsReply {
+  repeated Product products = 1;
+  int32 total_count = 2;
+}

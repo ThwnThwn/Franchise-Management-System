@@ -1,0 +1,87 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "SalesService.API";
+option go_package = "api-gateway/pkg/pb/sales";
+
+package payment;
+
+service PaymentGrpc {
+  // Tạo đơn thanh toán
+  rpc CreatePayment (CreatePaymentRequest) returns (PaymentResponse);
+
+  // Lấy danh sách payment có phân trang
+  rpc GetAllPayments (GetAllPaymentsRequest) returns (GetAllPaymentsReply);
+
+  // Lấy lịch sử thanh toán của customer (customer dashboard)
+  rpc GetMyPaymentHistory (GetMyPaymentHistoryRequest) returns (GetMyPaymentHistoryReply);
+}
+
+enum PaymentMethodType {
+  CASH = 0;
+  VNPAY = 1;
+}
+
+message CreatePaymentRequest {
+  string order_id = 1;
+  optional string return_url = 2;  // Optional: custom return URL after payment
+  PaymentMethodType paymentMethod = 3;
+}
+
+
+message PaymentResponse {
+  string url = 1;
+}
+
+message GetAllPaymentsRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+}
+
+message PaymentDto {
+  string id = 1;
+  string order_id = 2;
+  string code = 3;
+  double amount = 4;
+  string currency = 5;
+  int32 method = 6;
+  int32 status = 7;
+  string paid_at = 8;
+  string created_at = 9;
+}
+
+message GetAllPaymentsReply {
+  repeated PaymentDto payments = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+  int64 total_count = 4;
+  int32 total_pages = 5;
+}
+
+// ── GetMyPaymentHistory ──────────────────────────────────────────────────────
+
+message GetMyPaymentHistoryRequest {
+  int32  page                 = 1;
+  int32  page_size            = 2;
+  optional string start_date  = 3;  // ISO-8601, e.g. "2025-01-01"
+  optional string end_date    = 4;
+  optional int32  status      = 5;  // 0=Pending, 1=Paid, 2=Failed; omit for all
+}
+
+message PaymentHistoryItemDto {
+  string id             = 1;
+  string order_id       = 2;
+  string order_code     = 3;  // mã đơn hàng (Order.Code)
+  double amount         = 4;
+  string currency       = 5;
+  string payment_method = 6;  // "Cash" | "VNPay"
+  int32  status         = 7;  // 0=Pending, 1=Paid, 2=Failed
+  string payment_date   = 8;  // ISO-8601 của PaidAt hoặc CreatedAt
+}
+
+message GetMyPaymentHistoryReply {
+  repeated PaymentHistoryItemDto items = 1;
+  int32  page        = 2;
+  int32  page_size   = 3;
+  int64  total_count = 4;
+  int32  total_pages = 5;
+}

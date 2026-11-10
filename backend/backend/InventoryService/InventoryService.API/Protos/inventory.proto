@@ -1,0 +1,59 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "InventoryService.Grpc.Protos.Inventory.Internal";
+option go_package = "api-gateway/pkg/pb/inventory";
+
+package inventory.internal;
+
+service InventoryInternalGrpc {
+  rpc DecreaseStockByOrder(DecreaseStockByOrderRequest) returns (DecreaseStockByOrderResponse);
+  rpc CheckEnoughStock(CheckEnoughStockRequest) returns (CheckEnoughStockResponse);
+  rpc ReserveStock(ReserveStockRequest) returns (CheckEnoughStockResponse);
+  rpc ReleaseStock(ReleaseStockRequest) returns (ReleaseStockResponse);
+}
+
+message ReserveStockRequest {
+  string store_id = 1;
+  string order_id = 2;
+  repeated AmountVariant items = 3;
+}
+
+message ReserveStockResponse {
+  bool success = 1;
+  string message = 2; // e.g., "Out of stock"
+}
+
+message DecreaseStockByOrderRequest{
+  string store_id = 1;
+  repeated AmountVariant decrease_items = 2;
+}
+
+message DecreaseStockByOrderResponse{
+ // Không trả ra gì (thường dùng để xác nhận rpc thành công)
+}
+
+message CheckEnoughStockRequest {
+  string store_id = 1;
+  repeated AmountVariant check_items = 2;
+}
+
+message AmountVariant{
+  string variant_id = 1;
+  string sku = 2;
+  int32 amount = 3;
+}
+
+message CheckEnoughStockResponse {
+  bool is_enough = 1;
+  repeated AmountVariant shortage_items = 2;
+}
+
+message ReleaseStockRequest {
+  string store_id  = 1;
+  string order_id = 2;
+}
+
+message ReleaseStockResponse {
+  bool success = 1;
+  string message = 2;
+}

@@ -1,0 +1,138 @@
+syntax = "proto3";
+
+option csharp_namespace = "FranchiseService.Grpc";
+option go_package = "api-gateway/pkg/pb/franchise";
+
+package franchise;
+
+// =======================================================
+// Service quan ly doi ca va nha ca (Swap and Release)
+// =======================================================
+service ShiftSwapGrpcService {
+  // A gui yeu cau doi ca cho B
+  rpc RequestSwap (RequestSwapRequest) returns (RequestSwapResponse);
+
+  // B dong y hoac tu choi yeu cau doi ca
+  rpc RespondSwap (RespondSwapRequest) returns (RespondSwapResponse);
+
+  // Manager duyet hoac tu choi yeu cau doi ca
+  rpc ApproveSwap (ApproveSwapRequest) returns (ApproveSwapResponse);
+
+  // A tu huy yeu cau doi ca
+  rpc CancelSwap (CancelSwapRequest) returns (CancelSwapResponse);
+
+  // Nhan vien nha ca ve Cho Ca
+  rpc ReleaseShift (ReleaseShiftRequest) returns (ReleaseShiftResponse);
+
+  // Xem danh sach yeu cau doi ca cua toi
+  rpc GetMySwapRequests (GetMySwapRequestsRequest) returns (GetMySwapRequestsResponse);
+
+  // Manager xem danh sach yeu cau doi ca thuoc cua hang
+  rpc GetSwapRequestsByStore (GetSwapRequestsByStoreRequest) returns (GetSwapRequestsByStoreResponse);
+}
+
+// =======================================================
+// MESSAGES
+// =======================================================
+
+// --- GetSwapRequestsByStore ---
+message GetSwapRequestsByStoreRequest {
+  string store_id = 1;
+
+  // Lọc theo trạng thái (thuờng là PendingManager).
+  // Truyền -1 để lấy tất cả, nếu không thì truyền mã trạng thái.
+  int32 status = 2; 
+}
+
+message GetSwapRequestsByStoreResponse {
+  repeated SwapRequestItem swap_requests = 1;
+}
+
+// --- RequestSwap ---
+message RequestSwapRequest {
+  string assignment_id = 1;
+  string source_user_id = 2;
+  string target_user_id = 3;
+  string reason = 4;
+}
+
+message RequestSwapResponse {
+  bool success = 1;
+  string swap_request_id = 2;
+  string expires_at = 3;
+  string message = 4;
+}
+
+// --- RespondSwap ---
+message RespondSwapRequest {
+  string swap_request_id = 1;
+  string user_id = 2;
+  bool accept = 3;
+  string reject_reason = 4;
+}
+
+message RespondSwapResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// --- ApproveSwap ---
+message ApproveSwapRequest {
+  string swap_request_id = 1;
+  string reviewed_by = 2;
+  bool approve = 3;
+  string reject_reason = 4;
+}
+
+message ApproveSwapResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// --- CancelSwap ---
+message CancelSwapRequest {
+  string swap_request_id = 1;
+  string user_id = 2;
+}
+
+message CancelSwapResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// --- ReleaseShift ---
+message ReleaseShiftRequest {
+  string assignment_id = 1;
+  string user_id = 2;
+}
+
+message ReleaseShiftResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// --- GetMySwapRequests ---
+message GetMySwapRequestsRequest {
+  string user_id = 1;
+}
+
+message GetMySwapRequestsResponse {
+  repeated SwapRequestItem swap_requests = 1;
+}
+
+message SwapRequestItem {
+  string id = 1;
+  string source_user_id = 2;
+  string source_user_name = 3;
+  string target_user_id = 4;
+  string target_user_name = 5;
+  int32 status = 6;
+  string reason = 7;
+  string reject_reason = 8;
+  string expires_at = 9;
+  string created_at = 10;
+  string shift_id = 11;
+  string shift_date = 12;
+  string start_time = 13;
+  string end_time = 14;
+}

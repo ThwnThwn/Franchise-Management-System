@@ -1,0 +1,42 @@
+package auth
+
+type LoginRequest struct {
+	EmailOrUsername string `json:"emailOrUsername" binding:"required"`
+	Password        string `json:"password" binding:"required"`
+}
+
+type RegisterRequest struct {
+	Email           string `json:"email" binding:"required"`
+	Username        string `json:"username" binding:"required"`
+	FirstName       string `json:"firstName" binding:"required"`
+	LastName        string `json:"lastName"`
+	Password        string `json:"password" binding:"required,min=6,max=30"`
+	ConfirmPassword string `json:"confirmPassword" binding:"required,eqfield=Password"`
+	Phone           string `json:"phone" binding:"required"`
+	Address         string `json:"address" binding:"required"`
+	Gender          *int32 `json:"gender" binding:"required"`
+	DateOfBirth     string `json:"dateOfBirth" binding:"required"`
+}
+
+type ConfirmOtpRequest struct {
+	Email string `json:"email" binding:"required"`
+	Otp   string `json:"otp" binding:"required"`
+}
+
+type RefreshTokenRequest struct {
+	RefreshToken string `json:"refreshToken" binding:"required"`
+}
+
+type LogoutRequest struct {
+	AccessToken  string `json:"accessToken" binding:"required"`
+	RefreshToken string `json:"refreshToken" binding:"required"`
+}
+
+type SendOtpRequest struct {
+	Email string `json:"email" binding:"required"`
+}
+
+type NewPasswordRequest struct {
+	NewPassword     string `json:"newPassword" binding:"required"`
+	ConfirmPassword string `json:"confirmPassword" binding:"required,eqfield=NewPassword"`
+}

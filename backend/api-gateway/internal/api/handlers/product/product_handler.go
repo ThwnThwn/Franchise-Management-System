@@ -1,0 +1,268 @@
+package product
+
+import (
+	"api-gateway/internal/application/constants/errorcode"
+	prodGW "api-gateway/internal/application/gateways/product"
+	"api-gateway/internal/domain/models/common"
+	"api-gateway/internal/domain/models/product"
+	"api-gateway/pkg/utils/stringutils"
+	"api-gateway/pkg/utils/validation"
+	"io"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+)
+
+type ProductHandler struct {
+	productGW prodGW.IProductService
+}
+
+func NewProductHandler(productGW prodGW.IProductService) *ProductHandler {
+	return &ProductHandler{productGW: productGW}
+}
+
+// GetProducts
+// @Summary      Get All Products
+// @Description  Retrieve a list of products with pagination and keyword search support.
+// @Tags         Products
+// @Accept       json
+// @Produce      json
+// @Param        query  query     product.GetProductsByKeywordRequest  false  "Filter options"
+// @Success      200    {object}  map[string]interface{}               "List of products"
+// @Failure      500    {object}  map[string]string                    "Internal server error"
+// @Router       /products [get]
+func (h *ProductHandler) GetProducts(c *gin.Context) error {
+	var req product.GetProductsByKeywordRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		return err
+	}
+
+	ctx := c.Request.Context()
+	res, err := h.productGW.GetAllWithPagingBy(ctx, &req)
+	if err != nil {
+		return err
+	}
+
+	c.JSON(http.StatusOK, res)
+	return nil
+}
+
+// GetProductById
+// @Summary      Get Product Details
+// @Description  Retrieve full details of a specific product by its ID.
+// @Tags         Products
+// @Accept       json
+// @Produce      json
+// @Param        id   path      string  true  "Product UUID"
+// @Success      200  {object}  map[string]interface{} "Product details"
+// @Failure      400  {object}  map[string]string      "Invalid ID format"
+// @Failure      404  {object}  map[string]string      "Product not found"
+// @Router       /products/{id} [get]
+func (h *ProductHandler) GetProductById(c *gin.Context) error {
+	id := c.Param("id")
+	productId, err := uuid.Parse(id)
+	if err != nil {
+		return errorcode.ErrInvalidId
+	}
+
+	ctx := c.Request.Context()
+	res, err := h.productGW.GetProductById(ctx, productId)
+	if err != nil {
+		return err
+	}
+
+	c.JSON(http.StatusOK, res)
+	return nil
+}
+
+// GetProductVariants
+// @Summary      Get products by skus
+// @Description  Retrieve a list of product variants with simple info
+// @Tags         Products
+// @Accept       json
+// @Produce      json
+// @Param        query  query     product.GetProductVariantsRequest    true    "List of sku"
+// @Success      200    {array}   product.ProductVariantDetail         "List of products"
+// @Failure      500    {object}  map[string]string                    "Internal server error"
+// @Router       /products/variants [get]
+func (h *ProductHandler) GetProductVariants(c *gin.Context) error {
+	var req product.GetProductVariantsRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		return err
+	}
+
+	ctx := c.Request.Context()
+	res, err := h.productGW.GetProductVariants(ctx, &req)
+	if err != nil {
+		return err
+	}
+
+	c.JSON(http.StatusOK, res)
+	return nil
+}
+
+// CreateProduct
+// @Summary      Create New Product
+// @Description  Add a new product to the catalog.
+// @Tags         Products
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        request body     product.CreateProductRequest  true  "Product details"
+// @Success      200     {object} map[string]interface{}        "Success"
+// @Failure      400     {object} map[string]string             "Validation error"
+// @Router       /products [post]
+func (h *ProductHandler) CreateProduct(c *gin.Context) error {
+	var req product.CreateProductRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		return validation.TranslateValidationError(err)
+	}
+
+	ctx := c.Request.Context()
+	err := h.productGW.CreateProduct(ctx, &req)
+	if err != nil {
+		return err
+	}
+
+	c.JSON(http.StatusOK, gin.H{})
+	return nil
+}
+
+// UpdateProduct
+// @Summary      Update Product
+// @Description  Update details of an existing product.
+// @Tags         Products
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id       path     string                        true  "Product UUID"
+// @Param        request  body     product.UpdateProductRequest  true  "Updated details"
+// @Success      200      {object} map[string]interface{}        "Success"
+// @Failure      400      {object} map[string]string             "Validation error or Invalid ID"
+// @Router       /products/{id} [patch]
+func (h *ProductHandler) UpdateProduct(c *gin.Context) error {
+	var req product.UpdateProductRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		return validation.TranslateValidationError(err)
+	}
+
+	id := c.Param("id")
+	productId, err := uuid.Parse(id)
+	if err != nil {
+		return errorcode.ErrInvalidId
+	}
+
+	ctx := c.Request.Context()
+	err = h.productGW.UpdateProduct(ctx, productId, &req)
+	if err != nil {
+		return err
+	}
+
+	c.JSON(http.StatusOK, gin.H{})
+	return nil
+}
+
+// DeleteProduct
+// @Summary      Delete Product
+// @Description  Permanently remove a product from the catalog.
+// @Tags         Products
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path      string                  true  "Product UUID"
+// @Success      200  {object}  map[string]interface{}  "Success"
+// @Failure      400  {object}  map[string]string       "Invalid ID format"
+// @Router       /products/{id} [delete]
+func (h *ProductHandler) DeleteProduct(c *gin.Context) error {
+	id := c.Param("id")
+	productId, err := uuid.Parse(id)
+	if err != nil {
+		return errorcode.ErrInvalidId
+	}
+
+	ctx := c.Request.Context()
+	err = h.productGW.DeleteProduct(ctx, productId)
+	if err != nil {
+		return err
+	}
+
+	c.JSON(http.StatusOK, gin.H{})
+	return nil
+}
+
+// UploadImage
+// @Summary      Upload Product Image
+// @Description  Upload an image for a specific product. Supports JPG, PNG, and WebP formats. Max file size is 10MB.
+// @Tags         Products
+// @Accept       multipart/form-data
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id         path      string  true   "Product UUID"
+// @Param        image      formData  file    true   "Image file to upload"
+// @Param        file_name  formData  string  false  "Custom file name (Optional)"
+// @Success      200        {object}  map[string]string "Returns the uploaded image URL"
+// @Failure      400        {object}  map[string]string "Invalid ID or unsupported image format"
+// @Failure      413        {object}  map[string]string "Request entity too large"
+// @Failure      500        {object}  map[string]string "Internal server error"
+// @Router       /products/{id}/images [put]
+func (h *ProductHandler) UploadImage(c *gin.Context) error {
+	id := c.Param("id")
+	productId, err := uuid.Parse(id)
+	if err != nil {
+		return errorcode.ErrInvalidId
+	}
+
+	// 1. Lấy file từ form-data (key là "image")
+	file, header, err := c.Request.FormFile("image")
+	if err != nil {
+		return errorcode.ErrImageRequired
+	}
+	defer file.Close()
+
+	// 2. Đọc file vào byte slice
+	fileBytes, err := io.ReadAll(file)
+	if err != nil {
+		return err
+	}
+
+	// 3. Validation: Kiểm tra xem có thực sự là ảnh không (Magic Bytes)
+	contentType := http.DetectContentType(fileBytes)
+	allowedTypes := map[string]bool{
+		"image/jpeg": true,
+		"image/png":  true,
+		"image/webp": true,
+	}
+	if !allowedTypes[contentType] {
+		return errorcode.ErrInvalidImageFormat
+	}
+
+	// 4. Sanitize tên file
+	// Sử dụng productId làm salt để tên file mang tính định danh và không trùng
+	salt := productId.String()
+	rawFileName := header.Filename
+	if customName := c.PostForm("file_name"); customName != "" {
+		rawFileName = customName
+	}
+	fileName := stringutils.SanitizeFileName(rawFileName, &salt)
+
+	// 5. Build request cho tầng Client
+	req := &common.UploadImageRequest{
+		ImageData:   fileBytes,
+		FileName:    fileName,
+		ContentType: contentType,
+	}
+
+	// 6. Gọi xuống Client (Gateway)
+	ctx := c.Request.Context()
+	url, err := h.productGW.UploadImage(ctx, productId, req)
+	if err != nil {
+		return err
+	}
+
+	// 7. Trả kết quả
+	c.JSON(http.StatusOK, gin.H{
+		"url": url,
+	})
+	return nil
+}

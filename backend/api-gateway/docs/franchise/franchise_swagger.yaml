@@ -1,0 +1,3243 @@
+basePath: /api
+definitions:
+  api-gateway_internal_domain_models_franchise.ConfirmDepositPaymentRequest:
+    properties:
+      note:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_franchise.FranchiseApplicationDetailResponse:
+    properties:
+      application:
+        $ref: '#/definitions/api-gateway_internal_domain_models_franchise.FranchiseApplicationResponse'
+      contracts:
+        items:
+          $ref: '#/definitions/api-gateway_internal_domain_models_franchise.FranchiseContractResponse'
+        type: array
+    type: object
+  api-gateway_internal_domain_models_franchise.FranchiseApplicationResponse:
+    properties:
+      adminNote:
+        type: string
+      contracts:
+        items:
+          $ref: '#/definitions/api-gateway_internal_domain_models_franchise.FranchiseContractResponse'
+        type: array
+      createdAt:
+        type: string
+      districtId:
+        type: string
+      email:
+        type: string
+      fullName:
+        type: string
+      id:
+        type: string
+      identityNumber:
+        type: string
+      landCertificateUrls:
+        items:
+          type: string
+        type: array
+      managerId:
+        type: string
+      phone:
+        type: string
+      provinceId:
+        type: string
+      reviewedAt:
+        type: string
+      reviewedBy:
+        type: string
+      status:
+        type: integer
+      storeAddress:
+        type: string
+      storeFrontUrl:
+        type: string
+      storeId:
+        type: string
+      storeLatitude:
+        type: number
+      storeLongitude:
+        type: number
+      storeName:
+        type: string
+      storeSizeSqm:
+        type: number
+      updatedAt:
+        type: string
+      wardId:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_franchise.FranchiseContractResponse:
+    properties:
+      applicationId:
+        type: string
+      contractPdfUrl:
+        type: string
+      createdAt:
+        type: string
+      depositAmount:
+        type: number
+      depositStatus:
+        description: '0: Awaiting, 1: Paid'
+        type: integer
+      docuSealSubmissionId:
+        type: integer
+      franchiseFee:
+        type: number
+      id:
+        type: string
+      revenueSharePercentage:
+        type: number
+      setupStatus:
+        type: integer
+      status:
+        type: integer
+      updatedAt:
+        type: string
+      validFrom:
+        type: string
+      validUntil:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_franchise.RenewContractRequest:
+    properties:
+      extensionYears:
+        type: integer
+      note:
+        type: string
+    required:
+    - extensionYears
+    type: object
+  api-gateway_internal_domain_models_franchise.ReviewApplicationResponse:
+    properties:
+      contractId:
+        type: string
+      docuSealSubmissionId:
+        type: integer
+      message:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_franchise.ReviewFranchiseApplicationRequest:
+    properties:
+      action:
+        description: '1: Approve, 2: Reject'
+        type: integer
+      depositAmount:
+        type: number
+      franchiseFee:
+        type: number
+      note:
+        type: string
+      revenueSharePercentage:
+        type: number
+      validFrom:
+        type: string
+      validUntil:
+        type: string
+    required:
+    - action
+    type: object
+  api-gateway_internal_domain_models_franchise.UpdateContractStatusRequest:
+    properties:
+      reason:
+        type: string
+      status:
+        type: integer
+    required:
+    - reason
+    - status
+    type: object
+  api-gateway_internal_domain_models_franchise.UpdateSetupStatusRequest:
+    properties:
+      setupStatus:
+        description: '0: Design, 1: Construction, 2: Inspection, 3: Ready'
+        type: integer
+    type: object
+  common.PaginationResult-shift_ShiftAvailabilityResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/shift.ShiftAvailabilityResponse'
+        type: array
+      totalCount:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  common.PaginationResult-shift_TimeLogResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/shift.TimeLogResponse'
+        type: array
+      totalCount:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  common.PaginationResult-store_StoreDetailResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/store.StoreDetailResponse'
+        type: array
+      totalCount:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  enum.TimeLogStatus:
+    enum:
+    - 0
+    - 1
+    - 2
+    type: integer
+    x-enum-comments:
+      TimeLogStatus_INVALID: "2"
+      TimeLogStatus_PROCESSING: "0"
+      TimeLogStatus_VALID: "1"
+    x-enum-descriptions:
+    - "0"
+    - "1"
+    - "2"
+    x-enum-varnames:
+    - TimeLogStatus_PROCESSING
+    - TimeLogStatus_VALID
+    - TimeLogStatus_INVALID
+  franchise.ApplicationPaginationResult:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/api-gateway_internal_domain_models_franchise.FranchiseApplicationResponse'
+        type: array
+      totalCount:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  franchise.ContractPaginationResult:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/api-gateway_internal_domain_models_franchise.FranchiseContractResponse'
+        type: array
+      totalCount:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  shift.ActiveStaffDto:
+    properties:
+      avatarUrl:
+        type: string
+      email:
+        type: string
+      firstName:
+        type: string
+      id:
+        type: string
+      lastName:
+        type: string
+    type: object
+  shift.ApplyForShiftRequest:
+    properties:
+      note:
+        type: string
+    type: object
+  shift.ApproveSwapRequest:
+    properties:
+      approve:
+        type: boolean
+      rejectReason:
+        type: string
+    type: object
+  shift.AssignStaffResponse:
+    properties:
+      success:
+        type: boolean
+      warnings:
+        items:
+          $ref: '#/definitions/shift.ValidationWarningDto'
+        type: array
+    type: object
+  shift.AttendancePayload:
+    properties:
+      latitude:
+        type: number
+      longitude:
+        type: number
+      note:
+        type: string
+    type: object
+  shift.AutoFillShiftsRequest:
+    properties:
+      endDate:
+        type: string
+      startDate:
+        type: string
+    required:
+    - endDate
+    - startDate
+    type: object
+  shift.AutoFillShiftsResponse:
+    properties:
+      filledCount:
+        description: Số slot đã điền được người
+        type: integer
+      success:
+        type: boolean
+      totalSlots:
+        description: Tổng số slot trống cần xử lý
+        type: integer
+      unfilledShiftIds:
+        description: Danh sách ID các ca vẫn "mồ côi"
+        items:
+          type: string
+        type: array
+    type: object
+  shift.BulkCreateFromTemplateRequest:
+    properties:
+      endDate:
+        type: string
+      requiredStaffCount:
+        type: integer
+      startDate:
+        type: string
+      storeId:
+        type: string
+      templateId:
+        type: string
+    required:
+    - endDate
+    - startDate
+    - storeId
+    - templateId
+    type: object
+  shift.BulkCreateManualRequest:
+    properties:
+      breakDurationMinutes:
+        type: integer
+      daysOfWeek:
+        items:
+          type: integer
+        type: array
+      endDate:
+        type: string
+      endTime:
+        type: string
+      note:
+        type: string
+      requiredStaffCount:
+        type: integer
+      startDate:
+        type: string
+      startTime:
+        type: string
+      storeId:
+        type: string
+    required:
+    - storeId
+    type: object
+  shift.CandidateValidation:
+    properties:
+      isOverLimit:
+        type: boolean
+      isRestTimeInvalid:
+        type: boolean
+      isShuttleInvalid:
+        type: boolean
+      restHours:
+        type: number
+      weeklyHours:
+        type: number
+    type: object
+  shift.CoWorkerDTO:
+    properties:
+      avatar:
+        type: string
+      firstName:
+        type: string
+      id:
+        type: string
+      lastName:
+        type: string
+      phone:
+        type: string
+    type: object
+  shift.CreateShiftAvailabilityRequest:
+    properties:
+      dayOfWeek:
+        type: integer
+      endTime:
+        type: string
+      isAvailable:
+        type: boolean
+      isRecurring:
+        type: boolean
+      note:
+        type: string
+      specificDate:
+        type: string
+      startTime:
+        type: string
+    required:
+    - endTime
+    - startTime
+    type: object
+  shift.CreateShiftRequest:
+    properties:
+      breakDurationMinutes:
+        type: integer
+      endTime:
+        type: string
+      note:
+        type: string
+      requiredStaffCount:
+        type: integer
+      shiftDate:
+        type: string
+      shiftTemplateId:
+        type: string
+      startTime:
+        type: string
+      storeId:
+        type: string
+    required:
+    - endTime
+    - requiredStaffCount
+    - shiftDate
+    - startTime
+    - storeId
+    type: object
+  shift.CreateShiftTemplateRequest:
+    properties:
+      breakDurationMinutes:
+        type: integer
+      code:
+        type: string
+      endTime:
+        type: string
+      name:
+        type: string
+      startTime:
+        type: string
+      storeId:
+        type: string
+    required:
+    - code
+    - endTime
+    - name
+    - startTime
+    type: object
+  shift.RequestSwapRequest:
+    properties:
+      reason:
+        type: string
+      targetUserId:
+        type: string
+    required:
+    - targetUserId
+    type: object
+  shift.RespondSwapRequest:
+    properties:
+      accept:
+        type: boolean
+      rejectReason:
+        type: string
+    type: object
+  shift.ReviewApplicationRequest:
+    properties:
+      isApproved:
+        type: boolean
+      reviewNote:
+        type: string
+    type: object
+  shift.SaveShiftRuleRequest:
+    properties:
+      allowShiftSwap:
+        type: boolean
+      allowShuttle:
+        type: boolean
+      dailyOtThresholdHours:
+        type: integer
+      gracePeriodMinutes:
+        type: integer
+      maxHoursPerWeek:
+        type: integer
+      minHoursBetweenShifts:
+        type: integer
+      storeId:
+        type: string
+      weeklyOtThresholdHours:
+        type: integer
+    type: object
+  shift.ShiftApplicationItem:
+    properties:
+      appliedAt:
+        type: string
+      avatarUrl:
+        type: string
+      email:
+        type: string
+      hourlyWage:
+        type: number
+      id:
+        type: string
+      note:
+        type: string
+      shiftId:
+        type: string
+      smartScore:
+        description: Điểm thông minh (0.0 - 1.0)
+        type: number
+      status:
+        description: Map từ Enum ShiftApplicationStatus
+        type: integer
+      userId:
+        type: string
+      username:
+        type: string
+      weeklyHoursWorked:
+        description: Tổng giờ đã làm trong tuần
+        type: number
+    type: object
+  shift.ShiftAssignment:
+    properties:
+      avatarUrl:
+        type: string
+      email:
+        type: string
+      firstName:
+        type: string
+      hourlyWage:
+        type: number
+      id:
+        type: string
+      lastName:
+        type: string
+      shiftId:
+        type: string
+      status:
+        type: integer
+      userId:
+        type: string
+    type: object
+  shift.ShiftAvailabilityResponse:
+    properties:
+      createdAt:
+        type: string
+      dayOfWeek:
+        description: 0-6
+        type: integer
+      endTime:
+        type: string
+      id:
+        type: string
+      isAvailable:
+        type: boolean
+      isRecurring:
+        type: boolean
+      note:
+        type: string
+      specificDate:
+        type: string
+      startTime:
+        type: string
+      updatedAt:
+        type: string
+      userId:
+        type: string
+    type: object
+  shift.ShiftResponse:
+    properties:
+      assignedStaffCount:
+        type: integer
+      assignments:
+        items:
+          $ref: '#/definitions/shift.ShiftAssignment'
+        type: array
+      breakDurationMinutes:
+        type: integer
+      endTime:
+        description: HH:mm
+        type: string
+      id:
+        type: string
+      note:
+        type: string
+      requiredStaffCount:
+        type: integer
+      shiftDate:
+        description: YYYY-MM-DD
+        type: string
+      shiftTemplateId:
+        type: string
+      startTime:
+        description: HH:mm
+        type: string
+      status:
+        description: 0:Draft, 1:Published, 2:Completed, 3:Cancelled
+        type: integer
+      storeId:
+        type: string
+    type: object
+  shift.ShiftRuleResponse:
+    properties:
+      allowShiftSwap:
+        type: boolean
+      allowShuttle:
+        type: boolean
+      dailyOtThresholdHours:
+        type: integer
+      gracePeriodMinutes:
+        type: integer
+      id:
+        type: string
+      maxHoursPerWeek:
+        type: integer
+      minHoursBetweenShifts:
+        type: integer
+      storeId:
+        type: string
+      updatedAt:
+        type: string
+      weeklyOtThresholdHours:
+        type: integer
+    type: object
+  shift.ShiftRuleSettingsResponse:
+    properties:
+      global:
+        $ref: '#/definitions/shift.ShiftRuleResponse'
+      stores:
+        items:
+          $ref: '#/definitions/shift.ShiftRuleResponse'
+        type: array
+    type: object
+  shift.ShiftTemplateResponse:
+    properties:
+      breakDurationMinutes:
+        type: integer
+      code:
+        type: string
+      createdAt:
+        type: string
+      endTime:
+        type: string
+      id:
+        type: string
+      isActive:
+        type: boolean
+      name:
+        type: string
+      startTime:
+        type: string
+      storeId:
+        type: string
+    type: object
+  shift.ShiftTimeLogRes:
+    properties:
+      endTime:
+        description: HH:mm
+        type: string
+      id:
+        type: string
+      note:
+        type: string
+      shiftDate:
+        description: YYYY-MM-DD
+        type: string
+      startTime:
+        description: HH:mm
+        type: string
+    type: object
+  shift.StaffAssignmentCandidate:
+    properties:
+      avatarUrl:
+        type: string
+      currentHourlyWage:
+        type: number
+      firstName:
+        type: string
+      id:
+        type: string
+      isAssigned:
+        type: boolean
+      isAvailable:
+        type: boolean
+      isConflict:
+        type: boolean
+      lastName:
+        type: string
+      note:
+        type: string
+      validation:
+        $ref: '#/definitions/shift.CandidateValidation'
+    type: object
+  shift.StaffShiftAgenda:
+    properties:
+      checkInAt:
+        type: string
+      checkOutAt:
+        type: string
+      coWorkers:
+        items:
+          $ref: '#/definitions/shift.CoWorkerDTO'
+        type: array
+      date:
+        type: string
+      endTime:
+        type: string
+      id:
+        description: assignmentId
+        type: string
+      shiftId:
+        type: string
+      startTime:
+        type: string
+      store:
+        $ref: '#/definitions/store.StoreDetailResponse'
+    type: object
+  shift.StaffTimeLogRes:
+    properties:
+      avatarUrl:
+        type: string
+      email:
+        type: string
+      firstName:
+        type: string
+      id:
+        type: string
+      lastName:
+        type: string
+    type: object
+  shift.SwapRequestItem:
+    properties:
+      createdAt:
+        type: string
+      endTime:
+        type: string
+      expiresAt:
+        type: string
+      id:
+        type: string
+      reason:
+        type: string
+      rejectReason:
+        type: string
+      shiftDate:
+        type: string
+      shiftId:
+        type: string
+      sourceUserId:
+        type: string
+      sourceUserName:
+        type: string
+      startTime:
+        type: string
+      status:
+        description: Map từ Enum SwapStatus
+        type: integer
+      targetUserId:
+        type: string
+      targetUserName:
+        type: string
+    type: object
+  shift.TimeLogResponse:
+    properties:
+      checkInAt:
+        type: string
+      checkInImageUrl:
+        type: string
+      checkInLat:
+        type: number
+      checkInLong:
+        type: number
+      checkOutAt:
+        type: string
+      checkOutImageUrl:
+        type: string
+      checkOutLat:
+        type: number
+      checkOutLong:
+        type: number
+      createdAt:
+        type: string
+      dailyOtMinutes:
+        type: integer
+      id:
+        type: string
+      managerNote:
+        type: string
+      regularMinutes:
+        type: integer
+      shift:
+        $ref: '#/definitions/shift.ShiftTimeLogRes'
+      shiftAssignmentId:
+        type: string
+      staff:
+        $ref: '#/definitions/shift.StaffTimeLogRes'
+      status:
+        description: Map từ Enum TimeLogStatus
+        type: integer
+      updatedAt:
+        type: string
+      weeklyOtMinutes:
+        type: integer
+    type: object
+  shift.UpdateShiftAvailabilityRequest:
+    properties:
+      dayOfWeek:
+        type: integer
+      endTime:
+        type: string
+      isAvailable:
+        type: boolean
+      isRecurring:
+        type: boolean
+      note:
+        type: string
+      specificDate:
+        type: string
+      startTime:
+        type: string
+    type: object
+  shift.UpdateShiftRequest:
+    properties:
+      breakDurationMinutes:
+        type: integer
+      endTime:
+        type: string
+      note:
+        type: string
+      requiredStaffCount:
+        type: integer
+      shiftDate:
+        type: string
+      shiftTemplateId:
+        description: StoreId              *string `json:"storeId,omitempty"`
+        type: string
+      startTime:
+        type: string
+      status:
+        type: integer
+    type: object
+  shift.UpdateShiftTemplateRequest:
+    properties:
+      breakDurationMinutes:
+        type: integer
+      code:
+        type: string
+      endTime:
+        type: string
+      isActive:
+        type: boolean
+      name:
+        type: string
+      startTime:
+        type: string
+    type: object
+  shift.UpdateTimeLogRequest:
+    properties:
+      managerNote:
+        type: string
+      status:
+        $ref: '#/definitions/enum.TimeLogStatus'
+    required:
+    - status
+    type: object
+  shift.UserCurrentShiftResponse:
+    properties:
+      assignmentId:
+        type: string
+      canCheckIn:
+        type: boolean
+      canCheckOut:
+        type: boolean
+      checkInAt:
+        type: string
+      checkOutAt:
+        type: string
+      currentLogId:
+        type: string
+      endTime:
+        type: string
+      hasShiftToday:
+        type: boolean
+      isOvertime:
+        type: boolean
+      serverTime:
+        type: string
+      shiftId:
+        type: string
+      startTime:
+        type: string
+      storeId:
+        type: string
+      storeLat:
+        type: number
+      storeLong:
+        type: number
+      storeName:
+        type: string
+    type: object
+  shift.ValidationWarningDto:
+    properties:
+      code:
+        type: string
+      message:
+        type: string
+      severity:
+        type: string
+    type: object
+  store.StoreDetailResponse:
+    properties:
+      address:
+        type: string
+      id:
+        type: string
+      imageUrl:
+        type: string
+      isOpenNow:
+        description: Tính toán dựa trên StoreHours ngay lúc gọi
+        type: boolean
+      latitude:
+        type: number
+      longitude:
+        type: number
+      name:
+        type: string
+      phone:
+        type: string
+    type: object
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+  description: API docs for CHD Gateway.
+  termsOfService: http://swagger.io/terms/
+  title: Capital Franchise Supply Chain Management System API Document
+  version: "1.0"
+paths:
+  /franchise/applications:
+    get:
+      description: Retrieve all franchise applications (supports pagination, filtering
+        by status).
+      parameters:
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      - in: query
+        name: searchKey
+        type: string
+      - in: query
+        name: status
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/franchise.ApplicationPaginationResult'
+      security:
+      - BearerAuth: []
+      summary: Get all franchise applications (Admin)
+      tags:
+      - 'Franchise: Applications'
+    post:
+      consumes:
+      - multipart/form-data
+      description: Partner submits application (personal info, premise address) along
+        with storefront and land certificate images.
+      parameters:
+      - description: Full name
+        in: formData
+        name: fullName
+        required: true
+        type: string
+      - description: Contact email
+        in: formData
+        name: email
+        required: true
+        type: string
+      - description: Phone number
+        in: formData
+        name: phone
+        required: true
+        type: string
+      - description: Identity card number (CMND/CCCD)
+        in: formData
+        name: identityNumber
+        required: true
+        type: string
+      - description: Province/City ID
+        in: formData
+        name: provinceId
+        required: true
+        type: string
+      - description: District ID
+        in: formData
+        name: districtId
+        required: true
+        type: string
+      - description: Ward ID
+        in: formData
+        name: wardId
+        required: true
+        type: string
+      - description: Proposed store name
+        in: formData
+        name: storeName
+        required: true
+        type: string
+      - description: Detailed premise address
+        in: formData
+        name: storeAddress
+        required: true
+        type: string
+      - description: Latitude
+        in: formData
+        name: storeLatitude
+        type: number
+      - description: Longitude
+        in: formData
+        name: storeLongitude
+        type: number
+      - description: Premise area (sqm)
+        in: formData
+        name: storeSizeSqm
+        type: number
+      - description: Storefront image (1 file)
+        in: formData
+        name: storeFront
+        type: file
+      - description: Land certificate images (Multiple files)
+        in: formData
+        name: landCerts
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created application
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_franchise.FranchiseApplicationResponse'
+        "400":
+          description: Validation error (Bad Request)
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Submit franchise application
+      tags:
+      - 'Franchise: Applications'
+  /franchise/applications/{id}:
+    get:
+      description: View application details including the list of contracts generated
+        from this application.
+      parameters:
+      - description: Application ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_franchise.FranchiseApplicationDetailResponse'
+      security:
+      - BearerAuth: []
+      summary: Get application details (Admin)
+      tags:
+      - 'Franchise: Applications'
+  /franchise/applications/{id}/review:
+    patch:
+      consumes:
+      - application/json
+      description: Admin approves or rejects the application. If approved, the system
+        automatically generates a Contract and sends a DocuSeal link.
+      parameters:
+      - description: Application ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Review decision & contract parameters
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_franchise.ReviewFranchiseApplicationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_franchise.ReviewApplicationResponse'
+      security:
+      - BearerAuth: []
+      summary: Review franchise application (Admin)
+      tags:
+      - 'Franchise: Applications'
+  /franchise/contracts:
+    get:
+      description: Retrieve all franchise contracts (supports pagination, filtering
+        by status).
+      parameters:
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      - in: query
+        name: status
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/franchise.ContractPaginationResult'
+      security:
+      - BearerAuth: []
+      summary: Get all contracts (Admin/Accountant)
+      tags:
+      - 'Franchise: Contracts'
+  /franchise/contracts/{id}:
+    get:
+      description: Retrieve detailed information of a franchise contract.
+      parameters:
+      - description: Contract ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_franchise.FranchiseContractResponse'
+      security:
+      - BearerAuth: []
+      summary: Get contract details
+      tags:
+      - 'Franchise: Contracts'
+  /franchise/contracts/{id}/payment:
+    post:
+      consumes:
+      - application/json
+      description: Change contract status to Active, create a new Store, and grant
+        Manager role to the partner.
+      parameters:
+      - description: Contract ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Transaction notes
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_franchise.ConfirmDepositPaymentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"message": "Xác nhận thanh toán thành công. Hợp đồng đã có
+            hiệu lực."}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Confirm deposit payment (Accountant)
+      tags:
+      - 'Franchise: Contracts'
+  /franchise/contracts/{id}/renew:
+    post:
+      consumes:
+      - application/json
+      description: Add valid years to the current contract.
+      parameters:
+      - description: Contract ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Years to renew
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_franchise.RenewContractRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_franchise.FranchiseContractResponse'
+      security:
+      - BearerAuth: []
+      summary: Renew franchise contract
+      tags:
+      - 'Franchise: Contracts'
+  /franchise/contracts/{id}/setup:
+    patch:
+      consumes:
+      - application/json
+      description: Admin updates the construction status (Design -> Construction ->
+        Inspection -> Ready).
+      parameters:
+      - description: Contract ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Setup status
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_franchise.UpdateSetupStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_franchise.FranchiseContractResponse'
+      security:
+      - BearerAuth: []
+      summary: Update store setup status
+      tags:
+      - 'Franchise: Contracts'
+  /franchise/contracts/{id}/status:
+    patch:
+      consumes:
+      - application/json
+      description: Admin changes the contract status (Suspended, Terminated) with
+        a reason.
+      parameters:
+      - description: Contract ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Status and reason
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_franchise.UpdateContractStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_franchise.FranchiseContractResponse'
+      security:
+      - BearerAuth: []
+      summary: Suspend / Terminate contract
+      tags:
+      - 'Franchise: Contracts'
+  /franchise/me/applications:
+    get:
+      description: Retrieve all franchise applications submitted by the current user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/api-gateway_internal_domain_models_franchise.FranchiseApplicationResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: Get my franchise applications
+      tags:
+      - 'Franchise: Applications'
+  /franchise/me/contracts:
+    get:
+      description: Retrieve all franchise contracts of the current user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/api-gateway_internal_domain_models_franchise.FranchiseContractResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: Get my contracts
+      tags:
+      - 'Franchise: Contracts'
+  /franchise/webhook/docuseal:
+    post:
+      consumes:
+      - application/json
+      description: Update contract status (Signed) based on the webhook sent from
+        DocuSeal. Uses HMAC Header instead of Token authentication.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"message": "Webhook processed"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Handle DocuSeal Webhook (Internal)
+      tags:
+      - 'Franchise: Webhooks'
+  /me/shift-availabilities:
+    get:
+      description: Retrieve the paginated list of registered availability/unavailability
+        for the current employee.
+      parameters:
+      - in: query
+        name: dayOfWeek
+        type: integer
+      - in: query
+        name: fromDate
+        type: string
+      - in: query
+        name: isAvailable
+        type: boolean
+      - in: query
+        name: isRecurring
+        type: boolean
+      - in: query
+        name: keyword
+        type: string
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      - in: query
+        name: storeId
+        type: string
+      - in: query
+        name: toDate
+        type: string
+      - in: query
+        name: userId
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful retrieval
+          schema:
+            $ref: '#/definitions/common.PaginationResult-shift_ShiftAvailabilityResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get my shift availability history
+      tags:
+      - 'Shifts: Availabilities'
+  /me/shift-swaps:
+    get:
+      description: Retrieve all shift swap requests where the current logged-in user
+        is either the sender or the receiver.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of user's swap requests
+          schema:
+            items:
+              $ref: '#/definitions/shift.SwapRequestItem'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get my shift swaps
+      tags:
+      - 'Shifts: Swaps'
+  /me/shifts:
+    get:
+      description: Retrieve the shift schedule within a specified date range for the
+        logged-in staff member.
+      parameters:
+      - description: Start Date (YYYY-MM-DD)
+        in: query
+        name: startDate
+        required: true
+        type: string
+      - description: End Date (YYYY-MM-DD)
+        in: query
+        name: endDate
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of scheduled shifts
+          schema:
+            items:
+              $ref: '#/definitions/shift.StaffShiftAgenda'
+            type: array
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get staff shift agenda
+      tags:
+      - 'Shifts: Staff'
+  /me/shifts/assignments/{id}/check-in:
+    put:
+      consumes:
+      - application/json
+      description: Check-in to a specific shift assignment using GPS location data.
+      parameters:
+      - description: Assignment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: GPS coordinates and notes
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/shift.AttendancePayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Check-in successful
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation Error or Invalid ID
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Staff check-in
+      tags:
+      - 'Shifts: Staff'
+  /me/shifts/current:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve the current active shift details for the logged-in user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Current shift details
+          schema:
+            $ref: '#/definitions/shift.UserCurrentShiftResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get current active shift
+      tags:
+      - 'Shifts: Staff'
+  /me/shifts/logs/{id}/check-out:
+    put:
+      consumes:
+      - application/json
+      description: Check-out from an active shift log using GPS location data.
+      parameters:
+      - description: Time Log ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: GPS coordinates and notes
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/shift.AttendancePayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Check-out successful
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation Error or Invalid ID
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Staff check-out
+      tags:
+      - 'Shifts: Staff'
+  /me/shifts/time-logs:
+    get:
+      description: Staff views their own time log history. The Gateway automatically
+        binds the StaffID from the Token to ensure security.
+      parameters:
+      - description: 'Format: YYYY-MM-DD'
+        in: query
+        name: fromDate
+        type: string
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      - in: query
+        name: staffId
+        type: string
+      - enum:
+        - 0
+        - 1
+        - 2
+        in: query
+        name: status
+        type: integer
+        x-enum-comments:
+          TimeLogStatus_INVALID: "2"
+          TimeLogStatus_PROCESSING: "0"
+          TimeLogStatus_VALID: "1"
+        x-enum-descriptions:
+        - "0"
+        - "1"
+        - "2"
+        x-enum-varnames:
+        - TimeLogStatus_PROCESSING
+        - TimeLogStatus_VALID
+        - TimeLogStatus_INVALID
+      - in: query
+        name: storeId
+        type: string
+      - in: query
+        name: toDate
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Paginated time log history
+          schema:
+            $ref: '#/definitions/common.PaginationResult-shift_TimeLogResponse'
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get my time log history
+      tags:
+      - 'Shifts: Staff'
+  /shift-applications/{id}/review:
+    patch:
+      consumes:
+      - application/json
+      description: Manager reviews an application and updates its status (Approved/Rejected).
+        The application ID is provided in the path.
+      parameters:
+      - description: Application ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Review decision and status
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/shift.ReviewApplicationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"message": "Đã cập nhật trạng thái đơn đăng ký"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Review shift application
+      tags:
+      - 'Shifts: Applications'
+  /shift-availabilities:
+    get:
+      description: Managers view the complete list of employee availabilities to facilitate
+        shift scheduling.
+      parameters:
+      - in: query
+        name: dayOfWeek
+        type: integer
+      - in: query
+        name: fromDate
+        type: string
+      - in: query
+        name: isAvailable
+        type: boolean
+      - in: query
+        name: isRecurring
+        type: boolean
+      - in: query
+        name: keyword
+        type: string
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      - in: query
+        name: storeId
+        type: string
+      - in: query
+        name: toDate
+        type: string
+      - in: query
+        name: userId
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful retrieval
+          schema:
+            $ref: '#/definitions/common.PaginationResult-shift_ShiftAvailabilityResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Manage all shift availabilities (Manager)
+      tags:
+      - 'Shifts: Availabilities'
+    post:
+      consumes:
+      - application/json
+      description: Submit a request for available or unavailable time to assist managers
+        in scheduling.
+      parameters:
+      - description: Availability registration data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/shift.CreateShiftAvailabilityRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Successfully created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Register new shift availability
+      tags:
+      - 'Shifts: Availabilities'
+  /shift-availabilities/{id}:
+    delete:
+      description: Remove a previously submitted availability request.
+      parameters:
+      - description: Availability ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully deleted
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete shift availability
+      tags:
+      - 'Shifts: Availabilities'
+    patch:
+      consumes:
+      - application/json
+      description: Edit a submitted availability/unavailability request by its ID.
+      parameters:
+      - description: Availability ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/shift.UpdateShiftAvailabilityRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully updated
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID or Bad Request
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update shift availability
+      tags:
+      - 'Shifts: Availabilities'
+  /shift-rules:
+    get:
+      description: Retrieve shift rule configurations (Global and Store-specific)
+        to display on the settings page.
+      parameters:
+      - description: Store ID (Optional, to filter by a specific store)
+        in: query
+        name: storeId
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Configuration data
+          schema:
+            $ref: '#/definitions/shift.ShiftRuleSettingsResponse'
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get shift rule settings
+      tags:
+      - 'Shifts: Rule'
+    put:
+      consumes:
+      - application/json
+      description: Create or update shift rules and constraints (e.g., maximum working
+        hours, required break times).
+      parameters:
+      - description: Rule configuration data to save
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/shift.SaveShiftRuleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully saved rule settings
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Save shift rule settings
+      tags:
+      - 'Shifts: Rule'
+  /shift-swaps:
+    get:
+      description: Retrieve a complete list of all shift swap requests (typically
+        for managers).
+      parameters:
+      - in: query
+        name: status
+        type: integer
+      - in: query
+        name: storeId
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of swap requests
+          schema:
+            items:
+              $ref: '#/definitions/shift.SwapRequestItem'
+            type: array
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get all shift swaps
+      tags:
+      - 'Shifts: Swaps'
+  /shift-swaps/{id}/approvals:
+    patch:
+      consumes:
+      - application/json
+      description: After both employees agree to the swap, the Manager gives final
+        approval to officially update the schedule.
+      parameters:
+      - description: Swap Request ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Manager's approval decision
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/shift.ApproveSwapRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"message": "Đã hoàn tất duyệt đổi ca"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation Error or Invalid ID
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Approve a shift swap (Manager)
+      tags:
+      - 'Shifts: Swaps'
+  /shift-swaps/{id}/cancel:
+    patch:
+      description: The requesting employee can cancel their swap request if it hasn't
+        been approved yet.
+      parameters:
+      - description: Swap Request ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content (Cancelled successfully)
+        "400":
+          description: Invalid ID or Bad Request
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Cancel a sent swap request
+      tags:
+      - 'Shifts: Swaps'
+  /shift-swaps/{id}/responses:
+    patch:
+      consumes:
+      - application/json
+      description: Employee B receives the swap request and chooses to Accept or Reject
+        it.
+      parameters:
+      - description: Swap Request ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Respondent's reply data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/shift.RespondSwapRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"message": "Đã ghi nhận phản hồi đổi ca"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation Error or Invalid ID
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Respond to a shift swap request
+      tags:
+      - 'Shifts: Swaps'
+  /shift-templates:
+    get:
+      description: Retrieve a complete list of shift templates (e.g., Morning, Afternoon,
+        Night) for a specific store.
+      parameters:
+      - in: query
+        name: isActive
+        type: boolean
+      - in: query
+        name: keyword
+        type: string
+      - in: query
+        name: storeId
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of shift templates
+          schema:
+            items:
+              $ref: '#/definitions/shift.ShiftTemplateResponse'
+            type: array
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get all shift templates
+      tags:
+      - 'Shifts: Template'
+    post:
+      consumes:
+      - application/json
+      description: Define a new standard shift timeframe (including code, name, and
+        start/end times).
+      parameters:
+      - description: Shift template data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/shift.CreateShiftTemplateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Successfully created template
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a new shift template
+      tags:
+      - 'Shifts: Template'
+  /shift-templates/{id}:
+    delete:
+      description: Completely remove a shift template from the system.
+      parameters:
+      - description: Template ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully deleted template
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "404":
+          description: Template Not Found
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete a shift template
+      tags:
+      - 'Shifts: Template'
+    get:
+      description: Retrieve the detailed configuration of a specific shift template
+        by its ID.
+      parameters:
+      - description: Template ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Template details
+          schema:
+            $ref: '#/definitions/shift.ShiftTemplateResponse'
+        "400":
+          description: Invalid ID (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "404":
+          description: Template Not Found
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get shift template details
+      tags:
+      - 'Shifts: Template'
+    patch:
+      consumes:
+      - application/json
+      description: Modify the timeframe configuration or the name of an existing shift
+        template.
+      parameters:
+      - description: Template ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/shift.UpdateShiftTemplateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully updated template
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation Error or Invalid ID
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "404":
+          description: Template Not Found
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update a shift template
+      tags:
+      - 'Shifts: Template'
+  /shifts:
+    get:
+      description: Retrieve a list of shifts with applied filters (Used for Calendar/List
+        view).
+      parameters:
+      - in: query
+        name: fromDate
+        type: string
+      - description: ShiftStatus enum
+        in: query
+        name: status
+        type: integer
+      - in: query
+        name: storeId
+        type: string
+      - in: query
+        name: toDate
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of shifts
+          schema:
+            items:
+              $ref: '#/definitions/shift.ShiftResponse'
+            type: array
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get all shifts
+      tags:
+      - Shifts
+    post:
+      consumes:
+      - application/json
+      description: Create a new working shift for the store.
+      parameters:
+      - description: Shift information
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/shift.CreateShiftRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Shift created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a new shift
+      tags:
+      - Shifts
+  /shifts/{id}:
+    delete:
+      description: Delete a specific shift (Only allowed if it is in Draft or Planning
+        status).
+      parameters:
+      - description: Shift ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Shift deleted successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID or Bad Request
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "403":
+          description: Forbidden (Cannot delete published shift)
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete a shift
+      tags:
+      - Shifts
+    get:
+      description: Retrieve detailed information about a specific shift and its assigned
+        staff.
+      parameters:
+      - description: Shift ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Shift details
+          schema:
+            $ref: '#/definitions/shift.ShiftResponse'
+        "400":
+          description: Invalid Shift ID (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "404":
+          description: Shift Not Found
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get shift details
+      tags:
+      - Shifts
+    patch:
+      consumes:
+      - application/json
+      description: Update shift timings or the required number of staff.
+      parameters:
+      - description: Shift ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/shift.UpdateShiftRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Shift updated successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation Error or Invalid ID
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "404":
+          description: Shift Not Found
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update a shift
+      tags:
+      - Shifts
+  /shifts/{id}/applications:
+    get:
+      description: Manager views the list of applicants for a specific shift, along
+        with their Smart Scores, to make approval decisions.
+      parameters:
+      - description: Shift ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of shift applications
+          schema:
+            items:
+              $ref: '#/definitions/shift.ShiftApplicationItem'
+            type: array
+        "400":
+          description: Invalid Shift ID (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get applications by shift ID
+      tags:
+      - 'Shifts: Applications'
+    post:
+      consumes:
+      - application/json
+      description: Employee applies for a specific shift. Creates a new ShiftApplication
+        record. UserId is extracted from the authentication token.
+      parameters:
+      - description: Shift ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Application notes and details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/shift.ApplyForShiftRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: '{"message": "Gửi đơn đăng ký nhận ca thành công"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Apply for a shift
+      tags:
+      - 'Shifts: Applications'
+  /shifts/{id}/assign:
+    put:
+      consumes:
+      - application/json
+      description: Modify the list of employees assigned to a specific shift.
+      parameters:
+      - description: Shift ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: List of User IDs to assign
+        in: body
+        name: body
+        required: true
+        schema:
+          items:
+            type: string
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Assignment update result
+          schema:
+            $ref: '#/definitions/shift.AssignStaffResponse'
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update staff assignments
+      tags:
+      - 'Shifts: Assignment'
+  /shifts/{id}/publish:
+    put:
+      description: Change the shift status to Published, making it visible to employees
+        on the schedule.
+      parameters:
+      - description: Shift ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Shift published successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID or Bad Request
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Publish a single shift
+      tags:
+      - Shifts
+  /shifts/{id}/releases:
+    patch:
+      description: The employee releases an assigned shift so other staff members
+        can apply for it.
+      parameters:
+      - description: Assignment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"message": "Đã nhả ca thành công"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID or Bad Request
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Release a shift to the Shift Pool
+      tags:
+      - 'Shifts: Swaps'
+  /shifts/{id}/swaps:
+    post:
+      consumes:
+      - application/json
+      description: Employee A selects one of their assignments and requests a swap
+        with Employee B.
+      parameters:
+      - description: Assignment ID (Sender's shift)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Swap request details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/shift.RequestSwapRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: '{"message": "Đã gửi yêu cầu đổi ca"}'
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Request a shift swap
+      tags:
+      - 'Shifts: Swaps'
+  /shifts/auto-fill:
+    put:
+      consumes:
+      - application/json
+      description: System automatically calculates and assigns suitable staff to empty
+        (Draft) shifts based on availability and scheduling rules.
+      parameters:
+      - description: Time range for auto-filling shifts
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/shift.AutoFillShiftsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Auto-fill result summary
+          schema:
+            $ref: '#/definitions/shift.AutoFillShiftsResponse'
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Auto-fill shift assignments
+      tags:
+      - 'Shifts: Assignment'
+  /shifts/bulk-delete:
+    delete:
+      consumes:
+      - application/json
+      description: Delete multiple shifts simultaneously (Only applicable for shifts
+        currently in Draft status).
+      parameters:
+      - description: List of shift IDs to delete
+        in: body
+        name: body
+        required: true
+        schema:
+          items:
+            type: string
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully deleted shifts
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Bulk delete shifts
+      tags:
+      - 'Shifts: Bulk action'
+  /shifts/bulk-manual:
+    post:
+      consumes:
+      - application/json
+      description: Create multiple shifts simultaneously based on selected time frames
+        and days of the week.
+      parameters:
+      - description: Bulk creation data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/shift.BulkCreateManualRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Successfully created shifts
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Bulk create manual shifts
+      tags:
+      - 'Shifts: Bulk action'
+  /shifts/bulk-open:
+    put:
+      consumes:
+      - application/json
+      description: Change the status of multiple shifts from Draft to Open, allowing
+        employees to apply for them in the Shift Pool. StoreId is automatically extracted
+        from the Manager's Token.
+      parameters:
+      - description: List of shift IDs to open
+        in: body
+        name: body
+        required: true
+        schema:
+          items:
+            type: string
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Returns the count of successfully opened shifts
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Bulk open shifts to Shift Pool
+      tags:
+      - 'Shifts: Bulk action'
+  /shifts/bulk-publish:
+    put:
+      consumes:
+      - application/json
+      description: Change the status of multiple shifts from Draft to Published, making
+        them visible to employees on the schedule.
+      parameters:
+      - description: List of shift IDs to publish
+        in: body
+        name: body
+        required: true
+        schema:
+          items:
+            type: string
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully published shifts
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Bulk publish shifts
+      tags:
+      - 'Shifts: Bulk action'
+  /shifts/bulk-template:
+    post:
+      consumes:
+      - application/json
+      description: Create multiple shifts over a specified period based on existing
+        Shift Templates.
+      parameters:
+      - description: Template creation data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/shift.BulkCreateFromTemplateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Successfully created shifts from template
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Bulk create shifts from template
+      tags:
+      - 'Shifts: Bulk action'
+  /shifts/time-logs:
+    get:
+      description: Manager retrieves all time logs within the Store, applying optional
+        filters.
+      parameters:
+      - description: 'Format: YYYY-MM-DD'
+        in: query
+        name: fromDate
+        type: string
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      - in: query
+        name: staffId
+        type: string
+      - enum:
+        - 0
+        - 1
+        - 2
+        in: query
+        name: status
+        type: integer
+        x-enum-comments:
+          TimeLogStatus_INVALID: "2"
+          TimeLogStatus_PROCESSING: "0"
+          TimeLogStatus_VALID: "1"
+        x-enum-descriptions:
+        - "0"
+        - "1"
+        - "2"
+        x-enum-varnames:
+        - TimeLogStatus_PROCESSING
+        - TimeLogStatus_VALID
+        - TimeLogStatus_INVALID
+      - in: query
+        name: storeId
+        type: string
+      - in: query
+        name: toDate
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Paginated list of time logs
+          schema:
+            $ref: '#/definitions/common.PaginationResult-shift_TimeLogResponse'
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get time logs
+      tags:
+      - 'Shifts: Time log'
+  /shifts/time-logs/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Manager approves (Valid) or rejects (Invalid) an employee's actual
+        worked shift.
+      parameters:
+      - description: Time log ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/shift.UpdateTimeLogRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Time log updated successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation Error (e.g., missing rejection reason)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Review or update time log
+      tags:
+      - 'Shifts: Time log'
+  /stores:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of stores with optional filtering (e.g., by city,
+        district).
+      parameters:
+      - description: Tìm theo tên
+        in: query
+        name: keyword
+        type: string
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of stores
+          schema:
+            $ref: '#/definitions/common.PaginationResult-store_StoreDetailResponse'
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get All Stores
+      tags:
+      - Stores
+  /stores/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve full details of a specific store by its ID.
+      parameters:
+      - description: Store UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Store details
+          schema:
+            $ref: '#/definitions/store.StoreDetailResponse'
+        "400":
+          description: Invalid ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Store not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get Store Details
+      tags:
+      - Stores
+  /stores/{id}/availability:
+    get:
+      consumes:
+      - application/json
+      description: Check if a store is currently open or active.
+      parameters:
+      - description: Store UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Availability status
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Check Store Availability
+      tags:
+      - Stores
+  /stores/{id}/shifts/{shiftId}/candidates:
+    get:
+      description: Check schedule conflicts and shift rules to suggest suitable staff
+        members for a specific shift.
+      parameters:
+      - description: Store ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Shift ID
+        in: path
+        name: shiftId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of available staff
+          schema:
+            items:
+              $ref: '#/definitions/shift.StaffAssignmentCandidate'
+            type: array
+        "400":
+          description: Invalid ID (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get available staff candidates
+      tags:
+      - 'Shifts: Assignment'
+  /stores/{id}/staffs/active:
+    get:
+      consumes:
+      - application/json
+      description: Lấy danh sách staff đang trong ca làm hiện tại của store
+      parameters:
+      - description: Store UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Danh sách nhân viên
+          schema:
+            items:
+              $ref: '#/definitions/shift.ActiveStaffDto'
+            type: array
+        "400":
+          description: Invalid ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get Active Staffs At Store
+      tags:
+      - Stores
+  /stores/nearby:
+    get:
+      consumes:
+      - application/json
+      description: Find stores based on current location (Lat/Long) and radius.
+      parameters:
+      - description: Mặc định 10 quán
+        in: query
+        name: limit
+        type: integer
+      - description: Mặc định 5km nếu không truyền
+        in: query
+        name: radiusKm
+        type: number
+      - in: query
+        name: userLat
+        required: true
+        type: number
+      - in: query
+        name: userLong
+        required: true
+        type: number
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of nearby stores
+          schema:
+            $ref: '#/definitions/common.PaginationResult-store_StoreDetailResponse'
+        "400":
+          description: Validation error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Find Nearby Stores
+      tags:
+      - Stores
+securityDefinitions:
+  BearerAuth:
+    description: 'Don''t forget to type "Bearer" before the token. For example: Bearer
+      eyJhbG...'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

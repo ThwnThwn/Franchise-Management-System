@@ -1,0 +1,253 @@
+syntax = "proto3";
+
+option csharp_namespace = "SalesService.Grpc";
+option go_package = "api-gateway/pkg/pb/sales";
+
+package refund;
+
+/* ================= SERVICE ================= */
+
+service RefundTicketGrpcService {
+  rpc CustomerCreateRefund(CustomerCreateRefundRequest) returns (CustomerCreateRefundResponse);
+  rpc InternalCreateRefund(InternalCreateRefundRequest) returns (InternalCreateRefundResponse);
+  rpc ApproveRefund(ApproveRefundRequest) returns (ApproveRefundResponse);
+  rpc RejectRefund(RejectRefundRequest) returns (RejectRefundResponse);
+  rpc CancelRefund(CancelRefundRequest) returns (CancelRefundResponse);
+  rpc GetRefundById(GetRefundByIdRequest) returns (GetRefundByIdResponse);
+  rpc GetAllRefunds(GetAllRefundsRequest) returns (GetAllRefundsResponse);
+  // rpc GetRefundByStatus(GetRefundByStatusRequest) returns (GetRefundByStatusResponse);
+  // rpc GetRefundByUserId(GetRefundByUserIdRequest) returns (GetRefundByUserIdResponse);
+  rpc SetCompleteRefund (SetCompleteRefundRequest) returns (SetCompleteRefundResponse);
+
+}
+
+/* ================= ENUMS ================= */
+
+enum RefundTicketStatus {
+  REFUND_STATUS_UNSPECIFIED = 0;
+  REFUND_STATUS_PENDING = 1;
+  REFUND_STATUS_APPROVED = 2;
+  REFUND_STATUS_PROCESSING = 3;
+  REFUND_STATUS_COMPLETED = 4;
+  REFUND_STATUS_FAILED = 5;
+  REFUND_STATUS_REJECTED = 6;
+  REFUND_STATUS_CANCELLED = 7;
+}
+
+enum RefundReasonType {
+  REFUND_REASON_UNSPECIFIED = 0;
+  REFUND_REASON_NORMAL_PROCESS = 1;
+  REFUND_REASON_SYSTEM_ERROR = 2;
+  REFUND_REASON_CUSTOMER_COMPLAINT = 3;
+  REFUND_REASON_GOODWILL_GESTURE = 4;
+  REFUND_REASON_COMPENSATION = 5;
+}
+
+enum RefundTicketMethod {
+  REFUND_METHOD_UNSPECIFIED = 0;
+  REFUND_METHOD_TRANSFER = 1;
+  REFUND_METHOD_CASH = 2;
+}
+
+/* ================= PAGINATION ================= */
+
+message PagedRequest {
+  int32 page_index = 1;
+  int32 page_size = 2;
+}
+
+message PagedResponseMeta {
+  int32 page_index = 1;
+  int32 page_size = 2;
+  int32 total_count = 3;
+  int32 total_pages = 4;
+}
+
+/* ================= CUSTOMER CREATE ================= */
+
+message CustomerCreateRefundRequest {
+  string amount = 1;
+  string reason = 2;
+}
+
+message CustomerCreateRefundResponse {
+  string id = 1;
+  string ticket_code = 2;
+  string amount = 3;
+  string reason = 4;
+  RefundTicketStatus status = 5;
+  string created_at = 6;
+}
+
+/* ================= INTERNAL CREATE ================= */
+
+message InternalCreateRefundRequest {
+  string user_id = 1;
+  string amount = 2;
+  string reason = 3;
+  string internal_notes = 4;
+  InternalUserOverrideInfo override_info = 5;
+}
+
+message InternalCreateRefundResponse {
+  string id = 1;
+  string ticket_code = 2;
+  string amount = 3;
+  string reason = 4;
+  string transaction_id = 5;
+  RefundTicketStatus status = 6;
+  string created_at = 7;
+}
+
+message InternalUserOverrideInfo {
+  bool auto_approve = 1;
+  bool bypass_time_limit = 2;
+  bool bypass_amount_validation = 3;
+  optional RefundReasonType refund_reason = 4;
+}
+
+/* ================= APPROVE ================= */
+
+message ApproveRefundRequest {
+  string refund_ticket_id = 1;
+  string approval_notes = 2;
+}
+
+message ApproveRefundResponse {
+  string refund_ticket_id = 1;
+  string ticket_code = 2;
+  RefundTicketStatus status = 3;
+  string amount = 4;
+  string customer_id = 5;
+  string approved_by = 6;
+  string approved_at = 7;
+  string approval_notes = 8;
+  string next_steps = 9;
+}
+
+/* ================= REJECT ================= */
+
+message RejectRefundRequest {
+  string refund_ticket_id = 1;
+  string reject_notes = 2;
+}
+
+message RejectRefundResponse {
+  string refund_ticket_id = 1;
+  string ticket_code = 2;
+  RefundTicketStatus status = 3;
+  string amount = 4;
+  string customer_id = 5;
+  string rejected_by = 6;
+  string rejected_at = 7;
+  string reject_notes = 8;
+  string next_steps = 9;
+}
+
+/* ================= CANCEL ================= */
+
+message CancelRefundRequest {
+  string refund_ticket_id = 1;
+  string cancellation_reason = 2;
+}
+
+message CancelRefundResponse {
+  string refund_ticket_id = 1;
+  string ticket_code = 2;
+  RefundTicketStatus status = 3;
+  string amount = 4;
+  string cancellation_reason = 5;
+  string cancelled_at = 6;
+  string message = 7;
+}
+
+/* ================= GET BY ID ================= */
+
+message GetRefundByIdRequest {
+  string refund_ticket_id = 1;
+  string user_id = 2;
+}
+
+message GetRefundByIdResponse {
+  string id = 1;
+  string ticket_code = 2;
+  string amount = 3;
+  string refund_amount = 4;
+  string reason = 5;
+  string rejection_reason = 6;
+  string wallet_id = 7;
+  string user_id = 8;
+  string transaction_id = 9;
+  string original_transaction_id = 10;
+  RefundTicketStatus status = 11;
+  RefundReasonType refund_reason = 12;
+  RefundTicketMethod refund_method = 13;
+  string created_at = 14;
+  string updated_at = 15;
+}
+
+/* ================= LIST ITEM ================= */
+
+message RefundListItem {
+  string id = 1;
+  string ticket_code = 2;
+  string amount = 3;
+  string refund_amount = 4;
+  string reason = 5;
+  string user_id = 6;
+  string transaction_id = 7;
+  RefundTicketStatus status = 8;
+  string created_at = 9;
+  string updated_at = 10;
+}
+
+/* ================= GET ALL ================= */
+
+message GetAllRefundsRequest {
+  optional string user_id=1;
+  optional RefundTicketStatus status=2;
+  PagedRequest paging = 3;
+}
+
+message GetAllRefundsResponse {
+  repeated RefundListItem items = 1;
+  PagedResponseMeta meta = 2;
+}
+
+/* ================= GET BY STATUS ================= */
+
+message GetRefundByStatusRequest {
+  string user_id = 1;
+  RefundTicketStatus status = 2;
+  PagedRequest paging = 3;
+}
+
+message GetRefundByStatusResponse {
+  repeated RefundListItem items = 1;
+  PagedResponseMeta meta = 2;
+}
+
+/* ================= GET BY USER ================= */
+
+message GetRefundByUserIdRequest {
+  string user_id_to_search = 1;
+  string logged_user_id = 2;
+  PagedRequest paging = 3;
+}
+
+message GetRefundByUserIdResponse {
+  repeated RefundListItem items = 1;
+  PagedResponseMeta meta = 2;
+}
+
+message SetCompleteRefundRequest {
+  string refund_ticket_id = 1;
+  RefundTicketStatus status = 2;
+  optional string complete_notes = 3;
+}
+
+message SetCompleteRefundResponse {
+  string refund_ticket_id = 1;
+  RefundTicketStatus status = 2;
+  optional string complete_notes = 3;
+}

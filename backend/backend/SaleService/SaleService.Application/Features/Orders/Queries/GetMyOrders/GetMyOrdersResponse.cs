@@ -1,0 +1,29 @@
+namespace SalesService.Application.Features.Orders.Queries.GetMyOrders
+{
+    public record GetMyOrdersResponse(List<OrderSummaryDto> Orders, int TotalCount);
+
+    public record OrderSummaryDto(
+        Guid Id,
+        string Code,
+        decimal Subtotal,
+        decimal ShippingFee,
+        decimal? Tax,
+        decimal TotalAmount,
+        decimal? PaidAmount,
+        int? PaymentMethod,
+        int? OrderType,
+        int Status,
+        DateTimeOffset PaidAt,
+        string? Notes,
+        DateTimeOffset CreatedAt,
+        DateTimeOffset UpdatedAt,
+        Guid? CustomerId,
+        Guid? StoreId,
+        Guid? DelivererId,
+        TimeOnly? ScheduledTime,
+        string? Address,
+        double? Latitude,
+        double? Longitude,
+        decimal? Distance
+    );
+}

@@ -1,0 +1,101 @@
+syntax = "proto3";
+
+import "inventory/ingredient.proto";
+option csharp_namespace = "InventoryService.Grpc.Protos.Inventory";
+option go_package = "api-gateway/pkg/pb/inventory";
+
+package inventory;
+
+service InventoryGrpc {
+  rpc IncreaseStock(IncreaseStockRequest) returns (IncreaseStockResponse);
+  rpc GetAllStock(GetAllStockReq) returns (GetAllStockRep);
+
+  // ── Cost Calculation (Test bằng Postman) ──
+  // Tính MAC (Moving Average Cost) cho 1 nguyên liệu
+  rpc CaculateCostIngredientInStock(CaculateCostIngredientInStockRequest) returns (CaculateCostIngredientInStockResponse);
+  // Tính lại cost cho tất cả variant liên quan đến 1 ingredient
+  rpc RecalculateVariantCostsByIngredient(RecalculateVariantCostsByIngredientRequest) returns (RecalculateVariantCostsByIngredientResponse);
+
+  // Đồng bộ giá vốn cho các nguyên liệu đang có cost = 0 từ SupplierService
+  rpc SyncZeroCostIngredients(SyncZeroCostIngredientsRequest) returns (SyncZeroCostIngredientsResponse);
+}
+
+message SyncZeroCostIngredientsRequest {
+}
+
+message SyncZeroCostIngredientsResponse {
+    int32 updated_count = 1;
+    string message = 2;
+}
+
+message IncreaseStockRequest {
+  string store_id = 1;
+  repeated IngredientStockItem items = 2;
+}
+
+message IngredientStockItem {
+  string ingredient_id = 1;
+  double quantity = 2;
+  optional double min_threshold = 3;
+  double unit_price = 4;
+}
+
+message IncreaseStockResponse {
+ // Không trả ra gì (thường dùng để xác nhận rpc thành công)
+}
+
+message GetAllStockReq{
+    repeated string store_ids = 1;
+    repeated string category_ids = 2;
+    optional int32 stock_status = 3;
+    repeated string ingredient_ids = 4;
+    int32 page = 5;
+    int32 page_size = 6;
+}
+
+message StockViewRes {
+    string store_id = 1;
+    IngredientViewRes ingredient_view_res = 2;
+    string quantity = 3;
+    string min_threshold = 4;
+    int32 stock_status = 5;
+}
+
+message GetAllStockRep{
+    repeated StockViewRes stock_res = 1;
+    int32 total_count = 2;
+    int32 total_pages = 3;
+}
+
+// ── CaculateCostIngredientInStock ── Tính MAC cho nguyên liệu
+message CaculateCostIngredientInStockRequest {
+    string ingredient_id = 1;        // ID nguyên liệu
+    double added_quantity = 2;       // Số lượng nhập thêm
+    double unit_price = 3;           // Giá nhập đơn vị
+}
+
+message CaculateCostIngredientInStockResponse {
+    string ingredient_id = 1;
+    string ingredient_name = 2;
+    double old_cost = 3;             // Cost trước khi tính
+    double new_cost = 4;             // Cost mới (MAC)
+    double stock_before = 5;         // Tổng tồn TRƯỚC khi nhập
+    double stock_after = 6;          // Tổng tồn SAU khi nhập
+    string message = 7;
+}
+
+// ── RecalculateVariantCostsByIngredient ── Tính lại cost cho tất cả variant dùng ingredient
+message RecalculateVariantCostsByIngredientRequest {
+    string ingredient_id = 1;
+}
+
+message RecalculateVariantCostsByIngredientResponse {
+    repeated VariantCostResult results = 1;
+    string message = 2;
+}
+
+message VariantCostResult {
+    string variant_id = 1;
+    double old_cost = 2;
+    double new_cost = 3;
+}

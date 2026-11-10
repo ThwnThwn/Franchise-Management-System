@@ -1,0 +1,515 @@
+basePath: /api
+definitions:
+  api-gateway_internal_domain_models_product.CreateProductRequest:
+    properties:
+      categoryId:
+        description: ImagePublicId *string                 `json:"imagePublicId"`
+        type: string
+      description:
+        type: string
+      imaageUrl:
+        type: string
+      name:
+        type: string
+      variants:
+        items:
+          $ref: '#/definitions/api-gateway_internal_domain_models_product.CreateProductVariant'
+        type: array
+    required:
+    - name
+    type: object
+  api-gateway_internal_domain_models_product.CreateProductVariant:
+    properties:
+      attributes:
+        type: string
+      basePrice:
+        type: number
+      cost:
+        type: number
+      isActive:
+        type: boolean
+      name:
+        type: string
+      sku:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_product.ProductVariantDetail:
+    properties:
+      attributes:
+        type: string
+      basePrice:
+        type: number
+      imageUrl:
+        type: string
+      productId:
+        type: string
+      productName:
+        type: string
+      sku:
+        type: string
+      variantId:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_product.UpdateProductRequest:
+    properties:
+      categoryId:
+        description: ImagePublicId *string                 `json:"ImagePublicId"`
+        type: string
+      description:
+        type: string
+      imageUrl:
+        type: string
+      isActive:
+        type: boolean
+      name:
+        type: string
+      variants:
+        items:
+          $ref: '#/definitions/api-gateway_internal_domain_models_product.UpdateProductVariant'
+        type: array
+    type: object
+  api-gateway_internal_domain_models_product.UpdateProductVariant:
+    properties:
+      attributes:
+        type: string
+      basePrice:
+        type: number
+      cost:
+        type: number
+      isActive:
+        type: boolean
+      name:
+        type: string
+      sku:
+        type: string
+    type: object
+  category.CreateCategoryReq:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  category.UpdateCategoryReq:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+    type: object
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+  description: API docs for CHD Gateway.
+  termsOfService: http://swagger.io/terms/
+  title: Capital Franchise Supply Chain Management System API Document
+  version: "1.0"
+paths:
+  /categories:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all available product categories.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of categories
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get All Categories
+      tags:
+      - Categories
+    post:
+      consumes:
+      - application/json
+      description: Create a new product category.
+      parameters:
+      - description: Category details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/category.CreateCategoryReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create Category
+      tags:
+      - Categories
+  /categories/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Permanently delete a category by its ID.
+      parameters:
+      - description: Category UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete Category
+      tags:
+      - Categories
+    get:
+      consumes:
+      - application/json
+      description: Retrieve details of a specific category using its UUID.
+      parameters:
+      - description: Category UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Category details
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Category not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get Category by ID
+      tags:
+      - Categories
+    patch:
+      consumes:
+      - application/json
+      description: Update an existing category by its ID.
+      parameters:
+      - description: Category UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/category.UpdateCategoryReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error or Invalid ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update Category
+      tags:
+      - Categories
+  /products:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of products with pagination and keyword search
+        support.
+      parameters:
+      - in: query
+        name: categoryId
+        type: string
+      - in: query
+        name: keyword
+        type: string
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of products
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get All Products
+      tags:
+      - Products
+    post:
+      consumes:
+      - application/json
+      description: Add a new product to the catalog.
+      parameters:
+      - description: Product details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_product.CreateProductRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create New Product
+      tags:
+      - Products
+  /products/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Permanently remove a product from the catalog.
+      parameters:
+      - description: Product UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete Product
+      tags:
+      - Products
+    get:
+      consumes:
+      - application/json
+      description: Retrieve full details of a specific product by its ID.
+      parameters:
+      - description: Product UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Product details
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Product not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get Product Details
+      tags:
+      - Products
+    patch:
+      consumes:
+      - application/json
+      description: Update details of an existing product.
+      parameters:
+      - description: Product UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api-gateway_internal_domain_models_product.UpdateProductRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error or Invalid ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update Product
+      tags:
+      - Products
+  /products/{id}/images:
+    put:
+      consumes:
+      - multipart/form-data
+      description: Upload an image for a specific product. Supports JPG, PNG, and
+        WebP formats. Max file size is 10MB.
+      parameters:
+      - description: Product UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Image file to upload
+        in: formData
+        name: image
+        required: true
+        type: file
+      - description: Custom file name (Optional)
+        in: formData
+        name: file_name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Returns the uploaded image URL
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Invalid ID or unsupported image format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "413":
+          description: Request entity too large
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Upload Product Image
+      tags:
+      - Products
+  /products/variants:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of product variants with simple info
+      parameters:
+      - collectionFormat: csv
+        in: query
+        items:
+          type: string
+        name: skus
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of products
+          schema:
+            items:
+              $ref: '#/definitions/api-gateway_internal_domain_models_product.ProductVariantDetail'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get products by skus
+      tags:
+      - Products
+securityDefinitions:
+  BearerAuth:
+    description: 'Don''t forget to type "Bearer" before the token. For example: Bearer
+      eyJhbG...'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

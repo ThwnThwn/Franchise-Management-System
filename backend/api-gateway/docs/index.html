@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>API Gateway - Swagger UI</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css"
+    />
+    <style>
+      .swagger-ui .topbar .download-url-wrapper {
+        display: flex;
+        gap: 10px;
+      }
+
+      /* --- CSS cho thanh Option (Toolbar) --- */
+      .custom-toolbar {
+        background-color: #fafafa;
+        padding: 10px 20px;
+        border-bottom: 1px solid #e8e8e8;
+        display: flex;
+        justify-content: flex-end; /* Đẩy các nút sang bên phải */
+        align-items: center;
+        gap: 10px;
+        font-family: sans-serif;
+      }
+      .custom-btn {
+        padding: 6px 12px;
+        border: 1px solid #ccc;
+        background: #fff;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        transition: all 0.2s;
+      }
+      .custom-btn:hover {
+        background: #eee;
+      }
+      /* Nút mở rộng nổi bật hơn */
+      .custom-btn.primary {
+        background: #49cc90;
+        color: #fff;
+        border-color: #49cc90;
+      }
+      .custom-btn.primary:hover {
+        background: #3b9c6f;
+      }
+
+      /* Ẩn thanh Option này đi khi in PDF để đỡ rác trang giấy */
+      @media print {
+        .custom-toolbar {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="custom-toolbar">
+      <span style="font-size: 14px; color: #555">Tùy chọn hiển thị:</span>
+      <button class="custom-btn primary" onclick="expandAll()">
+        Mở rộng tất cả (Expand All)
+      </button>
+      <button class="custom-btn" onclick="collapseAll()">
+        Thu gọn tất cả (Collapse All)
+      </button>
+    </div>
+
+    <div id="swagger-ui"></div>
+
+    <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+    <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-standalone-preset.js"></script>
+    <script>
+      window.onload = function () {
+        SwaggerUIBundle({
+          urls: [
+            {
+              name: "ALL SERVICES",
+              url: "/api-docs/all/all_swagger.json",
+            },
+            {
+              name: "Engagement Service",
+              url: "/api-docs/engagement/engagement_swagger.json",
+            },
+            {
+              name: "Franchise Service",
+              url: "/api-docs/franchise/franchise_swagger.json",
+            },
+            {
+              name: "Identity Service",
+              url: "/api-docs/identity/identity_swagger.json",
+            },
+            {
+              name: "Inventory Service",
+              url: "/api-docs/inventory/inventory_swagger.json",
+            },
+            {
+              name: "Product Service",
+              url: "/api-docs/product/product_swagger.json",
+            },
+            {
+              name: "Sales Service",
+              url: "/api-docs/sales/sales_swagger.json",
+            },
+            {
+              name: "Supplier Service",
+              url: "/api-docs/supplier/supplier_swagger.json",
+            },
+            {
+              name: "VNPay Service",
+              url: "/api-docs/vnpay/vnpay_swagger.json",
+            },
+          ],
+          dom_id: "#swagger-ui",
+          deepLinking: true,
+          presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
+          layout: "StandaloneLayout",
+          docExpansion: "none", // Lúc mới vào web vẫn giữ trạng thái thu gọn cho lịch sự
+        })
+      }
+
+      // --- Script xử lý 2 nút bấm ---
+      function expandAll() {
+        // 1. Phải mở rộng các Thẻ Nhóm (Tags) trước
+        document
+          .querySelectorAll(".opblock-tag-section:not(.is-open) .opblock-tag")
+          .forEach((btn) => btn.click())
+
+        // 2. Đợi 100ms để Swagger render HTML xong thì mới mở rộng các API bên trong
+        setTimeout(() => {
+          document
+            .querySelectorAll(
+              '.opblock-summary-control:not([aria-expanded="true"])',
+            )
+            .forEach((btn) => btn.click())
+        }, 100)
+      }
+
+      function collapseAll() {
+        // 1. Thu gọn các API trước
+        document
+          .querySelectorAll('.opblock-summary-control[aria-expanded="true"]')
+          .forEach((btn) => btn.click())
+
+        // 2. Đợi 1 chút rồi thu gọn các Thẻ Nhóm (Tags)
+        setTimeout(() => {
+          document
+            .querySelectorAll(".opblock-tag-section.is-open .opblock-tag")
+            .forEach((btn) => btn.click())
+        }, 100)
+      }
+    </script>
+  </body>
+</html>

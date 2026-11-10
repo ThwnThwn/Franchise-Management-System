@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+option csharp_namespace = "FranchiseService.Grpc";
+option go_package = "api-gateway/pkg/pb/franchise";
+
+package franchise;
+
+service ShiftRuleGrpcService {
+  // Lấy cài đặt quy định (Global + Store Specific)
+  rpc GetShiftRuleSettings (GetShiftRuleSettingsRequest) returns (ShiftRuleSettingsResponse);
+
+  // Lưu cấu hình quy định (Admin hoặc Manager Store)
+  rpc SaveShiftRule (SaveShiftRuleRequest) returns (SaveShiftRuleResponse);
+}
+
+// ----------------------------------------------------
+// MESSAGES DEFINITION
+// ----------------------------------------------------
+
+message GetShiftRuleSettingsRequest {
+  string store_id = 1; // Optional
+}
+
+message ShiftRuleSettingsResponse {
+  ShiftRuleResponse global = 1;
+  repeated ShiftRuleResponse stores = 2;
+}
+
+message ShiftRuleResponse {
+  string id = 1;
+  string store_id = 2; // Nullable
+  bool allow_shuttle = 3;
+  bool allow_shift_swap = 4;
+  int32 min_hours_between_shifts = 5;
+  int32 max_hours_per_week = 6;
+  string updated_at = 7;
+  int32 grace_period_minutes = 8;
+  int32 daily_ot_threshold_hours = 9;
+  int32 weekly_ot_threshold_hours = 10;
+}
+
+message SaveShiftRuleRequest {
+  string store_id = 1; // Optional (Null = Global Update)
+  bool allow_shuttle = 2;
+  bool allow_shift_swap = 3;
+  int32 min_hours_between_shifts = 4;
+  int32 max_hours_per_week = 5;
+  string user_id = 6; // For permission logic
+  int32 grace_period_minutes = 7;
+  int32 daily_ot_threshold_hours = 8;
+  int32 weekly_ot_threshold_hours = 9;
+}
+
+message SaveShiftRuleResponse {
+  bool success = 1;
+}

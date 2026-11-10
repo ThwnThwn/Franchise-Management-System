@@ -1,0 +1,162 @@
+syntax = "proto3";
+
+option csharp_namespace = "EngagementService.Grpc.Protos.VoucherGrpc";
+option go_package = "api-gateway/pkg/pb/engagement";
+
+package engagement;
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+// Service định nghĩa các hành động liên quan đến Voucher
+service VoucherGrpc {
+  // Hàm tạo Voucher nhận vào CreateVoucherRequest và trả về Empty
+  rpc CreateVoucher (CreateVoucherRequest) returns (VoucherResponse);
+
+  //Hàm update Voucher
+  rpc UpdateVoucher (UpdateVoucherRequest) returns (google.protobuf.Empty);
+
+  //Hàm update voucher status
+  rpc UpdateVoucherStatus(UpdateVoucherStatusRequest) returns (google.protobuf.Empty);
+
+  // Hàm lấy danh sách tất cả Voucher
+  rpc GetAllVouchers (google.protobuf.Empty) returns (VoucherListResponse);
+
+  //Hàm lấy voucher theo code
+  rpc GetVoucherByCode (GetVoucherByCodeRequest) returns (VoucherResponse);
+
+  //Xoá voucher
+  rpc DeleteVoucher (DeleteVoucherRequest) returns (google.protobuf.Empty);
+
+  //Lấy voucher của user 
+  rpc GetMyVouchers (google.protobuf.Empty) returns (VoucherListResponse);
+
+  //Use Voucher
+  rpc UseVouchers (UseVoucherRequest) returns (google.protobuf.Empty);
+
+  //Reverse Vouchers
+  rpc ReverseVouchers (ReverseVouchersRequest) returns (google.protobuf.Empty);
+}
+
+// Định nghĩa các Enum dựa trên code C# của bạn
+enum VoucherType {
+  DISCOUNT_PERCENTAGE = 0;
+  DISCOUNT_FIXED_AMOUNT = 1;
+  SHIPPING_PERCENTAGE = 2;
+  SHIPPING_FIXED_AMOUNT = 3;
+  GIFT = 4;
+}
+
+enum VoucherItemType {
+  ITEM_GIFT = 0;
+  ITEM_REQUIRED = 1;
+}
+
+// Message cho từng Item trong Voucher (CreateVoucherItemReq)
+message CreateVoucherItemReq {
+  string sku = 1; // Đại diện cho Guid
+  int32 quantity = 2;
+  VoucherItemType type = 3;
+}
+
+// Message Request chính cho CreateVoucher
+message CreateVoucherRequest {
+  string code = 1;
+  VoucherType type = 2;
+  optional string discount_value = 4;
+  optional string max_discount_value = 5;
+  optional string min_order_value = 6;
+  optional string point_cost = 7;
+  
+  optional int32 init_quantity = 8;
+  optional int32 max_usage_per_user = 9;
+
+  // Sử dụng Timestamp cho DateTimeOffset?
+  google.protobuf.Timestamp end_date = 10;
+  
+  // Danh sách các VoucherItems (IEnumerable)
+  repeated CreateVoucherItemReq voucher_items = 11;
+}
+
+message UpdateVoucherRequest {
+  string id = 1;
+  optional string discount_value = 4;
+  optional string max_discount_value = 5;
+  optional string min_order_value = 6;
+  optional string point_cost = 7;
+  
+  optional int32 max_usage_per_user = 9;
+
+  // Sử dụng Timestamp cho DateTimeOffset?
+  google.protobuf.Timestamp end_date = 10;
+  
+  // Danh sách các VoucherItems (IEnumerable)
+  repeated UpdateVoucherItemReq voucher_items = 11;
+}
+
+message UpdateVoucherItemReq {
+  optional string id = 1;
+  optional string sku = 2; // Đại diện cho Guid
+  optional int32 quantity = 3;
+  optional VoucherItemType type = 4;
+}
+
+message UpdateVoucherStatusRequest{
+  string id = 1;
+  bool is_active = 2;
+}
+
+
+message VoucherItemResponse {
+  string id = 1;
+  string sku = 3;
+  optional int32 quantity = 4;
+  optional VoucherItemType type = 5;
+}
+
+// Message đại diện cho một Voucher (Response)
+message VoucherResponse {
+  string id = 1;
+  string code = 2;
+  VoucherType type = 3;
+  
+  // Sử dụng string cho decimal để đảm bảo độ chính xác khi truyền tải
+  optional string discount_value = 4;
+  optional string max_discount_value = 5;
+  optional string min_order_value = 6;
+  optional string point_cost = 7;
+  
+  optional int32 init_quantity = 8;
+  optional int32 current_quantity = 9;
+  optional int32 max_usage_per_user = 10;
+  bool is_active = 11;
+
+  google.protobuf.Timestamp end_date = 12;
+  google.protobuf.Timestamp created_at = 13;
+  google.protobuf.Timestamp updated_at = 14;
+
+  repeated VoucherItemResponse voucher_items = 15;
+}
+
+// Message trả về danh sách Voucher
+message VoucherListResponse {
+  repeated VoucherResponse vouchers = 1;
+}
+
+message GetVoucherByCodeRequest {
+  string code = 1;
+}
+
+message DeleteVoucherRequest{
+  string id = 1;
+}
+
+message UseVoucherRequest{
+  repeated string voucher_ids = 1;
+  string order_id = 2;
+  string user_id = 3;
+}
+
+message ReverseVouchersRequest {
+  string order_id = 1;
+}

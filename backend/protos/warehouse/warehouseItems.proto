@@ -1,0 +1,106 @@
+syntax = "proto3";
+
+
+option csharp_namespace = "WarehouseService.Grpc.Protos.WarehouseItem";
+option go_package = "api-gateway/pkg/pb/warehouse";
+
+package warehouse_item;
+
+service WarehouseItemGrpc {
+  rpc CreateWarehouseItem  (CreateWarehouseItemRequest)  returns (CreateWarehouseItemReply);
+  rpc UpdateWarehouseItem  (UpdateWarehouseItemRequest)  returns (UpdateWarehouseItemReply);
+  rpc DeleteWarehouseItem  (DeleteWarehouseItemRequest)  returns (DeleteWarehouseItemReply);
+  rpc GetWarehouseItemById (GetWarehouseItemByIdRequest) returns (WarehouseItemDetail);
+  rpc GetWarehouseItems    (GetWarehouseItemsRequest)    returns (GetWarehouseItemsReply);
+}
+
+message CreateWarehouseItemRequest {
+  string warehouse_id = 1;
+  string ingredient_id   = 2;
+  string unit         = 3;
+  double quantity     = 4;
+  double base_price   = 5;
+  string expiry_date = 6;
+}
+
+message UpdateWarehouseItemRequest {
+  string id         = 1;
+  string unit       = 2;
+  double base_price = 3;
+  string expiry_date = 4;
+}
+
+message DeleteWarehouseItemRequest {
+  string id = 1;
+}
+
+message GetWarehouseItemByIdRequest {
+  string id = 1;
+}
+
+message GetWarehouseItemsRequest {
+  string warehouse_id   = 1;
+  optional string ingredient_id    = 2;
+  optional bool  low_stock     = 3;
+  optional bool   expiring_soon = 4;
+  int32 page      = 5;
+  int32 page_size = 6;
+}
+
+message CreateWarehouseItemReply {
+  string id           = 1;
+  string warehouse_id = 2;
+  string ingredient_id   = 3;
+  string unit         = 4;
+  double quantity     = 5;
+  double base_price   = 6;
+  string expiry_date  = 7;
+  string created_at   = 8;
+  string message      = 9;
+}
+
+message UpdateWarehouseItemReply {
+  string id           = 1;
+  string warehouse_id = 2;
+  string ingredient_id   = 3;
+  string unit         = 4;
+  double quantity     = 5;
+  double base_price   = 6;
+  string expiry_date  = 7;
+  string updated_at   = 8;
+  string message      = 9;
+}
+
+message DeleteWarehouseItemReply {
+  string message = 1;
+}
+
+message GetWarehouseItemsReply {
+  repeated WarehouseItemSummary items = 1;
+  int32 total_count = 2;
+  int32 page        = 3;
+  int32 page_size   = 4;
+  int32 total_pages = 5;
+}
+
+message WarehouseItemSummary {
+  string id           = 1;
+  string warehouse_id = 2;
+  string ingredient_id   = 3;
+  string unit         = 4;
+  double quantity     = 5;
+  double base_price   = 6;
+  string expiry_date  = 7;
+}
+
+message WarehouseItemDetail {
+  string id           = 1;
+  string warehouse_id = 2;
+  string ingredient_id   = 3;
+  string unit         = 4;
+  double quantity     = 5;
+  double base_price   = 6;
+  string expiry_date  = 7;
+  string created_at   = 8;
+  string updated_at   = 9;
+}

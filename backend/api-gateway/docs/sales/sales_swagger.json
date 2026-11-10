@@ -1,0 +1,4683 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "API docs for CHD Gateway.",
+        "title": "Capital Franchise Supply Chain Management System API Document",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "API Support",
+            "email": "support@swagger.io"
+        },
+        "version": "1.0"
+    },
+    "basePath": "/api",
+    "paths": {
+        "/me/cart": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve current user's shopping cart.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Get My Cart",
+                "responses": {}
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Clear My Cart",
+                "responses": {}
+            }
+        },
+        "/me/cart/items": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Update Item in My Cart",
+                "parameters": [
+                    {
+                        "description": "Update details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/cart.UpsertCartItemRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Add Item to My Cart",
+                "parameters": [
+                    {
+                        "description": "Item details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/cart.UpsertCartItemRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Remove Items from My Cart",
+                "parameters": [
+                    {
+                        "description": "List of Item IDs",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/cart.DeleteCartItemsRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/me/orders": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve a list of orders placed by the current logged-in customer.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Get My Order History",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Llist of user's orders",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/order.OrderSummary"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/me/orders/payments": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve the payment history for the currently logged-in customer.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Get my payment history",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "endDate",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "ISO-8601",
+                        "name": "startDate",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "0=Pending, 1=Paid, 2=Failed; omit for all",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User's payment history",
+                        "schema": {
+                            "$ref": "#/definitions/common.PaginationResult-order_PaymentHistoryItem"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/me/refunds": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve a paginated list of refund tickets created by the currently logged-in user.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Refunds"
+                ],
+                "summary": "Get my refund requests",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6,
+                            7
+                        ],
+                        "type": "integer",
+                        "format": "int32",
+                        "x-enum-varnames": [
+                            "RefundTicketStatus_REFUND_STATUS_PENDING",
+                            "RefundTicketStatus_REFUND_STATUS_APPROVED",
+                            "RefundTicketStatus_REFUND_STATUS_PROCESSING",
+                            "RefundTicketStatus_REFUND_STATUS_COMPLETED",
+                            "RefundTicketStatus_REFUND_STATUS_FAILED",
+                            "RefundTicketStatus_REFUND_STATUS_REJECTED",
+                            "RefundTicketStatus_REFUND_STATUS_CANCELLED"
+                        ],
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of refund tickets",
+                        "schema": {
+                            "$ref": "#/definitions/common.PaginationResult-wallet_RefundTicketSummary"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Customer proactively creates a refund request (ticket) for a specific transaction or order.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Refunds"
+                ],
+                "summary": "Create a new refund request",
+                "parameters": [
+                    {
+                        "description": "Refund request details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/wallet.CreateRefundByCustomerRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"message\": \"Tạo yêu cầu hoàn tiền thành công\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/me/wallet": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve the wallet information and current balance of the logged-in user.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Wallets"
+                ],
+                "summary": "Get my wallet details",
+                "responses": {
+                    "200": {
+                        "description": "Detailed wallet information",
+                        "schema": {
+                            "$ref": "#/definitions/wallet.WalletResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized or invalid token",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/me/wallet/top-up": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Generate a VNPay payment link to allow the user to deposit funds into their personal wallet.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Wallets"
+                ],
+                "summary": "Top up wallet balance",
+                "parameters": [
+                    {
+                        "description": "Top-up details (e.g., amount)",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/wallet.TopUpWalletRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Returns the VNPay URL { paymentUrl: '...' }",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error or Payment Gateway connection issue",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/me/wallet/transactions": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve a paginated list of wallet transactions (top-ups, deductions, refunds, etc.) for the currently logged-in user.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Wallet Transactions"
+                ],
+                "summary": "Get my wallet transaction history",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of transactions",
+                        "schema": {
+                            "$ref": "#/definitions/common.PaginationResult-wallet_WalletTransactionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/me/withdrawals": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve the paginated withdrawal history for the currently logged-in user.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Get my withdrawal requests",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6,
+                            7
+                        ],
+                        "type": "integer",
+                        "format": "int32",
+                        "x-enum-comments": {
+                            "WithdrawalStatusApproved": "Đã duyệt",
+                            "WithdrawalStatusCancelled": "Đã hủy",
+                            "WithdrawalStatusCompleted": "Thành công",
+                            "WithdrawalStatusFailed": "Thất bại",
+                            "WithdrawalStatusPending": "Chờ duyệt",
+                            "WithdrawalStatusProcessing": "Đang xử lý",
+                            "WithdrawalStatusRejected": "Từ chối"
+                        },
+                        "x-enum-descriptions": [
+                            "Chờ duyệt",
+                            "Đã duyệt",
+                            "Đang xử lý",
+                            "Thành công",
+                            "Thất bại",
+                            "Từ chối",
+                            "Đã hủy"
+                        ],
+                        "x-enum-varnames": [
+                            "WithdrawalStatusPending",
+                            "WithdrawalStatusApproved",
+                            "WithdrawalStatusProcessing",
+                            "WithdrawalStatusCompleted",
+                            "WithdrawalStatusFailed",
+                            "WithdrawalStatusRejected",
+                            "WithdrawalStatusCancelled"
+                        ],
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of user's withdrawal requests",
+                        "schema": {
+                            "$ref": "#/definitions/common.PaginationResult-withdrawal_WithdrawalSummary"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Customer creates a request to withdraw funds from their wallet to a bank account. The requested amount is temporarily deducted immediately.\nUse the API https://api.vietqr.io/v2/banks to fetch bank codes and names for the customer to select.\nProvide a manual input field for the bank name in case the API fails or the bank is not listed.\nIf the customer enters the bank name manually, the bank code is not required.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Create a new withdrawal request",
+                "parameters": [
+                    {
+                        "description": "Withdrawal request details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/withdrawal.CreateWithdrawalReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully created",
+                        "schema": {
+                            "$ref": "#/definitions/withdrawal.WithdrawalBaseRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/me/withdrawals/{id}/cancel": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "User cancels their own withdrawal request before it is processed by an Admin (PENDING status). Funds are refunded back to the wallet.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Cancel my withdrawal request",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Withdrawal request UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Cancellation reason",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/withdrawal.CancelMyWithdrawalReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"message\": \"Đã hủy yêu cầu rút tiền thành công và hoàn tiền vào ví.\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error or Invalid ID",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/orders": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve a paginated list of all orders with optional filtering parameters (Admin/Manager view).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Get Orders History",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "code",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "fromDate",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "paymentMethod",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "storeId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "toDate",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated list of orders",
+                        "schema": {
+                            "$ref": "#/definitions/common.PaginationResult-order_OrderSummary"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a new order based on the provided items, store, and shipping information.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Place New Order",
+                "parameters": [
+                    {
+                        "description": "Order creation details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/order.CreateOrderRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Created Order Data",
+                        "schema": {
+                            "$ref": "#/definitions/order.OrderReply"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/payments": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve the payment history of the entire system (Intended for Administrators and Accountants).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Get all payments (Admin)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of payments",
+                        "schema": {
+                            "$ref": "#/definitions/common.PaginationResult-order_PaymentSummary"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/reports/revenue": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get a detailed revenue breakdown by product and category, primarily used for rendering dashboard charts.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Get Revenue Report (JSON)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "categoryId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2024-01-01T00:00:00Z",
+                        "name": "fromDate",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "storeId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2024-01-31T23:59:59Z",
+                        "name": "toDate",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Revenue report data",
+                        "schema": {
+                            "$ref": "#/definitions/order.GetRevenueReportReply"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/reports/revenue/export": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Download the revenue report as a CSV file for bookkeeping and offline analysis.",
+                "produces": [
+                    "text/csv"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Export Revenue Report (CSV)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "categoryId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2024-01-01T00:00:00Z",
+                        "name": "fromDate",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "storeId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2024-01-31T23:59:59Z",
+                        "name": "toDate",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "CSV File containing revenue data",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/reports/sales-trend": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve sales trend data (revenue, order volume) grouped by a specific time aggregation (hour/day/week).\n**AUTHORIZATION NOTE (StoreId):**\n- **Admin:** Can provide a `storeId` to view a specific store, or leave it blank to view system-wide data.\n- **Manager/Staff:** Even if a `storeId` is provided, the system will securely override it with the store ID associated with the logged-in user's token.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Get Sales Trend Chart Data",
+                "parameters": [
+                    {
+                        "enum": [
+                            0,
+                            1,
+                            2
+                        ],
+                        "type": "integer",
+                        "default": 1,
+                        "example": 1,
+                        "description": "Mức độ gom nhóm dữ liệu. 0 = Hour, 1 = Day, 2 = Week.",
+                        "name": "aggregation",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "cat-001",
+                        "description": "ID Danh mục sản phẩm (Tùy chọn)",
+                        "name": "categoryId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2024-03-01T00:00:00Z",
+                        "description": "Thời gian bắt đầu. Bắt buộc nhập.",
+                        "name": "fromDate",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "123e4567-e89b-12d3-a456-426614174000",
+                        "description": "ID Cửa hàng (Tùy chọn)",
+                        "name": "storeId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2024-03-05T23:59:59Z",
+                        "description": "Thời gian kết thúc. Bắt buộc nhập.",
+                        "name": "toDate",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Trend data including peak/low time labels",
+                        "schema": {
+                            "$ref": "#/definitions/order.GetSalesTrendReply"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/reports/sales-trend/export": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Download sales trend data (revenue, order volume) as a CSV file.\nSupports the same filtering and storeId authorization logic as the JSON endpoint.",
+                "produces": [
+                    "text/csv"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Export Sales Trend (CSV)",
+                "parameters": [
+                    {
+                        "enum": [
+                            0,
+                            1,
+                            2
+                        ],
+                        "type": "integer",
+                        "default": 1,
+                        "example": 1,
+                        "description": "Mức độ gom nhóm dữ liệu. 0 = Hour, 1 = Day, 2 = Week.",
+                        "name": "aggregation",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "cat-001",
+                        "description": "ID Danh mục sản phẩm (Tùy chọn)",
+                        "name": "categoryId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2024-03-01T00:00:00Z",
+                        "description": "Thời gian bắt đầu. Bắt buộc nhập.",
+                        "name": "fromDate",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "123e4567-e89b-12d3-a456-426614174000",
+                        "description": "ID Cửa hàng (Tùy chọn)",
+                        "name": "storeId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2024-03-05T23:59:59Z",
+                        "description": "Thời gian kết thúc. Bắt buộc nhập.",
+                        "name": "toDate",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "CSV File containing sales trend data",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/reports/volume": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get daily order counts and status breakdown, primarily used for rendering line charts on the dashboard.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Get Order Volume Statistics (JSON)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "2024-05-20",
+                        "name": "fromDate",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            0,
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6,
+                            7
+                        ],
+                        "type": "integer",
+                        "format": "int32",
+                        "x-enum-varnames": [
+                            "OrderStatus_PAYMENT_PENDING",
+                            "OrderStatus_CONFIRMATION_PENDING",
+                            "OrderStatus_CONFIRMED",
+                            "OrderStatus_PREPARING",
+                            "OrderStatus_READY_FOR_PICKUP",
+                            "OrderStatus_DELIVERING",
+                            "OrderStatus_COMPLETED",
+                            "OrderStatus_CANCEL"
+                        ],
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "storeId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2024-05-27",
+                        "name": "toDate",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Order volume statistics data",
+                        "schema": {
+                            "$ref": "#/definitions/order.GetOrderVolumeReply"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/reports/volume/export": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Download daily order statistics as a CSV file.",
+                "produces": [
+                    "text/csv"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Export Order Volume (CSV)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "2024-05-20",
+                        "name": "fromDate",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            0,
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6,
+                            7
+                        ],
+                        "type": "integer",
+                        "format": "int32",
+                        "x-enum-varnames": [
+                            "OrderStatus_PAYMENT_PENDING",
+                            "OrderStatus_CONFIRMATION_PENDING",
+                            "OrderStatus_CONFIRMED",
+                            "OrderStatus_PREPARING",
+                            "OrderStatus_READY_FOR_PICKUP",
+                            "OrderStatus_DELIVERING",
+                            "OrderStatus_COMPLETED",
+                            "OrderStatus_CANCEL"
+                        ],
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "storeId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2024-05-27",
+                        "name": "toDate",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "CSV File containing order volume data",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/vnpay/return": {
+            "get": {
+                "description": "Endpoint for VNPay to redirect the browser after payment. Verifies the signature via gRPC and redirects to the Frontend UI.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/html"
+                ],
+                "tags": [
+                    "Payments"
+                ],
+                "summary": "Handle VNPay Return URL",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Transaction Amount",
+                        "name": "vnp_Amount",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bank Code",
+                        "name": "vnp_BankCode",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Order Information",
+                        "name": "vnp_OrderInfo",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "VNPAY Response Code",
+                        "name": "vnp_ResponseCode",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Transaction Reference",
+                        "name": "vnp_TxnRef",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Security Hash",
+                        "name": "vnp_SecureHash",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Frontend URL path to redirect to after processing",
+                        "name": "redirectTo",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "302": {
+                        "description": "Redirects to the Frontend application with payment status"
+                    },
+                    "400": {
+                        "description": "Bad Request or Invalid Signature"
+                    }
+                }
+            }
+        },
+        "/orders/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve full details of a specific order by its ID, including items, store info, and delivery personnel.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Get Order Details",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detailed order information",
+                        "schema": {
+                            "$ref": "#/definitions/order.Order"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID format",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Order not found",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update the list of items in an existing order (typically allowed only when the order is in a 'Pending' state).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Update Order Items",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "List of items to update",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/order.UpdateOrderItem"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated Order Data",
+                        "schema": {
+                            "$ref": "#/definitions/order.OrderReply"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error or Invalid ID",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Order Not Found",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/{id}/delivery/assign": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Manager assigns a specific staff member (delivery man) to handle an order's delivery.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Assign Staff To Delivery",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Staff ID to be assigned",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/order.AssignStaffToDeliveryRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully assigned staff",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error or Invalid ID",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Order or Staff Not Found",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/{id}/delivery/me/assign": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "A delivery staff member assigns themselves to handle an order's delivery. Staff ID is automatically extracted from the Token.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Self Assign Staff To Delivery",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Optional assignment notes",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/order.AssignStaffToDeliveryRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully self-assigned",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error or Invalid ID",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Order Not Found",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/{id}/payment": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Generate a payment link (VNPay) for the specific order.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Generate Payment URL",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Payment details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/order.CreatePaymentRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Payment URL",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/{id}/status": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Change the lifecycle status of an order (e.g., to 'Processing', 'Cancelled', 'Completed').",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Update Order Status",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "New Status details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/order.UpdateOrderStatus"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully updated status",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error or Invalid ID",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Order Not Found",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/refunds": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve a list of all refund tickets (Intended for Staff, Manager, Admin). Can optionally pass a `userId` in the query to filter by a specific user.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Refunds"
+                ],
+                "summary": "Get all refund requests (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filter by specific User UUID (Optional)",
+                        "name": "userId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6,
+                            7
+                        ],
+                        "type": "integer",
+                        "format": "int32",
+                        "x-enum-varnames": [
+                            "RefundTicketStatus_REFUND_STATUS_PENDING",
+                            "RefundTicketStatus_REFUND_STATUS_APPROVED",
+                            "RefundTicketStatus_REFUND_STATUS_PROCESSING",
+                            "RefundTicketStatus_REFUND_STATUS_COMPLETED",
+                            "RefundTicketStatus_REFUND_STATUS_FAILED",
+                            "RefundTicketStatus_REFUND_STATUS_REJECTED",
+                            "RefundTicketStatus_REFUND_STATUS_CANCELLED"
+                        ],
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of refund tickets",
+                        "schema": {
+                            "$ref": "#/definitions/common.PaginationResult-wallet_RefundTicketSummary"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/refunds/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve detailed information of a specific refund ticket. The service layer handles authorization based on the user's role and token.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Refunds"
+                ],
+                "summary": "Get refund ticket details",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Refund ticket UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Refund ticket details",
+                        "schema": {
+                            "$ref": "#/definitions/wallet.RefundTicketDetail"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Refund ticket not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/refunds/{id}/approve": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Accept and process the refund request for the customer.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Refunds"
+                ],
+                "summary": "Approve refund request (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Refund ticket UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Approval details/reason",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/wallet.ApproveRefundRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"message\": \"Đã duyệt yêu cầu hoàn tiền\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error or Invalid ID",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/refunds/{id}/cancel": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Cancel an active refund ticket (usually performed by the customer if they change their mind).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Refunds"
+                ],
+                "summary": "Cancel refund request",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Refund ticket UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Cancellation reason",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/wallet.CancelRefundRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"message\": \"Đã hủy yêu cầu hoàn tiền\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error or Invalid ID",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/refunds/{id}/complete": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Confirm that the money transfer process is successful and close the refund ticket.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Refunds"
+                ],
+                "summary": "Mark refund as complete (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Refund ticket UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Completion notes",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/wallet.SetCompleteRefundRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"message\": \"Đã đánh dấu hoàn tất yêu cầu hoàn tiền\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error or Invalid ID",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/refunds/{id}/reject": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Reject a refund request and provide a specific reason to the customer.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Refunds"
+                ],
+                "summary": "Reject refund request (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Refund ticket UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Rejection reason",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/wallet.RejectRefundRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"message\": \"Đã từ chối yêu cầu hoàn tiền\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error or Invalid ID",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/wallets/transactions": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Intended for Staff, Manager, or Admin to retrieve a list of all wallet transactions. Can optionally pass a `userId` in the query to filter transactions for a specific user.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Wallet Transactions"
+                ],
+                "summary": "Get all system wallet transactions (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filter by specific User UUID (Optional)",
+                        "name": "userId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of transactions",
+                        "schema": {
+                            "$ref": "#/definitions/common.PaginationResult-wallet_WalletTransactionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden (Insufficient permissions)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/wallets/transactions/code/{code}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "View details of a specific wallet transaction using its unique code (e.g., WT-12345).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Wallet Transactions"
+                ],
+                "summary": "Get transaction details by Code",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Transaction Code",
+                        "name": "code",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Transaction details",
+                        "schema": {
+                            "$ref": "#/definitions/wallet.WalletTransactionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Transaction not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/wallets/transactions/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "View details of a specific wallet transaction using its UUID. The service layer verifies if the requesting user has permission to view this transaction.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Wallet Transactions"
+                ],
+                "summary": "Get transaction details by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Transaction UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Transaction details",
+                        "schema": {
+                            "$ref": "#/definitions/wallet.WalletTransactionResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Transaction not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/wallets/users/{userId}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Intended for Staff, Manager, or Admin to retrieve wallet information of a specific user by their User ID.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Wallets"
+                ],
+                "summary": "Get user wallet details (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Target User UUID",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detailed wallet information",
+                        "schema": {
+                            "$ref": "#/definitions/wallet.WalletResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid User UUID format",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden (Insufficient permissions)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Wallet not found for this user",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/wallets/vnpay/return": {
+            "get": {
+                "description": "Callback endpoint for VNPay after a customer completes a wallet top-up payment. Validates the gRPC signature and redirects the user to the Frontend UI with the transaction status.",
+                "produces": [
+                    "text/html"
+                ],
+                "tags": [
+                    "Wallets"
+                ],
+                "summary": "Handle VNPay Return URL (Wallet Top-up)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Frontend path to redirect to (e.g., /my-wallet)",
+                        "name": "redirectTo",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Transaction Amount (multiplied by 100)",
+                        "name": "vnp_Amount",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "VNPay Response Code (00 means success)",
+                        "name": "vnp_ResponseCode",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Internal Transaction Reference",
+                        "name": "vnp_TxnRef",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Checksum Security Hash",
+                        "name": "vnp_SecureHash",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "302": {
+                        "description": "Redirects to the Frontend application"
+                    }
+                }
+            }
+        },
+        "/wallets/{id}/status": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Intended for Administrators to lock (suspend) or unlock a user's wallet.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Wallets"
+                ],
+                "summary": "Update wallet status (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Target Wallet UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "New status information",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/wallet.UpdateWalletStatusRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"message\": \"Cập nhật trạng thái ví thành công\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error or Invalid Wallet UUID",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden (Insufficient permissions)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/withdrawals": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Intended for administrators and accountants to view and filter the withdrawal requests of all users across the system.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Get all withdrawal requests (Admin)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6,
+                            7
+                        ],
+                        "type": "integer",
+                        "format": "int32",
+                        "x-enum-comments": {
+                            "WithdrawalStatusApproved": "Đã duyệt",
+                            "WithdrawalStatusCancelled": "Đã hủy",
+                            "WithdrawalStatusCompleted": "Thành công",
+                            "WithdrawalStatusFailed": "Thất bại",
+                            "WithdrawalStatusPending": "Chờ duyệt",
+                            "WithdrawalStatusProcessing": "Đang xử lý",
+                            "WithdrawalStatusRejected": "Từ chối"
+                        },
+                        "x-enum-descriptions": [
+                            "Chờ duyệt",
+                            "Đã duyệt",
+                            "Đang xử lý",
+                            "Thành công",
+                            "Thất bại",
+                            "Từ chối",
+                            "Đã hủy"
+                        ],
+                        "x-enum-varnames": [
+                            "WithdrawalStatusPending",
+                            "WithdrawalStatusApproved",
+                            "WithdrawalStatusProcessing",
+                            "WithdrawalStatusCompleted",
+                            "WithdrawalStatusFailed",
+                            "WithdrawalStatusRejected",
+                            "WithdrawalStatusCancelled"
+                        ],
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "userId",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of system withdrawal requests",
+                        "schema": {
+                            "$ref": "#/definitions/common.PaginationResult-withdrawal_WithdrawalSummary"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (Bad Request)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/withdrawals/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve full details of a withdrawal request, including the raw bank account number and the processing history.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Get withdrawal request details",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Withdrawal request UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detailed withdrawal information",
+                        "schema": {
+                            "$ref": "#/definitions/withdrawal.WithdrawalDetailRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid UUID format",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Withdrawal request not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/withdrawals/{id}/approve": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Confirm that the request is valid and prepare for the fund transfer. The status changes to APPROVED.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Approve withdrawal request (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Withdrawal request UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Approval notes",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/withdrawal.ApproveWithdrawalReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"message\": \"Đã duyệt yêu cầu rút tiền\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error or Invalid ID",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/withdrawals/{id}/cancel": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Cancel a withdrawal request at any stage (Pending, Approved, Processing) UNLESS it is already completed or cancelled. The system automatically refunds the amount to the user's wallet.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Cancel withdrawal request (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Withdrawal request UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Cancellation reason from Admin",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/withdrawal.CancelWithdrawalReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"message\": \"Admin đã hủy lệnh và hoàn tiền thành công.\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error or Invalid ID",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/withdrawals/{id}/complete": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Confirm that the bank transfer was successful. A receipt image (receiptFile) must be uploaded as proof.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Complete withdrawal request (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Withdrawal request UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Transfer receipt image (Bill)",
+                        "name": "receiptFile",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bank transaction ID",
+                        "name": "bankTransactionId",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"message\": \"Đã hoàn tất yêu cầu rút tiền và cập nhật bằng chứng chuyển khoản.\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Missing required file or transaction ID",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/withdrawals/{id}/reject": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Reject a PENDING withdrawal request. The system automatically refunds the deducted amount back to the user's wallet.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Reject withdrawal request (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Withdrawal request UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Rejection reason",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/withdrawal.RejectWithdrawalReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"message\": \"Đã từ chối yêu cầu rút tiền và hoàn tiền vào ví.\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error or Invalid ID",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "cart.DeleteCartItemsRequest": {
+            "type": "object",
+            "properties": {
+                "skus": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "cart.UpsertCartItemRequest": {
+            "type": "object",
+            "properties": {
+                "quantity": {
+                    "type": "integer"
+                },
+                "sku": {
+                    "type": "string"
+                }
+            }
+        },
+        "common.PaginationResult-order_OrderSummary": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/order.OrderSummary"
+                    }
+                },
+                "totalCount": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "common.PaginationResult-order_PaymentHistoryItem": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/order.PaymentHistoryItem"
+                    }
+                },
+                "totalCount": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "common.PaginationResult-order_PaymentSummary": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/order.PaymentSummary"
+                    }
+                },
+                "totalCount": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "common.PaginationResult-wallet_RefundTicketSummary": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/wallet.RefundTicketSummary"
+                    }
+                },
+                "totalCount": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "common.PaginationResult-wallet_WalletTransactionResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/wallet.WalletTransactionResponse"
+                    }
+                },
+                "totalCount": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "common.PaginationResult-withdrawal_WithdrawalSummary": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/withdrawal.WithdrawalSummary"
+                    }
+                },
+                "totalCount": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "enum.OrderSaleItemType": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+                0,
+                1,
+                2,
+                3
+            ],
+            "x-enum-varnames": [
+                "OrderSaleItemType_VOUCHER",
+                "OrderSaleItemType_WALLET",
+                "OrderSaleItemType_POINT",
+                "OrderSaleItemType_PROMOTION"
+            ]
+        },
+        "enum.OrderStatus": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "x-enum-varnames": [
+                "OrderStatus_PAYMENT_PENDING",
+                "OrderStatus_CONFIRMATION_PENDING",
+                "OrderStatus_CONFIRMED",
+                "OrderStatus_PREPARING",
+                "OrderStatus_READY_FOR_PICKUP",
+                "OrderStatus_DELIVERING",
+                "OrderStatus_COMPLETED",
+                "OrderStatus_CANCEL"
+            ]
+        },
+        "enum.OrderType": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+                0,
+                1
+            ],
+            "x-enum-varnames": [
+                "OrderType_Delivery",
+                "OrderType_Pickup"
+            ]
+        },
+        "enum.PaymentMethod": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+                0,
+                1
+            ],
+            "x-enum-varnames": [
+                "PaymentMethod_CASH",
+                "PaymentMethod_VNPAY"
+            ]
+        },
+        "enum.RefundReasonType": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+                1,
+                2,
+                3,
+                4,
+                5
+            ],
+            "x-enum-varnames": [
+                "RefundReasonType_REFUND_REASON_NORMAL_PROCESS",
+                "RefundReasonType_REFUND_REASON_SYSTEM_ERROR",
+                "RefundReasonType_REFUND_REASON_CUSTOMER_COMPLAINT",
+                "RefundReasonType_REFUND_REASON_GOODWILL_GESTURE",
+                "RefundReasonType_REFUND_REASON_COMPENSATION"
+            ]
+        },
+        "enum.RefundTicketMethod": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+                1,
+                2
+            ],
+            "x-enum-varnames": [
+                "RefundTicketMethod_REFUND_METHOD_TRANSFER",
+                "RefundTicketMethod_REFUND_METHOD_CASH"
+            ]
+        },
+        "enum.RefundTicketStatus": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "x-enum-varnames": [
+                "RefundTicketStatus_REFUND_STATUS_PENDING",
+                "RefundTicketStatus_REFUND_STATUS_APPROVED",
+                "RefundTicketStatus_REFUND_STATUS_PROCESSING",
+                "RefundTicketStatus_REFUND_STATUS_COMPLETED",
+                "RefundTicketStatus_REFUND_STATUS_FAILED",
+                "RefundTicketStatus_REFUND_STATUS_REJECTED",
+                "RefundTicketStatus_REFUND_STATUS_CANCELLED"
+            ]
+        },
+        "enum.TransactionStatus": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+                1,
+                2,
+                3,
+                4
+            ],
+            "x-enum-varnames": [
+                "TransactionStatus_TRANSACTION_STATUS_PENDING",
+                "TransactionStatus_TRANSACTION_STATUS_COMPLETED",
+                "TransactionStatus_TRANSACTION_STATUS_FAILED",
+                "TransactionStatus_TRANSACTION_STATUS_CANCELLED"
+            ]
+        },
+        "enum.TransactionType": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+            ],
+            "x-enum-varnames": [
+                "TransactionType_TRANSACTION_TYPE_DEPOSIT",
+                "TransactionType_TRANSACTION_TYPE_PAYMENT",
+                "TransactionType_TRANSACTION_TYPE_REFUND",
+                "TransactionType_TRANSACTION_TYPE_ADJUSTMENT",
+                "TransactionType_TRANSACTION_TYPE_WITHDRAWAL",
+                "TransactionType_TRANSACTION_TYPE_TRANSFER"
+            ]
+        },
+        "enum.WalletReferenceType": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+                1,
+                2,
+                3,
+                4
+            ],
+            "x-enum-varnames": [
+                "WalletReferenceType_REFERENCE_TYPE_ORDER",
+                "WalletReferenceType_REFERENCE_TYPE_REFUND_TICKET",
+                "WalletReferenceType_REFERENCE_TYPE_INTERNAL_USER",
+                "WalletReferenceType_REFERENCE_TYPE_SYSTEM"
+            ]
+        },
+        "enum.WalletStatus": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+                1,
+                2,
+                3,
+                4
+            ],
+            "x-enum-varnames": [
+                "WalletStatus_WALLET_STATUS_INACTIVE",
+                "WalletStatus_WALLET_STATUS_ACTIVE",
+                "WalletStatus_WALLET_STATUS_LOCKED",
+                "WalletStatus_WALLET_STATUS_SUSPENDED"
+            ]
+        },
+        "enum.WalletTransactionPaymentMethod": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+                1,
+                2,
+                3
+            ],
+            "x-enum-varnames": [
+                "WalletTransactionPaymentMethod_PAYMENT_METHOD_CASH",
+                "WalletTransactionPaymentMethod_PAYMENT_METHOD_VNPAY",
+                "WalletTransactionPaymentMethod_PAYMENT_METHOD_WALLET"
+            ]
+        },
+        "enum.WithdrawalStatus": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "x-enum-comments": {
+                "WithdrawalStatusApproved": "Đã duyệt",
+                "WithdrawalStatusCancelled": "Đã hủy",
+                "WithdrawalStatusCompleted": "Thành công",
+                "WithdrawalStatusFailed": "Thất bại",
+                "WithdrawalStatusPending": "Chờ duyệt",
+                "WithdrawalStatusProcessing": "Đang xử lý",
+                "WithdrawalStatusRejected": "Từ chối"
+            },
+            "x-enum-descriptions": [
+                "Chờ duyệt",
+                "Đã duyệt",
+                "Đang xử lý",
+                "Thành công",
+                "Thất bại",
+                "Từ chối",
+                "Đã hủy"
+            ],
+            "x-enum-varnames": [
+                "WithdrawalStatusPending",
+                "WithdrawalStatusApproved",
+                "WithdrawalStatusProcessing",
+                "WithdrawalStatusCompleted",
+                "WithdrawalStatusFailed",
+                "WithdrawalStatusRejected",
+                "WithdrawalStatusCancelled"
+            ]
+        },
+        "order.AssignStaffToDeliveryRequest": {
+            "type": "object",
+            "properties": {
+                "staffId": {
+                    "type": "string"
+                }
+            }
+        },
+        "order.CartItem": {
+            "type": "object",
+            "required": [
+                "quantity",
+                "sku"
+            ],
+            "properties": {
+                "quantity": {
+                    "type": "integer",
+                    "maximum": 100000
+                },
+                "sku": {
+                    "type": "string"
+                }
+            }
+        },
+        "order.CheckEnoughStockResponse": {
+            "type": "object",
+            "properties": {
+                "isEnough": {
+                    "type": "boolean"
+                },
+                "shortageItems": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/order.ShortageItem"
+                    }
+                }
+            }
+        },
+        "order.CreateOrderRequest": {
+            "type": "object",
+            "required": [
+                "items",
+                "storeId"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/order.CartItem"
+                    }
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "scheduledTime": {
+                    "description": "\"HH:mm\"",
+                    "type": "string"
+                },
+                "storeId": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/enum.OrderType"
+                }
+            }
+        },
+        "order.CreatePaymentRequest": {
+            "type": "object",
+            "properties": {
+                "appliedWalletAmount": {
+                    "type": "integer"
+                },
+                "paymentMethod": {
+                    "$ref": "#/definitions/enum.PaymentMethod"
+                },
+                "point": {
+                    "type": "integer"
+                },
+                "returnUrl": {
+                    "type": "string"
+                },
+                "voucherDiscountCode": {
+                    "type": "string"
+                },
+                "voucherShipCode": {
+                    "type": "string"
+                }
+            }
+        },
+        "order.DeliveryMan": {
+            "type": "object",
+            "properties": {
+                "avatarUrl": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "firstName": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "lastName": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "order.GetOrderVolumeReply": {
+            "type": "object",
+            "properties": {
+                "orders": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/order.OrderVolumeADay"
+                    }
+                }
+            }
+        },
+        "order.GetRevenueReportReply": {
+            "type": "object",
+            "properties": {
+                "categoryId": {
+                    "type": "string"
+                },
+                "fromDate": {
+                    "type": "string",
+                    "example": "2024-01-01T00:00:00Z"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/order.RevenueItem"
+                    }
+                },
+                "overallTotalRevenue": {
+                    "type": "number"
+                },
+                "toDate": {
+                    "type": "string",
+                    "example": "2024-01-31T23:59:59Z"
+                }
+            }
+        },
+        "order.GetSalesTrendReply": {
+            "type": "object",
+            "properties": {
+                "dataPoints": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/order.SalesTrendDataPoint"
+                    }
+                },
+                "peakPeriodLabel": {
+                    "type": "string"
+                },
+                "slowPeriodLabel": {
+                    "type": "string"
+                }
+            }
+        },
+        "order.Order": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "customerId": {
+                    "type": "string"
+                },
+                "deliveryMan": {
+                    "$ref": "#/definitions/order.DeliveryMan"
+                },
+                "distance": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/order.OrderItem"
+                    }
+                },
+                "latitude": {
+                    "type": "number"
+                },
+                "longitude": {
+                    "type": "number"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "paidAmount": {
+                    "type": "number"
+                },
+                "paidAt": {
+                    "type": "string"
+                },
+                "paymentMethod": {
+                    "type": "integer"
+                },
+                "saleItems": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/order.OrderSaleItemReply"
+                    }
+                },
+                "scheduledTime": {
+                    "type": "string"
+                },
+                "shippingFee": {
+                    "type": "number"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "store": {
+                    "$ref": "#/definitions/store.StoreDetailResponse"
+                },
+                "subtotal": {
+                    "type": "number"
+                },
+                "tax": {
+                    "type": "number"
+                },
+                "totalAmount": {
+                    "type": "number"
+                },
+                "type": {
+                    "$ref": "#/definitions/enum.OrderType"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "order.OrderItem": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "imageUrl": {
+                    "type": "string"
+                },
+                "productId": {
+                    "type": "string"
+                },
+                "productName": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "type": "integer"
+                },
+                "sku": {
+                    "type": "string"
+                },
+                "unitPrice": {
+                    "type": "number"
+                },
+                "variantId": {
+                    "type": "string"
+                }
+            }
+        },
+        "order.OrderReply": {
+            "type": "object",
+            "properties": {
+                "checkStockResponse": {
+                    "$ref": "#/definitions/order.CheckEnoughStockResponse"
+                },
+                "customerId": {
+                    "type": "string"
+                },
+                "orderCode": {
+                    "type": "string"
+                },
+                "orderId": {
+                    "type": "string"
+                },
+                "storeId": {
+                    "type": "string"
+                },
+                "totalAmount": {
+                    "type": "number"
+                }
+            }
+        },
+        "order.OrderSaleItemReply": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "referenceId": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/enum.OrderSaleItemType"
+                }
+            }
+        },
+        "order.OrderSummary": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "customerId": {
+                    "type": "string"
+                },
+                "deliveryMan": {
+                    "$ref": "#/definitions/order.DeliveryMan"
+                },
+                "distance": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "latitude": {
+                    "type": "number"
+                },
+                "longitude": {
+                    "type": "number"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "paidAmount": {
+                    "type": "number"
+                },
+                "paidAt": {
+                    "type": "string"
+                },
+                "paymentMethod": {
+                    "type": "integer"
+                },
+                "scheduledTime": {
+                    "type": "string"
+                },
+                "shippingFee": {
+                    "type": "number"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "store": {
+                    "$ref": "#/definitions/store.StoreDetailResponse"
+                },
+                "subtotal": {
+                    "type": "number"
+                },
+                "tax": {
+                    "type": "number"
+                },
+                "totalAmount": {
+                    "type": "number"
+                },
+                "type": {
+                    "$ref": "#/definitions/enum.OrderType"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "order.OrderVolumeADay": {
+            "type": "object",
+            "properties": {
+                "canceledOrder": {
+                    "type": "integer"
+                },
+                "completedOrder": {
+                    "type": "integer"
+                },
+                "date": {
+                    "type": "string",
+                    "example": "2024-05-20"
+                },
+                "statusCounts": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer",
+                        "format": "int32"
+                    }
+                },
+                "storeId": {
+                    "type": "string"
+                },
+                "totalOrders": {
+                    "type": "integer"
+                }
+            }
+        },
+        "order.PaymentHistoryItem": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "orderCode": {
+                    "type": "string"
+                },
+                "orderId": {
+                    "type": "string"
+                },
+                "paymentDate": {
+                    "type": "string"
+                },
+                "paymentMethod": {
+                    "$ref": "#/definitions/enum.PaymentMethod"
+                },
+                "status": {
+                    "description": "0=Pending, 1=Paid, 2=Failed",
+                    "type": "integer"
+                }
+            }
+        },
+        "order.PaymentSummary": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "method": {
+                    "$ref": "#/definitions/enum.PaymentMethod"
+                },
+                "orderId": {
+                    "type": "string"
+                },
+                "paidAt": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                }
+            }
+        },
+        "order.RevenueItem": {
+            "type": "object",
+            "properties": {
+                "productName": {
+                    "type": "string"
+                },
+                "quantitySold": {
+                    "type": "integer"
+                },
+                "sku": {
+                    "type": "string"
+                },
+                "storeId": {
+                    "type": "string"
+                },
+                "totalRevenue": {
+                    "type": "number"
+                },
+                "unitPrice": {
+                    "type": "number"
+                }
+            }
+        },
+        "order.SalesTrendDataPoint": {
+            "type": "object",
+            "properties": {
+                "orderVolume": {
+                    "type": "integer"
+                },
+                "revenue": {
+                    "type": "number"
+                },
+                "timeLabel": {
+                    "type": "string"
+                }
+            }
+        },
+        "order.ShortageItem": {
+            "type": "object",
+            "properties": {
+                "maxFeasibleQuantity": {
+                    "type": "integer"
+                },
+                "sku": {
+                    "type": "string"
+                },
+                "variantId": {
+                    "type": "string"
+                }
+            }
+        },
+        "order.UpdateOrderItem": {
+            "type": "object",
+            "required": [
+                "quantity",
+                "sku"
+            ],
+            "properties": {
+                "quantity": {
+                    "type": "integer",
+                    "maximum": 100000
+                },
+                "sku": {
+                    "type": "string"
+                }
+            }
+        },
+        "order.UpdateOrderStatus": {
+            "type": "object",
+            "required": [
+                "status"
+            ],
+            "properties": {
+                "status": {
+                    "$ref": "#/definitions/enum.OrderStatus"
+                }
+            }
+        },
+        "store.StoreDetailResponse": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "imageUrl": {
+                    "type": "string"
+                },
+                "isOpenNow": {
+                    "description": "Tính toán dựa trên StoreHours ngay lúc gọi",
+                    "type": "boolean"
+                },
+                "latitude": {
+                    "type": "number"
+                },
+                "longitude": {
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                }
+            }
+        },
+        "wallet.ApproveRefundRequest": {
+            "type": "object",
+            "properties": {
+                "approvalNotes": {
+                    "type": "string"
+                }
+            }
+        },
+        "wallet.CancelRefundRequest": {
+            "type": "object",
+            "properties": {
+                "cancellationReason": {
+                    "type": "string"
+                }
+            }
+        },
+        "wallet.CreateRefundByCustomerRequest": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                }
+            }
+        },
+        "wallet.RefundTicketDetail": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "originalTransactionId": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "refundAmount": {
+                    "type": "string"
+                },
+                "refundMethod": {
+                    "$ref": "#/definitions/enum.RefundTicketMethod"
+                },
+                "refundReason": {
+                    "$ref": "#/definitions/enum.RefundReasonType"
+                },
+                "rejectionReason": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/enum.RefundTicketStatus"
+                },
+                "ticketCode": {
+                    "type": "string"
+                },
+                "transactionId": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                },
+                "walletId": {
+                    "type": "string"
+                }
+            }
+        },
+        "wallet.RefundTicketSummary": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "refundAmount": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/enum.RefundTicketStatus"
+                },
+                "ticketCode": {
+                    "type": "string"
+                },
+                "transactionId": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                }
+            }
+        },
+        "wallet.RejectRefundRequest": {
+            "type": "object",
+            "properties": {
+                "rejectNotes": {
+                    "type": "string"
+                }
+            }
+        },
+        "wallet.SetCompleteRefundRequest": {
+            "type": "object",
+            "properties": {
+                "completeNotes": {
+                    "type": "string"
+                }
+            }
+        },
+        "wallet.TopUpWalletRequest": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "returnUrl": {
+                    "type": "string"
+                }
+            }
+        },
+        "wallet.UpdateWalletStatusRequest": {
+            "type": "object",
+            "properties": {
+                "adminNotes": {
+                    "type": "string"
+                },
+                "newStatus": {
+                    "$ref": "#/definitions/enum.WalletStatus"
+                },
+                "reason": {
+                    "type": "string"
+                }
+            }
+        },
+        "wallet.WalletResponse": {
+            "type": "object",
+            "properties": {
+                "balance": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/enum.WalletStatus"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                }
+            }
+        },
+        "wallet.WalletTransactionResponse": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "string"
+                },
+                "balanceAfter": {
+                    "type": "string"
+                },
+                "balanceBefore": {
+                    "type": "string"
+                },
+                "completedAt": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "externalTransactionId": {
+                    "type": "string"
+                },
+                "failedAt": {
+                    "type": "string"
+                },
+                "failureReason": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "initiatedBy": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "orderId": {
+                    "type": "string"
+                },
+                "parentTransactionId": {
+                    "type": "string"
+                },
+                "paymentMethod": {
+                    "$ref": "#/definitions/enum.WalletTransactionPaymentMethod"
+                },
+                "processedAt": {
+                    "type": "string"
+                },
+                "processedBy": {
+                    "type": "string"
+                },
+                "referenceId": {
+                    "type": "string"
+                },
+                "referenceType": {
+                    "$ref": "#/definitions/enum.WalletReferenceType"
+                },
+                "status": {
+                    "$ref": "#/definitions/enum.TransactionStatus"
+                },
+                "transactionCode": {
+                    "type": "string"
+                },
+                "transactionType": {
+                    "$ref": "#/definitions/enum.TransactionType"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                },
+                "walletId": {
+                    "type": "string"
+                }
+            }
+        },
+        "withdrawal.ApproveWithdrawalReq": {
+            "type": "object",
+            "properties": {
+                "approvalNotes": {
+                    "type": "string"
+                }
+            }
+        },
+        "withdrawal.CancelMyWithdrawalReq": {
+            "type": "object",
+            "required": [
+                "cancellationReason"
+            ],
+            "properties": {
+                "cancellationReason": {
+                    "type": "string"
+                }
+            }
+        },
+        "withdrawal.CancelWithdrawalReq": {
+            "type": "object",
+            "required": [
+                "cancellationReason"
+            ],
+            "properties": {
+                "cancellationReason": {
+                    "type": "string"
+                }
+            }
+        },
+        "withdrawal.CreateWithdrawalReq": {
+            "type": "object",
+            "required": [
+                "accountName",
+                "accountNumber",
+                "amount",
+                "bankName"
+            ],
+            "properties": {
+                "accountName": {
+                    "type": "string"
+                },
+                "accountNumber": {
+                    "type": "string"
+                },
+                "amount": {
+                    "type": "string"
+                },
+                "bankCode": {
+                    "type": "string"
+                },
+                "bankName": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                }
+            }
+        },
+        "withdrawal.RejectWithdrawalReq": {
+            "type": "object",
+            "required": [
+                "rejectionReason"
+            ],
+            "properties": {
+                "rejectionReason": {
+                    "type": "string"
+                }
+            }
+        },
+        "withdrawal.WithdrawalBaseRes": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "withdrawal.WithdrawalDetailRes": {
+            "type": "object",
+            "properties": {
+                "accountName": {
+                    "type": "string"
+                },
+                "amount": {
+                    "type": "string"
+                },
+                "approvalNotes": {
+                    "type": "string"
+                },
+                "bankCode": {
+                    "type": "string"
+                },
+                "bankName": {
+                    "type": "string"
+                },
+                "bankTransactionId": {
+                    "type": "string"
+                },
+                "cancellationReason": {
+                    "type": "string"
+                },
+                "completedAt": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "feeAmount": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "internalNotes": {
+                    "type": "string"
+                },
+                "maskedAccountNumber": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "processedById": {
+                    "type": "string"
+                },
+                "processedByName": {
+                    "type": "string"
+                },
+                "rawAccountNumber": {
+                    "type": "string"
+                },
+                "receiptImageUrl": {
+                    "type": "string"
+                },
+                "rejectionReason": {
+                    "type": "string"
+                },
+                "requestCode": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/enum.WithdrawalStatus"
+                },
+                "transactionId": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                }
+            }
+        },
+        "withdrawal.WithdrawalSummary": {
+            "type": "object",
+            "properties": {
+                "accountName": {
+                    "type": "string"
+                },
+                "amount": {
+                    "type": "string"
+                },
+                "bankCode": {
+                    "type": "string"
+                },
+                "bankName": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "feeAmount": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "maskedAccountNumber": {
+                    "type": "string"
+                },
+                "requestCode": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/enum.WithdrawalStatus"
+                },
+                "userId": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "description": "Don't forget to type \"Bearer\" before the token. For example: Bearer eyJhbG...",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}

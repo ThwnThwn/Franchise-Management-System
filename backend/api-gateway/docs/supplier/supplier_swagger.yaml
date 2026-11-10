@@ -1,0 +1,1005 @@
+basePath: /api
+definitions:
+  api-gateway_internal_domain_models_supplier.PurchaseOrderDetail:
+    properties:
+      code:
+        type: string
+      completedAt:
+        type: string
+      createdAt:
+        type: string
+      discountAmount:
+        type: number
+      id:
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/api-gateway_internal_domain_models_supplier.PurchaseOrderItemDetail'
+        type: array
+      netAmount:
+        type: number
+      notes:
+        type: string
+      orderDate:
+        type: string
+      paidAmount:
+        type: number
+      paymentStatus:
+        type: integer
+      status:
+        type: integer
+      storeId:
+        type: string
+      supplierId:
+        type: string
+      supplierName:
+        type: string
+      totalAmount:
+        type: number
+      updatedAt:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_supplier.PurchaseOrderItemDetail:
+    properties:
+      id:
+        type: string
+      ingredientId:
+        type: string
+      quantity:
+        type: number
+      totalPrice:
+        type: number
+      unitPrice:
+        type: number
+    type: object
+  api-gateway_internal_domain_models_supplier.PurchaseOrderSummary:
+    properties:
+      code:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: string
+      netAmount:
+        type: number
+      orderDate:
+        type: string
+      paymentStatus:
+        type: integer
+      status:
+        type: integer
+      supplierName:
+        type: string
+      totalAmount:
+        type: number
+    type: object
+  api-gateway_internal_domain_models_supplier.SupplierDetail:
+    properties:
+      address:
+        type: string
+      code:
+        type: string
+      contactPerson:
+        type: string
+      createdAt:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      isActive:
+        type: boolean
+      name:
+        type: string
+      phone:
+        type: string
+      taxCode:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  api-gateway_internal_domain_models_supplier.SupplierSummary:
+    properties:
+      code:
+        type: string
+      contactPerson:
+        type: string
+      id:
+        type: string
+      isActive:
+        type: boolean
+      name:
+        type: string
+      phone:
+        type: string
+    type: object
+  common.PaginationResult-api-gateway_internal_domain_models_supplier_PurchaseOrderSummary:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/api-gateway_internal_domain_models_supplier.PurchaseOrderSummary'
+        type: array
+      totalCount:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  common.PaginationResult-api-gateway_internal_domain_models_supplier_SupplierSummary:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/api-gateway_internal_domain_models_supplier.SupplierSummary'
+        type: array
+      totalCount:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  common.PaginationResult-supplier_SupplierPaymentSummary:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/supplier.SupplierPaymentSummary'
+        type: array
+      totalCount:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  enum.SupplierPaymentMethod:
+    enum:
+    - 0
+    - 1
+    format: int32
+    type: integer
+    x-enum-varnames:
+    - PaymentMethodCash
+    - PaymentMethodVNPay
+  supplier.CancelPurchaseOrderReq:
+    properties:
+      reason:
+        type: string
+    type: object
+  supplier.CreatePurchaseOrderItemReq:
+    properties:
+      ingredientId:
+        type: string
+      quantity:
+        type: number
+    required:
+    - ingredientId
+    - quantity
+    type: object
+  supplier.CreatePurchaseOrderReq:
+    properties:
+      discountAmount:
+        type: number
+      expectedDeliveryDate:
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/supplier.CreatePurchaseOrderItemReq'
+        type: array
+      notes:
+        type: string
+      referenceCode:
+        type: string
+      storeId:
+        type: string
+      supplierId:
+        type: string
+    required:
+    - items
+    - supplierId
+    type: object
+  supplier.CreateSupplierPaymentReq:
+    properties:
+      method:
+        $ref: '#/definitions/enum.SupplierPaymentMethod'
+      purchaseOrderId:
+        type: string
+      returnUrl:
+        type: string
+    required:
+    - purchaseOrderId
+    type: object
+  supplier.CreateSupplierPaymentRes:
+    properties:
+      code:
+        type: string
+      paymentId:
+        type: string
+      url:
+        type: string
+    type: object
+  supplier.CreateSupplierReq:
+    properties:
+      address:
+        type: string
+      code:
+        type: string
+      contactPerson:
+        type: string
+      email:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+      taxCode:
+        type: string
+    required:
+    - code
+    - name
+    type: object
+  supplier.GetLatestPricesReq:
+    properties:
+      ingredientIds:
+        items:
+          type: string
+        type: array
+    required:
+    - ingredientIds
+    type: object
+  supplier.PurchaseOrderBaseRes:
+    properties:
+      code:
+        type: string
+      id:
+        type: string
+      message:
+        type: string
+    type: object
+  supplier.SupplierBaseRes:
+    properties:
+      code:
+        type: string
+      id:
+        type: string
+      message:
+        type: string
+    type: object
+  supplier.SupplierPaymentDetail:
+    properties:
+      amount:
+        type: number
+      code:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: string
+      method:
+        type: integer
+      notes:
+        type: string
+      paidAt:
+        type: string
+      purchaseOrderId:
+        type: string
+      status:
+        type: integer
+    type: object
+  supplier.SupplierPaymentSummary:
+    properties:
+      amount:
+        type: number
+      code:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: string
+      method:
+        type: integer
+      paidAt:
+        type: string
+      purchaseOrderCode:
+        type: string
+      purchaseOrderId:
+        type: string
+      status:
+        type: integer
+    type: object
+  supplier.UpdatePurchaseOrderReq:
+    properties:
+      discountAmount:
+        type: number
+      expectedDeliveryDate:
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/supplier.CreatePurchaseOrderItemReq'
+        type: array
+      notes:
+        type: string
+      referenceCode:
+        type: string
+      storeId:
+        type: string
+      supplierId:
+        type: string
+    required:
+    - items
+    - supplierId
+    type: object
+  supplier.UpdateSupplierReq:
+    properties:
+      address:
+        type: string
+      code:
+        type: string
+      contactPerson:
+        type: string
+      email:
+        type: string
+      isActive:
+        type: boolean
+      name:
+        type: string
+      phone:
+        type: string
+      taxCode:
+        type: string
+    required:
+    - code
+    type: object
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+  description: API docs for CHD Gateway.
+  termsOfService: http://swagger.io/terms/
+  title: Capital Franchise Supply Chain Management System API Document
+  version: "1.0"
+paths:
+  /suppliers:
+    get:
+      description: Retrieve a paginated list of all suppliers in the system.
+      parameters:
+      - description: GET dùng form tag cho Query String
+        in: query
+        name: code
+        type: string
+      - in: query
+        name: isActive
+        type: boolean
+      - in: query
+        name: name
+        type: string
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of suppliers
+          schema:
+            $ref: '#/definitions/common.PaginationResult-api-gateway_internal_domain_models_supplier_SupplierSummary'
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get all suppliers
+      tags:
+      - Suppliers
+    post:
+      consumes:
+      - application/json
+      description: Add a new supplier to the system.
+      parameters:
+      - description: Supplier information
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/supplier.CreateSupplierReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully created
+          schema:
+            $ref: '#/definitions/supplier.SupplierBaseRes'
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a new supplier
+      tags:
+      - Suppliers
+  /suppliers/{id}:
+    delete:
+      description: Remove a supplier from the system.
+      parameters:
+      - description: Supplier UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully deleted
+          schema:
+            $ref: '#/definitions/supplier.SupplierBaseRes'
+        "400":
+          description: Invalid UUID format
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "404":
+          description: Supplier Not Found
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete a supplier
+      tags:
+      - Suppliers
+    get:
+      description: Retrieve detailed information of a specific supplier by their UUID.
+      parameters:
+      - description: Supplier UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Detailed supplier information
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_supplier.SupplierDetail'
+        "400":
+          description: Invalid UUID format
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "404":
+          description: Supplier Not Found
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get supplier details
+      tags:
+      - Suppliers
+    patch:
+      consumes:
+      - application/json
+      description: Modify the details of an existing supplier.
+      parameters:
+      - description: Supplier UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated information
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/supplier.UpdateSupplierReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully updated
+          schema:
+            $ref: '#/definitions/supplier.SupplierBaseRes'
+        "400":
+          description: Validation Error or Invalid ID
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "404":
+          description: Supplier Not Found
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update a supplier
+      tags:
+      - Suppliers
+  /suppliers/payments:
+    get:
+      description: Retrieve the complete payment history for suppliers (Intended for
+        Admins/Accountants to track cash flow).
+      parameters:
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      - in: query
+        name: purchaseOrderId
+        type: string
+      - in: query
+        name: supplierId
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of supplier payments
+          schema:
+            $ref: '#/definitions/common.PaginationResult-supplier_SupplierPaymentSummary'
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get all supplier payments
+      tags:
+      - Suppliers / Payments
+    post:
+      consumes:
+      - application/json
+      description: Initialize a payment using Cash or generate a VNPay payment URL
+        for a purchase order.
+      parameters:
+      - description: Payment information
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/supplier.CreateSupplierPaymentReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully created payment
+          schema:
+            $ref: '#/definitions/supplier.CreateSupplierPaymentRes'
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create purchase order payment
+      tags:
+      - Suppliers / Payments
+  /suppliers/payments/vnpay/return:
+    get:
+      description: Callback endpoint for VNPay after a payment. Verifies the gRPC
+        signature and redirects the browser to the Frontend UI with the payment status.
+      parameters:
+      - description: Transaction Amount
+        in: query
+        name: vnp_Amount
+        type: string
+      - description: Bank Code
+        in: query
+        name: vnp_BankCode
+        type: string
+      - description: Order Information
+        in: query
+        name: vnp_OrderInfo
+        type: string
+      - description: VNPAY Response Code
+        in: query
+        name: vnp_ResponseCode
+        type: string
+      - description: Transaction Reference (Payment Code)
+        in: query
+        name: vnp_TxnRef
+        type: string
+      - description: Checksum Security Hash
+        in: query
+        name: vnp_SecureHash
+        type: string
+      - description: Frontend path to redirect to (e.g., /suppliers/purchase-orders/123)
+        in: query
+        name: redirectTo
+        type: string
+      produces:
+      - text/html
+      responses:
+        "302":
+          description: Redirects to the Frontend application
+        "400":
+          description: Bad Request or Invalid Signature
+      summary: Handle VNPay Return URL (Supplier Payment)
+      tags:
+      - Suppliers / Payments
+  /suppliers/purchase-orders:
+    get:
+      description: Retrieve a paginated list of purchase orders. Supports filtering
+        by Supplier, Store, or Status.
+      parameters:
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: pageSize
+        type: integer
+      - in: query
+        name: status
+        type: integer
+      - in: query
+        name: storeId
+        type: string
+      - in: query
+        name: supplierId
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of purchase orders
+          schema:
+            $ref: '#/definitions/common.PaginationResult-api-gateway_internal_domain_models_supplier_PurchaseOrderSummary'
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get all purchase orders
+      tags:
+      - Suppliers / PurchaseOrders
+    post:
+      consumes:
+      - application/json
+      description: Create a new purchase order record with an initial status of PENDING.
+      parameters:
+      - description: Purchase order information
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/supplier.CreatePurchaseOrderReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully created
+          schema:
+            $ref: '#/definitions/supplier.PurchaseOrderBaseRes'
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a new purchase order
+      tags:
+      - Suppliers / PurchaseOrders
+  /suppliers/purchase-orders/{id}:
+    get:
+      description: Retrieve detailed information of a specific purchase order, including
+        the list of imported ingredients.
+      parameters:
+      - description: Purchase Order UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Detailed purchase order information
+          schema:
+            $ref: '#/definitions/api-gateway_internal_domain_models_supplier.PurchaseOrderDetail'
+        "400":
+          description: Invalid UUID format
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "404":
+          description: Purchase Order Not Found
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get purchase order details
+      tags:
+      - Suppliers / PurchaseOrders
+    patch:
+      consumes:
+      - application/json
+      description: Modify the details of an existing purchase order (only allowed
+        when the PO is in an updatable status).
+      parameters:
+      - description: Purchase Order UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated information
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/supplier.UpdatePurchaseOrderReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully updated
+          schema:
+            $ref: '#/definitions/supplier.PurchaseOrderBaseRes'
+        "400":
+          description: Validation Error or Invalid ID
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "404":
+          description: Purchase Order Not Found
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update a purchase order
+      tags:
+      - Suppliers / PurchaseOrders
+  /suppliers/purchase-orders/{id}/cancel:
+    patch:
+      consumes:
+      - application/json
+      description: Cancel an active purchase order and record the specific cancellation
+        reason.
+      parameters:
+      - description: Purchase Order UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Cancellation reason
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/supplier.CancelPurchaseOrderReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully cancelled
+          schema:
+            $ref: '#/definitions/supplier.PurchaseOrderBaseRes'
+        "400":
+          description: Validation Error or Invalid ID
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "404":
+          description: Purchase Order Not Found
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Cancel a purchase order
+      tags:
+      - Suppliers / PurchaseOrders
+  /suppliers/purchase-orders/{id}/complete:
+    patch:
+      description: Confirm that all goods have been successfully received and finalize
+        the purchase order (typically triggers an inventory restock).
+      parameters:
+      - description: Purchase Order UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully completed
+          schema:
+            $ref: '#/definitions/supplier.PurchaseOrderBaseRes'
+        "400":
+          description: Invalid ID format
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "404":
+          description: Purchase Order Not Found
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Complete a purchase order
+      tags:
+      - Suppliers / PurchaseOrders
+  /suppliers/purchase-orders/{id}/payments:
+    get:
+      description: Retrieve the payment history (installments/transactions) for a
+        specific Purchase Order.
+      parameters:
+      - description: Purchase Order UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of payments for the PO
+          schema:
+            items:
+              $ref: '#/definitions/supplier.SupplierPaymentDetail'
+            type: array
+        "400":
+          description: Invalid UUID format
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "404":
+          description: Purchase Order not found
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get payments by Purchase Order ID
+      tags:
+      - Suppliers / Payments
+  /suppliers/purchase-orders/latest-prices:
+    post:
+      consumes:
+      - application/json
+      description: Look up the most recent import prices for a provided list of ingredient
+        IDs based on the latest purchase order records.
+      parameters:
+      - description: List of ingredient IDs
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/supplier.GetLatestPricesReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Map of ingredient IDs to their latest prices
+          schema:
+            additionalProperties:
+              format: float64
+              type: number
+            type: object
+        "400":
+          description: Validation Error (Bad Request)
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get latest ingredient prices
+      tags:
+      - Suppliers / PurchaseOrders
+securityDefinitions:
+  BearerAuth:
+    description: 'Don''t forget to type "Bearer" before the token. For example: Bearer
+      eyJhbG...'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

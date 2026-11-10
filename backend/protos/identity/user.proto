@@ -1,0 +1,193 @@
+syntax = "proto3";
+
+option csharp_namespace = "IdentityService.Grpc.Protos.User";
+option go_package = "api-gateway/pkg/pb/identity";
+
+package identity.user;
+
+import "identity/role.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+service UserGrpc {
+  rpc CustomerCreate(CustomerCreateUserRequest) returns (UserResponse);
+  rpc AdminCreate(AdminCreateUserRequest) returns (UserResponse);
+
+  rpc GetById(GetUserByIdRequest) returns (UserResponse);
+  rpc GetByIds (GetUserByIdsRequest) returns (GetUserByIdsResponse);
+  rpc GetAll(GetAllUserWithFilterRequest) returns (GetAllUserOrWithRoleResponse);
+  rpc GetManager(GetManagerRequest) returns (UserResponse);
+  rpc GetUserIdByPhone(GetUserIdByPhoneRequest) returns (GetSimpleUsersRespone);
+  rpc GetUserIdByEmail(GetUserIdByEmailRequest) returns (GetSimpleUsersRespone);
+
+  rpc Update(UpdateUserRequest) returns (UserResponse);
+  rpc ChangePassword(ChangePasswordRequest) returns (UserResponse);
+
+  rpc Delete(DeleteUserRequest) returns (DeleteUserResponse);
+
+  rpc UploadAvatar(UploadAvatarRequest) returns (UserResponse);
+  rpc DeleteAvatar(google.protobuf.Empty) returns (DeleteAvatarResponse);
+}
+
+message GetAllUserWithFilterRequest{
+  string role_slug = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+  string keyword = 4;
+  optional bool HasHourlyWage = 5;
+  optional string homeStoreId = 6;
+  optional string tierId = 8;
+  optional int32 orderCount = 9;
+  optional double startAt = 10;
+  optional double endAt = 11;
+}
+
+message GetAllUserOrWithRoleResponse {
+  repeated UserResponse users = 1;
+  int32 total_count = 2;
+  int32 total_pages = 3;
+}
+
+message GetUserByIdRequest {
+  string id = 1;
+}
+message GetUserByIdsRequest {
+  repeated string ids = 1;
+}
+message GetUserByIdsResponse {
+  repeated UserResponse users = 1;
+}
+message DeleteUserRequest {
+  string id = 1;
+}
+
+message DeleteUserResponse {
+  bool success = 1;
+}
+
+message UserListResponse {
+  repeated UserResponse users = 1;
+}
+
+message CustomerCreateUserRequest {
+  string email = 1;
+  string username = 2;
+  string phone = 3;
+  string address = 4;
+
+  string firstName = 5;
+  string lastName = 6;
+  optional int32 gender = 7;
+  string dateOfBirth = 8;
+  string roleSlug = 9;
+}
+
+message AdminCreateUserRequest {
+  string email = 1;
+  string username = 2;
+  string phone = 3;
+  string address = 4;
+  string roleSlug = 5; 
+  
+  string firstName = 6;
+  string lastName = 7;
+  optional int32 gender = 8;
+  string dateOfBirth =9;
+
+  optional double current_hourly_wage = 10;
+  optional string homeStoreId = 11;
+}
+
+message UpdateUserRequest {
+  string id = 1;
+
+  string username = 2;
+  string email = 3;
+  string phone = 4;
+  string address = 5;
+
+  string firstName = 6;
+  string lastName = 7;
+  optional int32 gender = 8;
+  string dateOfBirth = 9;
+
+  optional bool isBlocked = 10;
+  string roleSlug = 11;
+
+  optional double current_hourly_wage = 12;
+  optional string homeStoreId = 13;
+}
+message ChangePasswordRequest{
+  string oldPassword = 1;
+  string newPassword = 2;
+  string confirmNewPassword = 3;
+  string accessToken = 4;
+  optional bool forgetAll = 5;
+}
+
+message UserResponse {
+  string id = 1;
+  string email = 2;
+  string username = 3;
+  string phone = 4;
+  string address = 5;
+  bool isBlocked = 6;
+
+  string firstName = 7;
+  string lastName = 8;
+  int32 gender = 9;
+  google.protobuf.Timestamp dateOfBirth = 10;
+
+  optional string homeStoreId = 11;
+  identity.role.RoleUserResponse role = 12;
+  google.protobuf.Timestamp createdAt = 13;
+  google.protobuf.Timestamp updatedAt = 14;
+  optional double current_hourly_wage = 15;
+  string avatar_url = 16;
+  optional LoyaltyResponse loyalty = 17;
+  optional int32 orderCount = 18;
+}
+
+message LoyaltyResponse {
+  string id = 1;
+  string available_points = 2;
+  string total_spent = 3;
+  MembershipTier current_tier = 4;
+}
+
+message MembershipTier {
+  string id = 1;
+  string name = 2;
+  string min_spend_required = 3;
+  double discount_rate = 4;
+  string amount_per_point = 5;
+  string value_per_point = 6;
+}
+message GetManagerRequest{
+  string id = 1;
+}
+
+message GetUserIdByPhoneRequest {
+  optional string phone = 1;
+}
+
+message UserIdNameResponse {
+  string id = 1;
+  string name = 2;
+  optional LoyaltyResponse loyalty = 3;
+}
+
+message GetSimpleUsersRespone{
+  repeated UserIdNameResponse user_res = 1;
+}
+
+message GetUserIdByEmailRequest {
+  optional string email = 1;
+}
+message UploadAvatarRequest {
+  bytes image_data = 1;
+}
+
+message DeleteAvatarResponse {
+  string message = 1;
+}

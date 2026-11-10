@@ -1,0 +1,91 @@
+syntax = "proto3";
+
+option csharp_namespace = "FranchiseService.Grpc";
+option go_package = "api-gateway/pkg/pb/franchise";
+
+package franchise;
+
+service StoreGrpcService {
+  
+  // ==========================================
+  // GROUP 1: STORE DISCOVERY (Cho App Khách hàng)
+  // ==========================================
+  
+  // Lấy danh sách cửa hàng (có phân trang & lọc)
+  rpc GetStores (GetStoresRequest) returns (GetStoresResponse);
+  
+  // Lấy chi tiết 1 cửa hàng (để hiện địa chỉ, hình ảnh)
+  rpc GetStoreDetail (GetStoreDetailRequest) returns (StoreDetailResponse);
+
+  rpc GetStoresByIds (GetStoresByIdsRequest) returns (GetStoresByIdsResponse);
+
+  // Tìm cửa hàng gần nhất (Dựa trên GPS User gửi lên)
+  rpc FindNearbyStores (FindNearbyStoresRequest) returns (GetStoresResponse);
+
+
+  // ==========================================
+  // GROUP 2: VALIDATION (Cho Sales Service gọi sang)
+  // ==========================================
+  
+  // Kiểm tra cửa hàng có nhận đơn được không? (Mở cửa? Còn hoạt động?)
+  rpc CheckStoreAvailability (CheckStoreAvailabilityRequest) returns (CheckStoreAvailabilityResponse);
+}
+
+// ----------------------------------------------------
+// MESSAGES DEFINITION
+// ----------------------------------------------------
+
+// Request lấy danh sách
+message GetStoresRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string keyword = 3; // Tìm theo tên
+}
+
+message GetStoresResponse {
+  repeated StoreDetailResponse items = 1;
+  int32 total_count = 2;
+  int32 total_pages = 3;
+}
+
+message GetStoresByIdsRequest {
+  repeated string ids = 1;
+}
+
+message GetStoresByIdsResponse {
+  repeated StoreDetailResponse stores = 1;
+}
+
+// Tìm quanh đây
+message FindNearbyStoresRequest {
+  double user_lat = 1;
+  double user_long = 2;
+  double radius_km = 3; // Tìm trong bán kính 5km
+  int32 limit = 4;
+}
+
+// Chi tiết cửa hàng
+message StoreDetailResponse {
+  string id = 1;
+  string name = 2;
+  string address = 3;
+  optional string phone = 4;
+  optional string image_url = 5;
+  optional double latitude = 6;
+  optional double longitude = 7;
+  bool is_open_now = 8; // Tính toán dựa trên StoreHours ngay lúc gọi
+}
+
+message GetStoreDetailRequest {
+  string id = 1;
+}
+
+// --- QUAN TRỌNG NHẤT CHO SALES SERVICE ---
+message CheckStoreAvailabilityRequest {
+  string store_id = 1;
+}
+
+message CheckStoreAvailabilityResponse {
+  bool is_available = 1; // True: Cho đặt, False: Chặn
+  string message = 2;    // Lý do: "Cửa hàng đã đóng cửa lúc 22:00"
+}

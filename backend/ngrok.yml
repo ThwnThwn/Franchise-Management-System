@@ -1,0 +1,9 @@
+version: "3"
+
+# Định nghĩa các tunnel cần mở (Ngrok free chỉ chạy 1 tunnel)
+# SaleService sẽ đóng vai trò Proxy (YARP) cho SupplierService và FranchiseService
+tunnels:
+  sale_service:
+    proto: http
+    addr: host.docker.internal:5013
+    host_header: rewrite

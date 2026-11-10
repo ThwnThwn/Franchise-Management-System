@@ -1,0 +1,36 @@
+basePath: /api
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+  description: API docs for CHD Gateway.
+  termsOfService: http://swagger.io/terms/
+  title: Capital Franchise Supply Chain Management System API Document
+  version: "1.0"
+paths:
+  /vnpay/ipn:
+    get:
+      description: Receive Instant Payment Notification (IPN) callbacks from VNPay.
+        Acts as a dispatcher to classify the transaction type (e.g., Customer Orders
+        vs. Supplier Purchase Orders) and securely route the payload to the appropriate
+        underlying Microservice via gRPC.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Always returns HTTP 200 with VNPay standard RspCode and Message
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Handle VNPay IPN Webhook
+      tags:
+      - Payments
+securityDefinitions:
+  BearerAuth:
+    description: 'Don''t forget to type "Bearer" before the token. For example: Bearer
+      eyJhbG...'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

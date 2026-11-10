@@ -1,0 +1,98 @@
+syntax = "proto3";
+
+option csharp_namespace = "IdentityService.Grpc.Protos.Auth";
+option go_package = "api-gateway/pkg/pb/identity";
+
+package identity.auth;
+
+import "identity/user.proto";
+
+service AuthGrpc {
+  rpc Login(LoginRequest) returns (LoginResponse);
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
+  rpc Logout(LogoutRequest) returns (LogoutResponse);
+  rpc ConfirmRegisterOtp (ConfirmOtpRequest) returns (ConfirmOtpResponse);
+
+  rpc ForgetPassword(ForgetPasswordRequest) returns (RegisterResponse);
+  rpc ConfirmForgetPasswordOtp(ConfirmOtpRequest) returns (ConfirmOtpForgetPasswordOtpResponse);
+  rpc NewPassword(NewPasswordRequest) returns (ConfirmOtpResponse);
+
+  rpc ReSendOtp(ReSendOtpRequest) returns (ReSendOtpResponse);
+}
+
+message LoginRequest {
+  string emailOrUsername = 1;
+  string password = 2;
+}
+
+message RegisterRequest {
+  string email = 1;
+  string username = 2;
+  string firstName = 3;
+  string lastName = 4;
+  string password = 5;
+  string phone = 6;
+  string address = 7;
+  optional int32 gender = 8;       
+  string dateOfBirth = 9; // "2002-10-21"
+}
+
+message RefreshTokenRequest {
+  string refreshToken = 1;
+}
+
+message LogoutRequest {
+  string accessToken = 1;
+  string refreshToken = 2;
+}
+
+message LogoutResponse {
+  bool success = 1;
+}
+
+message RegisterResponse {
+  string message = 1;
+}
+
+message RefreshTokenResponse {
+  string accessToken = 1;
+  string refreshToken = 2;
+}
+
+message LoginResponse {
+  string accessToken = 1;
+  string refreshToken = 2;
+  identity.user.UserResponse user = 3;
+}
+
+message ConfirmOtpRequest {
+  string email = 1;
+  string otp = 2;
+}
+
+message ConfirmOtpResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message ForgetPasswordRequest{
+  string email = 1;
+}
+
+message ConfirmOtpForgetPasswordOtpResponse {
+  string accessForgetPasswordToken = 1;
+}
+
+message NewPasswordRequest{
+  string newPassword = 2;
+}
+
+message ReSendOtpRequest{
+  string email = 1;
+  string type = 2;
+}
+
+message ReSendOtpResponse{
+  string message = 1;
+}

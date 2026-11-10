@@ -1,0 +1,305 @@
+package sales
+
+import (
+	salesGW "api-gateway/internal/application/gateways/sales"
+	"api-gateway/internal/domain/constants/enum"
+	"api-gateway/internal/domain/models/common"
+	"api-gateway/internal/domain/models/order"
+	"api-gateway/pkg/mapper"
+	salesPb "api-gateway/pkg/pb/sales"
+	"api-gateway/pkg/utils/stringutils"
+	"context"
+
+	"github.com/google/uuid"
+)
+
+type OrderGrpcClient struct {
+	client salesPb.OrderGrpcClient
+}
+
+// ProvideOrderClient trích xuất Order Client từ Factory
+func ProvideOrderClient(f *salesClientFactory) salesGW.IOrderService {
+	return &OrderGrpcClient{
+		client: salesPb.NewOrderGrpcClient(f.conn),
+	}
+}
+
+// CreateOrder implements sales.IOrderService.
+func (o *OrderGrpcClient) CreateOrder(ctx context.Context, req *order.CreateOrderRequest) (*order.OrderReply, error) {
+	pbItems := []*salesPb.CartItem{}
+
+	for _, item := range req.Items {
+		pbItems = append(pbItems, &salesPb.CartItem{
+			Sku:      item.Sku,
+			Quantity: item.Quantity,
+		})
+	}
+
+	res, err := o.client.CreateOrder(ctx, &salesPb.CreateOrderRequest{
+		Items:   pbItems,
+		Notes:   req.Notes,
+		StoreId: req.StoreId,
+
+		Type:          (*salesPb.OrderType)(req.Type),
+		ScheduledTime: req.ScheduledTime,
+		Address:       req.Address,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &order.OrderReply{
+		OrderId:           res.OrderId,
+		OrderCode:         res.OrderCode,
+		TotalAmount:       res.TotalAmount,
+		CustomerId:        res.CustomerId,
+		StoreId:           res.StoreId,
+		CheckStockRespone: mapper.MapCheckEnoughStockRes(res.CheckStockRespone),
+	}, nil
+}
+
+// UpdateOrder implements sales.IOrderService.
+func (o *OrderGrpcClient) UpdateOrder(ctx context.Context, id uuid.UUID, items []*order.UpdateOrderItem) (*order.OrderReply, error) {
+	pbItems := []*salesPb.UpdateOrderItem{}
+	for _, i := range items {
+		pbItems = append(pbItems, &salesPb.UpdateOrderItem{
+			Sku:      i.Sku,
+			Quantity: i.Quantity,
+		})
+	}
+
+	res, err := o.client.UpdateOrder(ctx, &salesPb.UpdateOrderRequest{
+		OrderId: id.String(),
+		Items:   pbItems,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &order.OrderReply{
+		OrderId:           res.OrderId,
+		OrderCode:         res.OrderCode,
+		TotalAmount:       res.TotalAmount,
+		CustomerId:        res.CustomerId,
+		StoreId:           res.StoreId,
+		CheckStockRespone: mapper.MapCheckEnoughStockRes(res.CheckStockRespone),
+	}, nil
+}
+
+// GetOrders implements sales.IOrderService.
+func (o *OrderGrpcClient) GetOrders(ctx context.Context, req *order.GetOrdersRequest) (common.PaginationResult[*order.OrderSummary], error) {
+	res, err := o.client.GetOrders(ctx, &salesPb.GetOrdersRequest{
+		StoreId:       req.StoreId,
+		Code:          req.Code,
+		Status:        req.Status,
+		PaymentMethod: req.PaymentMethod,
+		FromDate:      req.FromDate,
+		ToDate:        req.ToDate,
+		Page:          &req.Page,
+		PageSize:      &req.PageSize,
+	})
+	if err != nil {
+		return common.PaginationResult[*order.OrderSummary]{}, err
+	}
+
+	orders := make([]*order.OrderSummary, 0, len(res.Orders))
+	for _, item := range res.Orders {
+		orders = append(orders, mapper.MapOrderSummaryPbToModel(item))
+	}
+
+	return common.PaginationResult[*order.OrderSummary]{
+		Items:      orders,
+		TotalCount: res.TotalCount,
+		TotalPages: res.TotalPages,
+	}, nil
+}
+
+// GetOrderById implements sales.IOrderService.
+func (o *OrderGrpcClient) GetOrderById(ctx context.Context, id uuid.UUID) (*order.Order, error) {
+	res, err := o.client.GetOrderById(ctx, &salesPb.GetOrderByIdRequest{Id: id.String()})
+	if err != nil {
+		return nil, err
+	}
+	items := []*order.OrderItem{}
+	for _, item := range res.Order.Items {
+		items = append(items, &order.OrderItem{
+			Id:          item.Id,
+			ProductId:   item.ProductId,
+			VariantId:   item.VariantId,
+			Quantity:    item.Quantity,
+			UnitPrice:   item.UnitPrice,
+			ProductName: item.ProductName,
+			Sku:         item.Sku,
+			ImageUrl:    item.ImageUrl,
+		})
+	}
+
+	salesPb := res.Order.SaleItems
+	saleItem := make([]*order.OrderSaleItemReply, 0, len(salesPb))
+	for _, item := range salesPb {
+		saleItem = append(saleItem, &order.OrderSaleItemReply{
+			Id:          item.Id,
+			Amount:      item.Amount,
+			Type:        enum.OrderSaleItemType(item.Type),
+			ReferenceId: item.ReferenceId,
+			Name:        item.Name,
+		})
+	}
+
+	order := &order.Order{
+		OrderHeader: *mapper.MapOrderPbToHeaderModel(res.Order),
+		Items:       items,
+		Type:        enum.OrderType(res.Order.Type),
+		SaleItems:   saleItem,
+	}
+
+	return order, nil
+}
+
+// GetMyOrders implements sales.IOrderService.
+func (o *OrderGrpcClient) GetMyOrders(ctx context.Context, req *order.GetMyOrdersRequest) ([]*order.OrderSummary, error) {
+	res, err := o.client.GetMyOrders(ctx, &salesPb.GetMyOrdersRequest{
+		Page:     &req.Page,
+		PageSize: &req.PageSize,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	orders := make([]*order.OrderSummary, 0, len(res.Orders))
+	for _, o := range res.Orders {
+		orders = append(orders, mapper.MapOrderSummaryPbToModel(o))
+	}
+
+	return orders, nil
+}
+
+// UpdateStatus implements sales.IOrderService.
+func (o *OrderGrpcClient) UpdateStatus(ctx context.Context, id uuid.UUID, status enum.OrderStatus) error {
+	_, err := o.client.UpdateOrderStatus(ctx, &salesPb.UpdateOrderStatusRequest{
+		OrderId: id.String(),
+		Status:  salesPb.OrderStatus(status),
+	})
+
+	return err
+}
+
+// GetOrderVolume implements sales.IOrderService.
+func (o *OrderGrpcClient) GetOrderVolume(ctx context.Context, req *order.GetOrderVolumeRequest, includeCsv bool) (
+	*order.GetOrderVolumeReply, *order.CsvFile, error,
+) {
+	res, err := o.client.GetOrderVolume(ctx, &salesPb.GetOrderVolumeRequest{
+		FromDate:   req.FromDate,
+		ToDate:     req.ToDate,
+		StoreId:    req.StoreId,
+		Status:     (*salesPb.OrderStatus)(req.Status),
+		IncludeCsv: &includeCsv,
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+
+	orders := make([]*order.OrderVolumeADay, 0, len(res.Orders))
+	for _, item := range res.Orders {
+		orders = append(orders, &order.OrderVolumeADay{
+			Date:           item.Date,
+			TotalOrders:    item.TotalOrders,
+			CanceledOrder:  item.CanceledOrder,
+			CompletedOrder: item.CompletedOrder,
+			StoreId:        item.StoreId,
+			StatusCounts:   item.StatusCounts,
+			// CsvFile:        mapper.MapOrderCsvFilePbToModel(item.CsvFile),
+		})
+	}
+
+	if includeCsv {
+		return nil, mapper.MapOrderCsvFilePbToModel(res.CsvFile), nil
+	}
+	return &order.GetOrderVolumeReply{
+		Orders: orders,
+	}, nil, nil
+}
+
+// GetRevenueReport implements sales.IOrderService.
+func (o *OrderGrpcClient) GetRevenueReport(ctx context.Context, req *order.GetRevenueReportRequest, includeCsv bool) (
+	*order.GetRevenueReportReply, *order.CsvFile, error,
+) {
+	res, err := o.client.GetRevenueReport(ctx, &salesPb.GetRevenueReportRequest{
+		FromDate:   req.FromDate,
+		ToDate:     req.ToDate,
+		CategoryId: req.CategoryId,
+		StoreId:    req.StoreId,
+		IncludeCsv: includeCsv,
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+
+	items := make([]*order.RevenueItem, 0, len(res.Items))
+	for _, item := range res.Items {
+		items = append(items, &order.RevenueItem{
+			StoreId:      item.StoreId,
+			ProductName:  item.ProductName,
+			Sku:          item.Sku,
+			QuantitySold: item.QuantitySold,
+			UnitPrice:    item.UnitPrice,
+			TotalRevenue: item.TotalRevenue,
+		})
+	}
+
+	if includeCsv {
+		return nil, mapper.MapOrderCsvFilePbToModel(res.CsvFile), nil
+	}
+	return &order.GetRevenueReportReply{
+		FromDate:            res.FromDate,
+		ToDate:              res.ToDate,
+		CategoryId:          res.CategoryId,
+		Items:               items,
+		OverallTotalRevenue: res.OverallTotalRevenue,
+	}, nil, nil
+}
+
+// GetSalesTrend implements sales.IOrderService.
+func (o *OrderGrpcClient) GetSalesTrend(ctx context.Context, req *order.GetSalesTrendRequest, includeCsv bool) (
+	*order.GetSalesTrendReply, *order.CsvFile, error,
+) {
+	res, err := o.client.GetSalesTrend(ctx, &salesPb.GetSalesTrendRequest{
+		FromDate:    req.FromDate,
+		ToDate:      req.ToDate,
+		Aggregation: req.Aggregation,
+		StoreId:     req.StoreId,
+		CategoryId:  req.CategoryId,
+		IncludeCsv:  includeCsv,
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+
+	points := make([]*order.SalesTrendDataPoint, 0, len(res.DataPoints))
+	for _, item := range res.DataPoints {
+		points = append(points, &order.SalesTrendDataPoint{
+			TimeLabel:   item.TimeLabel,
+			OrderVolume: item.OrderVolume,
+			Revenue:     item.Revenue,
+		})
+	}
+
+	if includeCsv {
+		return nil, mapper.MapOrderCsvFilePbToModel(res.CsvFile), nil
+	}
+
+	return &order.GetSalesTrendReply{
+		DataPoints:      points,
+		PeakPeriodLabel: res.PeakPeriodLabel,
+		SlowPeriodLabel: res.SlowPeriodLabel,
+	}, nil, nil
+}
+
+// AssignStaffToDelivery implements sales.IOrderService.
+func (o *OrderGrpcClient) AssignStaffToDelivery(ctx context.Context, orderId uuid.UUID, req *order.AssignStaffToDeliveryRequest) error {
+	_, err := o.client.AssignStaffToDelivery(ctx, &salesPb.AssignStaffToDeliveryRequest{
+		OrderId: orderId.String(),
+		StaffId: stringutils.UuidPtrToStringPtr(req.StaffId),
+	})
+	return err
+}
